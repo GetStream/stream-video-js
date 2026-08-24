@@ -179,7 +179,11 @@ import {
   SpeakerManager,
 } from './devices';
 import { normalize } from './devices/devicePersistence';
-import { hasPending, withoutConcurrency } from './helpers/concurrency';
+import {
+  hasPending,
+  withSingleFlight,
+  withoutConcurrency,
+} from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
 import { pushToIfMissing } from './helpers/array';
 import {
@@ -337,11 +341,11 @@ export class Call {
   private deviceSettingsAppliedOnce = false;
   private callManagerStarted = false;
   private leaveGeneration = 0;
-  private joinPromise?: Promise<void>;
   private credentials?: Credentials;
 
   private initialized = false;
   private readonly acceptRejectConcurrencyTag = Symbol('acceptRejectTag');
+  private readonly joinConcurrencyTag = Symbol('joinConcurrencyTag');
   private readonly joinLeaveConcurrencyTag = Symbol('joinLeaveConcurrencyTag');
 
   /**
@@ -1112,21 +1116,15 @@ export class Call {
     rpcRequestTimeout?: number;
     allowOwnTracksLoopback?: boolean;
   } = {}): Promise<void> => {
-    if (this.joinPromise) return this.joinPromise;
-
-    const joinPromise = this.executeJoin({
-      maxJoinRetries,
-      joinResponseTimeout,
-      rpcRequestTimeout,
-      allowOwnTracksLoopback,
-      ...data,
-    }).finally(() => {
-      if (this.joinPromise === joinPromise) {
-        this.joinPromise = undefined;
-      }
-    });
-    this.joinPromise = joinPromise;
-    return joinPromise;
+    return withSingleFlight(this.joinConcurrencyTag, () =>
+      this.executeJoin({
+        maxJoinRetries,
+        joinResponseTimeout,
+        rpcRequestTimeout,
+        allowOwnTracksLoopback,
+        ...data,
+      }),
+    );
   };
 
   private executeJoin = async ({

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   hasPending,
   withCancellation,
+  withSingleFlight,
   withoutConcurrency,
 } from '../concurrency';
 
@@ -166,6 +167,64 @@ it('keeps track of pending promises', async () => {
   resolve2();
   await ready2;
   expect(hasPending(tag)).toBeFalsy();
+});
+
+describe('single flight', () => {
+  it('shares an in-flight promise for the same tag', async () => {
+    const tag = Symbol();
+    const [run1, resolve1] = mockAsyncFn('promise1');
+    const [run2] = mockAsyncFn('promise2');
+
+    const ready1 = withSingleFlight(tag, run1);
+    const ready2 = withSingleFlight(tag, run2);
+
+    expect(ready2).toBe(ready1);
+    expect(log).toMatchObject(['promise1 start']);
+
+    resolve1();
+    await expect(Promise.all([ready1, ready2])).resolves.toEqual([
+      undefined,
+      undefined,
+    ]);
+    expect(log).toMatchObject(['promise1 start', 'promise1 end']);
+  });
+
+  it('allows a new execution after the in-flight promise settles', async () => {
+    const tag = Symbol();
+    const [run1, resolve1] = mockAsyncFn('promise1');
+    const [run2, resolve2] = mockAsyncFn('promise2');
+
+    const ready1 = withSingleFlight(tag, run1);
+    resolve1();
+    await ready1;
+
+    const ready2 = withSingleFlight(tag, run2);
+    expect(ready2).not.toBe(ready1);
+
+    resolve2();
+    await ready2;
+    expect(log).toMatchObject([
+      'promise1 start',
+      'promise1 end',
+      'promise2 start',
+      'promise2 end',
+    ]);
+  });
+
+  it('does not share promises across different tags', async () => {
+    const [runTom, resolveTom] = mockAsyncFn('tom');
+    const [runJerry, resolveJerry] = mockAsyncFn('jerry');
+
+    const readyTom = withSingleFlight(Symbol('tom'), runTom);
+    const readyJerry = withSingleFlight(Symbol('jerry'), runJerry);
+
+    expect(readyJerry).not.toBe(readyTom);
+    expect(log).toMatchObject(['tom start', 'jerry start']);
+
+    resolveTom();
+    resolveJerry();
+    await Promise.all([readyTom, readyJerry]);
+  });
 });
 
 describe('cancelation', () => {

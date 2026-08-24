@@ -44,6 +44,31 @@ export const withoutConcurrency = createRunner(wrapWithContinuationTracking);
 export const withCancellation = createRunner(wrapWithCancellation);
 
 const pendingPromises = new Map<TagKey, PendingPromise>();
+const singleFlightPromises = new Map<TagKey, Promise<unknown>>();
+
+/**
+ * Runs an async function once while it is in flight. Concurrent calls with the
+ * same tag share the in-flight promise instead of queueing another execution.
+ *
+ * @param tag Async functions with the same tag will share the in-flight promise.
+ * @param cb Async function to run.
+ * @returns Promise that resolves with the shared async function result.
+ */
+export function withSingleFlight<T>(
+  tag: TagKey,
+  cb: () => Promise<T>,
+): Promise<T> {
+  const pending = singleFlightPromises.get(tag) as Promise<T> | undefined;
+  if (pending) return pending;
+
+  const promise = cb().finally(() => {
+    if (singleFlightPromises.get(tag) === promise) {
+      singleFlightPromises.delete(tag);
+    }
+  });
+  singleFlightPromises.set(tag, promise);
+  return promise;
+}
 
 export function hasPending(tag: TagKey) {
   return pendingPromises.has(tag);
