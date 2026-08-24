@@ -7,11 +7,6 @@ export type FirebaseRemoteMessage = NonNullable<
   Awaited<ReturnType<MessagingModule['getInitialNotification']>>
 >;
 
-export type FirebaseMessagingCompat = {
-  getToken: () => Promise<string>;
-  onTokenRefresh: (listener: (token: string) => void) => () => void;
-};
-
 function getFirebaseMessagingModule() {
   if (!lib) {
     throw Error(
@@ -22,14 +17,12 @@ function getFirebaseMessagingModule() {
   return lib;
 }
 
-export function getFirebaseMessagingLib(): () => FirebaseMessagingCompat {
+export function getFirebaseMessagingLib() {
   const messagingModule = getFirebaseMessagingModule();
-  return () => {
-    const messaging = messagingModule.getMessaging();
-    return {
-      getToken: () => messagingModule.getToken(messaging),
-      onTokenRefresh: (listener) =>
-        messagingModule.onTokenRefresh(messaging, listener),
-    };
-  };
+  const messaging = messagingModule.getMessaging();
+  return () => ({
+    getToken: () => messagingModule.getToken(messaging),
+    onTokenRefresh: (listener: (token: string) => void) =>
+      messagingModule.onTokenRefresh(messaging, listener),
+  });
 }
