@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   hasPending,
+  singleFlight,
   withCancellation,
-  withSingleFlight,
   withoutConcurrency,
 } from '../concurrency';
 
@@ -170,13 +170,12 @@ it('keeps track of pending promises', async () => {
 });
 
 describe('single flight', () => {
-  it('shares an in-flight promise for the same tag', async () => {
-    const tag = Symbol();
+  it('shares an in-flight promise for the wrapped function', async () => {
     const [run1, resolve1] = mockAsyncFn('promise1');
-    const [run2] = mockAsyncFn('promise2');
+    const run = singleFlight(run1);
 
-    const ready1 = withSingleFlight(tag, run1);
-    const ready2 = withSingleFlight(tag, run2);
+    const ready1 = run();
+    const ready2 = run();
 
     expect(ready2).toBe(ready1);
     expect(log).toMatchObject(['promise1 start']);
@@ -190,33 +189,34 @@ describe('single flight', () => {
   });
 
   it('allows a new execution after the in-flight promise settles', async () => {
-    const tag = Symbol();
     const [run1, resolve1] = mockAsyncFn('promise1');
-    const [run2, resolve2] = mockAsyncFn('promise2');
+    const run = singleFlight(run1);
 
-    const ready1 = withSingleFlight(tag, run1);
+    const ready1 = run();
     resolve1();
     await ready1;
 
-    const ready2 = withSingleFlight(tag, run2);
+    const ready2 = run();
     expect(ready2).not.toBe(ready1);
 
-    resolve2();
+    resolve1();
     await ready2;
     expect(log).toMatchObject([
       'promise1 start',
       'promise1 end',
-      'promise2 start',
-      'promise2 end',
+      'promise1 start',
+      'promise1 end',
     ]);
   });
 
-  it('does not share promises across different tags', async () => {
+  it('does not share promises across different wrapped functions', async () => {
     const [runTom, resolveTom] = mockAsyncFn('tom');
     const [runJerry, resolveJerry] = mockAsyncFn('jerry');
+    const tom = singleFlight(runTom);
+    const jerry = singleFlight(runJerry);
 
-    const readyTom = withSingleFlight(Symbol('tom'), runTom);
-    const readyJerry = withSingleFlight(Symbol('jerry'), runJerry);
+    const readyTom = tom();
+    const readyJerry = jerry();
 
     expect(readyJerry).not.toBe(readyTom);
     expect(log).toMatchObject(['tom start', 'jerry start']);
@@ -224,6 +224,21 @@ describe('single flight', () => {
     resolveTom();
     resolveJerry();
     await Promise.all([readyTom, readyJerry]);
+  });
+
+  it('shares the first call arguments while a call is in flight', async () => {
+    const run = singleFlight(async (value: string) => {
+      log.push(`${value} start`);
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      log.push(`${value} end`);
+      return value;
+    });
+
+    await expect(Promise.all([run('first'), run('second')])).resolves.toEqual([
+      'first',
+      'first',
+    ]);
+    expect(log).toMatchObject(['first start', 'first end']);
   });
 });
 
