@@ -1,0 +1,171 @@
+/**
+ * Do not edit directly, this file was auto-generated.
+ */
+
+@mixin variables {
+  --str-video__background-core-overlay-light: rgba(
+    0,
+    0,
+    0,
+    0.75
+  ); /** A light semi-transparent layer. Used to lighten surfaces and for hover states on dark backgrounds. */
+  --str-video__background-core-overlay-dark: rgba(
+    0,
+    0,
+    0,
+    0.5
+  ); /** A dark semi-transparent layer. Used for image overlays. */
+  --str-video__background-core-scrim: rgba(
+    0,
+    0,
+    0,
+    0.75
+  ); /** A heavy semi-transparent layer. Used behind sheets, drawers, and modals to separate them from content. */
+  --str-video__background-core-overlay-dark-strong: rgba(
+    0,
+    0,
+    0,
+    0.75
+  ); /** A dark semi-transparent layer. Used for image overlays. */
+  --str-video__background-utility-hover: rgba(
+    255,
+    255,
+    255,
+    0.15
+  ); /** A semi-transparent overlay applied on pointer hover. Sits on top of any surface without replacing it. */
+  --str-video__background-utility-pressed: rgba(
+    255,
+    255,
+    255,
+    0.2
+  ); /** A slightly stronger overlay applied during an active press or tap. Provides tactile feedback on interactive elements. */
+  --str-video__background-utility-selected: rgba(
+    255,
+    255,
+    255,
+    0.25
+  ); /** Indicates an active or selected state. Used for selected messages, active list items, and toggled controls. */
+  --str-video__border-utility-selected: rgba(
+    255,
+    255,
+    255,
+    0.15
+  ); /** Border for selected or active items. Used for highlighted list items and active controls. */
+  --str-video__border-utility-hover: rgba(
+    255,
+    255,
+    255,
+    0.1
+  ); /** Applied on pointer hover over bordered interactive elements. */
+  --str-video__border-utility-pressed: rgba(
+    255,
+    255,
+    255,
+    0.2
+  ); /** Applied during an active press on bordered interactive elements. */
+  --str-video__border-core-opacity-subtle: rgba(
+    255,
+    255,
+    255,
+    0.2
+  ); /** A very light transparent border. Used as a frame treatment on images and media attachments. */
+  --str-video__border-core-opacity-strong: rgba(
+    255,
+    255,
+    255,
+    0.25
+  ); /** A stronger transparent border for elements on colored or dark backgrounds. Used for waveform bars and similar treatments. */
+  --str-video__system-bg-blur: rgba(0, 0, 0, 0.01);
+  --str-video__system-scrollbar: rgba(255, 255, 255, 0.5);
+  /**
+   * Minimum interactive hit target size.
+   * 
+   * iOS / Android: enforce minimum touch target.
+   * Web: do not apply a min-width or min-height; size to content.
+   * 
+   * Note: Web uses a placeholder value in Figma due to variable mode constraints.
+   */
+  /**
+   * Minimum interactive hit target size.
+   * 
+   * iOS / Android: enforce minimum touch target.
+   * Web: do not apply a min-width or min-height; size to content.
+   * 
+   * Note: Web uses a placeholder value in Figma due to variable mode constraints.
+   */
+  --str-video__background-core-highlight: var(
+    --str-video__yellow-800
+  ); /** A tint for drawing attention to content. Used for highlights and pinned messages. */
+  --str-video__avatar-palette-bg-1: var(--str-video__blue-600);
+  --str-video__avatar-palette-bg-2: var(--str-video__cyan-600);
+  --str-video__avatar-palette-bg-3: var(--str-video__green-600);
+  --str-video__avatar-palette-bg-4: var(--str-video__purple-600);
+  --str-video__avatar-palette-bg-5: var(--str-video__yellow-600);
+  --str-video__avatar-palette-text-1: var(--str-video__blue-100);
+  --str-video__avatar-palette-text-2: var(--str-video__cyan-100);
+  --str-video__avatar-palette-text-3: var(--str-video__green-100);
+  --str-video__avatar-palette-text-4: var(--str-video__purple-100);
+  --str-video__avatar-palette-text-5: var(--str-video__yellow-100);
+  --str-video__accent-success: var(
+    --str-video__green-300
+  ); /** Indicates a positive or completed state. Used for confirmations, sent indicators, and success feedback. */
+  --str-video__accent-warning: var(
+    --str-video__yellow-300
+  ); /** Indicates a cautionary state that requires attention. Used for moderation flags and non-critical alerts. */
+  --str-video__accent-error: var(
+    --str-video__red-400
+  ); /** Indicates a failure or destructive state. Used for failed messages, validation errors, and deletions. */
+  --str-video__brand-50: var(--str-video__blue-900);
+  --str-video__brand-100: var(--str-video__blue-800);
+  --str-video__brand-150: var(--str-video__blue-700);
+  --str-video__brand-200: var(--str-video__blue-600);
+  --str-video__brand-300: var(--str-video__blue-500);
+  --str-video__brand-500: var(--str-video__blue-300);
+  --str-video__brand-600: var(--str-video__blue-200);
+  --str-video__brand-700: var(--str-video__blue-150);
+  --str-video__brand-800: var(--str-video__blue-100);
+  --str-video__brand-900: var(--str-video__blue-50);
+  --str-video__chrome-0: var(--str-video__base-black);
+  --str-video__chrome-50: var(--str-video__neutral-900);
+  --str-video__chrome-100: var(--str-video__neutral-800);
+  --str-video__chrome-150: var(--str-video__neutral-700);
+  --str-video__chrome-200: var(--str-video__neutral-600);
+  --str-video__chrome-300: var(--str-video__neutral-500);
+  --str-video__chrome-400: var(--str-video__neutral-400);
+  --str-video__chrome-500: var(--str-video__neutral-300);
+  --str-video__chrome-600: var(--str-video__neutral-200);
+  --str-video__chrome-700: var(--str-video__neutral-150);
+  --str-video__chrome-800: var(--str-video__neutral-100);
+  --str-video__chrome-900: var(--str-video__neutral-50);
+  --str-video__chrome-1000: var(--str-video__base-white);
+  --str-video__background-core-elevation-1: var(
+    --str-video__chrome-50
+  ); /** Slightly raised surfaces. Used for content containers that sit directly on the base layer, such as the message list and channel list. */
+  --str-video__background-core-elevation-2: var(
+    --str-video__chrome-100
+  ); /** Floating and modal surfaces. Used for popovers, dropdowns, dialogs, and any element that interrupts the content flow. */
+  --str-video__background-core-elevation-3: var(
+    --str-video__chrome-200
+  ); /** Used for badge counts that float above other UI elements. */
+  --str-video__background-core-surface-card: var(
+    --str-video__chrome-100
+  ); /** Background for contained, card-style elements. Matches the surface in light mode but lifts slightly in dark mode to maintain visual separation. */
+  --str-video__background-core-on-accent: var(
+    --str-video__chrome-1000
+  ); /** Background for elements placed on an accent-colored surface. Ensures legibility against brand colors. */
+  --str-video__border-core-default: var(
+    --str-video__chrome-200
+  ); /** Standard border for surfaces and containers. Used for input fields, cards, and dividers on neutral backgrounds. */
+  --str-video__border-core-on-accent: var(
+    --str-video__chrome-1000
+  ); /** Border on accent-colored surfaces. Stays white in both modes since the accent background doesn't invert. */
+  --str-video__text-on-accent: var(
+    --str-video__chrome-1000
+  ); /** Text on accent-colored surfaces. Stays white in both light and dark mode since the accent background doesn't invert. */
+  --str-video__text-link: var(
+    --str-video__brand-600
+  ); /** Hyperlinks and inline actions. Uses the brand color to signal interactivity within text content. */
+  --str-video__accent-primary: var(
+    --str-video__brand-400
+  ); /** The main brand color. Used for interactive elements, buttons, links, and primary actions. Override this to apply your brand color across the SDK. */
+}
