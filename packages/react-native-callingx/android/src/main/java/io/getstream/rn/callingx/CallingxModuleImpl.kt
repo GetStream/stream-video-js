@@ -250,20 +250,21 @@ class CallingxModuleImpl(
             return
         }
 
-        // for now only display options will be updated, rest of the parameters will be ignored
         try {
-            startCallService(
-                    CallService.ACTION_UPDATE_CALL,
-                    callId,
-                    callerName,
-                    phoneNumber,
-                    true,
-                    displayOptions,
-            )
+            Intent(reactApplicationContext, CallService::class.java)
+                    .apply {
+                        this.action = CallService.ACTION_UPDATE_CALL
+                        putExtra(CallService.EXTRA_CALL_ID, callId)
+                        putExtra(CallService.EXTRA_NAME, callerName)
+                        putExtra(CallService.EXTRA_URI, phoneNumber.toUri())
+                        putExtra(CallService.EXTRA_IS_VIDEO, true)
+                        putExtra(CallService.EXTRA_DISPLAY_OPTIONS, Arguments.toBundle(displayOptions))
+                    }
+                    .also { reactApplicationContext.startService(it) }
             promise.resolve(true)
         } catch (e: Exception) {
-            Log.e(TAG, "[module] updateDisplay: Failed to start foreground service: ${e.message}", e)
-            promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
+            Log.e(TAG, "[module] updateDisplay: Failed to start service: ${e.message}", e)
+            promise.reject("START_SERVICE_ERROR", e.message, e)
         }
     }
 

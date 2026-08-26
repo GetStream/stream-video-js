@@ -281,11 +281,9 @@ class CallService : Service(), CallRepository.Listener {
             }
             ACTION_START_BACKGROUND_TASK -> {
                 startBackgroundTask(intent)
-                return START_NOT_STICKY
             }
             ACTION_STOP_BACKGROUND_TASK -> {
                 stopBackgroundTask()
-                return START_NOT_STICKY
             }
             ACTION_UPDATE_CALL -> {
                 updateCall(intent)
@@ -305,11 +303,10 @@ class CallService : Service(), CallRepository.Listener {
             else -> {
                 Log.e(TAG, "[service] onStartCommand: Unknown action: ${intent.action}")
                 stopSelf()
-                return START_NOT_STICKY
             }
         }
 
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     override fun onBind(intent: Intent): IBinder? = binder
