@@ -223,13 +223,34 @@ class CallNotificationManager(
             notificationsState[callId]?.copy(lastSnapshot = newSnapshot)
                 ?: CallNotificationState(lastSnapshot = newSnapshot)
         val notification = createNotification(callId, call)
-        notificationManager.notify(notificationId, notification)
+        notifySafely(notificationId, notification)
         debugLog(TAG, "[notifications] updateCallNotification[$callId]: Notification posted (id=$notificationId)")
     }
 
     fun postNotification(callId: String, notification: Notification) = synchronized(lock) {
         val notificationId = getOrCreateNotificationId(callId)
-        notificationManager.notify(notificationId, notification)
+        notifySafely(notificationId, notification)
+    }
+
+    /**
+     * Posts a notification without letting a platform rejection take down the app.
+     *
+     * The system wraps any failure while sanitizing a notification attached to a foreground
+     * service into `SecurityException("Invalid FGS notification", cause)`. The underlying causes
+     * are transient or device specific (package lookups during user switches, OEM notification
+     * hooks), so the only viable defence is to log and keep the call alive; the next state change
+     * re-posts the notification.
+     */
+    private fun notifySafely(notificationId: Int, notification: Notification) {
+        try {
+            notificationManager.notify(notificationId, notification)
+        } catch (e: Exception) {
+            Log.e(
+                    TAG,
+                    "[notifications] notifySafely: Failed to post notification (id=$notificationId): ${e.message}",
+                    e
+            )
+        }
     }
 
     /**
@@ -385,8 +406,16 @@ class CallNotificationManager(
         val displayCallerName = call.displayOptions?.getString(CallService.EXTRA_DISPLAY_TITLE)
         val address = call.callAttributes.address.toString()
 
+        // CallStyle rejects a Person with a blank name (IllegalArgumentException at build time),
+        // so fall back through the display title, the call attributes and finally a static default.
+        val name =
+                sequenceOf(displayCallerName, call.callAttributes.displayName.toString())
+                        .mapNotNull { it?.trim() }
+                        .firstOrNull { it.isNotEmpty() }
+                        ?: CallService.DEFAULT_DISPLAY_NAME
+
         return Person.Builder()
-                .setName(displayCallerName ?: call.callAttributes.displayName)
+                .setName(name)
                 .setUri(address)
                 .setIcon(IconCompat.createWithResource(context, R.drawable.ic_user))
                 .setImportant(true)
