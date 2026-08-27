@@ -15,6 +15,118 @@ const logger = videoLoggerSystem.getLogger('callingx');
 type CanAddPushWSSubscriptionsRef = { current: boolean };
 
 /**
+ * How long `onBeforeCallJoin` may take before it is treated as failed.
+ *
+ * The hook runs inside the CallKit accept, which iOS gives a hard deadline of
+ * roughly 30s before killing the app. Failing well short of that leaves room to
+ * report the failure and end the native call cleanly, and a hook that legitimately
+ * needs longer than this does not belong on the accept path at all.
+ */
+const ON_BEFORE_CALL_JOIN_TIMEOUT_MS = 5_000;
+
+/**
+ * Runs the app's `onBeforeCallJoin` hook, if any, bounded by a timeout.
+ *
+ * Rejects when the hook rejects or outruns the timeout. Callers must treat that as
+ * fail-closed and skip the join: the hook is where a call gets its E2EE manager, and
+ * joining without one would publish unencrypted media on a call the user believes is
+ * private, with no UI on this path to reveal it.
+ */
+const runOnBeforeCallJoin = async (
+  pushConfig: PushConfig,
+  call: Call,
+): Promise<void> => {
+  if (!pushConfig.onBeforeCallJoin) {
+    return;
+  }
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      pushConfig.onBeforeCallJoin(call),
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(
+          () =>
+            reject(
+              new Error(
+                `onBeforeCallJoin did not settle within ${ON_BEFORE_CALL_JOIN_TIMEOUT_MS}ms`,
+              ),
+            ),
+          ON_BEFORE_CALL_JOIN_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+/**
+ * Calls the app's `onAfterCallLeave` hook once the call has left.
+ *
+ * Nothing is gated on it, so a sync throw and an async rejection are both merely
+ * logged - but they are logged rather than escaping, since an unhandled rejection
+ * here would surface as unrelated-looking noise far from its cause.
+ */
+const notifyAfterCallLeave = (pushConfig: PushConfig, call: Call): void => {
+  if (!pushConfig.onAfterCallLeave) {
+    return;
+  }
+  try {
+    Promise.resolve(pushConfig.onAfterCallLeave(call)).catch((e) => {
+      logger.warn(`onAfterCallLeave failed for callCid: ${call.cid}`, e);
+    });
+  } catch (e) {
+    logger.warn(`onAfterCallLeave threw for callCid: ${call.cid}`, e);
+  }
+};
+
+/**
+ * Fires `onAfterCallLeave` the first time the call reaches LEFT.
+ *
+ * Deliberately driven off the call's own state rather than wired into each place
+ * that ends a call - there are several (decline here, the iOS close-condition
+ * watcher, the Android endCall listener) and a per-site hook would silently skip
+ * whichever one was missed. Resources the app releases here, an E2EE manager above
+ * all, have no other cleanup on this path: the call can end while the app is still
+ * in the background, so no React unmount ever runs.
+ */
+const notifyAfterCallLeaveOnce = (
+  pushConfig: PushConfig,
+  call: Call,
+):
+  | {
+      unsubscribe: () => void;
+      /**
+       * Fires the hook immediately, for the case where the call is finished with
+       * without ever reaching LEFT - a join that throws after the pre-join hook
+       * already ran, whose resources would otherwise never be released.
+       */
+      notifyNow: () => void;
+    }
+  | undefined => {
+  if (!pushConfig.onAfterCallLeave) {
+    return undefined;
+  }
+  let notified = false;
+  const notifyOnce = () => {
+    if (notified) {
+      return;
+    }
+    notified = true;
+    notifyAfterCallLeave(pushConfig, call);
+  };
+  const subscription = call.state.callingState$.subscribe((callingState) => {
+    if (callingState === CallingState.LEFT) {
+      notifyOnce();
+    }
+  });
+  return {
+    unsubscribe: () => subscription.unsubscribe(),
+    notifyNow: notifyOnce,
+  };
+};
+
+/**
  * This function is used to check if the call should be ended based on the push notification
  * Useful for callkeep management to end the call if necessary (with reportEndCallWithUUID)
  */
@@ -120,6 +232,26 @@ export const processCallFromPushInBackground = async (
       onIOSActionCanBeFulfilled(true);
       return;
     }
+    // Fail closed: the join is the point of no return for per-call setup, so a hook
+    // that throws or stalls aborts it rather than proceeding without whatever it was
+    // meant to install.
+    try {
+      await runOnBeforeCallJoin(pushConfig, callFromPush);
+    } catch (e) {
+      logger.error(
+        `processCallFromPushInBackground: onBeforeCallJoin failed, not joining callCid: ${callFromPush.cid}`,
+        e,
+      );
+      onIOSActionCanBeFulfilled(true);
+      return;
+    }
+    const afterCallLeave = notifyAfterCallLeaveOnce(pushConfig, callFromPush);
+    if (afterCallLeave) {
+      pushUnsubscriptionCallbacks.set(call_cid, [
+        ...(pushUnsubscriptionCallbacks.get(call_cid) ?? []),
+        afterCallLeave.unsubscribe,
+      ]);
+    }
     try {
       onIOSActionCanBeFulfilled(false);
       await callFromPush.join();
@@ -128,6 +260,9 @@ export const processCallFromPushInBackground = async (
         'processCallFromPushInBackground: failed to join call from push notification',
         e,
       );
+      // The pre-join hook already ran, so anything it installed is live on a call
+      // that will never join and may never reach LEFT. Release it here.
+      afterCallLeave?.notifyNow();
     }
   } else if (action === 'decline') {
     const alreadyLeft = callFromPush.state.callingState === CallingState.LEFT;

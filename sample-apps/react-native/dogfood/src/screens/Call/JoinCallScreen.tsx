@@ -25,6 +25,10 @@ import { TextInput } from '../../components/TextInput';
 import { KnownUsers } from '../../constants/KnownUsers';
 import { randomId } from '../../modules/helpers/randomId';
 import { useOrientation } from '../../hooks/useOrientation';
+import {
+  attachE2EEIfConfigured,
+  getE2EESettingsOverride,
+} from '../../utils/e2ee';
 
 const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
@@ -58,6 +62,10 @@ const JoinCallScreen = () => {
               auto_cancel_timeout_ms: 30000,
               incoming_call_timeout_ms: 30000,
             },
+            // Merged rather than assigned: the ring timeouts above are what make the
+            // callee's quit-state case work, and encryption mode is frozen at
+            // creation, so it has to be requested here or not at all.
+            ...getE2EESettingsOverride(),
           },
           members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
             return {
@@ -66,6 +74,11 @@ const JoinCallScreen = () => {
           }),
         },
       });
+      // The caller's own join is triggered inside the client when the callee accepts,
+      // so attach now: this is the whole window, and it stays open until then.
+      if (call) {
+        await attachE2EEIfConfigured(call);
+      }
     } catch (error) {
       if (error instanceof Error) {
         Alert.alert('Error calling users', error.message);

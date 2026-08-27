@@ -11,6 +11,7 @@ import { MeetingUI } from '../../components/MeetingUI';
 import { createToken } from '../../modules/helpers/createToken';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { useCustomTheme } from '../../theme';
+import { getE2EESettingsOverride } from '../../utils/e2ee';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -77,9 +78,14 @@ export const GuestMeetingScreen = (props: Props) => {
   }, [callId, callType, videoClient]);
 
   useEffect(() => {
-    call?.getOrCreate().catch((err) => {
-      console.error('Failed to get or create call', err);
-    });
+    const settings_override = getE2EESettingsOverride();
+    call
+      ?.getOrCreate(
+        settings_override ? { data: { settings_override } } : undefined,
+      )
+      .catch((err) => {
+        console.error('Failed to get or create call', err);
+      });
   }, [call]);
 
   if (!videoClient || !call) {

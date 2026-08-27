@@ -1669,6 +1669,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@craftzdog/react-native-buffer@npm:^6.1.2":
+  version: 6.1.2
+  resolution: "@craftzdog/react-native-buffer@npm:6.1.2"
+  dependencies:
+    ieee754: "npm:^1.2.1"
+    react-native-quick-base64: "npm:^3.0.0"
+  checksum: 10/c424beec79d6438ea305c07177f39ef737dc0e6fded31dd81f47b7b26f7a34acacd40d7cc1a0f3601c840cd695c8812fad2a73ae437e7641d1f6f367c68a7112
+  languageName: node
+  linkType: hard
+
 "@egjs/hammerjs@npm:^2.0.17":
   version: 2.0.17
   resolution: "@egjs/hammerjs@npm:2.0.17"
@@ -6942,6 +6952,30 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@stream-io/react-native-webrtc@file:/Users/santhoshvaiyapuri/Documents/.stream-webrtc-local/stream-io-react-native-webrtc-0.0.0-local.1787231534.tgz::locator=%40stream-io%2Fvideo-react-native-dogfood%40workspace%3Asample-apps%2Freact-native%2Fdogfood":
+  version: 0.0.0-local.1787231534
+  resolution: "@stream-io/react-native-webrtc@file:/Users/santhoshvaiyapuri/Documents/.stream-webrtc-local/stream-io-react-native-webrtc-0.0.0-local.1787231534.tgz#/Users/santhoshvaiyapuri/Documents/.stream-webrtc-local/stream-io-react-native-webrtc-0.0.0-local.1787231534.tgz::hash=6261aa&locator=%40stream-io%2Fvideo-react-native-dogfood%40workspace%3Asample-apps%2Freact-native%2Fdogfood"
+  dependencies:
+    base64-js: "npm:^1.5.1"
+    debug: "npm:^4.4.3"
+  peerDependencies:
+    react-native: ">=0.73.0"
+  checksum: 10/cb8fcf4fc08875a040464ba302e0b0b4429eb7674fd20a620bc12ff51bc74abbcb9ad9816f7326a9608f6e244bc6d0b9067155df5c8d630679bc13744d3f6838
+  languageName: node
+  linkType: hard
+
+"@stream-io/react-native-webrtc@file:/Users/santhoshvaiyapuri/Documents/.stream-webrtc-local/stream-io-react-native-webrtc-0.0.0-local.1787231534.tgz::locator=%40stream-io%2Fvideo-react-native-sdk%40workspace%3Apackages%2Freact-native-sdk":
+  version: 0.0.0-local.1787231534
+  resolution: "@stream-io/react-native-webrtc@file:/Users/santhoshvaiyapuri/Documents/.stream-webrtc-local/stream-io-react-native-webrtc-0.0.0-local.1787231534.tgz#/Users/santhoshvaiyapuri/Documents/.stream-webrtc-local/stream-io-react-native-webrtc-0.0.0-local.1787231534.tgz::hash=6261aa&locator=%40stream-io%2Fvideo-react-native-sdk%40workspace%3Apackages%2Freact-native-sdk"
+  dependencies:
+    base64-js: "npm:^1.5.1"
+    debug: "npm:^4.4.3"
+  peerDependencies:
+    react-native: ">=0.73.0"
+  checksum: 10/cb8fcf4fc08875a040464ba302e0b0b4429eb7674fd20a620bc12ff51bc74abbcb9ad9816f7326a9608f6e244bc6d0b9067155df5c8d630679bc13744d3f6838
+  languageName: node
+  linkType: hard
+
 "@stream-io/react-native-webrtc@npm:145.3.1":
   version: 145.3.1
   resolution: "@stream-io/react-native-webrtc@npm:145.3.1"
@@ -7218,7 +7252,7 @@ __metadata:
     "@react-navigation/native-stack": "npm:^7.18.6"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:145.3.1"
+    "@stream-io/react-native-webrtc": "file:/Users/santhoshvaiyapuri/Documents/.stream-webrtc-local/stream-io-react-native-webrtc-0.0.0-local.1787231534.tgz"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:^19.2.18"
@@ -7235,6 +7269,8 @@ __metadata:
     react-native-mmkv: "npm:^4.3.2"
     react-native-nitro-modules: "npm:^0.36.5"
     react-native-permissions: "npm:^5.6.1"
+    react-native-quick-base64: "npm:^3.0.1"
+    react-native-quick-crypto: "npm:^1.1.7"
     react-native-reanimated: "npm:4.5.3"
     react-native-safe-area-context: "npm:~5.8.0"
     react-native-screens: "npm:4.26.2"
@@ -7310,7 +7346,7 @@ __metadata:
     "@react-native/metro-config": "npm:0.86.2"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:145.3.1"
+    "@stream-io/react-native-webrtc": "file:/Users/santhoshvaiyapuri/Documents/.stream-webrtc-local/stream-io-react-native-webrtc-0.0.0-local.1787231534.tgz"
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/video-client": "workspace:*"
     "@stream-io/video-filters-react-native": "workspace:^"
@@ -9381,6 +9417,16 @@ __metadata:
     base64-js: "npm:^1.3.1"
     ieee754: "npm:^1.1.13"
   checksum: 10/997434d3c6e3b39e0be479a80288875f71cd1c07d75a3855e6f08ef848a3c966023f79534e22e415ff3a5112708ce06127277ab20e527146d55c84566405c7c6
+  languageName: node
+  linkType: hard
+
+"buffer@npm:^6.0.3":
+  version: 6.0.3
+  resolution: "buffer@npm:6.0.3"
+  dependencies:
+    base64-js: "npm:^1.3.1"
+    ieee754: "npm:^1.2.1"
+  checksum: 10/b6bc68237ebf29bdacae48ce60e5e28fc53ae886301f2ad9496618efac49427ed79096750033e7eab1897a4f26ae374ace49106a5758f38fb70c78c9fda2c3b1
   languageName: node
   linkType: hard
 
@@ -11562,6 +11608,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"events@npm:3.3.0, events@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "events@npm:3.3.0"
+  checksum: 10/a3d47e285e28d324d7180f1e493961a2bbb4cad6412090e4dec114f4db1f5b560c7696ee8e758f55e23913ede856e3689cd3aa9ae13c56b5d8314cd3b3ddd1be
+  languageName: node
+  linkType: hard
+
 "execa@npm:^5.0.0":
   version: 5.1.1
   resolution: "execa@npm:5.1.1"
@@ -13480,6 +13533,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"is-arguments@npm:^1.0.4":
+  version: 1.2.0
+  resolution: "is-arguments@npm:1.2.0"
+  dependencies:
+    call-bound: "npm:^1.0.2"
+    has-tostringtag: "npm:^1.0.2"
+  checksum: 10/471a8ef631b8ee8829c43a8ab05c081700c0e25180c73d19f3bf819c1a8448c426a9e8e601f278973eca68966384b16ceb78b8c63af795b099cd199ea5afc457
+  languageName: node
+  linkType: hard
+
 "is-array-buffer@npm:^3.0.4, is-array-buffer@npm:^3.0.5":
   version: 3.0.5
   resolution: "is-array-buffer@npm:3.0.5"
@@ -13654,7 +13717,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-generator-function@npm:^1.0.10":
+"is-generator-function@npm:^1.0.10, is-generator-function@npm:^1.0.7":
   version: 1.1.2
   resolution: "is-generator-function@npm:1.1.2"
   dependencies:
@@ -13839,7 +13902,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-typed-array@npm:^1.1.13, is-typed-array@npm:^1.1.14, is-typed-array@npm:^1.1.15":
+"is-typed-array@npm:^1.1.13, is-typed-array@npm:^1.1.14, is-typed-array@npm:^1.1.15, is-typed-array@npm:^1.1.3":
   version: 1.1.15
   resolution: "is-typed-array@npm:1.1.15"
   dependencies:
@@ -17875,7 +17938,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"process@npm:^0.11.1":
+"process@npm:^0.11.1, process@npm:^0.11.10":
   version: 0.11.10
   resolution: "process@npm:0.11.10"
   checksum: 10/dbaa7e8d1d5cf375c36963ff43116772a989ef2bb47c9bdee20f38fd8fc061119cf38140631cf90c781aca4d3f0f0d2c834711952b728953f04fd7d238f59f5b
@@ -18390,6 +18453,39 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-quick-base64@npm:^3.0.0, react-native-quick-base64@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "react-native-quick-base64@npm:3.0.1"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/9810adfd36f5a716f94049f6363e4d5a13614f0f1b9c26577aac1aefb8bd2076bd73f3495201807c2bd767dbae1d0bc878abafe084a11a9271b7f2fba47c1737
+  languageName: node
+  linkType: hard
+
+"react-native-quick-crypto@npm:^1.1.7":
+  version: 1.1.7
+  resolution: "react-native-quick-crypto@npm:1.1.7"
+  dependencies:
+    "@craftzdog/react-native-buffer": "npm:^6.1.2"
+    events: "npm:3.3.0"
+    readable-stream: "npm:4.7.0"
+    safe-buffer: "npm:^5.2.1"
+    string_decoder: "npm:^1.3.0"
+    util: "npm:0.12.5"
+  peerDependencies:
+    expo: ">=48.0.0"
+    react: "*"
+    react-native: "*"
+    react-native-nitro-modules: ">=0.31.2"
+    react-native-quick-base64: ">=3.0.0"
+  peerDependenciesMeta:
+    expo:
+      optional: true
+  checksum: 10/310c659e6964a2ff132751b265a527dafc90ea4113bff6a68e508d87ec763b89c778a79819cb8ed4853bb3b15d02530b6963a72a3e734af5882d9d5b46d3bf4c
+  languageName: node
+  linkType: hard
+
 "react-native-reanimated@npm:4.5.3":
   version: 4.5.3
   resolution: "react-native-reanimated@npm:4.5.3"
@@ -18807,6 +18903,19 @@ __metadata:
     string_decoder: "npm:^1.1.1"
     util-deprecate: "npm:^1.0.1"
   checksum: 10/d9e3e53193adcdb79d8f10f2a1f6989bd4389f5936c6f8b870e77570853561c362bee69feca2bbb7b32368ce96a85504aa4cedf7cf80f36e6a9de30d64244048
+  languageName: node
+  linkType: hard
+
+"readable-stream@npm:4.7.0":
+  version: 4.7.0
+  resolution: "readable-stream@npm:4.7.0"
+  dependencies:
+    abort-controller: "npm:^3.0.0"
+    buffer: "npm:^6.0.3"
+    events: "npm:^3.3.0"
+    process: "npm:^0.11.10"
+    string_decoder: "npm:^1.3.0"
+  checksum: 10/bdf096c8ff59452ce5d08f13da9597f9fcfe400b4facfaa88e74ec057e5ad1fdfa140ffe28e5ed806cf4d2055f0b812806e962bca91dce31bc4cef08e53be3a4
   languageName: node
   linkType: hard
 
@@ -19411,7 +19520,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"safe-buffer@npm:5.2.1, safe-buffer@npm:>=5.1.0, safe-buffer@npm:^5.0.1, safe-buffer@npm:~5.2.0":
+"safe-buffer@npm:5.2.1, safe-buffer@npm:>=5.1.0, safe-buffer@npm:^5.0.1, safe-buffer@npm:^5.2.1, safe-buffer@npm:~5.2.0":
   version: 5.2.1
   resolution: "safe-buffer@npm:5.2.1"
   checksum: 10/32872cd0ff68a3ddade7a7617b8f4c2ae8764d8b7d884c651b74457967a9e0e886267d3ecc781220629c44a865167b61c375d2da6c720c840ecd73f45d5d9451
@@ -20472,7 +20581,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"string_decoder@npm:1.3.0, string_decoder@npm:^1.1.1":
+"string_decoder@npm:1.3.0, string_decoder@npm:^1.1.1, string_decoder@npm:^1.3.0":
   version: 1.3.0
   resolution: "string_decoder@npm:1.3.0"
   dependencies:
@@ -21532,6 +21641,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"util@npm:0.12.5":
+  version: 0.12.5
+  resolution: "util@npm:0.12.5"
+  dependencies:
+    inherits: "npm:^2.0.3"
+    is-arguments: "npm:^1.0.4"
+    is-generator-function: "npm:^1.0.7"
+    is-typed-array: "npm:^1.1.3"
+    which-typed-array: "npm:^1.1.2"
+  checksum: 10/61a10de7753353dd4d744c917f74cdd7d21b8b46379c1e48e1c4fd8e83f8190e6bd9978fc4e5102ab6a10ebda6019d1b36572fa4a325e175ec8b789a121f6147
+  languageName: node
+  linkType: hard
+
 "util@npm:^0.10.3":
   version: 0.10.4
   resolution: "util@npm:0.10.4"
@@ -21963,7 +22085,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"which-typed-array@npm:^1.1.16, which-typed-array@npm:^1.1.19":
+"which-typed-array@npm:^1.1.16, which-typed-array@npm:^1.1.19, which-typed-array@npm:^1.1.2":
   version: 1.1.22
   resolution: "which-typed-array@npm:1.1.22"
   dependencies:

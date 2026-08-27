@@ -18,6 +18,7 @@ import {
   View,
 } from 'react-native';
 import { ParticipantsInfoListModal } from './ParticipantsInfoListModal';
+import { E2EEKeyNotification } from './E2EEKeyNotification';
 import { BottomControls } from './CallControls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
@@ -141,6 +142,7 @@ export const ActiveCall = ({
             barStyle={themeMode === 'light' ? 'dark-content' : 'light-content'}
           />
           {!isInPiPMode && <CustomTopControls />}
+          {!isInPiPMode && <E2EEKeyNotification />}
           <CustomCallContentThemeOverride>
             <CallContent
               iOSPiPIncludeLocalParticipantVideo

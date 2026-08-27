@@ -13,6 +13,11 @@ import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import { AuthenticationProgress } from './AuthenticatingProgress';
 import { CallErrorComponent } from './CallErrorComponent';
 import { LayoutProvider } from '../contexts/LayoutContext';
+import {
+  attachE2EEIfConfigured,
+  disposeE2EEManager,
+  getE2EESettingsOverride,
+} from '../utils/e2ee';
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
   'MeetingScreen' | 'GuestMeetingScreen'
@@ -42,7 +47,9 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
         }
       };
       if (call?.state.callingState !== CallingState.LEFT) {
-        leaveCall();
+        leaveCall().finally(() => disposeE2EEManager(call));
+      } else {
+        disposeE2EEManager(call);
       }
     };
   }, [call]);
@@ -59,7 +66,17 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
     if (!call) return;
     try {
       // call.updatePublishOptions({ preferredCodec: 'h264' });
-      await call.join({ create: true });
+      // Attach E2EE here rather than on mount: awaiting it immediately before
+      // the join leaves no window in which the join could win the race.
+      await attachE2EEIfConfigured(call);
+      // The override is repeated here because this join creates the call when
+      // the screen's getOrCreate has not landed yet, and a call created without
+      // it rejects the E2EE join the attached manager asks for.
+      const settings_override = getE2EESettingsOverride();
+      await call.join({
+        create: true,
+        ...(settings_override ? { data: { settings_override } } : {}),
+      });
       appStoreSetState({ chatLabelNoted: false });
       setShow('active-call');
     } catch (error) {

@@ -7,6 +7,7 @@ import { mmkvStorage } from '../contexts/createStoreContext';
 import { createToken } from '../modules/helpers/createToken';
 import { setNotificationListeners } from './setNotificationListeners';
 import { registerNonRingingNotificationHandler } from './registerNonRingingNotifications';
+import { attachE2EEIfConfigured, disposeE2EEManager } from './e2ee';
 
 export function setPushConfig() {
   StreamVideoRN.updateConfig({
@@ -34,6 +35,11 @@ export function setPushConfig() {
     },
     shouldRejectCallWhenBusy: false,
     createStreamVideoClient,
+    // A call accepted from CallKit/Telecom is created and joined inside the SDK, so
+    // these two hooks are the only place app code can attach and release an E2EE
+    // manager on that path - the app may never even reach React, if it was killed.
+    onBeforeCallJoin: attachE2EEIfConfigured,
+    onAfterCallLeave: disposeE2EEManager,
   });
 
   setNotificationListeners();

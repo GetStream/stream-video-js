@@ -511,8 +511,8 @@ class CallService : Service(), CallRepository.Listener {
             }
             return
         }
-
         startForegroundForCall(callInfo, incoming)
+
 
         scope.launch {
             try {
@@ -531,6 +531,7 @@ class CallService : Service(), CallRepository.Listener {
                         "[service] registerCall: Registration canceled for ${callInfo.callId} during teardown"
                 )
             } catch (e: Exception) {
+                // we dont remove the call from store 
                 Log.e(TAG, "[service] registerCall: Error registering call: ${e.message}")
 
                 sendBroadcastEvent(CallingxModuleImpl.CALL_REGISTRATION_FAILED_ACTION) {

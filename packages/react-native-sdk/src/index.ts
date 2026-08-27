@@ -36,6 +36,10 @@ export * from './modules/call-manager';
 // Explicitly re-exporting to resolve ambiguity.
 export { StreamVideo } from './providers/StreamVideo';
 export { StreamCall } from './providers/StreamCall';
+// Overriding 'EncryptionManager' from '@stream-io/video-client' with the React
+// Native implementation, which is backed by the native WebRTC transform and
+// delegates to the web one on React Native Web.
+export { EncryptionManager } from './modules/encryption';
 export * from './providers/NoiseCancellation';
 
 setClientDetails();

@@ -17,6 +17,8 @@ type AppGlobalStore = {
   localIpAddress: string;
   useLocalSfu?: boolean;
   devMode?: boolean;
+  /** Passphrase or hex keys for end-to-end encryption; empty means E2EE off. */
+  e2eeKeyInput: string;
 };
 
 export const {
@@ -37,6 +39,7 @@ export const {
     useLocalSfu: false,
     localIpAddress: '127.0.0.1',
     devMode: false,
+    e2eeKeyInput: '',
   },
   [
     'apiKey',
@@ -48,5 +51,6 @@ export const {
     'appMode',
     'themeMode',
     'devMode',
+    'e2eeKeyInput',
   ],
 );
