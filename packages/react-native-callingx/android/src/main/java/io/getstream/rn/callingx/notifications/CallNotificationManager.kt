@@ -1,6 +1,7 @@
 package io.getstream.rn.callingx.notifications
 
 import android.app.Notification
+import android.app.NotificationManager
 import android.content.Context
 import android.media.Ringtone
 import android.media.RingtoneManager
@@ -165,6 +166,7 @@ class CallNotificationManager(
                         .setSmallIcon(R.drawable.ic_round_call_24)
                         .setCategory(NotificationCompat.CATEGORY_CALL)
                         .setPriority(NotificationCompat.PRIORITY_MAX)
+                        .setOnlyAlertOnce(true)
                         .setOngoing(optimisticState != OptimisticState.REJECTING)
 
         builder.setStyle(callStyle)
@@ -230,6 +232,22 @@ class CallNotificationManager(
     fun postNotification(callId: String, notification: Notification) = synchronized(lock) {
         val notificationId = getOrCreateNotificationId(callId)
         notificationManager.notify(notificationId, notification)
+    }
+
+    fun isNotificationPosted(callId: String): Boolean = synchronized(lock) {
+        val id = getNotificationId(callId)
+        return@synchronized try {
+            val manager =
+                    context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.activeNotifications.any { it.id == id }
+        } catch (e: Exception) {
+            Log.w(
+                    TAG,
+                    "[notifications] isNotificationPosted[$callId]: query failed, assuming not posted",
+                    e
+            )
+            false
+        }
     }
 
     /**

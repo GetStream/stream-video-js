@@ -268,6 +268,9 @@ class CallService : Service(), CallRepository.Listener {
 
         if (intent == null || intent.action == null) {
             Log.w(TAG, "[service] onStartCommand: Intent is null, returning START_NOT_STICKY")
+            if(!callRepository.hasAnyCalls()) {
+                stopSelf()
+            }
             return START_NOT_STICKY
         }
 
@@ -491,6 +494,8 @@ class CallService : Service(), CallRepository.Listener {
 
         val callInfo = extractIntentParams(intent)
 
+        startForegroundForCall(callInfo, incoming)
+
         // If this specific call is already registered, just notify
         val existingCall = callRepository.getCall(callInfo.callId)
         if (existingCall != null) {
@@ -509,8 +514,6 @@ class CallService : Service(), CallRepository.Listener {
             }
             return
         }
-
-        startForegroundForCall(callInfo, incoming)
 
         scope.launch {
             try {
@@ -680,7 +683,8 @@ class CallService : Service(), CallRepository.Listener {
     }
 
     private fun startForegroundForCall(callInfo: CallInfo, incoming: Boolean) {
-        val tempCall = callRepository.getTempCall(callInfo, incoming)
+        val tempCall = callRepository.getCall(callInfo.callId)
+          ?: callRepository.getTempCall(callInfo, incoming)
         val notificationId = notificationManager.getOrCreateNotificationId(callInfo.callId)
         if (!isInForeground) {
             debugLog(
@@ -689,8 +693,8 @@ class CallService : Service(), CallRepository.Listener {
             )
             val notification = notificationManager.createNotification(callInfo.callId, tempCall)
             startForegroundSafely(notificationId, notification)
-        } else {
-            // Already in foreground from another call — just post the notification
+        } else if (!notificationManager.isNotificationPosted(callInfo.callId)) {
+            // Post only when this call has no notification yet (e.g. a second concurrent call).
             val notification = notificationManager.createNotification(callInfo.callId, tempCall)
             notificationManager.postNotification(callInfo.callId, notification)
         }
