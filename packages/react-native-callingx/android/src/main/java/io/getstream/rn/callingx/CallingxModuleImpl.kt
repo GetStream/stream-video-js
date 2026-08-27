@@ -125,6 +125,15 @@ class CallingxModuleImpl(
 
     fun stopService(promise: Promise) {
         debugLog(TAG, "[module] stopService: Stopping CallService explicitly from JS")
+
+        if (!CallService.isRunning) {
+            // Starting the service just to stop it would construct (and immediately release) a
+            // whole CallRepository, and `startService` from the background can throw on API 26+.
+            debugLog(TAG, "[module] stopService: Service is not running, nothing to stop")
+            promise.resolve(true)
+            return
+        }
+
         try {
             Intent(reactApplicationContext, CallService::class.java)
                     .apply { action = CallService.ACTION_STOP_SERVICE }

@@ -76,6 +76,12 @@ class CallService : Service(), CallRepository.Listener {
         internal const val ACTION_PROCESS_ACTION = "execute_action"
         internal const val ACTION_REGISTRATION_FAILED = "registration_failed"
 
+        /**
+         * True while a [CallService] instance exists. Only meaningful in-process (the service has
+         * no `android:process`), and used to avoid creating the service just to stop it.
+         */
+        @Volatile internal var isRunning: Boolean = false
+
         fun startIncomingCallFromPush(context: Context, data: Map<String, String>) {
             debugLog(TAG, "[service] startIncomingCallFromPush: Starting incoming call from push")
 
@@ -130,7 +136,19 @@ class CallService : Service(), CallRepository.Listener {
                         putExtra(EXTRA_IS_VIDEO, isVideo)
                     }
 
-            ContextCompat.startForegroundService(context, intent)
+            try {
+                ContextCompat.startForegroundService(context, intent)
+            } catch (e: Exception) {
+                // The call was tracked above so a concurrent stop request could not race it. If
+                // the service never starts, drop the tracked id — a stale entry would block every
+                // subsequent stop and strand the foreground service.
+                Log.e(
+                        TAG,
+                        "[service] startIncomingCallFromPush: Failed to start service: ${e.message}",
+                        e
+                )
+                CallRegistrationStore.removeTrackedCall(callCid)
+            }
         }
     }
 
@@ -148,6 +166,14 @@ class CallService : Service(), CallRepository.Listener {
 
     @Volatile
     private var isInForeground = false
+
+    /**
+     * Start id of the most recently *delivered* start command. ActivityManager bumps its own last
+     * start id when `startService` is called, before delivery, so passing this to [stopSelfResult]
+     * makes any stop lose against a start that is already queued.
+     */
+    @Volatile
+    private var lastStartId = 0
 
     private val onAppForeground = Runnable { repromoteForegroundTypeIfNeeded() }
 
@@ -235,11 +261,15 @@ class CallService : Service(), CallRepository.Listener {
         }
 
         LifecycleListener.addOnForegroundListener(onAppForeground)
+
+        isRunning = true
     }
 
     override fun onDestroy() {
         super.onDestroy()
         debugLog(TAG, "[service] onDestroy: TelecomCallService destroyed")
+
+        isRunning = false
 
         LifecycleListener.removeOnForegroundListener(onAppForeground)
 
@@ -265,6 +295,8 @@ class CallService : Service(), CallRepository.Listener {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         debugLog(TAG, "[service] onStartCommand: Received intent with action: ${intent?.action}")
+
+        lastStartId = startId
 
         if (intent == null || intent.action == null) {
             Log.w(TAG, "[service] onStartCommand: Intent is null, returning START_NOT_STICKY")
@@ -294,17 +326,12 @@ class CallService : Service(), CallRepository.Listener {
                 processAction(intent)
             }
             ACTION_STOP_SERVICE -> {
-                if (isInForeground) {
-                    stopForeground(STOP_FOREGROUND_REMOVE)
-                    isInForeground = false
-                }
-                notificationManager.cancelAllNotifications()
-                notificationManager.stopRingtone()
-                stopSelf()
+                stopServiceIfIdle(startId)
+                return START_NOT_STICKY
             }
             else -> {
                 Log.e(TAG, "[service] onStartCommand: Unknown action: ${intent.action}")
-                stopSelf()
+                stopSelfResult(startId)
                 return START_NOT_STICKY
             }
         }
@@ -364,17 +391,15 @@ class CallService : Service(), CallRepository.Listener {
                 repromoteForegroundIfNeeded(callId)
                 if (!callRepository.hasRingingCall()) notificationManager.stopRingtone()
 
-                // Stop service only when no calls remain
-                if (!callRepository.hasAnyCalls()) {
+                // Stop service only when no calls remain and none is being registered
+                if (!callRepository.hasAnyCalls() &&
+                                !CallRegistrationStore.hasRegisteredCall()
+                ) {
                     debugLog(
                             TAG,
                             "[service] onCallStateChanged[$callId]: No more calls, stopping service"
                     )
-                    if (isInForeground) {
-                        stopForeground(STOP_FOREGROUND_REMOVE)
-                        isInForeground = false
-                    }
-                    stopSelf()
+                    stopSelfIfNoPendingStart(lastStartId)
                 }
             }
         }
@@ -531,6 +556,9 @@ class CallService : Service(), CallRepository.Listener {
                         TAG,
                         "[service] registerCall: Registration canceled for ${callInfo.callId} during teardown"
                 )
+                // The call never made it into the repository, so nothing else will drop its tracked
+                // id — and a stale one blocks every later stop (see stopServiceIfIdle).
+                CallRegistrationStore.removeTrackedCall(callInfo.callId)
             } catch (e: Exception) {
                 Log.e(TAG, "[service] registerCall: Error registering call: ${e.message}")
 
@@ -538,16 +566,19 @@ class CallService : Service(), CallRepository.Listener {
                     putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callInfo.callId)
                 }
 
+                // CallingxModuleImpl also drops the tracked id when it receives the broadcast
+                // above, but only if a JS module instance is alive — which it need not be in a
+                // headless push flow. Removing it here too is idempotent.
+                CallRegistrationStore.removeTrackedCall(callInfo.callId)
+
                 repromoteForegroundIfNeeded(callInfo.callId)
 
                 // Only stop foreground/service when no other calls remain
-                if (!callRepository.hasAnyCalls()) {
-                    if (isInForeground) {
-                        stopForeground(STOP_FOREGROUND_REMOVE)
-                        isInForeground = false
-                    }
+                if (!callRepository.hasAnyCalls() &&
+                                !CallRegistrationStore.hasRegisteredCall()
+                ) {
                     notificationManager.stopRingtone()
-                    stopSelf()
+                    stopSelfIfNoPendingStart(lastStartId)
                 }
             }
         }
@@ -576,6 +607,55 @@ class CallService : Service(), CallRepository.Listener {
 
             return false
         }
+    }
+
+    /**
+     * Handles [ACTION_STOP_SERVICE] as a *request*, not a command. The service hosts every call, so
+     * it may only go down when nothing owns it. Two independent signals are checked because they
+     * cover opposite interleavings of "tear this call down" against "a new call is arriving":
+     * - [CallRegistrationStore.hasRegisteredCall] covers a call already tracked when we read state.
+     *   Tracking happens synchronously *before* `startForegroundService`, so it is set even while
+     *   the new call's intent is still queued and the repository is empty.
+     * - [stopSelfIfNoPendingStart] covers a call whose start reached ActivityManager *after* we
+     *   read state, which the check above cannot see.
+     */
+    private fun stopServiceIfIdle(startId: Int) {
+        if (callRepository.hasAnyCalls() || CallRegistrationStore.hasRegisteredCall()) {
+            debugLog(
+                    TAG,
+                    "[service] stopServiceIfIdle: Calls still present (tracked=${CallRegistrationStore.getTrackedCallIds()}), keeping service alive"
+            )
+            return
+        }
+
+        if (!stopSelfIfNoPendingStart(startId)) return
+
+        notificationManager.cancelAllNotifications()
+        notificationManager.stopRingtone()
+    }
+
+    /**
+     * Stops the service only if no newer start command is already pending, and demotes it from the
+     * foreground when the stop is accepted. ActivityManager bumps its own last start id when
+     * `startService` is called — before delivery — so a mismatch here means an incoming-call start
+     * is already in flight and the service must stay up for it.
+     *
+     * @return true when the stop was accepted.
+     */
+    private fun stopSelfIfNoPendingStart(startId: Int): Boolean {
+        if (!stopSelfResult(startId)) {
+            Log.w(
+                    TAG,
+                    "[service] stopSelfIfNoPendingStart: Stop refused (startId=$startId), a newer start is pending"
+            )
+            return false
+        }
+
+        if (isInForeground) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            isInForeground = false
+        }
+        return true
     }
 
     private fun startForegroundSafely(notificationId: Int, notification: Notification) {

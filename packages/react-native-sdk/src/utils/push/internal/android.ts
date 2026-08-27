@@ -79,6 +79,25 @@ export const onRingNotificationReceived = async (
     callingx.releaseBackgroundTask(backgroundTaskOwner);
   };
 
+  /**
+   * Gives up on this push: dismisses the call the native push path already displayed, then asks
+   * the call service to stop. `stopService` is only a request — it no-ops while any other call is
+   * registered or being registered — so this call must be ended explicitly rather than relying on
+   * the service teardown to wipe it.
+   */
+  const abandonPush = async () => {
+    if (asForegroundService) {
+      finishBackgroundTask();
+    }
+    try {
+      await callingx.endCallWithReason(call_cid, 'error');
+    } catch (error) {
+      nativeLog(`Failed to end call ${call_cid}: ${error}`, 'error');
+    }
+    await callingx.stopService();
+    pushUnsubscriptionCallbacks.delete(call_cid);
+  };
+
   if (asForegroundService) {
     // initialize the callback array immediately to avoid race condition
     pushUnsubscriptionCallbacks.set(call_cid, []);
@@ -98,21 +117,13 @@ export const onRingNotificationReceived = async (
     client = await pushConfig.createStreamVideoClient();
     if (!client) {
       nativeLog(`video client not found, skipping the call.ring notification`);
-      if (asForegroundService) {
-        finishBackgroundTask();
-      }
-      await callingx.stopService();
-      pushUnsubscriptionCallbacks.delete(call_cid);
+      await abandonPush();
       return;
     }
   } catch (error) {
     //we need to release the background task and stop the service to avoid stale owner
     nativeLog(`Failed to create video client: ${error}`, 'error');
-    if (asForegroundService) {
-      finishBackgroundTask();
-    }
-    await callingx.stopService();
-    pushUnsubscriptionCallbacks.delete(call_cid);
+    await abandonPush();
     return;
   }
 
