@@ -51,6 +51,10 @@ export const DialerPage = ({
   const [videoClient, setVideoClient] = useState<StreamVideoClient>();
   const router = useRouter();
   const callType = (router.query['type'] as string) || 'default';
+  const useLocalCoordinator = router.query['use_local_coordinator'] === 'true';
+  const coordinatorUrl = useLocalCoordinator
+    ? 'http://localhost:3030/video'
+    : (router.query['coordinator_url'] as string | undefined);
   const [userIds, setUserIds] = useState(['']);
   const [ringingCall, setRingingCall] = useState<Call | undefined>(undefined);
   const environment = useAppEnvironment();
@@ -58,7 +62,10 @@ export const DialerPage = ({
   const { t } = useI18n();
 
   useEffect(() => {
-    const _client = getClient({ apiKey, user, userToken }, environment);
+    const _client = getClient(
+      { apiKey, user, userToken, coordinatorUrl },
+      environment,
+    );
     setVideoClient(_client);
 
     window.client = _client;
@@ -67,7 +74,7 @@ export const DialerPage = ({
       setVideoClient(undefined);
       window.client = undefined;
     };
-  }, [apiKey, user, userToken, environment]);
+  }, [apiKey, user, userToken, environment, coordinatorUrl]);
 
   const handleUserIdChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>, index: number) => {
