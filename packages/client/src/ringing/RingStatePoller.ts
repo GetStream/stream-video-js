@@ -1,15 +1,12 @@
 import type { Call } from '../Call';
-import { reconcileRingState } from '../events/call';
+import { reconcileRingState } from './reconcileRingState';
 import { CallingState } from '../store';
 import { getTimers } from '../timers';
 import {
   ErrorFromResponse,
   type RingStatePollingOptions,
 } from '../coordinator/connection/types';
-
-const DEFAULT_START_AFTER_MS = 15_000;
-const DEFAULT_INTERVAL_MS = 5_000;
-const DEFAULT_MAX_DURATION_MS = 30_000;
+import { videoLoggerSystem } from '../logger';
 
 /**
  * Polls the coordinator for the outcome of a ring the current user started.
@@ -20,9 +17,10 @@ const DEFAULT_MAX_DURATION_MS = 30_000;
  * reads the ring state until a terminal outcome or the end of the ring window.
  */
 export class RingStatePoller {
-  private call: Call;
-  private startAfterMs: number;
-  private intervalMs: number;
+  private readonly logger = videoLoggerSystem.getLogger('RingStatePoller');
+  private readonly call: Call;
+  private readonly startAfterMs: number;
+  private readonly intervalMs: number;
   private sessionId: string | undefined;
   private deadlineAt: number = 0;
   private idleTimeoutId: number | undefined;
@@ -33,8 +31,8 @@ export class RingStatePoller {
 
   constructor(call: Call, options: RingStatePollingOptions = {}) {
     this.call = call;
-    this.startAfterMs = options.startAfterMs ?? DEFAULT_START_AFTER_MS;
-    this.intervalMs = options.intervalMs ?? DEFAULT_INTERVAL_MS;
+    this.startAfterMs = options.startAfterMs ?? 15_000;
+    this.intervalMs = options.intervalMs ?? 5_000;
   }
 
   /**
@@ -46,18 +44,14 @@ export class RingStatePoller {
     // captured once: `call.ended` clears the call's current session
     const sessionId = this.call.state.session?.id;
     if (!sessionId) {
-      this.call.logger.warn(
-        'Not polling the ring state: the call has no session',
-      );
+      this.logger.warn('the call has no session');
       return;
     }
     this.sessionId = sessionId;
 
     const ring = this.call.state.settings?.ring;
     const maxDurationMs =
-      ring?.auto_cancel_timeout_ms ||
-      ring?.missed_call_timeout_ms ||
-      DEFAULT_MAX_DURATION_MS;
+      ring?.auto_cancel_timeout_ms || ring?.missed_call_timeout_ms || 30_000;
     this.deadlineAt = Date.now() + maxDurationMs;
 
     // an incoming event proves the socket is alive, so the quiet period starts
@@ -102,17 +96,16 @@ export class RingStatePoller {
 
   private runTick = () => {
     this.tick().catch((err) => {
-      this.call.logger.warn('Failed to poll the ring state', err);
+      this.logger.warn('Failed to poll the ring state', err);
     });
   };
 
   private tick = async () => {
     if (this.stopped || this.inFlight || !this.sessionId) return;
-    if (this.call.state.callingState !== CallingState.RINGING) {
-      this.stop();
-      return;
-    }
-    if (Date.now() >= this.deadlineAt) {
+    if (
+      this.call.state.callingState !== CallingState.RINGING ||
+      Date.now() >= this.deadlineAt
+    ) {
       this.stop();
       return;
     }
@@ -121,15 +114,16 @@ export class RingStatePoller {
     try {
       const ringState = await this.call.getRingState(this.sessionId);
       if (this.stopped) return;
-      if (await reconcileRingState(this.call, ringState)) this.stop();
+      this.call.state.updateFromRingState(ringState);
+      if (await reconcileRingState(this.call)) this.stop();
     } catch (err) {
       // a missing session, or one of another call, will never resolve
       const status = err instanceof ErrorFromResponse ? err.status : undefined;
       if (status === 400 || status === 404) {
-        this.call.logger.warn('Stopped polling the ring state', err);
+        this.logger.warn('Stopped polling the ring state', err);
         this.stop();
       } else {
-        this.call.logger.debug('Failed to poll the ring state', err);
+        this.logger.debug('Failed to poll the ring state', err);
       }
     } finally {
       this.inFlight = false;

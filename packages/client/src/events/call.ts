@@ -1,154 +1,40 @@
 import { CallingState } from '../store';
 import { Call } from '../Call';
-import {
-  CallAcceptedEvent,
-  CallRejectedEvent,
-  GetCallRingStateResponse,
-  OwnCapability,
-} from '../gen/coordinator';
-import type { CallLeaveOptions } from '../types';
+import { OwnCapability } from '../gen/coordinator';
+import { reconcileRingState } from '../ringing';
 import { CallEnded } from '../gen/video/sfu/event/events';
 import { CallEndedReason } from '../gen/video/sfu/models/models';
 
 /**
- * Event handler that watched the delivery of `call.accepted`.
- * Once the event is received, the call is joined.
+ * Handles the delivery of `call.accepted`. The caller joins the call.
+ *
+ * `CallState.updateFromEvent` runs before this, so the reconciler reads the
+ * event's data off the call state.
  */
 export const watchCallAccepted = (call: Call) => {
-  return async function onCallAccepted(event: CallAcceptedEvent) {
-    // We want to discard the event if it's from the current user
-    if (event.user.id === call.currentUserId) return;
-    const { state } = call;
-    if (
-      event.call.created_by.id === call.currentUserId &&
-      state.callingState === CallingState.RINGING
-    ) {
-      await call.join();
-    }
+  return async function onCallAccepted() {
+    await reconcileRingState(call);
   };
 };
 
 /**
- * Event handler that watches delivery of `call.rejected` Websocket event.
- * Once the event is received, the call is left.
+ * Handles the delivery of `call.rejected`. The caller cancels once everyone
+ * has rejected, and a callee leaves once the caller has cancelled.
  */
 export const watchCallRejected = (call: Call) => {
-  return async function onCallRejected(event: CallRejectedEvent) {
-    // We want to discard the event if it's from the current user
-    if (event.user.id === call.currentUserId) return;
-    const { call: eventCall } = event;
-    const { session: callSession } = eventCall;
-
-    if (!callSession) {
-      call.logger.warn(
-        'No call session provided. Ignoring call.rejected event.',
-        event,
-      );
-      return;
-    }
-
-    const rejectedBy = callSession.rejected_by;
-    const { members, callingState } = call.state;
-    if (callingState !== CallingState.RINGING) {
-      call.logger.info(
-        'Call is not in ringing mode (it is either accepted or rejected already). Ignoring call.rejected event.',
-        event,
-      );
-      return;
-    }
-    if (call.isCreatedByMe) {
-      const everyoneElseRejected = members
-        .filter((m) => m.user_id !== call.currentUserId)
-        .every((m) => rejectedBy[m.user_id]);
-      if (everyoneElseRejected) {
-        call.logger.info('everyone rejected, leaving the call');
-        await call.leave({
-          reject: true,
-          reason: 'cancel',
-          message: 'ring: everyone rejected',
-        });
-      }
-    } else {
-      if (rejectedBy[eventCall.created_by.id]) {
-        call.logger.info('call creator rejected, leaving call');
-        globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
-        await call.leave({ message: 'ring: creator rejected' });
-      }
-    }
+  return async function onCallRejected() {
+    await reconcileRingState(call);
   };
 };
 
 /**
- * Applies a polled ring state to a ringing call, taking the same decisions as
- * {@link watchCallAccepted}, {@link watchCallRejected} and the auto-drop.
- *
- * @param call the call to reconcile.
- * @param ringState the ring state as returned by the coordinator.
- * @returns whether the ring reached a terminal state.
+ * Handles the delivery of `call.missed`. The caller drops the call once
+ * nobody can still accept it.
  */
-export const reconcileRingState = async (
-  call: Call,
-  ringState: GetCallRingStateResponse,
-): Promise<boolean> => {
-  // the outcome is already known
-  if (call.state.callingState !== CallingState.RINGING) return true;
-
-  call.state.updateFromRingState(ringState);
-
-  const leave = async (options: CallLeaveOptions) => {
-    await call.leave(options).catch((err) => {
-      call.logger.error('Failed to leave the call after reconciling', err);
-    });
+export const watchCallMissed = (call: Call) => {
+  return async function onCallMissed() {
+    await reconcileRingState(call);
   };
-
-  // checked before `accepted_by`: an ended session cannot be joined
-  if (ringState.call_ended_at || ringState.session_ended_at) {
-    call.logger.info('ring state: the call has ended, leaving');
-    globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
-    await leave({ reject: false, message: 'ring: reconciled - call ended' });
-    return true;
-  }
-
-  const currentUserId = call.currentUserId;
-  const acceptedByOther = Object.keys(ringState.accepted_by).some(
-    (userId) => userId !== currentUserId,
-  );
-  if (acceptedByOther) {
-    call.logger.info('ring state: the call was accepted, joining');
-    await call.join().catch((err) => {
-      call.logger.error('Failed to join the call after reconciling', err);
-    });
-    return true;
-  }
-
-  const otherMembers = call.state.members
-    .filter((member) => member.user_id !== currentUserId)
-    .map((member) => member.user_id);
-  if (otherMembers.length === 0) return false;
-
-  if (otherMembers.every((userId) => ringState.rejected_by[userId])) {
-    call.logger.info('ring state: everyone rejected, leaving');
-    await leave({
-      reject: true,
-      reason: 'cancel',
-      message: 'ring: reconciled - everyone rejected',
-    });
-    return true;
-  }
-
-  const settled = (userId: string) =>
-    ringState.rejected_by[userId] || ringState.missed_by[userId];
-  if (otherMembers.every(settled)) {
-    call.logger.info('ring state: no one accepted, leaving');
-    await leave({
-      reject: true,
-      reason: 'timeout',
-      message: 'ring: reconciled - no one accepted',
-    });
-    return true;
-  }
-
-  return false;
 };
 
 /**

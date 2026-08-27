@@ -8,9 +8,9 @@ import {
   watchSfuCallEnded,
 } from '../call';
 import {
-  CallAcceptedEvent,
   CallEndedEvent,
   CallResponse,
+  CallSessionResponse,
   OwnCapability,
   RejectCallResponse,
 } from '../../gen/coordinator';
@@ -22,34 +22,34 @@ import { CallEndedReason } from '../../gen/video/sfu/models/models';
 
 describe('Call ringing events', () => {
   describe(`call.accepted`, () => {
-    it(`will ignore events from the current user`, async () => {
-      const call = fakeCall();
+    it(`will ignore an acceptance by the current user`, async () => {
+      const call = fakeCall({ currentUserId: 'test-user-id' });
+      call.state.updateFromCallResponse({
+        ...fakeMetadata(),
+        // @ts-expect-error type issue
+        created_by: { id: 'test-user-id' },
+      });
+      setSession(call, { accepted_by: { 'test-user-id': timestamp() } });
       vi.spyOn(call, 'join');
       const handler = watchCallAccepted(call);
-      const event: CallAcceptedEvent = {
-        type: 'call.accepted',
-        // @ts-expect-error incomplete data
-        user: { id: 'test-user-id' },
-      };
-      await handler(event);
+      await handler();
 
       expect(call.join).not.toHaveBeenCalled();
     });
 
     it(`will join the call for the caller if atleast one callee has accepted`, async () => {
       const call = fakeCall({ currentUserId: 'test-user' });
+      call.state.updateFromCallResponse({
+        ...fakeMetadata(),
+        // @ts-expect-error type issue
+        created_by: { id: 'test-user' },
+      });
+      setSession(call, { accepted_by: { 'test-user-id-callee': timestamp() } });
       vi.spyOn(call, 'join').mockImplementation(async () => {
         console.log(`TEST: join() called`);
       });
       const handler = watchCallAccepted(call);
-      const event: CallAcceptedEvent = {
-        type: 'call.accepted',
-        // @ts-expect-error incomplete data
-        user: { id: 'test-user-id-callee' },
-        // @ts-expect-error incomplete data
-        call: { created_by: { id: 'test-user' } },
-      };
-      await handler(event);
+      await handler();
 
       expect(call.join).toHaveBeenCalled();
     });
@@ -60,16 +60,14 @@ describe('Call ringing events', () => {
     vi.spyOn(call, 'join').mockImplementation(async () => {
       console.log(`TEST: join() called`);
     });
+    call.state.updateFromCallResponse({
+      ...fakeMetadata(),
+      // @ts-expect-error type issue
+      created_by: { id: 'test-user-id-caller' },
+    });
+    setSession(call, { accepted_by: { 'test-user-id-callee-1': timestamp() } });
     const handler = watchCallAccepted(call);
-    const event: CallAcceptedEvent = {
-      type: 'call.accepted',
-      // @ts-expect-error incomplete data
-      user: { id: 'test-user-id-callee-1' },
-      // @ts-expect-error incomplete data
-      call: { created_by: { id: 'test-user-id-caller' } },
-    };
-
-    await handler(event);
+    await handler();
 
     expect(call.join).not.toHaveBeenCalled();
   });
@@ -95,28 +93,12 @@ describe('Call ringing events', () => {
         console.log(`TEST: leave() called`);
       });
 
-      const handler = watchCallRejected(call);
-      // all members reject the call
-      await handler({
-        type: 'call.rejected',
-        // @ts-expect-error type issue
-        user: {
-          id: 'm2',
-        },
-        call: {
-          // @ts-expect-error type issue
-          created_by: {
-            id: 'm1',
-          },
-          // @ts-expect-error type issue
-          session: {
-            rejected_by: {
-              m2: new Date().toISOString(),
-              m3: new Date().toISOString(),
-            },
-          },
-        },
+      setSession(call, {
+        rejected_by: { m2: timestamp(), m3: timestamp() },
       });
+
+      const handler = watchCallRejected(call);
+      await handler();
       expect(call.leave).toHaveBeenCalledWith({
         reject: true,
         reason: 'cancel',
@@ -136,29 +118,10 @@ describe('Call ringing events', () => {
       vi.spyOn(call, 'leave').mockImplementation(async () => {
         console.log(`TEST: leave() called`);
       });
-      const handler = watchCallRejected(call);
+      setSession(call, { rejected_by: { m2: timestamp() } });
 
-      // only one member rejects the call
-      const event: CallAcceptedEvent = {
-        type: 'call.rejected',
-        // @ts-expect-error type issue
-        user: {
-          id: 'm2',
-        },
-        call: {
-          // @ts-expect-error type issue
-          created_by: {
-            id: 'm0',
-          },
-          // @ts-expect-error type issue
-          session: {
-            rejected_by: {
-              m2: new Date().toISOString(),
-            },
-          },
-        },
-      };
-      await handler(event);
+      const handler = watchCallRejected(call);
+      await handler();
 
       expect(call.leave).not.toHaveBeenCalled();
     });
@@ -175,29 +138,10 @@ describe('Call ringing events', () => {
       vi.spyOn(call, 'leave').mockImplementation(async () => {
         console.log(`TEST: leave() called`);
       });
-      const handler = watchCallRejected(call);
+      setSession(call, { rejected_by: { m0: timestamp() } });
 
-      // only one member rejects the call
-      const event: CallAcceptedEvent = {
-        type: 'call.rejected',
-        // @ts-expect-error type issue
-        user: {
-          id: 'm0',
-        },
-        call: {
-          // @ts-expect-error type issue
-          created_by: {
-            id: 'm0',
-          },
-          // @ts-expect-error type issue
-          session: {
-            rejected_by: {
-              m0: new Date().toISOString(),
-            },
-          },
-        },
-      };
-      await handler(event);
+      const handler = watchCallRejected(call);
+      await handler();
 
       expect(call.leave).toHaveBeenCalled();
     });
@@ -354,6 +298,19 @@ describe('Call ringing events', () => {
     });
   });
 });
+
+const timestamp = () => new Date().toISOString();
+
+const setSession = (call: Call, session: Partial<CallSessionResponse>) => {
+  call.state['sessionSubject'].next(
+    fromPartial({
+      accepted_by: {},
+      rejected_by: {},
+      missed_by: {},
+      ...session,
+    }),
+  );
+};
 
 const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
   const store = new StreamVideoWriteableStateStore();

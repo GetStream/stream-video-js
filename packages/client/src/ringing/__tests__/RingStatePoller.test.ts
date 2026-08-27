@@ -151,7 +151,7 @@ describe('RingStatePoller', () => {
     expect(call.leave).toHaveBeenCalledWith({
       reject: true,
       reason: 'cancel',
-      message: 'ring: reconciled - everyone rejected',
+      message: 'ring: everyone rejected',
     });
   });
 
@@ -163,7 +163,7 @@ describe('RingStatePoller', () => {
     expect(call.leave).toHaveBeenCalledWith({
       reject: true,
       reason: 'timeout',
-      message: 'ring: reconciled - no one accepted',
+      message: 'ring: no one accepted',
     });
   });
 
@@ -180,7 +180,7 @@ describe('RingStatePoller', () => {
     expect(call.join).not.toHaveBeenCalled();
     expect(call.leave).toHaveBeenCalledWith({
       reject: false,
-      message: 'ring: reconciled - call ended',
+      message: 'ring: call ended',
     });
   });
 

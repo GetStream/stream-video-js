@@ -6,6 +6,7 @@ import {
   watchCallAccepted,
   watchCallEnded,
   watchCallGrantsUpdated,
+  watchCallMissed,
   watchCallRejected,
   watchConnectionQualityChanged,
   watchDominantSpeakerChanged,
@@ -76,6 +77,7 @@ export const registerRingingCallEventHandlers = (call: Call) => {
   const eventHandlers = [
     call.on('call.accepted', watchCallAccepted(call)),
     call.on('call.rejected', watchCallRejected(call)),
+    call.on('call.missed', watchCallMissed(call)),
   ];
 
   return () => {
