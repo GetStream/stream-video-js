@@ -1,41 +1,8 @@
 import { CallingState } from '../store';
 import { Call } from '../Call';
 import { OwnCapability } from '../gen/coordinator';
-import { reconcileRingState } from '../ringing';
 import { CallEnded } from '../gen/video/sfu/event/events';
 import { CallEndedReason } from '../gen/video/sfu/models/models';
-
-/**
- * Handles the delivery of `call.accepted`. The caller joins the call.
- *
- * `CallState.updateFromEvent` runs before this, so the reconciler reads the
- * event's data off the call state.
- */
-export const watchCallAccepted = (call: Call) => {
-  return async function onCallAccepted() {
-    await reconcileRingState(call);
-  };
-};
-
-/**
- * Handles the delivery of `call.rejected`. The caller cancels once everyone
- * has rejected, and a callee leaves once the caller has cancelled.
- */
-export const watchCallRejected = (call: Call) => {
-  return async function onCallRejected() {
-    await reconcileRingState(call);
-  };
-};
-
-/**
- * Handles the delivery of `call.missed`. The caller drops the call once
- * nobody can still accept it.
- */
-export const watchCallMissed = (call: Call) => {
-  return async function onCallMissed() {
-    await reconcileRingState(call);
-  };
-};
 
 /**
  * Event handler that watches the delivery of `call.ended` Websocket event.

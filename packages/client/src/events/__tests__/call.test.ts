@@ -1,16 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fromPartial } from '@total-typescript/shoehorn';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
-import {
-  watchCallAccepted,
-  watchCallEnded,
-  watchCallRejected,
-  watchSfuCallEnded,
-} from '../call';
+import { watchCallEnded, watchSfuCallEnded } from '../call';
 import {
   CallEndedEvent,
-  CallResponse,
-  CallSessionResponse,
   OwnCapability,
   RejectCallResponse,
 } from '../../gen/coordinator';
@@ -20,133 +12,7 @@ import { ClientEventReporter } from '../../reporting';
 import { SfuEvent } from '../../gen/video/sfu/event/events';
 import { CallEndedReason } from '../../gen/video/sfu/models/models';
 
-describe('Call ringing events', () => {
-  describe(`call.accepted`, () => {
-    it(`will ignore an acceptance by the current user`, async () => {
-      const call = fakeCall({ currentUserId: 'test-user-id' });
-      call.state.updateFromCallResponse({
-        ...fakeMetadata(),
-        // @ts-expect-error type issue
-        created_by: { id: 'test-user-id' },
-      });
-      setSession(call, { accepted_by: { 'test-user-id': timestamp() } });
-      vi.spyOn(call, 'join');
-      const handler = watchCallAccepted(call);
-      await handler();
-
-      expect(call.join).not.toHaveBeenCalled();
-    });
-
-    it(`will join the call for the caller if atleast one callee has accepted`, async () => {
-      const call = fakeCall({ currentUserId: 'test-user' });
-      call.state.updateFromCallResponse({
-        ...fakeMetadata(),
-        // @ts-expect-error type issue
-        created_by: { id: 'test-user' },
-      });
-      setSession(call, { accepted_by: { 'test-user-id-callee': timestamp() } });
-      vi.spyOn(call, 'join').mockImplementation(async () => {
-        console.log(`TEST: join() called`);
-      });
-      const handler = watchCallAccepted(call);
-      await handler();
-
-      expect(call.join).toHaveBeenCalled();
-    });
-  });
-
-  it('will not join the call for the other callee automatically when someone accepts', async () => {
-    const call = fakeCall({ currentUserId: 'test-user-id-callee-2' });
-    vi.spyOn(call, 'join').mockImplementation(async () => {
-      console.log(`TEST: join() called`);
-    });
-    call.state.updateFromCallResponse({
-      ...fakeMetadata(),
-      // @ts-expect-error type issue
-      created_by: { id: 'test-user-id-caller' },
-    });
-    setSession(call, { accepted_by: { 'test-user-id-callee-1': timestamp() } });
-    const handler = watchCallAccepted(call);
-    await handler();
-
-    expect(call.join).not.toHaveBeenCalled();
-  });
-
-  describe(`call.rejected`, () => {
-    it(`caller will leave the call if all callees have rejected`, async () => {
-      const call = fakeCall({ currentUserId: 'm1' });
-      call.state.updateFromCallResponse({
-        ...fakeMetadata(),
-        // @ts-expect-error type issue
-        created_by: { id: 'm1' },
-      });
-      call.state.setMembers([
-        // @ts-expect-error incomplete data
-        { user_id: 'm1' },
-        // @ts-expect-error incomplete data
-        { user_id: 'm2' },
-        // @ts-expect-error incomplete data
-        { user_id: 'm3' },
-      ]);
-      call.state.setCallingState(CallingState.RINGING);
-      vi.spyOn(call, 'leave').mockImplementation(async () => {
-        console.log(`TEST: leave() called`);
-      });
-
-      setSession(call, {
-        rejected_by: { m2: timestamp(), m3: timestamp() },
-      });
-
-      const handler = watchCallRejected(call);
-      await handler();
-      expect(call.leave).toHaveBeenCalledWith({
-        reject: true,
-        reason: 'cancel',
-        message: 'ring: everyone rejected',
-      });
-    });
-
-    it(`caller will not leave the call if only one callee rejects`, async () => {
-      const call = fakeCall();
-      call.state.updateFromCallResponse({
-        ...fakeMetadata(),
-        // @ts-expect-error type issue
-        created_by: { id: 'm0' },
-      });
-      // @ts-expect-error incomplete data
-      call.state.setMembers([{ user_id: 'm1' }, { user_id: 'm2' }]);
-      vi.spyOn(call, 'leave').mockImplementation(async () => {
-        console.log(`TEST: leave() called`);
-      });
-      setSession(call, { rejected_by: { m2: timestamp() } });
-
-      const handler = watchCallRejected(call);
-      await handler();
-
-      expect(call.leave).not.toHaveBeenCalled();
-    });
-
-    it('callee will leave the call if caller rejects', async () => {
-      const call = fakeCall({ currentUserId: 'm1' });
-      call.state.updateFromCallResponse({
-        ...fakeMetadata(),
-        // @ts-expect-error type issue
-        created_by: { id: 'm0' },
-      });
-      // @ts-expect-error incomplete data
-      call.state.setMembers([{ user_id: 'm1' }, { user_id: 'm2' }]);
-      vi.spyOn(call, 'leave').mockImplementation(async () => {
-        console.log(`TEST: leave() called`);
-      });
-      setSession(call, { rejected_by: { m0: timestamp() } });
-
-      const handler = watchCallRejected(call);
-      await handler();
-
-      expect(call.leave).toHaveBeenCalled();
-    });
-  });
-
+describe('Call lifecycle events', () => {
   describe(`call.ended`, () => {
     it(`will leave the call unless joined`, async () => {
       const call = fakeCall();
@@ -299,19 +165,6 @@ describe('Call ringing events', () => {
   });
 });
 
-const timestamp = () => new Date().toISOString();
-
-const setSession = (call: Call, session: Partial<CallSessionResponse>) => {
-  call.state['sessionSubject'].next(
-    fromPartial({
-      accepted_by: {},
-      rejected_by: {},
-      missed_by: {},
-      ...session,
-    }),
-  );
-};
-
 const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
   const store = new StreamVideoWriteableStateStore();
   store.setConnectedUser({
@@ -332,30 +185,5 @@ const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
     streamClient: client,
     clientEventReporter: new ClientEventReporter({ streamClient: client }),
     ringing: ring,
-  });
-};
-
-const fakeMetadata = (): CallResponse => {
-  return fromPartial({
-    id: '12345',
-    type: 'development',
-    cid: 'development:12345',
-
-    created_by: {
-      id: 'test-user-id',
-    },
-    blocked_user_ids: [],
-    egress: {},
-
-    settings: {
-      ring: {
-        auto_cancel_timeout_ms: 30000,
-        incoming_call_timeout_ms: 30000,
-        missed_call_timeout_ms: 30000,
-      },
-      screensharing: {
-        target_resolution: undefined,
-      },
-    },
   });
 };

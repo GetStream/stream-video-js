@@ -1,13 +1,11 @@
 import { Call } from '../Call';
+import { reconcileRingState } from '../ringing';
 import { Dispatcher } from '../rtc';
 import {
   handleRemoteSoftMute,
   watchAudioLevelChanged,
-  watchCallAccepted,
   watchCallEnded,
   watchCallGrantsUpdated,
-  watchCallMissed,
-  watchCallRejected,
   watchConnectionQualityChanged,
   watchDominantSpeakerChanged,
   watchInboundStateNotification,
@@ -74,10 +72,16 @@ export const registerEventHandlers = (call: Call, dispatcher: Dispatcher) => {
  * @param call the call to register event handlers for.
  */
 export const registerRingingCallEventHandlers = (call: Call) => {
+  const reconcile = () => {
+    reconcileRingState(call).catch((err) => {
+      call.logger.error('Failed to reconcile the ring state', err);
+    });
+  };
+
   const eventHandlers = [
-    call.on('call.accepted', watchCallAccepted(call)),
-    call.on('call.rejected', watchCallRejected(call)),
-    call.on('call.missed', watchCallMissed(call)),
+    call.on('call.accepted', () => reconcile()),
+    call.on('call.rejected', () => reconcile()),
+    call.on('call.missed', () => reconcile()),
   ];
 
   return () => {
