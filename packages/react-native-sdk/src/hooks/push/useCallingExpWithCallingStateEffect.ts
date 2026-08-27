@@ -30,7 +30,7 @@ export const useCallingExpWithCallingStateEffect = () => {
 
   const callDisplayName = useMemo(
     () =>
-      callCustomDisplayName ??
+      callCustomDisplayName ||
       getCallDisplayName(callMembers, participants, currentUserId),
     [callMembers, participants, currentUserId, callCustomDisplayName],
   );
