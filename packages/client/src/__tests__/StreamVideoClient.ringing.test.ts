@@ -45,12 +45,21 @@ describe('StreamVideoClient Ringing', () => {
     ]);
   };
 
+  const leaveAllCalls = async () => {
+    await Promise.all(
+      [oliverClient, sachaClient, marceloClient].flatMap((client) =>
+        client.state.calls.map((call) => call.leave().catch(() => {})),
+      ),
+    );
+  };
+
   beforeEach(async () => {
     [oliverClient, sachaClient, marceloClient] =
       await createClients(testUserIds);
   });
 
   afterEach(async () => {
+    await leaveAllCalls();
     await disconnectClients();
   });
 
@@ -275,6 +284,7 @@ describe('StreamVideoClient Ringing', () => {
     };
 
     it('should reject the call when the caller is busy', async () => {
+      await disconnectClients();
       [oliverClient, sachaClient, marceloClient] = await createClients(
         testUserIds,
         {
@@ -301,11 +311,10 @@ describe('StreamVideoClient Ringing', () => {
         marceloCall.cid,
       );
       expect(oliverClient.state.calls.length).toBe(1);
-
-      await disconnectClients();
     });
 
     it('should reject the call when the callee is busy', async () => {
+      await disconnectClients();
       [oliverClient, sachaClient, marceloClient] = await createClients(
         testUserIds,
         {
@@ -332,8 +341,6 @@ describe('StreamVideoClient Ringing', () => {
         marceloCall.cid,
       );
       expect(sachaClient.state.calls.length).toBe(1);
-
-      await disconnectClients();
     });
 
     it('should allow multiple simultaneous calls to the same caller when rejectCallWhenBusy is false', async () => {
