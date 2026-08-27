@@ -5,6 +5,7 @@ import {
   CallRejectedEvent,
   OwnCapability,
 } from '../gen/coordinator';
+import type { CallLeaveOptions, GetCallRingStateResponse } from '../types';
 import { CallEnded } from '../gen/video/sfu/event/events';
 import { CallEndedReason } from '../gen/video/sfu/models/models';
 
@@ -74,6 +75,79 @@ export const watchCallRejected = (call: Call) => {
       }
     }
   };
+};
+
+/**
+ * Applies a polled ring state to a ringing call, taking the same decisions as
+ * {@link watchCallAccepted}, {@link watchCallRejected} and the auto-drop.
+ *
+ * @param call the call to reconcile.
+ * @param ringState the ring state as returned by the coordinator.
+ * @returns whether the ring reached a terminal state.
+ */
+export const reconcileRingState = async (
+  call: Call,
+  ringState: GetCallRingStateResponse,
+): Promise<boolean> => {
+  // the outcome is already known
+  if (call.state.callingState !== CallingState.RINGING) return true;
+
+  call.state.updateFromRingState(ringState);
+
+  const leave = async (options: CallLeaveOptions) => {
+    await call.leave(options).catch((err) => {
+      call.logger.error('Failed to leave the call after reconciling', err);
+    });
+  };
+
+  // checked before `accepted_by`: an ended session cannot be joined
+  if (ringState.call_ended_at || ringState.session_ended_at) {
+    call.logger.info('ring state: the call has ended, leaving');
+    globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
+    await leave({ reject: false, message: 'ring: reconciled - call ended' });
+    return true;
+  }
+
+  const currentUserId = call.currentUserId;
+  const acceptedByOther = Object.keys(ringState.accepted_by).some(
+    (userId) => userId !== currentUserId,
+  );
+  if (acceptedByOther) {
+    call.logger.info('ring state: the call was accepted, joining');
+    await call.join().catch((err) => {
+      call.logger.error('Failed to join the call after reconciling', err);
+    });
+    return true;
+  }
+
+  const otherMembers = call.state.members
+    .filter((member) => member.user_id !== currentUserId)
+    .map((member) => member.user_id);
+  if (otherMembers.length === 0) return false;
+
+  if (otherMembers.every((userId) => ringState.rejected_by[userId])) {
+    call.logger.info('ring state: everyone rejected, leaving');
+    await leave({
+      reject: true,
+      reason: 'cancel',
+      message: 'ring: reconciled - everyone rejected',
+    });
+    return true;
+  }
+
+  const settled = (userId: string) =>
+    ringState.rejected_by[userId] || ringState.missed_by[userId];
+  if (otherMembers.every(settled)) {
+    call.logger.info('ring state: no one accepted, leaving');
+    await leave({
+      reject: true,
+      reason: 'timeout',
+      message: 'ring: reconciled - no one accepted',
+    });
+    return true;
+  }
+
+  return false;
 };
 
 /**

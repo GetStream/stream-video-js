@@ -16,7 +16,10 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { useAppEnvironment } from '../../context/AppEnvironmentContext';
+import {
+  useAppEnvironment,
+  useIsProntoEnvironment,
+} from '../../context/AppEnvironmentContext';
 import { useSettings } from '../../context/SettingsContext';
 import { getClient } from '../../helpers/client';
 import { ServerSideCredentialsProps } from '../../lib/getServerSideCredentialsProps';
@@ -24,6 +27,7 @@ import { meetingId } from '../../lib/idGenerators';
 import appTranslations from '../../translations';
 import { DefaultAppHeader } from '../DefaultAppHeader';
 import { DialingCallNotification } from './DialingCallNotification';
+import { RingStateDebugPane } from './RingStateDebugPane';
 
 function findLastIndex<T>(
   arr: readonly T[],
@@ -50,6 +54,7 @@ export const DialerPage = ({
   const [userIds, setUserIds] = useState(['']);
   const [ringingCall, setRingingCall] = useState<Call | undefined>(undefined);
   const environment = useAppEnvironment();
+  const isProntoEnvironment = useIsProntoEnvironment();
   const { t } = useI18n();
 
   useEffect(() => {
@@ -251,6 +256,7 @@ export const DialerPage = ({
             />
           </div>
         </form>
+        {isProntoEnvironment && <RingStateDebugPane call={ringingCall} />}
       </div>
     </StreamVideo>
   );

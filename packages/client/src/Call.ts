@@ -125,6 +125,7 @@ import {
   CallRecordingType,
   ClientPublishOptions,
   ClosedCaptionsSettings,
+  GetCallRingStateResponse,
   JoinCallData,
   StartCallRecordingFnType,
   TrackMuteType,
@@ -157,6 +158,7 @@ import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
 import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
+import { RingStatePoller } from './helpers/RingStatePoller';
 import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
 import { ViewportTracker } from './helpers/ViewportTracker';
 import { PermissionsContext } from './permissions';
@@ -303,6 +305,7 @@ export class Call {
   private sfuStatsReporter?: SfuStatsReporter;
   private lastStatsOptions?: StatsOptions;
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
+  private ringStatePoller: RingStatePoller | undefined;
 
   private readonly clientStore: StreamVideoWriteableStateStore;
   public readonly streamClient: StreamClient;
@@ -545,6 +548,7 @@ export class Call {
 
         if (isAcceptedByMe || isRejectedByMe) {
           this.cancelAutoDrop();
+          this.cancelRingStatePolling();
         }
 
         const isAcceptedElsewhere =
@@ -608,6 +612,7 @@ export class Call {
         this.state.setCallingState(CallingState.RINGING);
       }
       this.scheduleAutoDrop();
+      this.scheduleRingStatePolling();
       this.leaveCallHooks.add(registerRingingCallEventHandlers(this));
     }
   };
@@ -818,6 +823,7 @@ export class Call {
       this.unifiedSessionId = undefined;
       this.ringingSubject.next(false);
       this.cancelAutoDrop();
+      this.cancelRingStatePolling();
       this.clientStore.unregisterCall(this);
 
       globalThis.streamRNVideoSDK?.callManager.stop({
@@ -1050,6 +1056,27 @@ export class Call {
     return this.streamClient.post<RingCallResponse, RingCallRequest>(
       `${this.streamClientBasePath}/ring`,
       data,
+    );
+  };
+
+  /**
+   * Returns who accepted, rejected or missed the ring for a call session.
+   * Safe to poll: it performs no writes and emits no events.
+   *
+   * @param callSessionId the call session to read. Defaults to the current one.
+   * Pass it explicitly to read a session that has already ended, as ending a
+   * call clears its current session.
+   */
+  getRingState = async (
+    callSessionId?: string,
+  ): Promise<GetCallRingStateResponse> => {
+    const sessionId = callSessionId ?? this.state.session?.id;
+    if (!sessionId) {
+      throw new Error('Cannot read the ring state: the call has no session');
+    }
+    return this.streamClient.get<GetCallRingStateResponse>(
+      `${this.streamClientBasePath}/ring_state`,
+      { call_session_id: sessionId },
     );
   };
 
@@ -3147,6 +3174,29 @@ export class Call {
   private cancelAutoDrop = () => {
     clearTimeout(this.dropTimeout);
     this.dropTimeout = undefined;
+  };
+
+  /**
+   * Starts polling for the ring outcome. Applicable only to ringing calls the
+   * current user created.
+   */
+  private scheduleRingStatePolling = () => {
+    this.cancelRingStatePolling();
+
+    if (!this.isCreatedByMe) return;
+    const options = this.streamClient.options.ringStatePolling;
+    if (options === false) return;
+
+    this.ringStatePoller = new RingStatePoller(this, options);
+    this.ringStatePoller.start();
+  };
+
+  /**
+   * Cancels the ring state polling.
+   */
+  private cancelRingStatePolling = () => {
+    this.ringStatePoller?.stop();
+    this.ringStatePoller = undefined;
   };
 
   /**

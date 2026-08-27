@@ -2,7 +2,11 @@ import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { describe, expect, it, vi } from 'vitest';
 import { anyNumber } from 'vitest-mock-extended';
 import { fromPartial } from '@total-typescript/shoehorn';
-import { StreamVideoParticipant, VisibilityState } from '../../types';
+import {
+  type GetCallRingStateResponse,
+  StreamVideoParticipant,
+  VisibilityState,
+} from '../../types';
 import { CallingState } from '../CallingState';
 import { CallState } from '../CallState';
 import {
@@ -1472,6 +1476,64 @@ describe('CallState', () => {
 
       state.dispose();
       expect(state['closedCaptionsTasks'].size).toBe(0);
+    });
+  });
+
+  describe('updateFromRingState', () => {
+    const ringState = fromPartial<GetCallRingStateResponse>({
+      session_id: 'session-1',
+      accepted_by: { bob: '2026-08-24T10:00:04Z' },
+      rejected_by: { carol: '2026-08-24T10:00:09Z' },
+      missed_by: { dave: '2026-08-24T10:00:35Z' },
+    });
+
+    const withSession = (id: string) => {
+      const state = new CallState();
+      state['sessionSubject'].next(
+        fromPartial({
+          id,
+          accepted_by: {},
+          rejected_by: {},
+          missed_by: {},
+          participants: [fromPartial({ user_session_id: 'p1' })],
+        }),
+      );
+      return state;
+    };
+
+    it('merges the ring maps into the current session', () => {
+      const state = withSession('session-1');
+      state.updateFromRingState(ringState);
+
+      expect(state.session?.accepted_by).toEqual(ringState.accepted_by);
+      expect(state.session?.rejected_by).toEqual(ringState.rejected_by);
+      expect(state.session?.missed_by).toEqual(ringState.missed_by);
+    });
+
+    it('leaves the session roster untouched', () => {
+      const state = withSession('session-1');
+      state.updateFromRingState(ringState);
+
+      expect(state.session?.participants).toHaveLength(1);
+    });
+
+    it('ignores a ring state that belongs to another session', () => {
+      const state = withSession('session-2');
+      state.updateFromRingState(ringState);
+
+      expect(state.session?.accepted_by).toEqual({});
+    });
+
+    it('applies the end timestamps', () => {
+      const state = withSession('session-1');
+      state.updateFromRingState({
+        ...ringState,
+        session_ended_at: '2026-08-24T10:01:00Z',
+        call_ended_at: '2026-08-24T10:01:00Z',
+      });
+
+      expect(state.session?.ended_at).toBe('2026-08-24T10:01:00Z');
+      expect(state.endedAt).toEqual(new Date('2026-08-24T10:01:00Z'));
     });
   });
 });
