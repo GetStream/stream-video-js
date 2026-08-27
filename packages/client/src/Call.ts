@@ -179,7 +179,11 @@ import {
   SpeakerManager,
 } from './devices';
 import { normalize } from './devices/devicePersistence';
-import { hasPending, withoutConcurrency } from './helpers/concurrency';
+import {
+  hasPending,
+  singleFlight,
+  withoutConcurrency,
+} from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
 import { pushToIfMissing } from './helpers/array';
 import {
@@ -1099,111 +1103,113 @@ export class Call {
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
-  join = async ({
-    maxJoinRetries = 3,
-    joinResponseTimeout,
-    rpcRequestTimeout,
-    allowOwnTracksLoopback = false,
-    ...data
-  }: JoinCallData & {
-    maxJoinRetries?: number;
-    joinResponseTimeout?: number;
-    rpcRequestTimeout?: number;
-    allowOwnTracksLoopback?: boolean;
-  } = {}): Promise<void> => {
-    const callingState = this.state.callingState;
+  join = singleFlight(
+    async ({
+      maxJoinRetries = 3,
+      joinResponseTimeout,
+      rpcRequestTimeout,
+      allowOwnTracksLoopback = false,
+      ...data
+    }: JoinCallData & {
+      maxJoinRetries?: number;
+      joinResponseTimeout?: number;
+      rpcRequestTimeout?: number;
+      allowOwnTracksLoopback?: boolean;
+    } = {}): Promise<void> => {
+      const callingState = this.state.callingState;
 
-    if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
-      throw new Error(`Illegal State: call.join() shall be called only once`);
-    }
+      if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
+        throw new Error(`Illegal State: call.join() shall be called only once`);
+      }
 
-    // we need this to be set before the callingx.joinCall() is
-    // called to avoid registering the test call in the CallKit/Telecom
-    this.allowOwnTracksLoopback = allowOwnTracksLoopback;
+      // we need this to be set before the callingx.joinCall() is
+      // called to avoid registering the test call in the CallKit/Telecom
+      this.allowOwnTracksLoopback = allowOwnTracksLoopback;
 
-    if (data?.ring) {
-      this.ringingSubject.next(true);
-    }
+      if (data?.ring) {
+        this.ringingSubject.next(true);
+      }
 
-    const callingX = globalThis.streamRNVideoSDK?.callingX;
-    if (callingX) {
-      // for Android/iOS, we need to start the call in the callingx library as soon as possible
-      await callingX.joinCall(this, this.clientStore.calls);
-    }
+      const callingX = globalThis.streamRNVideoSDK?.callingX;
+      if (callingX) {
+        // for Android/iOS, we need to start the call in the callingx library as soon as possible
+        await callingX.joinCall(this, this.clientStore.calls);
+      }
 
-    await this.setup();
+      await this.setup();
 
-    this.clientEventReporter.registerCall(this.cid, {
-      callType: this.type,
-      callId: this.id,
-      getCallSessionId: () => this.state.session?.id ?? '',
-      getSfuId: () => this.credentials?.server.edge_name ?? '',
-    });
+      this.clientEventReporter.registerCall(this.cid, {
+        callType: this.type,
+        callId: this.id,
+        getCallSessionId: () => this.state.session?.id ?? '',
+        getSfuId: () => this.credentials?.server.edge_name ?? '',
+      });
 
-    this.joinResponseTimeout = joinResponseTimeout;
-    this.rpcRequestTimeout = rpcRequestTimeout;
-    // we will count the number of join failures per SFU.
-    // once the number of failures reaches 2, we will piggyback on the `migrating_from`
-    // field to force the coordinator to provide us another SFU
-    const sfuJoinFailures = new Map<string, number>();
-    const joinData: JoinCallData = data;
-    maxJoinRetries = Math.max(maxJoinRetries, 1);
-    try {
-      await this.clientEventReporter.withJoinLifecycle(
-        this.cid,
-        'first-attempt',
-        async () => {
-          for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
-            try {
-              this.logger.trace(`Joining call (${attempt})`, this.cid);
-              await this.doJoin(data);
-              delete joinData.migrating_from;
-              delete joinData.migrating_from_list;
-              return;
-            } catch (err) {
-              this.logger.warn(`Failed to join call (${attempt})`, this.cid);
-              if (
-                (err instanceof ErrorFromResponse && err.unrecoverable) ||
-                (err instanceof SfuJoinError && err.unrecoverable)
-              ) {
-                throw err;
-              }
+      this.joinResponseTimeout = joinResponseTimeout;
+      this.rpcRequestTimeout = rpcRequestTimeout;
+      // we will count the number of join failures per SFU.
+      // once the number of failures reaches 2, we will piggyback on the `migrating_from`
+      // field to force the coordinator to provide us another SFU
+      const sfuJoinFailures = new Map<string, number>();
+      const joinData: JoinCallData = data;
+      maxJoinRetries = Math.max(maxJoinRetries, 1);
+      try {
+        await this.clientEventReporter.withJoinLifecycle(
+          this.cid,
+          'first-attempt',
+          async () => {
+            for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+              try {
+                this.logger.trace(`Joining call (${attempt})`, this.cid);
+                await this.doJoin(data);
+                delete joinData.migrating_from;
+                delete joinData.migrating_from_list;
+                return;
+              } catch (err) {
+                this.logger.warn(`Failed to join call (${attempt})`, this.cid);
+                if (
+                  (err instanceof ErrorFromResponse && err.unrecoverable) ||
+                  (err instanceof SfuJoinError && err.unrecoverable)
+                ) {
+                  throw err;
+                }
 
-              const switchSfu =
-                err instanceof SfuJoinError &&
-                SfuJoinError.isJoinErrorCode(err.errorEvent);
+                const switchSfu =
+                  err instanceof SfuJoinError &&
+                  SfuJoinError.isJoinErrorCode(err.errorEvent);
 
-              const sfuId = this.credentials?.server.edge_name;
-              if (sfuId) {
-                const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
-                sfuJoinFailures.set(sfuId, failures);
-                if (switchSfu || failures >= 2) {
-                  joinData.migrating_from = sfuId;
-                  joinData.migrating_from_list = Array.from(
-                    sfuJoinFailures.keys(),
-                  );
-                  if (attempt < maxJoinRetries - 1) {
-                    this.clientEventReporter.startCorrelation(
-                      this.cid,
-                      'first-attempt',
+                const sfuId = this.credentials?.server.edge_name;
+                if (sfuId) {
+                  const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
+                  sfuJoinFailures.set(sfuId, failures);
+                  if (switchSfu || failures >= 2) {
+                    joinData.migrating_from = sfuId;
+                    joinData.migrating_from_list = Array.from(
+                      sfuJoinFailures.keys(),
                     );
+                    if (attempt < maxJoinRetries - 1) {
+                      this.clientEventReporter.startCorrelation(
+                        this.cid,
+                        'first-attempt',
+                      );
+                    }
                   }
                 }
-              }
 
-              if (attempt === maxJoinRetries - 1) {
-                throw err;
+                if (attempt === maxJoinRetries - 1) {
+                  throw err;
+                }
               }
+              await sleep(retryInterval(attempt));
             }
-            await sleep(retryInterval(attempt));
-          }
-        },
-      );
-    } catch (error) {
-      callingX?.endCall(this, 'error');
-      throw error;
-    }
-  };
+          },
+        );
+      } catch (error) {
+        callingX?.endCall(this, 'error');
+        throw error;
+      }
+    },
+  );
 
   /**
    * Will make a single attempt to watch for call related WebSocket events
