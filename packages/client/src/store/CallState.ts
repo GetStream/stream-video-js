@@ -14,7 +14,6 @@ import { CallingState } from './CallingState';
 import {
   type CallRecordingType,
   type ClosedCaptionsSettings,
-  type GetCallRingStateResponse,
   type StreamVideoParticipant,
   type StreamVideoParticipantPatch,
   type StreamVideoParticipantPatches,
@@ -38,6 +37,7 @@ import {
   CallSessionParticipantLeftEvent,
   CallSessionResponse,
   CallSettingsResponse,
+  GetCallRingStateResponse,
   ClosedCaptionEvent,
   EgressResponse,
   MemberResponse,

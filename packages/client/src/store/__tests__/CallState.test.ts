@@ -2,11 +2,7 @@ import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { describe, expect, it, vi } from 'vitest';
 import { anyNumber } from 'vitest-mock-extended';
 import { fromPartial } from '@total-typescript/shoehorn';
-import {
-  type GetCallRingStateResponse,
-  StreamVideoParticipant,
-  VisibilityState,
-} from '../../types';
+import { StreamVideoParticipant, VisibilityState } from '../../types';
 import { CallingState } from '../CallingState';
 import { CallState } from '../CallState';
 import {
@@ -28,6 +24,7 @@ import {
   CallAcceptedEvent,
   CallEndedEvent,
   CallUpdatedEvent,
+  type GetCallRingStateResponse,
   MemberResponse,
   OwnCapability,
 } from '../../gen/coordinator';

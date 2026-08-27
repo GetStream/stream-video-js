@@ -11,7 +11,7 @@ import {
   ErrorFromResponse,
   type StreamClientOptions,
 } from '../../coordinator/connection/types';
-import type { GetCallRingStateResponse } from '../../types';
+import type { GetCallRingStateResponse } from '../../gen/coordinator';
 
 const SESSION_ID = 'session-1';
 const START_AFTER_MS = 15_000;
@@ -59,7 +59,6 @@ describe('RingStatePoller', () => {
       participants: [],
     });
     newCall.state['settingsSubject'].next({
-      // @ts-expect-error mocking only what we need for the test
       ring: {
         auto_cancel_timeout_ms: 30_000,
         incoming_call_timeout_ms: 30_000,

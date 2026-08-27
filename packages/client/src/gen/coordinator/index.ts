@@ -5131,6 +5131,73 @@ export interface GetCallResponse {
   own_capabilities: Array<OwnCapability>;
 }
 /**
+ * The ring state of a call session: who accepted, rejected, or missed the ring.
+ * @export
+ * @interface GetCallRingStateResponse
+ */
+export interface GetCallRingStateResponse {
+  /**
+   * Users that accepted the call, mapped to when they accepted
+   * @type {{ [key: string]: string; }}
+   * @memberof GetCallRingStateResponse
+   */
+  accepted_by: { [key: string]: string };
+  /**
+   * The CID of the call
+   * @type {string}
+   * @memberof GetCallRingStateResponse
+   */
+  call_cid: string;
+  /**
+   * When the call ended
+   * @type {string}
+   * @memberof GetCallRingStateResponse
+   */
+  call_ended_at?: string;
+  /**
+   * The user that created the call, i.e. the caller
+   * @type {string}
+   * @memberof GetCallRingStateResponse
+   */
+  created_by_user_id: string;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof GetCallRingStateResponse
+   */
+  duration: string;
+  /**
+   * Users that missed the call, mapped to when they were marked as missed
+   * @type {{ [key: string]: string; }}
+   * @memberof GetCallRingStateResponse
+   */
+  missed_by: { [key: string]: string };
+  /**
+   * Users that rejected the call, mapped to when they rejected
+   * @type {{ [key: string]: string; }}
+   * @memberof GetCallRingStateResponse
+   */
+  rejected_by: { [key: string]: string };
+  /**
+   * When the call session ended
+   * @type {string}
+   * @memberof GetCallRingStateResponse
+   */
+  session_ended_at?: string;
+  /**
+   * The call session this state belongs to, empty when the call has never rung
+   * @type {string}
+   * @memberof GetCallRingStateResponse
+   */
+  session_id: string;
+  /**
+   * When the call session started
+   * @type {string}
+   * @memberof GetCallRingStateResponse
+   */
+  session_started_at?: string;
+}
+/**
  * Basic response information
  * @export
  * @interface GetCallSessionParticipantStatsDetailsResponse

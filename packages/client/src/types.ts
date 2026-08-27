@@ -301,25 +301,6 @@ export type CallLeaveOptions = {
 };
 
 /**
- * The ring state of a call session. The three maps are always present.
- *
- * Stand-in for the generated `GetCallRingStateResponse`. Delete it and import
- * from `./gen/coordinator` once the OpenAPI spec ships.
- */
-export type GetCallRingStateResponse = {
-  duration: string;
-  call_cid: string;
-  session_id: string;
-  created_by_user_id: string;
-  accepted_by: { [key: string]: string };
-  rejected_by: { [key: string]: string };
-  missed_by: { [key: string]: string };
-  session_started_at?: string;
-  session_ended_at?: string;
-  call_ended_at?: string;
-};
-
-/**
  * The options to pass to {@link Call} constructor.
  */
 export type CallConstructor = {

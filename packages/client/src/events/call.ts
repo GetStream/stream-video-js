@@ -3,9 +3,10 @@ import { Call } from '../Call';
 import {
   CallAcceptedEvent,
   CallRejectedEvent,
+  GetCallRingStateResponse,
   OwnCapability,
 } from '../gen/coordinator';
-import type { CallLeaveOptions, GetCallRingStateResponse } from '../types';
+import type { CallLeaveOptions } from '../types';
 import { CallEnded } from '../gen/video/sfu/event/events';
 import { CallEndedReason } from '../gen/video/sfu/models/models';
 
