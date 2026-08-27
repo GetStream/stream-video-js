@@ -1,42 +1,39 @@
 /**
- * Tests for the `createStreamVideoClient` failure branches of the Android `call.ring` push handler.
- *
- * These branches abandon the push. Because `callingx.stopService()` is only a request — it no-ops
- * while any other call is registered or being registered — the abandoned call has to be ended
- * explicitly, otherwise its notification would be stranded whenever a second call is live.
+ * The two `createStreamVideoClient` failure branches of the Android `call.ring` push handler
+ * abandon the push. `callingx.stopService()` is only a request — it no-ops while another call is
+ * registered or being registered — so the abandoned call has to be ended explicitly, otherwise its
+ * notification is stranded whenever a second call is live.
  */
 
-const makeCallingx = (overrides: Partial<any> = {}) => ({
-  log: jest.fn(),
-  stopService: jest.fn().mockResolvedValue(undefined),
-  endCallWithReason: jest.fn().mockResolvedValue(undefined),
-  acquireBackgroundTask: jest.fn().mockResolvedValue(undefined),
-  releaseBackgroundTask: jest.fn().mockResolvedValue(undefined),
-  ...overrides,
-});
-
+const CALL_CID = 'default:abandoned';
 const RING_DATA = {
-  call_cid: 'default:abandoned-call',
+  call_cid: CALL_CID,
   sender: 'stream.video',
   type: 'call.ring',
-  created_by_id: 'caller-id',
 };
 
-/** Load the push handler with the client factory and platform state under test. */
-const loadHandler = ({
-  createStreamVideoClient,
-  callingx,
-  canListenToWS,
-}: {
-  createStreamVideoClient: jest.Mock;
-  callingx: ReturnType<typeof makeCallingx>;
-  canListenToWS: boolean;
-}) => {
-  let onRingNotificationReceived!: (data: any) => Promise<void>;
-  let pushUnsubscriptionCallbacks!: Map<string, (() => void)[]>;
+/** Loads the handler with a failing client factory. `calls` records the callingx sequence. */
+const setup = (createStreamVideoClient: jest.Mock) => {
+  const calls: string[] = [];
+  const callingx = {
+    log: jest.fn(),
+    acquireBackgroundTask: jest.fn().mockResolvedValue(undefined),
+    releaseBackgroundTask: jest.fn(() => {
+      calls.push('release');
+    }),
+    endCallWithReason: jest.fn(async () => {
+      calls.push('end');
+    }),
+    stopService: jest.fn(async () => {
+      calls.push('stop');
+    }),
+  };
+
+  let handler!: (data: unknown) => Promise<void>;
+  let subscriptions!: Map<string, unknown>;
   jest.isolateModules(() => {
     jest.doMock('react-native', () => ({
-      Platform: { OS: 'android', select: (o: any) => o.android },
+      Platform: { OS: 'android' },
       AppState: { currentState: 'background', addEventListener: jest.fn() },
     }));
     // mocked to keep the video-client / react-native-webrtc runtime out of the test
@@ -53,15 +50,16 @@ const loadHandler = ({
       },
     }));
     jest.doMock('../../src/utils/push/internal/utils', () => ({
-      canListenToWS: () => canListenToWS,
+      canListenToWS: () => true,
       shouldCallBeClosed: () => ({ mustEndCall: false }),
     }));
-    onRingNotificationReceived =
+    handler =
       require('../../src/utils/push/internal/android').onRingNotificationReceived;
-    pushUnsubscriptionCallbacks =
+    subscriptions =
       require('../../src/utils/push/internal/constants').pushUnsubscriptionCallbacks;
   });
-  return { onRingNotificationReceived, pushUnsubscriptionCallbacks };
+
+  return { handler, calls, callingx, subscriptions };
 };
 
 describe('onRingNotificationReceived — abandoning a push', () => {
@@ -69,63 +67,36 @@ describe('onRingNotificationReceived — abandoning a push', () => {
     jest.resetModules();
   });
 
-  it('ends the displayed call before asking the service to stop when no client is returned', async () => {
-    const callingx = makeCallingx();
-    const { onRingNotificationReceived, pushUnsubscriptionCallbacks } =
-      loadHandler({
-        createStreamVideoClient: jest.fn().mockResolvedValue(undefined),
-        callingx,
-        canListenToWS: false,
-      });
+  it.each<[string, () => jest.Mock]>([
+    ['returns no client', () => jest.fn().mockResolvedValue(undefined)],
+    ['throws', () => jest.fn().mockRejectedValue(new Error('boom'))],
+  ])(
+    'ends the call before requesting the stop when the client factory %s',
+    async (_label, clientFactory) => {
+      const { handler, calls, callingx, subscriptions } =
+        setup(clientFactory());
 
-    await onRingNotificationReceived(RING_DATA);
+      await handler(RING_DATA);
 
-    expect(callingx.endCallWithReason).toHaveBeenCalledWith(
-      RING_DATA.call_cid,
-      'error',
+      expect(calls).toEqual(['release', 'end', 'stop']);
+      expect(callingx.endCallWithReason).toHaveBeenCalledWith(
+        CALL_CID,
+        'error',
+      );
+      expect(subscriptions.has(CALL_CID)).toBe(false);
+    },
+  );
+
+  it('still requests the stop when ending the call fails', async () => {
+    const { handler, calls, callingx, subscriptions } = setup(
+      jest.fn().mockResolvedValue(undefined),
     );
-    expect(callingx.stopService).toHaveBeenCalledTimes(1);
-    expect(callingx.endCallWithReason.mock.invocationCallOrder[0]).toBeLessThan(
-      callingx.stopService.mock.invocationCallOrder[0],
-    );
-    expect(pushUnsubscriptionCallbacks.has(RING_DATA.call_cid)).toBe(false);
-  });
+    callingx.endCallWithReason.mockRejectedValue(new Error('not tracked'));
 
-  it('ends the call and releases the background task when client creation throws', async () => {
-    const callingx = makeCallingx();
-    const { onRingNotificationReceived, pushUnsubscriptionCallbacks } =
-      loadHandler({
-        createStreamVideoClient: jest.fn().mockRejectedValue(new Error('boom')),
-        callingx,
-        canListenToWS: true,
-      });
+    await handler(RING_DATA);
 
-    await onRingNotificationReceived(RING_DATA);
-
-    expect(callingx.releaseBackgroundTask).toHaveBeenCalledWith(
-      `push:${RING_DATA.call_cid}`,
-    );
-    expect(callingx.endCallWithReason).toHaveBeenCalledWith(
-      RING_DATA.call_cid,
-      'error',
-    );
-    expect(callingx.stopService).toHaveBeenCalledTimes(1);
-    expect(pushUnsubscriptionCallbacks.has(RING_DATA.call_cid)).toBe(false);
-  });
-
-  it('still stops the service when ending the call fails', async () => {
-    const callingx = makeCallingx({
-      endCallWithReason: jest.fn().mockRejectedValue(new Error('not tracked')),
-    });
-    const { onRingNotificationReceived } = loadHandler({
-      createStreamVideoClient: jest.fn().mockResolvedValue(undefined),
-      callingx,
-      canListenToWS: false,
-    });
-
-    await onRingNotificationReceived(RING_DATA);
-
-    expect(callingx.stopService).toHaveBeenCalledTimes(1);
+    expect(calls).toEqual(['release', 'stop']);
+    expect(subscriptions.has(CALL_CID)).toBe(false);
   });
 });
 
