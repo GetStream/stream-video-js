@@ -297,6 +297,7 @@ class CallService : Service(), CallRepository.Listener {
 
         if (intent == null || intent.action == null) {
             Log.w(TAG, "[service] onStartCommand: Intent is null, returning START_NOT_STICKY")
+            stopServiceIfIdle(startId)
             return START_NOT_STICKY
         }
 
@@ -310,11 +311,9 @@ class CallService : Service(), CallRepository.Listener {
             }
             ACTION_START_BACKGROUND_TASK -> {
                 startBackgroundTask(intent)
-                return START_NOT_STICKY
             }
             ACTION_STOP_BACKGROUND_TASK -> {
                 stopBackgroundTask()
-                return START_NOT_STICKY
             }
             ACTION_UPDATE_CALL -> {
                 updateCall(intent)
@@ -324,16 +323,14 @@ class CallService : Service(), CallRepository.Listener {
             }
             ACTION_STOP_SERVICE -> {
                 stopServiceIfIdle(startId)
-                return START_NOT_STICKY
             }
             else -> {
                 Log.e(TAG, "[service] onStartCommand: Unknown action: ${intent.action}")
                 stopSelfResult(startId)
-                return START_NOT_STICKY
             }
         }
 
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     /** Started-only service: nothing binds to it. */
@@ -512,6 +509,8 @@ class CallService : Service(), CallRepository.Listener {
 
         val callInfo = extractIntentParams(intent)
 
+        startForegroundForCall(callInfo, incoming)
+
         // If this specific call is already registered, just notify
         val existingCall = callRepository.getCall(callInfo.callId)
         if (existingCall != null) {
@@ -530,8 +529,6 @@ class CallService : Service(), CallRepository.Listener {
             }
             return
         }
-
-        startForegroundForCall(callInfo, incoming)
 
         scope.launch {
             try {
@@ -751,7 +748,8 @@ class CallService : Service(), CallRepository.Listener {
     }
 
     private fun startForegroundForCall(callInfo: CallInfo, incoming: Boolean) {
-        val tempCall = callRepository.getTempCall(callInfo, incoming)
+        val tempCall = callRepository.getCall(callInfo.callId)
+          ?: callRepository.getTempCall(callInfo, incoming)
         val notificationId = notificationManager.getOrCreateNotificationId(callInfo.callId)
         if (!isInForeground) {
             debugLog(
@@ -760,8 +758,8 @@ class CallService : Service(), CallRepository.Listener {
             )
             val notification = notificationManager.createNotification(callInfo.callId, tempCall)
             startForegroundSafely(notificationId, notification)
-        } else {
-            // Already in foreground from another call — just post the notification
+        } else if (!notificationManager.isNotificationPosted(callInfo.callId)) {
+            // Post only when this call has no notification yet (e.g. a second concurrent call).
             val notification = notificationManager.createNotification(callInfo.callId, tempCall)
             notificationManager.postNotification(callInfo.callId, notification)
         }
