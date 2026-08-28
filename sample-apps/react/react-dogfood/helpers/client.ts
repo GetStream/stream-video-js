@@ -95,6 +95,14 @@ export const applyDisplayName = async (name: string) => {
   // anonymous users share the `!anon` id and carry no profile to rename
   if (user.type === 'anonymous' || !name || user.name === name) return;
 
+  // The client is a singleton, and pages such as the pre-call test disconnect
+  // it when they unmount. Reconnecting a client this helper no longer owns
+  // would restore an identity the current page never asked for. Guests skip
+  // the id check: the coordinator, not the caller, assigns their id.
+  const connectedUser = client.state.connectedUser;
+  if (!connectedUser) return;
+  if (user.type !== 'guest' && connectedUser.id !== user.id) return;
+
   const nextUser: User = { ...user, name };
   await client.disconnectUser();
   await client.connectUser(nextUser, tokenOrProvider);
