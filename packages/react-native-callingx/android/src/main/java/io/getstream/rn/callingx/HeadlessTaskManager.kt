@@ -15,7 +15,16 @@ import com.facebook.react.jstasks.HeadlessJsTaskConfig
 import com.facebook.react.jstasks.HeadlessJsTaskContext
 import com.facebook.react.jstasks.HeadlessJsTaskEventListener
 
-class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventListener {
+/**
+ * @param onTaskFinished invoked after the active task finishes, unless the manager is being
+ *   released. [CallService] uses it to re-evaluate whether it still has a reason to run: a
+ *   call-less service is started by `acquireBackgroundTask` alone, and nothing else would ever
+ *   stop it.
+ */
+class HeadlessTaskManager(
+        private val context: Context,
+        private val onTaskFinished: () -> Unit = {},
+) : HeadlessJsTaskEventListener {
 
   private var activeTaskId: Int? = null
   private var isStarting: Boolean = false
@@ -166,6 +175,14 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
     debugLog(TAG, "[headless] onHeadlessJsTaskFinish Task finished: $taskId state cleared: activeTaskId=null isStarting=false")
     activeTaskId = null
     isStarting = false
+
+    if (released) {
+      // release() runs from CallService.onDestroy and finishes the task itself; the service is
+      // already going down, so re-entering its stop logic here would be noise at best.
+      debugLog(TAG, "[headless] onHeadlessJsTaskFinish: released, skipping onTaskFinished")
+      return
+    }
+    onTaskFinished()
   }
 
   /**

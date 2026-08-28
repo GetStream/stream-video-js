@@ -238,9 +238,12 @@ class CallService : Service(), CallRepository.Listener {
         debugLog(TAG, "[service] onCreate: TelecomCallService created")
 
         notificationManager = CallNotificationManager(applicationContext)
-        headlessJSManager = HeadlessTaskManager(applicationContext)
         callRepository = CallRepositoryFactory.create(applicationContext)
         callRepository.setListener(this)
+        // Constructed after callRepository: onTaskFinished reads it, and a task can only finish
+        // after onStartCommand has started one.
+        headlessJSManager =
+                HeadlessTaskManager(applicationContext) { stopServiceIfIdle(lastStartId) }
 
         val filter =
                 IntentFilter().apply {
@@ -599,7 +602,12 @@ class CallService : Service(), CallRepository.Listener {
     }
 
     /**
-     * Handles [ACTION_STOP_SERVICE] as a *request*, not a command. The service hosts every call, so
+     * Re-evaluates whether the service still has a reason to run, and stops it if not. Reached from
+     * [ACTION_STOP_SERVICE] and from [HeadlessTaskManager]'s task-finished callback — the latter
+     * because a call-less service is started by `acquireBackgroundTask` alone (via `startService`,
+     * see `CallingxModuleImpl.startBackgroundTask`) and no call-state transition would ever stop it.
+     *
+     * Both callers are making a *request*, not issuing a command: the service hosts every call, so
      * it may only go down when nothing owns it. Two independent signals are checked because they
      * cover opposite interleavings of "tear this call down" against "a new call is arriving":
      * - [CallRegistrationStore.hasRegisteredCall] covers a call already tracked when we read state.
