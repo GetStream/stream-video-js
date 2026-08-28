@@ -68,6 +68,19 @@ describe('reconcileRingState', () => {
       });
     });
 
+    it('is not terminal when leaving fails, so a retry can follow', async () => {
+      const call = ringingCall({
+        currentUserId: 'm1',
+        createdById: 'm1',
+        members: ['m1', 'm2'],
+      });
+      setSession(call, { rejected_by: { m2: timestamp() } });
+      vi.mocked(call.leave).mockRejectedValueOnce(new Error('transient'));
+
+      expect(await reconcileRingState(call)).toBe(false);
+      expect(call.leave).toHaveBeenCalled();
+    });
+
     it('keeps ringing while only one callee has rejected', async () => {
       const call = ringingCall({
         currentUserId: 'm0',

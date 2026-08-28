@@ -27,8 +27,7 @@ const reconcileAsCaller = async (call: Call): Promise<boolean> => {
   if (endedAt || session?.ended_at) {
     call.logger.info('ring: the call has ended, leaving');
     globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
-    await leave(call, { reject: false, message: 'ring: call ended' });
-    return true;
+    return leave(call, { reject: false, message: 'ring: call ended' });
   }
 
   const acceptedBy = session?.accepted_by ?? {};
@@ -53,23 +52,21 @@ const reconcileAsCaller = async (call: Call): Promise<boolean> => {
   const rejectedBy = session?.rejected_by ?? {};
   if (otherMembers.every((userId) => rejectedBy[userId])) {
     call.logger.info('ring: everyone rejected, leaving');
-    await leave(call, {
+    return leave(call, {
       reject: true,
       reason: 'cancel',
       message: 'ring: everyone rejected',
     });
-    return true;
   }
 
   const missedBy = session?.missed_by ?? {};
   if (otherMembers.every((userId) => rejectedBy[userId] || missedBy[userId])) {
     call.logger.info('ring: no one accepted, leaving');
-    await leave(call, {
+    return leave(call, {
       reject: true,
       reason: 'timeout',
       message: 'ring: no one accepted',
     });
-    return true;
   }
 
   return false;
@@ -83,14 +80,21 @@ const reconcileAsCallee = async (call: Call): Promise<boolean> => {
   if (createdById && rejectedBy[createdById]) {
     call.logger.info('ring: the caller cancelled, leaving');
     globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
-    await leave(call, { message: 'ring: creator rejected' });
-    return true;
+    return leave(call, { message: 'ring: creator rejected' });
   }
   return false;
 };
 
-const leave = async (call: Call, options: CallLeaveOptions) => {
-  await call.leave(options).catch((err) => {
+// `false` when the call could not be left, so the ring stays open for a retry.
+const leave = async (
+  call: Call,
+  options: CallLeaveOptions,
+): Promise<boolean> => {
+  try {
+    await call.leave(options);
+    return true;
+  } catch (err) {
     call.logger.error('Failed to leave a ringing call', err);
-  });
+    return false;
+  }
 };

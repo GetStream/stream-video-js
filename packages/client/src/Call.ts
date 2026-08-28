@@ -704,6 +704,12 @@ export class Call {
       throw new Error('Cannot leave call that has already been left.');
     }
 
+    // before the first await: the calling state stays RINGING well into the
+    // teardown, so an in-flight poll could otherwise reconcile an acceptance
+    // and join the call we are leaving.
+    this.cancelAutoDrop();
+    this.cancelRingStatePolling();
+
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       const callingState = this.state.callingState;
 

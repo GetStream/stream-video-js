@@ -85,6 +85,23 @@ describe('Auto drop ringing calls', () => {
     expect(call.leave).not.toHaveBeenCalled();
   });
 
+  // the calling state stays RINGING well into teardown, so the watchdogs have
+  // to be cancelled before `leave` awaits anything
+  it('is cancelled synchronously when leave starts', async () => {
+    call['scheduleAutoDrop']();
+    call['scheduleRingStatePolling']();
+    const timeout = call['ringTimeout'];
+    vi.spyOn(call, 'leave').mockRestore();
+    vi.spyOn(call, 'reject').mockResolvedValue(fromPartial({}));
+
+    const leaving = call.leave({ reject: false });
+
+    expect(call['ringTimeout']).toBeUndefined();
+    expect(call['ringStatePoller']).toBeUndefined();
+    expect(timeout!['stopped']).toBe(true);
+    await leaving.catch(() => {});
+  });
+
   it('replaces a previously armed timeout', async () => {
     call['scheduleAutoDrop']();
     const first = call['ringTimeout'];
