@@ -548,7 +548,6 @@ export class Call {
 
         if (isAcceptedByMe || isRejectedByMe) {
           this.cancelAutoDrop();
-          this.cancelRingStatePolling();
         }
 
         const isAcceptedElsewhere =

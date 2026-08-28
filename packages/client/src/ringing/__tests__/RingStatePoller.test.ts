@@ -1,6 +1,7 @@
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { Call } from '../../Call';
 import { RingStatePoller } from '../RingStatePoller';
 import { StreamClient } from '../../coordinator/connection/client';
@@ -70,7 +71,9 @@ describe('RingStatePoller', () => {
         target_resolution: { width: 100, height: 100 },
       },
     });
-    newCall.state.setMembers([{ user_id: userId }, { user_id: 'john' }]);
+    newCall.state.setMembers(
+      fromPartial([{ user_id: userId }, { user_id: 'john' }]),
+    );
     newCall.state['callingStateSubject'].next(CallingState.RINGING);
 
     vi.spyOn(newCall, 'join').mockResolvedValue(undefined);
@@ -202,7 +205,7 @@ describe('RingStatePoller', () => {
     expect(getRingState).toHaveBeenCalledTimes(1);
   });
 
-  it('stops polling once the call is no longer ringing', async () => {
+  it('stops polling once the call has left the ringing state', async () => {
     const getRingState = startPolling();
 
     await vi.advanceTimersByTimeAsync(START_AFTER_MS);
@@ -211,6 +214,28 @@ describe('RingStatePoller', () => {
     call.state['callingStateSubject'].next(CallingState.JOINED);
     await vi.advanceTimersByTimeAsync(3 * INTERVAL_MS);
     expect(getRingState).toHaveBeenCalledTimes(1);
+  });
+
+  it('stops polling as soon as the caller joins, without waiting for a tick', async () => {
+    const getRingState = startPolling();
+
+    // the caller joining an accepted call never goes through `leave`
+    call.state['callingStateSubject'].next(CallingState.JOINING);
+    expect(poller['stopped']).toBe(true);
+
+    await vi.advanceTimersByTimeAsync(START_AFTER_MS + 3 * INTERVAL_MS);
+    expect(getRingState).not.toHaveBeenCalled();
+  });
+
+  // `Call.join({ ring: true })` arms the poller while the call is already
+  // JOINING, so `start` has to refuse rather than arm and stop on the next tick.
+  it('does not arm when the call is not ringing', async () => {
+    call.state['callingStateSubject'].next(CallingState.JOINING);
+    const getRingState = startPolling();
+
+    expect(poller['sessionId']).toBeUndefined();
+    await vi.advanceTimersByTimeAsync(START_AFTER_MS + INTERVAL_MS);
+    expect(getRingState).not.toHaveBeenCalled();
   });
 
   it('stops polling once the ring window has closed', async () => {

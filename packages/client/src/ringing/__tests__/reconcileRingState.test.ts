@@ -10,6 +10,7 @@ import {
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
+import { settled } from '../../helpers/concurrency';
 
 describe('reconcileRingState', () => {
   describe('acceptance', () => {
@@ -186,6 +187,39 @@ describe('reconcileRingState', () => {
     expect(call.leave).not.toHaveBeenCalled();
   });
 
+  // Pins the ordering the state-driven reconciler depends on: `Call.setup`
+  // registers `updateFromEvent` as an `all` listener, and `dispatchEvent`
+  // drains those before the typed ring handlers. Reconciling from state would
+  // silently read the previous session if either side changed.
+  it('sees the event data on the state by the time a ring handler runs', async () => {
+    const call = ringingCall({ currentUserId: 'm1', createdById: 'm1' });
+    await call.setup();
+    call.state.setCallingState(CallingState.RINGING);
+
+    call.streamClient.dispatchEvent(
+      fromPartial({
+        type: 'call.accepted',
+        call_cid: call.cid,
+        created_at: new Date().toISOString(),
+        user: { id: 'm2' },
+        call: {
+          ...callResponse('m1'),
+          session: {
+            id: 'session-1',
+            accepted_by: { m2: timestamp() },
+            rejected_by: {},
+            missed_by: {},
+            participants: [],
+            participants_count_by_role: {},
+          },
+        },
+      }),
+    );
+    await settled(call['joinLeaveConcurrencyTag']);
+
+    expect(call.join).toHaveBeenCalled();
+  });
+
   it('keeps ringing when the call has no members yet', async () => {
     const call = ringingCall({
       currentUserId: 'm1',
@@ -200,6 +234,24 @@ describe('reconcileRingState', () => {
 });
 
 const timestamp = () => new Date().toISOString();
+
+const callResponse = (createdById: string) =>
+  fromPartial<CallResponse>({
+    id: '12345',
+    type: 'development',
+    cid: 'development:12345',
+    created_by: { id: createdById },
+    blocked_user_ids: [],
+    egress: {},
+    settings: {
+      ring: {
+        auto_cancel_timeout_ms: 30_000,
+        incoming_call_timeout_ms: 30_000,
+        missed_call_timeout_ms: 30_000,
+      },
+      screensharing: { target_resolution: undefined },
+    },
+  });
 
 const setSession = (call: Call, session: Partial<CallSessionResponse>) => {
   call.state['sessionSubject'].next(
@@ -233,17 +285,7 @@ const ringingCall = ({
     ringing: true,
   });
 
-  call.state.updateFromCallResponse(
-    fromPartial<CallResponse>({
-      id: '12345',
-      type: 'development',
-      cid: 'development:12345',
-      created_by: { id: createdById },
-      blocked_user_ids: [],
-      egress: {},
-      settings: { screensharing: { target_resolution: undefined } },
-    }),
-  );
+  call.state.updateFromCallResponse(callResponse(createdById));
   call.state.setMembers(
     members.map((userId) => fromPartial<MemberResponse>({ user_id: userId })),
   );

@@ -1,6 +1,7 @@
 import type { Call } from '../Call';
 import { reconcileRingState } from './reconcileRingState';
 import { CallingState } from '../store';
+import { createSubscription } from '../store/rxUtils';
 import { getTimers } from '../timers';
 import {
   ErrorFromResponse,
@@ -40,6 +41,7 @@ export class RingStatePoller {
    */
   start = () => {
     if (this.stopped || this.sessionId) return;
+    if (this.call.state.callingState !== CallingState.RINGING) return;
 
     // captured once: `call.ended` clears the call's current session
     const sessionId = this.call.state.session?.id;
@@ -60,6 +62,11 @@ export class RingStatePoller {
       this.call.on('call.accepted', () => this.armIdleWindow()),
       this.call.on('call.rejected', () => this.armIdleWindow()),
       this.call.on('call.missed', () => this.armIdleWindow()),
+      // the ring is over, whichever way it went. Joining an accepted call
+      // never goes through `leave`, so this is the only signal for it.
+      createSubscription(this.call.state.callingState$, (callingState) => {
+        if (callingState !== CallingState.RINGING) this.stop();
+      }),
     );
 
     this.armIdleWindow();

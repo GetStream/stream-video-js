@@ -78,6 +78,7 @@ export const registerRingingCallEventHandlers = (call: Call) => {
     });
   };
 
+  // each event needs its own closure
   const eventHandlers = [
     call.on('call.accepted', () => reconcile()),
     call.on('call.rejected', () => reconcile()),
