@@ -10,7 +10,6 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.net.Uri
-import android.os.Binder
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
@@ -152,15 +151,10 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
-    inner class CallServiceBinder : Binder() {
-        fun getService(): CallService = this@CallService
-    }
-
     private lateinit var headlessJSManager: HeadlessTaskManager
     private lateinit var notificationManager: CallNotificationManager
     private lateinit var callRepository: CallRepository
 
-    private val binder = CallServiceBinder()
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob())
     private val actionProcessingLock = Object()
 
@@ -339,12 +333,8 @@ class CallService : Service(), CallRepository.Listener {
         return START_STICKY
     }
 
-    override fun onBind(intent: Intent): IBinder? = binder
-
-    override fun onUnbind(intent: Intent): Boolean {
-        debugLog(TAG, "[service] onUnbind: Service unbound")
-        return super.onUnbind(intent)
-    }
+    /** Started-only service: nothing binds to it. */
+    override fun onBind(intent: Intent): IBinder? = null
 
     override fun onCallStateChanged(callId: String, call: Call) {
         debugLog(
