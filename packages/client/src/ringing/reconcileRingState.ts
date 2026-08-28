@@ -69,8 +69,8 @@ const reconcileAsCaller = async (call: Call): Promise<boolean> => {
   return false;
 };
 
-// accepted or rejected on another device is handled by the `session$` effect in
-// `Call.registerEffects`, and `call.ended` by `watchCallEnded`.
+// the current user's own accept or reject, on this or another device, is
+// handled by `resolveOwnRingOutcome`, and `call.ended` by `watchCallEnded`.
 const reconcileAsCallee = async (call: Call): Promise<boolean> => {
   const createdById = call.state.createdBy?.id;
   const rejectedBy = call.state.session?.rejected_by ?? {};

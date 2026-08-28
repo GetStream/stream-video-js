@@ -161,7 +161,7 @@ import { DynascaleManager } from './helpers/DynascaleManager';
 import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
 import { ViewportTracker } from './helpers/ViewportTracker';
 import { PermissionsContext } from './permissions';
-import { RingStatePoller, RingTimeout } from './ringing';
+import { RingStatePoller, RingTimeout, resolveOwnRingOutcome } from './ringing';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
 import { retryInterval, sleep } from './coordinator/connection/utils';
@@ -540,33 +540,20 @@ export class Call {
       createSubscription(this.state.session$, (session) => {
         if (!this.ringing) return;
 
-        const receiverId = this.clientStore.connectedUser?.id;
-        if (!receiverId) return;
+        const { settledByMe, leaveReason } = resolveOwnRingOutcome({
+          session,
+          currentUserId: this.currentUserId,
+          callingState: this.state.callingState,
+        });
+        if (settledByMe) this.cancelAutoDrop();
+        if (!leaveReason || hasPending(this.joinLeaveConcurrencyTag)) return;
 
-        const isAcceptedByMe = Boolean(session?.accepted_by[receiverId]);
-        const isRejectedByMe = Boolean(session?.rejected_by[receiverId]);
-
-        if (isAcceptedByMe || isRejectedByMe) {
-          this.cancelAutoDrop();
-        }
-
-        const isAcceptedElsewhere =
-          isAcceptedByMe && this.state.callingState === CallingState.RINGING;
-
-        if (
-          (isAcceptedElsewhere || isRejectedByMe) &&
-          !hasPending(this.joinLeaveConcurrencyTag)
-        ) {
-          globalThis.streamRNVideoSDK?.callingX?.endCall(
-            this,
-            isAcceptedElsewhere ? 'answeredElsewhere' : 'rejected',
+        globalThis.streamRNVideoSDK?.callingX?.endCall(this, leaveReason);
+        this.leave().catch(() => {
+          this.logger.error(
+            'Could not leave a call that was accepted or rejected elsewhere',
           );
-          this.leave().catch(() => {
-            this.logger.error(
-              'Could not leave a call that was accepted or rejected elsewhere',
-            );
-          });
-        }
+        });
       }),
     );
   };
