@@ -50,7 +50,13 @@ export const DialerPage = ({
   const [error, setError] = useState<Error | undefined>();
   const [videoClient, setVideoClient] = useState<StreamVideoClient>();
   const router = useRouter();
-  const callType = (router.query['type'] as string) || 'default';
+  // `call_type` and `call_id` pin the ring to one call instance, so repeated
+  // rings reuse it. `type` is the name the rest of the app uses.
+  const callType =
+    (router.query['call_type'] as string) ||
+    (router.query['type'] as string) ||
+    'default';
+  const pinnedCallId = router.query['call_id'] as string | undefined;
   const useLocalCoordinator = router.query['use_local_coordinator'] === 'true';
   const coordinatorUrl = useLocalCoordinator
     ? 'http://localhost:3030/video'
@@ -143,7 +149,7 @@ export const DialerPage = ({
       return;
     }
 
-    const call = videoClient.call(callType, meetingId());
+    const call = videoClient.call(callType, pinnedCallId || meetingId());
     const members = userIds
       .filter((uid) => uid !== '')
       .map((uid) => ({ user_id: uid }));
@@ -167,7 +173,7 @@ export const DialerPage = ({
             ring: {
               auto_cancel_timeout_ms: 60_000,
               incoming_call_timeout_ms: 60_000,
-              missed_call_timeout_ms: 5000,
+              missed_call_timeout_ms: 60_000,
             },
           },
         },
@@ -185,6 +191,8 @@ export const DialerPage = ({
       const params = new URLSearchParams(
         router.query as Record<string, string>,
       );
+      // the join page reads `type`, so carry over whichever alias was used
+      params.set('type', callType);
       params.set('skip_lobby', 'true');
       router.push(`/join/${ringingCall.id}?${params.toString()}`);
     }

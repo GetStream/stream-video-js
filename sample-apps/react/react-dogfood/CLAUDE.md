@@ -197,6 +197,18 @@ For local/custom coordinator testing:
 ?use_local_coordinator=true  (uses env NEXT_PUBLIC_STREAM_API_URL)
 ```
 
+### Pinning a Ring to One Call
+
+The Dialer page (`/ring`) generates a fresh call id per ring. To ring the same
+call repeatedly - useful when testing re-rings or the ring state endpoint:
+
+```
+?call_id=my-test-call        (reuses this call instead of a random id)
+?call_type=audio_call        (alias for ?type, wins when both are set)
+```
+
+Both are forwarded to `/join/<callId>` when the ring is answered.
+
 ### Skip Lobby
 
 Set `NEXT_PUBLIC_SKIP_LOBBY=true` to bypass device selection and join directly.
