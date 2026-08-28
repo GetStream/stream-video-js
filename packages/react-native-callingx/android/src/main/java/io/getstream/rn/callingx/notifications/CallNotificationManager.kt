@@ -41,6 +41,17 @@ class CallNotificationManager(
     internal companion object {
         private const val TAG = "[Callingx] CallNotificationManager"
         private const val DISABLED_COLOR = "#757575" // NOTE: hint color might be ignored by OS
+
+        /**
+         * Schemes the platform documents as resolvable for `Person.setUri()`: "tel:" is looked up
+         * through PhoneLookup and "mailto:" through the contacts email column.
+         *
+         * A contacts `CONTENT_LOOKUP_URI` is also resolvable, but any "content:" URI in a
+         * notification is run through the system's URI grant check, which throws a
+         * SecurityException from notify() when the app cannot grant it. Since no caller passes
+         * one, it is left out rather than risking that crash.
+         */
+        private val CONTACT_URI_SCHEMES = setOf("tel", "mailto")
     }
 
     enum class OptimisticState { NONE, ACCEPTING, REJECTING }
@@ -218,18 +229,46 @@ class CallNotificationManager(
             return@synchronized
         }
 
+        // Creates the state entry when missing, which createNotification relies on below.
         val notificationId = getOrCreateNotificationId(callId)
-        notificationsState[callId] =
-            notificationsState[callId]?.copy(lastSnapshot = newSnapshot)
-                ?: CallNotificationState(lastSnapshot = newSnapshot)
         val notification = createNotification(callId, call)
-        notificationManager.notify(notificationId, notification)
-        debugLog(TAG, "[notifications] updateCallNotification[$callId]: Notification posted (id=$notificationId)")
+        // Record the snapshot only once the post succeeds, so a rejected notification stays
+        // retryable instead of being skipped as "no state change".
+        if (notifySafely(notificationId, notification)) {
+            notificationsState[callId] =
+                notificationsState[callId]?.copy(lastSnapshot = newSnapshot)
+                    ?: CallNotificationState(lastSnapshot = newSnapshot)
+            debugLog(TAG, "[notifications] updateCallNotification[$callId]: Notification posted (id=$notificationId)")
+        }
     }
 
     fun postNotification(callId: String, notification: Notification) = synchronized(lock) {
         val notificationId = getOrCreateNotificationId(callId)
-        notificationManager.notify(notificationId, notification)
+        notifySafely(notificationId, notification)
+    }
+
+    /**
+     * Posts a notification without letting a platform rejection take down the app.
+     *
+     * The system wraps any failure while sanitizing a notification attached to a foreground
+     * service into `SecurityException("Invalid FGS notification", cause)`. The underlying causes
+     * are transient or device specific (package lookups during user switches, OEM notification
+     * hooks), so the only viable defence is to log and keep the call alive.
+     *
+     * @return true when the notification was accepted by the system.
+     */
+    private fun notifySafely(notificationId: Int, notification: Notification): Boolean {
+        return try {
+            notificationManager.notify(notificationId, notification)
+            true
+        } catch (e: Exception) {
+            Log.e(
+                    TAG,
+                    "[notifications] notifySafely: Failed to post notification (id=$notificationId): ${e.message}",
+                    e
+            )
+            false
+        }
     }
 
     /**
@@ -383,14 +422,32 @@ class CallNotificationManager(
 
     private fun createPerson(call: Call.Registered): Person {
         val displayCallerName = call.displayOptions?.getString(CallService.EXTRA_DISPLAY_TITLE)
-        val address = call.callAttributes.address.toString()
+        val address = call.callAttributes.address
 
-        return Person.Builder()
-                .setName(displayCallerName ?: call.callAttributes.displayName)
-                .setUri(address)
-                .setIcon(IconCompat.createWithResource(context, R.drawable.ic_user))
-                .setImportant(true)
-                .build()
+        // CallStyle rejects a Person with a blank name (IllegalArgumentException at build time),
+        // so fall back through the display title, the call attributes and finally a static default.
+        val name =
+                sequenceOf(displayCallerName, call.callAttributes.displayName.toString())
+                        .mapNotNull { it?.trim() }
+                        .firstOrNull { it.isNotEmpty() }
+                        ?: CallService.DEFAULT_DISPLAY_NAME
+
+        val builder =
+                Person.Builder()
+                        .setName(name)
+                        .setKey(address.toString())
+                        .setIcon(IconCompat.createWithResource(context, R.drawable.ic_user))
+                        .setImportant(true)
+
+        // setUri() feeds the platform's contact lookup, so it only makes sense for a handle the
+        // provider can resolve (e.g. "tel:+15551234"). Opaque ids such as Stream user ids never
+        // match a contact, and are carried by setKey() above instead. See CONTACT_URI_SCHEMES.
+        val scheme = address.scheme?.lowercase()
+        if (scheme != null && scheme in CONTACT_URI_SCHEMES) {
+            builder.setUri(address.toString())
+        }
+
+        return builder.build()
     }
 
 }
