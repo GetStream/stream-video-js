@@ -112,15 +112,31 @@ describe('RingTimeout', () => {
     expect(call.leave).toHaveBeenCalled();
   });
 
-  it('is cancelled as soon as the call leaves the ringing state', async () => {
+  it('does not drop a call that stopped ringing before the deadline', async () => {
+    call = ringingCall();
+    arm();
+
+    call.state['callingStateSubject'].next(CallingState.JOINED);
+
+    await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
+    expect(call.leave).not.toHaveBeenCalled();
+  });
+
+  // `doJoin` restores the ringing state when a join fails, so a transition to
+  // JOINING must not disarm the drop for good, or the call rings forever.
+  it('still drops the call after a join attempt failed and left it ringing', async () => {
     call = ringingCall();
     arm();
 
     call.state['callingStateSubject'].next(CallingState.JOINING);
-    expect(ringTimeout['stopped']).toBe(true);
+    call.state['callingStateSubject'].next(CallingState.RINGING);
 
     await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
-    expect(call.leave).not.toHaveBeenCalled();
+    expect(call.leave).toHaveBeenCalledWith({
+      reject: true,
+      reason: 'timeout',
+      message: 'ringing timeout - no one accepted',
+    });
   });
 
   it('does not drop the call once stopped', async () => {

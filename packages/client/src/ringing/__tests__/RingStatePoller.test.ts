@@ -220,11 +220,39 @@ describe('RingStatePoller', () => {
     const getRingState = startPolling();
 
     // the caller joining an accepted call never goes through `leave`
-    call.state['callingStateSubject'].next(CallingState.JOINING);
+    call.state['callingStateSubject'].next(CallingState.JOINED);
     expect(poller['stopped']).toBe(true);
 
     await vi.advanceTimersByTimeAsync(START_AFTER_MS + 3 * INTERVAL_MS);
     expect(getRingState).not.toHaveBeenCalled();
+  });
+
+  // `doJoin` restores the ringing state when a join fails, so JOINING is
+  // transient: giving up on it would abandon the ring the poller exists for.
+  it('keeps polling when a join attempt failed and left the call ringing', async () => {
+    const getRingState = startPolling();
+
+    call.state['callingStateSubject'].next(CallingState.JOINING);
+    expect(poller['stopped']).toBe(false);
+    call.state['callingStateSubject'].next(CallingState.RINGING);
+
+    await vi.advanceTimersByTimeAsync(START_AFTER_MS);
+    expect(getRingState).toHaveBeenCalled();
+  });
+
+  it('retries the join on the next poll when it failed', async () => {
+    const getRingState = startPolling(
+      ringState({ accepted_by: { john: '2026-08-24T10:00:04Z' } }),
+    );
+    vi.mocked(call.join).mockRejectedValueOnce(new Error('transient'));
+
+    await vi.advanceTimersByTimeAsync(START_AFTER_MS);
+    expect(call.join).toHaveBeenCalledTimes(1);
+    expect(poller['stopped']).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(INTERVAL_MS);
+    expect(call.join).toHaveBeenCalledTimes(2);
+    expect(getRingState).toHaveBeenCalledTimes(2);
   });
 
   // `Call.join({ ring: true })` arms the poller while the call is already

@@ -9,6 +9,12 @@ import {
 } from '../coordinator/connection/types';
 import { videoLoggerSystem } from '../logger';
 
+// `doJoin` restores the previous calling state when a join fails, so JOINING can
+// go back to RINGING. Only a state the ring cannot return from ends the poller.
+const ringIsOver = (callingState: CallingState) =>
+  callingState !== CallingState.RINGING &&
+  callingState !== CallingState.JOINING;
+
 /**
  * Polls the coordinator for the outcome of a ring the current user started.
  *
@@ -65,7 +71,7 @@ export class RingStatePoller {
       // the ring is over, whichever way it went. Joining an accepted call
       // never goes through `leave`, so this is the only signal for it.
       createSubscription(this.call.state.callingState$, (callingState) => {
-        if (callingState !== CallingState.RINGING) this.stop();
+        if (ringIsOver(callingState)) this.stop();
       }),
     );
 
@@ -109,13 +115,13 @@ export class RingStatePoller {
 
   private tick = async () => {
     if (this.stopped || this.inFlight || !this.sessionId) return;
-    if (
-      this.call.state.callingState !== CallingState.RINGING ||
-      Date.now() >= this.deadlineAt
-    ) {
+    const { callingState } = this.call.state;
+    if (ringIsOver(callingState) || Date.now() >= this.deadlineAt) {
       this.stop();
       return;
     }
+    // mid-join: nothing to reconcile until we know whether it succeeded
+    if (callingState !== CallingState.RINGING) return;
 
     this.inFlight = true;
     try {

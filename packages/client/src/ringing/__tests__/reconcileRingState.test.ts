@@ -30,6 +30,16 @@ describe('reconcileRingState', () => {
       expect(call.join).toHaveBeenCalled();
     });
 
+    it('is not terminal when the join fails, so a retry can follow', async () => {
+      const call = ringingCall({ currentUserId: 'm1', createdById: 'm1' });
+      setSession(call, { accepted_by: { m2: timestamp() } });
+      vi.mocked(call.join).mockRejectedValueOnce(new Error('transient'));
+
+      expect(await reconcileRingState(call)).toBe(false);
+      expect(call.join).toHaveBeenCalled();
+      expect(call.leave).not.toHaveBeenCalled();
+    });
+
     it('does not join another callee when someone else accepts', async () => {
       const call = ringingCall({ currentUserId: 'm2', createdById: 'm0' });
       setSession(call, { accepted_by: { m1: timestamp() } });

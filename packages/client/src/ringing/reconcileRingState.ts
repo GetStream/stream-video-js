@@ -11,7 +11,8 @@ import type { CallLeaveOptions } from '../types';
  * poller applies the polled ring state itself.
  *
  * @param call the call to reconcile.
- * @returns whether the ring reached a terminal state.
+ * @returns whether the ring reached a terminal state. A failed join is not
+ * terminal: the caller should keep trying while the ring is open.
  */
 export const reconcileRingState = async (call: Call): Promise<boolean> => {
   if (call.state.callingState !== CallingState.RINGING) return true;
@@ -33,9 +34,14 @@ const reconcileAsCaller = async (call: Call): Promise<boolean> => {
   const acceptedBy = session?.accepted_by ?? {};
   if (Object.keys(acceptedBy).some((userId) => userId !== currentUserId)) {
     call.logger.info('ring: the call was accepted, joining');
-    await call.join().catch((err) => {
+    try {
+      await call.join();
+    } catch (err) {
+      // `doJoin` restores the ringing state when a join fails, so the ring is
+      // still open. Report it unsettled and let the next poll retry.
       call.logger.error('Failed to join an accepted call', err);
-    });
+      return false;
+    }
     return true;
   }
 

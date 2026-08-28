@@ -1,6 +1,5 @@
 import type { Call } from '../Call';
 import { CallingState } from '../store';
-import { createSubscription } from '../store/rxUtils';
 import { getTimers } from '../timers';
 import { videoLoggerSystem } from '../logger';
 
@@ -14,7 +13,6 @@ export class RingTimeout {
   private readonly call: Call;
   private timeoutId: number | undefined;
   private stopped: boolean = false;
-  private unsubscribe: (() => void) | undefined;
 
   constructor(call: Call) {
     this.call = call;
@@ -43,6 +41,9 @@ export class RingTimeout {
     this.timeoutId = timers.setTimeout(() => {
       this.timeoutId = undefined;
       if (this.stopped) return;
+      // the call might have stopped ringing by this point, e.g. it was already
+      // accepted and joined
+      if (this.call.state.callingState !== CallingState.RINGING) return;
       this.call
         .leave({
           reject: true,
@@ -59,16 +60,6 @@ export class RingTimeout {
             .error('Failed to drop the call', err);
         });
     }, timeoutMs);
-
-    // the call might have stopped ringing by this point, e.g. it was already
-    // accepted and joined. Joining never goes through `leave`, so this
-    // subscription is the only signal for it.
-    this.unsubscribe = createSubscription(
-      this.call.state.callingState$,
-      (callingState) => {
-        if (callingState !== CallingState.RINGING) this.stop();
-      },
-    );
   };
 
   /**
@@ -79,7 +70,5 @@ export class RingTimeout {
     this.stopped = true;
     getTimers().clearTimeout(this.timeoutId);
     this.timeoutId = undefined;
-    this.unsubscribe?.();
-    this.unsubscribe = undefined;
   };
 }
