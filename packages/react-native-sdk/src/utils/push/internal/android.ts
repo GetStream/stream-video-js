@@ -89,12 +89,22 @@ export const onRingNotificationReceived = async (
     if (asForegroundService) {
       finishBackgroundTask();
     }
+    // Each step is contained on its own: failing to dismiss the call must not skip the stop
+    // request, and neither may skip the unsubscription cleanup — a stale entry makes every later
+    // push for this cid look like a duplicate and get discarded.
     try {
       await callingx.endCallWithReason(call_cid, 'error');
     } catch (error) {
       nativeLog(`Failed to end call ${call_cid}: ${error}`, 'error');
     }
-    await callingx.stopService();
+    try {
+      await callingx.stopService();
+    } catch (error) {
+      nativeLog(
+        `Failed to stop the call service for ${call_cid}: ${error}`,
+        'error',
+      );
+    }
     pushUnsubscriptionCallbacks.delete(call_cid);
   };
 

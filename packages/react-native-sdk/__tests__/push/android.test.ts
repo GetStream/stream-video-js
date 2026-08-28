@@ -87,15 +87,19 @@ describe('onRingNotificationReceived — abandoning a push', () => {
     },
   );
 
-  it('still requests the stop when ending the call fails', async () => {
+  it.each<['endCallWithReason' | 'stopService', string[]]>([
+    ['endCallWithReason', ['release', 'stop']],
+    ['stopService', ['release', 'end']],
+  ])('finishes the cleanup when %s rejects', async (failing, expected) => {
     const { handler, calls, callingx, subscriptions } = setup(
       jest.fn().mockResolvedValue(undefined),
     );
-    callingx.endCallWithReason.mockRejectedValue(new Error('not tracked'));
+    callingx[failing].mockRejectedValue(new Error('boom'));
 
     await handler(RING_DATA);
 
-    expect(calls).toEqual(['release', 'stop']);
+    expect(calls).toEqual(expected);
+    // a retained entry would make every later push for this cid look like a duplicate
     expect(subscriptions.has(CALL_CID)).toBe(false);
   });
 });

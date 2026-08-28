@@ -577,7 +577,6 @@ class CallService : Service(), CallRepository.Listener {
                 if (!callRepository.hasAnyCalls() &&
                                 !CallRegistrationStore.hasRegisteredCall()
                 ) {
-                    notificationManager.stopRingtone()
                     stopSelfIfNoPendingStart(lastStartId)
                 }
             }
@@ -628,34 +627,25 @@ class CallService : Service(), CallRepository.Listener {
             return
         }
 
-        if (!stopSelfIfNoPendingStart(startId)) return
-
-        notificationManager.cancelAllNotifications()
-        notificationManager.stopRingtone()
+        stopSelfIfNoPendingStart(startId)
     }
 
     /**
-     * Stops the service only if no newer start command is already pending, and demotes it from the
-     * foreground when the stop is accepted. ActivityManager bumps its own last start id when
-     * `startService` is called — before delivery — so a mismatch here means an incoming-call start
-     * is already in flight and the service must stay up for it.
+     * Stops the service only if no newer start command is already pending. ActivityManager bumps
+     * its own last start id when `startService` is called — before delivery — so a mismatch here
+     * means an incoming-call start is already in flight and the service must stay up for it.
      *
-     * @return true when the stop was accepted.
+     * Teardown (foreground demotion, notifications, ringtone) is deliberately left to [onDestroy]:
+     * nothing binds to this service, so destruction is not deferred and that is the single place
+     * every stop path converges on.
      */
-    private fun stopSelfIfNoPendingStart(startId: Int): Boolean {
+    private fun stopSelfIfNoPendingStart(startId: Int) {
         if (!stopSelfResult(startId)) {
             Log.w(
                     TAG,
                     "[service] stopSelfIfNoPendingStart: Stop refused (startId=$startId), a newer start is pending"
             )
-            return false
         }
-
-        if (isInForeground) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            isInForeground = false
-        }
-        return true
     }
 
     private fun startForegroundSafely(notificationId: Int, notification: Notification) {
