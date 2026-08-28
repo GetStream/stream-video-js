@@ -245,15 +245,15 @@ class CallService : Service(), CallRepository.Listener {
 
         unregisterReceiver(optimisticNotificationReceiver)
 
-        notificationManager.cancelAllNotifications()
-        notificationManager.stopRingtone()
-        callRepository.release()
-        headlessJSManager.release()
-
         if (isInForeground) {
             stopForeground(STOP_FOREGROUND_REMOVE)
             isInForeground = false
         }
+
+        notificationManager.cancelAllNotifications()
+        notificationManager.stopRingtone()
+        callRepository.release()
+        headlessJSManager.release()
 
         scope.cancel()
     }
@@ -354,8 +354,9 @@ class CallService : Service(), CallRepository.Listener {
                             "[service] onCallStateChanged[$callId]: Starting foreground for call"
                     )
                     notificationManager.resetOptimisticState(callId)
+                    //TODO: check if this branch is not outdated
                     val notification = notificationManager.createNotification(callId, call)
-                    startForegroundSafely(notificationId, notification)
+                    startForegroundSafely(callId, notificationId, notification)
                 }
             }
             is Call.None, is Call.Unregistered -> {
@@ -578,20 +579,37 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
-    private fun startForegroundSafely(notificationId: Int, notification: Notification) {
-        try {
+    /**
+     * Promotes the service using [callId]'s notification, and records the resulting FGS anchor.
+     *
+     * @param type an already-computed [computeForegroundServiceType] result. Callers that computed it
+     *   to decide *whether* to promote should pass it, so the mask used matches the one they checked —
+     *   recomputing can disagree if permissions or app lifecycle shift in between.
+     * @return true when the platform accepted the promotion. On failure [foregroundCallId] is left
+     *   untouched: a previously valid anchor must not be discarded because a new promote failed.
+     */
+    private fun startForegroundSafely(
+            callId: String,
+            notificationId: Int,
+            notification: Notification,
+            type: Int? = null,
+    ): Boolean {
+        return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(notificationId, notification, computeForegroundServiceType())
+                startForeground(notificationId, notification, type ?: computeForegroundServiceType())
             } else {
                 startForeground(notificationId, notification)
             }
             isInForeground = true
+            notificationManager.commitAnchor(callId)
+            true
         } catch (e: Exception) {
             Log.e(
                     TAG,
                     "[service] startForegroundSafely: Failed to start foreground service: ${e.message}",
                     e
             )
+            false
         }
     }
 
@@ -650,19 +668,23 @@ class CallService : Service(), CallRepository.Listener {
         }
 
         val foregroundCallId = notificationManager.getForegroundCallId() ?: return
-        val call = callRepository.getCall(foregroundCallId) ?: return
-        val notificationId = notificationManager.getOrCreateNotificationId(foregroundCallId)
-        val notification = notificationManager.createNotification(foregroundCallId, call)
-
-        try {
-            startForeground(notificationId, notification, type)
-        } catch (e: Exception) {
-            Log.e(
+        val notification = notificationManager.postedNotificationFor(foregroundCallId)
+        if (notification == null) {
+            Log.w(
                     TAG,
-                    "[service] repromoteForegroundType: failed to upgrade FGS type: ${e.message}",
-                    e
+                    "[service] repromoteForegroundType: no live notification for anchor $foregroundCallId"
             )
+            return
         }
+
+        // Deliberately ignoring the result: a failed type upgrade leaves a valid FGS on the previous,
+        // narrower type. Unlike repromoteForegroundIfNeeded, this must NOT demote.
+        startForegroundSafely(
+                foregroundCallId,
+                notificationManager.getOrCreateNotificationId(foregroundCallId),
+                notification,
+                type,
+        )
     }
 
     /**
@@ -670,16 +692,36 @@ class CallService : Service(), CallRepository.Listener {
      * and other calls remain, re-promotes the service with the next call's notification.
      */
     private fun repromoteForegroundIfNeeded(callId: String) {
-        val newForegroundNotificationId = notificationManager.cancelNotification(callId)
-        if (newForegroundNotificationId != null && isInForeground) {
-            val newForegroundCallId = notificationManager.getForegroundCallId()
-            val call = if (newForegroundCallId != null) callRepository.getCall(newForegroundCallId) else null
-            if (call != null && newForegroundCallId != null) {
-                debugLog(TAG, "[service] repromoteForegroundIfNeeded: Re-promoting with call $newForegroundCallId (notificationId=$newForegroundNotificationId)")
-                val notification = notificationManager.createNotification(newForegroundCallId, call)
-                startForegroundSafely(newForegroundNotificationId, notification)
-            }
+        val wasAnchor = notificationManager.getForegroundCallId() == callId
+        if (!isInForeground || !wasAnchor) {
+            debugLog(TAG, "[service] repromoteForegroundIfNeeded: Another call still holds the anchor, not re-anchoring")
+            notificationManager.cancelNotification(callId)
+            return
         }
+
+        val next = notificationManager.nextAnchorCandidate(excluding = callId)
+        val anchored =
+                if (next == null) {
+                    debugLog(TAG, "[service] repromoteForegroundIfNeeded: No next anchor candidate, not re-anchoring")
+                    false
+                } else {
+                    debugLog(
+                            TAG,
+                            "[service] repromoteForegroundIfNeeded: Re-anchoring to ${next.callId} (notificationId=${next.notificationId})"
+                    )
+                    startForegroundSafely(next.callId, next.notificationId, next.notification)
+                }
+
+        if (!anchored) {
+            // Nothing to anchor to, or the promote failed. Never leave isInForeground claiming an
+            // anchor we do not have — that is what surfaces later as
+            // SecurityException: Invalid FGS notification.
+            debugLog(TAG, "[service] repromoteForegroundIfNeeded: No anchor available, demoting")
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            isInForeground = false
+        }
+
+        notificationManager.cancelNotification(callId)
     }
 
     private fun startForegroundForCall(callInfo: CallInfo, incoming: Boolean) {
@@ -692,7 +734,7 @@ class CallService : Service(), CallRepository.Listener {
                     "[service] registerCall: Starting foreground for call: ${callInfo.callId}"
             )
             val notification = notificationManager.createNotification(callInfo.callId, tempCall)
-            startForegroundSafely(notificationId, notification)
+            startForegroundSafely(callInfo.callId, notificationId, notification)
         } else if (!notificationManager.isNotificationPosted(callInfo.callId)) {
             // Post only when this call has no notification yet (e.g. a second concurrent call).
             val notification = notificationManager.createNotification(callInfo.callId, tempCall)
