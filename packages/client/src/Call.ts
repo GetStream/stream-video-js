@@ -161,7 +161,7 @@ import { DynascaleManager } from './helpers/DynascaleManager';
 import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
 import { ViewportTracker } from './helpers/ViewportTracker';
 import { PermissionsContext } from './permissions';
-import { RingStatePoller } from './ringing';
+import { RingStatePoller, RingTimeout } from './ringing';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
 import { retryInterval, sleep } from './coordinator/connection/utils';
@@ -304,7 +304,7 @@ export class Call {
   private statsReporter?: StatsReporter;
   private sfuStatsReporter?: SfuStatsReporter;
   private lastStatsOptions?: StatsOptions;
-  private dropTimeout: ReturnType<typeof setTimeout> | undefined;
+  private ringTimeout: RingTimeout | undefined;
   private ringStatePoller: RingStatePoller | undefined;
 
   private readonly clientStore: StreamVideoWriteableStateStore;
@@ -3137,42 +3137,16 @@ export class Call {
    */
   private scheduleAutoDrop = () => {
     this.cancelAutoDrop();
-
-    const settings = this.state.settings;
-    if (!settings) return;
-    // ignore if the call is not ringing
-    if (this.state.callingState !== CallingState.RINGING) return;
-
-    const timeoutInMs = this.isCreatedByMe
-      ? settings.ring.auto_cancel_timeout_ms
-      : settings.ring.incoming_call_timeout_ms;
-
-    // 0 means no auto-drop
-    if (timeoutInMs <= 0) return;
-    this.dropTimeout = setTimeout(() => {
-      // the call might have stopped ringing by this point,
-      // e.g. it was already accepted and joined
-      if (this.state.callingState !== CallingState.RINGING) return;
-      this.leave({
-        reject: true,
-        reason: 'timeout',
-        message: `ringing timeout - ${
-          this.isCreatedByMe
-            ? 'no one accepted'
-            : `user didn't interact with incoming call screen`
-        }`,
-      }).catch((err) => {
-        this.logger.error('Failed to drop call', err);
-      });
-    }, timeoutInMs);
+    this.ringTimeout = new RingTimeout(this);
+    this.ringTimeout.start();
   };
 
   /**
    * Cancels a scheduled auto-drop timeout.
    */
   private cancelAutoDrop = () => {
-    clearTimeout(this.dropTimeout);
-    this.dropTimeout = undefined;
+    this.ringTimeout?.stop();
+    this.ringTimeout = undefined;
   };
 
   /**
