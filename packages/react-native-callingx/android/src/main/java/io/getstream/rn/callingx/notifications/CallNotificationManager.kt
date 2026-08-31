@@ -60,6 +60,7 @@ class CallNotificationManager(
         val lastSnapshot: NotificationSnapshot? = null,
         val activeWhen: Long? = null,
         val hasBecameActive: Boolean = false,
+        val postedNotification: Notification? = null,
     )
 
     data class PromotionTarget(
@@ -68,7 +69,7 @@ class CallNotificationManager(
       val notification: Notification,
     )
 
-  // Per-call state, all guarded by [lock]
+    // Per-call state, all guarded by [lock]
     private val notificationsState = mutableMapOf<String, CallNotificationState>()
 
     /** The callId whose notification was used for startForeground(). */
@@ -120,16 +121,28 @@ class CallNotificationManager(
     }
 
     /**
-     * The ONLY writer of [foregroundCallId]. Must be called from the code that actually performed a
-     * successful `startForeground()`, never speculatively — the platform, not our bookkeeping, decides
-     * what the FGS is anchored to, and a mismatch surfaces later as
-     * `SecurityException: Invalid FGS notification`.
+     * Must be called from the code that actually performed a successful `startForeground()`, 
+     * never speculatively — the platform, not our bookkeeping, decides what the FGS is 
+     * anchored to, and a mismatch surfaces later as `SecurityException: Invalid FGS notification`.
      */
-    fun commitAnchor(callId: String) = synchronized(lock) {
+    fun commitAnchor(callId: String, notification: Notification) = synchronized(lock) {
         if (foregroundCallId != callId) {
             debugLog(TAG, "[notifications] commitAnchor: foreground anchor is now $callId")
         }
         foregroundCallId = callId
+        recordPostedLocked(callId, notification)
+    }
+
+    fun clearAnchor() = synchronized(lock) {
+        if (foregroundCallId != null) {
+            debugLog(TAG, "[notifications] clearAnchor: foreground anchor cleared")
+        }
+        foregroundCallId = null
+    }
+
+    private fun recordPostedLocked(callId: String, notification: Notification) {
+        val current = notificationsState[callId] ?: CallNotificationState()
+        notificationsState[callId] = current.copy(postedNotification = notification)
     }
 
     /**
@@ -236,12 +249,14 @@ class CallNotificationManager(
                 ?: CallNotificationState(lastSnapshot = newSnapshot)
         val notification = createNotification(callId, call)
         notificationManager.notify(notificationId, notification)
+        recordPostedLocked(callId, notification)
         debugLog(TAG, "[notifications] updateCallNotification[$callId]: Notification posted (id=$notificationId)")
     }
 
     fun postNotification(callId: String, notification: Notification) = synchronized(lock) {
         val notificationId = getOrCreateNotificationId(callId)
         notificationManager.notify(notificationId, notification)
+        recordPostedLocked(callId, notification)
     }
 
     private fun activePostedNotifications(): Map<Int, Notification> {
@@ -255,37 +270,37 @@ class CallNotificationManager(
         }
     }
 
-    fun postedNotificationFor(callId: String): Notification? =
-            activePostedNotifications()[getNotificationId(callId)]
+    fun isNotificationPosted(callId: String): Boolean =
+            activePostedNotifications().containsKey(getNotificationId(callId))
 
-    fun isNotificationPosted(callId: String): Boolean = postedNotificationFor(callId) != null
+    fun lastPostedNotification(callId: String): Notification? =
+            synchronized(lock) { notificationsState[callId]?.postedNotification }
 
     /**
-     * Returns the first tracked call whose notification is still on screen, along with that
-     * notification so the caller can promote without rebuilding it. [excluding] is skipped because its
-     * own notification is still live at this point.
+     * Returns the first tracked call we have actually posted a notification for, along with that
+     * notification so the caller can promote without rebuilding it. [excluding] is skipped because it
+     * is the call giving up the anchor.
      */
-    fun nextAnchorCandidate(excluding: String): PromotionTarget? {
-        val candidates = synchronized(lock) { notificationsState.keys.filter { it != excluding } }
-        if (candidates.isEmpty()) return null
+    fun nextAnchorCandidate(excluding: String): PromotionTarget? = synchronized(lock) {
+        val next =
+                notificationsState.entries.firstOrNull {
+                    it.key != excluding && it.value.postedNotification != null
+                }
+        if (next == null) {
+            debugLog(
+                    TAG,
+                    "[notifications] nextAnchorCandidate: nothing posted to re-anchor to (excluding $excluding)"
+            )
+            return@synchronized null
+        }
 
-        val posted = activePostedNotifications()
-        val nextCallId =
-                candidates.firstOrNull { posted.containsKey(getNotificationId(it)) }
-                        ?: run {
-                            debugLog(
-                                    TAG,
-                                    "[notifications] nextAnchorCandidate: no live notification to re-anchor to (excluding $excluding)"
-                            )
-                            return null
-                        }
-
-        val nextNotificationId = getNotificationId(nextCallId)
-        debugLog(
-                TAG,
-                "[notifications] nextAnchorCandidate: $nextCallId (id=$nextNotificationId)"
+        val nextNotificationId = getNotificationId(next.key)
+        debugLog(TAG, "[notifications] nextAnchorCandidate: ${next.key} (id=$nextNotificationId)")
+        return@synchronized PromotionTarget(
+                next.key,
+                nextNotificationId,
+                next.value.postedNotification!!
         )
-        return PromotionTarget(nextCallId, nextNotificationId, posted.getValue(nextNotificationId))
     }
 
     /**

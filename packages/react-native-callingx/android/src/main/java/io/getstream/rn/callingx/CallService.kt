@@ -245,10 +245,7 @@ class CallService : Service(), CallRepository.Listener {
 
         unregisterReceiver(optimisticNotificationReceiver)
 
-        if (isInForeground) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            isInForeground = false
-        }
+        demoteForeground()
 
         notificationManager.cancelAllNotifications()
         notificationManager.stopRingtone()
@@ -295,10 +292,7 @@ class CallService : Service(), CallRepository.Listener {
                 processAction(intent)
             }
             ACTION_STOP_SERVICE -> {
-                if (isInForeground) {
-                    stopForeground(STOP_FOREGROUND_REMOVE)
-                    isInForeground = false
-                }
+                demoteForeground()
                 notificationManager.cancelAllNotifications()
                 notificationManager.stopRingtone()
                 stopSelf()
@@ -371,10 +365,7 @@ class CallService : Service(), CallRepository.Listener {
                             TAG,
                             "[service] onCallStateChanged[$callId]: No more calls, stopping service"
                     )
-                    if (isInForeground) {
-                        stopForeground(STOP_FOREGROUND_REMOVE)
-                        isInForeground = false
-                    }
+                    demoteForeground()
                     stopSelf()
                 }
             }
@@ -543,10 +534,7 @@ class CallService : Service(), CallRepository.Listener {
 
                 // Only stop foreground/service when no other calls remain
                 if (!callRepository.hasAnyCalls()) {
-                    if (isInForeground) {
-                        stopForeground(STOP_FOREGROUND_REMOVE)
-                        isInForeground = false
-                    }
+                    demoteForeground()
                     notificationManager.stopRingtone()
                     stopSelf()
                 }
@@ -579,6 +567,14 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
+    private fun demoteForeground() {
+        if (!isInForeground) return
+        debugLog(TAG, "[service] demoteForeground: leaving foreground")
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        isInForeground = false
+        notificationManager.clearAnchor()
+    }
+
     /**
      * Promotes the service using [callId]'s notification, and records the resulting FGS anchor.
      *
@@ -601,7 +597,7 @@ class CallService : Service(), CallRepository.Listener {
                 startForeground(notificationId, notification)
             }
             isInForeground = true
-            notificationManager.commitAnchor(callId)
+            notificationManager.commitAnchor(callId, notification)
             true
         } catch (e: Exception) {
             Log.e(
@@ -668,11 +664,11 @@ class CallService : Service(), CallRepository.Listener {
         }
 
         val foregroundCallId = notificationManager.getForegroundCallId() ?: return
-        val notification = notificationManager.postedNotificationFor(foregroundCallId)
+        val notification = notificationManager.lastPostedNotification(foregroundCallId)
         if (notification == null) {
             Log.w(
                     TAG,
-                    "[service] repromoteForegroundType: no live notification for anchor $foregroundCallId"
+                    "[service] repromoteForegroundType: nothing posted for anchor $foregroundCallId"
             )
             return
         }
@@ -717,8 +713,7 @@ class CallService : Service(), CallRepository.Listener {
             // anchor we do not have — that is what surfaces later as
             // SecurityException: Invalid FGS notification.
             debugLog(TAG, "[service] repromoteForegroundIfNeeded: No anchor available, demoting")
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            isInForeground = false
+            demoteForeground()
         }
 
         notificationManager.cancelNotification(callId)
