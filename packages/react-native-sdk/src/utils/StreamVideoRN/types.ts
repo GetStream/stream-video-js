@@ -176,8 +176,7 @@ export type StreamVideoConfig = {
        */
       notificationTexts: KeepAliveAndroidNotificationTexts;
       /**
-       * The task to run in the foreground service
-       * The task must resolve a promise once complete
+       * The task to run in the foreground service.
        */
       taskToRun: (call: Call) => Promise<void>;
     };
