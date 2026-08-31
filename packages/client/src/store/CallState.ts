@@ -1,12 +1,8 @@
 import {
   BehaviorSubject,
-  combineLatest,
   distinctUntilChanged,
-  map,
   Observable,
-  ReplaySubject,
   shareReplay,
-  startWith,
 } from 'rxjs';
 import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
@@ -77,6 +73,10 @@ type OrphanedTrack = {
   receiver?: RTCRtpReceiver;
 };
 
+type ParticipantBySessionIndex = {
+  [sessionId: string]: StreamVideoParticipant | undefined;
+};
+
 /**
  * Holds the state of the current call.
  * @react You don't have to use this class directly, as we are exposing the state through Hooks.
@@ -138,7 +138,30 @@ export class CallState {
   // We keep these tracks around until we can associate them with a participant.
   private orphanedTracks: OrphanedTrack[] = [];
 
-  private callGrantsSubject = new ReplaySubject<CallGrants>(1);
+  // Derived participant state is materialised into BehaviorSubjects rather
+  // than recomputed per subscriber through map + shareReplay.
+  private localParticipantSubject = new BehaviorSubject<
+    StreamVideoParticipant | undefined
+  >(undefined);
+  private remoteParticipantsSubject = new BehaviorSubject<
+    StreamVideoParticipant[]
+  >([]);
+  private pinnedParticipantsSubject = new BehaviorSubject<
+    StreamVideoParticipant[]
+  >([]);
+  private dominantSpeakerSubject = new BehaviorSubject<
+    StreamVideoParticipant | undefined
+  >(undefined);
+  private hasOngoingScreenShareSubject = new BehaviorSubject<boolean>(false);
+  private ownCapabilitiesDerivedSubject = new BehaviorSubject<OwnCapability[]>(
+    [],
+  );
+  private callGrants: CallGrants | undefined;
+
+  /**
+   * Participants indexed by session ID, rebuilt whenever the roster changes.
+   */
+  private participantsBySessionId: ParticipantBySessionIndex = {};
 
   // Derived state
 
@@ -361,37 +384,14 @@ export class CallState {
       .asObservable()
       .pipe(shareReplay({ bufferSize: 1, refCount: true }));
 
-    this.participants$ = this.participantsSubject.asObservable().pipe(
-      // maintain stable-sort by mutating the participants stored
-      // in the original subject
-      map((ps) => ps.sort(this.sortParticipantsBy)),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
+    this.participants$ = this.participantsSubject.asObservable();
 
-    this.localParticipant$ = this.participants$.pipe(
-      map((participants) => participants.find((p) => p.isLocalParticipant)),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
-
-    this.remoteParticipants$ = this.participants$.pipe(
-      map((participants) => participants.filter((p) => !p.isLocalParticipant)),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
-
-    this.pinnedParticipants$ = this.participants$.pipe(
-      map((participants) => participants.filter((p) => !!p.pin)),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
-
-    this.dominantSpeaker$ = this.participants$.pipe(
-      map((participants) => participants.find((p) => p.isDominantSpeaker)),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
-
-    this.hasOngoingScreenShare$ = this.participants$.pipe(
-      map((participants) => participants.some((p) => hasScreenShare(p))),
+    this.localParticipant$ = this.localParticipantSubject.asObservable();
+    this.remoteParticipants$ = this.remoteParticipantsSubject.asObservable();
+    this.pinnedParticipants$ = this.pinnedParticipantsSubject.asObservable();
+    this.dominantSpeaker$ = this.dominantSpeakerSubject.asObservable();
+    this.hasOngoingScreenShare$ = this.hasOngoingScreenShareSubject.pipe(
       distinctUntilChanged(),
-      shareReplay({ bufferSize: 1, refCount: true }),
     );
 
     // dates
@@ -434,40 +434,8 @@ export class CallState {
     );
     this.backstage$ = duc(this.backstageSubject);
     this.callingState$ = duc(this.callingStateSubject);
-    this.ownCapabilities$ = combineLatest([
-      this.ownCapabilitiesSubject,
-      this.callGrantsSubject.pipe(startWith(undefined)),
-    ]).pipe(
-      map(([capabilities, grants]) => {
-        if (!grants) return capabilities;
-
-        const { canPublishAudio, canPublishVideo, canScreenshare } = grants;
-
-        const update = {
-          [OwnCapability.SEND_AUDIO]: canPublishAudio,
-          [OwnCapability.SEND_VIDEO]: canPublishVideo,
-          [OwnCapability.SCREENSHARE]: canScreenshare,
-        } as const;
-
-        const nextCapabilities = [...capabilities];
-
-        for (const _capability in update) {
-          const capability = _capability as keyof typeof update;
-          const allowed = update[capability];
-
-          // grants take precedence over capabilities, reconstruct the capabilities
-          if (allowed && !nextCapabilities.includes(capability)) {
-            nextCapabilities.push(capability);
-          } else if (!allowed && nextCapabilities.includes(capability)) {
-            const index = nextCapabilities.indexOf(capability);
-            nextCapabilities.splice(index, 1);
-          }
-        }
-
-        return nextCapabilities;
-      }),
+    this.ownCapabilities$ = this.ownCapabilitiesDerivedSubject.pipe(
       distinctUntilChanged(RxUtils.isShallowArrayEqual),
-      shareReplay({ bufferSize: 1, refCount: true }),
     );
     this.participantCount$ = duc(this.participantCountSubject);
     this.recording$ = duc(this.recordingSubject);
@@ -594,8 +562,8 @@ export class CallState {
    */
   setSortParticipantsBy = (comparator: Comparator<StreamVideoParticipant>) => {
     this.sortParticipantsBy = comparator;
-    // trigger re-sorting of participants
-    this.setCurrentValue(this.participantsSubject, (ps) => ps);
+    // re-sort and refresh everything derived from the roster
+    this.commitParticipants(this.participantsSubject.getValue());
   };
 
   /**
@@ -631,7 +599,7 @@ export class CallState {
    * This number includes the anonymous participants as well.
    */
   get participantCount() {
-    return this.getCurrentValue(this.participantCount$);
+    return this.participantCountSubject.getValue();
   }
 
   /**
@@ -649,7 +617,7 @@ export class CallState {
    * Useful for displaying the call duration.
    */
   get startedAt() {
-    return this.getCurrentValue(this.startedAt$);
+    return this.startedAtSubject.getValue();
   }
 
   /**
@@ -666,7 +634,7 @@ export class CallState {
    * Returns whether closed captions are enabled in the current call.
    */
   get captioning() {
-    return this.getCurrentValue(this.captioning$);
+    return this.captioningSubject.getValue();
   }
 
   /**
@@ -684,7 +652,7 @@ export class CallState {
    * This number includes the anonymous participants as well.
    */
   get anonymousParticipantCount() {
-    return this.getCurrentValue(this.anonymousParticipantCount$);
+    return this.anonymousParticipantCountSubject.getValue();
   }
 
   /**
@@ -701,27 +669,15 @@ export class CallState {
    * The list of participants in the current call.
    */
   get participants() {
-    return this.getCurrentValue(this.participants$);
+    return this.participantsSubject.getValue();
   }
 
   /**
    * The stable list of participants in the current call, unsorted.
    */
   get rawParticipants() {
-    return this.getCurrentValue(this.rawParticipants$);
-  }
-
-  /**
-   * Returns the current participants array directly from the BehaviorSubject.
-   * This bypasses the observable pipeline and is guaranteed to be synchronous.
-   * Use this when you need the absolute latest value without any potential
-   * timing issues from shareReplay/refCount.
-   *
-   * @internal
-   */
-  getParticipantsSnapshot = () => {
     return this.participantsSubject.getValue();
-  };
+  }
 
   /**
    * Sets the list of participants in the current call.
@@ -731,49 +687,135 @@ export class CallState {
    * @param participants the list of participants.
    */
   setParticipants = (participants: Patch<StreamVideoParticipant[]>) => {
-    return this.setCurrentValue(this.participantsSubject, participants);
+    const next =
+      typeof participants === 'function'
+        ? participants(this.participantsSubject.getValue())
+        : participants;
+    return this.commitParticipants(next);
+  };
+
+  /**
+   * Sorts the roster, publishes it, and refreshes everything derived from it.
+   */
+  private commitParticipants = (next: StreamVideoParticipant[]) => {
+    let hasOngoingScreenShare = false;
+    let dominantSpeaker: StreamVideoParticipant | undefined;
+    let localParticipant: StreamVideoParticipant | undefined;
+    const remoteParticipants: StreamVideoParticipant[] = [];
+    const pinnedParticipants: StreamVideoParticipant[] = [];
+
+    const bySessionId: ParticipantBySessionIndex = {};
+
+    const participants = next.sort(this.sortParticipantsBy);
+    for (const participant of participants) {
+      bySessionId[participant.sessionId] = participant;
+
+      if (participant.isLocalParticipant) {
+        localParticipant ??= participant;
+      } else {
+        remoteParticipants.push(participant);
+      }
+
+      if (participant.pin) pinnedParticipants.push(participant);
+
+      if (!dominantSpeaker && participant.isDominantSpeaker) {
+        dominantSpeaker = participant;
+      }
+
+      // `some` short-circuited, so don't keep asking once it is known
+      if (!hasOngoingScreenShare && hasScreenShare(participant)) {
+        hasOngoingScreenShare = true;
+      }
+    }
+
+    this.participantsBySessionId = bySessionId;
+
+    this.participantsSubject.next(participants);
+    this.localParticipantSubject.next(localParticipant);
+    this.remoteParticipantsSubject.next(remoteParticipants);
+    this.pinnedParticipantsSubject.next(pinnedParticipants);
+    this.dominantSpeakerSubject.next(dominantSpeaker);
+    this.hasOngoingScreenShareSubject.next(hasOngoingScreenShare);
+
+    return participants;
+  };
+
+  /**
+   * Recomputes the effective capabilities from the coordinator's list and the
+   * SFU's grants. Grants take precedence.
+   */
+  private applyOwnCapabilities = (
+    capabilities: OwnCapability[],
+    grants: CallGrants | undefined,
+  ) => {
+    if (!grants) {
+      this.ownCapabilitiesDerivedSubject.next(capabilities);
+      return;
+    }
+
+    const { canPublishAudio, canPublishVideo, canScreenshare } = grants;
+    const update = {
+      [OwnCapability.SEND_AUDIO]: canPublishAudio,
+      [OwnCapability.SEND_VIDEO]: canPublishVideo,
+      [OwnCapability.SCREENSHARE]: canScreenshare,
+    } as const;
+
+    const nextCapabilities = [...capabilities];
+    for (const _capability in update) {
+      const capability = _capability as keyof typeof update;
+      const allowed = update[capability];
+
+      // grants take precedence over capabilities, reconstruct the capabilities
+      if (allowed && !nextCapabilities.includes(capability)) {
+        nextCapabilities.push(capability);
+      } else if (!allowed && nextCapabilities.includes(capability)) {
+        const index = nextCapabilities.indexOf(capability);
+        nextCapabilities.splice(index, 1);
+      }
+    }
+    this.ownCapabilitiesDerivedSubject.next(nextCapabilities);
   };
 
   /**
    * The local participant in the current call.
    */
   get localParticipant() {
-    return this.getCurrentValue(this.localParticipant$);
+    return this.localParticipantSubject.getValue();
   }
 
   /**
    * The list of remote participants in the current call.
    */
   get remoteParticipants() {
-    return this.getCurrentValue(this.remoteParticipants$);
+    return this.remoteParticipantsSubject.getValue();
   }
 
   /**
    * The dominant speaker in the current call.
    */
   get dominantSpeaker() {
-    return this.getCurrentValue(this.dominantSpeaker$);
+    return this.dominantSpeakerSubject.getValue();
   }
 
   /**
    * The list of pinned participants in the current call.
    */
   get pinnedParticipants() {
-    return this.getCurrentValue(this.pinnedParticipants$);
+    return this.pinnedParticipantsSubject.getValue();
   }
 
   /**
    * Tell if there is an ongoing screen share in this call.
    */
   get hasOngoingScreenShare() {
-    return this.getCurrentValue(this.hasOngoingScreenShare$);
+    return this.hasOngoingScreenShareSubject.getValue();
   }
 
   /**
    * The calling state.
    */
   get callingState() {
-    return this.getCurrentValue(this.callingState$);
+    return this.callingStateSubject.getValue();
   }
 
   /**
@@ -790,7 +832,7 @@ export class CallState {
    * The call stats report.
    */
   get callStatsReport() {
-    return this.getCurrentValue(this.callStatsReport$);
+    return this.callStatsReportSubject.getValue();
   }
 
   /**
@@ -815,7 +857,7 @@ export class CallState {
    * The members of the current call.
    */
   get members() {
-    return this.getCurrentValue(this.members$);
+    return this.membersSubject.getValue();
   }
 
   /**
@@ -832,7 +874,7 @@ export class CallState {
    * The capabilities of the current user for the current call.
    */
   get ownCapabilities() {
-    return this.getCurrentValue(this.ownCapabilities$);
+    return this.ownCapabilitiesDerivedSubject.getValue();
   }
 
   /**
@@ -842,7 +884,12 @@ export class CallState {
    * @param capabilities the capabilities to set.
    */
   setOwnCapabilities = (capabilities: Patch<OwnCapability[]>) => {
-    return this.setCurrentValue(this.ownCapabilitiesSubject, capabilities);
+    const next = this.setCurrentValue(
+      this.ownCapabilitiesSubject,
+      capabilities,
+    );
+    this.applyOwnCapabilities(next, this.callGrants);
+    return next;
   };
 
   /**
@@ -851,15 +898,17 @@ export class CallState {
    * @internal
    * @param grants the grants to set.
    */
-  setCallGrants = (grants: Patch<CallGrants>) => {
-    return this.setCurrentValue(this.callGrantsSubject, grants);
+  setCallGrants = (grants: CallGrants) => {
+    this.callGrants = grants;
+    this.applyOwnCapabilities(this.ownCapabilitiesSubject.getValue(), grants);
+    return grants;
   };
 
   /**
    * The backstage state.
    */
   get backstage() {
-    return this.getCurrentValue(this.backstage$);
+    return this.backstageSubject.getValue();
   }
 
   /**
@@ -874,21 +923,21 @@ export class CallState {
    * Will provide the list of blocked user IDs.
    */
   get blockedUserIds() {
-    return this.getCurrentValue(this.blockedUserIds$);
+    return this.blockedUserIdsSubject.getValue();
   }
 
   /**
    * Will provide the time when this call has been created.
    */
   get createdAt() {
-    return this.getCurrentValue(this.createdAt$);
+    return this.createdAtSubject.getValue();
   }
 
   /**
    * Will provide the time when this call has been ended.
    */
   get endedAt() {
-    return this.getCurrentValue(this.endedAt$);
+    return this.endedAtSubject.getValue();
   }
 
   /**
@@ -903,112 +952,112 @@ export class CallState {
    * Will provide the time when this call has been scheduled to start.
    */
   get startsAt() {
-    return this.getCurrentValue(this.startsAt$);
+    return this.startsAtSubject.getValue();
   }
 
   /**
    * Will provide the time when this call has been updated.
    */
   get updatedAt() {
-    return this.getCurrentValue(this.updatedAt$);
+    return this.updatedAtSubject.getValue();
   }
 
   /**
    * Will provide the user who created this call.
    */
   get createdBy() {
-    return this.getCurrentValue(this.createdBy$);
+    return this.createdBySubject.getValue();
   }
 
   /**
    * Will provide the custom data of this call.
    */
   get custom() {
-    return this.getCurrentValue(this.custom$);
+    return this.customSubject.getValue();
   }
 
   /**
    * Will provide the egress data of this call.
    */
   get egress() {
-    return this.getCurrentValue(this.egress$);
+    return this.egressSubject.getValue();
   }
 
   /**
    * Will provide the ingress data of this call.
    */
   get ingress() {
-    return this.getCurrentValue(this.ingress$);
+    return this.ingressSubject.getValue();
   }
 
   /**
    * Will provide the composite recording state of this call.
    */
   get recording() {
-    return this.getCurrentValue(this.recording$);
+    return this.recordingSubject.getValue();
   }
 
   /**
    * Will provide the individual recording state of this call.
    */
   get individualRecording() {
-    return this.getCurrentValue(this.individualRecording$);
+    return this.individualRecordingSubject.getValue();
   }
 
   /**
    * Will provide the raw recording state of this call.
    */
   get rawRecording() {
-    return this.getCurrentValue(this.rawRecording$);
+    return this.rawRecordingSubject.getValue();
   }
 
   /**
    * Will provide the session data of this call.
    */
   get session() {
-    return this.getCurrentValue(this.session$);
+    return this.sessionSubject.getValue();
   }
 
   /**
    * Will provide the settings of this call.
    */
   get settings() {
-    return this.getCurrentValue(this.settings$);
+    return this.settingsSubject.getValue();
   }
 
   /**
    * Will provide the transcribing state of this call.
    */
   get transcribing() {
-    return this.getCurrentValue(this.transcribing$);
+    return this.transcribingSubject.getValue();
   }
 
   /**
    * Whether end-to-end encryption is active for this call.
    */
   get e2eeEnabled() {
-    return this.getCurrentValue(this.e2eeEnabled$);
+    return this.e2eeEnabledSubject.getValue();
   }
 
   /**
    * Will provide the user who ended this call.
    */
   get endedBy() {
-    return this.getCurrentValue(this.endedBy$);
+    return this.endedBySubject.getValue();
   }
 
   /**
    * Will provide the thumbnails of this call, if enabled in the call settings.
    */
   get thumbnails() {
-    return this.getCurrentValue(this.thumbnails$);
+    return this.thumbnailsSubject.getValue();
   }
 
   /**
    * Returns the current queue of closed captions.
    */
   get closedCaptions() {
-    return this.getCurrentValue(this.closedCaptions$);
+    return this.closedCaptionsSubject.getValue();
   }
 
   /**
@@ -1020,19 +1069,14 @@ export class CallState {
   findParticipantBySessionId = (
     sessionId: string,
   ): StreamVideoParticipant | undefined => {
-    return this.participants.find((p) => p.sessionId === sessionId);
+    return this.participantsBySessionId[sessionId];
   };
 
   /**
-   * Returns a new lookup table of participants indexed by their session ID.
+   * Returns the lookup table of participants indexed by their session ID.
    */
-  getParticipantLookupBySessionId = () => {
-    return this.participants.reduce<{
-      [sessionId: string]: StreamVideoParticipant | undefined;
-    }>((lookupTable, participant) => {
-      lookupTable[participant.sessionId] = participant;
-      return lookupTable;
-    }, {});
+  getParticipantLookupBySessionId = (): Readonly<ParticipantBySessionIndex> => {
+    return this.participantsBySessionId;
   };
 
   /**

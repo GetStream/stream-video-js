@@ -39,7 +39,12 @@ const isFunctionPatch = <T>(update: Patch<T>): update is FunctionPatch<T> =>
  *
  * @param observable$ the observable to get the value from.
  */
-export const getCurrentValue = <T>(observable$: Observable<T>) => {
+export const getCurrentValue = <T>(observable$: Observable<T>): T => {
+  // A BehaviorSubject already holds its current value, use a shortcut
+  if (observable$ instanceof BehaviorSubject) {
+    return (observable$ as BehaviorSubject<T>).getValue();
+  }
+
   let value!: T;
   let err: Error | undefined = undefined;
   combineLatest([observable$])
