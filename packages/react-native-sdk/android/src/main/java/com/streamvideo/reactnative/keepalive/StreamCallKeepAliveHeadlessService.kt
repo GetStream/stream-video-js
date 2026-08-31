@@ -97,18 +97,33 @@ class StreamCallKeepAliveHeadlessService : HeadlessJsTaskService() {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun computeForegroundServiceTypes(): Int {
+        // From Android 14 a claimed type must also be backed by its FOREGROUND_SERVICE_*
+        // permission, and claiming an undeclared type fails the whole startForeground() call. On
+        // older platforms those permissions do not exist, so the runtime grant is the only gate and
+        // the manifest does not need to be read at all. Read once when it is needed: this runs
+        // inside the window the system gives us to enter the foreground.
+        val declaredTypePermissions =
+            if (CallAlivePermissionsHelper.enforcesTypePermissions()) {
+                CallAlivePermissionsHelper.declaredPermissions(this)
+            } else {
+                null
+            }
+
         var types = ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
 
-        // A type is only usable when the runtime permission is granted AND, from Android 14, the
-        // matching FOREGROUND_SERVICE_* permission is declared. Claiming an undeclared type makes
-        // the whole startForeground() call fail, so drop the type instead.
-        if (canUseType(Manifest.permission.CAMERA, CallAlivePermissionsHelper.PERMISSION_CAMERA)) {
+        if (canUseType(
+                Manifest.permission.CAMERA,
+                CallAlivePermissionsHelper.PERMISSION_CAMERA,
+                declaredTypePermissions
+            )
+        ) {
             types = types or ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
         }
 
         if (canUseType(
                 Manifest.permission.RECORD_AUDIO,
-                CallAlivePermissionsHelper.PERMISSION_MICROPHONE
+                CallAlivePermissionsHelper.PERMISSION_MICROPHONE,
+                declaredTypePermissions
             )
         ) {
             types = types or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
@@ -117,14 +132,22 @@ class StreamCallKeepAliveHeadlessService : HeadlessJsTaskService() {
         return types
     }
 
-    private fun canUseType(runtimePermission: String, fgsTypePermission: String): Boolean {
+    /**
+     * @param declaredTypePermissions the permissions declared in the app manifest, or null when the
+     * platform does not require foreground service types to be declared (Android 13 and below).
+     */
+    private fun canUseType(
+        runtimePermission: String,
+        fgsTypePermission: String,
+        declaredTypePermissions: Set<String>?
+    ): Boolean {
         val granted = ContextCompat.checkSelfPermission(this, runtimePermission) ==
             PackageManager.PERMISSION_GRANTED
         if (!granted) {
             return false
         }
-        return !CallAlivePermissionsHelper.enforcesTypePermissions() ||
-            CallAlivePermissionsHelper.isDeclared(this, fgsTypePermission)
+        return declaredTypePermissions == null ||
+            fgsTypePermission in declaredTypePermissions
     }
 
     /**

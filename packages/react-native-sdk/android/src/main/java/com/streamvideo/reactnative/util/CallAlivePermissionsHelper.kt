@@ -24,8 +24,6 @@ object CallAlivePermissionsHelper {
     fun enforcesTypePermissions(): Boolean =
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
 
-    fun isDeclared(context: Context, permission: String): Boolean =
-        permission in requestedPermissions(context)
 
     /**
      * The keep-alive service always runs with the `mediaPlayback` type and adds `camera` /
@@ -35,7 +33,7 @@ object CallAlivePermissionsHelper {
      * the app silently loses audio and gets dropped from the call once it is backgrounded.
      */
     fun hasForegroundServicePermissionsDeclared(context: Context): Boolean {
-        val declared = requestedPermissions(context)
+        val declared = declaredPermissions(context)
         if (declared.isEmpty()) {
             return false
         }
@@ -72,7 +70,8 @@ object CallAlivePermissionsHelper {
         return true
     }
 
-    private fun requestedPermissions(context: Context): Set<String> {
+    /** The permissions declared in the app manifest. One PackageManager round trip. */
+    fun declaredPermissions(context: Context): Set<String> {
         return try {
             val packageInfo: PackageInfo = context.packageManager.getPackageInfo(
                 context.packageName,
