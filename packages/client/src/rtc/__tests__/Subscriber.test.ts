@@ -468,6 +468,7 @@ describe('Subscriber', () => {
       const echoedStream = audioStreamNamed('self-lookup');
       // @ts-expect-error - incomplete mock
       state.updateOrAddParticipant('self-session', {
+        publishedTracks: [],
         sessionId: 'self-session',
         trackLookupPrefix: 'self-lookup',
         isLocalParticipant: true,
@@ -492,6 +493,7 @@ describe('Subscriber', () => {
       const captureStream = new MediaStream();
       // @ts-expect-error - incomplete mock
       state.updateOrAddParticipant('self-session', {
+        publishedTracks: [],
         sessionId: 'self-session',
         trackLookupPrefix: 'self-lookup',
         isLocalParticipant: true,
@@ -539,6 +541,7 @@ describe('Subscriber', () => {
 
       // @ts-expect-error - incomplete mock
       state.updateOrAddParticipant('session-id', {
+        publishedTracks: [],
         sessionId: 'session-id',
         trackLookupPrefix: '123',
       });
@@ -566,6 +569,7 @@ describe('Subscriber', () => {
       vi.spyOn(baseStream, 'getTracks').mockReturnValue([baseTrack]);
       // @ts-expect-error - incomplete mock
       state.updateOrAddParticipant('session-id', {
+        publishedTracks: [],
         sessionId: 'session-id',
         trackLookupPrefix: '123',
         videoStream: baseStream,
@@ -647,6 +651,7 @@ describe('Subscriber', () => {
       e2eeState.updateOrAddParticipant(
         'session-id',
         fromPartial({
+          publishedTracks: [],
           sessionId: 'session-id',
           userId: 'real-user-id',
           trackLookupPrefix: '123',
@@ -686,6 +691,7 @@ describe('Subscriber', () => {
       });
       // @ts-expect-error - incomplete mock
       state.updateOrAddParticipant('session-id', {
+        publishedTracks: [],
         sessionId: 'session-id',
         trackLookupPrefix: 'lookup',
       });
@@ -755,6 +761,7 @@ describe('Subscriber', () => {
       });
       // @ts-expect-error - incomplete mock
       state.updateOrAddParticipant('self-session', {
+        publishedTracks: [],
         sessionId: 'self-session',
         trackLookupPrefix: 'self-lookup',
         isLocalParticipant: true,
@@ -800,6 +807,7 @@ describe('Subscriber', () => {
       });
       // @ts-expect-error - incomplete mock
       state.updateOrAddParticipant('video-session', {
+        publishedTracks: [],
         sessionId: 'video-session',
         trackLookupPrefix: 'video-lookup',
       });
@@ -849,6 +857,7 @@ describe('Subscriber', () => {
       // Once the participant is registered, the next event lands.
       // @ts-expect-error - incomplete mock
       state.updateOrAddParticipant('orphan-session', {
+        publishedTracks: [],
         sessionId: 'orphan-session',
         trackLookupPrefix: 'orphan',
       });

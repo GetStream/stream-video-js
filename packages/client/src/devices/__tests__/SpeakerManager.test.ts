@@ -106,6 +106,7 @@ describe('SpeakerManager.test', () => {
     call.state.updateOrAddParticipant(
       'session-id',
       fromPartial({
+        publishedTracks: [],
         audioVolume: undefined,
         sessionId: 'session-id',
       }),

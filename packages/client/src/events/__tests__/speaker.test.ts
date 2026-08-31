@@ -13,9 +13,19 @@ describe('speaker events', () => {
     state.setSortParticipantsBy(noopComparator());
     state.setParticipants([
       // @ts-expect-error incomplete data
-      { userId: 'user-1', sessionId: 'session-1', isDominantSpeaker: false },
+      {
+        publishedTracks: [],
+        userId: 'user-1',
+        sessionId: 'session-1',
+        isDominantSpeaker: false,
+      },
       // @ts-expect-error incomplete data
-      { userId: 'user-2', sessionId: 'session-2', isDominantSpeaker: true },
+      {
+        publishedTracks: [],
+        userId: 'user-2',
+        sessionId: 'session-2',
+        isDominantSpeaker: true,
+      },
     ]);
     const dispatcher = new Dispatcher();
 
@@ -33,8 +43,18 @@ describe('speaker events', () => {
     });
 
     expect(state.participants).toEqual([
-      { userId: 'user-1', sessionId: 'session-1', isDominantSpeaker: true },
-      { userId: 'user-2', sessionId: 'session-2', isDominantSpeaker: false },
+      {
+        publishedTracks: [],
+        userId: 'user-1',
+        sessionId: 'session-1',
+        isDominantSpeaker: true,
+      },
+      {
+        publishedTracks: [],
+        userId: 'user-2',
+        sessionId: 'session-2',
+        isDominantSpeaker: false,
+      },
     ]);
   });
 
@@ -44,6 +64,7 @@ describe('speaker events', () => {
     state.setParticipants([
       // @ts-expect-error incomplete data
       {
+        publishedTracks: [],
         userId: 'user-1',
         sessionId: 'session-1',
         audioLevel: 0,
@@ -51,6 +72,7 @@ describe('speaker events', () => {
       },
       // @ts-expect-error incomplete data
       {
+        publishedTracks: [],
         userId: 'user-2',
         sessionId: 'session-2',
         audioLevel: 0,
@@ -76,12 +98,14 @@ describe('speaker events', () => {
 
     expect(state.participants).toEqual([
       {
+        publishedTracks: [],
         userId: 'user-1',
         sessionId: 'session-1',
         audioLevel: 0.5,
         isSpeaking: true,
       },
       {
+        publishedTracks: [],
         userId: 'user-2',
         sessionId: 'session-2',
         audioLevel: 0.5,
