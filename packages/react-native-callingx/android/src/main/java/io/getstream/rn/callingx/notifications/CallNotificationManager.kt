@@ -121,9 +121,7 @@ class CallNotificationManager(
     }
 
     /**
-     * Must be called from the code that actually performed a successful `startForeground()`, 
-     * never speculatively — the platform, not our bookkeeping, decides what the FGS is 
-     * anchored to, and a mismatch surfaces later as `SecurityException: Invalid FGS notification`.
+     * Must be called from the code that actually performed a successful `startForeground()`.
      */
     fun commitAnchor(callId: String, notification: Notification) = synchronized(lock) {
         if (foregroundCallId != callId) {
@@ -304,11 +302,8 @@ class CallNotificationManager(
     }
 
     /**
-     * Cancels the notification for [callId] and drops its state.
-     *
-     * Call this *after* the anchor has moved (re-promotion) or been given up (demotion). An app cannot
-     * cancel a notification carrying `FLAG_FOREGROUND_SERVICE`, so cancelling while [callId] is still
-     * the anchor silently does nothing.
+     * Cancels the notification for [callId] and drops its state. Call this *after* the anchor has
+     * moved (re-promotion) or been given up (demotion).
      */
     fun cancelNotification(callId: String) = synchronized(lock) {
         debugLog(TAG, "[notifications] cancelNotification[$callId]")
