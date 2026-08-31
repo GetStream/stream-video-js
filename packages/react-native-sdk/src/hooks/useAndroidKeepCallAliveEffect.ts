@@ -172,10 +172,18 @@ export const useAndroidKeepCallAliveEffect = () => {
           return;
         }
 
-        // only mark as started when native actually accepted the start, so that a later render
-        // while still joined can retry.
-        foregroundServiceStartedRef.current =
-          await startForegroundService(activeCallCid);
+        try {
+          // only mark as started when native actually accepted the start, so that a later render
+          // while still joined can retry.
+          foregroundServiceStartedRef.current =
+            await startForegroundService(activeCallCid);
+        } catch (e) {
+          // run() is intentionally not awaited, so anything thrown here would surface as an
+          // unhandled rejection. Leave the ref false so a later render can retry.
+          videoLoggerSystem
+            .getLogger('useAndroidKeepCallAliveEffect')
+            .warn('Failed to start the keep-call-alive foreground service', e);
+        }
       };
 
       // ensure that app is active before running the function

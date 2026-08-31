@@ -62,6 +62,7 @@ function registerKeepCallAliveHeadlessTaskOnce() {
       const taskEnded = new Promise<void>((resolve) => {
         resolveRunningTask = resolve;
       });
+      const ownResolver = resolveRunningTask;
 
       // React Native stops the foreground service as soon as the promise returned from here
       // settles. `taskToRun` is app-provided and may resolve early - or immediately - so its
@@ -82,7 +83,11 @@ function registerKeepCallAliveHeadlessTaskOnce() {
       try {
         await taskEnded;
       } finally {
-        resolveRunningTask = undefined;
+        // a newer task may already have installed its own resolver - clearing it here would leave
+        // that task with no way to be ended.
+        if (resolveRunningTask === ownResolver) {
+          resolveRunningTask = undefined;
+        }
       }
     },
   );
