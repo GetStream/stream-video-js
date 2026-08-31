@@ -17,7 +17,14 @@ const secret = process.env.STREAM_SECRET!;
 
 describe('StreamVideoClient Ringing', () => {
   const serverClient = new StreamClient(apiKey, secret);
-  const testUserIds = ['oliver', 'sacha', 'marcelo'];
+
+  // user ids are generated per test: CI runs share a single Stream app, so
+  // fixed ids let a concurrently running job ring these users and satisfy the
+  // assertions in this file with an unrelated call.
+  let oliverId: string;
+  let sachaId: string;
+  let marceloId: string;
+  let testUserIds: string[];
 
   let oliverClient: StreamVideoClient;
   let sachaClient: StreamVideoClient;
@@ -54,6 +61,11 @@ describe('StreamVideoClient Ringing', () => {
   };
 
   beforeEach(async () => {
+    const suffix = crypto.randomUUID();
+    oliverId = `oliver-${suffix}`;
+    sachaId = `sacha-${suffix}`;
+    marceloId = `marcelo-${suffix}`;
+    testUserIds = [oliverId, sachaId, marceloId];
     [oliverClient, sachaClient, marceloClient] =
       await createClients(testUserIds);
   });
@@ -75,11 +87,11 @@ describe('StreamVideoClient Ringing', () => {
       await call.create({
         ring: true,
         data: {
-          created_by_id: 'oliver',
+          created_by_id: oliverId,
           members: [
-            { user_id: 'oliver' },
-            { user_id: 'sacha' },
-            { user_id: 'marcelo' },
+            { user_id: oliverId },
+            { user_id: sachaId },
+            { user_id: marceloId },
           ],
         },
       });
@@ -112,9 +124,9 @@ describe('StreamVideoClient Ringing', () => {
         ring: true,
         data: {
           members: [
-            { user_id: 'oliver' },
-            { user_id: 'sacha' },
-            { user_id: 'marcelo' },
+            { user_id: oliverId },
+            { user_id: sachaId },
+            { user_id: marceloId },
           ],
         },
       });
@@ -144,9 +156,9 @@ describe('StreamVideoClient Ringing', () => {
         ring: false, // don't ring all members by default
         data: {
           members: [
-            { user_id: 'oliver' },
-            { user_id: 'sacha' },
-            { user_id: 'marcelo' },
+            { user_id: oliverId },
+            { user_id: sachaId },
+            { user_id: marceloId },
           ],
         },
       });
@@ -162,7 +174,7 @@ describe('StreamVideoClient Ringing', () => {
       // oliver is calling sacha. only sacha should get a ring event
       const sachaIndividualRing = expectEvent(sachaClient, 'call.ring');
       const marceloIndividualRing = expectEvent(marceloClient, 'call.ring');
-      await oliverCall.ring({ members_ids: ['sacha'] });
+      await oliverCall.ring({ members_ids: [sachaId] });
       await expect(sachaIndividualRing).resolves.toHaveProperty(
         'call.cid',
         oliverCall.cid,
@@ -175,7 +187,7 @@ describe('StreamVideoClient Ringing', () => {
       // sacha is calling marcelo. only marcelo should get a ring event
       const oliverIndividualRing = expectEvent(oliverClient, 'call.ring');
       const marceloIndividualRing2 = expectEvent(marceloClient, 'call.ring');
-      await sachaCall.ring({ members_ids: ['marcelo'] });
+      await sachaCall.ring({ members_ids: [marceloId] });
       await expect(marceloIndividualRing2).resolves.toHaveProperty(
         'call.cid',
         sachaCall.cid,
@@ -241,8 +253,8 @@ describe('StreamVideoClient Ringing', () => {
       const serverCall = serverClient.video.call('default', callId);
       await serverCall.create({
         data: {
-          created_by_id: 'oliver',
-          members: [{ user_id: 'oliver' }, { user_id: 'sacha' }],
+          created_by_id: oliverId,
+          members: [{ user_id: oliverId }, { user_id: sachaId }],
         },
       });
 
@@ -266,7 +278,7 @@ describe('StreamVideoClient Ringing', () => {
       await oliverCall.create({
         ring: true,
         data: {
-          members: [{ user_id: 'oliver' }, { user_id: 'sacha' }],
+          members: [{ user_id: oliverId }, { user_id: sachaId }],
         },
       });
 
@@ -302,7 +314,7 @@ describe('StreamVideoClient Ringing', () => {
       await marceloCall.create({
         ring: true,
         data: {
-          members: [{ user_id: 'marcelo' }, { user_id: 'oliver' }],
+          members: [{ user_id: marceloId }, { user_id: oliverId }],
         },
       });
 
@@ -332,7 +344,7 @@ describe('StreamVideoClient Ringing', () => {
       await marceloCall.create({
         ring: true,
         data: {
-          members: [{ user_id: 'marcelo' }, { user_id: 'sacha' }],
+          members: [{ user_id: marceloId }, { user_id: sachaId }],
         },
       });
 
@@ -354,7 +366,7 @@ describe('StreamVideoClient Ringing', () => {
       await marceloCall.create({
         ring: true,
         data: {
-          members: [{ user_id: 'marcelo' }, { user_id: 'oliver' }],
+          members: [{ user_id: marceloId }, { user_id: oliverId }],
         },
       });
 
@@ -375,7 +387,7 @@ describe('StreamVideoClient Ringing', () => {
       await marceloCall.create({
         ring: true,
         data: {
-          members: [{ user_id: 'marcelo' }, { user_id: 'sacha' }],
+          members: [{ user_id: marceloId }, { user_id: sachaId }],
         },
       });
 
