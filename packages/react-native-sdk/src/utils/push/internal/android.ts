@@ -6,7 +6,7 @@ import {
 } from '@stream-io/video-client';
 import { AppState, Platform } from 'react-native';
 import {
-  type FirebaseMessagingTypes,
+  type FirebaseRemoteMessage,
   getCallingxLib,
   getCallingxLibIfAvailable,
 } from '../libs';
@@ -20,7 +20,7 @@ import { canListenToWS, shouldCallBeClosed } from './utils';
  * ignored (their display is app responsibility). Android-only; a no-op on other platforms.
  */
 export const onRingNotificationReceived = async (
-  data: FirebaseMessagingTypes.RemoteMessage['data'],
+  data: FirebaseRemoteMessage['data'],
 ) => {
   /* Example data from firebase
     "message": {

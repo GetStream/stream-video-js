@@ -48,7 +48,7 @@ export function getCallDisplayName(
   if (names.length === 0) {
     names = [
       participants.find((participant) => participant.userId === currentUserId)
-        ?.name ?? 'Call',
+        ?.name || 'Call',
     ];
   }
 
@@ -57,7 +57,7 @@ export function getCallDisplayName(
 
 function getCallDisplayNameFromCall(call: Call): string {
   return (
-    call.state.custom?.display_name ??
+    call.state.custom?.display_name ||
     getCallDisplayName(
       call.state.members,
       call.state.participants,
