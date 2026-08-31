@@ -578,21 +578,17 @@ class CallService : Service(), CallRepository.Listener {
     /**
      * Promotes the service using [callId]'s notification, and records the resulting FGS anchor.
      *
-     * @param type an already-computed [computeForegroundServiceType] result. Callers that computed it
-     *   to decide *whether* to promote should pass it, so the mask used matches the one they checked —
-     *   recomputing can disagree if permissions or app lifecycle shift in between.
-     * @return true when the platform accepted the promotion. On failure [foregroundCallId] is left
+     * @return true when the platform accepted the promotion. On failure the recorded anchor is left
      *   untouched: a previously valid anchor must not be discarded because a new promote failed.
      */
     private fun startForegroundSafely(
             callId: String,
             notificationId: Int,
             notification: Notification,
-            type: Int? = null,
     ): Boolean {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(notificationId, notification, type ?: computeForegroundServiceType())
+                startForeground(notificationId, notification, computeForegroundServiceType())
             } else {
                 startForeground(notificationId, notification)
             }
@@ -657,8 +653,7 @@ class CallService : Service(), CallRepository.Listener {
         if (!isInForeground) return // service is not foreground yet — nothing to upgrade
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
 
-        val type = computeForegroundServiceType()
-        if (type == ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL) {
+        if (computeForegroundServiceType() == ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL) {
             // Nothing extra to promote (no while-in-use permissions, or not foreground).
             return
         }
@@ -679,7 +674,6 @@ class CallService : Service(), CallRepository.Listener {
                 foregroundCallId,
                 notificationManager.getOrCreateNotificationId(foregroundCallId),
                 notification,
-                type,
         )
     }
 
