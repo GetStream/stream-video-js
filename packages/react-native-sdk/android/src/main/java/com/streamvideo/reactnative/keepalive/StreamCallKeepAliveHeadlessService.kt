@@ -27,7 +27,7 @@ class StreamCallKeepAliveHeadlessService : HeadlessJsTaskService() {
         // which leaves the base class with a started service and no task. Stop before going
         // foreground so we neither show an orphan notification nor hold the FGS types.
         val callCid = intent?.getStringExtra(EXTRA_CALL_CID)
-        if (callCid == null) {
+        if (intent == null || callCid.isNullOrBlank()) {
             Log.w(TAG, "onStartCommand: missing $EXTRA_CALL_CID extra, stopping service")
             stopSelf(startId)
             return START_NOT_STICKY
