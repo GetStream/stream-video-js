@@ -34,9 +34,6 @@ object CallAlivePermissionsHelper {
      */
     fun hasForegroundServicePermissionsDeclared(context: Context): Boolean {
         val declared = declaredPermissions(context)
-        if (declared.isEmpty()) {
-            return false
-        }
 
         val required = mutableListOf<String>()
         // FOREGROUND_SERVICE only exists from Android 9, and this SDK supports minSdk 24.
