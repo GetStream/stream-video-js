@@ -265,8 +265,9 @@ class CallNotificationManager(
 
     fun postNotification(callId: String, notification: Notification) = synchronized(lock) {
         val notificationId = getOrCreateNotificationId(callId)
-        notifySafely(notificationId, notification)
-        recordPostedLocked(callId, notification)
+        if (notifySafely(notificationId, notification)) {
+          recordPostedLocked(callId, notification)
+        }
     }
 
     private fun activePostedNotifications(): Map<Int, Notification> {
