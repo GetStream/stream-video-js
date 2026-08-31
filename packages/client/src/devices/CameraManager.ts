@@ -1,13 +1,13 @@
-import { firstValueFrom, Observable } from 'rxjs';
 import { Call } from '../Call';
 import { CameraDirection, CameraManagerState } from './CameraManagerState';
 import { DeviceManager } from './DeviceManager';
-import { getVideoDevices, getVideoStream } from './devices';
+import { getVideoDevices, loadVideoDevices, getVideoStream } from './devices';
 import { VideoSettingsResponse } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
 import { DevicePersistenceOptions } from './devicePersistence';
+import { firstValue, type Subscribable } from '../store/subscribable';
 
 export class CameraManager extends DeviceManager<CameraManagerState> {
   private targetResolution = {
@@ -183,7 +183,7 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
       this.state.status === undefined &&
       this.state.optimisticStatus === undefined;
     let persistedPreferencesApplied = false;
-    const permissionState = await firstValueFrom(
+    const permissionState = await firstValue(
       this.state.browserPermissionState$,
     );
     if (
@@ -228,8 +228,12 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     }
   }
 
-  protected override getDevices(): Observable<MediaDeviceInfo[]> {
+  protected override getDevices(): Subscribable<MediaDeviceInfo[]> {
     return getVideoDevices(this.call.tracer);
+  }
+
+  protected override loadRealDevices(): Promise<MediaDeviceInfo[]> {
+    return loadVideoDevices(this.call.tracer);
   }
 
   protected override getResolvedConstraints(

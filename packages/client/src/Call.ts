@@ -25,13 +25,16 @@ import {
 import {
   CallingState,
   CallState,
+  field,
+  firstValue,
+  StateStore,
   StreamVideoWriteableStateStore,
+  type Subscribable,
 } from './store';
 import {
   createSafeAsyncSubscription,
   createSubscription,
-  getCurrentValue,
-} from './store/rxUtils';
+} from './store/subscription';
 import { ScopedLogger, videoLoggerSystem } from './logger';
 import {
   AcceptCallResponse,
@@ -130,7 +133,6 @@ import {
   TrackMuteType,
   VideoTrackType,
 } from './types';
-import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
 import { ReconnectDetails } from './gen/video/sfu/event/events';
 import {
   ClientCapability,
@@ -281,7 +283,8 @@ export class Call {
   /**
    * Flag telling whether this call is a "ringing" call.
    */
-  private readonly ringingSubject: Subject<boolean>;
+  private readonly ringingStore: StateStore<{ ringing: boolean }>;
+  private readonly ringing$: Subscribable<boolean>;
 
   /**
    * The permissions context of this call.
@@ -394,7 +397,8 @@ export class Call {
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
-    this.ringingSubject = new BehaviorSubject(ringing);
+    this.ringingStore = new StateStore<{ ringing: boolean }>({ ringing });
+    this.ringing$ = field(this.ringingStore, 'ringing');
     this.watching = watching;
     this.streamClient = streamClient;
     this.clientEventReporter = clientEventReporter;
@@ -525,7 +529,7 @@ export class Call {
       // to handle the case when the call gets ringing flag after creation event
       this.leaveCallHooks.add(
         // "ringing" mode effects and event handlers
-        createSubscription(this.ringingSubject, (isRinging) => {
+        createSubscription(this.ringing$, (isRinging) => {
           if (!isRinging) return;
           this.handleRingingCall();
         }),
@@ -723,14 +727,15 @@ export class Call {
       this.leaveGeneration += 1;
 
       if (callingState === CallingState.JOINING) {
-        const waitUntilCallJoined = () => {
-          return new Promise<void>((resolve) => {
-            this.state.callingState$
-              .pipe(takeWhile((state) => state !== CallingState.JOINED, true))
-              .subscribe(() => resolve());
-          });
-        };
-        await waitUntilCallJoined();
+        // Wait for the join flow to settle before tearing anything down, but
+        // settle means *any* terminal state: waiting specifically for JOINED
+        // would never resolve when the join fails, and this runs while holding
+        // `joinLeaveConcurrencyTag`, so every later join/leave would queue
+        // behind it forever.
+        await firstValue(
+          this.state.callingState$,
+          (state) => state !== CallingState.JOINING,
+        );
       }
 
       if (callingState === CallingState.RINGING && reject !== false) {
@@ -819,7 +824,7 @@ export class Call {
       this.hasJoinedOnce = false;
       this.allowOwnTracksLoopback = false;
       this.unifiedSessionId = undefined;
-      this.ringingSubject.next(false);
+      this.ringingStore.partialNext({ ringing: false });
       this.cancelAutoDrop();
       this.clientStore.unregisterCall(this);
 
@@ -870,7 +875,7 @@ export class Call {
    * A flag indicating whether the call is "ringing" type of call.
    */
   get ringing() {
-    return getCurrentValue(this.ringingSubject);
+    return this.ringingStore.getLatestValue().ringing;
   }
 
   /**
@@ -939,7 +944,7 @@ export class Call {
     // update the call state with the latest event data
     this.state.updateFromCallResponse(event.call);
     this.watching = true;
-    this.ringingSubject.next(true);
+    this.ringingStore.partialNext({ ringing: true });
     // we remove the instance from the calls list to enable the following filter in useCalls hook
     // const calls = useCalls().filter((c) => c.ringing);
     const calls = this.clientStore.calls.filter((c) => c.cid !== this.cid);
@@ -983,7 +988,7 @@ export class Call {
     this.updateFromCallStateResponse(response);
 
     if (params?.ring) {
-      this.ringingSubject.next(true);
+      this.ringingStore.partialNext({ ringing: true });
     }
 
     if (this.streamClient._hasConnectionID()) {
@@ -1011,7 +1016,7 @@ export class Call {
     this.updateFromCallStateResponse(response);
 
     if (data?.ring) {
-      this.ringingSubject.next(true);
+      this.ringingStore.partialNext({ ringing: true });
     }
 
     if (this.streamClient._hasConnectionID()) {
@@ -1130,7 +1135,7 @@ export class Call {
       this.allowOwnTracksLoopback = allowOwnTracksLoopback;
 
       if (data?.ring) {
-        this.ringingSubject.next(true);
+        this.ringingStore.partialNext({ ringing: true });
       }
 
       const callingX = globalThis.streamRNVideoSDK?.callingX;
@@ -1687,9 +1692,6 @@ export class Call {
         options: statsOptions,
         subscriber: this.subscriber,
         publisher: this.publisher,
-        microphone: this.microphone,
-        camera: this.camera,
-        state: this.state,
         tracer: this.tracer,
         unifiedSessionId,
       });
@@ -1717,7 +1719,7 @@ export class Call {
     this.state.setOwnCapabilities(joinResponse.own_capabilities);
 
     if (data?.ring) {
-      this.ringingSubject.next(true);
+      this.ringingStore.partialNext({ ringing: true });
     }
 
     const isReconnecting =

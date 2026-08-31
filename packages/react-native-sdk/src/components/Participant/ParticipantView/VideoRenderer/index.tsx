@@ -4,15 +4,15 @@ import type { MediaStream } from '@stream-io/react-native-webrtc';
 import { RTCView } from '@stream-io/react-native-webrtc';
 import type { ParticipantViewProps } from '../ParticipantView';
 import {
+  SfuModels,
+  StateStore,
+  VisibilityState,
   hasPausedTrack,
   hasScreenShare,
   hasVideo,
-  SfuModels,
   type VideoTrackType,
-  VisibilityState,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { BehaviorSubject } from 'rxjs';
 import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from '../ParticipantVideoFallback';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useTrackDimensions } from '../../../../hooks/useTrackDimensions';
@@ -63,9 +63,11 @@ export const VideoRenderer = React.memo(
     const { useCameraState, useIncomingVideoSettings } = useCallStateHooks();
     // a sticky note of the dimensions of the RTCView from onLayout
     // to reuse for a new participant even if dimensions dont change
-    const dimensions$ = useMemo(
+    const dimensionsStore = useMemo(
       () =>
-        new BehaviorSubject<SfuModels.VideoDimension | undefined>(undefined),
+        new StateStore<{ dimensions: SfuModels.VideoDimension | undefined }>({
+          dimensions: undefined,
+        }),
       [],
     );
     const { isParticipantVideoEnabled } = useIncomingVideoSettings();
@@ -209,9 +211,11 @@ export const VideoRenderer = React.memo(
     const onLayout: React.ComponentProps<typeof RTCView>['onLayout'] = (
       event: LayoutChangeEvent,
     ) => {
-      dimensions$.next({
-        width: Math.trunc(event.nativeEvent.layout.width),
-        height: Math.trunc(event.nativeEvent.layout.height),
+      dimensionsStore.partialNext({
+        dimensions: {
+          width: Math.trunc(event.nativeEvent.layout.width),
+          height: Math.trunc(event.nativeEvent.layout.height),
+        },
       });
     };
 
@@ -226,7 +230,7 @@ export const VideoRenderer = React.memo(
             participantSessionId={sessionId}
             trackType={trackType}
             isVisible={isVisible}
-            dimensions$={dimensions$}
+            dimensionsStore={dimensionsStore}
           />
         )}
         {canShowVideo &&

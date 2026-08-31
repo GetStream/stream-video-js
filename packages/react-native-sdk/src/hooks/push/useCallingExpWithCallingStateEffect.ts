@@ -3,10 +3,10 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useMemo } from 'react';
 import { Platform } from 'react-native';
 import { AudioDeviceModule } from '@stream-io/react-native-webrtc';
-import { filter, take } from 'rxjs/operators';
 import { getCallDisplayName } from '../../utils/internal/callingx/callingx';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
 
+import { subscribeOnce } from '../../utils/internal/subscribable';
 const logger = videoLoggerSystem.getLogger('callingx');
 
 /**
@@ -50,20 +50,18 @@ export const useCallingExpWithCallingStateEffect = () => {
         (!call.ringing && callingx.isOngoingCallsEnabled)
       );
     };
-    const subscription = activeCall.state.callingState$
-      .pipe(
-        filter(
-          (callingState) =>
-            shouldMakeCallActive(activeCall) &&
-            callingState === CallingState.JOINED &&
-            callingx.isCallTracked(activeCall.cid),
-        ),
-        take(1), // only need to capture the first joined state for outgoing calls
-        // then subscription completes and is automatically unsubscribed
-      )
-      .subscribe(() => {
+    // only the first joined state matters for outgoing calls; `once`
+    // unsubscribes itself after it fires
+    const subscription = subscribeOnce(
+      activeCall.state.callingState$,
+      (callingState) =>
+        shouldMakeCallActive(activeCall) &&
+        callingState === CallingState.JOINED &&
+        callingx.isCallTracked(activeCall.cid),
+      () => {
         callingx.setCurrentCallActive(activeCall.cid);
-      });
+      },
+    );
     return () => {
       subscription.unsubscribe();
     };
@@ -271,13 +269,12 @@ export const useCallingExpWithCallingStateEffect = () => {
       timeouts.add(timeout);
     };
 
-    const joinedSubscription = activeCall.state.callingState$
-      .pipe(
-        filter((callingState) => callingState === CallingState.JOINED),
-        take(1),
-      )
+    const joinedSubscription = subscribeOnce(
+      activeCall.state.callingState$,
+      (callingState) => callingState === CallingState.JOINED,
       // delayed so the normal engine bring-up can complete on its own
-      .subscribe(() => scheduleCheck('joined', 3000));
+      () => scheduleCheck('joined', 3000),
+    );
 
     const activationSubscription = callingx.addEventListener(
       'didActivateAudioSession',

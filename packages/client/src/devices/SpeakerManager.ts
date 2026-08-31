@@ -1,11 +1,13 @@
-import { combineLatest, firstValueFrom, pairwise } from 'rxjs';
+import { firstValue } from '../store/subscribable';
 import { Call } from '../Call';
 import { isReactNative } from '../helpers/platforms';
 import { SpeakerState } from './SpeakerState';
 import {
+  canEnumerateDevices,
   deviceIds$,
   getAudioBrowserPermission,
   getAudioOutputDevices,
+  loadAudioOutputDevices,
 } from './devices';
 import {
   AudioSettingsRequestDefaultDeviceEnum,
@@ -19,7 +21,7 @@ import {
   toPreferenceList,
   writePreferences,
 } from './devicePersistence';
-import { createSubscription, getCurrentValue } from '../store/rxUtils';
+import { createSubscription } from '../store/subscription';
 
 export class SpeakerManager {
   readonly state: SpeakerState;
@@ -67,12 +69,12 @@ export class SpeakerManager {
       return;
     }
 
-    const permissionState = await firstValueFrom(
-      getAudioBrowserPermission(this.call.tracer).asStateObservable(),
+    const permissionState = await firstValue(
+      getAudioBrowserPermission(this.call.tracer).state$,
     );
     if (permissionState !== 'granted') return;
 
-    const devices = await firstValueFrom(this.listDevices());
+    const devices = await this.loadDevices();
     const device =
       this.findDevice(devices, nextDeviceId) ??
       (preference.selectedDeviceLabel
@@ -121,37 +123,38 @@ export class SpeakerManager {
     if (this.areSubscriptionsSetUp) return;
     this.areSubscriptionsSetUp = true;
 
-    if (deviceIds$ && !isReactNative()) {
+    if (canEnumerateDevices() && !isReactNative()) {
       this.subscriptions.push(
-        createSubscription(
-          combineLatest([
-            deviceIds$!.pipe(pairwise()),
-            this.state.selectedDevice$,
-          ]),
-          ([[prevDevices, currentDevices], deviceId]) => {
+        // Detecting a disconnect means comparing the device list against the
+        // previous one, so we simply remember it.
+        ((): (() => void) => {
+          let prevDevices = deviceIds$.getValue();
+          return createSubscription(deviceIds$, (currentDevices) => {
+            const previous = prevDevices;
+            prevDevices = currentDevices;
+            const deviceId = this.state.selectedDevice;
             if (!deviceId) return;
             const isDisconnected =
-              this.findDevice(prevDevices, deviceId) &&
+              this.findDevice(previous, deviceId) &&
               !this.findDevice(currentDevices, deviceId);
             if (isDisconnected) this.select('');
-          },
-        ),
+          });
+        })(),
       );
     }
 
     if (!isReactNative() && this.devicePersistence.enabled) {
+      // Reads both stores directly; they are synchronous, so there is nothing
+      // to join. Either one changing is a reason to re-check.
+      const permission = getAudioBrowserPermission(this.call.tracer);
+      const persistIfGranted = () => {
+        const { selectedDevice } = this.state;
+        if (!selectedDevice || permission.state !== 'granted') return;
+        this.persistSpeakerDevicePreference(selectedDevice);
+      };
       this.subscriptions.push(
-        createSubscription(
-          combineLatest([
-            this.state.selectedDevice$,
-            getAudioBrowserPermission(this.call.tracer).asStateObservable(),
-          ]),
-          ([selectedDevice, browserPermissionState]) => {
-            if (!selectedDevice || browserPermissionState !== 'granted') return;
-
-            this.persistSpeakerDevicePreference(selectedDevice);
-          },
-        ),
+        createSubscription(this.state.selectedDevice$, persistIfGranted),
+        createSubscription(permission.state$, persistIfGranted),
       );
     }
   }
@@ -162,11 +165,20 @@ export class SpeakerManager {
    * Note: It prompts the user for a permission to use devices (if not already granted)
    * Note: This method is not supported in React Native
    *
-   * @returns an Observable that will be updated if a device is connected or disconnected
+   * @returns a source that updates as devices are connected or disconnected
    */
   listDevices() {
     assertUnsupportedInReactNative();
     return getAudioOutputDevices(this.call.tracer);
+  }
+
+  /**
+   * Resolves with the available audio output devices, waiting for the first
+   * enumeration to complete rather than reporting an empty list.
+   */
+  async loadDevices(): Promise<MediaDeviceInfo[]> {
+    assertUnsupportedInReactNative();
+    return loadAudioOutputDevices(this.call.tracer);
   }
 
   /**
@@ -233,7 +245,7 @@ export class SpeakerManager {
 
   private persistSpeakerDevicePreference(selectedDevice: string) {
     const { storageKey } = this.devicePersistence;
-    const devices = getCurrentValue(this.listDevices()) || [];
+    const devices = this.listDevices().getValue();
     const currentDevice =
       devices.find((d) => d.deviceId === selectedDevice) ??
       createSyntheticDevice(selectedDevice, 'audiooutput');

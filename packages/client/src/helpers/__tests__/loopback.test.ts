@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { BehaviorSubject } from 'rxjs';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { StateStore } from '@stream-io/state-store';
+import { field } from '../../store/subscribable';
 import {
   DEFAULT_LOOPBACK_RECORDING_DURATION_MS,
   LoopbackStreamsTimeoutError,
@@ -40,16 +41,20 @@ const participantWith = (streams: {
 }) => fromPartial<StreamVideoParticipant>(streams);
 
 const buildCall = (initial?: { participant?: StreamVideoParticipant }) => {
-  const participant$ = new BehaviorSubject<StreamVideoParticipant | undefined>(
-    initial?.participant,
-  );
+  const store = new StateStore<{
+    localParticipant: StreamVideoParticipant | undefined;
+  }>({ localParticipant: initial?.participant });
+  const participant$ = field(store, 'localParticipant');
+  const setParticipant = (
+    localParticipant: StreamVideoParticipant | undefined,
+  ) => store.partialNext({ localParticipant });
 
   const call = fromPartial<Call>({
     state: {
       get localParticipant() {
         return participant$.getValue();
       },
-      localParticipant$: participant$.asObservable(),
+      localParticipant$: participant$,
     },
     subscriber: {
       isSelfSubscribedStream: (stream: MediaStream | undefined) =>
@@ -57,7 +62,7 @@ const buildCall = (initial?: { participant?: StreamVideoParticipant }) => {
     },
   });
 
-  return { call, participant$ };
+  return { call, participant$, setParticipant };
 };
 
 describe('getLoopbackStreams', () => {
@@ -190,7 +195,7 @@ describe('waitForLoopbackStreams', () => {
   });
 
   it('resolves once the echoed streams replace the capture ones', async () => {
-    const { call, participant$ } = buildCall({
+    const { call, setParticipant } = buildCall({
       participant: participantWith({
         audioStream: streamOf(track('audio')),
         videoStream: streamOf(track('video')),
@@ -202,7 +207,7 @@ describe('waitForLoopbackStreams', () => {
       signal: new AbortController().signal,
     });
 
-    participant$.next(
+    setParticipant(
       participantWith({
         audioStream: loopbackAudio,
         videoStream: loopbackVideo,
@@ -258,7 +263,7 @@ describe('waitForLoopbackStreams', () => {
 
   it('stops observing after resolving, and ignores later emissions', async () => {
     vi.useFakeTimers();
-    const { call, participant$ } = buildCall({
+    const { call, participant$, setParticipant } = buildCall({
       participant: participantWith({
         audioStream: streamOf(track('audio')),
         videoStream: streamOf(track('video')),
@@ -271,14 +276,14 @@ describe('waitForLoopbackStreams', () => {
       timeoutMs: 1000,
     });
 
-    participant$.next(participantWith({ audioStream: loopbackAudio }));
+    setParticipant(participantWith({ audioStream: loopbackAudio }));
     await expect(pending).resolves.toMatchObject({
       audioTrack: { id: 'loopback-audio' },
     });
 
     expect(participant$.observed).toBe(false);
     expect(() => {
-      participant$.next(undefined);
+      setParticipant(undefined);
       vi.advanceTimersByTime(5000);
     }).not.toThrow();
   });

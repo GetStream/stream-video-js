@@ -3,20 +3,12 @@ import {
   Call,
   CallingState,
   DebounceType,
+  SfuModels,
+  StateStore,
   hasScreenShare,
   hasVideo,
-  SfuModels,
-  type StreamVideoParticipant,
   type VideoTrackType,
 } from '@stream-io/video-client';
-import {
-  BehaviorSubject,
-  combineLatest,
-  distinctUntilChanged,
-  distinctUntilKeyChanged,
-  filter,
-  map,
-} from 'rxjs';
 
 type TrackSubscriberProps = {
   participantSessionId: string;
@@ -27,7 +19,9 @@ type TrackSubscriberProps = {
    * The dimensions of the view rendering the track, owned by the parent so that
    * the last reported layout survives a remount of this component.
    */
-  dimensions$: BehaviorSubject<SfuModels.VideoDimension | undefined>;
+  dimensionsStore: StateStore<{
+    dimensions: SfuModels.VideoDimension | undefined;
+  }>;
 };
 
 /**
@@ -42,7 +36,7 @@ type TrackSubscriberProps = {
  * 2. When the participant becomes invisible
 */
 const TrackSubscriber = (props: TrackSubscriberProps) => {
-  const { call, participantSessionId, trackType, isVisible, dimensions$ } =
+  const { call, participantSessionId, trackType, isVisible, dimensionsStore } =
     props;
 
   useEffect(() => {
@@ -62,37 +56,76 @@ const TrackSubscriber = (props: TrackSubscriberProps) => {
       });
       call.trackSubscriptionManager.apply(debounceType);
     };
-    const isPublishingTrack$ = call.state.participants$.pipe(
-      map((ps) => ps.find((p) => p.sessionId === participantSessionId)),
-      filter((p): p is StreamVideoParticipant => !!p),
-      distinctUntilKeyChanged('publishedTracks'),
-      map((p) =>
-        trackType === 'videoTrack' ? hasVideo(p) : hasScreenShare(p),
-      ),
-      distinctUntilChanged(),
-    );
-    const isJoinedState$ = call.state.callingState$.pipe(
-      map((callingState) => callingState === CallingState.JOINED),
-    );
 
-    const subscription = combineLatest([
-      dimensions$,
-      isPublishingTrack$,
-      isJoinedState$,
-    ]).subscribe(([dimension, isPublishing, isJoined]) => {
-      if (isJoined) {
-        if (!isVisible || !isPublishing) {
-          requestTrackWithDimensions(DebounceType.MEDIUM, undefined);
-        } else if (dimension) {
-          requestTrackWithDimensions(DebounceType.IMMEDIATE, dimension);
-        }
+    // What we last acted on, so an unrelated store change does not re-request
+    // the track. `undefined` for `isPublishing` means the participant is not in
+    // the call yet - distinct from `false`: on the initial join and after a
+    // reconnect the participant arrives after this component mounts, and
+    // treating "not there yet" as "not publishing" would unsubscribe the track
+    // before it was ever requested.
+    let lastDimension: SfuModels.VideoDimension | undefined;
+    let lastIsPublishing: boolean | undefined;
+    let lastIsJoined: boolean | undefined;
+
+    const sync = () => {
+      const state = call.state.store.getLatestValue();
+      // constant-time lookup; scanning the participant array here would make a
+      // single update cost O(participants x tiles) in a large call
+      const participant = state.participantsBySessionId[participantSessionId];
+      const isJoined = state.callingState === CallingState.JOINED;
+      const isPublishing = !participant
+        ? undefined
+        : trackType === 'videoTrack'
+          ? hasVideo(participant)
+          : hasScreenShare(participant);
+      const { dimensions: dimension } = dimensionsStore.getLatestValue();
+
+      if (
+        dimension === lastDimension &&
+        isPublishing === lastIsPublishing &&
+        isJoined === lastIsJoined
+      ) {
+        return;
       }
+      lastDimension = dimension;
+      lastIsPublishing = isPublishing;
+      lastIsJoined = isJoined;
+
+      if (!isJoined) return;
+      // the participant has not appeared in the call state yet
+      if (isPublishing === undefined) return;
+
+      if (!isVisible || !isPublishing) {
+        requestTrackWithDimensions(DebounceType.MEDIUM, undefined);
+      } else if (dimension) {
+        requestTrackWithDimensions(DebounceType.IMMEDIATE, dimension);
+      }
+    };
+
+    // Two stores, both synchronous: `sync` reads what it needs from each, so
+    // either one changing is simply a reason to re-check. Call state is
+    // filtered first: every tile subscribes to the whole store, so without
+    // this an unrelated write (stats, captions) wakes all of them.
+    let lastIndex: unknown;
+    let lastCallingState: unknown;
+    const unsubscribeCallState = call.state.store.subscribe((state) => {
+      if (
+        state.participantsBySessionId === lastIndex &&
+        state.callingState === lastCallingState
+      ) {
+        return;
+      }
+      lastIndex = state.participantsBySessionId;
+      lastCallingState = state.callingState;
+      sync();
     });
+    const unsubscribeDimensions = dimensionsStore.subscribe(sync);
 
     return () => {
-      subscription.unsubscribe();
+      unsubscribeCallState();
+      unsubscribeDimensions();
     };
-  }, [call, participantSessionId, trackType, isVisible, dimensions$]);
+  }, [call, participantSessionId, trackType, isVisible, dimensionsStore]);
 
   return null;
 };

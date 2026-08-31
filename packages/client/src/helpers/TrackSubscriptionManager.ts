@@ -1,9 +1,9 @@
-import { BehaviorSubject, map, shareReplay } from 'rxjs';
+import { StateStore } from '@stream-io/state-store';
+import { select } from '../store/subscribable';
 import { DebounceType } from '../types';
 import type { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 import { TrackType, VideoDimension } from '../gen/video/sfu/models/models';
 import { CallState } from '../store';
-import { getCurrentValue, setCurrentValue } from '../store/rxUtils';
 import type { StreamSfuClient } from '../StreamSfuClient';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
@@ -44,8 +44,7 @@ export interface VideoTrackSubscriptionOverrides {
 /**
  * Owns the SFU-side video-subscription machinery for a `Call`:
  *
- * - Holds the per-session / global override state in a
- *   `BehaviorSubject<VideoTrackSubscriptionOverrides>`.
+ * - Holds the per-session / global override state.
  * - Derives the SFU subscription list from `CallState` participants +
  *   current overrides via the `subscriptions` getter.
  * - Debounces and pushes the list to the SFU through
@@ -65,45 +64,44 @@ export class TrackSubscriptionManager {
   private sfuClient: StreamSfuClient | undefined;
   private pendingUpdate: NodeJS.Timeout | null = null;
 
-  private overridesSubject =
-    new BehaviorSubject<VideoTrackSubscriptionOverrides>({});
-
-  overrides$ = this.overridesSubject.asObservable();
+  private overridesStore = new StateStore<{
+    overrides: VideoTrackSubscriptionOverrides;
+  }>({ overrides: {} });
 
   /**
-   * Consumer-friendly projection of the override state. Used by the
+   * Consumer-friendly projection of the override state, for the
    * `useIncomingVideoSettings()` React hook.
+   *
+   * This is the one member that has to be reactive: everything else here is
+   * read on demand. `select` also memoises the projection, which React's
+   * `useSyncExternalStore` requires - a fresh object per read would re-render
+   * forever.
    */
-  incomingVideoSettings$ = this.overrides$.pipe(
-    map((overrides) => {
-      const { [globalOverrideKey]: globalSettings, ...participants } =
-        overrides;
-      return {
-        enabled: globalSettings?.enabled !== false,
-        preferredResolution: globalSettings?.enabled
-          ? globalSettings.dimension
-          : undefined,
-        participants: Object.fromEntries(
-          Object.entries(participants).map(
-            ([sessionId, participantOverride]) => [
-              sessionId,
-              {
-                enabled: participantOverride?.enabled !== false,
-                preferredResolution: participantOverride?.enabled
-                  ? participantOverride.dimension
-                  : undefined,
-              },
-            ],
-          ),
-        ),
-        isParticipantVideoEnabled: (sessionId: string) =>
-          overrides[sessionId]?.enabled ??
-          overrides[globalOverrideKey]?.enabled ??
-          true,
-      };
-    }),
-    shareReplay(1),
-  );
+  readonly incomingVideoSettings$ = select(this.overridesStore, (state) => {
+    const overrides = state.overrides;
+    const { [globalOverrideKey]: globalSettings, ...participants } = overrides;
+    return {
+      enabled: globalSettings?.enabled !== false,
+      preferredResolution: globalSettings?.enabled
+        ? globalSettings.dimension
+        : undefined,
+      participants: Object.fromEntries(
+        Object.entries(participants).map(([sessionId, participantOverride]) => [
+          sessionId,
+          {
+            enabled: participantOverride?.enabled !== false,
+            preferredResolution: participantOverride?.enabled
+              ? participantOverride.dimension
+              : undefined,
+          },
+        ]),
+      ),
+      isParticipantVideoEnabled: (sessionId: string) =>
+        overrides[sessionId]?.enabled ??
+        overrides[globalOverrideKey]?.enabled ??
+        true,
+    };
+  });
 
   /**
    * Constructs new TrackSubscriptionManager instance.
@@ -144,10 +142,8 @@ export class TrackSubscriptionManager {
    */
   get subscriptions(): TrackSubscriptionDetails[] {
     const subscriptions: TrackSubscriptionDetails[] = [];
-    // Use getParticipantsSnapshot() to bypass the observable pipeline
-    // and avoid stale data caused by shareReplay with no active subscribers
-    const participants = this.callState.getParticipantsSnapshot();
-    const overrides = this.overridesSubject.getValue();
+    const participants = this.callState.participants;
+    const { overrides } = this.overridesStore.getLatestValue();
     for (const p of participants) {
       if (p.isLocalParticipant) continue;
       // NOTE: audio tracks don't have to be requested explicitly
@@ -185,7 +181,7 @@ export class TrackSubscriptionManager {
   }
 
   get overrides() {
-    return getCurrentValue(this.overrides$);
+    return this.overridesStore.getLatestValue().overrides;
   }
 
   /**
@@ -203,16 +199,18 @@ export class TrackSubscriptionManager {
   ) => {
     this.tracer.trace('setOverrides', [override, sessionIds]);
     if (!sessionIds) {
-      return setCurrentValue(
-        this.overridesSubject,
-        override ? { [globalOverrideKey]: override } : {},
-      );
+      const overrides = override ? { [globalOverrideKey]: override } : {};
+      this.overridesStore.partialNext({ overrides });
+      return overrides;
     }
 
-    return setCurrentValue(this.overridesSubject, (overrides) => ({
-      ...overrides,
-      ...Object.fromEntries(sessionIds.map((id) => [id, override])),
+    this.overridesStore.next(({ overrides }) => ({
+      overrides: {
+        ...overrides,
+        ...Object.fromEntries(sessionIds.map((id) => [id, override])),
+      },
     }));
+    return this.overridesStore.getLatestValue().overrides;
   };
 
   /**

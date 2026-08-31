@@ -15,7 +15,8 @@ import {
   UserResponse,
 } from '@stream-io/video-client';
 import { useMemo, useState } from 'react';
-import { Observable, of } from 'rxjs';
+import { useStateStore } from '@stream-io/state-store/react-bindings';
+import type { CallStateShape, Subscribable } from '@stream-io/video-client';
 import { useCall } from '../contexts';
 import { isReactNative } from '../helpers/platforms';
 import { useObservableValue } from './useObservableValue';
@@ -34,6 +35,17 @@ export type UseInputMediaDeviceOptions = {
 };
 
 /**
+ * The state returned when there is no call in the provider.
+ *
+ * One shared instance rather than one per render: the hooks below feed it to
+ * `useSyncExternalStore`, which re-subscribes whenever the source identity
+ * changes, so a fresh `CallState` (a store, a preprocessor and 34 subscribable
+ * views) every render would both allocate and churn subscriptions. Nothing
+ * writes to it, so sharing it is safe.
+ */
+let detachedCallState: CallState | undefined;
+
+/**
  * Utility hook, which provides the current call's state.
  */
 export const useCallState = () => {
@@ -45,7 +57,7 @@ export const useCallState = () => {
       'You are using useCallState() outside a Call context. ' +
       'Please wrap your component in <StreamCall /> and provide a "call" instance.';
     console.warn(message);
-    return new CallState();
+    return (detachedCallState ??= new CallState());
   }
   return call.state;
 };
@@ -218,10 +230,10 @@ export const useHasOngoingScreenShare = (): boolean => {
  * Utility hook which provides the latest stats report of the current call.
  *
  * The latest stats report of the current call.
- * When stats gathering is enabled, this observable will emit a new value
+ * When stats gathering is enabled, this will update
  * at a regular (configurable) interval.
  *
- * Consumers of this observable can implement their own batching logic
+ * Consumers can implement their own batching logic
  * in case they want to show historical stats data.
  */
 export const useCallStatsReport = (): CallStatsReport | undefined => {
@@ -370,6 +382,80 @@ export const useHasPermissions = (...permissions: OwnCapability[]): boolean => {
   return permissions.every((permission) => capabilities?.includes(permission));
 };
 
+/** The state type held by a manager's store. */
+type StoreState<S> = S extends { getLatestValue(): infer T } ? T : never;
+
+// `useStateStore` treats the selector as part of its subscription identity, so
+// these live at module scope to stay referentially stable across renders.
+const selectCameraState = (
+  state: StoreState<Call['camera']['state']['store']>,
+) => ({
+  direction: state.direction,
+  mediaStream: state.mediaStream,
+  rootMediaStream: state.rootMediaStream,
+  selectedDevice: state.selectedDevice,
+  hasBrowserPermission: state.hasBrowserPermission,
+  isPromptingPermission: state.isPromptingPermission,
+  status: state.status,
+  optimisticStatus: state.optimisticStatus,
+});
+
+const selectMicrophoneState = (
+  state: StoreState<Call['microphone']['state']['store']>,
+) => ({
+  mediaStream: state.mediaStream,
+  selectedDevice: state.selectedDevice,
+  hasBrowserPermission: state.hasBrowserPermission,
+  isPromptingPermission: state.isPromptingPermission,
+  speakingWhileMuted: state.speakingWhileMuted,
+  audioBitrateProfile: state.audioBitrateProfile,
+  status: state.status,
+  optimisticStatus: state.optimisticStatus,
+});
+
+const selectSpeakerState = (
+  state: StoreState<Call['speaker']['state']['store']>,
+) => ({
+  selectedDevice: state.selectedDevice,
+  volume: state.volume,
+});
+
+const selectScreenShareState = (
+  state: StoreState<Call['screenShare']['state']['store']>,
+) => ({
+  mediaStream: state.mediaStream,
+  audioBitrateProfile: state.audioBitrateProfile,
+  status: state.status,
+  optimisticStatus: state.optimisticStatus,
+});
+
+/**
+ * Reads several call state values in a single, tear-free subscription.
+ *
+ * Prefer the dedicated hooks below for individual values; reach for this when
+ * a component needs a few of them and you would rather not stack subscriptions.
+ *
+ * The selector must be referentially stable - declare it at module scope, or
+ * wrap it in `useCallback`.
+ *
+ * @example
+ * ```ts
+ * const selector = (state: CallStateShape) => ({
+ *   callingState: state.callingState,
+ *   participantCount: state.participantCount,
+ * });
+ * const { callingState, participantCount } = useCallStateSelector(selector);
+ * ```
+ */
+export const useCallStateSelector = <
+  O extends Readonly<Record<string, unknown>> | readonly unknown[],
+>(
+  selector: (state: CallStateShape) => O,
+): O => {
+  const { store } = useCallState();
+  return useStateStore(store, selector);
+};
+
 /**
  * Returns the camera state of the current call.
  */
@@ -379,33 +465,24 @@ export const useCameraState = ({
   const call = useCall();
   const { camera } = call as Call;
 
-  const { state } = camera;
-  const direction = useObservableValue(state.direction$);
-  const mediaStream = useObservableValue(state.mediaStream$);
-  const rootMediaStream = useObservableValue(state.rootMediaStream$);
-  const selectedDevice = useObservableValue(state.selectedDevice$);
   const { getDevices } = useLazyDeviceList(camera);
-  const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
-  const isPromptingPermission = useObservableValue(
-    state.isPromptingPermission$,
-  );
+  // a single subscription covering every field this hook reads
+  const snapshot = useStateStore(camera.state.store, selectCameraState);
 
   return {
     camera,
-    direction,
-    mediaStream,
-    rootMediaStream,
+    direction: snapshot.direction,
+    mediaStream: snapshot.mediaStream,
+    rootMediaStream: snapshot.rootMediaStream,
     get devices() {
       return getDevices();
     },
-    hasBrowserPermission,
-    isPromptingPermission,
-    selectedDevice,
-    ...getComputedStatus(
-      useObservableValue(state.status$),
-      useObservableValue(state.optimisticStatus$),
-      { optimisticUpdates },
-    ),
+    hasBrowserPermission: snapshot.hasBrowserPermission,
+    isPromptingPermission: snapshot.isPromptingPermission,
+    selectedDevice: snapshot.selectedDevice,
+    ...getComputedStatus(snapshot.status, snapshot.optimisticStatus, {
+      optimisticUpdates,
+    }),
   };
 };
 
@@ -418,33 +495,23 @@ export const useMicrophoneState = ({
   const call = useCall();
   const { microphone } = call as Call;
 
-  const { state } = microphone;
-  const mediaStream = useObservableValue(state.mediaStream$);
-  const selectedDevice = useObservableValue(state.selectedDevice$);
   const { getDevices } = useLazyDeviceList(microphone);
-  const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
-  const isPromptingPermission = useObservableValue(
-    state.isPromptingPermission$,
-  );
-  const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
-  const audioBitrateProfile = useObservableValue(state.audioBitrateProfile$);
+  const snapshot = useStateStore(microphone.state.store, selectMicrophoneState);
 
   return {
     microphone,
-    mediaStream,
+    mediaStream: snapshot.mediaStream,
     get devices() {
       return getDevices();
     },
-    selectedDevice,
-    hasBrowserPermission,
-    isPromptingPermission,
-    isSpeakingWhileMuted,
-    audioBitrateProfile,
-    ...getComputedStatus(
-      useObservableValue(state.status$),
-      useObservableValue(state.optimisticStatus$),
-      { optimisticUpdates },
-    ),
+    selectedDevice: snapshot.selectedDevice,
+    hasBrowserPermission: snapshot.hasBrowserPermission,
+    isPromptingPermission: snapshot.isPromptingPermission,
+    isSpeakingWhileMuted: snapshot.speakingWhileMuted,
+    audioBitrateProfile: snapshot.audioBitrateProfile,
+    ...getComputedStatus(snapshot.status, snapshot.optimisticStatus, {
+      optimisticUpdates,
+    }),
   };
 };
 
@@ -463,16 +530,15 @@ export const useSpeakerState = () => {
   const { speaker } = call as Call;
 
   const { getDevices } = useLazyDeviceList(speaker);
-  const selectedDevice = useObservableValue(speaker.state.selectedDevice$);
-  const volume = useObservableValue(speaker.state.volume$);
+  const snapshot = useStateStore(speaker.state.store, selectSpeakerState);
 
   return {
     speaker,
-    volume,
+    volume: snapshot.volume,
     get devices() {
       return getDevices();
     },
-    selectedDevice,
+    selectedDevice: snapshot.selectedDevice,
     isDeviceSelectionSupported: speaker.state.isDeviceSelectionSupported,
   };
 };
@@ -485,16 +551,17 @@ export const useScreenShareState = ({
 }: UseInputMediaDeviceOptions = {}) => {
   const call = useCall();
   const { screenShare } = call as Call;
-  const { state } = screenShare;
+  const snapshot = useStateStore(
+    screenShare.state.store,
+    selectScreenShareState,
+  );
   return {
     screenShare,
-    mediaStream: useObservableValue(state.mediaStream$),
-    audioBitrateProfile: useObservableValue(state.audioBitrateProfile$),
-    ...getComputedStatus(
-      useObservableValue(state.status$),
-      useObservableValue(state.optimisticStatus$),
-      { optimisticUpdates },
-    ),
+    mediaStream: snapshot.mediaStream,
+    audioBitrateProfile: snapshot.audioBitrateProfile,
+    ...getComputedStatus(snapshot.status, snapshot.optimisticStatus, {
+      optimisticUpdates,
+    }),
   };
 };
 
@@ -510,12 +577,6 @@ export const useIncomingVideoSettings = () => {
 };
 
 /**
- * Static fallback emitted when no `Call` is active. Module-scope so the
- * `useObservableValue` dep reference stays stable across renders.
- */
-const AUTOPLAY_BLOCKED$ = of(false);
-
-/**
  * Returns whether the browser's autoplay policy is blocking audio playback.
  *
  * When the browser blocks audio autoplay (e.g., no prior user interaction),
@@ -524,16 +585,8 @@ const AUTOPLAY_BLOCKED$ = of(false);
  */
 export const useIsAutoplayBlocked = (): boolean => {
   const call = useCall();
-  return useObservableValue(
-    call?.blockedAudioTracker.autoplayBlocked$ ?? AUTOPLAY_BLOCKED$,
-  );
+  return useObservableValue(call?.blockedAudioTracker.autoplayBlocked$, false);
 };
-
-/**
- * Stable empty-array fallback for {@link useAutoplayBlockedSessionIds}, kept at
- * module scope so the `useObservableValue` dep reference is stable.
- */
-const BLOCKED_SESSION_IDS$ = of(EMPTY_BLOCKED_SESSION_IDS);
 
 /**
  * Returns the participant `sessionId`s whose audio is currently blocked
@@ -544,7 +597,7 @@ const BLOCKED_SESSION_IDS$ = of(EMPTY_BLOCKED_SESSION_IDS);
 export const useAutoplayBlockedSessionIds = (): string[] => {
   const call = useCall();
   return useObservableValue(
-    call?.blockedAudioTracker.blockedSessionIds$ ?? BLOCKED_SESSION_IDS$,
+    call?.blockedAudioTracker.blockedSessionIds$,
     EMPTY_BLOCKED_SESSION_IDS,
   );
 };
@@ -591,16 +644,19 @@ function getComputedStatus(
 }
 
 interface DeviceManagerLike {
-  listDevices(): Observable<MediaDeviceInfo[]>;
+  listDevices(): Subscribable<MediaDeviceInfo[]>;
 }
 
 function useLazyDeviceList(manager: DeviceManagerLike) {
-  const placeholderDevices$ = useMemo(() => of(EMPTY_DEVICES_ARRAY), []);
-  const [devices$, setDevices$] = useState(placeholderDevices$);
+  // `undefined` until something actually asks for the devices: enumerating
+  // them prompts for permission, so it must not happen on mount
+  const [devices$, setDevices$] = useState<
+    Subscribable<MediaDeviceInfo[]> | undefined
+  >(undefined);
   const devices = useObservableValue(devices$, EMPTY_DEVICES_ARRAY);
 
   const getDevices = () => {
-    if (devices$ === placeholderDevices$) {
+    if (!devices$) {
       setDevices$(manager.listDevices());
     }
 

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
-import { of } from 'rxjs';
+import { constant } from '../../store/__tests__/testSubscribable';
 import { ClientEventReporter, CallReportContext } from '../ClientEventReporter';
 import type { StreamClient } from '../../coordinator/connection/client';
 import { ErrorFromResponse } from '../../coordinator/connection/types';
@@ -10,8 +10,8 @@ import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
 import type { PeerConnectionStateChangeEvent } from '../../rtc';
 
 vi.mock('../../devices', () => ({
-  getAudioBrowserPermission: () => ({ asStateObservable: () => of('granted') }),
-  getVideoBrowserPermission: () => ({ asStateObservable: () => of('granted') }),
+  getAudioBrowserPermission: () => ({ state$: constant('granted') }),
+  getVideoBrowserPermission: () => ({ state$: constant('granted') }),
 }));
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));

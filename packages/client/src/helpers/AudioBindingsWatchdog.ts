@@ -1,6 +1,6 @@
 import type { AudioTrackType } from '../types';
 import { CallingState, CallState } from '../store';
-import { createSubscription } from '../store/rxUtils';
+import { createSubscription } from '../store/subscription';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
 import { TrackType } from '../gen/video/sfu/models/models';

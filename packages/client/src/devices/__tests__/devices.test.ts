@@ -1,17 +1,20 @@
 /* @vitest-environment happy-dom */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { firstValueFrom, of, skip } from 'rxjs';
 
 const permissionInstances: Array<{
   prompt: ReturnType<typeof vi.fn>;
 }> = [];
 
-vi.mock('../BrowserPermission', () => {
+vi.mock('../BrowserPermission', async () => {
+  const { constant } = await import('../../store/__tests__/testSubscribable');
   class BrowserPermission {
     prompt = vi.fn(async () => true);
-    asObservable = vi.fn(() => of(true));
-    asStateObservable = vi.fn(() => of('granted'));
-    getIsPromptingObservable = vi.fn(() => of(false));
+    state: string | undefined = 'granted';
+    state$ = constant<string | undefined>('granted');
+    listen = vi.fn((cb: (state: string) => void) => {
+      cb('granted');
+      return () => {};
+    });
 
     constructor() {
       permissionInstances.push(this);
@@ -125,8 +128,8 @@ describe('devices', () => {
         ]),
     });
 
-    const { getAudioDevices } = await loadDevicesModule();
-    const devices = await firstValueFrom(getAudioDevices());
+    const { loadAudioDevices } = await loadDevicesModule();
+    const devices = await loadAudioDevices();
 
     expect(
       vi.mocked(mediaDevices.enumerateDevices).mock.calls.length,
@@ -167,8 +170,8 @@ describe('devices', () => {
         ]),
     });
 
-    const { getVideoDevices } = await loadDevicesModule();
-    const devices = await firstValueFrom(getVideoDevices());
+    const { loadVideoDevices } = await loadDevicesModule();
+    const devices = await loadVideoDevices();
 
     expect(
       vi.mocked(mediaDevices.enumerateDevices).mock.calls.length,
@@ -209,8 +212,8 @@ describe('devices', () => {
         ]),
     });
 
-    const { getAudioOutputDevices } = await loadDevicesModule();
-    const devices = await firstValueFrom(getAudioOutputDevices());
+    const { loadAudioOutputDevices } = await loadDevicesModule();
+    const devices = await loadAudioOutputDevices();
 
     expect(
       vi.mocked(mediaDevices.enumerateDevices).mock.calls.length,
@@ -336,8 +339,8 @@ describe('devices', () => {
         ]),
     });
 
-    const { deviceIds$ } = await loadDevicesModule();
-    const first = await firstValueFrom(deviceIds$!);
+    const { deviceIds$, loadDeviceIds } = await loadDevicesModule();
+    const first = await loadDeviceIds();
     expect(first).toEqual([
       {
         kind: 'audioinput',
@@ -347,7 +350,18 @@ describe('devices', () => {
       },
     ]);
 
-    const nextValue = firstValueFrom(deviceIds$!.pipe(skip(1)));
+    // resolve on the first emission after the current one
+    const nextValue = new Promise<MediaDeviceInfo[]>((resolve) => {
+      let isReplay = true;
+      const subscription = deviceIds$!.subscribe((devices) => {
+        if (isReplay) {
+          isReplay = false;
+          return;
+        }
+        subscription.unsubscribe();
+        resolve(devices);
+      });
+    });
     mediaDevices.dispatchEvent(new Event('devicechange'));
     await vi.advanceTimersByTimeAsync(500);
     const second = await nextValue;
@@ -359,6 +373,55 @@ describe('devices', () => {
         groupId: 'g2',
       },
     ]);
+    vi.useRealTimers();
+  });
+
+  it('getAudioDevices returns a stable snapshot across reads (useSyncExternalStore)', async () => {
+    const devices = [
+      { kind: 'audioinput', label: 'Mic 1', deviceId: 'mic-1', groupId: 'g1' },
+    ] as MediaDeviceInfo[];
+    setupMediaDevices({
+      // a fresh array of fresh objects per enumeration, as browsers do
+      enumerateDevices: vi.fn(async () => devices.map((d) => ({ ...d }))),
+    });
+
+    const { getAudioDevices } = await loadDevicesModule();
+    const audio$ = getAudioDevices();
+    const unsubscribe = audio$.subscribe(() => {});
+    await vi.waitFor(() => expect(audio$.getValue()).toHaveLength(1));
+
+    // React compares snapshots by identity; a new array per read loops forever
+    const first = audio$.getValue();
+    expect(audio$.getValue()).toBe(first);
+    expect(audio$.getValue()).toBe(first);
+    unsubscribe();
+  });
+
+  it('keeps the device list identity across a no-op re-enumeration', async () => {
+    vi.useFakeTimers();
+    const devices = [
+      { kind: 'audioinput', label: 'Mic 1', deviceId: 'mic-1', groupId: 'g1' },
+    ] as MediaDeviceInfo[];
+    const mediaDevices = setupMediaDevices({
+      enumerateDevices: vi.fn(async () => devices.map((d) => ({ ...d }))),
+    });
+
+    const { getAudioDevices } = await loadDevicesModule();
+    const audio$ = getAudioDevices();
+    const emissions: MediaDeviceInfo[][] = [];
+    const unsubscribe = audio$.subscribe((v) => emissions.push(v));
+    await vi.waitFor(() => expect(audio$.getValue()).toHaveLength(1));
+
+    const before = audio$.getValue();
+    const emissionCount = emissions.length;
+
+    mediaDevices.dispatchEvent(new Event('devicechange'));
+    await vi.advanceTimersByTimeAsync(500);
+
+    // same devices, freshly allocated objects: no emission, same identity
+    expect(emissions.length).toBe(emissionCount);
+    expect(audio$.getValue()).toBe(before);
+    unsubscribe();
     vi.useRealTimers();
   });
 
@@ -382,8 +445,8 @@ describe('devices', () => {
       enumerateDevices: vi.fn(async () => devices),
     });
 
-    const { deviceIds$, resolveDeviceId } = await loadDevicesModule();
-    await firstValueFrom(deviceIds$!);
+    const { loadDeviceIds, resolveDeviceId } = await loadDevicesModule();
+    await loadDeviceIds();
 
     expect(resolveDeviceId('default', 'audioinput')).toBe('mic-1');
   });

@@ -1,4 +1,3 @@
-import { combineLatest, firstValueFrom, Observable } from 'rxjs';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { Call } from '../Call';
 import {
@@ -7,8 +6,9 @@ import {
 } from './AudioDeviceManager';
 import { type BrowserPermissionState } from './BrowserPermission';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
-import { TrackDisableMode } from './DeviceManagerState';
-import { getAudioDevices, getAudioStream } from './devices';
+import { type InputDeviceStatus, TrackDisableMode } from './DeviceManagerState';
+import { firstValue, select, type Subscribable } from '../store/subscribable';
+import { getAudioDevices, getAudioStream, loadAudioDevices } from './devices';
 import { AudioBitrateProfile, TrackType } from '../gen/video/sfu/models/models';
 import { createSoundDetector } from '../helpers/sound-detector';
 import { createNoAudioDetector } from '../helpers/no-audio-detector';
@@ -23,7 +23,8 @@ import { CallingState } from '../store';
 import {
   createSafeAsyncSubscription,
   createSubscription,
-} from '../store/rxUtils';
+  serializeAsync,
+} from '../store/subscription';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { disposeOfMediaStream } from './utils';
 import { promiseWithResolvers } from '../helpers/promise';
@@ -58,50 +59,104 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   override setup(): void {
     if (this.areSubscriptionsSetUp) return;
     super.setup();
-    this.subscriptions.push(
-      createSafeAsyncSubscription(
-        combineLatest([
-          this.call.state.callingState$,
-          this.call.state.ownCapabilities$,
-          this.state.selectedDevice$,
-          this.state.status$,
-          this.state.browserPermissionState$,
-        ]),
-        async ([
-          callingState,
-          ownCapabilities,
-          deviceId,
-          status,
-          permissionState,
-        ]) => {
-          try {
-            if (callingState === CallingState.LEFT) {
-              // The muted-recording-prepared mode is reset in `callManager.stop()`
-              // (during leave, while the call factory is still alive), not here —
-              // this subscription fires asynchronously and could land after the
-              // factory is disposed, forcing a default-ADM rebuild.
-              await this.stopSpeakingWhileMutedDetection();
-            }
-            if (callingState !== CallingState.JOINED) return;
-            if (!this.speakingWhileMutedNotificationEnabled) return;
+    // Reads the state it needs directly rather than joining five sources into
+    // one: both stores are synchronous, so the handler can just look. The two
+    // `select`s below only decide *when* to run it, and they share a single
+    // serialised handler so overlapping runs cannot interleave.
+    type SpeakingWhileMutedInputs = {
+      callingState: CallingState;
+      ownCapabilities: OwnCapability[];
+      deviceId: string | undefined;
+      status: InputDeviceStatus;
+      permissionState: BrowserPermissionState | undefined;
+    };
+    // Compared field by field rather than as a joined string: `undefined` and
+    // `''` are different device ids but the same text. `ownCapabilities` keeps
+    // its identity while unchanged, so `Object.is` is enough for it too.
+    const sameInputs = (
+      a: SpeakingWhileMutedInputs,
+      b: SpeakingWhileMutedInputs,
+    ) =>
+      Object.is(a.callingState, b.callingState) &&
+      Object.is(a.ownCapabilities, b.ownCapabilities) &&
+      Object.is(a.deviceId, b.deviceId) &&
+      Object.is(a.status, b.status) &&
+      Object.is(a.permissionState, b.permissionState);
 
-            if (ownCapabilities.includes(OwnCapability.SEND_AUDIO)) {
-              const hasPermission = await this.hasPermission(permissionState);
-              if (hasPermission && status !== 'enabled') {
-                this.setMutedRecordingPrepared(true);
-                await this.startSpeakingWhileMutedDetection(deviceId);
-              } else {
-                this.setMutedRecordingPrepared(false);
-                await this.stopSpeakingWhileMutedDetection();
-              }
-            } else {
-              this.setMutedRecordingPrepared(false);
-              await this.stopSpeakingWhileMutedDetection();
-            }
-          } catch (err) {
-            this.logger.warn('Could not enable speaking while muted', err);
+    let lastInputs: SpeakingWhileMutedInputs | undefined;
+    const syncSpeakingWhileMutedDetection = serializeAsync(async () => {
+      const { callingState, ownCapabilities } = this.call.state;
+      const {
+        selectedDevice: deviceId,
+        status,
+        browserPermissionState: permissionState,
+      } = this.state;
+
+      // Both subscriptions replay on attach, and either store can wake us for
+      // a change we do not care about. Re-running the decision is not free
+      // (it can start or stop a sound detector), so skip when nothing moved.
+      const inputs: SpeakingWhileMutedInputs = {
+        callingState,
+        ownCapabilities,
+        deviceId,
+        status,
+        permissionState,
+      };
+      if (lastInputs && sameInputs(lastInputs, inputs)) return;
+
+      const applyDecision = async () => {
+        if (callingState === CallingState.LEFT) {
+          // The muted-recording-prepared mode is reset in `callManager.stop()`
+          // (during leave, while the call factory is still alive), not here -
+          // this subscription fires asynchronously and could land after the
+          // factory is disposed, forcing a default-ADM rebuild.
+          await this.stopSpeakingWhileMutedDetection();
+        }
+        if (callingState !== CallingState.JOINED) return;
+        if (!this.speakingWhileMutedNotificationEnabled) return;
+
+        if (ownCapabilities.includes(OwnCapability.SEND_AUDIO)) {
+          // the permission state is unknown until it has been queried
+          if (!permissionState) return;
+          const hasPermission = await this.hasPermission(permissionState);
+          if (hasPermission && status !== 'enabled') {
+            this.setMutedRecordingPrepared(true);
+            await this.startSpeakingWhileMutedDetection(deviceId);
+          } else {
+            this.setMutedRecordingPrepared(false);
+            await this.stopSpeakingWhileMutedDetection();
           }
-        },
+        } else {
+          this.setMutedRecordingPrepared(false);
+          await this.stopSpeakingWhileMutedDetection();
+        }
+      };
+
+      try {
+        await applyDecision();
+        // recorded only once the decision has actually been applied, so a
+        // failure is retried on the next wake instead of being skipped
+        lastInputs = inputs;
+      } catch (err) {
+        this.logger.warn('Could not enable speaking while muted', err);
+      }
+    });
+
+    this.subscriptions.push(
+      createSubscription(
+        select(this.call.state.store, (state) => ({
+          callingState: state.callingState,
+          ownCapabilities: state.ownCapabilities,
+        })),
+        syncSpeakingWhileMutedDetection,
+      ),
+      createSubscription(
+        select(this.state.store, (state) => ({
+          selectedDevice: state.selectedDevice,
+          status: state.status,
+          browserPermissionState: state.browserPermissionState,
+        })),
+        syncSpeakingWhileMutedDetection,
       ),
     );
 
@@ -146,8 +201,11 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
     if (!isReactNative()) {
       const unsubscribe = createSafeAsyncSubscription(
-        combineLatest([this.state.status$, this.state.mediaStream$]),
-        async ([status, mediaStream]) => {
+        select(this.state.store, (state) => ({
+          status: state.status,
+          mediaStream: state.mediaStream,
+        })),
+        async ({ status, mediaStream }) => {
           if (this.noAudioDetectorCleanup) {
             const cleanup = this.noAudioDetectorCleanup;
             this.noAudioDetectorCleanup = undefined;
@@ -160,7 +218,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           if (this.silenceThresholdMs <= 0) return;
 
           const deviceId = this.state.selectedDevice;
-          const devices = await firstValueFrom(this.listDevices());
+          const devices = await this.loadDevices();
           const label = devices.find((d) => d.deviceId === deviceId)?.label;
 
           let lastCapturesAudio: boolean | undefined;
@@ -404,7 +462,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       this.state.status === undefined &&
       this.state.optimisticStatus === undefined;
     let persistedPreferencesApplied = false;
-    const permissionState = await firstValueFrom(
+    const permissionState = await firstValue(
       this.state.browserPermissionState$,
     );
     if (
@@ -437,8 +495,12 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     }
   }
 
-  protected override getDevices(): Observable<MediaDeviceInfo[]> {
+  protected override getDevices(): Subscribable<MediaDeviceInfo[]> {
     return getAudioDevices(this.call.tracer);
+  }
+
+  protected override loadRealDevices(): Promise<MediaDeviceInfo[]> {
+    return loadAudioDevices(this.call.tracer);
   }
 
   protected override async getStream(

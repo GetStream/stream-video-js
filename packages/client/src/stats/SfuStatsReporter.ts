@@ -1,6 +1,5 @@
-import { combineLatest } from 'rxjs';
 import { StreamSfuClient } from '../StreamSfuClient';
-import { OwnCapability, StatsOptions } from '../gen/coordinator';
+import { StatsOptions } from '../gen/coordinator';
 import { Publisher, Subscriber } from '../rtc';
 import { ComputedStats, PendingDelta, Tracer, TraceRecord } from './rtc';
 import { flatten, getSdkName, getSdkVersion } from './utils';
@@ -9,12 +8,8 @@ import { hasPending, withoutConcurrency } from '../helpers/concurrency';
 import { timeboxed } from '../coordinator/connection/utils';
 import {
   ClientDetails,
-  InputDevices,
   WebsocketReconnectStrategy,
 } from '../gen/video/sfu/models/models';
-import { CameraManager, MicrophoneManager } from '../devices';
-import { createSubscription } from '../store/rxUtils';
-import { CallState } from '../store';
 import { Telemetry } from '../gen/video/sfu/signal_rpc/signal';
 import { videoLoggerSystem } from '../logger';
 
@@ -23,9 +18,6 @@ export type SfuStatsReporterOptions = {
   clientDetails: ClientDetails;
   subscriber: Subscriber;
   publisher?: Publisher;
-  microphone: MicrophoneManager;
-  camera: CameraManager;
-  state: CallState;
   tracer: Tracer;
   unifiedSessionId: string;
 };
@@ -38,21 +30,15 @@ export class SfuStatsReporter {
   private readonly sfuClient: StreamSfuClient;
   private readonly subscriber: Subscriber;
   private readonly publisher?: Publisher;
-  private readonly microphone: MicrophoneManager;
-  private readonly camera: CameraManager;
-  private readonly state: CallState;
   private readonly tracer: Tracer;
   private readonly unifiedSessionId: string;
 
   private intervalId: NodeJS.Timeout | undefined;
   private timeoutId: NodeJS.Timeout | undefined;
   private reportCount: number = 0;
-  private unsubscribeDevicePermissionsSubscription?: () => void;
-  private unsubscribeListDevicesSubscription?: () => void;
   private readonly sdkName: string;
   private readonly sdkVersion: string;
   private readonly webRTCVersion: string;
-  private readonly inputDevices = new Map<'mic' | 'camera', InputDevices>();
   private readonly statsConcurrencyTag = Symbol('sfuStatsReporter');
   private isStopped = false;
 
@@ -63,9 +49,6 @@ export class SfuStatsReporter {
       clientDetails,
       subscriber,
       publisher,
-      microphone,
-      camera,
-      state,
       tracer,
       unifiedSessionId,
     }: SfuStatsReporterOptions,
@@ -74,9 +57,6 @@ export class SfuStatsReporter {
     this.options = options;
     this.subscriber = subscriber;
     this.publisher = publisher;
-    this.microphone = microphone;
-    this.camera = camera;
-    this.state = state;
     this.tracer = tracer;
     this.unifiedSessionId = unifiedSessionId;
 
@@ -92,46 +72,6 @@ export class SfuStatsReporter {
       `${browser?.name || ''}-${browser?.version || ''}` ||
       'N/A';
   }
-
-  private observeDevice = (
-    device: CameraManager | MicrophoneManager,
-    kind: 'mic' | 'camera',
-  ) => {
-    const { browserPermissionState$ } = device.state;
-    this.unsubscribeDevicePermissionsSubscription?.();
-    this.unsubscribeDevicePermissionsSubscription = createSubscription(
-      combineLatest([browserPermissionState$, this.state.ownCapabilities$]),
-      ([browserPermissionState, ownCapabilities]) => {
-        // cleanup the previous listDevices() subscription in case
-        // permissions or capabilities have changed.
-        // we will subscribe again if everything is in order.
-        this.unsubscribeListDevicesSubscription?.();
-        const hasCapability =
-          kind === 'mic'
-            ? ownCapabilities.includes(OwnCapability.SEND_AUDIO)
-            : ownCapabilities.includes(OwnCapability.SEND_VIDEO);
-        if (browserPermissionState !== 'granted' || !hasCapability) {
-          this.inputDevices.set(kind, {
-            currentDevice: '',
-            availableDevices: [],
-            isPermitted: false,
-          });
-          return;
-        }
-        this.unsubscribeListDevicesSubscription = createSubscription(
-          combineLatest([device.listDevices(), device.state.selectedDevice$]),
-          ([devices, deviceId]) => {
-            const selected = devices.find((d) => d.deviceId === deviceId);
-            this.inputDevices.set(kind, {
-              currentDevice: selected?.label || deviceId || '',
-              availableDevices: devices.map((d) => d.label),
-              isPermitted: true,
-            });
-          },
-        );
-      },
-    );
-  };
 
   sendConnectionTime = (connectionTimeSeconds: number) => {
     this.sendTelemetryData({
@@ -229,8 +169,6 @@ export class SfuStatsReporter {
           rtcStats: JSON.stringify(traces),
           encodeStats: publisherStats?.performanceStats ?? [],
           decodeStats: subscriberStats.performanceStats,
-          audioDevices: this.inputDevices.get('mic'),
-          videoDevices: this.inputDevices.get('camera'),
           unifiedSessionId: this.unifiedSessionId,
           deviceState: getDeviceState(),
           telemetry,
@@ -288,9 +226,6 @@ export class SfuStatsReporter {
   start = () => {
     if (this.options.reporting_interval_ms <= 0) return;
 
-    this.observeDevice(this.microphone, 'mic');
-    this.observeDevice(this.camera, 'camera');
-
     this.isStopped = false;
     this.reportCount = 0;
     clearInterval(this.intervalId);
@@ -301,12 +236,6 @@ export class SfuStatsReporter {
 
   stop = () => {
     this.isStopped = true;
-    this.unsubscribeDevicePermissionsSubscription?.();
-    this.unsubscribeDevicePermissionsSubscription = undefined;
-    this.unsubscribeListDevicesSubscription?.();
-    this.unsubscribeListDevicesSubscription = undefined;
-
-    this.inputDevices.clear();
     clearInterval(this.intervalId);
     this.intervalId = undefined;
     clearTimeout(this.timeoutId);

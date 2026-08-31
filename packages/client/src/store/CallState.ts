@@ -1,15 +1,6 @@
-import {
-  BehaviorSubject,
-  combineLatest,
-  distinctUntilChanged,
-  map,
-  Observable,
-  ReplaySubject,
-  shareReplay,
-  startWith,
-} from 'rxjs';
-import type { Patch } from './rxUtils';
-import * as RxUtils from './rxUtils';
+import { StateStore } from '@stream-io/state-store';
+import { field, type Subscribable } from './subscribable';
+import { type Patch, preserveArrayIdentity, resolvePatch } from './patch';
 import { CallingState } from './CallingState';
 import {
   type CallRecordingType,
@@ -78,263 +69,437 @@ type OrphanedTrack = {
 };
 
 /**
+ * The shape of the call state.
+ *
+ * Declared as a `type` rather than an `interface` on purpose: `StateStore`
+ * constrains its state to `Record<string, unknown>`, which an interface does
+ * not satisfy (it has no implicit index signature).
+ */
+export type CallStateShape = {
+  // -- state driven by the coordinator and the SFU --
+  backstage: boolean;
+  blockedUserIds: string[];
+  callingState: CallingState;
+
+  /**
+   * The latest stats report, or `undefined` while nothing is watching.
+   *
+   * Collecting WebRTC stats is expensive, so the SDK only does it while
+   * something has registered interest. Subscribing to
+   * {@link CallState.callStatsReport$} (or using the `useCallStatsReport`
+   * hook) registers that for you. Reading this field off the store instead -
+   * through `useCallStateSelector` or `store.subscribeWithSelector` - cannot
+   * be detected, so call {@link CallState.observeCallStatsReport} yourself or
+   * this stays `undefined` forever.
+   */
+  callStatsReport: CallStatsReport | undefined;
+  captioning: boolean;
+  closedCaptions: CallClosedCaption[];
+  createdAt: Date;
+  createdBy: UserResponse | undefined;
+  custom: Record<string, any>;
+  e2eeEnabled: boolean;
+  egress: EgressResponse | undefined;
+  endedAt: Date | undefined;
+  endedBy: UserResponse | undefined;
+  individualRecording: boolean;
+  ingress: CallIngressResponse | undefined;
+  members: MemberResponse[];
+  participantCount: number;
+  anonymousParticipantCount: number;
+  rawRecording: boolean;
+  recording: boolean;
+  session: CallSessionResponse | undefined;
+  settings: CallSettingsResponse | undefined;
+  startedAt: Date | undefined;
+  startsAt: Date | undefined;
+  thumbnails: ThumbnailResponse | undefined;
+  transcribing: boolean;
+  updatedAt: Date;
+
+  /**
+   * All participants of the call, sorted by the active sort preset.
+   */
+  participants: StreamVideoParticipant[];
+
+  /**
+   * The capabilities as reported by the coordinator, before the SFU's call
+   * grants are applied. Read {@link CallStateShape.ownCapabilities} instead.
+   */
+  ownCapabilitiesRaw: OwnCapability[];
+
+  /**
+   * The latest call grants from the SFU, if any have been received.
+   */
+  callGrants: CallGrants | undefined;
+
+  // -- derived state, maintained by the preprocessor; never write these --
+  localParticipant: StreamVideoParticipant | undefined;
+  remoteParticipants: StreamVideoParticipant[];
+  pinnedParticipants: StreamVideoParticipant[];
+  dominantSpeaker: StreamVideoParticipant | undefined;
+  hasOngoingScreenShare: boolean;
+  ownCapabilities: OwnCapability[];
+
+  /**
+   * Participants indexed by session ID.
+   *
+   * Built once per participant change so that the many per-participant
+   * subscribers in a call (one per tile, plus the Dynascale bindings) can look
+   * themselves up in constant time. Scanning the array in each of them instead
+   * makes a single participant update cost O(participants x subscribers).
+   */
+  participantsBySessionId: Record<string, StreamVideoParticipant | undefined>;
+};
+
+const initialCallState = (): CallStateShape => ({
+  backstage: true,
+  blockedUserIds: [],
+  callingState: CallingState.UNKNOWN,
+  callStatsReport: undefined,
+  captioning: false,
+  closedCaptions: [],
+  createdAt: new Date(),
+  createdBy: undefined,
+  custom: {},
+  e2eeEnabled: false,
+  egress: undefined,
+  endedAt: undefined,
+  endedBy: undefined,
+  individualRecording: false,
+  ingress: undefined,
+  members: [],
+  participantCount: 0,
+  anonymousParticipantCount: 0,
+  rawRecording: false,
+  recording: false,
+  session: undefined,
+  settings: undefined,
+  startedAt: undefined,
+  startsAt: undefined,
+  thumbnails: undefined,
+  transcribing: false,
+  updatedAt: new Date(),
+
+  participants: [],
+  ownCapabilitiesRaw: [],
+  callGrants: undefined,
+
+  localParticipant: undefined,
+  remoteParticipants: [],
+  pinnedParticipants: [],
+  dominantSpeaker: undefined,
+  hasOngoingScreenShare: false,
+  ownCapabilities: [],
+  participantsBySessionId: {},
+});
+
+/**
+ * Applies the SFU's call grants on top of the coordinator's capabilities.
+ * Grants take precedence.
+ */
+const applyCallGrants = (
+  capabilities: OwnCapability[],
+  grants: CallGrants | undefined,
+): OwnCapability[] => {
+  if (!grants) return capabilities;
+
+  const { canPublishAudio, canPublishVideo, canScreenshare } = grants;
+  const update = {
+    [OwnCapability.SEND_AUDIO]: canPublishAudio,
+    [OwnCapability.SEND_VIDEO]: canPublishVideo,
+    [OwnCapability.SCREENSHARE]: canScreenshare,
+  } as const;
+
+  const nextCapabilities = [...capabilities];
+  for (const _capability in update) {
+    const capability = _capability as keyof typeof update;
+    const allowed = update[capability];
+
+    if (allowed && !nextCapabilities.includes(capability)) {
+      nextCapabilities.push(capability);
+    } else if (!allowed && nextCapabilities.includes(capability)) {
+      const index = nextCapabilities.indexOf(capability);
+      nextCapabilities.splice(index, 1);
+    }
+  }
+  return nextCapabilities;
+};
+
+/**
+ * Applies the server's pin list to a participant list, returning a new list.
+ *
+ * Pure so that callers which also replace the participants (the SFU join
+ * payload) can apply both in a single store write, rather than letting
+ * subscribers observe the new participants with stale pins in between.
+ */
+const applyServerSidePins = (
+  participants: StreamVideoParticipant[],
+  pins: Pin[],
+): StreamVideoParticipant[] => {
+  const now = Date.now();
+  const unknownSymbol = Symbol('unknown');
+
+  // generate a lookup table of pinnedAt timestamps by userId and sessionId
+  // if there are multiple pins for the same userId, then we set the pinnedAt
+  // to `unknown` (for that userId lookup) so that we don't apply any pin for that participant
+  // this is to avoid conflicts during reconstruction of the pin state after reconnections
+  // as sessionIds can change
+  const pinnedAtByIdentifier = pins.reduce<
+    Record<string, number | undefined | typeof unknownSymbol>
+  >((lookup, pin, index) => {
+    const pinnedAt = now + (pins.length - index);
+
+    if (lookup[pin.userId]) {
+      lookup[pin.userId] = unknownSymbol;
+    } else {
+      lookup[pin.userId] = pinnedAt;
+    }
+
+    lookup[pin.sessionId] ??= pinnedAt;
+
+    return lookup;
+  }, {});
+
+  return participants.map((participant) => {
+    // first check by sessionId as that is 100% correct, then by attempt reconstruction by userId
+    const serverSidePinnedAt =
+      pinnedAtByIdentifier[participant.sessionId] ??
+      pinnedAtByIdentifier[participant.userId];
+
+    // the participant is newly pinned
+    if (
+      typeof serverSidePinnedAt === 'number' &&
+      typeof participant.pin?.pinnedAt !== 'number'
+    ) {
+      return {
+        ...participant,
+        pin: {
+          isLocalPin: false,
+          pinnedAt: serverSidePinnedAt,
+        },
+      };
+    }
+    // the participant is no longer pinned server side
+    // we need to reset the pin
+    if (
+      typeof serverSidePinnedAt !== 'number' &&
+      participant.pin?.isLocalPin === false
+    ) {
+      return {
+        ...participant,
+        pin: undefined,
+      };
+    }
+    // no changes to be applied
+    return participant;
+  });
+};
+
+/**
  * Holds the state of the current call.
+ *
+ * All state lives in a single {@link StateStore}, so a server payload that
+ * touches many fields is applied as one atomic update - subscribers never
+ * observe a partially applied change.
+ *
  * @react You don't have to use this class directly, as we are exposing the state through Hooks.
  */
 export class CallState {
-  private backstageSubject = new BehaviorSubject<boolean>(true);
-  private blockedUserIdsSubject = new BehaviorSubject<string[]>([]);
-  private createdAtSubject = new BehaviorSubject<Date>(new Date());
-  private endedAtSubject = new BehaviorSubject<Date | undefined>(undefined);
-  private startsAtSubject = new BehaviorSubject<Date | undefined>(undefined);
-  private updatedAtSubject = new BehaviorSubject<Date>(new Date());
-  private createdBySubject = new BehaviorSubject<UserResponse | undefined>(
-    undefined,
-  );
-  private customSubject = new BehaviorSubject<Record<string, any>>({});
-  private egressSubject = new BehaviorSubject<EgressResponse | undefined>(
-    undefined,
-  );
-  private ingressSubject = new BehaviorSubject<CallIngressResponse | undefined>(
-    undefined,
-  );
-  private recordingSubject = new BehaviorSubject<boolean>(false);
-  private individualRecordingSubject = new BehaviorSubject<boolean>(false);
-  private rawRecordingSubject = new BehaviorSubject<boolean>(false);
-  private sessionSubject = new BehaviorSubject<CallSessionResponse | undefined>(
-    undefined,
-  );
-  private settingsSubject = new BehaviorSubject<
-    CallSettingsResponse | undefined
-  >(undefined);
-  private transcribingSubject = new BehaviorSubject<boolean>(false);
-  private captioningSubject = new BehaviorSubject<boolean>(false);
-  private e2eeEnabledSubject = new BehaviorSubject<boolean>(false);
-  private endedBySubject = new BehaviorSubject<UserResponse | undefined>(
-    undefined,
-  );
-  private thumbnailsSubject = new BehaviorSubject<
-    ThumbnailResponse | undefined
-  >(undefined);
-  private membersSubject = new BehaviorSubject<MemberResponse[]>([]);
-  private ownCapabilitiesSubject = new BehaviorSubject<OwnCapability[]>([]);
-  private callingStateSubject = new BehaviorSubject<CallingState>(
-    CallingState.UNKNOWN,
-  );
-  private startedAtSubject = new BehaviorSubject<Date | undefined>(undefined);
-  private participantCountSubject = new BehaviorSubject<number>(0);
-  private anonymousParticipantCountSubject = new BehaviorSubject<number>(0);
-  private participantsSubject = new BehaviorSubject<StreamVideoParticipant[]>(
-    [],
-  );
-  private callStatsReportSubject = new BehaviorSubject<
-    CallStatsReport | undefined
-  >(undefined);
-  private closedCaptionsSubject = new BehaviorSubject<CallClosedCaption[]>([]);
-
-  // These are tracks that were delivered to the Subscriber's onTrack event
-  // that we couldn't associate with a participant yet.
-  // This happens when the participantJoined event hasn't been received yet.
-  // We keep these tracks around until we can associate them with a participant.
-  private orphanedTracks: OrphanedTrack[] = [];
-
-  private callGrantsSubject = new ReplaySubject<CallGrants>(1);
-
-  // Derived state
-
   /**
-   * The time the call session actually started.
-   * Useful for displaying the call duration.
+   * The backing store holding the entire call state.
+   *
+   * Use it to read or subscribe to several values at once; the individual
+   * `$` properties below are views over it.
    */
-  startedAt$: Observable<Date | undefined>;
-
-  /**
-   * The server-side counted number of participants connected to the current call.
-   * This number includes the anonymous participants as well.
-   */
-  participantCount$: Observable<number>;
-
-  /**
-   * The server-side counted number of anonymous participants connected to the current call.
-   * This number excludes the regular participants.
-   */
-  anonymousParticipantCount$: Observable<number>;
-
-  /**
-   * All participants of the current call (this includes the current user and other participants as well),
-   * unsorted. This observable only updates when participants join or leave the call.
-   */
-  rawParticipants$: Observable<StreamVideoParticipant[]>;
+  readonly store = new StateStore<CallStateShape>(initialCallState());
 
   /**
    * All participants of the current call (this includes the current user and other participants as well),
    * sorted according to the current `sortByParticipantsBy` setting
    */
-  participants$: Observable<StreamVideoParticipant[]>;
+  readonly participants$: Subscribable<StreamVideoParticipant[]>;
+
+  /**
+   * All participants of the current call (this includes the current user and other participants as well).
+   *
+   * @deprecated sorting is applied in place, so this is the same array as
+   * {@link CallState.participants$}. Use that instead.
+   */
+  readonly rawParticipants$: Subscribable<StreamVideoParticipant[]>;
 
   /**
    * Remote participants of the current call (this includes every participant except the logged-in user).
    */
-  remoteParticipants$: Observable<StreamVideoParticipant[]>;
+  readonly remoteParticipants$: Subscribable<StreamVideoParticipant[]>;
 
   /**
    * The local participant of the current call (the logged-in user).
    */
-  localParticipant$: Observable<StreamVideoParticipant | undefined>;
+  readonly localParticipant$: Subscribable<StreamVideoParticipant | undefined>;
 
   /**
    * Pinned participants of the current call.
    */
-  pinnedParticipants$: Observable<StreamVideoParticipant[]>;
+  readonly pinnedParticipants$: Subscribable<StreamVideoParticipant[]>;
 
   /**
    * The currently elected dominant speaker in the current call.
    */
-  dominantSpeaker$: Observable<StreamVideoParticipant | undefined>;
+  readonly dominantSpeaker$: Subscribable<StreamVideoParticipant | undefined>;
 
   /**
    * Emits true whenever there is an active screen sharing session within
-   * the current call. Useful for displaying a "screen sharing" indicator and
-   * switching the layout to a screen sharing layout.
-   *
-   * The actual screen sharing track isn't exposed here, but can be retrieved
-   * from the list of call participants. We also don't want to be limiting
-   * to the number of share screen tracks are displayed in a call.
+   * the current call.
    */
-  hasOngoingScreenShare$: Observable<boolean>;
+  readonly hasOngoingScreenShare$: Subscribable<boolean>;
+
+  /**
+   * The time the call session actually started.
+   */
+  readonly startedAt$: Subscribable<Date | undefined>;
+
+  /**
+   * The server-side counted number of participants connected to the current call.
+   */
+  readonly participantCount$: Subscribable<number>;
+
+  /**
+   * The server-side counted number of anonymous participants.
+   */
+  readonly anonymousParticipantCount$: Subscribable<number>;
 
   /**
    * The latest stats report of the current call.
-   * When stats gathering is enabled, this observable will emit a new value
-   * at a regular (configurable) interval.
-   *
-   * Consumers of this observable can implement their own batching logic
-   * in case they want to show historical stats data.
    */
-  callStatsReport$: Observable<CallStatsReport | undefined>;
+  readonly callStatsReport$: Subscribable<CallStatsReport | undefined>;
 
   /**
    * The list of members in the current call.
    */
-  members$: Observable<MemberResponse[]>;
+  readonly members$: Subscribable<MemberResponse[]>;
 
   /**
    * The list of capabilities of the current user.
    */
-  ownCapabilities$: Observable<OwnCapability[]>;
+  readonly ownCapabilities$: Subscribable<OwnCapability[]>;
 
   /**
    * The calling state.
    */
-  callingState$: Observable<CallingState>;
+  readonly callingState$: Subscribable<CallingState>;
 
   /**
    * The backstage state.
    */
-  backstage$: Observable<boolean>;
+  readonly backstage$: Subscribable<boolean>;
 
   /**
    * Will provide the list of blocked user IDs.
    */
-  blockedUserIds$: Observable<string[]>;
+  readonly blockedUserIds$: Subscribable<string[]>;
 
   /**
    * Will provide the time when this call has been created.
    */
-  createdAt$: Observable<Date>;
+  readonly createdAt$: Subscribable<Date>;
 
   /**
    * Will provide the time when this call has been ended.
    */
-  endedAt$: Observable<Date | undefined>;
+  readonly endedAt$: Subscribable<Date | undefined>;
 
   /**
    * Will provide the time when this call has been scheduled to start.
    */
-  startsAt$: Observable<Date | undefined>;
+  readonly startsAt$: Subscribable<Date | undefined>;
 
   /**
    * Will provide the time when this call has been updated.
    */
-  updatedAt$: Observable<Date>;
+  readonly updatedAt$: Subscribable<Date>;
 
   /**
    * Will provide the user who created this call.
    */
-  createdBy$: Observable<UserResponse | undefined>;
+  readonly createdBy$: Subscribable<UserResponse | undefined>;
 
   /**
    * Will provide the custom data of this call.
    */
-  custom$: Observable<Record<string, any>>;
+  readonly custom$: Subscribable<Record<string, any>>;
 
   /**
    * Will provide the egress data of this call.
    */
-  egress$: Observable<EgressResponse | undefined>;
+  readonly egress$: Subscribable<EgressResponse | undefined>;
 
   /**
    * Will provide the ingress data of this call.
    */
-  ingress$: Observable<CallIngressResponse | undefined>;
+  readonly ingress$: Subscribable<CallIngressResponse | undefined>;
 
   /**
-   * Will provide the recording state of this call.
+   * Will provide the composite recording state of this call.
    */
-  recording$: Observable<boolean>;
+  readonly recording$: Subscribable<boolean>;
 
   /**
-   * Will provide the recording state of this call.
+   * Will provide the individual recording state of this call.
    */
-  individualRecording$: Observable<boolean>;
+  readonly individualRecording$: Subscribable<boolean>;
 
   /**
-   * Will provide the recording state of this call.
+   * Will provide the raw recording state of this call.
    */
-  rawRecording$: Observable<boolean>;
+  readonly rawRecording$: Subscribable<boolean>;
 
   /**
    * Will provide the session data of this call.
    */
-  session$: Observable<CallSessionResponse | undefined>;
+  readonly session$: Subscribable<CallSessionResponse | undefined>;
 
   /**
    * Will provide the settings of this call.
    */
-  settings$: Observable<CallSettingsResponse | undefined>;
+  readonly settings$: Subscribable<CallSettingsResponse | undefined>;
 
   /**
    * Will provide the transcribing state of this call.
    */
-  transcribing$: Observable<boolean>;
+  readonly transcribing$: Subscribable<boolean>;
 
   /**
    * Will provide the closed captioning state of this call.
    */
-  captioning$: Observable<boolean>;
+  readonly captioning$: Subscribable<boolean>;
 
   /**
    * Whether end-to-end encryption is active for this call, as reported by the
    * SFU in the join response.
    */
-  e2eeEnabled$: Observable<boolean>;
+  readonly e2eeEnabled$: Subscribable<boolean>;
 
   /**
    * Will provide the user who ended this call.
    */
-  endedBy$: Observable<UserResponse | undefined>;
+  readonly endedBy$: Subscribable<UserResponse | undefined>;
 
   /**
    * Will provide the thumbnails of this call.
    */
-  thumbnails$: Observable<ThumbnailResponse | undefined>;
+  readonly thumbnails$: Subscribable<ThumbnailResponse | undefined>;
 
   /**
    * The queue of closed captions.
    */
-  closedCaptions$: Observable<CallClosedCaption[]>;
+  readonly closedCaptions$: Subscribable<CallClosedCaption[]>;
 
   readonly logger = videoLoggerSystem.getLogger('CallState');
+
+  // These are tracks that were delivered to the Subscriber's onTrack event
+  // that we couldn't associate with a participant yet.
+  private orphanedTracks: OrphanedTrack[] = [];
 
   /**
    * A list of comparators that are used to sort the participants.
@@ -347,6 +512,11 @@ export class CallState {
   private closedCaptionsSettings: ClosedCaptionsSettings | undefined;
   private closedCaptionsTasks = new Map<string, NodeJS.Timeout>();
 
+  /**
+   * Open registrations made through {@link CallState.observeCallStatsReport}.
+   */
+  private callStatsReportObservers = 0;
+
   private readonly eventHandlers: {
     [EventType in VideoEvent['type']]:
       ((event: Extract<VideoEvent, { type: EventType }>) => void) | undefined;
@@ -354,128 +524,113 @@ export class CallState {
 
   /**
    * Creates a new instance of the CallState class.
-   *
    */
   constructor() {
-    this.rawParticipants$ = this.participantsSubject
-      .asObservable()
-      .pipe(shareReplay({ bufferSize: 1, refCount: true }));
+    // derived state is recomputed here, so that every subscriber observes one
+    // atomic, internally consistent snapshot
+    this.store.addPreprocessor((next, previous) => {
+      if (next.participants !== previous?.participants) {
+        // sorting is in place, deliberately: it keeps the sort stable across
+        // updates and avoids allocating a second array
+        const participants = next.participants.sort(this.sortParticipantsBy);
 
-    this.participants$ = this.participantsSubject.asObservable().pipe(
-      // maintain stable-sort by mutating the participants stored
-      // in the original subject
-      map((ps) => ps.sort(this.sortParticipantsBy)),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
+        // One pass, not six. Each derived collection used to be its own
+        // find/filter/some over the roster, so a participant update walked it
+        // six times on top of the sort.
+        //
+        // `participantsBySessionId` is a plain property, not a lazy getter:
+        // `Object.defineProperty` on every state object pushes it into V8
+        // dictionary mode, which made *all* state reads an order of magnitude
+        // slower. Unrelated updates carry it forward through the spread, so it
+        // is rebuilt only when the participant list itself changes.
+        const bySessionId: Record<string, StreamVideoParticipant | undefined> =
+          {};
+        let localParticipant: StreamVideoParticipant | undefined;
+        const remoteParticipants: StreamVideoParticipant[] = [];
+        const pinnedParticipants: StreamVideoParticipant[] = [];
+        let dominantSpeaker: StreamVideoParticipant | undefined;
+        let hasOngoingScreenShare = false;
 
-    this.localParticipant$ = this.participants$.pipe(
-      map((participants) => participants.find((p) => p.isLocalParticipant)),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
+        for (const participant of participants) {
+          bySessionId[participant.sessionId] = participant;
 
-    this.remoteParticipants$ = this.participants$.pipe(
-      map((participants) => participants.filter((p) => !p.isLocalParticipant)),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
+          if (participant.isLocalParticipant) {
+            // first one wins, matching the `find` this replaces
+            localParticipant ??= participant;
+          } else {
+            remoteParticipants.push(participant);
+          }
 
-    this.pinnedParticipants$ = this.participants$.pipe(
-      map((participants) => participants.filter((p) => !!p.pin)),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
+          if (participant.pin) pinnedParticipants.push(participant);
 
-    this.dominantSpeaker$ = this.participants$.pipe(
-      map((participants) => participants.find((p) => p.isDominantSpeaker)),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
+          if (!dominantSpeaker && participant.isDominantSpeaker) {
+            dominantSpeaker = participant;
+          }
 
-    this.hasOngoingScreenShare$ = this.participants$.pipe(
-      map((participants) => participants.some((p) => hasScreenShare(p))),
-      distinctUntilChanged(),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
-
-    // dates
-    this.createdAt$ = this.createdAtSubject.asObservable();
-    this.endedAt$ = this.endedAtSubject.asObservable();
-    this.startsAt$ = this.startsAtSubject.asObservable();
-    this.startedAt$ = this.startedAtSubject.asObservable();
-    this.updatedAt$ = this.updatedAtSubject.asObservable();
-
-    this.callStatsReport$ = this.callStatsReportSubject.asObservable();
-    this.members$ = this.membersSubject.asObservable();
-
-    // complex objects should work as streams of data
-    this.createdBy$ = this.createdBySubject.asObservable();
-    this.custom$ = this.customSubject.asObservable();
-    this.egress$ = this.egressSubject.asObservable();
-    this.ingress$ = this.ingressSubject.asObservable();
-    this.session$ = this.sessionSubject.asObservable();
-    this.settings$ = this.settingsSubject.asObservable();
-    this.endedBy$ = this.endedBySubject.asObservable();
-    this.thumbnails$ = this.thumbnailsSubject.asObservable();
-    this.closedCaptions$ = this.closedCaptionsSubject.asObservable();
-
-    /**
-     * Creates an Observable from the given subject by piping to the
-     * `distinctUntilChanged()` operator.
-     */
-    const duc = <T>(
-      subject: BehaviorSubject<T>,
-      comparator?: (a: T, b: T) => boolean,
-    ): Observable<T> => subject.pipe(distinctUntilChanged(comparator));
-
-    // primitive values should only emit once the value they hold changes
-    this.anonymousParticipantCount$ = duc(
-      this.anonymousParticipantCountSubject,
-    );
-    this.blockedUserIds$ = duc(
-      this.blockedUserIdsSubject,
-      RxUtils.isShallowArrayEqual,
-    );
-    this.backstage$ = duc(this.backstageSubject);
-    this.callingState$ = duc(this.callingStateSubject);
-    this.ownCapabilities$ = combineLatest([
-      this.ownCapabilitiesSubject,
-      this.callGrantsSubject.pipe(startWith(undefined)),
-    ]).pipe(
-      map(([capabilities, grants]) => {
-        if (!grants) return capabilities;
-
-        const { canPublishAudio, canPublishVideo, canScreenshare } = grants;
-
-        const update = {
-          [OwnCapability.SEND_AUDIO]: canPublishAudio,
-          [OwnCapability.SEND_VIDEO]: canPublishVideo,
-          [OwnCapability.SCREENSHARE]: canScreenshare,
-        } as const;
-
-        const nextCapabilities = [...capabilities];
-
-        for (const _capability in update) {
-          const capability = _capability as keyof typeof update;
-          const allowed = update[capability];
-
-          // grants take precedence over capabilities, reconstruct the capabilities
-          if (allowed && !nextCapabilities.includes(capability)) {
-            nextCapabilities.push(capability);
-          } else if (!allowed && nextCapabilities.includes(capability)) {
-            const index = nextCapabilities.indexOf(capability);
-            nextCapabilities.splice(index, 1);
+          // `some` short-circuited, so don't keep asking once it is known
+          if (!hasOngoingScreenShare && hasScreenShare(participant)) {
+            hasOngoingScreenShare = true;
           }
         }
 
-        return nextCapabilities;
-      }),
-      distinctUntilChanged(RxUtils.isShallowArrayEqual),
-      shareReplay({ bufferSize: 1, refCount: true }),
+        next.localParticipant = localParticipant;
+        next.remoteParticipants = remoteParticipants;
+        next.pinnedParticipants = pinnedParticipants;
+        next.dominantSpeaker = dominantSpeaker;
+        next.hasOngoingScreenShare = hasOngoingScreenShare;
+        next.participantsBySessionId = bySessionId;
+      }
+
+      if (
+        next.ownCapabilitiesRaw !== previous?.ownCapabilitiesRaw ||
+        next.callGrants !== previous?.callGrants
+      ) {
+        next.ownCapabilities = preserveArrayIdentity(
+          previous?.ownCapabilities ?? [],
+          applyCallGrants(next.ownCapabilitiesRaw, next.callGrants),
+        );
+      }
+    });
+
+    this.participants$ = field(this.store, 'participants');
+    this.rawParticipants$ = this.participants$;
+    this.localParticipant$ = field(this.store, 'localParticipant');
+    this.remoteParticipants$ = field(this.store, 'remoteParticipants');
+    this.pinnedParticipants$ = field(this.store, 'pinnedParticipants');
+    this.dominantSpeaker$ = field(this.store, 'dominantSpeaker');
+    this.hasOngoingScreenShare$ = field(this.store, 'hasOngoingScreenShare');
+    this.ownCapabilities$ = field(this.store, 'ownCapabilities');
+
+    this.anonymousParticipantCount$ = field(
+      this.store,
+      'anonymousParticipantCount',
     );
-    this.participantCount$ = duc(this.participantCountSubject);
-    this.recording$ = duc(this.recordingSubject);
-    this.individualRecording$ = duc(this.individualRecordingSubject);
-    this.rawRecording$ = duc(this.rawRecordingSubject);
-    this.transcribing$ = duc(this.transcribingSubject);
-    this.captioning$ = duc(this.captioningSubject);
-    this.e2eeEnabled$ = duc(this.e2eeEnabledSubject);
+    this.backstage$ = field(this.store, 'backstage');
+    this.blockedUserIds$ = field(this.store, 'blockedUserIds');
+    this.callingState$ = field(this.store, 'callingState');
+    this.callStatsReport$ = field(this.store, 'callStatsReport');
+    this.captioning$ = field(this.store, 'captioning');
+    this.closedCaptions$ = field(this.store, 'closedCaptions');
+    this.createdAt$ = field(this.store, 'createdAt');
+    this.createdBy$ = field(this.store, 'createdBy');
+    this.custom$ = field(this.store, 'custom');
+    this.e2eeEnabled$ = field(this.store, 'e2eeEnabled');
+    this.egress$ = field(this.store, 'egress');
+    this.endedAt$ = field(this.store, 'endedAt');
+    this.endedBy$ = field(this.store, 'endedBy');
+    this.individualRecording$ = field(this.store, 'individualRecording');
+    this.ingress$ = field(this.store, 'ingress');
+    this.members$ = field(this.store, 'members');
+    this.participantCount$ = field(this.store, 'participantCount');
+    this.rawRecording$ = field(this.store, 'rawRecording');
+    this.recording$ = field(this.store, 'recording');
+    this.session$ = field(this.store, 'session');
+    this.settings$ = field(this.store, 'settings');
+    this.startedAt$ = field(this.store, 'startedAt');
+    this.startsAt$ = field(this.store, 'startsAt');
+    this.thumbnails$ = field(this.store, 'thumbnails');
+    this.transcribing$ = field(this.store, 'transcribing');
+    this.updatedAt$ = field(this.store, 'updatedAt');
 
     this.eventHandlers = {
       // these events are not updating the call state:
@@ -503,19 +658,19 @@ export class CallState {
       'call.blocked_user': this.blockUser,
       'call.closed_caption': this.updateFromClosedCaptions,
       'call.closed_captions_failed': () => {
-        this.setCurrentValue(this.captioningSubject, false);
+        this.store.partialNext({ captioning: false });
       },
       'call.closed_captions_started': () => {
-        this.setCurrentValue(this.captioningSubject, true);
+        this.store.partialNext({ captioning: true });
       },
       'call.closed_captions_stopped': () => {
-        this.setCurrentValue(this.captioningSubject, false);
+        this.store.partialNext({ captioning: false });
       },
       'call.created': (e) => this.updateFromCallResponse(e.call),
       'call.deleted': (e) => this.updateFromCallResponse(e.call),
       'call.ended': (e) => {
         this.updateFromCallResponse(e.call);
-        this.setCurrentValue(this.endedBySubject, e.user);
+        this.store.partialNext({ endedBy: e.user });
       },
       'call.frame_recording_failed': (e) => {
         this.updateFromCallResponse(e.call);
@@ -562,13 +717,13 @@ export class CallState {
       'call.session_participant_left': this.updateFromSessionParticipantLeft,
       'call.session_started': (e) => this.updateFromCallResponse(e.call),
       'call.transcription_started': () => {
-        this.setCurrentValue(this.transcribingSubject, true);
+        this.store.partialNext({ transcribing: true });
       },
       'call.transcription_stopped': () => {
-        this.setCurrentValue(this.transcribingSubject, false);
+        this.store.partialNext({ transcribing: false });
       },
       'call.transcription_failed': () => {
-        this.setCurrentValue(this.transcribingSubject, false);
+        this.store.partialNext({ transcribing: false });
       },
       'call.unblocked_user': this.unblockUser,
       'call.updated': (e) => this.updateFromCallResponse(e.call),
@@ -587,6 +742,16 @@ export class CallState {
   };
 
   /**
+   * Applies a partial update to the call state.
+   *
+   * @internal
+   * @param patch the fields to update.
+   */
+  setState = (patch: Partial<CallStateShape>) => {
+    this.store.partialNext(patch);
+  };
+
+  /**
    * Sets the list of criteria that are used to sort the participants.
    * To disable sorting, you can pass `noopComparator()`.
    *
@@ -594,8 +759,8 @@ export class CallState {
    */
   setSortParticipantsBy = (comparator: Comparator<StreamVideoParticipant>) => {
     this.sortParticipantsBy = comparator;
-    // trigger re-sorting of participants
-    this.setCurrentValue(this.participantsSubject, (ps) => ps);
+    // a fresh array makes the preprocessor re-run and re-sort
+    this.setParticipants((participants) => [...participants]);
   };
 
   /**
@@ -606,32 +771,11 @@ export class CallState {
   };
 
   /**
-   * Gets the current value of an observable, or undefined if the observable has
-   * not emitted a value yet.
-   *
-   * @param observable$ the observable to get the value from.
-   */
-  getCurrentValue = RxUtils.getCurrentValue;
-
-  /**
-   * Updates the value of the provided Subject.
-   * An `update` can either be a new value or a function which takes
-   * the current value and returns a new value.
-   *
-   * @internal
-   *
-   * @param subject the subject to update.
-   * @param update the update to apply to the subject.
-   * @return the updated value.
-   */
-  setCurrentValue = RxUtils.setCurrentValue;
-
-  /**
    * The server-side counted number of participants connected to the current call.
    * This number includes the anonymous participants as well.
    */
   get participantCount() {
-    return this.getCurrentValue(this.participantCount$);
+    return this.store.getLatestValue().participantCount;
   }
 
   /**
@@ -641,7 +785,9 @@ export class CallState {
    * @param count the number of participants.
    */
   setParticipantCount = (count: Patch<number>) => {
-    return this.setCurrentValue(this.participantCountSubject, count);
+    const participantCount = resolvePatch(count, this.participantCount);
+    this.store.partialNext({ participantCount });
+    return participantCount;
   };
 
   /**
@@ -649,7 +795,7 @@ export class CallState {
    * Useful for displaying the call duration.
    */
   get startedAt() {
-    return this.getCurrentValue(this.startedAt$);
+    return this.store.getLatestValue().startedAt;
   }
 
   /**
@@ -659,32 +805,42 @@ export class CallState {
    * @param startedAt the time the call session actually started.
    */
   setStartedAt = (startedAt: Patch<Date | undefined>) => {
-    return this.setCurrentValue(this.startedAtSubject, startedAt);
+    const next = resolvePatch(startedAt, this.startedAt);
+    this.store.partialNext({ startedAt: next });
+    return next;
   };
 
   /**
    * Returns whether closed captions are enabled in the current call.
    */
   get captioning() {
-    return this.getCurrentValue(this.captioning$);
+    return this.store.getLatestValue().captioning;
   }
 
   /**
    * Sets the closed captioning state of the current call.
    *
+   * Returns the previous value together with a `rollback` function, so callers
+   * can update optimistically and undo the change if the request fails.
+   *
    * @internal
    * @param captioning the closed captioning state.
    */
   setCaptioning = (captioning: boolean) => {
-    return RxUtils.updateValue(this.captioningSubject, captioning);
+    const lastValue = this.captioning;
+    this.store.partialNext({ captioning });
+    return {
+      lastValue,
+      value: captioning,
+      rollback: () => this.store.partialNext({ captioning: lastValue }),
+    };
   };
 
   /**
    * The server-side counted number of anonymous participants connected to the current call.
-   * This number includes the anonymous participants as well.
    */
   get anonymousParticipantCount() {
-    return this.getCurrentValue(this.anonymousParticipantCount$);
+    return this.store.getLatestValue().anonymousParticipantCount;
   }
 
   /**
@@ -694,34 +850,27 @@ export class CallState {
    * @param count the number of anonymous participants.
    */
   setAnonymousParticipantCount = (count: Patch<number>) => {
-    return this.setCurrentValue(this.anonymousParticipantCountSubject, count);
+    const next = resolvePatch(count, this.anonymousParticipantCount);
+    this.store.partialNext({ anonymousParticipantCount: next });
+    return next;
   };
 
   /**
    * The list of participants in the current call.
    */
   get participants() {
-    return this.getCurrentValue(this.participants$);
+    return this.store.getLatestValue().participants;
   }
 
   /**
-   * The stable list of participants in the current call, unsorted.
+   * The list of participants in the current call.
+   *
+   * @deprecated sorting is applied in place, so this is the same array as
+   * {@link CallState.participants}. Use that instead.
    */
   get rawParticipants() {
-    return this.getCurrentValue(this.rawParticipants$);
+    return this.participants;
   }
-
-  /**
-   * Returns the current participants array directly from the BehaviorSubject.
-   * This bypasses the observable pipeline and is guaranteed to be synchronous.
-   * Use this when you need the absolute latest value without any potential
-   * timing issues from shareReplay/refCount.
-   *
-   * @internal
-   */
-  getParticipantsSnapshot = () => {
-    return this.participantsSubject.getValue();
-  };
 
   /**
    * Sets the list of participants in the current call.
@@ -731,49 +880,52 @@ export class CallState {
    * @param participants the list of participants.
    */
   setParticipants = (participants: Patch<StreamVideoParticipant[]>) => {
-    return this.setCurrentValue(this.participantsSubject, participants);
+    const next = resolvePatch(participants, this.participants);
+    this.store.partialNext({ participants: next });
+    // read back, so callers observe the sorted array the preprocessor produced
+    return this.participants;
   };
 
   /**
    * The local participant in the current call.
    */
   get localParticipant() {
-    return this.getCurrentValue(this.localParticipant$);
+    return this.store.getLatestValue().localParticipant;
   }
 
   /**
    * The list of remote participants in the current call.
    */
   get remoteParticipants() {
-    return this.getCurrentValue(this.remoteParticipants$);
+    return this.store.getLatestValue().remoteParticipants;
   }
 
   /**
    * The dominant speaker in the current call.
    */
   get dominantSpeaker() {
-    return this.getCurrentValue(this.dominantSpeaker$);
+    return this.store.getLatestValue().dominantSpeaker;
   }
 
   /**
    * The list of pinned participants in the current call.
    */
   get pinnedParticipants() {
-    return this.getCurrentValue(this.pinnedParticipants$);
+    return this.store.getLatestValue().pinnedParticipants;
   }
 
   /**
    * Tell if there is an ongoing screen share in this call.
    */
   get hasOngoingScreenShare() {
-    return this.getCurrentValue(this.hasOngoingScreenShare$);
+    return this.store.getLatestValue().hasOngoingScreenShare;
   }
 
   /**
    * The calling state.
    */
   get callingState() {
-    return this.getCurrentValue(this.callingState$);
+    return this.store.getLatestValue().callingState;
   }
 
   /**
@@ -783,22 +935,50 @@ export class CallState {
    * @param state the new calling state.
    */
   setCallingState = (state: Patch<CallingState>) => {
-    return this.setCurrentValue(this.callingStateSubject, state);
+    const callingState = resolvePatch(state, this.callingState);
+    this.store.partialNext({ callingState });
+    return callingState;
   };
 
   /**
    * The call stats report.
    */
   get callStatsReport() {
-    return this.getCurrentValue(this.callStatsReport$);
+    return this.store.getLatestValue().callStatsReport;
   }
 
   /**
+   * Registers interest in {@link CallState.callStatsReport}, and returns a
+   * function that withdraws it again. Calling the returned function more than
+   * once is a no-op.
+   *
+   * Collecting WebRTC stats is expensive, so the SDK only does it while
+   * something is watching. Subscribing to {@link CallState.callStatsReport$}
+   * already counts, so the `useCallStatsReport` hook needs nothing extra. Use
+   * this when you read the field off the store instead - through
+   * `useCallStateSelector` or `store.subscribeWithSelector` - since a store
+   * subscription cannot say which fields it cares about.
+   */
+  observeCallStatsReport = (): (() => void) => {
+    this.callStatsReportObservers++;
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      this.callStatsReportObservers--;
+    };
+  };
+
+  /**
    * Returns whether the call stats report is being observed or not.
+   *
+   * True while anything is subscribed to {@link CallState.callStatsReport$},
+   * or while an {@link CallState.observeCallStatsReport} registration is open.
+   *
    * @internal
    */
   get isCallStatsReportObserved() {
-    return this.callStatsReportSubject.observed;
+    return this.callStatsReportObservers > 0 || this.callStatsReport$.observed;
   }
 
   /**
@@ -808,14 +988,16 @@ export class CallState {
    * @param report the report to set.
    */
   setCallStatsReport = (report: Patch<CallStatsReport | undefined>) => {
-    return this.setCurrentValue(this.callStatsReportSubject, report);
+    const callStatsReport = resolvePatch(report, this.callStatsReport);
+    this.store.partialNext({ callStatsReport });
+    return callStatsReport;
   };
 
   /**
    * The members of the current call.
    */
   get members() {
-    return this.getCurrentValue(this.members$);
+    return this.store.getLatestValue().members;
   }
 
   /**
@@ -825,14 +1007,14 @@ export class CallState {
    * @param members the members to set.
    */
   setMembers = (members: Patch<MemberResponse[]>) => {
-    this.setCurrentValue(this.membersSubject, members);
+    this.store.partialNext({ members: resolvePatch(members, this.members) });
   };
 
   /**
    * The capabilities of the current user for the current call.
    */
   get ownCapabilities() {
-    return this.getCurrentValue(this.ownCapabilities$);
+    return this.store.getLatestValue().ownCapabilities;
   }
 
   /**
@@ -842,7 +1024,13 @@ export class CallState {
    * @param capabilities the capabilities to set.
    */
   setOwnCapabilities = (capabilities: Patch<OwnCapability[]>) => {
-    return this.setCurrentValue(this.ownCapabilitiesSubject, capabilities);
+    const { ownCapabilitiesRaw } = this.store.getLatestValue();
+    const next = preserveArrayIdentity(
+      ownCapabilitiesRaw,
+      resolvePatch(capabilities, ownCapabilitiesRaw),
+    );
+    this.store.partialNext({ ownCapabilitiesRaw: next });
+    return this.ownCapabilities;
   };
 
   /**
@@ -852,14 +1040,17 @@ export class CallState {
    * @param grants the grants to set.
    */
   setCallGrants = (grants: Patch<CallGrants>) => {
-    return this.setCurrentValue(this.callGrantsSubject, grants);
+    const { callGrants } = this.store.getLatestValue();
+    const next = resolvePatch(grants, callGrants as CallGrants);
+    this.store.partialNext({ callGrants: next });
+    return next;
   };
 
   /**
    * The backstage state.
    */
   get backstage() {
-    return this.getCurrentValue(this.backstage$);
+    return this.store.getLatestValue().backstage;
   }
 
   /**
@@ -867,28 +1058,30 @@ export class CallState {
    * @param backstage the backstage state.
    */
   setBackstage = (backstage: Patch<boolean>) => {
-    return this.setCurrentValue(this.backstageSubject, backstage);
+    const next = resolvePatch(backstage, this.backstage);
+    this.store.partialNext({ backstage: next });
+    return next;
   };
 
   /**
    * Will provide the list of blocked user IDs.
    */
   get blockedUserIds() {
-    return this.getCurrentValue(this.blockedUserIds$);
+    return this.store.getLatestValue().blockedUserIds;
   }
 
   /**
    * Will provide the time when this call has been created.
    */
   get createdAt() {
-    return this.getCurrentValue(this.createdAt$);
+    return this.store.getLatestValue().createdAt;
   }
 
   /**
    * Will provide the time when this call has been ended.
    */
   get endedAt() {
-    return this.getCurrentValue(this.endedAt$);
+    return this.store.getLatestValue().endedAt;
   }
 
   /**
@@ -896,119 +1089,121 @@ export class CallState {
    * @param endedAt the time when this call has been ended.
    */
   setEndedAt = (endedAt: Patch<Date | undefined>) => {
-    return this.setCurrentValue(this.endedAtSubject, endedAt);
+    const next = resolvePatch(endedAt, this.endedAt);
+    this.store.partialNext({ endedAt: next });
+    return next;
   };
 
   /**
    * Will provide the time when this call has been scheduled to start.
    */
   get startsAt() {
-    return this.getCurrentValue(this.startsAt$);
+    return this.store.getLatestValue().startsAt;
   }
 
   /**
    * Will provide the time when this call has been updated.
    */
   get updatedAt() {
-    return this.getCurrentValue(this.updatedAt$);
+    return this.store.getLatestValue().updatedAt;
   }
 
   /**
    * Will provide the user who created this call.
    */
   get createdBy() {
-    return this.getCurrentValue(this.createdBy$);
+    return this.store.getLatestValue().createdBy;
   }
 
   /**
    * Will provide the custom data of this call.
    */
   get custom() {
-    return this.getCurrentValue(this.custom$);
+    return this.store.getLatestValue().custom;
   }
 
   /**
    * Will provide the egress data of this call.
    */
   get egress() {
-    return this.getCurrentValue(this.egress$);
+    return this.store.getLatestValue().egress;
   }
 
   /**
    * Will provide the ingress data of this call.
    */
   get ingress() {
-    return this.getCurrentValue(this.ingress$);
+    return this.store.getLatestValue().ingress;
   }
 
   /**
    * Will provide the composite recording state of this call.
    */
   get recording() {
-    return this.getCurrentValue(this.recording$);
+    return this.store.getLatestValue().recording;
   }
 
   /**
    * Will provide the individual recording state of this call.
    */
   get individualRecording() {
-    return this.getCurrentValue(this.individualRecording$);
+    return this.store.getLatestValue().individualRecording;
   }
 
   /**
    * Will provide the raw recording state of this call.
    */
   get rawRecording() {
-    return this.getCurrentValue(this.rawRecording$);
+    return this.store.getLatestValue().rawRecording;
   }
 
   /**
    * Will provide the session data of this call.
    */
   get session() {
-    return this.getCurrentValue(this.session$);
+    return this.store.getLatestValue().session;
   }
 
   /**
    * Will provide the settings of this call.
    */
   get settings() {
-    return this.getCurrentValue(this.settings$);
+    return this.store.getLatestValue().settings;
   }
 
   /**
    * Will provide the transcribing state of this call.
    */
   get transcribing() {
-    return this.getCurrentValue(this.transcribing$);
+    return this.store.getLatestValue().transcribing;
   }
 
   /**
    * Whether end-to-end encryption is active for this call.
    */
   get e2eeEnabled() {
-    return this.getCurrentValue(this.e2eeEnabled$);
+    return this.store.getLatestValue().e2eeEnabled;
   }
 
   /**
    * Will provide the user who ended this call.
    */
   get endedBy() {
-    return this.getCurrentValue(this.endedBy$);
+    return this.store.getLatestValue().endedBy;
   }
 
   /**
    * Will provide the thumbnails of this call, if enabled in the call settings.
    */
   get thumbnails() {
-    return this.getCurrentValue(this.thumbnails$);
+    return this.store.getLatestValue().thumbnails;
   }
 
   /**
    * Returns the current queue of closed captions.
    */
   get closedCaptions() {
-    return this.getCurrentValue(this.closedCaptions$);
+    return this.store.getLatestValue().closedCaptions;
   }
 
   /**
@@ -1020,19 +1215,21 @@ export class CallState {
   findParticipantBySessionId = (
     sessionId: string,
   ): StreamVideoParticipant | undefined => {
-    return this.participants.find((p) => p.sessionId === sessionId);
+    return this.store.getLatestValue().participantsBySessionId[sessionId];
   };
 
   /**
-   * Returns a new lookup table of participants indexed by their session ID.
+   * Returns the lookup table of participants indexed by their session ID.
+   *
+   * This is the live index held inside the current state, not a copy - it is
+   * rebuilt whenever the participant list changes. **Treat it as read-only**:
+   * mutating it corrupts the state every participant lookup in the SDK reads
+   * from, without emitting a change. Copy it first if you need to edit one.
    */
-  getParticipantLookupBySessionId = () => {
-    return this.participants.reduce<{
-      [sessionId: string]: StreamVideoParticipant | undefined;
-    }>((lookupTable, participant) => {
-      lookupTable[participant.sessionId] = participant;
-      return lookupTable;
-    }, {});
+  getParticipantLookupBySessionId = (): Readonly<{
+    [sessionId: string]: StreamVideoParticipant | undefined;
+  }> => {
+    return this.store.getLatestValue().participantsBySessionId;
   };
 
   /**
@@ -1128,8 +1325,6 @@ export class CallState {
 
   /**
    * Update track subscription configuration for one or more participants.
-   * You have to create a subscription for each participant for all the different kinds of tracks you want to receive.
-   * You can only subscribe for tracks after the participant started publishing the given kind of track.
    *
    * @param trackType the kind of subscription to update.
    * @param changes the list of subscription changes to do.
@@ -1183,64 +1378,8 @@ export class CallState {
    * @param pins the latest pins from the server.
    */
   setServerSidePins = (pins: Pin[]) => {
-    const now = Date.now();
-    const unknownSymbol = Symbol('unknown');
-
-    // generate a lookup table of pinnedAt timestamps by userId and sessionId
-    // if there are multiple pins for the same userId, then we set the pinnedAt
-    // to `unknown` (for that userId lookup) so that we don't apply any pin for that participant
-    // this is to avoid conflicts during reconstruction of the pin state after reconnections
-    // as sessionIds can change
-    const pinnedAtByIdentifier = pins.reduce<
-      Record<string, number | undefined | typeof unknownSymbol>
-    >((lookup, pin, index) => {
-      const pinnedAt = now + (pins.length - index);
-
-      if (lookup[pin.userId]) {
-        lookup[pin.userId] = unknownSymbol;
-      } else {
-        lookup[pin.userId] = pinnedAt;
-      }
-
-      lookup[pin.sessionId] ??= pinnedAt;
-
-      return lookup;
-    }, {});
-
     return this.setParticipants((participants) =>
-      participants.map((participant) => {
-        // first check by sessionId as that is 100% correct, then by attempt reconstruction by userId
-        const serverSidePinnedAt =
-          pinnedAtByIdentifier[participant.sessionId] ??
-          pinnedAtByIdentifier[participant.userId];
-
-        // the participant is newly pinned
-        if (
-          typeof serverSidePinnedAt === 'number' &&
-          typeof participant.pin?.pinnedAt !== 'number'
-        ) {
-          return {
-            ...participant,
-            pin: {
-              isLocalPin: false,
-              pinnedAt: serverSidePinnedAt,
-            },
-          };
-        }
-        // the participant is no longer pinned server side
-        // we need to reset the pin
-        if (
-          typeof serverSidePinnedAt !== 'number' &&
-          participant.pin?.isLocalPin === false
-        ) {
-          return {
-            ...participant,
-            pin: undefined,
-          };
-        }
-        // no changes to be applied
-        return participant;
-      }),
+      applyServerSidePins(participants, pins),
     );
   };
 
@@ -1311,45 +1450,42 @@ export class CallState {
   /**
    * Updates the call state with the data received from the server.
    *
+   * Applied as a single atomic update, so subscribers never observe a
+   * partially applied server payload.
+   *
    * @internal
    *
    * @param call the call response from the server.
    */
   updateFromCallResponse = (call: CallResponse) => {
-    this.setBackstage(call.backstage);
-    this.setCurrentValue(this.blockedUserIdsSubject, call.blocked_user_ids);
-    this.setCurrentValue(this.createdAtSubject, new Date(call.created_at));
-    this.setCurrentValue(this.updatedAtSubject, new Date(call.updated_at));
-    this.setCurrentValue(
-      this.startsAtSubject,
-      call.starts_at ? new Date(call.starts_at) : undefined,
-    );
-    this.setEndedAt(call.ended_at ? new Date(call.ended_at) : undefined);
-    this.setCurrentValue(this.createdBySubject, call.created_by);
-    this.setCurrentValue(this.customSubject, call.custom);
-    this.setCurrentValue(this.egressSubject, call.egress);
-    this.setCurrentValue(this.ingressSubject, call.ingress);
     const { individual_recording, composite_recording, raw_recording } =
       call.egress;
-    this.setCurrentValue(
-      this.recordingSubject,
-      call.recording || composite_recording?.status === 'running',
-    );
-    this.setCurrentValue(
-      this.individualRecordingSubject,
-      individual_recording?.status === 'running',
-    );
-    this.setCurrentValue(
-      this.rawRecordingSubject,
-      raw_recording?.status === 'running',
-    );
 
-    const s = this.setCurrentValue(this.sessionSubject, call.session);
-    this.updateParticipantCountFromSession(s);
-    this.setCurrentValue(this.settingsSubject, call.settings);
-    this.setCurrentValue(this.transcribingSubject, call.transcribing);
-    this.setCurrentValue(this.captioningSubject, call.captioning);
-    this.setCurrentValue(this.thumbnailsSubject, call.thumbnails);
+    this.store.next((state) => ({
+      ...state,
+      backstage: call.backstage,
+      blockedUserIds: preserveArrayIdentity(
+        state.blockedUserIds,
+        call.blocked_user_ids,
+      ),
+      createdAt: new Date(call.created_at),
+      updatedAt: new Date(call.updated_at),
+      startsAt: call.starts_at ? new Date(call.starts_at) : undefined,
+      endedAt: call.ended_at ? new Date(call.ended_at) : undefined,
+      createdBy: call.created_by,
+      custom: call.custom,
+      egress: call.egress,
+      ingress: call.ingress,
+      recording: call.recording || composite_recording?.status === 'running',
+      individualRecording: individual_recording?.status === 'running',
+      rawRecording: raw_recording?.status === 'running',
+      session: call.session,
+      settings: call.settings,
+      transcribing: call.transcribing,
+      captioning: call.captioning,
+      thumbnails: call.thumbnails,
+      ...this.participantCountsFromSession(call.session, state.callingState),
+    }));
   };
 
   /**
@@ -1370,70 +1506,75 @@ export class CallState {
       callState;
     const localPublishedTracks =
       reconnectDetails?.announcedTracks.map((t) => t.trackType) ?? [];
-    this.setParticipants(() => {
-      const participantLookup = this.getParticipantLookupBySessionId();
-      return participants.map<StreamVideoParticipant>((p) => {
-        // We need to preserve the local state of the participant
-        // (e.g. videoDimension, visibilityState, pinnedAt, etc.)
-        // as it doesn't exist on the server.
-        const existingParticipant = participantLookup[p.sessionId];
-        const isLocalParticipant = p.sessionId === currentSessionId;
-        return Object.assign({}, existingParticipant, p, {
-          isLocalParticipant,
-          publishedTracks: isLocalParticipant
-            ? localPublishedTracks
-            : p.publishedTracks,
-          viewportVisibilityState:
-            existingParticipant?.viewportVisibilityState ?? {
-              videoTrack: VisibilityState.UNKNOWN,
-              screenShareTrack: VisibilityState.UNKNOWN,
-            },
-        } satisfies Partial<StreamVideoParticipant>);
-      });
+
+    const participantLookup = this.getParticipantLookupBySessionId();
+    const nextParticipants = participants.map<StreamVideoParticipant>((p) => {
+      // We need to preserve the local state of the participant
+      // (e.g. videoDimension, visibilityState, pinnedAt, etc.)
+      // as it doesn't exist on the server.
+      const existingParticipant = participantLookup[p.sessionId];
+      const isLocalParticipant = p.sessionId === currentSessionId;
+      return Object.assign({}, existingParticipant, p, {
+        isLocalParticipant,
+        publishedTracks: isLocalParticipant
+          ? localPublishedTracks
+          : p.publishedTracks,
+        viewportVisibilityState:
+          existingParticipant?.viewportVisibilityState ?? {
+            videoTrack: VisibilityState.UNKNOWN,
+            screenShareTrack: VisibilityState.UNKNOWN,
+          },
+      } satisfies Partial<StreamVideoParticipant>);
     });
 
-    this.setParticipantCount(participantCount?.total || 0);
-    this.setAnonymousParticipantCount(participantCount?.anonymous || 0);
-    this.setStartedAt(startedAt ? Timestamp.toDate(startedAt) : new Date());
-    this.setServerSidePins(pins);
-    this.setCurrentValue(this.e2eeEnabledSubject, e2EeEnabled);
+    // pins are applied here rather than through `setServerSidePins`, so the
+    // whole SFU payload lands as one update - a second write would let
+    // subscribers observe the new participants with the previous pin state
+    this.store.next((state) => ({
+      ...state,
+      participants: applyServerSidePins(nextParticipants, pins),
+      participantCount: participantCount?.total || 0,
+      anonymousParticipantCount: participantCount?.anonymous || 0,
+      startedAt: startedAt ? Timestamp.toDate(startedAt) : new Date(),
+      e2eeEnabled: e2EeEnabled,
+    }));
   };
 
   private updateFromMemberRemoved = (event: CallMemberRemovedEvent) => {
     this.updateFromCallResponse(event.call);
-    this.setCurrentValue(this.membersSubject, (members) =>
+    this.setMembers((members) =>
       members.filter((m) => event.members.indexOf(m.user_id) === -1),
     );
   };
 
   private updateFromMemberAdded = (event: CallMemberAddedEvent) => {
     this.updateFromCallResponse(event.call);
-    this.setCurrentValue(this.membersSubject, (members) => [
-      ...members,
-      ...event.members,
-    ]);
+    this.setMembers((members) => [...members, ...event.members]);
   };
 
   private updateFromHLSBroadcastStopped = () => {
-    this.setCurrentValue(this.egressSubject, (egress = defaultEgress) => ({
-      ...egress,
-      broadcasting: false,
-      hls: {
-        ...egress.hls!,
-        status: '',
-      },
-    }));
+    this.stopHLSBroadcast();
   };
 
   private updateFromHLSBroadcastingFailed = () => {
-    this.setCurrentValue(this.egressSubject, (egress = defaultEgress) => ({
-      ...egress,
-      broadcasting: false,
-      hls: {
-        ...egress.hls!,
-        status: '',
-      },
-    }));
+    this.stopHLSBroadcast();
+  };
+
+  private stopHLSBroadcast = () => {
+    this.store.next((state) => {
+      const egress = state.egress ?? defaultEgress;
+      return {
+        ...state,
+        egress: {
+          ...egress,
+          broadcasting: false,
+          hls: {
+            ...egress.hls!,
+            status: '',
+          },
+        },
+      };
+    });
   };
 
   private updateFromRecordingEvent = (
@@ -1442,49 +1583,69 @@ export class CallState {
   ) => {
     // handle the legacy format, where `type` is absent in the emitted events
     if (type === undefined || type === 'composite') {
-      this.setCurrentValue(this.recordingSubject, running);
+      this.store.partialNext({ recording: running });
     } else if (type === 'individual') {
-      this.setCurrentValue(this.individualRecordingSubject, running);
+      this.store.partialNext({ individualRecording: running });
     } else if (type === 'raw') {
-      this.setCurrentValue(this.rawRecordingSubject, running);
+      this.store.partialNext({ rawRecording: running });
     } else {
       ensureExhausted(type, 'Unknown recording type');
     }
   };
 
-  private updateParticipantCountFromSession = (
+  /**
+   * The participant counts implied by a session, as a patch to fold into the
+   * same store write that applies the session itself. Writing them separately
+   * would let subscribers observe the new session alongside the old counts.
+   *
+   * Returns an empty patch when the counts should not be taken from the
+   * session at all.
+   */
+  private participantCountsFromSession = (
     session: CallSessionResponse | undefined,
-  ) => {
+    callingState: CallingState,
+  ): Partial<CallStateShape> => {
     // when in JOINED state, we should use the participant count coming through
     // the SFU healthcheck event, as it's more accurate.
-    if (!session || this.callingState === CallingState.JOINED) return;
+    if (!session || callingState === CallingState.JOINED) return {};
     const byRoleCount = Object.values(
       session.participants_count_by_role,
     ).reduce((total, countByRole) => total + countByRole, 0);
-    const participantCount = Math.max(byRoleCount, session.participants.length);
-    this.setParticipantCount(participantCount);
-    this.setAnonymousParticipantCount(session.anonymous_participant_count || 0);
+    return {
+      participantCount: Math.max(byRoleCount, session.participants.length),
+      anonymousParticipantCount: session.anonymous_participant_count || 0,
+    };
+  };
+
+  private updateSession = (
+    patch: (session: CallSessionResponse) => CallSessionResponse,
+  ) => {
+    if (!this.store.getLatestValue().session) return;
+    this.store.next((state) => {
+      if (!state.session) return state;
+      const session = patch(state.session);
+      return {
+        ...state,
+        session,
+        ...this.participantCountsFromSession(session, state.callingState),
+      };
+    });
   };
 
   private updateFromSessionParticipantCountUpdate = (
     event: CallSessionParticipantCountsUpdatedEvent,
   ) => {
-    const s = this.setCurrentValue(this.sessionSubject, (session) => {
-      if (!session) return session;
-      return {
-        ...session,
-        anonymous_participant_count: event.anonymous_participant_count,
-        participants_count_by_role: event.participants_count_by_role,
-      };
-    });
-    this.updateParticipantCountFromSession(s);
+    this.updateSession((session) => ({
+      ...session,
+      anonymous_participant_count: event.anonymous_participant_count,
+      participants_count_by_role: event.participants_count_by_role,
+    }));
   };
 
   private updateFromSessionParticipantLeft = (
     event: CallSessionParticipantLeftEvent,
   ) => {
-    const s = this.setCurrentValue(this.sessionSubject, (session) => {
-      if (!session) return session;
+    this.updateSession((session) => {
       const { participants, participants_count_by_role } = session;
       const { user, user_session_id } = event.participant;
       return {
@@ -1501,14 +1662,12 @@ export class CallState {
         },
       };
     });
-    this.updateParticipantCountFromSession(s);
   };
 
   private updateFromSessionParticipantJoined = (
     event: CallSessionParticipantJoinedEvent,
   ) => {
-    const s = this.setCurrentValue(this.sessionSubject, (session) => {
-      if (!session) return session;
+    this.updateSession((session) => {
       const { participants, participants_count_by_role } = session;
       const { user, user_session_id } = event.participant;
       // It could happen that the backend delivers the same participant more than once.
@@ -1540,14 +1699,13 @@ export class CallState {
         },
       };
     });
-    this.updateParticipantCountFromSession(s);
   };
 
   private updateMembers = (
     event: CallMemberUpdatedEvent | CallMemberUpdatedPermissionEvent,
   ) => {
     this.updateFromCallResponse(event.call);
-    this.setCurrentValue(this.membersSubject, (members) =>
+    this.setMembers((members) =>
       members.map((member) => {
         const memberUpdate = event.members.find(
           (m) => m.user_id === member.user_id,
@@ -1577,17 +1735,17 @@ export class CallState {
   };
 
   private unblockUser = (event: UnblockedUserEvent) => {
-    this.setCurrentValue(this.blockedUserIdsSubject, (current) => {
-      if (!current) return current;
-      return current.filter((id) => id !== event.user.id);
-    });
+    this.store.next((state) => ({
+      ...state,
+      blockedUserIds: state.blockedUserIds.filter((id) => id !== event.user.id),
+    }));
   };
 
   private blockUser = (event: BlockedUserEvent) => {
-    this.setCurrentValue(this.blockedUserIdsSubject, (current) => [
-      ...(current || []),
-      event.user.id,
-    ]);
+    this.store.next((state) => ({
+      ...state,
+      blockedUserIds: [...state.blockedUserIds, event.user.id],
+    }));
   };
 
   private updateOwnCapabilities = (event: UpdatedCallPermissionsEvent) => {
@@ -1596,8 +1754,17 @@ export class CallState {
     }
   };
 
+  private setClosedCaptions = (
+    patch: (queue: CallClosedCaption[]) => CallClosedCaption[],
+  ) => {
+    this.store.next((state) => ({
+      ...state,
+      closedCaptions: patch(state.closedCaptions),
+    }));
+  };
+
   private updateFromClosedCaptions = (event: ClosedCaptionEvent) => {
-    this.setCurrentValue(this.closedCaptionsSubject, (queue) => {
+    this.setClosedCaptions((queue) => {
       const { closed_caption } = event;
 
       const keyOf = (c: CallClosedCaption) => `${c.speaker_id}/${c.start_time}`;
@@ -1613,7 +1780,7 @@ export class CallState {
       // schedule the removal of the closed caption after the retention time
       if (visibilityDurationMs > 0) {
         const taskId = setTimeout(() => {
-          this.setCurrentValue(this.closedCaptionsSubject, (captions) =>
+          this.setClosedCaptions((captions) =>
             captions.filter((caption) => caption !== closed_caption),
           );
           this.closedCaptionsTasks.delete(currentKey);

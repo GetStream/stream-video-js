@@ -9,7 +9,7 @@ import { Call } from '../Call';
 import { StreamClient } from '../coordinator/connection/client';
 import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
-import { StreamVideoWriteableStateStore } from '../store';
+import { CallingState, StreamVideoWriteableStateStore } from '../store';
 import { promiseWithResolvers } from '../helpers/promise';
 
 describe('Call lifecycle wiring', () => {
@@ -77,6 +77,46 @@ describe('Call lifecycle wiring', () => {
 
     expect(trackSubOrder).toBeLessThan(audioBindingsOrder);
     expect(audioBindingsOrder).toBeLessThan(dynascaleOrder);
+  });
+
+  // `leave()` while a join is in flight waits for that join to settle before
+  // tearing anything down, and it does so holding the join/leave concurrency
+  // tag. Waiting specifically for JOINED would never resolve when the join
+  // fails, wedging the tag and every later join/leave on this call.
+  it('call.leave() resolves when an in-flight join fails instead of JOINED', async () => {
+    call.state.setCallingState(CallingState.JOINING);
+
+    let settled = false;
+    const leaving = call.leave().then(() => {
+      settled = true;
+    });
+
+    await Promise.resolve();
+    expect(settled).toBe(false); // still waiting on the join
+
+    // the join fails rather than reaching JOINED
+    call.state.setCallingState(CallingState.RECONNECTING_FAILED);
+
+    await leaving;
+    expect(settled).toBe(true);
+    expect(call.state.callingState).toBe(CallingState.LEFT);
+  });
+
+  it('call.leave() still waits for a successful in-flight join', async () => {
+    call.state.setCallingState(CallingState.JOINING);
+
+    let settled = false;
+    const leaving = call.leave().then(() => {
+      settled = true;
+    });
+
+    await Promise.resolve();
+    expect(settled).toBe(false);
+
+    call.state.setCallingState(CallingState.JOINED);
+
+    await leaving;
+    expect(settled).toBe(true);
   });
 
   it('call.join() shares an in-flight join flow', async () => {

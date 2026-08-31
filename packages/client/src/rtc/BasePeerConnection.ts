@@ -1,7 +1,7 @@
 import { ScopedLogger, videoLoggerSystem } from '../logger';
 import type { CallEventListener } from '../coordinator/connection/types';
 import { CallingState, CallState } from '../store';
-import { createSafeAsyncSubscription } from '../store/rxUtils';
+import { serializeAsync } from '../store/subscription';
 import {
   ErrorCode,
   PeerType,
@@ -243,20 +243,17 @@ export abstract class BasePeerConnection {
     iceTrickleBuffer.updateActiveGeneration(this.peerType, sdp);
 
     const { subscriber, publisher } = iceTrickleBuffer;
-    const observable =
-      this.peerType === PeerType.SUBSCRIBER
-        ? subscriber.candidates
-        : publisher.candidates;
+    const buffer =
+      this.peerType === PeerType.SUBSCRIBER ? subscriber : publisher;
 
     this.unsubscribeIceTrickle?.();
-    this.unsubscribeIceTrickle = createSafeAsyncSubscription(
-      observable,
-      async (candidate) => {
-        return this.pc.addIceCandidate(candidate).catch((e) => {
+    this.unsubscribeIceTrickle = buffer.onCandidate(
+      serializeAsync(async (candidate) => {
+        await this.pc.addIceCandidate(candidate).catch((e) => {
           if (this.isDisposed) return;
           this.logger.warn(`ICE candidate error`, e, candidate);
         });
-      },
+      }),
     );
   };
 

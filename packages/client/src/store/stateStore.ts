@@ -1,48 +1,69 @@
-import { BehaviorSubject, Observable } from 'rxjs';
-import type { Patch } from './rxUtils';
-import * as RxUtils from './rxUtils';
+import { StateStore } from '@stream-io/state-store';
+import { field, type Subscribable } from './subscribable';
+import { type Patch, resolvePatch } from './patch';
 import { Call } from '../Call';
 import { CallingState } from './CallingState';
 import type { OwnUserResponse } from '../gen/coordinator';
 import { videoLoggerSystem } from '../logger';
 
+/**
+ * The shape of the client-level state.
+ */
+export type StreamVideoClientState = {
+  /**
+   * The user currently connected over WS to the coordinator, if any.
+   */
+  connectedUser: OwnUserResponse | undefined;
+
+  /**
+   * The {@link Call} objects created or tracked by this client.
+   */
+  calls: Call[];
+};
+
+const initialState = (): StreamVideoClientState => ({
+  connectedUser: undefined,
+  calls: [],
+});
+
 export class StreamVideoWriteableStateStore {
   /**
-   * A store keeping data of a successfully connected user over WS to the coordinator server.
+   * The backing store. Prefer the getters and setters below; this is exposed
+   * for advanced use and for constructing derived state.
    */
-  connectedUserSubject = new BehaviorSubject<OwnUserResponse | undefined>(
-    undefined,
-  );
-
-  /**
-   * A list of {@link Call} objects created/tracked by this client.
-   */
-  callsSubject = new BehaviorSubject<Call[]>([]);
+  readonly store = new StateStore<StreamVideoClientState>(initialState());
 
   constructor() {
-    this.connectedUserSubject.subscribe(async (user) => {
-      // leave all calls when the user disconnects.
-      if (!user) {
+    this.store.subscribeWithSelector(
+      (state) => [state.connectedUser] as const,
+      ([user]) => {
+        // leave all calls when the user disconnects
+        if (user) return;
         const logger = videoLoggerSystem.getLogger('client-state');
-        for (const call of this.calls) {
-          if (call.state.callingState === CallingState.LEFT) continue;
+        const leaveAllCalls = async () => {
+          for (const call of this.calls) {
+            if (call.state.callingState === CallingState.LEFT) continue;
 
-          logger.info(`User disconnected, leaving call: ${call.cid}`);
-          await call
-            .leave({ message: 'client.disconnectUser() called' })
-            .catch((err) => {
-              logger.error(`Error leaving call: ${call.cid}`, err);
-            });
-        }
-      }
-    });
+            logger.info(`User disconnected, leaving call: ${call.cid}`);
+            await call
+              .leave({ message: 'client.disconnectUser() called' })
+              .catch((err) => {
+                logger.error(`Error leaving call: ${call.cid}`, err);
+              });
+          }
+        };
+        leaveAllCalls().catch((err) => {
+          logger.error('Error while leaving calls on disconnect', err);
+        });
+      },
+    );
   }
 
   /**
    * The currently connected user.
    */
   get connectedUser(): OwnUserResponse | undefined {
-    return this.connectedUserSubject.getValue();
+    return this.store.getLatestValue().connectedUser;
   }
 
   /**
@@ -52,22 +73,27 @@ export class StreamVideoWriteableStateStore {
    * @param user the user to set as connected.
    */
   setConnectedUser = (user: Patch<OwnUserResponse | undefined>) => {
-    return RxUtils.setCurrentValue(this.connectedUserSubject, user);
+    const connectedUser = resolvePatch(user, this.connectedUser);
+    this.store.partialNext({ connectedUser });
+    return connectedUser;
   };
 
   /**
    * A list of {@link Call} objects created/tracked by this client.
    */
   get calls(): Call[] {
-    return RxUtils.getCurrentValue(this.callsSubject);
+    return this.store.getLatestValue().calls;
   }
 
   /**
    * Sets the list of {@link Call} objects created/tracked by this client.
-   * @param calls
+   *
+   * @param calls the calls to set.
    */
   setCalls = (calls: Patch<Call[]>) => {
-    return RxUtils.setCurrentValue(this.callsSubject, calls);
+    const next = resolvePatch(calls, this.calls);
+    this.store.partialNext({ calls: next });
+    return next;
   };
 
   /**
@@ -119,38 +145,42 @@ export class StreamVideoWriteableStateStore {
 }
 
 /**
- * A reactive store that exposes state variables in a reactive manner.
+ * A reactive store exposing the client-level state variables.
  * You can subscribe to changes of the different state variables.
- * This central store contains all the state variables related to [`StreamVideoClient`](./StreamVideClient.md) and [`Call`](./Call.md).
  */
 export class StreamVideoReadOnlyStateStore {
   /**
+   * The backing store, for reading several values in one subscription.
+   */
+  readonly store: StateStore<StreamVideoClientState>;
+
+  /**
    * Data describing a user successfully connected over WS to coordinator server.
    */
-  connectedUser$: Observable<OwnUserResponse | undefined>;
+  connectedUser$: Subscribable<OwnUserResponse | undefined>;
 
   /**
    * A list of {@link Call} objects created/tracked by this client.
    */
-  calls$: Observable<Call[]>;
+  calls$: Subscribable<Call[]>;
 
   constructor(store: StreamVideoWriteableStateStore) {
-    // convert and expose subjects as observables
-    this.connectedUser$ = store.connectedUserSubject.asObservable();
-    this.calls$ = store.callsSubject.asObservable();
+    this.store = store.store;
+    this.connectedUser$ = field(this.store, 'connectedUser');
+    this.calls$ = field(this.store, 'calls');
   }
 
   /**
    * The current user connected over WS to the backend.
    */
   get connectedUser(): OwnUserResponse | undefined {
-    return RxUtils.getCurrentValue(this.connectedUser$);
+    return this.store.getLatestValue().connectedUser;
   }
 
   /**
    * A list of {@link Call} objects created/tracked by this client.
    */
   get calls(): Call[] {
-    return RxUtils.getCurrentValue(this.calls$);
+    return this.store.getLatestValue().calls;
   }
 }

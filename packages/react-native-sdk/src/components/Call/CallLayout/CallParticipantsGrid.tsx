@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { debounceTime } from 'rxjs';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
   type CallParticipantsListComponentProps,
@@ -13,6 +12,7 @@ import type { ParticipantViewComponentProps } from '../../Participant';
 import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 
+import { subscribeDebounced } from '../../../utils/internal/subscribable';
 /**
  * Props for the CallParticipantsGrid component.
  */
@@ -65,12 +65,16 @@ export const CallParticipantsGrid = ({
       setAllParticipants([]);
       return;
     }
-    const sub1 = call.state.remoteParticipants$
-      .pipe(debounceTime(300))
-      .subscribe(setRemoteParticipants);
-    const sub2 = call.state.participants$
-      .pipe(debounceTime(300))
-      .subscribe(setAllParticipants);
+    const sub1 = subscribeDebounced(
+      call.state.remoteParticipants$,
+      300,
+      setRemoteParticipants,
+    );
+    const sub2 = subscribeDebounced(
+      call.state.participants$,
+      300,
+      setAllParticipants,
+    );
     return () => {
       sub1.unsubscribe();
       sub2.unsubscribe();

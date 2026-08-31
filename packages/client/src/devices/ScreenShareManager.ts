@@ -1,4 +1,4 @@
-import { Observable, of } from 'rxjs';
+import { createSubscribable, type Subscribable } from '../store/subscribable';
 import {
   AudioDeviceManager,
   createAudioConstraints,
@@ -8,8 +8,15 @@ import { Call } from '../Call';
 import { AudioBitrateProfile, TrackType } from '../gen/video/sfu/models/models';
 import { getScreenShareStream } from './devices';
 import { ScreenShareSettings } from '../types';
-import { createSubscription } from '../store/rxUtils';
+import { createSubscription } from '../store/subscription';
 import { normalize } from './devicePersistence';
+
+// Screen sharing is not tied to an enumerable device, so this list is empty
+// and never changes - subscribing to it is a no-op beyond the initial replay.
+const NO_DEVICES: Subscribable<MediaDeviceInfo[]> = createSubscribable(
+  () => [],
+  () => () => {},
+);
 
 export class ScreenShareManager extends AudioDeviceManager<
   ScreenShareState,
@@ -80,8 +87,12 @@ export class ScreenShareManager extends AudioDeviceManager<
     this.state.setSettings(settings);
   }
 
-  protected getDevices(): Observable<MediaDeviceInfo[]> {
-    return of([]); // there are no devices to be listed for Screen Share
+  protected getDevices(): Subscribable<MediaDeviceInfo[]> {
+    return NO_DEVICES; // there are no devices to be listed for Screen Share
+  }
+
+  protected loadRealDevices(): Promise<MediaDeviceInfo[]> {
+    return Promise.resolve([]);
   }
 
   protected override async getStream(

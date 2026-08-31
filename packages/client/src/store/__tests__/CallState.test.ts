@@ -177,7 +177,9 @@ describe('CallState', () => {
     it('updates an existing participant if session_id matches', () => {
       const state = new CallState();
       // @ts-expect-error - incomplete data
-      state.setParticipants([{ sessionId: '123', userId: 'alice' }]);
+      state.setParticipants([
+        { publishedTracks: [], sessionId: '123', userId: 'alice' },
+      ]);
 
       // @ts-expect-error - incomplete data
       state.updateOrAddParticipant('123', { userId: 'bob' });
@@ -189,10 +191,15 @@ describe('CallState', () => {
       const state = new CallState();
       state.setSortParticipantsBy(noopComparator());
       // @ts-expect-error - incomplete data
-      state.setParticipants([{ sessionId: '123', userId: 'alice' }]);
+      state.setParticipants([
+        { publishedTracks: [], sessionId: '123', userId: 'alice' },
+      ]);
 
       // @ts-expect-error - incomplete data
-      state.updateOrAddParticipant('12345', { userId: 'bob' });
+      state.updateOrAddParticipant('12345', {
+        userId: 'bob',
+        publishedTracks: [],
+      });
       expect(state.participants.length).toBe(2);
       expect(state.participants[0].userId).toBe('alice');
       expect(state.participants[1].userId).toBe('bob');
@@ -203,7 +210,9 @@ describe('CallState', () => {
     it('does nothing when the patch is empty', () => {
       const state = new CallState();
       // @ts-expect-error - incomplete data
-      state.setParticipants([{ sessionId: '123', userId: 'alice' }]);
+      state.setParticipants([
+        { publishedTracks: [], sessionId: '123', userId: 'alice' },
+      ]);
 
       const p1Ref = state.participants;
       state.updateParticipants({});
@@ -216,9 +225,9 @@ describe('CallState', () => {
       state.setSortParticipantsBy(noopComparator());
       state.setParticipants([
         // @ts-expect-error - incomplete data
-        { sessionId: '123', userId: 'alice' },
+        { publishedTracks: [], sessionId: '123', userId: 'alice' },
         // @ts-expect-error - incomplete data
-        { sessionId: '1234', userId: 'charlie ' },
+        { publishedTracks: [], sessionId: '1234', userId: 'charlie ' },
       ]);
 
       const p1Ref = state.participants;
@@ -343,13 +352,20 @@ describe('CallState', () => {
       const state = new CallState();
       state.setSortParticipantsBy(noopComparator());
       // @ts-expect-error - incomplete data
-      state.setParticipants([{ sessionId: '123' }, { sessionId: '456' }]);
+      state.setParticipants([
+        { publishedTracks: [], sessionId: '123' },
+        { publishedTracks: [], sessionId: '456' },
+      ]);
 
       state.setServerSidePins([{ sessionId: '123', userId: 'user-id' }]);
 
       expect(state.participants).toEqual([
-        { sessionId: '123', pin: { isLocalPin: false, pinnedAt: anyNumber() } },
-        { sessionId: '456' },
+        {
+          publishedTracks: [],
+          sessionId: '123',
+          pin: { isLocalPin: false, pinnedAt: anyNumber() },
+        },
+        { publishedTracks: [], sessionId: '456' },
       ]);
     });
 
@@ -358,16 +374,20 @@ describe('CallState', () => {
       state.setSortParticipantsBy(noopComparator());
       state.setParticipants([
         // @ts-expect-error - incomplete data
-        { sessionId: '123', pin: { isLocalPin: false, pinnedAt: 1000 } },
+        {
+          publishedTracks: [],
+          sessionId: '123',
+          pin: { isLocalPin: false, pinnedAt: 1000 },
+        },
         // @ts-expect-error - incomplete data
-        { sessionId: '456' },
+        { publishedTracks: [], sessionId: '456' },
       ]);
 
       state.setServerSidePins([]);
 
       expect(state.participants).toEqual([
-        { sessionId: '123', pin: undefined },
-        { sessionId: '456' },
+        { publishedTracks: [], sessionId: '123', pin: undefined },
+        { publishedTracks: [], sessionId: '456' },
       ]);
     });
 
@@ -376,16 +396,24 @@ describe('CallState', () => {
       state.setSortParticipantsBy(noopComparator());
       state.setParticipants([
         // @ts-expect-error - incomplete data
-        { sessionId: '123', pin: { isLocalPin: true, pinnedAt: 1000 } },
+        {
+          publishedTracks: [],
+          sessionId: '123',
+          pin: { isLocalPin: true, pinnedAt: 1000 },
+        },
         // @ts-expect-error - incomplete data
-        { sessionId: '456' },
+        { publishedTracks: [], sessionId: '456' },
       ]);
 
       state.setServerSidePins([]);
 
       expect(state.participants).toEqual([
-        { sessionId: '123', pin: { isLocalPin: true, pinnedAt: 1000 } },
-        { sessionId: '456' },
+        {
+          publishedTracks: [],
+          sessionId: '123',
+          pin: { isLocalPin: true, pinnedAt: 1000 },
+        },
+        { publishedTracks: [], sessionId: '456' },
       ]);
     });
   });
@@ -513,7 +541,9 @@ describe('CallState', () => {
       it('handles call.permissions_updated', () => {
         const state = new CallState();
         // @ts-expect-error incomplete data
-        state.setParticipants([{ userId: 'test', isLocalParticipant: true }]);
+        state.setParticipants([
+          { userId: 'test', isLocalParticipant: true, publishedTracks: [] },
+        ]);
 
         state.updateFromEvent({
           type: 'call.permissions_updated',
@@ -1473,5 +1503,136 @@ describe('CallState', () => {
       state.dispose();
       expect(state['closedCaptionsTasks'].size).toBe(0);
     });
+  });
+});
+
+describe('participantsBySessionId index', () => {
+  const p = (sessionId: string, extra: Partial<StreamVideoParticipant> = {}) =>
+    ({
+      sessionId,
+      userId: sessionId,
+      publishedTracks: [],
+      ...extra,
+    }) as StreamVideoParticipant;
+
+  it('indexes every participant by session id', () => {
+    const state = new CallState();
+    state.setParticipants([p('a'), p('b')]);
+
+    const index = state.store.getLatestValue().participantsBySessionId;
+    expect(index.a?.sessionId).toBe('a');
+    expect(index.b?.sessionId).toBe('b');
+    expect(index.missing).toBeUndefined();
+  });
+
+  it('stays in step with participant updates', () => {
+    const state = new CallState();
+    state.setParticipants([p('a'), p('b')]);
+    state.updateParticipant('a', { audioLevel: 7 });
+
+    expect(
+      state.store.getLatestValue().participantsBySessionId.a?.audioLevel,
+    ).toBe(7);
+
+    state.setParticipants([p('c')]);
+    const index = state.store.getLatestValue().participantsBySessionId;
+    expect(index.c?.sessionId).toBe('c');
+    expect(index.a).toBeUndefined();
+  });
+
+  it('backs findParticipantBySessionId and the lookup accessor', () => {
+    const state = new CallState();
+    state.setParticipants([p('a'), p('b')]);
+
+    expect(state.findParticipantBySessionId('b')?.sessionId).toBe('b');
+    expect(state.findParticipantBySessionId('nope')).toBeUndefined();
+    expect(Object.keys(state.getParticipantLookupBySessionId()).sort()).toEqual(
+      ['a', 'b'],
+    );
+  });
+
+  it('is memoised per state object, and not rebuilt on unrelated updates', () => {
+    const state = new CallState();
+    state.setParticipants([p('a')]);
+
+    const first = state.store.getLatestValue().participantsBySessionId;
+    expect(state.store.getLatestValue().participantsBySessionId).toBe(first);
+
+    // an unrelated field must not invalidate the index
+    state.setCallingState(CallingState.JOINED);
+    expect(state.store.getLatestValue().participantsBySessionId).toBe(first);
+
+    // a participant change must
+    state.updateParticipant('a', { audioLevel: 1 });
+    expect(state.store.getLatestValue().participantsBySessionId).not.toBe(
+      first,
+    );
+  });
+
+  it('survives partialNext, which spreads the state object', () => {
+    const state = new CallState();
+    state.setParticipants([p('a')]);
+    state.store.partialNext({ backstage: false });
+
+    expect(
+      state.store.getLatestValue().participantsBySessionId.a?.sessionId,
+    ).toBe('a');
+  });
+});
+
+describe('CallState call stats report gating', () => {
+  it('is observed while something subscribes to callStatsReport$', () => {
+    const state = new CallState();
+    expect(state.isCallStatsReportObserved).toBe(false);
+
+    const subscription = state.callStatsReport$.subscribe(() => {});
+    expect(state.isCallStatsReportObserved).toBe(true);
+
+    subscription.unsubscribe();
+    expect(state.isCallStatsReportObserved).toBe(false);
+  });
+
+  // A store subscription cannot say which fields it reads, so reading
+  // `callStatsReport` through `useCallStateSelector` /
+  // `store.subscribeWithSelector` used to leave the gate closed and the report
+  // permanently `undefined`. `observeCallStatsReport()` is how those callers
+  // register interest.
+  it('is not observed by a bare store subscription', () => {
+    const state = new CallState();
+    const unsubscribe = state.store.subscribeWithSelector(
+      (s) => ({ callStatsReport: s.callStatsReport }),
+      () => {},
+    );
+
+    expect(state.isCallStatsReportObserved).toBe(false);
+    unsubscribe();
+  });
+
+  it('is observed while an explicit registration is open', () => {
+    const state = new CallState();
+    const release = state.observeCallStatsReport();
+    expect(state.isCallStatsReportObserved).toBe(true);
+
+    release();
+    expect(state.isCallStatsReportObserved).toBe(false);
+
+    // releasing twice must not drop someone else's registration
+    const other = state.observeCallStatsReport();
+    release();
+    expect(state.isCallStatsReportObserved).toBe(true);
+    other();
+    expect(state.isCallStatsReportObserved).toBe(false);
+  });
+
+  it('counts registrations independently of $ subscribers', () => {
+    const state = new CallState();
+    const release = state.observeCallStatsReport();
+    const subscription = state.callStatsReport$.subscribe(() => {});
+
+    subscription.unsubscribe();
+    expect(state.isCallStatsReportObserved).toBe(true);
+
+    release();
+    expect(state.isCallStatsReportObserved).toBe(false);
   });
 });

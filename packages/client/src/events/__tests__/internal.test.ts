@@ -23,7 +23,11 @@ describe('internal events', () => {
     const dispatcher = new Dispatcher();
     state.setParticipants([
       // @ts-expect-error incomplete data
-      { sessionId: 'session-1', connectionQuality: ConnectionQuality.POOR },
+      {
+        publishedTracks: [],
+        sessionId: 'session-1',
+        connectionQuality: ConnectionQuality.POOR,
+      },
     ]);
 
     watchConnectionQualityChanged(dispatcher, state);
@@ -43,6 +47,7 @@ describe('internal events', () => {
     });
     expect(state.participants).toEqual([
       {
+        publishedTracks: [],
         sessionId: 'session-1',
         connectionQuality: ConnectionQuality.EXCELLENT,
       },
@@ -154,9 +159,9 @@ describe('internal events', () => {
     state.setSortParticipantsBy(noopComparator());
     state.setParticipants([
       // @ts-expect-error incomplete data
-      { sessionId: 'session-1' },
+      { publishedTracks: [], sessionId: 'session-1' },
       // @ts-expect-error incomplete data
-      { sessionId: 'session-2' },
+      { publishedTracks: [], sessionId: 'session-2' },
     ]);
 
     const update = watchInboundStateNotification(state);

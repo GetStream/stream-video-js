@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Gleap from 'gleap';
-import {
-  Call,
-  RxUtils,
-  StreamVideoClient,
-  User,
-} from '@stream-io/video-react-sdk';
+import { Call, StreamVideoClient, User } from '@stream-io/video-react-sdk';
 import { getLayoutSettings } from './useLayoutSwitcher';
 
 type GleapReportPayload = {
@@ -153,7 +148,7 @@ export const useGleap = (
         const data = Object.entries(state).reduce<Record<string, any>>(
           (acc, [key, observable]) => {
             if (!!observable && typeof observable.subscribe === 'function') {
-              const value = RxUtils.getCurrentValue<unknown>(observable);
+              const value: unknown = observable.getValue();
               if (value && value instanceof Call) {
                 // special handling for the active call
                 acc[key] = serializeCallState(value);
@@ -202,18 +197,18 @@ export const serializeCallState = (call: Call) => {
       microphone: {
         enabled: microphone.state.status,
         selectedDeviceId: microphone.state.selectedDevice,
-        devices: RxUtils.getCurrentValue(microphone.listDevices()),
+        devices: microphone.listDevices().getValue(),
         defaultConstraints: microphone.state.defaultConstraints,
       },
       camera: {
         enabled: camera.state.status,
         selectedDeviceId: camera.state.selectedDevice,
-        devices: RxUtils.getCurrentValue(camera.listDevices()),
+        devices: camera.listDevices().getValue(),
         defaultConstraints: camera.state.defaultConstraints,
       },
       speakers: {
         selectedDeviceId: speaker.state.selectedDevice,
-        devices: RxUtils.getCurrentValue(speaker.listDevices()),
+        devices: speaker.listDevices().getValue(),
       },
       screenShare: {
         enabled: screenShare.state.status,
@@ -232,7 +227,7 @@ export const serializeCallState = (call: Call) => {
     .filter(([k]) => k.endsWith('$') && !ignoredKeys.includes(k))
     .forEach(([k, v]) => {
       if (!!v && typeof v.subscribe === 'function') {
-        callState[k] = RxUtils.getCurrentValue(v);
+        callState[k] = v.getValue();
       } else {
         callState[k] = v;
       }

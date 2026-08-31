@@ -1,4 +1,3 @@
-import { Subscription } from 'rxjs';
 import type { Call } from '../Call';
 import type { StreamVideoParticipant } from '../types';
 
@@ -129,14 +128,14 @@ export const waitForLoopbackStreams = (
     }
 
     let settled = false;
-    const subscriptions = new Subscription();
+    const subscriptions: Array<{ unsubscribe(): void }> = [];
 
     const cleanup = () => {
       if (settled) return;
       settled = true;
       clearTimeout(timeoutId);
       signal.removeEventListener('abort', onAbort);
-      subscriptions.unsubscribe();
+      subscriptions.forEach((subscription) => subscription.unsubscribe());
     };
 
     const onAbort = () => {
@@ -151,7 +150,7 @@ export const waitForLoopbackStreams = (
 
     signal.addEventListener('abort', onAbort);
 
-    subscriptions.add(
+    subscriptions.push(
       callState.localParticipant$.subscribe((participant) => {
         const ready = getLoopbackTracks(call, participant, includeVideo);
         if (ready) {

@@ -2,7 +2,7 @@ import { CallingState } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
 import { NativeModules, Platform } from 'react-native';
-import { disablePiPMode$ } from '../utils/internal/rxSubjects';
+import { setDisablePiPMode } from '../utils/internal/pipState';
 
 export function useAutoEnterPiPEffect(
   disablePictureInPicture: boolean | undefined,
@@ -25,7 +25,7 @@ export function useAutoEnterPiPEffect(
   }, [callingState, disablePictureInPicture]);
 
   useEffect(() => {
-    disablePiPMode$.next(disablePictureInPicture === true);
+    setDisablePiPMode(disablePictureInPicture === true);
 
     if (Platform.OS !== 'android') {
       return;

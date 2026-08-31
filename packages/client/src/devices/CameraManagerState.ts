@@ -1,26 +1,32 @@
-import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
-import { DeviceManagerState } from './DeviceManagerState';
+import {
+  DeviceManagerState,
+  type DeviceManagerStateShape,
+} from './DeviceManagerState';
 import { isReactNative } from '../helpers/platforms';
 import { getVideoBrowserPermission } from './devices';
-import { RxUtils } from '../store';
+import { field, type Subscribable } from '../store/subscribable';
 import { Tracer } from '../stats';
 
 export type CameraDirection = 'front' | 'back' | undefined;
 
-export class CameraManagerState extends DeviceManagerState {
-  private directionSubject = new BehaviorSubject<CameraDirection>(undefined);
+export type CameraStateShape = { direction: CameraDirection };
 
+export class CameraManagerState extends DeviceManagerState<
+  MediaTrackConstraints,
+  CameraStateShape
+> {
   /**
-   * Observable that emits the preferred camera direction
+   * The preferred camera direction
    * front - means the camera facing the user
    * back - means the camera facing the environment
    */
-  direction$ = this.directionSubject
-    .asObservable()
-    .pipe(distinctUntilChanged());
+  readonly direction$: Subscribable<CameraDirection>;
 
   constructor(tracer: Tracer | undefined) {
-    super('stop-tracks', getVideoBrowserPermission(tracer));
+    super('stop-tracks', getVideoBrowserPermission(tracer), {
+      direction: undefined,
+    });
+    this.direction$ = field(this.store, 'direction');
   }
 
   /**
@@ -29,14 +35,16 @@ export class CameraManagerState extends DeviceManagerState {
    * back - means the camera facing the environment
    */
   get direction() {
-    return RxUtils.getCurrentValue(this.direction$);
+    return this.store.getLatestValue().direction;
   }
 
   /**
    * @internal
    */
   setDirection(direction: CameraDirection) {
-    RxUtils.setCurrentValue(this.directionSubject, direction);
+    this.setState({ direction } as Partial<
+      DeviceManagerStateShape<MediaTrackConstraints> & CameraStateShape
+    >);
   }
 
   /**
