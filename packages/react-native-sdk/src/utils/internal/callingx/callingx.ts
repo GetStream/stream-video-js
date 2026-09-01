@@ -55,15 +55,24 @@ export function getCallDisplayName(
   return names.sort().join(', ');
 }
 
-function getCallDisplayNameFromCall(call: Call): string {
-  return (
+/**
+ * Args shared by the callingx call registration APIs:
+ * `(callId, phoneNumber, callerName, hasVideo)`.
+ */
+function getCallingxCallArgs(call: Call): [string, string, string, boolean] {
+  const callDisplayName =
     call.state.custom?.display_name ||
     getCallDisplayName(
       call.state.members,
       call.state.participants,
       call.currentUserId,
-    )
-  );
+    );
+  return [
+    call.cid, // unique id for call
+    call.state.createdBy?.id ?? callDisplayName, // handle for native call UI (prefer createdBy user id, fallback to call display name)
+    callDisplayName, // display name for display in call screen
+    call.state.settings?.video?.enabled ?? false, // is video call?
+  ];
 }
 
 export async function registerOutgoingCall(call: Call) {
@@ -84,13 +93,7 @@ export async function registerOutgoingCall(call: Call) {
 
   try {
     logger.debug(`registerOutgoingCall: Registering outgoing call ${call.cid}`);
-    const callDisplayName = getCallDisplayNameFromCall(call);
-    await CallingxModule.startCall(
-      call.cid, // unique id for call
-      call.state.createdBy?.id ?? callDisplayName, // handle for native call UI (prefer createdBy user id, fallback to call display name)
-      callDisplayName, // display name for display in call screen
-      call.state.settings?.video?.enabled ?? false, // is video call?
-    );
+    await CallingxModule.startCall(...getCallingxCallArgs(call));
   } catch (error) {
     logger.error(
       `registerOutgoingCall: Error registering outgoing call in callingx: ${call.cid}`,
@@ -144,22 +147,12 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
       logger.debug(
         `joinCallingxCall: Joining call ${call.cid} isIncoming: ${isIncomingCall} isOutgoing: ${isOutcomingCall}`,
       );
-      const callDisplayName = getCallDisplayNameFromCall(call);
+      const callArgs = getCallingxCallArgs(call);
       if (isIncomingCall) {
-        await CallingxModule.displayIncomingCall(
-          call.cid, // unique id for call
-          call.state.createdBy?.id ?? callDisplayName, // handle for native call UI (prefer createdBy user id, fallback to call display name)
-          callDisplayName, // display name for display in call screen
-          call.state.settings?.video?.enabled ?? false, // is video call?
-        );
+        await CallingxModule.displayIncomingCall(...callArgs);
         await CallingxModule.answerIncomingCall(call.cid);
       } else {
-        await CallingxModule.startCall(
-          call.cid, // unique id for call
-          call.state.createdBy?.id ?? callDisplayName, // handle for native call UI (prefer createdBy user id, fallback to call display name)
-          callDisplayName, // display name for display in call screen
-          call.state.settings?.video?.enabled ?? false, // is video call?
-        );
+        await CallingxModule.startCall(...callArgs);
       }
     } catch (error) {
       logger.error(
