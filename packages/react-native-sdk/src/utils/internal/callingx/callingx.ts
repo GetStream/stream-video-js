@@ -138,7 +138,7 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
     );
     for (const activeCall of activeCallsToLeave) {
       logger.debug(
-        `leaving active call ${activeCall.cid} before joining ${call.cid}`,
+        `leaving currently-active-call:${activeCall.cid} before joining the call:${call.cid}`,
       );
       await activeCall.leave({ reason: 'cancel' }).catch((e) => {
         logger.error(`failed to leave active call ${activeCall.cid}`, e);
