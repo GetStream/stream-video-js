@@ -122,44 +122,43 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
   const logger = videoLoggerSystem.getLogger('callingx');
   const isOutcomingCall = call.ringing && call.isCreatedByMe;
   const isIncomingCall = call.ringing && !call.isCreatedByMe;
+  const isOngoingCall = (c: Call) =>
+    !c.ringing && CallingxModule.isOngoingCallsEnabled;
 
-  if (
-    isIncomingCall ||
-    isOutcomingCall ||
-    (!call.ringing && CallingxModule.isOngoingCallsEnabled)
-  ) {
-    try {
-      const activeCallsToLeave = activeCalls.filter(
-        (c) =>
-          c.cid !== call.cid &&
-          (c.ringing ||
-            (!call.ringing && CallingxModule.isOngoingCallsEnabled)) &&
-          c.state.callingState !== CallingState.LEFT,
-      );
-      for (const activeCall of activeCallsToLeave) {
-        logger.debug(
-          `leaving active call ${activeCall.cid} before joining ${call.cid}`,
-        );
-        await activeCall.leave({ reason: 'cancel' }).catch((e) => {
-          logger.error(`failed to leave active call ${activeCall.cid}`, e);
-        });
-      }
+  if (!isIncomingCall && !isOutcomingCall && !isOngoingCall) {
+    return;
+  }
+
+  try {
+    const activeCallsToLeave = activeCalls.filter(
+      (c) =>
+        c.cid !== call.cid &&
+        (c.ringing || isOngoingCall(c)) &&
+        c.state.callingState !== CallingState.LEFT,
+    );
+    for (const activeCall of activeCallsToLeave) {
       logger.debug(
-        `joinCallingxCall: Joining call ${call.cid} isIncoming: ${isIncomingCall} isOutgoing: ${isOutcomingCall}`,
+        `leaving active call ${activeCall.cid} before joining ${call.cid}`,
       );
-      const callArgs = getCallingxCallArgs(call);
-      if (isIncomingCall) {
-        await CallingxModule.displayIncomingCall(...callArgs);
-        await CallingxModule.answerIncomingCall(call.cid);
-      } else {
-        await CallingxModule.startCall(...callArgs);
-      }
-    } catch (error) {
-      logger.error(
-        `startCallingxCall: Error starting call in callingx: ${call.cid} isIncoming: ${isIncomingCall} isOutgoing: ${isOutcomingCall}`,
-        error,
-      );
+      await activeCall.leave({ reason: 'cancel' }).catch((e) => {
+        logger.error(`failed to leave active call ${activeCall.cid}`, e);
+      });
     }
+    logger.debug(
+      `joinCallingxCall: Joining call ${call.cid} isIncoming: ${isIncomingCall} isOutgoing: ${isOutcomingCall}`,
+    );
+    const callArgs = getCallingxCallArgs(call);
+    if (isIncomingCall) {
+      await CallingxModule.displayIncomingCall(...callArgs);
+      await CallingxModule.answerIncomingCall(call.cid);
+    } else {
+      await CallingxModule.startCall(...callArgs);
+    }
+  } catch (error) {
+    logger.error(
+      `startCallingxCall: Error starting call in callingx: ${call.cid} isIncoming: ${isIncomingCall} isOutgoing: ${isOutcomingCall}`,
+      error,
+    );
   }
 }
 
