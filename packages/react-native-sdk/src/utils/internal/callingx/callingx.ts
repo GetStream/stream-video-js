@@ -123,7 +123,9 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
   const isOutcomingCall = call.ringing && call.isCreatedByMe;
   const isIncomingCall = call.ringing && !call.isCreatedByMe;
   const isOngoingCall = (c: Call) =>
-    !c.ringing && CallingxModule.isOngoingCallsEnabled;
+    !c.ringing &&
+    CallingxModule.isOngoingCallsEnabled &&
+    !c.isOwnTracksLoopbackAllowed;
 
   if (!isIncomingCall && !isOutcomingCall && !isOngoingCall(call)) {
     return;
