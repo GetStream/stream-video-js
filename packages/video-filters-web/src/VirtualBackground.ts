@@ -1,5 +1,6 @@
 import {
   BACKGROUND_BLUR_MAP,
+  BackgroundEffectOptions,
   BackgroundOptions,
   SegmenterOptions,
   VideoTrackProcessorHooks,
@@ -27,10 +28,20 @@ export class VirtualBackground extends BaseVideoProcessor {
 
   constructor(
     track: MediaStreamVideoTrack,
-    private readonly options: BackgroundOptions = {},
+    private options: BackgroundOptions = {},
     hooks: VideoTrackProcessorHooks = {},
   ) {
     super(track, hooks);
+  }
+
+  async updateOptions(options: BackgroundEffectOptions): Promise<void> {
+    const { basePath, modelPath } = this.options;
+    const next = { basePath, modelPath, ...options };
+    this.options = next;
+    const opts = await this.initializeSegmenterOptions();
+    if (this.options === next) {
+      this.opts = opts;
+    }
   }
 
   protected async initialize(): Promise<void> {
@@ -146,6 +157,10 @@ export class VirtualBackground extends BaseVideoProcessor {
 
   private async loadBackground(url?: string) {
     if (!url) return null;
+
+    const current = this.opts?.backgroundSource;
+    if (current?.url === url) return current;
+
     const result = await fetch(url, { signal: this.abortController.signal });
     if (!result.ok) {
       throw new Error(
