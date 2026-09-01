@@ -575,10 +575,7 @@ export class Call {
     const created_by_id = this.state.createdBy?.id;
 
     if (this.currentUserId && created_by_id === this.currentUserId) {
-      globalThis.streamRNVideoSDK?.callingX?.registerOutgoingCall(
-        this,
-        this.clientStore.calls,
-      );
+      globalThis.streamRNVideoSDK?.callingX?.registerOutgoingCall(this);
     }
     const rejected_by = callSession?.rejected_by;
     const accepted_by = callSession?.accepted_by;

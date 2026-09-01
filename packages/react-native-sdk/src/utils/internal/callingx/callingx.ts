@@ -75,37 +75,7 @@ function getCallingxCallArgs(call: Call): [string, string, string, boolean] {
   ];
 }
 
-/**
- * Non-ringing calls are only registered in the callingx library
- * when ongoing calls are enabled.
- */
-function isOngoingCall(call: Call): boolean {
-  return !call.ringing && !!CallingxModule?.isOngoingCallsEnabled;
-}
-
-/**
- * Leaves the other calls that are registered in the callingx library before the
- * given call gets registered, so that only one call is registered at a time.
- */
-async function leaveOtherActiveCalls(call: Call, activeCalls: Call[]) {
-  const logger = videoLoggerSystem.getLogger('callingx');
-  const activeCallsToLeave = activeCalls.filter(
-    (c) =>
-      c.cid !== call.cid &&
-      (c.ringing || isOngoingCall(c)) &&
-      c.state.callingState !== CallingState.LEFT,
-  );
-  for (const activeCall of activeCallsToLeave) {
-    logger.debug(
-      `leaving currently-active-call:${activeCall.cid} before registering the call:${call.cid}`,
-    );
-    await activeCall.leave({ reason: 'cancel' }).catch((e) => {
-      logger.error(`failed to leave active call ${activeCall.cid}`, e);
-    });
-  }
-}
-
-export async function registerOutgoingCall(call: Call, activeCalls: Call[]) {
+export async function registerOutgoingCall(call: Call) {
   if (
     !CallingxModule ||
     !CallingxModule.isSetup ||
@@ -123,7 +93,6 @@ export async function registerOutgoingCall(call: Call, activeCalls: Call[]) {
 
   try {
     logger.debug(`registerOutgoingCall: Registering outgoing call ${call.cid}`);
-    await leaveOtherActiveCalls(call, activeCalls);
     await CallingxModule.startCall(...getCallingxCallArgs(call));
   } catch (error) {
     logger.error(
@@ -153,13 +122,28 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
   const logger = videoLoggerSystem.getLogger('callingx');
   const isOutcomingCall = call.ringing && call.isCreatedByMe;
   const isIncomingCall = call.ringing && !call.isCreatedByMe;
+  const isOngoingCall = (c: Call) =>
+    !c.ringing && CallingxModule.isOngoingCallsEnabled;
 
-  if (!isIncomingCall && !isOutcomingCall && !isOngoingCall(call)) {
+  if (!isIncomingCall && !isOutcomingCall && !isOngoingCall) {
     return;
   }
 
   try {
-    await leaveOtherActiveCalls(call, activeCalls);
+    const activeCallsToLeave = activeCalls.filter(
+      (c) =>
+        c.cid !== call.cid &&
+        (c.ringing || isOngoingCall(c)) &&
+        c.state.callingState !== CallingState.LEFT,
+    );
+    for (const activeCall of activeCallsToLeave) {
+      logger.debug(
+        `leaving currently-active-call:${activeCall.cid} before joining the call:${call.cid}`,
+      );
+      await activeCall.leave({ reason: 'cancel' }).catch((e) => {
+        logger.error(`failed to leave active call ${activeCall.cid}`, e);
+      });
+    }
     logger.debug(
       `joinCallingxCall: Joining call ${call.cid} isIncoming: ${isIncomingCall} isOutgoing: ${isOutcomingCall}`,
     );

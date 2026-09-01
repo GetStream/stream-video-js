@@ -463,7 +463,7 @@ type StreamRNVideoSDKCallingX = {
     call: Call,
     reason?: StreamRNVideoSDKEndCallReason,
   ) => Promise<void>;
-  registerOutgoingCall: (call: Call, activeCalls: Call[]) => Promise<void>;
+  registerOutgoingCall: (call: Call) => Promise<void>;
   wireAudioEngineSubscription: () => void;
   unwireAudioEngineSubscription: () => void;
 };
