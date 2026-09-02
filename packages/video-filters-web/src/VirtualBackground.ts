@@ -36,11 +36,24 @@ export class VirtualBackground extends BaseVideoProcessor {
 
   async updateOptions(options: BackgroundEffectOptions): Promise<void> {
     const { basePath, modelPath } = this.options;
+    const previous = this.options;
     const next = { basePath, modelPath, ...options };
     this.options = next;
-    const opts = await this.initializeSegmenterOptions();
-    if (this.options === next) {
-      this.opts = opts;
+    try {
+      const opts = await this.initializeSegmenterOptions();
+      if (this.options === next) {
+        const previousMedia = this.opts?.backgroundSource?.media;
+        this.opts = opts;
+        if (
+          previousMedia instanceof ImageBitmap &&
+          previousMedia !== opts.backgroundSource?.media
+        ) {
+          previousMedia.close();
+        }
+      }
+    } catch (error) {
+      if (this.options === next) this.options = previous;
+      throw error;
     }
   }
 
