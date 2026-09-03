@@ -10,6 +10,7 @@ import { TokenManager } from './token_manager';
 import {
   addConnectionEventListeners,
   generateUUIDv4,
+  invokeEventListener,
   isErrorResponse,
   KnownCodes,
   removeConnectionEventListeners,
@@ -589,12 +590,12 @@ export class StreamClient {
 
     // call generic listeners
     for (const listener of this.listeners.all || []) {
-      listener(event);
+      invokeEventListener(listener, event, this.logger);
     }
 
     // call type specific listeners
     for (const listener of this.listeners[event.type] || []) {
-      listener(event);
+      invokeEventListener(listener, event, this.logger);
     }
   };
 
