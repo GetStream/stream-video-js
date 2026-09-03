@@ -290,8 +290,7 @@ class CallService : Service(), CallRepository.Listener {
         // tracked id makes rejectCallWhenBusy skip later pushes, and a left-behind action would
         // be replayed against a future call with the same id.
         (callRepository.calls.value.keys + registeringCallIds).forEach { callId ->
-            CallRegistrationStore.removeTrackedCall(callId)
-            CallRegistrationStore.takePendingActions(callId) // discarded: only the removal matters
+            CallRegistrationStore.discardCallState(callId)
         }
 
         callRepository.release()
@@ -631,7 +630,7 @@ class CallService : Service(), CallRepository.Listener {
      * - `hasAnyCalls` — registered in the repository.
      * - `registeringCallIds` — this instance launched a registration that has not landed yet.
      *   Registration spends up to 1.5s resolving Telecom endpoints before the repository sees it.
-     * - `hasActiveTask` — JS still holds a keep-alive owner; stopping would end its task early.
+     * - `ownsTaskSlot` — JS still holds a keep-alive owner; stopping would end its task early.
      * - [stopSelfResult] — a newer start is already queued. ActivityManager bumps its last start id
      *   when `startService` is called, before we see the intent.
      *
@@ -641,11 +640,11 @@ class CallService : Service(), CallRepository.Listener {
     private fun stopServiceIfIdle(startId: Int) {
         if (callRepository.hasAnyCalls() ||
                         registeringCallIds.isNotEmpty() ||
-                        headlessJSManager.hasActiveTask()
+                        headlessJSManager.ownsTaskSlot()
         ) {
             debugLog(
                     TAG,
-                    "[service] stopServiceIfIdle: Still in use (registering=$registeringCallIds, activeTask=${headlessJSManager.hasActiveTask()}), keeping service alive"
+                    "[service] stopServiceIfIdle: Still in use (registering=$registeringCallIds, taskSlot=${headlessJSManager.ownsTaskSlot()}), keeping service alive"
             )
             return
         }

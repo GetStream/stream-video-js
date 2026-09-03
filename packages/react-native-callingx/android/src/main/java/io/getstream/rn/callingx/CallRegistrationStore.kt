@@ -137,13 +137,20 @@ object CallRegistrationStore {
         synchronized(list) { return list.toList() }
     }
 
+    /** Forgets a call entirely: it is gone, so neither its id nor its queued actions can apply. */
+    fun discardCallState(callId: String) {
+        debugLog(TAG, "[store] discardCallState: Discarding all state for callId: $callId")
+        trackedCallIds.remove(callId)
+        pendingActionsByCallId.remove(callId)
+    }
+
     /**
      * Drops the JS-coupled state only: the promises and their timeouts belong to a React context
      * that is going away, so nothing can resolve them.
      *
      * [trackedCallIds] and [pendingActionsByCallId] are deliberately kept. They describe native
-     * calls, which outlive a JS teardown — a call still resolving its Telecom endpoints has its
-     * tracked id as its only protection against the service being stopped underneath it.
+     * calls, which outlive a JS teardown: a tracked id still makes `rejectCallWhenBusy` reject
+     * later pushes, and a queued action still has to be replayed once the call registers.
      */
     fun clearPendingPromises() {
         synchronized(pendingPromises) {

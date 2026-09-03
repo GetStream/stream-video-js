@@ -74,11 +74,11 @@ class HeadlessTaskManager(
   }
 
   /**
-   * True while we own the task slot. The service treats this as a reason to stay alive, so a task
-   * abandoned by a context reload must not pin it — but a start that has been requested and not
-   * yet acknowledged must, since its id does not exist yet.
+   * True while we own the task slot, whether or not the task has an id yet. The service treats this
+   * as a reason to stay alive, so a task abandoned by a context reload must not pin it — but a start
+   * that has been requested and not yet acknowledged must, since its id does not exist yet.
    */
-  fun hasActiveTask(): Boolean = synchronized(stateLock) {
+  fun ownsTaskSlot(): Boolean = synchronized(stateLock) {
     state is TaskState.Starting || liveTaskId() != null
   }
 
