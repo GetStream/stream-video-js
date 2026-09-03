@@ -4,7 +4,6 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BlockedAudioTracker } from '../BlockedAudioTracker';
-import { getCurrentValue } from '../../store/rxUtils';
 import type { Tracer } from '../../stats';
 
 const createTracer = () =>
@@ -35,9 +34,9 @@ describe('BlockedAudioTracker', () => {
   });
 
   it('emits autoplayBlocked$ true after markBlocked(el, true)', () => {
-    expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(false);
+    expect(tracker.autoplayBlocked$.getValue()).toBe(false);
     tracker.markBlocked(createAudioElement(), true);
-    expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(true);
+    expect(tracker.autoplayBlocked$.getValue()).toBe(true);
   });
 
   it('emits autoplayBlocked$ false after the last element is unmarked', () => {
@@ -45,13 +44,13 @@ describe('BlockedAudioTracker', () => {
     const el2 = createAudioElement();
     tracker.markBlocked(el1, true);
     tracker.markBlocked(el2, true);
-    expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(true);
+    expect(tracker.autoplayBlocked$.getValue()).toBe(true);
 
     tracker.markBlocked(el1, false);
-    expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(true);
+    expect(tracker.autoplayBlocked$.getValue()).toBe(true);
 
     tracker.markBlocked(el2, false);
-    expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(false);
+    expect(tracker.autoplayBlocked$.getValue()).toBe(false);
   });
 
   it('is idempotent: marking the same element twice keeps a single entry', () => {
@@ -59,7 +58,7 @@ describe('BlockedAudioTracker', () => {
     tracker.markBlocked(el, true);
     tracker.markBlocked(el, true);
     tracker.markBlocked(el, false);
-    expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(false);
+    expect(tracker.autoplayBlocked$.getValue()).toBe(false);
   });
 
   it('emits blocked participant session ids', () => {
@@ -69,16 +68,14 @@ describe('BlockedAudioTracker', () => {
     tracker.markBlocked(el1, true, 'session-id-1');
     tracker.markBlocked(el2, true, 'session-id-2');
 
-    expect(getCurrentValue(tracker.blockedSessionIds$)).toEqual([
+    expect(tracker.blockedSessionIds$.getValue()).toEqual([
       'session-id-1',
       'session-id-2',
     ]);
 
     tracker.markBlocked(el1, false);
 
-    expect(getCurrentValue(tracker.blockedSessionIds$)).toEqual([
-      'session-id-2',
-    ]);
+    expect(tracker.blockedSessionIds$.getValue()).toEqual(['session-id-2']);
   });
 
   it(`doesn't emit when blocked participant session ids don't change`, () => {
@@ -119,7 +116,7 @@ describe('BlockedAudioTracker', () => {
 
     expect(play1).toHaveBeenCalled();
     expect(play2).toHaveBeenCalled();
-    expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(false);
+    expect(tracker.autoplayBlocked$.getValue()).toBe(false);
   });
 
   it('resumeAudio keeps elements whose play() still rejects', async () => {
@@ -135,13 +132,13 @@ describe('BlockedAudioTracker', () => {
 
     await tracker.resumeAudio();
 
-    expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(true);
+    expect(tracker.autoplayBlocked$.getValue()).toBe(true);
 
     // Resuming again with the now-cooperative element should clear the flag.
     vi.spyOn(stillBlocked, 'play').mockResolvedValue();
     await tracker.resumeAudio();
 
-    expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(false);
+    expect(tracker.autoplayBlocked$.getValue()).toBe(false);
   });
 
   it('resumeAudio drops elements without srcObject without calling play()', async () => {
@@ -152,11 +149,35 @@ describe('BlockedAudioTracker', () => {
     await tracker.resumeAudio();
 
     expect(play).not.toHaveBeenCalled();
-    expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(false);
+    expect(tracker.autoplayBlocked$.getValue()).toBe(false);
   });
 
   it('traces resumeAudio', async () => {
     await tracker.resumeAudio();
     expect(tracer.trace).toHaveBeenCalledWith('resumeAudio', null);
+  });
+
+  it('keeps elements blocked while resumeAudio is in flight', async () => {
+    // A participant's audio can fail to play while an earlier resume is still
+    // awaiting play(); that element must not be dropped from tracking.
+    const first = createAudioElement();
+    const late = createAudioElement();
+    let releasePlay: () => void = () => {};
+    vi.spyOn(first, 'play').mockImplementation(
+      () => new Promise<void>((resolve) => (releasePlay = resolve)),
+    );
+
+    tracker.markBlocked(first, true, 'session-1');
+    const resuming = tracker.resumeAudio();
+
+    // a second element gets blocked while play() is still pending
+    tracker.markBlocked(late, true, 'session-2');
+
+    releasePlay();
+    await resuming;
+
+    expect(tracker.isBlocked(late)).toBe(true);
+    expect(tracker.isBlocked(first)).toBe(false);
+    expect(tracker.autoplayBlocked$.getValue()).toBe(true);
   });
 });

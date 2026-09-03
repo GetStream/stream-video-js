@@ -5,20 +5,12 @@ import {
   VisibilityState,
 } from '../types';
 import { VideoDimension } from '../gen/video/sfu/models/models';
-import {
-  combineLatest,
-  distinctUntilChanged,
-  distinctUntilKeyChanged,
-  map,
-  shareReplay,
-  takeWhile,
-} from 'rxjs';
 import type { BlockedAudioTracker } from './BlockedAudioTracker';
 import { MediaPlaybackWatchdog } from './MediaPlaybackWatchdog';
 import type { TrackSubscriptionManager } from './TrackSubscriptionManager';
 import { isFirefox, isSafari } from './browsers';
 import { hasScreenShare, hasVideo } from './participantUtils';
-import { CallState } from '../store';
+import { CallState, type CallStateShape } from '../store';
 import { SpeakerManager } from '../devices';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
@@ -107,6 +99,10 @@ export class DynascaleManager {
       this.callState.findParticipantBySessionId(sessionId);
     if (!boundParticipant) return;
 
+    const { isLocalParticipant } = boundParticipant;
+    const isVideoTrack = trackType === 'videoTrack';
+    const trackKey = isVideoTrack ? 'videoStream' : 'screenShareStream';
+
     const requestTrackWithDimensions = (
       debounceType: DebounceType,
       dimension: VideoDimension | undefined,
@@ -125,60 +121,101 @@ export class DynascaleManager {
       this.trackSubscriptionManager.apply(debounceType);
     };
 
-    const participant$ = this.callState.participants$.pipe(
-      map((ps) => ps.find((p) => p.sessionId === sessionId)),
-      takeWhile((participant) => !!participant),
-      distinctUntilChanged(),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
+    const elementDimensions = (): VideoDimension => ({
+      width: videoElement.clientWidth,
+      height: videoElement.clientHeight,
+    });
 
-    /**
-     * Since the video elements are now being removed from the DOM (React SDK) upon
-     * visibility change, this subscription is not in use an stays here only for the
-     * plain JS integrations where integrators might choose not to remove the video
-     * elements from the DOM.
-     */
-    // keep copy for resize observer handler
+    const attachStream = (source: MediaStream | undefined) => {
+      videoElement.srcObject = source ?? null;
+      if (!isSafari() && !isFirefox()) return;
+      setTimeout(async () => {
+        videoElement.srcObject = source ?? null;
+        try {
+          await timeboxed([videoElement.play()], 2000);
+        } catch (e) {
+          this.logger.warn(`Failed to play stream`, e);
+        }
+      }, 25);
+    };
+
+    // What we last acted on. Comparing against these is the job a deduplicating
+    // stream per concern used to do; keeping them here lets the whole binding
+    // run off a single store subscription instead of one per concern.
+    //
+    // Assigning before acting also matters: `requestTrackWithDimensions` writes
+    // to the call state, which re-enters this handler synchronously. The
+    // comparisons are what stop that recursing.
+    let stream: MediaStream | undefined;
+    let isPublishing: boolean | undefined;
     let viewportVisibilityState: VisibilityState | undefined;
-    const viewportVisibilityStateSubscription =
-      boundParticipant.isLocalParticipant
-        ? null
-        : participant$
-            .pipe(
-              map((p) => p.viewportVisibilityState?.[trackType]),
-              distinctUntilChanged(),
-            )
-            .subscribe((nextViewportVisibilityState) => {
-              // skip initial trigger
-              if (!viewportVisibilityState) {
-                viewportVisibilityState =
-                  nextViewportVisibilityState ?? VisibilityState.UNKNOWN;
-                return;
-              }
-              viewportVisibilityState =
-                nextViewportVisibilityState ?? VisibilityState.UNKNOWN;
 
-              if (nextViewportVisibilityState === VisibilityState.INVISIBLE) {
-                return requestTrackWithDimensions(
-                  DebounceType.MEDIUM,
-                  undefined,
-                );
-              }
+    // Every bound element subscribes to the whole store, so an unrelated write
+    // (a stats report, a closed caption) would otherwise wake all of them. The
+    // index only changes when the participant list does, which is the only
+    // thing this binding reacts to.
+    let lastIndex: CallStateShape['participantsBySessionId'] | undefined;
 
-              requestTrackWithDimensions(DebounceType.MEDIUM, {
-                width: videoElement.clientWidth,
-                height: videoElement.clientHeight,
-              });
-            });
+    const onCallStateChange = (state: CallStateShape) => {
+      if (state.participantsBySessionId === lastIndex) return;
+      lastIndex = state.participantsBySessionId;
+      // constant-time lookup; the index is maintained by the call state, so
+      // binding many elements does not turn each update into a full array scan
+      const participant = state.participantsBySessionId[sessionId];
+      // the participant left - the caller unbinds us
+      if (!participant) return;
+
+      const nextStream = participant[trackKey];
+      if (nextStream !== stream) {
+        stream = nextStream;
+        attachStream(nextStream);
+      }
+
+      // the rest is bandwidth management, which does not apply to our own video
+      if (isLocalParticipant) return;
+
+      const nextIsPublishing = isVideoTrack
+        ? hasVideo(participant)
+        : hasScreenShare(participant);
+      if (nextIsPublishing !== isPublishing) {
+        isPublishing = nextIsPublishing;
+        if (nextIsPublishing) {
+          // the participant just started to publish a track
+          requestTrackWithDimensions(
+            DebounceType.IMMEDIATE,
+            elementDimensions(),
+          );
+        } else {
+          // the participant just stopped publishing a track
+          requestTrackWithDimensions(DebounceType.FAST, undefined);
+        }
+      }
+
+      // Visibility only matters for plain-JS integrations: the React SDK
+      // removes the element from the DOM on visibility change, which unbinds
+      // it before this can fire.
+      const nextVisibility =
+        participant.viewportVisibilityState?.[trackType] ??
+        VisibilityState.UNKNOWN;
+      if (nextVisibility !== viewportVisibilityState) {
+        const isInitialValue = viewportVisibilityState === undefined;
+        viewportVisibilityState = nextVisibility;
+        if (!isInitialValue) {
+          requestTrackWithDimensions(
+            DebounceType.MEDIUM,
+            nextVisibility === VisibilityState.INVISIBLE
+              ? undefined
+              : elementDimensions(),
+          );
+        }
+      }
+    };
 
     let lastDimensions: VideoDimension | undefined;
-    const resizeObserver = boundParticipant.isLocalParticipant
+    const resizeObserver = isLocalParticipant
       ? null
       : new ResizeObserver(() => {
-          const currentDimensions = {
-            width: videoElement.clientWidth,
-            height: videoElement.clientHeight,
-          };
+          const currentDimensions = elementDimensions();
 
           // skip initial trigger
           if (!lastDimensions) {
@@ -204,37 +241,10 @@ export class DynascaleManager {
           // resize events.
           const debounceType =
             relativeDelta > 1.2 ? DebounceType.IMMEDIATE : DebounceType.MEDIUM;
-          requestTrackWithDimensions(debounceType, {
-            width: videoElement.clientWidth,
-            height: videoElement.clientHeight,
-          });
+          requestTrackWithDimensions(debounceType, currentDimensions);
           lastDimensions = currentDimensions;
         });
     resizeObserver?.observe(videoElement);
-
-    const isVideoTrack = trackType === 'videoTrack';
-    // element renders and gets bound - track subscription gets
-    // triggered first other ones get skipped on initial subscriptions
-    const publishedTracksSubscription = boundParticipant.isLocalParticipant
-      ? null
-      : participant$
-          .pipe(
-            distinctUntilKeyChanged('publishedTracks'),
-            map((p) => (isVideoTrack ? hasVideo(p) : hasScreenShare(p))),
-            distinctUntilChanged(),
-          )
-          .subscribe((isPublishing) => {
-            if (isPublishing) {
-              // the participant just started to publish a track
-              requestTrackWithDimensions(DebounceType.IMMEDIATE, {
-                width: videoElement.clientWidth,
-                height: videoElement.clientHeight,
-              });
-            } else {
-              // the participant just stopped publishing a track
-              requestTrackWithDimensions(DebounceType.FAST, undefined);
-            }
-          });
 
     videoElement.autoplay = true;
     videoElement.playsInline = true;
@@ -250,30 +260,11 @@ export class DynascaleManager {
       tracer: this.tracer,
     });
 
-    const trackKey = isVideoTrack ? 'videoStream' : 'screenShareStream';
-    const streamSubscription = participant$
-      .pipe(distinctUntilKeyChanged(trackKey))
-      .subscribe((p) => {
-        const source = isVideoTrack ? p.videoStream : p.screenShareStream;
-        if (videoElement.srcObject === source) return;
-        videoElement.srcObject = source ?? null;
-        if (isSafari() || isFirefox()) {
-          setTimeout(async () => {
-            videoElement.srcObject = source ?? null;
-            try {
-              await timeboxed([videoElement.play()], 2000);
-            } catch (e) {
-              this.logger.warn(`Failed to play stream`, e);
-            }
-          }, 25);
-        }
-      });
+    const unsubscribe = this.callState.store.subscribe(onCallStateChange);
 
     return () => {
       requestTrackWithDimensions(DebounceType.FAST, undefined);
-      viewportVisibilityStateSubscription?.unsubscribe();
-      publishedTracksSubscription?.unsubscribe();
-      streamSubscription.unsubscribe();
+      unsubscribe();
       resizeObserver?.disconnect();
       playbackWatchdog.dispose();
     };
@@ -295,15 +286,14 @@ export class DynascaleManager {
     sessionId: string,
     trackType: AudioTrackType,
   ) => {
-    const participant = this.callState.findParticipantBySessionId(sessionId);
-    if (!participant || participant.isLocalParticipant) return;
+    // a snapshot, used only to decide whether this element is worth binding;
+    // everything below re-reads the participant from the store
+    const boundParticipant =
+      this.callState.findParticipantBySessionId(sessionId);
+    if (!boundParticipant || boundParticipant.isLocalParticipant) return;
 
-    const participant$ = this.callState.participants$.pipe(
-      map((ps) => ps.find((p) => p.sessionId === sessionId)),
-      takeWhile((p) => !!p),
-      distinctUntilChanged(),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
+    const isAudioTrack = trackType === 'audioTrack';
+    const trackKey = isAudioTrack ? 'audioStream' : 'screenShareAudioStream';
 
     const updateSinkId = (
       deviceId: string,
@@ -334,92 +324,122 @@ export class DynascaleManager {
     };
     audioElement.addEventListener('playing', clearBlockedAudio);
 
-    const isAudioTrack = trackType === 'audioTrack';
-    const trackKey = isAudioTrack ? 'audioStream' : 'screenShareAudioStream';
-    const updateMediaStreamSubscription = participant$
-      .pipe(distinctUntilKeyChanged(trackKey))
-      .subscribe((p) => {
-        const source = isAudioTrack ? p.audioStream : p.screenShareAudioStream;
-        if (audioElement.srcObject === source) return;
+    const attachStream = (source: MediaStream | undefined) => {
+      setTimeout(() => {
+        audioElement.srcObject = source ?? null;
+        audioWatchdog?.dispose();
+        audioWatchdog = undefined;
+        if (!source) {
+          clearBlockedAudio();
+          return;
+        }
 
-        setTimeout(() => {
-          audioElement.srcObject = source ?? null;
-          audioWatchdog?.dispose();
-          audioWatchdog = undefined;
-          if (!source) {
-            clearBlockedAudio();
-            return;
-          }
+        // Safari has a special quirk that prevents playing audio until the user
+        // interacts with the page or focuses on the tab where the call happens.
+        // This is a workaround for the issue where:
+        // - A and B are in a call
+        // - A switches to another tab
+        // - B mutes their microphone and unmutes it
+        // - A does not hear B's unmuted audio until they focus the tab
+        const audioContext = this.getOrCreateAudioContext();
+        if (audioContext) {
+          // we will play audio through the audio context in Safari
+          audioElement.muted = true;
+          sourceNode?.disconnect();
+          sourceNode = audioContext.createMediaStreamSource(source);
+          gainNode ??= audioContext.createGain();
+          gainNode.gain.value = currentVolume();
+          sourceNode.connect(gainNode).connect(audioContext.destination);
+          this.resumeAudioContext();
+        } else {
+          // we will play audio directly through the audio element in other browsers
+          audioElement.muted = false;
+          audioElement.play().catch((e) => {
+            this.tracer.trace('audioPlaybackError', e.message);
+            if (e.name === 'NotAllowedError') {
+              this.tracer.trace('audioPlaybackBlocked', null);
+              this.blockedAudioTracker.markBlocked(
+                audioElement,
+                true,
+                sessionId,
+              );
+            }
+            this.logger.warn(`Failed to play audio stream`, e);
+          });
+          audioWatchdog = new MediaPlaybackWatchdog({
+            element: audioElement,
+            kind: 'audio',
+            tracer: this.tracer,
+            isBlocked: () => this.blockedAudioTracker.isBlocked(audioElement),
+          });
+        }
 
-          // Safari has a special quirk that prevents playing audio until the user
-          // interacts with the page or focuses on the tab where the call happens.
-          // This is a workaround for the issue where:
-          // - A and B are in a call
-          // - A switches to another tab
-          // - B mutes their microphone and unmutes it
-          // - A does not hear B's unmuted audio until they focus the tab
-          const audioContext = this.getOrCreateAudioContext();
-          if (audioContext) {
-            // we will play audio through the audio context in Safari
-            audioElement.muted = true;
-            sourceNode?.disconnect();
-            sourceNode = audioContext.createMediaStreamSource(source);
-            gainNode ??= audioContext.createGain();
-            gainNode.gain.value = p.audioVolume ?? this.speaker.state.volume;
-            sourceNode.connect(gainNode).connect(audioContext.destination);
-            this.resumeAudioContext();
-          } else {
-            // we will play audio directly through the audio element in other browsers
-            audioElement.muted = false;
-            audioElement.play().catch((e) => {
-              this.tracer.trace('audioPlaybackError', e.message);
-              if (e.name === 'NotAllowedError') {
-                this.tracer.trace('audioPlaybackBlocked', null);
-                this.blockedAudioTracker.markBlocked(
-                  audioElement,
-                  true,
-                  sessionId,
-                );
-              }
-              this.logger.warn(`Failed to play audio stream`, e);
-            });
-            audioWatchdog = new MediaPlaybackWatchdog({
-              element: audioElement,
-              kind: 'audio',
-              tracer: this.tracer,
-              isBlocked: () => this.blockedAudioTracker.isBlocked(audioElement),
-            });
-          }
-
-          const { selectedDevice } = this.speaker.state;
-          if (selectedDevice) updateSinkId(selectedDevice, audioContext);
-        });
+        const { selectedDevice } = this.speaker.state;
+        if (selectedDevice) updateSinkId(selectedDevice, audioContext);
       });
+    };
 
-    const sinkIdSubscription = !('setSinkId' in audioElement)
-      ? null
-      : this.speaker.state.selectedDevice$.subscribe((deviceId) => {
-          const audioContext = this.getOrCreateAudioContext();
-          updateSinkId(deviceId, audioContext);
-        });
+    // A per-participant override wins over the speaker-wide volume. Both live
+    // in stores, so this reads them directly rather than combining two sources
+    // into a third.
+    //
+    // Note this re-reads the participant rather than closing over the one
+    // captured above: that one is a snapshot taken when the element was bound,
+    // and `audioVolume` changes over the life of the call.
+    const currentVolume = () => {
+      const { participantsBySessionId } = this.callState.store.getLatestValue();
+      return (
+        participantsBySessionId[sessionId]?.audioVolume ??
+        this.speaker.state.volume
+      );
+    };
 
-    const volumeSubscription = combineLatest([
-      this.speaker.state.volume$,
-      participant$.pipe(distinctUntilKeyChanged('audioVolume')),
-    ]).subscribe(([volume, p]) => {
-      const participantVolume = p.audioVolume ?? volume;
-      audioElement.volume = participantVolume;
-      if (gainNode) gainNode.gain.value = participantVolume;
+    // What we last acted on - see the note in `bindVideoElement`.
+    let stream: MediaStream | undefined;
+    let appliedVolume: number | undefined;
+    let appliedSinkId: string | undefined;
+
+    const applyVolume = () => {
+      const volume = currentVolume();
+      if (volume === appliedVolume) return;
+      appliedVolume = volume;
+      audioElement.volume = volume;
+      if (gainNode) gainNode.gain.value = volume;
+    };
+
+    // see the note in `bindVideoElement`: skip wakes that cannot have moved a
+    // participant, since every bound element sees every store write
+    let lastIndex: CallStateShape['participantsBySessionId'] | undefined;
+    const unsubscribeCallState = this.callState.store.subscribe((state) => {
+      if (state.participantsBySessionId === lastIndex) return;
+      lastIndex = state.participantsBySessionId;
+      const participant = state.participantsBySessionId[sessionId];
+      const nextStream = participant?.[trackKey];
+      if (nextStream !== stream) {
+        stream = nextStream;
+        attachStream(nextStream);
+      }
+      applyVolume();
     });
+
+    const canSetSinkId = 'setSinkId' in audioElement;
+    const unsubscribeSpeaker = this.speaker.state.store.subscribe(
+      ({ selectedDevice }) => {
+        if (canSetSinkId && selectedDevice !== appliedSinkId) {
+          appliedSinkId = selectedDevice;
+          updateSinkId(selectedDevice, this.getOrCreateAudioContext());
+        }
+        applyVolume();
+      },
+    );
 
     audioElement.autoplay = true;
 
     return () => {
       audioElement.removeEventListener('playing', clearBlockedAudio);
       clearBlockedAudio();
-      sinkIdSubscription?.unsubscribe();
-      volumeSubscription.unsubscribe();
-      updateMediaStreamSubscription.unsubscribe();
+      unsubscribeCallState();
+      unsubscribeSpeaker();
       audioElement.srcObject = null;
       sourceNode?.disconnect();
       gainNode?.disconnect();

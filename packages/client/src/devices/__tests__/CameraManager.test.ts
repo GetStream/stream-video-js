@@ -13,11 +13,12 @@ import {
   mockDeviceIds$,
   mockVideoDevices,
   mockVideoStream,
+  resetMockBrowserPermission,
+  setMockBrowserPermissionState,
 } from './mocks';
 import { createVideoStreamForDevice } from './mediaStreamTestHelpers';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { CameraManager } from '../CameraManager';
-import { of } from 'rxjs';
 import { PermissionsContext } from '../../permissions';
 import { Tracer } from '../../stats';
 import {
@@ -33,16 +34,17 @@ const getVideoStream = vi.hoisted(() =>
   ),
 );
 
-vi.mock('../devices.ts', () => {
+vi.mock('../devices.ts', async () => {
+  const { constant } = await import('../../store/__tests__/testSubscribable');
   console.log('MOCKING devices API');
   return {
     disposeOfMediaStream: vi.fn(),
-    getVideoDevices: vi.fn(() => {
-      return of(mockVideoDevices);
-    }),
+    getVideoDevices: vi.fn(() => constant(mockVideoDevices)),
+    loadVideoDevices: vi.fn(async () => mockVideoDevices),
     getVideoStream,
     getAudioBrowserPermission: () => mockBrowserPermission,
     getVideoBrowserPermission: () => mockBrowserPermission,
+    canEnumerateDevices: () => true,
     deviceIds$: mockDeviceIds$(),
     resolveDeviceId: (deviceId) => deviceId,
   };
@@ -82,6 +84,7 @@ describe('CameraManager', () => {
   let call: Call;
 
   beforeEach(() => {
+    resetMockBrowserPermission('granted');
     const devicePersistence = { enabled: false, storageKey: '' };
     const streamClient = new StreamClient('abc123', { devicePersistence });
     call = new Call({
@@ -336,9 +339,6 @@ describe('CameraManager', () => {
     });
 
     it('should skip defaults when preferences are applied', async () => {
-      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
-        of('granted'),
-      );
       const devicePersistence = { enabled: true, storageKey: '' };
       const persistedManager = new CameraManager(call, devicePersistence);
       const applySpy = vi
@@ -363,9 +363,7 @@ describe('CameraManager', () => {
     });
 
     it('should apply persisted device preferences without enabling when forced disabled', async () => {
-      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
-        of('granted'),
-      );
+      setMockBrowserPermissionState('granted');
       const devicePersistence = { enabled: true, storageKey: '' };
       const persistedManager = new CameraManager(call, devicePersistence);
       const applySpy = vi
@@ -389,9 +387,7 @@ describe('CameraManager', () => {
     });
 
     it('should skip persisted preferences when permission is not granted', async () => {
-      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
-        of('prompt'),
-      );
+      setMockBrowserPermissionState('prompt');
       const devicePersistence = { enabled: true, storageKey: '' };
       const persistedManager = new CameraManager(call, devicePersistence);
       const applySpy = vi.spyOn(
@@ -530,9 +526,7 @@ describe('CameraManager', () => {
           createVideoStreamForDevice(selectedDevice.deviceId),
         );
       });
-      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
-        of('granted'),
-      );
+      setMockBrowserPermissionState('granted');
 
       const stressManager = new CameraManager(call, {
         enabled: true,

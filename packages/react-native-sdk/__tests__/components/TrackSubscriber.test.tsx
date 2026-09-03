@@ -1,7 +1,6 @@
 import React from 'react';
 import { act, render } from '@testing-library/react-native';
-import { CallingState, SfuModels } from '@stream-io/video-client';
-import { BehaviorSubject } from 'rxjs';
+import { CallingState, SfuModels, StateStore } from '@stream-io/video-client';
 import TrackSubscriber from '../../src/components/Participant/ParticipantView/VideoRenderer/TrackSubscriber';
 import mockParticipant from '../mocks/participant';
 import { mockCall } from '../mocks/call';
@@ -18,9 +17,9 @@ describe('TrackSubscriber', () => {
     call.state.setCallingState(CallingState.JOINED);
 
     const sessionId = 'remote-session-1';
-    const dimensions$ = new BehaviorSubject<
-      SfuModels.VideoDimension | undefined
-    >(undefined);
+    const dimensionsStore = new StateStore<{
+      dimensions: SfuModels.VideoDimension | undefined;
+    }>({ dimensions: undefined });
 
     render(
       <TrackSubscriber
@@ -28,7 +27,7 @@ describe('TrackSubscriber', () => {
         participantSessionId={sessionId}
         trackType="videoTrack"
         isVisible={true}
-        dimensions$={dimensions$}
+        dimensionsStore={dimensionsStore}
       />,
     );
 
@@ -47,7 +46,9 @@ describe('TrackSubscriber', () => {
 
     // The view lays out and reports its dimensions.
     act(() => {
-      dimensions$.next({ width: 200, height: 200 });
+      dimensionsStore.partialNext({
+        dimensions: { width: 200, height: 200 },
+      });
     });
 
     // The client must now request the participant's video track. Before the fix

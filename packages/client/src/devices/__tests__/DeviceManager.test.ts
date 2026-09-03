@@ -1,3 +1,4 @@
+import { constant } from '../../store/__tests__/testSubscribable';
 /* @vitest-environment happy-dom */
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
@@ -6,19 +7,20 @@ import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  LocalStorageMock,
+  MockTrack,
   createLocalStorageMock,
   emitDeviceIds,
-  LocalStorageMock,
   mockBrowserPermission,
   mockCall,
   mockDeviceIds$,
-  MockTrack,
   mockVideoDevices,
   mockVideoStream,
+  resetMockBrowserPermission,
+  setMockBrowserPermissionState,
 } from './mocks';
 import { DeviceManager } from '../DeviceManager';
 import { DeviceManagerState } from '../DeviceManagerState';
-import { firstValueFrom, of } from 'rxjs';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { PermissionsContext } from '../../permissions';
 import { defaultDeviceId, readPreferences } from '../devicePersistence';
@@ -38,11 +40,12 @@ vi.mock('../../Call.ts', () => {
   };
 });
 
-vi.mock('../devices.ts', () => {
+vi.mock('../devices.ts', async () => {
   console.log('MOCKING devices API');
   return {
     getAudioBrowserPermission: () => mockBrowserPermission,
     getVideoBrowserPermission: () => mockBrowserPermission,
+    canEnumerateDevices: () => true,
     deviceIds$: mockDeviceIds$(),
     resolveDeviceId: (deviceId) => deviceId,
   };
@@ -55,7 +58,8 @@ class TestInputMediaDeviceManagerState extends DeviceManagerState {
 }
 
 class TestInputMediaDeviceManager extends DeviceManager<TestInputMediaDeviceManagerState> {
-  public getDevices = vi.fn(() => of(mockVideoDevices));
+  public getDevices = vi.fn(() => constant(mockVideoDevices));
+  public loadRealDevices = vi.fn(async () => mockVideoDevices);
   public getStream = vi.fn(() => Promise.resolve(mockVideoStream()));
   public publishStream = vi.fn();
   public stopPublishStream = vi.fn();
@@ -83,11 +87,9 @@ describe('Device Manager', () => {
   let storageKey: string;
 
   beforeEach(() => {
+    resetMockBrowserPermission('granted');
     storageKey = '@test/device-preferences';
     localStorageMock = createLocalStorageMock();
-    vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
-      of('granted'),
-    );
     Object.defineProperty(window, 'localStorage', {
       configurable: true,
       value: localStorageMock,
@@ -222,7 +224,10 @@ describe('Device Manager', () => {
   it(`changing media stream constraints shouldn't toggle optimistic status`, async () => {
     await manager.enable();
     const spy = vi.fn();
-    manager.state.optimisticStatus$.subscribe(spy);
+    const unsubscribe = manager.state.store.subscribeWithSelector(
+      (state) => [state.optimisticStatus] as const,
+      spy,
+    );
 
     expect(spy.mock.calls.length).toBe(1);
 
@@ -230,6 +235,7 @@ describe('Device Manager', () => {
     await manager.select(deviceId);
 
     expect(spy.mock.calls.length).toBe(1);
+    unsubscribe();
   });
 
   it('should use a virtual device stream factory instead of requesting a real device stream', async () => {
@@ -344,7 +350,7 @@ describe('Device Manager', () => {
       getUserMedia: vi.fn(() => ({ stream: mockVideoStream() })),
     });
 
-    const devices = await firstValueFrom(manager.listDevices());
+    const devices = manager.listDevices().getValue();
 
     expect(devices.length).toBe(mockVideoDevices.length + 1);
     const virtual = devices.find((d) => d.label === 'My virtual camera');
@@ -439,7 +445,7 @@ describe('Device Manager', () => {
 
     vi.spyOn(manager, 'enable');
     vi.spyOn(manager, 'listDevices').mockImplementationOnce(() =>
-      of(mockVideoDevices.slice(1)),
+      constant(mockVideoDevices.slice(1)),
     );
     await (
       (manager.state.mediaStream?.getTracks()[0] as MockTrack).eventHandlers[
@@ -896,9 +902,7 @@ describe('Device Manager', () => {
     });
 
     it('does not store preferences when permission is not granted', async () => {
-      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
-        of('prompt'),
-      );
+      setMockBrowserPermissionState('prompt');
       const persistenceEnabledManager = new TestInputMediaDeviceManager(
         manager['call'],
         { enabled: true, storageKey },

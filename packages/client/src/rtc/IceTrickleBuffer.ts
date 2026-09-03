@@ -1,4 +1,3 @@
-import { Observable, Subject } from 'rxjs';
 import { ICETrickle } from '../gen/video/sfu/event/events';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { videoLoggerSystem } from '../logger';
@@ -71,23 +70,37 @@ export class IceTrickleBuffer {
  */
 class CandidateGenerationBuffer {
   private readonly store: RTCIceCandidateInit[] = [];
-  private readonly live = new Subject<RTCIceCandidateInit>();
+  private readonly listeners = new Set<(c: RTCIceCandidateInit) => void>();
   private readonly seenUfrags = new Set<string>();
   private activeUfrag: string | undefined;
 
-  readonly candidates = new Observable<RTCIceCandidateInit>((subscriber) => {
+  /**
+   * Registers a listener for candidates of the active generation: the ones
+   * already buffered are replayed to it first, then live ones follow.
+   *
+   * This is an event stream, not state - there is no "current candidate" - so
+   * it is a plain listener registration rather than a `Subscribable`.
+   *
+   * @returns a function that removes the listener.
+   */
+  onCandidate = (
+    handler: (candidate: RTCIceCandidateInit) => void,
+  ): (() => void) => {
     for (const candidate of this.store.slice()) {
-      if (this.isCurrent(candidate)) subscriber.next(candidate);
+      if (this.isCurrent(candidate)) handler(candidate);
     }
-    const subscription = this.live.subscribe((candidate) => {
-      if (this.isCurrent(candidate)) subscriber.next(candidate);
-    });
-    return () => subscription.unsubscribe();
-  });
+    const listener = (candidate: RTCIceCandidateInit) => {
+      if (this.isCurrent(candidate)) handler(candidate);
+    };
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  };
 
   push = (candidate: RTCIceCandidateInit) => {
     this.store.push(candidate);
-    this.live.next(candidate);
+    for (const listener of [...this.listeners]) listener(candidate);
   };
 
   updateActiveGeneration = (ufrag: string | undefined) => {
@@ -109,7 +122,7 @@ class CandidateGenerationBuffer {
 
   dispose = () => {
     this.store.length = 0;
-    this.live.complete();
+    this.listeners.clear();
   };
 
   /**

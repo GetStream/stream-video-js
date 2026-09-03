@@ -6954,6 +6954,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stream-io/state-store@npm:^1.1.6":
+  version: 1.1.6
+  resolution: "@stream-io/state-store@npm:1.1.6"
+  peerDependencies:
+    react: ^17 || ^18 || ^19
+    use-sync-external-store: ^1.5.0
+  peerDependenciesMeta:
+    react:
+      optional: true
+    use-sync-external-store:
+      optional: true
+  checksum: 10/18f5324f10994bc39ddd89d752c46e62195ce3bbe98c56c10ca6d02d6d97911a0d012061727258a29565dfe185d206dee93a38b06e5126e09de5196cace2dbec
+  languageName: node
+  linkType: hard
+
 "@stream-io/stream-video-react-tutorial@workspace:sample-apps/react/stream-video-react-tutorial":
   version: 0.0.0-use.local
   resolution: "@stream-io/stream-video-react-tutorial@workspace:sample-apps/react/stream-video-react-tutorial"
@@ -7011,6 +7026,7 @@ __metadata:
     "@stream-io/audio-filters-web": "workspace:^"
     "@stream-io/logger": "npm:^2.0.0"
     "@stream-io/node-sdk": "npm:^0.7.63"
+    "@stream-io/state-store": "npm:^1.1.6"
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/worker-timer": "npm:^1.2.5"
     "@total-typescript/shoehorn": "npm:^0.1.2"
@@ -7024,7 +7040,6 @@ __metadata:
     prettier: "npm:^3.9.6"
     rimraf: "npm:^6.1.3"
     rollup: "npm:^4.62.4"
-    rxjs: "npm:~7.8.2"
     sdp-transform: "npm:^2.15.0"
     typescript: "npm:^6.0.3"
     ua-parser-js: "npm:^1.0.41"
@@ -7133,15 +7148,17 @@ __metadata:
   resolution: "@stream-io/video-react-bindings@workspace:packages/react-bindings"
   dependencies:
     "@rollup/plugin-typescript": "npm:^12.3.0"
+    "@stream-io/state-store": "npm:^1.1.6"
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/video-client": "workspace:*"
     "@types/react": "npm:~19.2.18"
+    "@types/use-sync-external-store": "npm:^1.5.0"
     i18next: "npm:^25.10.10"
     react: "npm:19.2.8"
     rimraf: "npm:^6.1.3"
     rollup: "npm:^4.62.4"
-    rxjs: "npm:~7.8.2"
     typescript: "npm:^6.0.3"
+    use-sync-external-store: "npm:^1.5.0"
   peerDependencies:
     react: ^17 || ^18 || ^19
   languageName: unknown
@@ -7336,7 +7353,6 @@ __metadata:
     react-native-worklets: "npm:0.10.1"
     react-test-renderer: "npm:19.2.3"
     rimraf: "npm:^6.1.3"
-    rxjs: "npm:~7.8.2"
     text-encoding-polyfill: "npm:0.6.7"
     typescript: "npm:^6.0.3"
   peerDependencies:
@@ -7939,6 +7955,13 @@ __metadata:
   version: 2.0.11
   resolution: "@types/unist@npm:2.0.11"
   checksum: 10/6d436e832bc35c6dde9f056ac515ebf2b3384a1d7f63679d12358766f9b313368077402e9c1126a14d827f10370a5485e628bf61aa91117cf4fc882423191a4e
+  languageName: node
+  linkType: hard
+
+"@types/use-sync-external-store@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "@types/use-sync-external-store@npm:1.5.0"
+  checksum: 10/39e5be8dc2cca080b490f2f79fed4381ae7eebee3f981208e359856733eafb2479d229db07a552f6c99fe0b5c09b3e46a3e6a870e00a88b50f3e690e73d2649b
   languageName: node
   linkType: hard
 

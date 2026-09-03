@@ -9,7 +9,6 @@ import {
   mockBrowserPermission,
   mockCall,
 } from './mocks';
-import { of } from 'rxjs';
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { OwnCapability } from '../../gen/coordinator';
 import { settled, withoutConcurrency } from '../../helpers/concurrency';
@@ -25,16 +24,17 @@ vi.mock('../../helpers/platforms.ts', () => {
   };
 });
 
-vi.mock('../devices.ts', () => {
+vi.mock('../devices.ts', async () => {
+  const { constant } = await import('../../store/__tests__/testSubscribable');
   console.log('MOCKING devices API');
   return {
     disposeOfMediaStream: vi.fn(),
-    getAudioDevices: vi.fn(() => {
-      return of(mockAudioDevices);
-    }),
+    getAudioDevices: vi.fn(() => constant(mockAudioDevices)),
+    loadAudioDevices: vi.fn(async () => mockAudioDevices),
     getAudioStream: vi.fn(() => Promise.resolve(mockAudioStream())),
     getAudioBrowserPermission: () => mockBrowserPermission,
     getVideoBrowserPermission: () => mockBrowserPermission,
+    canEnumerateDevices: () => true,
     deviceIds$: {},
     resolveDeviceId: (deviceId) => deviceId,
   };

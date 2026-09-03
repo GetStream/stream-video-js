@@ -1,58 +1,202 @@
-import {
-  concatMap,
-  debounceTime,
-  from,
-  fromEvent,
-  map,
-  merge,
-  shareReplay,
-  startWith,
-  tap,
-} from 'rxjs';
+import { StateStore } from '@stream-io/state-store';
 import { BrowserPermission } from './BrowserPermission';
+import { isSameDeviceList } from './devicePersistence';
 import { lazy } from '../helpers/lazy';
 import { isFirefox } from '../helpers/browsers';
 import { dumpStream, Tracer } from '../stats';
-import { getCurrentValue } from '../store/rxUtils';
+import { createSubscribable, type Subscribable } from '../store/subscribable';
+import { withoutConcurrency } from '../helpers/concurrency';
 import { videoLoggerSystem } from '../logger';
 
 /**
- * Returns an Observable that emits the list of available devices
- * that meet the given constraints.
+ * Every device the browser currently reports, of every kind.
  *
- * @param permission a BrowserPermission instance.
- * @param kind the kind of devices to enumerate.
- * @param tracer the tracer to use for tracing the device enumeration.
+ * There is only one device list, so there is only one store. Each caller reads
+ * the slice it cares about; a `devicechange` re-enumerates once rather than
+ * once per interested party.
  */
-const getDevices = (
-  permission: BrowserPermission,
-  kind: MediaDeviceKind,
-  tracer: Tracer | undefined,
-) => {
-  return from(
-    (async () => {
-      let devices = await navigator.mediaDevices.enumerateDevices();
-      // for privacy reasons, most browsers don't give you device labels
-      // unless you have a corresponding camera or microphone permission
-      const shouldPromptForBrowserPermission = devices.some(
-        (device) => device.kind === kind && device.label === '',
-      );
-      if (shouldPromptForBrowserPermission && (await permission.prompt())) {
-        devices = await navigator.mediaDevices.enumerateDevices();
-      }
-      tracer?.traceOnce(
-        'device-enumeration',
-        'navigator.mediaDevices.enumerateDevices',
-        devices,
-      );
-      return devices.filter(
-        (device) =>
-          device.kind === kind &&
-          device.label !== '' &&
-          device.deviceId !== 'default',
-      );
-    })(),
+const deviceStore = new StateStore<{ devices: MediaDeviceInfo[] }>({
+  devices: [],
+});
+
+const enumerationTag = Symbol('device-enumeration');
+const logEnumerationFailure = (err: unknown) =>
+  videoLoggerSystem
+    .getLogger('devices')
+    .warn('Failed to enumerate media devices', err);
+
+/**
+ * Whether this environment can enumerate media devices at all.
+ *
+ * Checked on call rather than once at module evaluation: the client is
+ * routinely imported during SSR, where `navigator` does not exist, and a value
+ * captured then would stay wrong for the lifetime of the page.
+ */
+export const canEnumerateDevices = () =>
+  typeof navigator !== 'undefined' &&
+  typeof navigator.mediaDevices !== 'undefined';
+
+/**
+ * Re-reads the device list into the store. Calls are serialised, so a burst of
+ * `devicechange` events cannot interleave enumerations.
+ */
+const refreshDevices = (tracer: Tracer | undefined) =>
+  withoutConcurrency(enumerationTag, async () => {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    tracer?.traceOnce(
+      'device-enumeration',
+      'navigator.mediaDevices.enumerateDevices',
+      devices,
+    );
+    deviceStore.partialNext({ devices });
+    return devices;
+  });
+
+let watchingDeviceChanges = false;
+
+/**
+ * The tracer device enumeration is currently reported to.
+ *
+ * There is one process-wide `devicechange` listener but a tracer per call, so
+ * the listener reads this at fire time rather than closing over whichever
+ * tracer happened to install it. Without that, the first caller's tracer wins
+ * forever: later calls' enumerations go unreported, and the listener keeps a
+ * finished call's tracer (and everything it retains) alive for the lifetime of
+ * the page.
+ */
+let deviceTracer: Tracer | undefined;
+
+/**
+ * Stops reporting device enumeration to `tracer`, if it is the current one.
+ * Call this when the tracer's owner goes away.
+ */
+export const releaseDeviceTracer = (tracer: Tracer | undefined) => {
+  if (tracer && deviceTracer === tracer) deviceTracer = undefined;
+};
+
+/**
+ * Keeps the store current as devices come and go. Enumerating is left to the
+ * caller, so that a caller which is about to enumerate anyway (to decide
+ * whether it must prompt for permission) does not trigger a second, wasted
+ * round trip.
+ *
+ * The `devicechange` handler is debounced: plugging in a headset fires several
+ * events, and each enumeration is a round trip to the browser.
+ */
+const watchDeviceChanges = (tracer: Tracer | undefined) => {
+  // the latest caller to bring a tracer owns the reporting
+  if (tracer) deviceTracer = tracer;
+  if (watchingDeviceChanges || !canEnumerateDevices()) return;
+  watchingDeviceChanges = true;
+
+  // not available in React Native, where the device list never changes
+  if (!navigator.mediaDevices.addEventListener) return;
+  let debounce: ReturnType<typeof setTimeout> | undefined;
+  navigator.mediaDevices.addEventListener('devicechange', () => {
+    deviceTracer?.resetTrace('device-enumeration');
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      refreshDevices(deviceTracer).catch(logEnumerationFailure);
+    }, 500);
+  });
+};
+
+const devicesOfKind = (devices: MediaDeviceInfo[], kind: MediaDeviceKind) =>
+  devices.filter(
+    (device) =>
+      device.kind === kind &&
+      // browsers withhold labels until the matching permission is granted
+      device.label !== '' &&
+      device.deviceId !== 'default',
   );
+
+/**
+ * A `devicesOfKind` that returns the same array while the device list has not
+ * changed.
+ *
+ * `Subscribable.getValue()` backs React's `useSyncExternalStore` snapshot,
+ * which is compared by identity - returning a freshly filtered array on every
+ * read sends the consuming component into an endless re-render loop.
+ */
+const memoizedDevicesOfKind = (kind: MediaDeviceKind) => {
+  let cache:
+    { input: MediaDeviceInfo[]; output: MediaDeviceInfo[] } | undefined;
+  return (): MediaDeviceInfo[] => {
+    const input = deviceStore.getLatestValue().devices;
+    if (cache && cache.input === input) return cache.output;
+    const output = devicesOfKind(input, kind);
+    // a re-enumeration usually reports the very same devices; keep the
+    // previous array so consumers do not see a change that did not happen
+    const stable = cache && isSameDeviceList(cache.output, output);
+    cache = { input, output: stable ? cache!.output : output };
+    return cache.output;
+  };
+};
+
+/**
+ * Enumerates, and prompts for permission if that is what it takes to see the
+ * labels of this kind of device. Resolves with the devices of that kind.
+ */
+const loadDevicesOfKind = async (
+  kind: MediaDeviceKind,
+  permission: BrowserPermission,
+  tracer: Tracer | undefined,
+): Promise<MediaDeviceInfo[]> => {
+  if (!canEnumerateDevices()) return [];
+  watchDeviceChanges(tracer);
+
+  let devices = await refreshDevices(tracer);
+  const labelsHidden = devices.some(
+    (device) => device.kind === kind && device.label === '',
+  );
+  // `prompt()` only ever prompts once per permission
+  if (labelsHidden && (await permission.prompt())) {
+    devices = await refreshDevices(tracer);
+  }
+  return devicesOfKind(devices, kind);
+};
+
+/**
+ * A live list of the devices of one kind.
+ *
+ * Subscribing starts enumeration, prompts for the permission needed to read
+ * labels, and re-enumerates whenever that permission changes.
+ */
+const listDevicesOfKind = (
+  kind: MediaDeviceKind,
+  permission: BrowserPermission,
+  tracer: Tracer | undefined,
+): Subscribable<MediaDeviceInfo[]> => {
+  const read = memoizedDevicesOfKind(kind);
+  return createSubscribable(read, (emit) => {
+    loadDevicesOfKind(kind, permission, tracer).catch(logEnumerationFailure);
+
+    // `read` holds the array identity stable while the list is unchanged, so
+    // an identity check is all the deduplication this needs
+    let previous = read();
+    const unsubscribeStore = deviceStore.subscribe(() => {
+      const next = read();
+      if (previous === next) return;
+      previous = next;
+      emit(next);
+    });
+
+    // a permission grant reveals labels, which is a device-list change that
+    // the browser does not always report
+    let isReplay = true;
+    const unsubscribePermission = permission.state$.subscribe(() => {
+      if (isReplay) {
+        isReplay = false;
+        return;
+      }
+      refreshDevices(tracer).catch(logEnumerationFailure);
+    });
+
+    return () => {
+      unsubscribeStore();
+      unsubscribePermission();
+    };
+  });
 };
 
 /**
@@ -112,73 +256,50 @@ export const getVideoBrowserPermission = lazy(
     }),
 );
 
-const getDeviceChangeObserver = lazy((tracer: Tracer | undefined) => {
-  // 'addEventListener' is not available in React Native, returning
-  // an observable that will never fire
-  if (!navigator.mediaDevices.addEventListener) return from([]);
-  return fromEvent(navigator.mediaDevices, 'devicechange').pipe(
-    tap(() => tracer?.resetTrace('device-enumeration')),
-    map(() => undefined),
-    debounceTime(500),
-  );
-});
+/**
+ * Lists the available 'audioinput' devices, keeping the list current as devices
+ * are added or removed.
+ */
+export const getAudioDevices = lazy((tracer?: Tracer) =>
+  listDevicesOfKind('audioinput', getAudioBrowserPermission(tracer), tracer),
+);
 
 /**
- * Prompts the user for a permission to use audio devices (if not already granted
- * and was not prompted before) and lists the available 'audioinput' devices,
- * if devices are added/removed the list is updated, and if the permission is revoked,
- * the observable errors.
+ * Loads the available 'audioinput' devices, prompting for permission first if
+ * that is needed to read their labels.
  */
-export const getAudioDevices = lazy((tracer?: Tracer) => {
-  return merge(
-    getDeviceChangeObserver(tracer),
-    getAudioBrowserPermission(tracer).asObservable(),
-  ).pipe(
-    startWith([]),
-    concatMap(() =>
-      getDevices(getAudioBrowserPermission(tracer), 'audioinput', tracer),
-    ),
-    shareReplay(1),
-  );
-});
+export const loadAudioDevices = (tracer?: Tracer) =>
+  loadDevicesOfKind('audioinput', getAudioBrowserPermission(tracer), tracer);
 
 /**
- * Prompts the user for a permission to use video devices (if not already granted
- * and was not prompted before) and lists the available 'videoinput' devices,
- * if devices are added/removed the list is updated, and if the permission is revoked,
- * the observable errors.
+ * Lists the available 'videoinput' devices, keeping the list current as devices
+ * are added or removed.
  */
-export const getVideoDevices = lazy((tracer?: Tracer) => {
-  return merge(
-    getDeviceChangeObserver(tracer),
-    getVideoBrowserPermission(tracer).asObservable(),
-  ).pipe(
-    startWith([]),
-    concatMap(() =>
-      getDevices(getVideoBrowserPermission(tracer), 'videoinput', tracer),
-    ),
-    shareReplay(1),
-  );
-});
+export const getVideoDevices = lazy((tracer?: Tracer) =>
+  listDevicesOfKind('videoinput', getVideoBrowserPermission(tracer), tracer),
+);
 
 /**
- * Prompts the user for a permission to use video devices (if not already granted
- * and was not prompted before) and lists the available 'audiooutput' devices,
- * if devices are added/removed the list is updated, and if the permission is revoked,
- * the observable errors.
+ * Loads the available 'videoinput' devices, prompting for permission first if
+ * that is needed to read their labels.
  */
-export const getAudioOutputDevices = lazy((tracer?: Tracer) => {
-  return merge(
-    getDeviceChangeObserver(tracer),
-    getAudioBrowserPermission(tracer).asObservable(),
-  ).pipe(
-    startWith([]),
-    concatMap(() =>
-      getDevices(getAudioBrowserPermission(tracer), 'audiooutput', tracer),
-    ),
-    shareReplay(1),
-  );
-});
+export const loadVideoDevices = (tracer?: Tracer) =>
+  loadDevicesOfKind('videoinput', getVideoBrowserPermission(tracer), tracer);
+
+/**
+ * Lists the available 'audiooutput' devices, keeping the list current as
+ * devices are added or removed.
+ */
+export const getAudioOutputDevices = lazy((tracer?: Tracer) =>
+  listDevicesOfKind('audiooutput', getAudioBrowserPermission(tracer), tracer),
+);
+
+/**
+ * Loads the available 'audiooutput' devices, prompting for permission first if
+ * that is needed to read their labels.
+ */
+export const loadAudioOutputDevices = (tracer?: Tracer) =>
+  loadDevicesOfKind('audiooutput', getAudioBrowserPermission(tracer), tracer);
 
 let getUserMediaExecId = 0;
 const getStream = async (
@@ -377,15 +498,39 @@ export const getScreenShareStream = async (
   }
 };
 
-export const deviceIds$ =
-  typeof navigator !== 'undefined' &&
-  typeof navigator.mediaDevices !== 'undefined'
-    ? getDeviceChangeObserver().pipe(
-        startWith(undefined),
-        concatMap(() => navigator.mediaDevices.enumerateDevices()),
-        shareReplay(1),
-      )
-    : undefined;
+/**
+ * Every device known to the browser, regardless of kind.
+ *
+ * Reports an empty list until the first enumeration resolves; await
+ * {@link loadDeviceIds} when you need the real list.
+ */
+export const deviceIds$: Subscribable<MediaDeviceInfo[]> = createSubscribable(
+  () => deviceStore.getLatestValue().devices,
+  (emit) => {
+    // checked here, not when this module is evaluated: during SSR there is no
+    // `navigator`, and deciding then would leave this permanently inert in the
+    // browser that later hydrates
+    if (!canEnumerateDevices()) return () => {};
+    watchDeviceChanges(undefined);
+    refreshDevices(undefined).catch(logEnumerationFailure);
+    let previous = deviceStore.getLatestValue().devices;
+    return deviceStore.subscribe(({ devices }) => {
+      if (devices === previous) return;
+      previous = devices;
+      emit(devices);
+    });
+  },
+);
+
+/**
+ * Enumerates every device known to the browser, waiting for the enumeration to
+ * complete.
+ */
+export const loadDeviceIds = async (): Promise<MediaDeviceInfo[]> => {
+  if (!canEnumerateDevices()) return [];
+  watchDeviceChanges(undefined);
+  return refreshDevices(undefined);
+};
 
 /**
  * Resolves `default` device id into the real device id. Some browsers (notably,
@@ -399,8 +544,10 @@ export function resolveDeviceId(
   kind: MediaDeviceKind,
 ): string | undefined {
   if (deviceId !== 'default') return deviceId;
-  const devices = deviceIds$ && getCurrentValue(deviceIds$);
-  if (!devices) return deviceId;
+  // reads the cache as it stands; callers that need it populated subscribe to
+  // `deviceIds$` (which the device managers do) before resolving ids
+  const { devices } = deviceStore.getLatestValue();
+  if (!devices.length) return deviceId;
   const defaultDeviceInfo = devices.find((d) => d.deviceId === deviceId);
   if (!defaultDeviceInfo) return deviceId;
   const groupId = defaultDeviceInfo.groupId;

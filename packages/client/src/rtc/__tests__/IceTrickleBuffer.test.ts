@@ -19,10 +19,10 @@ const sdp = (ufrag: string) =>
   `v=0\r\na=ice-ufrag:${ufrag}\r\na=ice-pwd:pwd\r\n`;
 
 const collect = (
-  observable: IceTrickleBuffer['subscriber']['candidates'],
+  buffer: IceTrickleBuffer['subscriber'],
 ): RTCIceCandidateInit[] => {
   const seen: RTCIceCandidateInit[] = [];
-  observable.subscribe((c) => seen.push(c)).unsubscribe();
+  buffer.onCandidate((c) => seen.push(c))();
   return seen;
 };
 
@@ -33,7 +33,7 @@ describe('IceTrickleBuffer', () => {
     buffer.push(trickle('u1', 'b'));
     buffer.updateActiveGeneration(PeerType.SUBSCRIBER, sdp('u1'));
 
-    expect(collect(buffer.subscriber.candidates)).toEqual([
+    expect(collect(buffer.subscriber)).toEqual([
       { usernameFragment: 'u1', candidate: 'a' },
       { usernameFragment: 'u1', candidate: 'b' },
     ]);
@@ -43,7 +43,7 @@ describe('IceTrickleBuffer', () => {
     const buffer = new IceTrickleBuffer();
     buffer.updateActiveGeneration(PeerType.SUBSCRIBER, sdp('u1'));
     const seen: RTCIceCandidateInit[] = [];
-    buffer.subscriber.candidates.subscribe((c) => seen.push(c));
+    buffer.subscriber.onCandidate((c) => seen.push(c));
 
     buffer.push(trickle('u1', 'a'));
 
@@ -59,7 +59,7 @@ describe('IceTrickleBuffer', () => {
     buffer.updateActiveGeneration(PeerType.SUBSCRIBER, sdp('u1'));
     buffer.push(trickle('u1', 'new'));
 
-    expect(collect(buffer.subscriber.candidates)).toEqual([
+    expect(collect(buffer.subscriber)).toEqual([
       { usernameFragment: 'u1', candidate: 'new' },
     ]);
   });
@@ -70,11 +70,11 @@ describe('IceTrickleBuffer', () => {
     // a candidate for a not-yet-applied generation arrives early (trickle race)
     buffer.push(trickle('u2', 'future'));
 
-    expect(collect(buffer.subscriber.candidates)).toEqual([]);
+    expect(collect(buffer.subscriber)).toEqual([]);
 
     buffer.updateActiveGeneration(PeerType.SUBSCRIBER, sdp('u2'));
 
-    expect(collect(buffer.subscriber.candidates)).toEqual([
+    expect(collect(buffer.subscriber)).toEqual([
       { usernameFragment: 'u2', candidate: 'future' },
     ]);
   });
@@ -84,7 +84,7 @@ describe('IceTrickleBuffer', () => {
     buffer.updateActiveGeneration(PeerType.SUBSCRIBER, sdp('u1'));
     buffer.push(trickle(undefined, 'no-generation'));
 
-    expect(collect(buffer.subscriber.candidates)).toEqual([
+    expect(collect(buffer.subscriber)).toEqual([
       { candidate: 'no-generation' },
     ]);
   });
@@ -94,7 +94,7 @@ describe('IceTrickleBuffer', () => {
     buffer.push(trickle('u1', 'a'));
     buffer.push(trickle('u2', 'b'));
 
-    expect(collect(buffer.subscriber.candidates)).toEqual([
+    expect(collect(buffer.subscriber)).toEqual([
       { usernameFragment: 'u1', candidate: 'a' },
       { usernameFragment: 'u2', candidate: 'b' },
     ]);
@@ -107,10 +107,10 @@ describe('IceTrickleBuffer', () => {
     buffer.updateActiveGeneration(PeerType.SUBSCRIBER, sdp('u1'));
     buffer.updateActiveGeneration(PeerType.PUBLISHER_UNSPECIFIED, sdp('p1'));
 
-    expect(collect(buffer.subscriber.candidates)).toEqual([
+    expect(collect(buffer.subscriber)).toEqual([
       { usernameFragment: 'u1', candidate: 'sub' },
     ]);
-    expect(collect(buffer.publisher.candidates)).toEqual([
+    expect(collect(buffer.publisher)).toEqual([
       { usernameFragment: 'p1', candidate: 'pub' },
     ]);
   });
@@ -122,6 +122,6 @@ describe('IceTrickleBuffer', () => {
 
     buffer.dispose();
 
-    expect(collect(buffer.subscriber.candidates)).toEqual([]);
+    expect(collect(buffer.subscriber)).toEqual([]);
   });
 });

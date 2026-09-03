@@ -18,7 +18,6 @@ import {
   type StreamVideoParticipant,
   videoLoggerSystem,
 } from '@stream-io/video-client';
-import { debounceTime } from 'rxjs';
 
 import { Z_INDEX } from '../../../constants';
 import {
@@ -39,6 +38,7 @@ import {
 import { RTCViewPipIOS } from './RTCViewPipIOS';
 import { getRNInCallManagerLibNoThrow } from '../../../modules/call-manager/PrevLibDetection';
 
+import { subscribeDebounced } from '../../../utils/internal/subscribable';
 export type StreamReactionType = StreamReaction & {
   icon: string;
 };
@@ -155,9 +155,10 @@ export const CallContent = ({
       });
       return;
     }
-    const sub = call.state.remoteParticipants$
-      .pipe(debounceTime(300))
-      .subscribe((remoteParticipants) => {
+    const sub = subscribeDebounced(
+      call.state.remoteParticipants$,
+      300,
+      (remoteParticipants) => {
         const remoteCountBucket = Math.min(remoteParticipants.length, 3);
         const firstRemoteParticipant =
           remoteParticipants.length === 1 ? remoteParticipants[0] : undefined;
@@ -170,7 +171,8 @@ export const CallContent = ({
           }
           return { remoteCountBucket, firstRemoteParticipant };
         });
-      });
+      },
+    );
     return () => sub.unsubscribe();
   }, [call]);
   const localParticipant = useLocalParticipant();

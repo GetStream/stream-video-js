@@ -18,8 +18,9 @@ Use this workflow for efficient iteration:
 - `src/StreamVideoClient.ts` - client auth, connection lifecycle, call initialization from coordinator events.
 - `src/Call.ts` - main call lifecycle (`setup`, `join`, `leave`), peer setup, reconnect, and teardown.
 - `src/events/callEventHandlers.ts` - default event wiring between coordinator/SFU events and state updates.
-- `src/store/CallState.ts` - canonical reactive call state and derived observables.
-- `src/store/rxUtils.ts` - subscription helpers (`createSafeAsyncSubscription`, `setCurrentValue`) used across state updates.
+- `src/store/CallState.ts` - canonical call state: one store plus derived state.
+- `src/store/subscribable.ts` - the reactive primitives (`createSubscribable`, `field`, `select`, `firstValue`).
+- `src/store/subscription.ts` - subscription helpers (`createSubscription`, `createSafeAsyncSubscription`, `serializeAsync`). Internal: import from this module, not from `src/store`, which deliberately does not re-export them.
 - `src/helpers/concurrency.ts` - serialization/cancellation primitives (`withoutConcurrency`, `withCancellation`).
 - `src/devices/DeviceManager.ts` - device enable/disable/select flow, filter registration, and cancellation behavior.
 - `src/helpers/DynascaleManager.ts` - viewport-driven subscription calculation and SFU `updateSubscriptions`.
@@ -135,17 +136,22 @@ Key concepts:
 
 ### State Management (`src/store/`)
 
-Uses RxJS for reactive state management:
+Built on `@stream-io/state-store`. There is no RxJS anywhere in this package.
 
-- **CallState** (`CallState.ts`): Massive state object holding all call-related state
-  - Participants, tracks, permissions, recording status, etc.
-  - Uses BehaviorSubject for each state property
-  - Provides derived observables (e.g., `remoteParticipants$`, `localParticipant$`)
-- **StreamVideoWriteableStateStore** (`stateStore.ts`): Global client state
+- **CallState** (`CallState.ts`): all call-related state in a _single_ store
+  - One `StateStore<CallStateShape>`, so a server payload that touches many
+    fields is one atomic update - subscribers never see a half-applied change
+  - Derived values (`localParticipant`, `remoteParticipants`, `dominantSpeaker`,
+    `participantsBySessionId`, …) are real keys maintained by a preprocessor,
+    so reading them is a plain field access
+  - `foo$` properties are `Subscribable` views over store keys, for consumers
+    that want to react rather than read
+- **StreamVideoWriteableStateStore** (`stateStore.ts`): global client state
   - Manages calls, ringing calls, active call
 - **CallingState** (`CallingState.ts`): Enum for call lifecycle states
-
-React and React Native SDKs consume these observables to trigger UI updates.
+- **subscribable.ts**: the primitives - `createSubscribable`, `field`, `select`,
+  `firstValue`. Deliberately small; it is not an operator library. Timing
+  concerns (debounce) live in the view layer that needs them.
 
 ### Events (`src/events/`)
 
@@ -228,7 +234,7 @@ Sorting is **visibility-aware**: only applies sorting logic to invisible partici
 
 ### Class Style
 
-- All class methods (including `private`/`protected`) are **arrow-function class fields**, not method syntax. This preserves `this` binding automatically across callbacks and observable subscriptions that pull methods off instances (`call.leave`, dispatcher listeners, RxJS operators, etc.) and matches existing code throughout `src/`.
+- All class methods (including `private`/`protected`) are **arrow-function class fields**, not method syntax. This preserves `this` binding automatically across callbacks and subscriptions that pull methods off instances (`call.leave`, dispatcher listeners, store subscribers, etc.) and matches existing code throughout `src/`.
 
   ```ts
   // good (matches the codebase)
@@ -258,19 +264,50 @@ Sorting is **visibility-aware**: only applies sorting logic to invisible partici
 
 ### Reactive State
 
-All state is exposed through RxJS observables. When updating state:
+State lives in a `StateStore`. Write through the documented setters, which
+apply one atomic update:
 
 ```ts
-// Update a BehaviorSubject
-this.participantsSubject.next(updatedParticipants);
+call.state.setParticipants(updatedParticipants);
+// several fields at once - subscribers see them together, never half-applied
+call.state.setState({ recording: true, transcribing: true });
 ```
 
-Consumers subscribe to changes:
+Read synchronously - it is a field access, not a subscription:
 
 ```ts
-callState.participants$.subscribe((participants) => {
-  // Update UI
+const participants = call.state.participants;
+```
+
+Subscribe only when you need to react to changes:
+
+```ts
+const unsubscribe = call.state.participants$.subscribe((participants) => {
+  // update UI
 });
+```
+
+Reading several fields? Subscribe once with a selector rather than stacking
+subscriptions:
+
+```ts
+call.state.store.subscribeWithSelector(
+  (state) => ({
+    callingState: state.callingState,
+    count: state.participantCount,
+  }),
+  ({ callingState, count }) => {
+    /* ... */
+  },
+);
+```
+
+Per-participant lookups must go through the index, or a single update costs
+O(participants x subscribers):
+
+```ts
+state.participantsBySessionId[sessionId]; // good
+state.participants.find((p) => p.sessionId === sessionId); // avoid
 ```
 
 ### Concurrency Control (`src/helpers/concurrency.ts`)
@@ -425,7 +462,7 @@ src/
 
 ### When Working with State
 
-- Always update state through BehaviorSubject.next(), never mutate directly
+- Always update state through the `CallState` setters, never mutate directly
 - Participants use `sessionId` as the unique identifier, not `userId`
 - Track lookup uses `trackLookupPrefix` which combines participant ID and track type
 
@@ -477,7 +514,7 @@ src/
 6. Layers calculated for video (SVC/simulcast)
 7. SFU receives track, sends `trackPublished` event
 8. Other participants receive `participantJoined` or `trackPublished` events
-9. State updated via CallState observables
+9. State updated via CallState setters
 
 ### Track Subscription Flow (Dynascale)
 
@@ -562,8 +599,8 @@ const client = new StreamVideoClient({
 
 **State not updating:**
 
-- Ensure subscribing to observables with `subscribe()`, not just accessing `state.value`
-- Check if BehaviorSubject.next() is being called on state updates
+- Reads are synchronous (`call.state.participants`); you only need `subscribe()` to react to changes
+- Check that a setter is actually being called on state updates
 - Verify event handlers are registered before events arrive
 
 **Concurrency issues:**
@@ -638,21 +675,25 @@ Detected via helpers in `src/helpers/`:
 
 ### State Update Performance
 
-- RxJS observables use `shareReplay(1)` for multicast
-- `distinctUntilChanged()` prevents unnecessary re-renders
-- Derived observables (e.g., `remoteParticipants$`) computed once and cached
+- One store per call: a write notifies every subscriber, and each one's
+  selector decides whether anything it cares about actually changed
+- `field()` and `select()` deduplicate, so an unrelated write does not wake a
+  subscriber; `select()` also memoises, which `useSyncExternalStore` requires
+- Derived state (e.g. `remoteParticipants`) is computed once per participant
+  change by the preprocessor, not per reader
+- `bench/` compares this against the pre-migration RxJS build
 
 ## Cross-Package Integration
 
 This package is consumed by:
 
-- **@stream-io/video-react-bindings**: React hooks that subscribe to observables
+- **@stream-io/video-react-bindings**: React hooks built on `useSyncExternalStore`
 - **@stream-io/video-react-sdk**: UI components built on top of bindings
 - **@stream-io/video-react-native-sdk**: React Native components with platform-specific device handling
 
 When making changes:
 
-- Consider the impact on React hooks that subscribe to state observables
+- Consider the impact on React hooks that subscribe to call state
 - Test with both browser and React Native environments
 - Verify changes don't break existing UI components
 - Check sample apps in `sample-apps/react/react-dogfood/`

@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-import { BehaviorSubject } from 'rxjs';
 import { SfuStatsReporter } from '../SfuStatsReporter';
 import { promiseWithResolvers } from '../../helpers/promise';
 
@@ -49,23 +48,11 @@ const build = (
   const sfuClient = { sendStats, getTrace: vi.fn(() => undefined) };
   const callTracer = { take: vi.fn(makeSlice), setEnabled: vi.fn() };
 
-  // device permission is 'denied' so observeDevice() doesn't reach listDevices()
-  const microphone = {
-    state: { browserPermissionState$: new BehaviorSubject('denied') },
-  };
-  const camera = {
-    state: { browserPermissionState$: new BehaviorSubject('denied') },
-  };
-  const state = { ownCapabilities$: new BehaviorSubject([]) };
-
   const reporter = new SfuStatsReporter(sfuClient as never, {
     options: { reporting_interval_ms: 1000, enable_rtc_stats: true } as never,
     clientDetails: { sdk: undefined, browser: undefined } as never,
     subscriber: subscriber as never,
     publisher: publisher as never,
-    microphone: microphone as never,
-    camera: camera as never,
-    state: state as never,
     tracer: callTracer as never,
     unifiedSessionId: 'unified',
   });

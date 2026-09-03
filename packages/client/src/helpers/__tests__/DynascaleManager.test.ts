@@ -19,7 +19,6 @@ import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
 import { StreamVideoWriteableStateStore } from '../../store';
-import { getCurrentValue } from '../../store/rxUtils';
 import { VisibilityState } from '../../types';
 import { noopComparator } from '../../sorting';
 import { TrackType } from '../../gen/video/sfu/models/models';
@@ -172,16 +171,16 @@ describe('DynascaleManager', () => {
         await vi.advanceTimersByTimeAsync(0); // flush the rejected play()
 
         expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(true);
-        expect(
-          getCurrentValue(call.blockedAudioTracker.blockedSessionIds$),
-        ).toEqual(['session-id']);
+        expect(call.blockedAudioTracker.blockedSessionIds$.getValue()).toEqual([
+          'session-id',
+        ]);
 
         audioElement.dispatchEvent(new Event('playing'));
 
         expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(false);
-        expect(
-          getCurrentValue(call.blockedAudioTracker.blockedSessionIds$),
-        ).toEqual([]);
+        expect(call.blockedAudioTracker.blockedSessionIds$.getValue()).toEqual(
+          [],
+        );
       } finally {
         cleanup?.();
         vi.useRealTimers();
@@ -640,9 +639,7 @@ describe('DynascaleManager', () => {
       vi.runAllTimers();
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(getCurrentValue(call.blockedAudioTracker.autoplayBlocked$)).toBe(
-        true,
-      );
+      expect(call.blockedAudioTracker.autoplayBlocked$.getValue()).toBe(true);
 
       cleanup?.();
     });
@@ -675,15 +672,11 @@ describe('DynascaleManager', () => {
       vi.runAllTimers();
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(getCurrentValue(call.blockedAudioTracker.autoplayBlocked$)).toBe(
-        true,
-      );
+      expect(call.blockedAudioTracker.autoplayBlocked$.getValue()).toBe(true);
 
       cleanup?.();
 
-      expect(getCurrentValue(call.blockedAudioTracker.autoplayBlocked$)).toBe(
-        false,
-      );
+      expect(call.blockedAudioTracker.autoplayBlocked$.getValue()).toBe(false);
     });
 
     it('audio: unmarks blocked element when the audio stream is removed', async () => {
@@ -714,9 +707,7 @@ describe('DynascaleManager', () => {
       vi.runAllTimers();
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(getCurrentValue(call.blockedAudioTracker.autoplayBlocked$)).toBe(
-        true,
-      );
+      expect(call.blockedAudioTracker.autoplayBlocked$.getValue()).toBe(true);
 
       call.state.updateParticipant('session-id', { audioStream: undefined });
 
@@ -724,9 +715,7 @@ describe('DynascaleManager', () => {
       await vi.advanceTimersByTimeAsync(0);
 
       expect(audioElement.srcObject).toBeNull();
-      expect(getCurrentValue(call.blockedAudioTracker.autoplayBlocked$)).toBe(
-        false,
-      );
+      expect(call.blockedAudioTracker.autoplayBlocked$.getValue()).toBe(false);
 
       cleanup?.();
     });

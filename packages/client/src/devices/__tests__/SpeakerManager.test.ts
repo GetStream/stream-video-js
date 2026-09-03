@@ -2,16 +2,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
 import {
+  LocalStorageMock,
   createLocalStorageMock,
   emitDeviceIds,
-  LocalStorageMock,
   mockAudioDevices,
   mockAudioOutputDevices,
   mockBrowserPermission,
   mockDeviceIds$,
   mockDevicesWithoutAudioPermission,
+  resetMockBrowserPermission,
+  setMockBrowserPermissionState,
 } from './mocks';
-import { of } from 'rxjs';
 import { SpeakerManager } from '../SpeakerManager';
 import { checkIfAudioOutputChangeSupported } from '../devices';
 import { Call } from '../../Call';
@@ -20,13 +21,16 @@ import { ClientEventReporter } from '../../reporting';
 import { StreamVideoWriteableStateStore } from '../../store';
 import { defaultDeviceId } from '../devicePersistence';
 
-vi.mock('../devices.ts', () => {
+vi.mock('../devices.ts', async () => {
+  const { constant } = await import('../../store/__tests__/testSubscribable');
   console.log('MOCKING devices');
   return {
-    getAudioOutputDevices: vi.fn(() => of(mockAudioDevices)),
+    getAudioOutputDevices: vi.fn(() => constant(mockAudioDevices)),
+    loadAudioOutputDevices: vi.fn(async () => mockAudioDevices),
     checkIfAudioOutputChangeSupported: vi.fn(() => true),
     getAudioBrowserPermission: () => mockBrowserPermission,
     getVideoBrowserPermission: () => mockBrowserPermission,
+    canEnumerateDevices: () => true,
     deviceIds$: mockDeviceIds$(),
     resolveDeviceId: (deviceId) => deviceId,
   };
@@ -38,11 +42,9 @@ describe('SpeakerManager.test', () => {
   let localStorageMock: LocalStorageMock;
 
   beforeEach(() => {
+    resetMockBrowserPermission('granted');
     storageKey = '@test/speaker-preferences';
     localStorageMock = createLocalStorageMock();
-    vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
-      of('granted'),
-    );
     Object.defineProperty(window, 'localStorage', {
       configurable: true,
       value: localStorageMock,
@@ -106,6 +108,7 @@ describe('SpeakerManager.test', () => {
     call.state.updateOrAddParticipant(
       'session-id',
       fromPartial({
+        publishedTracks: [],
         audioVolume: undefined,
         sessionId: 'session-id',
       }),
@@ -214,16 +217,14 @@ describe('SpeakerManager.test', () => {
 
     it('selects the persisted speaker device', async () => {
       const persistedManager = createPersistedManager();
-      vi.spyOn(persistedManager, 'listDevices').mockReturnValue(
-        of([
-          {
-            deviceId: 'speaker-1',
-            kind: 'audiooutput',
-            label: 'Speaker 1',
-            groupId: 'speaker-group',
-          } as MediaDeviceInfo,
-        ]),
-      );
+      vi.spyOn(persistedManager, 'loadDevices').mockResolvedValue([
+        {
+          deviceId: 'speaker-1',
+          kind: 'audiooutput',
+          label: 'Speaker 1',
+          groupId: 'speaker-group',
+        } as MediaDeviceInfo,
+      ]);
       persist('speaker-1', 'Speaker 1');
 
       const selectSpy = vi.spyOn(persistedManager, 'select');
@@ -236,8 +237,8 @@ describe('SpeakerManager.test', () => {
 
     it('does not select a missing persisted speaker device', async () => {
       const persistedManager = createPersistedManager();
-      vi.spyOn(persistedManager, 'listDevices').mockReturnValue(
-        of(mockAudioOutputDevices),
+      vi.spyOn(persistedManager, 'loadDevices').mockResolvedValue(
+        mockAudioOutputDevices,
       );
       persist('speaker-1', 'Speaker 1');
 
@@ -251,9 +252,7 @@ describe('SpeakerManager.test', () => {
 
     it('does not restore a speaker preference when audio permission is not granted', async () => {
       const persistedManager = createPersistedManager();
-      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
-        of('prompt'),
-      );
+      setMockBrowserPermissionState('prompt');
       const listDevicesSpy = vi.spyOn(persistedManager, 'listDevices');
       persist('speaker-1', 'Speaker 1');
 
@@ -280,9 +279,9 @@ describe('SpeakerManager.test', () => {
         label: 'RODECaster Video (19f7:006b)',
         groupId: 'speaker-group',
       } as MediaDeviceInfo;
-      vi.spyOn(persistedManager, 'listDevices').mockReturnValue(
-        of([outputDevice]),
-      );
+      vi.spyOn(persistedManager, 'loadDevices').mockResolvedValue([
+        outputDevice,
+      ]);
       persist('missing-speaker-device-id', outputDevice.label);
 
       const selectSpy = vi.spyOn(persistedManager, 'select');
@@ -296,16 +295,14 @@ describe('SpeakerManager.test', () => {
 
     it('does not restore a speaker preference from an empty label placeholder', async () => {
       const persistedManager = createPersistedManager();
-      vi.spyOn(persistedManager, 'listDevices').mockReturnValue(
-        of([
-          {
-            deviceId: '',
-            kind: 'audiooutput',
-            label: '',
-            groupId: '',
-          } as MediaDeviceInfo,
-        ]),
-      );
+      vi.spyOn(persistedManager, 'loadDevices').mockResolvedValue([
+        {
+          deviceId: '',
+          kind: 'audiooutput',
+          label: '',
+          groupId: '',
+        } as MediaDeviceInfo,
+      ]);
       persist('missing-speaker-device-id', '');
 
       const selectSpy = vi.spyOn(persistedManager, 'select');

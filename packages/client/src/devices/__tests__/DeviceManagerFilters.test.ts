@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { of } from 'rxjs';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
@@ -22,7 +21,8 @@ class TestInputMediaDeviceManagerState extends DeviceManagerState {
 }
 
 class TestInputMediaDeviceManager extends DeviceManager<TestInputMediaDeviceManagerState> {
-  public getDevices = vi.fn(() => of(mockVideoDevices));
+  public getDevices = vi.fn(() => constant(mockVideoDevices));
+  public loadRealDevices = vi.fn(async () => mockVideoDevices);
   public getStream = vi.fn(() => Promise.resolve(mockVideoStream()));
   public publishStream = vi.fn();
   public stopPublishStream = vi.fn();

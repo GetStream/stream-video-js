@@ -21,12 +21,13 @@ import {
   mockBrowserPermission,
   mockCall,
   mockDeviceIds$,
+  resetMockBrowserPermission,
+  setMockBrowserPermissionState,
 } from './mocks';
 import { createAudioStreamForDevice } from './mediaStreamTestHelpers';
 import { setupAudioContextMock } from './web-audio.mocks';
 import { getAudioStream } from '../devices';
 import { MicrophoneManager } from '../MicrophoneManager';
-import { of } from 'rxjs';
 import {
   createSoundDetector,
   SoundStateChangeHandler,
@@ -45,16 +46,17 @@ import {
 } from '../devicePersistence';
 import { ClientEventReporter } from '../../reporting';
 
-vi.mock('../devices.ts', () => {
+vi.mock('../devices.ts', async () => {
+  const { constant } = await import('../../store/__tests__/testSubscribable');
   console.log('MOCKING devices API');
   return {
     disposeOfMediaStream: vi.fn(),
-    getAudioDevices: vi.fn(() => {
-      return of(mockAudioDevices);
-    }),
+    getAudioDevices: vi.fn(() => constant(mockAudioDevices)),
+    loadAudioDevices: vi.fn(async () => mockAudioDevices),
     getAudioStream: vi.fn(() => Promise.resolve(mockAudioStream())),
     getAudioBrowserPermission: () => mockBrowserPermission,
     getVideoBrowserPermission: () => mockBrowserPermission,
+    canEnumerateDevices: () => true,
     deviceIds$: mockDeviceIds$(),
     resolveDeviceId: (deviceId) => deviceId,
   };
@@ -94,10 +96,8 @@ describe('MicrophoneManager', () => {
   let call: Call;
 
   beforeEach(() => {
+    resetMockBrowserPermission('granted');
     setupAudioContextMock();
-    vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
-      of('granted'),
-    );
 
     const streamClient = new StreamClient('abc123');
     call = new Call({
@@ -191,9 +191,7 @@ describe('MicrophoneManager', () => {
     });
 
     it('should not start sound detection if browser mic permission is denied', async () => {
-      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
-        of('denied'),
-      );
+      setMockBrowserPermissionState('denied');
       const devicePersistence = { enabled: false, storageKey: '' };
       const innerManager = new MicrophoneManager(
         call,
@@ -491,9 +489,7 @@ describe('MicrophoneManager', () => {
     });
 
     it('should apply persisted device preferences without enabling when forced disabled', async () => {
-      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
-        of('granted'),
-      );
+      setMockBrowserPermissionState('granted');
       const devicePersistence = { enabled: true, storageKey: '' };
       const persistedManager = new MicrophoneManager(
         call,
@@ -513,9 +509,7 @@ describe('MicrophoneManager', () => {
     });
 
     it('should skip persisted preferences when permission is not granted', async () => {
-      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
-        of('prompt'),
-      );
+      setMockBrowserPermissionState('prompt');
       const devicePersistence = { enabled: true, storageKey: '' };
       const persistedManager = new MicrophoneManager(
         call,

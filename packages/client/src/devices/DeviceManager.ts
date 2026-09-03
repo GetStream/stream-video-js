@@ -1,20 +1,15 @@
+import { StateStore } from '@stream-io/state-store';
 import {
-  BehaviorSubject,
-  combineLatest,
-  firstValueFrom,
-  map,
-  Observable,
-  pairwise,
-} from 'rxjs';
+  createSubscribable,
+  field,
+  select,
+  type Subscribable,
+} from '../store/subscribable';
 import { Call } from '../Call';
 import type { DeviceDisconnectedEvent } from '../coordinator/connection/types';
 import { TrackPublishOptions } from '../rtc';
 import { CallingState } from '../store';
-import {
-  createSubscription,
-  getCurrentValue,
-  setCurrentValue,
-} from '../store/rxUtils';
+import { createSubscription } from '../store/subscription';
 import {
   DeviceManagerState,
   type InputDeviceStatus,
@@ -24,7 +19,7 @@ import { isWebKit } from '../helpers/browsers';
 import { isReactNative } from '../helpers/platforms';
 import { ScopedLogger, videoLoggerSystem } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
-import { deviceIds$ } from './devices';
+import { canEnumerateDevices, deviceIds$ } from './devices';
 import {
   hasPending,
   settled,
@@ -42,6 +37,7 @@ import {
   defaultDeviceId,
   DevicePersistenceOptions,
   DevicePreferenceKey,
+  isSameDeviceList,
   readPreferences,
   toPreferenceList,
   writePreferences,
@@ -74,9 +70,18 @@ export abstract class DeviceManager<
   protected areSubscriptionsSetUp = false;
   private isTrackStoppedDueToTrackEnd = false;
   private filters: MediaStreamFilterEntry[] = [];
-  private virtualDevicesSubject = new BehaviorSubject<VirtualDeviceEntry<C>[]>(
-    [],
-  );
+  private virtualDevicesStore = new StateStore<{
+    virtualDevices: VirtualDeviceEntry<C>[];
+  }>({ virtualDevices: [] });
+
+  private setVirtualDevices = (
+    patch: (current: VirtualDeviceEntry<C>[]) => VirtualDeviceEntry<C>[],
+  ) => {
+    this.virtualDevicesStore.next((state) => ({
+      virtualDevices: patch(state.virtualDevices),
+    }));
+  };
+  private virtualDevices$ = field(this.virtualDevicesStore, 'virtualDevices');
   private activeVirtualSession: ActiveVirtualSession | undefined;
   private virtualDeviceConcurrencyTag = Symbol('virtualDeviceConcurrencyTag');
   private statusChangeConcurrencyTag = Symbol('statusChangeConcurrencyTag');
@@ -105,7 +110,7 @@ export abstract class DeviceManager<
     this.areSubscriptionsSetUp = true;
 
     if (
-      deviceIds$ &&
+      canEnumerateDevices() &&
       !isReactNative() &&
       (this.trackType === TrackType.AUDIO || this.trackType === TrackType.VIDEO)
     ) {
@@ -115,12 +120,12 @@ export abstract class DeviceManager<
     if (this.devicePersistence.enabled) {
       this.subscriptions.push(
         createSubscription(
-          combineLatest([
-            this.state.selectedDevice$,
-            this.state.status$,
-            this.state.browserPermissionState$,
-          ]),
-          ([selectedDevice, status, browserPermissionState]) => {
+          select(this.state.store, (state) => ({
+            selectedDevice: state.selectedDevice,
+            status: state.status,
+            browserPermissionState: state.browserPermissionState,
+          })),
+          ({ selectedDevice, status, browserPermissionState }) => {
             if (
               !status ||
               (this.isTrackStoppedDueToTrackEnd && status === 'disabled') ||
@@ -140,17 +145,71 @@ export abstract class DeviceManager<
    *
    * Note: It prompts the user for a permission to use devices (if not already granted)
    *
-   * @returns an Observable that will be updated if a device is connected or disconnected
+   * @returns a source that updates as devices are connected or disconnected.
    */
-  listDevices(): Observable<MediaDeviceInfo[]> {
-    return combineLatest([this.getDevices(), this.virtualDevicesSubject]).pipe(
-      map(([real, virtual]) => [
+  listDevices(): Subscribable<MediaDeviceInfo[]> {
+    const real$ = this.getDevices();
+
+    // Memoised on the identity of both inputs. `getValue()` is what React's
+    // `useSyncExternalStore` compares snapshots by, and `createSyntheticDevice`
+    // allocates a fresh object per call - without this, every read produces a
+    // new array and the consuming component re-renders forever.
+    let cache:
+      | {
+          real: MediaDeviceInfo[];
+          virtual: VirtualDeviceEntry<C>[];
+          output: MediaDeviceInfo[];
+        }
+      | undefined;
+    const merged = (): MediaDeviceInfo[] => {
+      const real = real$.getValue();
+      const { virtualDevices } = this.virtualDevicesStore.getLatestValue();
+      if (cache && cache.real === real && cache.virtual === virtualDevices) {
+        return cache.output;
+      }
+      const output = [
         ...real,
-        ...virtual.map((d) =>
+        ...virtualDevices.map((d) =>
           createSyntheticDevice(d.deviceId, d.kind, d.label),
         ),
-      ]),
-    );
+      ];
+      cache = { real, virtual: virtualDevices, output };
+      return output;
+    };
+
+    // Real and virtual devices live in different places, but both are
+    // synchronous, so the merged list is recomputed on either changing rather
+    // than joined into a third source.
+    return createSubscribable(merged, (emit) => {
+      let previous = merged();
+      const onChange = () => {
+        const next = merged();
+        if (previous === next || isSameDeviceList(previous, next)) return;
+        previous = next;
+        emit(next);
+      };
+      const unsubscribeReal = real$.subscribe(onChange);
+      const unsubscribeVirtual = this.virtualDevices$.subscribe(onChange);
+      return () => {
+        unsubscribeReal.unsubscribe();
+        unsubscribeVirtual.unsubscribe();
+      };
+    });
+  }
+
+  /**
+   * Resolves with the available devices, waiting for the first enumeration to
+   * complete rather than reporting an empty list.
+   */
+  protected async loadDevices(): Promise<MediaDeviceInfo[]> {
+    const real = await this.loadRealDevices();
+    const { virtualDevices } = this.virtualDevicesStore.getLatestValue();
+    return [
+      ...real,
+      ...virtualDevices.map((d) =>
+        createSyntheticDevice(d.deviceId, d.kind, d.label),
+      ),
+    ];
   }
 
   /**
@@ -183,16 +242,13 @@ export abstract class DeviceManager<
       ...virtualDevice,
     };
 
-    setCurrentValue(this.virtualDevicesSubject, (current) => [
-      ...current,
-      entry,
-    ]);
+    this.setVirtualDevices((current) => [...current, entry]);
 
     return {
       deviceId: entry.deviceId,
       unregister: async () => {
         await withoutConcurrency(this.virtualDeviceConcurrencyTag, async () => {
-          setCurrentValue(this.virtualDevicesSubject, (current) =>
+          this.setVirtualDevices((current) =>
             current.filter((d) => d !== entry),
           );
           if (this.activeVirtualSession?.deviceId === deviceId) {
@@ -226,9 +282,9 @@ export abstract class DeviceManager<
 
   protected findVirtualDevice(deviceId: string | undefined) {
     if (!deviceId) return undefined;
-    return getCurrentValue(this.virtualDevicesSubject).find(
-      (d) => d.deviceId === deviceId,
-    );
+    return this.virtualDevicesStore
+      .getLatestValue()
+      .virtualDevices.find((d) => d.deviceId === deviceId);
   }
 
   private async stopActiveVirtualSession() {
@@ -433,7 +489,7 @@ export abstract class DeviceManager<
     this.subscriptions.forEach((s) => s());
     this.subscriptions = [];
     this.areSubscriptionsSetUp = false;
-    this.virtualDevicesSubject.next([]);
+    this.virtualDevicesStore.partialNext({ virtualDevices: [] });
   };
 
   private runCurrentStreamCleanups = () => {
@@ -463,7 +519,12 @@ export abstract class DeviceManager<
     });
   }
 
-  protected abstract getDevices(): Observable<MediaDeviceInfo[]>;
+  protected abstract getDevices(): Subscribable<MediaDeviceInfo[]>;
+
+  /**
+   * Resolves with the real (non-virtual) devices once they have been enumerated.
+   */
+  protected abstract loadRealDevices(): Promise<MediaDeviceInfo[]>;
 
   protected getResolvedConstraints(constraints: C): C {
     return constraints;
@@ -746,20 +807,22 @@ export abstract class DeviceManager<
 
   private handleDisconnectedOrReplacedDevices() {
     this.subscriptions.push(
-      createSubscription(
-        combineLatest([
-          deviceIds$!.pipe(pairwise()),
-          this.state.selectedDevice$,
-        ]),
-        async ([[prevDevices, currentDevices], deviceId]) => {
+      // Detecting a disconnect means comparing the device list against the
+      // previous one, so we simply remember it.
+      ((): (() => void) => {
+        let prevDevices = deviceIds$.getValue();
+        return createSubscription(deviceIds$, async (currentDevices) => {
+          const previous = prevDevices;
+          prevDevices = currentDevices;
           try {
-            if (!deviceId) return;
+            if (!this.state.selectedDevice) return;
             await this.statusChangeSettled();
-
+            const deviceId = this.state.selectedDevice;
+            if (!deviceId) return;
             let isDeviceDisconnected = false;
             let isDeviceReplaced = false;
             const currentDevice = this.findDevice(currentDevices, deviceId);
-            const prevDevice = this.findDevice(prevDevices, deviceId);
+            const prevDevice = this.findDevice(previous, deviceId);
             if (!currentDevice && prevDevice) {
               isDeviceDisconnected = true;
             } else if (
@@ -793,8 +856,8 @@ export abstract class DeviceManager<
               err,
             );
           }
-        },
-      ),
+        });
+      })(),
     );
   }
 
@@ -834,7 +897,7 @@ export abstract class DeviceManager<
       return;
     }
 
-    const devices = getCurrentValue(this.listDevices()) || [];
+    const devices = this.listDevices().getValue();
     const currentDevice =
       this.findDevice(devices, selectedDevice) ??
       createSyntheticDevice(selectedDevice, deviceKind);
@@ -857,7 +920,7 @@ export abstract class DeviceManager<
     let appliedDevice = false;
     let appliedMute = false;
 
-    const devices = await firstValueFrom(this.listDevices());
+    const devices = await this.loadDevices();
     for (const preference of preferenceList) {
       muted ??= preference.muted;
       if (preference.selectedDeviceId === defaultDeviceId) break;

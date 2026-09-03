@@ -1,11 +1,9 @@
-import { BehaviorSubject, distinctUntilChanged, map, shareReplay } from 'rxjs';
+import { StateStore } from '@stream-io/state-store';
+import { select, type Subscribable } from '../store/subscribable';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
-import {
-  isShallowArrayEqual,
-  setCurrentValue,
-  setCurrentValueAsync,
-} from '../store/rxUtils';
+import { isShallowArrayEqual } from '../store/patch';
+import { withoutConcurrency } from './concurrency';
 import { timeboxed } from '../coordinator/connection/utils';
 
 type BlockedAudioElement = {
@@ -15,23 +13,29 @@ type BlockedAudioElement = {
 
 /**
  * Tracks audio elements that the browser's autoplay policy has blocked.
+ *
+ * State is read directly everywhere inside the SDK ({@link isBlocked},
+ * {@link markBlocked}); the two `$` members exist because React components
+ * have to re-render when blocking starts or stops, and `select` memoises
+ * their projections so `useSyncExternalStore` sees a stable snapshot.
  */
 export class BlockedAudioTracker {
   private logger = videoLoggerSystem.getLogger('BlockedAudioTracker');
   private tracer: Tracer;
 
-  private blockedElementsSubject = new BehaviorSubject<BlockedAudioElement[]>(
-    [],
-  );
+  private blockedElementsStore = new StateStore<{
+    blockedElements: BlockedAudioElement[];
+  }>({ blockedElements: [] });
+  private readonly resumeConcurrencyTag = Symbol('resume-audio');
 
   /**
    * Whether the browser's autoplay policy is blocking audio playback.
    * Will be `true` when at least one audio element is currently blocked.
    * Use {@link resumeAudio} within a user gesture to unblock.
    */
-  autoplayBlocked$ = this.blockedElementsSubject.pipe(
-    map((elements) => elements.length > 0),
-    distinctUntilChanged(),
+  readonly autoplayBlocked$: Subscribable<boolean> = select(
+    this.blockedElementsStore,
+    (state) => state.blockedElements.length > 0,
   );
 
   /**
@@ -44,16 +48,16 @@ export class BlockedAudioTracker {
    *
    * Session ids are registered together with the audio element.
    */
-  blockedSessionIds$ = this.blockedElementsSubject.pipe(
-    map((elements) => {
+  readonly blockedSessionIds$: Subscribable<string[]> = select(
+    this.blockedElementsStore,
+    (state) => {
       const ids: string[] = [];
-      elements.forEach(({ sessionId }) => {
+      state.blockedElements.forEach(({ sessionId }) => {
         if (sessionId && !ids.includes(sessionId)) ids.push(sessionId);
       });
       return ids;
-    }),
-    distinctUntilChanged(isShallowArrayEqual),
-    shareReplay({ bufferSize: 1, refCount: true }),
+    },
+    isShallowArrayEqual,
   );
 
   constructor(tracer: Tracer) {
@@ -68,7 +72,7 @@ export class BlockedAudioTracker {
     blocked: boolean,
     sessionId?: string,
   ) => {
-    setCurrentValue(this.blockedElementsSubject, (elements) => {
+    this.setBlockedElements((elements) => {
       if (!blocked) {
         return elements.filter(({ element }) => element !== audioElement);
       }
@@ -86,12 +90,20 @@ export class BlockedAudioTracker {
     });
   };
 
+  private setBlockedElements = (
+    patch: (elements: BlockedAudioElement[]) => BlockedAudioElement[],
+  ) => {
+    this.blockedElementsStore.next(({ blockedElements }) => ({
+      blockedElements: patch(blockedElements),
+    }));
+  };
+
   /**
    * Clears all tracked elements. The tracker stays usable afterwards.
    */
   reset = () => {
-    if (this.blockedElementsSubject.getValue().length > 0) {
-      this.blockedElementsSubject.next([]);
+    if (this.blockedElementsStore.getLatestValue().blockedElements.length > 0) {
+      this.blockedElementsStore.partialNext({ blockedElements: [] });
     }
   };
 
@@ -100,9 +112,9 @@ export class BlockedAudioTracker {
    * by the browser's autoplay policy.
    */
   isBlocked = (audioElement: HTMLAudioElement): boolean => {
-    return this.blockedElementsSubject
-      .getValue()
-      .some(({ element }) => element === audioElement);
+    return this.blockedElementsStore
+      .getLatestValue()
+      .blockedElements.some(({ element }) => element === audioElement);
   };
 
   /**
@@ -111,22 +123,29 @@ export class BlockedAudioTracker {
    */
   resumeAudio = async () => {
     this.tracer.trace('resumeAudio', null);
-    await setCurrentValueAsync(
-      this.blockedElementsSubject,
-      async (elements) => {
-        let next = elements;
-        await Promise.all(
-          elements.map(async ({ element }) => {
-            try {
-              if (element.srcObject) await timeboxed([element.play()], 2000);
-              next = next.filter((entry) => entry.element !== element);
-            } catch (err) {
-              this.logger.warn(`Can't resume audio for element`, element, err);
-            }
-          }),
-        );
-        return next;
-      },
-    );
+    // serialised so overlapping gestures cannot interleave their updates
+    await withoutConcurrency(this.resumeConcurrencyTag, async () => {
+      const { blockedElements } = this.blockedElementsStore.getLatestValue();
+      const resumed = new Set<HTMLAudioElement>();
+
+      await Promise.all(
+        blockedElements.map(async ({ element }) => {
+          try {
+            if (element.srcObject) await timeboxed([element.play()], 2000);
+            resumed.add(element);
+          } catch (err) {
+            this.logger.warn(`Can't resume audio for element`, element, err);
+          }
+        }),
+      );
+
+      // Remove the resumed elements from the list as it stands *now*, rather
+      // than writing back the snapshot taken before the awaits: another
+      // element can be blocked while `play()` is pending, and overwriting
+      // would drop it from tracking entirely.
+      this.setBlockedElements((current) =>
+        current.filter(({ element }) => !resumed.has(element)),
+      );
+    });
   };
 }

@@ -119,12 +119,12 @@ The React Native SDK extends the standard three-layer architecture with platform
 
 1. **@stream-io/video-client** (Core Layer)
    - Low-level WebRTC client
-   - Manages connections, state via RxJS observables
+   - Manages connections, state via `@stream-io/state-store` (no RxJS)
    - Platform-agnostic
    - See `packages/client/AGENTS.md` for details
 
 2. **@stream-io/video-react-bindings** (Hooks Layer)
-   - React hooks that subscribe to client observables
+   - React hooks built on `useSyncExternalStore`, subscribing to client state
    - State synchronization between client and React components
    - NO UI components, pure hooks only
    - Provides `StreamVideoProvider`, `StreamCallProvider`
@@ -142,7 +142,11 @@ The React Native SDK extends the standard three-layer architecture with platform
    - Android: Kotlin modules in `android/` (PiP, foreground service)
    - `@stream-io/react-native-callingx` - Internal package for CallKit (iOS) and Telecom (Android) integration
 
-**Critical Rule:** This package should NEVER directly use RxJS observables from the client. All state access must go through bindings hooks.
+**Critical Rule:** Prefer the bindings hooks for state. Where a component must
+subscribe directly (e.g. `TrackSubscriber`), read the store and compare what you
+care about - do not add stream operators. Timing helpers that only this package
+needs live in `src/utils/internal/subscribable.ts` (`subscribeDebounced`,
+`subscribeOnce`); the client deliberately ships none.
 
 ### Entry Point & Initialization
 
@@ -508,22 +512,22 @@ The SDK only handles **ringing call** push notifications. Non-ringing notificati
 const callingx = getCallingxLib();
 ```
 
-### 3. RxJS Subject Bridge Pattern
+### 3. Store Bridge Pattern
 
-Push events flow through RxJS subjects to decouple native events from React:
+Push and native events flow through a `StateStore` to decouple them from React:
 
 **Flow:**
 
 1. Native module emits event (VoIP push, callingx action)
-2. Event handler updates RxJS subject
-3. React hooks subscribe to subject
+2. Event handler writes to the store
+3. React hooks subscribe to it
 4. UI updates reactively
 
 **Example:**
 
 ```tsx
 // In native event handler
-voipPushNotificationCallCId$.next(callCid);
+setVoipPushNotificationCallCId(callCid);
 
 // In React hook
 useEffect(() => {

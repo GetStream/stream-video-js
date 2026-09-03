@@ -52,6 +52,30 @@ export const createSyntheticDevice = (
   return { deviceId, kind, label, groupId: '' } as MediaDeviceInfo;
 };
 
+/**
+ * Compares two device lists by content rather than by object identity.
+ *
+ * `enumerateDevices()` allocates fresh `MediaDeviceInfo` objects on every call
+ * and `createSyntheticDevice` does the same, so an identity comparison would
+ * report a change after every enumeration - waking every device dropdown in
+ * the app for a list that did not move.
+ */
+export const isSameDeviceList = (
+  a: MediaDeviceInfo[],
+  b: MediaDeviceInfo[],
+): boolean =>
+  a.length === b.length &&
+  a.every((device, i) => {
+    const other = b[i];
+    return (
+      device === other ||
+      (device.deviceId === other.deviceId &&
+        device.kind === other.kind &&
+        device.label === other.label &&
+        device.groupId === other.groupId)
+    );
+  });
+
 export const readPreferences = (storageKey: string): LocalDevicePreferences => {
   try {
     const raw = window.localStorage.getItem(storageKey) || '{}';

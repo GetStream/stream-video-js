@@ -56,7 +56,6 @@
     "@stream-io/video-react-bindings": "workspace:*",
     "intl-pluralrules": "2.0.1",
     "react-native-url-polyfill": "^3.0.0",
-    "rxjs": "~7.8.2",
     "text-encoding-polyfill": "0.6.7"
   },
   "peerDependencies": {

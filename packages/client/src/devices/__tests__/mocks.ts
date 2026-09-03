@@ -6,8 +6,12 @@ import {
   OwnCapability,
 } from '../../gen/coordinator';
 import { Call } from '../../Call';
-import { of, ReplaySubject } from 'rxjs';
-import { BrowserPermission } from '../BrowserPermission';
+import type {
+  BrowserPermission,
+  BrowserPermissionState,
+} from '../BrowserPermission';
+import { StateStore } from '@stream-io/state-store';
+import { field } from '../../store/subscribable';
 import { Tracer } from '../../stats';
 
 export const mockVideoDevices = [
@@ -285,18 +289,66 @@ export const createLocalStorageMock = (): LocalStorageMock => {
   };
 };
 
-let deviceIds: ReplaySubject<MediaDeviceInfo[]>;
+let deviceIdsStore: StateStore<{ devices: MediaDeviceInfo[] }>;
+
 export const mockDeviceIds$ = () => {
-  deviceIds = new ReplaySubject(1);
-  return deviceIds;
+  deviceIdsStore = new StateStore<{ devices: MediaDeviceInfo[] }>({
+    devices: [],
+  });
+  return field(deviceIdsStore, 'devices');
 };
 
 export const emitDeviceIds = (values: MediaDeviceInfo[]) => {
-  deviceIds.next(values);
+  deviceIdsStore.partialNext({ devices: values });
+};
+
+type MockPermissionStore = StateStore<{
+  state: BrowserPermissionState | undefined;
+}>;
+
+let mockPermissionStore: MockPermissionStore = new StateStore({
+  state: 'prompt' as BrowserPermissionState | undefined,
+});
+let mockPermissionState$ = field(mockPermissionStore, 'state');
+
+/**
+ * Installs a fresh permission store seeded with `state`.
+ *
+ * Call this from `beforeEach`. Replacing the store (rather than writing to the
+ * existing one) matters: managers built by earlier tests are never disposed,
+ * and would otherwise keep reacting to permission changes made by later ones.
+ */
+export const resetMockBrowserPermission = (
+  state: BrowserPermissionState = 'prompt',
+) => {
+  mockPermissionStore = new StateStore({
+    state: state as BrowserPermissionState | undefined,
+  });
+  mockPermissionState$ = field(mockPermissionStore, 'state');
+};
+
+/**
+ * Drives the permission state the mocked BrowserPermission reports.
+ */
+export const setMockBrowserPermissionState = (
+  state: BrowserPermissionState,
+) => {
+  mockPermissionStore.partialNext({ state });
 };
 
 export const mockBrowserPermission = {
-  asObservable: () => of(true),
-  asStateObservable: () => of('prompt'),
-  getIsPromptingObservable: () => of(false),
-} as BrowserPermission;
+  // resolved lazily, so the mock always tracks the current store
+  get state$() {
+    return mockPermissionState$;
+  },
+  get state() {
+    return mockPermissionStore.getLatestValue().state;
+  },
+  listen: (cb: (state: BrowserPermissionState) => void) =>
+    mockPermissionState$.subscribe((state) => {
+      if (state) cb(state);
+    }),
+  getState: async () => mockPermissionStore.getLatestValue().state,
+  prompt: async () => mockPermissionStore.getLatestValue().state !== 'denied',
+  dispose: () => {},
+} as unknown as BrowserPermission;

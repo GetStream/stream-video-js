@@ -282,7 +282,7 @@ describe('TrackSubscriptionManager', () => {
     sub.unsubscribe();
   });
 
-  it('incomingVideoSettings$ replays the latest value to a late subscriber (shareReplay(1))', () => {
+  it('incomingVideoSettings$ replays the latest value to a late subscriber', () => {
     // Set state BEFORE any subscriber attaches.
     manager.setOverrides({
       enabled: true,

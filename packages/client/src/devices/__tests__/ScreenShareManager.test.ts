@@ -4,21 +4,22 @@ import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
-import * as RxUtils from '../../store/rxUtils';
 import { mockCall, mockDeviceIds$, mockScreenShareStream } from './mocks';
 import { getScreenShareStream } from '../devices';
+import type { CallSettingsResponse } from '../../gen/coordinator';
 import {
   AudioBitrateProfile,
   TrackType,
 } from '../../gen/video/sfu/models/models';
 import { Tracer } from '../../stats';
 
-vi.mock('../devices.ts', () => {
+vi.mock('../devices.ts', async () => {
   console.log('MOCKING devices API');
   return {
     disposeOfMediaStream: vi.fn(),
     getScreenShareStream: vi.fn(() => Promise.resolve(mockScreenShareStream())),
     checkIfAudioOutputChangeSupported: vi.fn(() => Promise.resolve(true)),
+    canEnumerateDevices: () => true,
     deviceIds$: () => mockDeviceIds$(),
     resolveDeviceId: (deviceId) => deviceId,
   };
@@ -56,7 +57,7 @@ describe('ScreenShareManager', () => {
 
   it('list devices', () => {
     const devices = manager.listDevices();
-    expect(RxUtils.getCurrentValue(devices)).toEqual([]);
+    expect(devices.getValue()).toEqual([]);
   });
 
   it('select device', async () => {
@@ -99,15 +100,13 @@ describe('ScreenShareManager', () => {
 
   it('should use call settings to set up constraints', async () => {
     const call = manager['call'];
-    call.state.setCurrentValue(call.state['settingsSubject'], {
-      // @ts-expect-error partial data
-      screensharing: {
-        target_resolution: {
-          width: 800,
-          height: 600,
-          bitrate: 192000,
+    call.state.setState({
+      // partial data
+      settings: {
+        screensharing: {
+          target_resolution: { width: 800, height: 600, bitrate: 192000 },
         },
-      },
+      } as unknown as CallSettingsResponse,
     });
 
     await manager.enable();

@@ -8,7 +8,6 @@ import {
   useSpeakerLayoutSortPreset,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
-import { debounceTime } from 'rxjs';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
@@ -22,6 +21,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import { type CallContentProps } from '../CallContent';
 import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
 
+import { subscribeDebounced } from '../../../utils/internal/subscribable';
 /**
  * Props for the CallParticipantsSpotlight component.
  */
@@ -68,9 +68,11 @@ export const CallParticipantsSpotlight = ({
       setAllParticipants([]);
       return;
     }
-    const sub = call.state.participants$
-      .pipe(debounceTime(300))
-      .subscribe(setAllParticipants);
+    const sub = subscribeDebounced(
+      call.state.participants$,
+      300,
+      setAllParticipants,
+    );
     return () => sub.unsubscribe();
   }, [call]);
   const isOneOnOneCall = allParticipants.length === 2;

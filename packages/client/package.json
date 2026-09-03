@@ -35,9 +35,9 @@
     "@protobuf-ts/runtime-rpc": "^2.11.1",
     "@protobuf-ts/twirp-transport": "^2.11.1",
     "@stream-io/logger": "^2.0.0",
+    "@stream-io/state-store": "^1.1.6",
     "@stream-io/worker-timer": "^1.2.5",
     "axios": "^1.19.0",
-    "rxjs": "~7.8.2",
     "sdp-transform": "^2.15.0",
     "ua-parser-js": "^1.0.41",
     "webrtc-adapter": "^8.2.4"

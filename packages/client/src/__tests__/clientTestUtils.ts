@@ -1,7 +1,7 @@
 import { AllClientEvents } from '../coordinator/connection/types';
 import { StreamVideoClient } from '../StreamVideoClient';
 import { Call } from '../Call';
-import { RxUtils } from '../store';
+import { createSubscription } from '../store/subscription';
 
 /**
  * Waits for a specified event to occur on the provided StreamVideoClient instance within a given timeout period.
@@ -53,7 +53,7 @@ export const expectCall = async (
 ) => {
   return new Promise<Call>((resolve, reject) => {
     let timeoutId: NodeJS.Timeout | undefined = undefined;
-    const off = RxUtils.createSubscription(client.state.calls$, (calls) => {
+    const off = createSubscription(client.state.calls$, (calls) => {
       const call = calls.find((c) => c.cid === cid);
       if (call) {
         clearTimeout(timeoutId);

@@ -1,33 +1,56 @@
-import {
-  BehaviorSubject,
-  distinctUntilChanged,
-  Observable,
-  of,
-  shareReplay,
-} from 'rxjs';
-import { RxUtils } from '../store';
+import { StateStore } from '@stream-io/state-store';
+import { field, type Subscribable } from '../store/subscribable';
 import { BrowserPermission, BrowserPermissionState } from './BrowserPermission';
 
 export type InputDeviceStatus = 'enabled' | 'disabled' | undefined;
 export type TrackDisableMode = 'stop-tracks' | 'disable-tracks';
 
-export abstract class DeviceManagerState<C = MediaTrackConstraints> {
-  protected statusSubject = new BehaviorSubject<InputDeviceStatus>(undefined);
-  protected optimisticStatusSubject = new BehaviorSubject<InputDeviceStatus>(
-    undefined,
-  );
-  protected mediaStreamSubject = new BehaviorSubject<MediaStream | undefined>(
-    undefined,
-  );
-  protected rootMediaStreamSubject = new BehaviorSubject<
-    MediaStream | undefined
-  >(undefined);
-  protected selectedDeviceSubject = new BehaviorSubject<string | undefined>(
-    undefined,
-  );
-  protected defaultConstraintsSubject = new BehaviorSubject<C | undefined>(
-    undefined,
-  );
+/**
+ * The state every device manager holds.
+ *
+ * Declared as a `type` so it satisfies `StateStore`'s `Record<string, unknown>`
+ * constraint, which an interface would not.
+ */
+export type DeviceManagerStateShape<C> = {
+  status: InputDeviceStatus;
+  optimisticStatus: InputDeviceStatus;
+  mediaStream: MediaStream | undefined;
+  rootMediaStream: MediaStream | undefined;
+  selectedDevice: string | undefined;
+  defaultConstraints: C | undefined;
+
+  /**
+   * The browser permission state, or `undefined` while it is still unknown.
+   */
+  browserPermissionState: BrowserPermissionState | undefined;
+
+  /**
+   * `true` when permission is granted, or at least has not been denied.
+   *
+   * In some browsers the `change` event does not fire reliably and the state
+   * stays `prompt` forever (typically after a one-time grant), so we check
+   * for "not denied" rather than for "granted".
+   */
+  hasBrowserPermission: boolean;
+
+  /**
+   * `true` while the browser's permission UI is on screen.
+   */
+  isPromptingPermission: boolean;
+};
+
+export abstract class DeviceManagerState<
+  C = MediaTrackConstraints,
+  // `any` on purpose: `StateStore` is invariant in its state type, so a
+  // stricter default would stop `CameraManagerState` and friends from
+  // satisfying an `S extends DeviceManagerState<C>` constraint. Subclasses
+  // still get their own precise shape.
+  Extra extends Record<string, unknown> = any,
+> {
+  /**
+   * The backing store. Use it to read or subscribe to several values at once.
+   */
+  readonly store: StateStore<DeviceManagerStateShape<C> & Extra>;
 
   /**
    * @internal
@@ -35,60 +58,31 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
   prevStatus: InputDeviceStatus;
 
   /**
-   * An Observable that emits the current media stream, or `undefined` if the device is currently disabled.
+   * The current media stream, or `undefined` if the device is currently disabled.
    */
-  mediaStream$ = this.mediaStreamSubject.asObservable();
+  readonly mediaStream$: Subscribable<MediaStream | undefined>;
 
   /**
-   * An Observable that emits the raw device media stream (before any filters are applied),
-   * or `undefined` if the device is currently disabled. When no filters are active, this
-   * emits the same stream as `mediaStream$`.
+   * The currently selected device
    */
-  rootMediaStream$ = this.rootMediaStreamSubject.asObservable();
+  readonly selectedDevice$: Subscribable<string | undefined>;
 
   /**
-   * An Observable that emits the currently selected device
+   * The device status
    */
-  selectedDevice$ = this.selectedDeviceSubject
-    .asObservable()
-    .pipe(distinctUntilChanged());
+  readonly status$: Subscribable<InputDeviceStatus>;
 
   /**
-   * An Observable that emits the device status
-   */
-  status$ = this.statusSubject.asObservable().pipe(distinctUntilChanged());
-
-  /**
-   * An Observable the reflects the requested device status. Useful for optimistic UIs
-   */
-  optimisticStatus$ = this.optimisticStatusSubject
-    .asObservable()
-    .pipe(distinctUntilChanged());
-
-  /**
-   * The default constraints for the device.
-   */
-  defaultConstraints$ = this.defaultConstraintsSubject.asObservable();
-
-  /**
-   * An observable that will emit `true` if browser/system permission
-   * is granted (or at least hasn't been denied), `false` otherwise.
-   */
-  hasBrowserPermission$: Observable<boolean>;
-
-  /**
-   * An observable that emits with browser permission state changes.
+   * The browser permission state, updated as it changes.
    * Gives more granular visiblity than hasBrowserPermission$.
    */
-  browserPermissionState$: Observable<BrowserPermissionState>;
-
-  /**
-   * An observable that emits `true` when SDK is prompting for browser permission
-   * (i.e. browser's UI for allowing or disallowing device access is visible)
-   */
-  isPromptingPermission$: Observable<boolean>;
+  readonly browserPermissionState$: Subscribable<
+    BrowserPermissionState | undefined
+  >;
 
   readonly disableMode: TrackDisableMode;
+
+  private readonly unlistenPermission: (() => void) | undefined;
 
   /**
    * Constructs a new InputMediaDeviceManagerState instance.
@@ -96,51 +90,107 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
    * @param disableMode the disable mode to use.
    * @param permission the BrowserPermission to use for querying.
    * `undefined` means no permission is required.
+   * @param extraState additional state contributed by a subclass.
    */
   constructor(
     disableMode: TrackDisableMode,
     permission: BrowserPermission | undefined,
+    extraState: Extra = {} as Extra,
   ) {
     this.disableMode = disableMode;
-    this.hasBrowserPermission$ = permission
-      ? permission.asObservable().pipe(shareReplay(1))
-      : of(true);
 
-    this.browserPermissionState$ = permission
-      ? permission.asStateObservable().pipe(shareReplay(1))
-      : of('prompt');
+    this.store = new StateStore<DeviceManagerStateShape<C> & Extra>({
+      status: undefined,
+      optimisticStatus: undefined,
+      mediaStream: undefined,
+      rootMediaStream: undefined,
+      selectedDevice: undefined,
+      defaultConstraints: undefined,
+      // with no permission to query, access is granted unconditionally
+      browserPermissionState: permission ? undefined : 'prompt',
+      hasBrowserPermission: !permission,
+      isPromptingPermission: false,
+      ...extraState,
+    });
 
-    this.isPromptingPermission$ = permission
-      ? permission.getIsPromptingObservable().pipe(shareReplay(1))
-      : of(false);
+    this.unlistenPermission = permission?.listen((state) => {
+      this.store.partialNext({
+        browserPermissionState: state,
+        hasBrowserPermission: state !== 'denied',
+        isPromptingPermission: state === 'prompting',
+      } as Partial<DeviceManagerStateShape<C> & Extra>);
+    });
+
+    this.mediaStream$ = field(this.store, 'mediaStream');
+    this.selectedDevice$ = field(this.store, 'selectedDevice');
+    this.status$ = field(this.store, 'status');
+    this.browserPermissionState$ = field(this.store, 'browserPermissionState');
+  }
+
+  /**
+   * Stops mirroring the browser permission state.
+   */
+  dispose() {
+    this.unlistenPermission?.();
+  }
+
+  /**
+   * Applies a partial update to this device's state.
+   *
+   * @internal
+   */
+  setState(patch: Partial<DeviceManagerStateShape<C> & Extra>) {
+    this.store.partialNext(patch);
+  }
+
+  /**
+   * The browser permission state, or `undefined` while it is still unknown.
+   */
+  get browserPermissionState() {
+    return this.store.getLatestValue().browserPermissionState;
+  }
+
+  /**
+   * `true` when browser/system permission is granted, or at least has not
+   * been denied. `false` until the permission state is known.
+   */
+  get hasBrowserPermission() {
+    return this.store.getLatestValue().hasBrowserPermission;
+  }
+
+  /**
+   * `true` while the browser's permission UI is on screen.
+   */
+  get isPromptingPermission() {
+    return this.store.getLatestValue().isPromptingPermission;
   }
 
   /**
    * The device status
    */
   get status() {
-    return RxUtils.getCurrentValue(this.status$);
+    return this.store.getLatestValue().status;
   }
 
   /**
    * The requested device status. Useful for optimistic UIs
    */
   get optimisticStatus() {
-    return RxUtils.getCurrentValue(this.optimisticStatus$);
+    return this.store.getLatestValue().optimisticStatus;
   }
 
   /**
    * The currently selected device
    */
   get selectedDevice() {
-    return RxUtils.getCurrentValue(this.selectedDevice$);
+    return this.store.getLatestValue().selectedDevice;
   }
 
   /**
    * The current media stream, or `undefined` if the device is currently disabled.
    */
   get mediaStream() {
-    return RxUtils.getCurrentValue(this.mediaStream$);
+    return this.store.getLatestValue().mediaStream;
   }
 
   /**
@@ -149,7 +199,7 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
    * same as `mediaStream`.
    */
   get rootMediaStream() {
-    return RxUtils.getCurrentValue(this.rootMediaStream$);
+    return this.store.getLatestValue().rootMediaStream;
   }
 
   /**
@@ -157,7 +207,7 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
    * @param status
    */
   setStatus(status: InputDeviceStatus) {
-    RxUtils.setCurrentValue(this.statusSubject, status);
+    this.setState({ status } as Partial<DeviceManagerStateShape<C> & Extra>);
   }
 
   /**
@@ -165,7 +215,9 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
    * @param pendingStatus
    */
   setPendingStatus(pendingStatus: InputDeviceStatus) {
-    RxUtils.setCurrentValue(this.optimisticStatusSubject, pendingStatus);
+    this.setState({ optimisticStatus: pendingStatus } as Partial<
+      DeviceManagerStateShape<C> & Extra
+    >);
   }
 
   /**
@@ -180,8 +232,10 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
     stream: MediaStream | undefined,
     rootStream: MediaStream | undefined,
   ) {
-    RxUtils.setCurrentValue(this.mediaStreamSubject, stream);
-    RxUtils.setCurrentValue(this.rootMediaStreamSubject, rootStream);
+    this.setState({
+      mediaStream: stream,
+      rootMediaStream: rootStream,
+    } as Partial<DeviceManagerStateShape<C> & Extra>);
     if (rootStream) {
       const derived = this.getDeviceIdFromStream(rootStream);
       if (derived) {
@@ -195,14 +249,16 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
    * @param deviceId the device id to set.
    */
   setDevice(deviceId: string | undefined) {
-    RxUtils.setCurrentValue(this.selectedDeviceSubject, deviceId);
+    this.setState({ selectedDevice: deviceId } as Partial<
+      DeviceManagerStateShape<C> & Extra
+    >);
   }
 
   /**
    * Gets the default constraints for the device.
    */
   get defaultConstraints() {
-    return RxUtils.getCurrentValue(this.defaultConstraints$);
+    return this.store.getLatestValue().defaultConstraints;
   }
 
   /**
@@ -212,7 +268,9 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
    * @param constraints the constraints to set.
    */
   setDefaultConstraints(constraints: C | undefined) {
-    RxUtils.setCurrentValue(this.defaultConstraintsSubject, constraints);
+    this.setState({ defaultConstraints: constraints } as Partial<
+      DeviceManagerStateShape<C> & Extra
+    >);
   }
 
   protected abstract getDeviceIdFromStream(

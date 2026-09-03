@@ -4,11 +4,11 @@ import {
   hasAudio,
   hasPausedTrack,
   hasScreenShare,
-  type StreamVideoParticipant,
-  videoLoggerSystem,
-  type VideoTrackType,
   hasVideo,
   isPinned,
+  type StreamVideoParticipant,
+  type VideoTrackType,
+  videoLoggerSystem,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
@@ -19,11 +19,11 @@ import {
   onNativeDimensionsUpdated,
   RTCViewPipNative,
 } from './RTCViewPipNative';
-import { debounceTime } from 'rxjs';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
-import { isInPiPMode$ } from '../../../utils/internal/rxSubjects';
+import { setIsInPiPMode } from '../../../utils/internal/pipState';
 
+import { subscribeDebounced } from '../../../utils/internal/subscribable';
 type Props = {
   includeLocalParticipantVideo?: boolean;
   /**
@@ -59,9 +59,11 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
       setAllParticipants([]);
       return;
     }
-    const subscription = call.state.participants$
-      .pipe(debounceTime(300))
-      .subscribe(setAllParticipants);
+    const subscription = subscribeDebounced(
+      call.state.participants$,
+      300,
+      setAllParticipants,
+    );
     return () => subscription.unsubscribe();
   }, [call]);
 
@@ -151,7 +153,7 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
       : !!participantInSpotlight?.isLocalParticipant && direction === 'front';
 
   const handlePiPChange = (event: { nativeEvent: { active: boolean } }) => {
-    isInPiPMode$.next(event.nativeEvent.active);
+    setIsInPiPMode(event.nativeEvent.active);
     onPiPChange?.(event.nativeEvent.active);
   };
 

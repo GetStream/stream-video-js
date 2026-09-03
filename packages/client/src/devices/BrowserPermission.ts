@@ -1,4 +1,5 @@
-import { fromEventPattern, map } from 'rxjs';
+import { StateStore } from '@stream-io/state-store';
+import { field, type Subscribable } from '../store/subscribable';
 import { isReactNative } from '../helpers/platforms';
 import { disposeOfMediaStream } from './utils';
 import { withoutConcurrency } from '../helpers/concurrency';
@@ -16,10 +17,22 @@ export type BrowserPermissionState = PermissionState | 'prompting';
 export class BrowserPermission {
   private ready: Promise<void>;
   private disposeController = new AbortController();
-  private state: BrowserPermissionState | undefined;
+  private store = new StateStore<{
+    state: BrowserPermissionState | undefined;
+  }>({ state: undefined });
   private wasPrompted: boolean = false;
-  private listeners = new Set<(state: BrowserPermissionState) => void>();
   private logger = videoLoggerSystem.getLogger('permissions');
+
+  /**
+   * The current permission state, or `undefined` until it has been determined.
+   *
+   * Staying `undefined` up front is deliberate: it lets callers await the
+   * first real state with `firstValue()`, which skips `undefined` by default.
+   */
+  readonly state$: Subscribable<BrowserPermissionState | undefined> = field(
+    this.store,
+    'state',
+  );
 
   constructor(private readonly permission: BrowserPermissionConfig) {
     const signal = this.disposeController.signal;
@@ -56,8 +69,12 @@ export class BrowserPermission {
   }
 
   dispose() {
-    this.state = undefined;
+    this.store.partialNext({ state: undefined });
     this.disposeController.abort();
+  }
+
+  get state(): BrowserPermissionState | undefined {
+    return this.store.getLatestValue().state;
   }
 
   async getState() {
@@ -129,37 +146,15 @@ export class BrowserPermission {
     );
   }
 
+  /**
+   * Calls back with every permission state, starting with the current one if
+   * it is already known.
+   */
   listen(cb: (state: BrowserPermissionState) => void) {
-    this.listeners.add(cb);
-    if (this.state) cb(this.state);
-    return () => this.listeners.delete(cb);
-  }
-
-  asObservable() {
-    return this.getStateObservable().pipe(
-      // In some browsers, the 'change' event doesn't reliably emit and hence,
-      // permissionState stays in 'prompt' state forever.
-      // Typically, this happens when a user grants one-time permission.
-      // Instead of checking if a permission is granted, we check if it isn't denied
-      map((state) => state !== 'denied'),
-    );
-  }
-
-  asStateObservable() {
-    return this.getStateObservable();
-  }
-
-  getIsPromptingObservable() {
-    return this.getStateObservable().pipe(
-      map((state) => state === 'prompting'),
-    );
-  }
-
-  private getStateObservable() {
-    return fromEventPattern<BrowserPermissionState>(
-      (handler) => this.listen(handler),
-      (handler, unlisten) => unlisten(),
-    );
+    const unsubscribe = this.state$.subscribe((state) => {
+      if (state) cb(state);
+    });
+    return () => unsubscribe();
   }
 
   private setState(state: BrowserPermissionState) {
@@ -167,8 +162,7 @@ export class BrowserPermission {
       const { tracer, queryName } = this.permission;
       const traceKey = `navigator.mediaDevices.${queryName}.permission`;
       tracer?.trace(traceKey, { previous: this.state, state });
-      this.state = state;
-      this.listeners.forEach((listener) => listener(state));
+      this.store.partialNext({ state });
     }
   }
 }

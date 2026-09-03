@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { DeviceManagerState } from '../DeviceManagerState';
-import { firstValueFrom } from 'rxjs';
+import { firstValue } from '../../store/subscribable';
 import { BrowserPermission } from '../BrowserPermission';
 
 class TestInputMediaDeviceManagerState extends DeviceManagerState {
@@ -41,7 +41,8 @@ describe('InputMediaDeviceManagerState', () => {
       vi.spyOn(navigator.permissions, 'query').mockImplementation(query);
       const state = new TestInputMediaDeviceManagerState();
 
-      const hasPermission = await firstValueFrom(state.hasBrowserPermission$);
+      await firstValue(state.browserPermissionState$);
+      const hasPermission = state.hasBrowserPermission;
 
       expect(hasPermission).toBe(true);
       expect(query).toHaveBeenCalledWith({ name: 'camera' });
@@ -54,7 +55,8 @@ describe('InputMediaDeviceManagerState', () => {
       vi.spyOn(navigator.permissions, 'query').mockImplementation(query);
       const state = new TestInputMediaDeviceManagerState();
 
-      const hasPermission = await firstValueFrom(state.hasBrowserPermission$);
+      await firstValue(state.browserPermissionState$);
+      const hasPermission = state.hasBrowserPermission;
 
       expect(hasPermission).toBe(false);
       expect(query).toHaveBeenCalledWith({ name: 'camera' });
@@ -67,7 +69,8 @@ describe('InputMediaDeviceManagerState', () => {
       vi.spyOn(navigator.permissions, 'query').mockImplementation(query);
       const state = new TestInputMediaDeviceManagerState();
 
-      const hasPermission = await firstValueFrom(state.hasBrowserPermission$);
+      await firstValue(state.browserPermissionState$);
+      const hasPermission = state.hasBrowserPermission;
 
       expect(hasPermission).toBe(true);
       expect(query).toHaveBeenCalledWith({ name: 'camera' });
@@ -79,7 +82,8 @@ describe('InputMediaDeviceManagerState', () => {
       vi.spyOn(navigator.permissions, 'query').mockImplementation(query);
       const state = new TestInputMediaDeviceManagerState();
 
-      const hasPermission = await firstValueFrom(state.hasBrowserPermission$);
+      await firstValue(state.browserPermissionState$);
+      const hasPermission = state.hasBrowserPermission;
 
       expect(hasPermission).toBe(true);
       expect(query).toHaveBeenCalledWith({ name: 'camera' });
@@ -87,7 +91,8 @@ describe('InputMediaDeviceManagerState', () => {
 
     it('should emit true when permissions API is unavailable', async () => {
       const state = new TestInputMediaDeviceManagerState();
-      const hasPermission = await firstValueFrom(state.hasBrowserPermission$);
+      await firstValue(state.browserPermissionState$);
+      const hasPermission = state.hasBrowserPermission;
       expect(hasPermission).toBe(true);
     });
   });

@@ -99,28 +99,34 @@ export function DevicesDash() {
 function useVideoDevices() {
   const call = useCall();
   const devices$ = useMemo(() => getVideoDevices(), []);
-  const permission$ = useMemo(
-    () => getVideoBrowserPermission(call?.tracer).asObservable(),
+  // `asObservable()` is gone; derive "not denied" from the permission state,
+  // which is `undefined` until the browser has been queried
+  const permissionState$ = useMemo(
+    () => getVideoBrowserPermission(call?.tracer).state$,
     [call],
   );
+  const permissionState = useObservableValue(permissionState$);
 
   return {
     devices: useObservableValue(devices$, []),
-    hasBrowserPermission: useObservableValue(permission$),
+    hasBrowserPermission: permissionState !== 'denied',
   };
 }
 
 function useAudioDevices() {
   const call = useCall();
   const devices$ = useMemo(() => getAudioDevices(), []);
-  const permission$ = useMemo(
-    () => getAudioBrowserPermission(call?.tracer).asObservable(),
+  // `asObservable()` is gone; derive "not denied" from the permission state,
+  // which is `undefined` until the browser has been queried
+  const permissionState$ = useMemo(
+    () => getAudioBrowserPermission(call?.tracer).state$,
     [call],
   );
+  const permissionState = useObservableValue(permissionState$);
 
   return {
     devices: useObservableValue(devices$, []),
-    hasBrowserPermission: useObservableValue(permission$),
+    hasBrowserPermission: permissionState !== 'denied',
   };
 }
 

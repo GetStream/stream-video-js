@@ -14,11 +14,7 @@ import {
   getAudioBrowserPermission,
   getVideoBrowserPermission,
 } from '../devices';
-import type {
-  BrowserPermission,
-  BrowserPermissionState,
-} from '../devices/BrowserPermission';
-import { getCurrentValue } from '../store/rxUtils';
+import type { BrowserPermission } from '../devices/BrowserPermission';
 import type {
   ClientEvent,
   ReportClientEventRequest,
@@ -772,9 +768,7 @@ const toReportedIceState = (
 const readPermissionStatus = (
   permission: BrowserPermission,
 ): MediaPermissionState => {
-  const state = getCurrentValue<BrowserPermissionState>(
-    permission.asStateObservable(),
-  );
+  const state = permission.state$.getValue();
 
   switch (state) {
     case 'granted':
