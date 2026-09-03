@@ -14,6 +14,7 @@ import com.facebook.react.internal.featureflags.ReactNativeFeatureFlags
 import com.facebook.react.jstasks.HeadlessJsTaskConfig
 import com.facebook.react.jstasks.HeadlessJsTaskContext
 import com.facebook.react.jstasks.HeadlessJsTaskEventListener
+import java.lang.ref.WeakReference
 
 /**
  * @param onTaskFinished invoked after the active task finishes, unless the manager is being
@@ -28,6 +29,9 @@ class HeadlessTaskManager(
 
   @Volatile
   private var activeTaskId: Int? = null
+  /** The React context [activeTaskId] was started on. See [hasActiveTask]. */
+  @Volatile
+  private var startedOnContext: WeakReference<ReactContext>? = null
   private var isStarting: Boolean = false
   private var pendingReactInstanceListener: ReactInstanceEventListener? = null
   @Volatile
@@ -37,8 +41,46 @@ class HeadlessTaskManager(
     private const val TAG = "[Callingx] HeadlessTaskManager"
   }
 
-  /** True while a headless task is running. The service uses it as a reason to stay alive. */
-  fun hasActiveTask(): Boolean = activeTaskId != null
+  /**
+   * True while a task we started is still running. The service treats this as a reason to stay
+   * alive, so an abandoned task must not pin it forever.
+   *
+   * React Native drops in-flight headless tasks when a React context is reloaded or destroyed —
+   * there is no teardown for them — and these tasks are started with `timeout = 0`, so nothing
+   * would ever finish one and clear [activeTaskId]. The context the task was started on is
+   * therefore checked against the live one, and a task orphaned by a reload is dropped here.
+   */
+  fun hasActiveTask(): Boolean {
+    val taskId = activeTaskId ?: return false
+
+    val startedOn = startedOnContext?.get()
+    if (startedOn != null && startedOn === currentReactContextOrNull()) return true
+
+    debugLog(
+            TAG,
+            "[headless] hasActiveTask: task $taskId was abandoned with its React context, clearing"
+    )
+    clearActiveTask()
+    return false
+  }
+
+  private fun clearActiveTask() {
+    activeTaskId = null
+    startedOnContext = null
+  }
+
+  /**
+   * [reactContext] throws when the host is not initialised, and this is read from the service's
+   * stop paths, which run off the main thread. If no context can be resolved there is no task
+   * either, so the caller treats null as "nothing running".
+   */
+  private fun currentReactContextOrNull(): ReactContext? =
+          try {
+            reactContext
+          } catch (t: Throwable) {
+            debugLog(TAG, "[headless] currentReactContextOrNull: unavailable: ${t.message}")
+            null
+          }
 
   private fun hasReactContext(): Boolean = reactContext != null
 
@@ -114,6 +156,7 @@ class HeadlessTaskManager(
     UiThreadUtil.runOnUiThread {
       val taskId = headlessJsTaskContext.startTask(taskConfig)
       activeTaskId = taskId
+      startedOnContext = WeakReference(reactContext)
       debugLog(TAG, "[headless] invokeStartTask: Task started: $taskId")
       isStarting = false
     }
@@ -144,7 +187,7 @@ class HeadlessTaskManager(
     // posted by finishTask() drains first — otherwise we'd unregister the listener before
     // it fires and lose the finish log.
     UiThreadUtil.runOnUiThread {
-      activeTaskId = null
+      clearActiveTask()
       reactContext?.let { context ->
         val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(context)
         headlessJsTaskContext.removeTaskEventListener(this)
@@ -177,7 +220,7 @@ class HeadlessTaskManager(
       return
     }
     debugLog(TAG, "[headless] onHeadlessJsTaskFinish Task finished: $taskId state cleared: activeTaskId=null isStarting=false")
-    activeTaskId = null
+    clearActiveTask()
     isStarting = false
 
     if (released) {
