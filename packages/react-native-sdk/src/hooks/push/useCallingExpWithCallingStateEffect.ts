@@ -17,7 +17,7 @@ export const useCallingExpWithCallingStateEffect = () => {
     useCallStateHooks();
 
   const activeCall = useCall();
-  const { isMute, microphone } = useMicrophoneState();
+  const { optimisticStatus, microphone } = useMicrophoneState();
   const callMembers = useCallMembers();
   const participants = useParticipants();
 
@@ -30,7 +30,7 @@ export const useCallingExpWithCallingStateEffect = () => {
 
   const callDisplayName = useMemo(
     () =>
-      callCustomDisplayName ??
+      callCustomDisplayName ||
       getCallDisplayName(callMembers, participants, currentUserId),
     [callMembers, participants, currentUserId, callCustomDisplayName],
   );
@@ -112,12 +112,19 @@ export const useCallingExpWithCallingStateEffect = () => {
       return;
     }
 
-    callingx.updateDisplay(
-      activeCallCid,
-      createdByUserId ?? callDisplayName,
-      callDisplayName,
-      isIncoming,
-    );
+    callingx
+      .updateDisplay(
+        activeCallCid,
+        createdByUserId ?? callDisplayName,
+        callDisplayName,
+        isIncoming,
+      )
+      .catch((error: unknown) => {
+        logger.debug(
+          `useCallingExpWithCallingStateEffect: Error updating display in callingx: ${activeCallCid}`,
+          error,
+        );
+      });
   }, [activeCallCid, createdByUserId, callDisplayName, isIncoming]);
 
   // Sync microphone mute state from app → CallKit
@@ -135,8 +142,14 @@ export const useCallingExpWithCallingStateEffect = () => {
       return;
     }
 
-    callingx.setMutedCall(activeCallCid, isMute);
-  }, [activeCallCid, isMute]);
+    if (optimisticStatus === undefined) {
+      logger.debug(
+        `useCallingExpWithCallingStateEffect: mic status is not resolved yet, skipping mute sync for: ${activeCallCid}`,
+      );
+      return;
+    }
+    callingx.setMutedCall(activeCallCid, optimisticStatus === 'disabled');
+  }, [activeCallCid, optimisticStatus]);
 
   // Sync mute state from CallKit → app (only for system-initiated mute actions)
   useEffect(() => {
@@ -165,7 +178,8 @@ export const useCallingExpWithCallingStateEffect = () => {
           return;
         }
 
-        const isCurrentlyMuted = microphone.state.status === 'disabled';
+        const isCurrentlyMuted =
+          microphone.state.optimisticStatus === 'disabled';
         if (isCurrentlyMuted === muted) {
           logger.debug(
             `useCallingExpWithCallingStateEffect: Mic toggle is already in the desired state: ${muted} for call: ${activeCallCid}`,

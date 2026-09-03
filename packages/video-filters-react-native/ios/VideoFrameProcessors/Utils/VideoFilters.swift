@@ -2,46 +2,29 @@
 // Copyright © 2024 Stream.io Inc. All rights reserved.
 //
 
-#if canImport(UIKit)
+import CoreImage
 import Foundation
-import UIKit
 
-extension UIInterfaceOrientation {
-    /// Values of `CGImagePropertyOrientation` define the position of the pixel coordinate origin
-    /// point (0,0) and the directions of the coordinate axes relative to the intended display orientation of
-    /// the image. While `UIInterfaceOrientation` uses a different point as its (0,0), this extension
-    /// provides a simple way of mapping device orientation to image orientation.
+extension RTCVideoRotation {
+    /// Maps the capture pipeline's frame rotation to the image orientation used when orienting
+    /// the background image. Using the frame's own rotation metadata keeps the background in sync
+    /// with the outgoing video even when the app UI is orientation-locked or mid-rotation, unlike
+    /// reading the UI's interface orientation.
     var cgOrientation: CGImagePropertyOrientation {
         switch self {
-        /// Handle known portrait orientations
-        case .portrait:
+        case ._0:
+            return .up
+        case ._90:
             return .left
-
-        case .portraitUpsideDown:
-            return .right
-
-        /// Handle known landscape orientations
-        case .landscapeLeft:
-            return .up
-
-        case .landscapeRight:
+        case ._180:
             return .down
-
-        /// Unknown case, return `up` for consistency
-        case .unknown:
-            return .up
-
-        /// Default case for unknown orientations or future additions
-        /// Returns `up` for consistency.
+        case ._270:
+            return .right
         @unknown default:
             return .up
         }
     }
 }
-
-#endif // #if canImport(UIKit)
-
-import Foundation
 
 open class VideoFilter: NSObject, VideoFrameProcessorDelegate {
 
@@ -60,8 +43,6 @@ open class VideoFilter: NSObject, VideoFrameProcessorDelegate {
     public var filter: (Input) -> CIImage
     
     private let context: CIContext
-    
-    var sceneOrientation: UIInterfaceOrientation = .unknown
 
     /// Initializes a new VideoFilter instance with the provided parameters.
     public init(
@@ -70,26 +51,8 @@ open class VideoFilter: NSObject, VideoFrameProcessorDelegate {
         self.filter = filter
         self.context = CIContext(options: [CIContextOption.useSoftwareRenderer: false])
         super.init()
-        // listen to when the device's orientation changes
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(updateRotation),
-            name: UIDevice.orientationDidChangeNotification,
-            object: nil
-        )
-        updateRotation()
     }
 
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
-
-    @objc private func updateRotation() {
-        DispatchQueue.main.async {
-            self.sceneOrientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation ?? .unknown
-        }
-    }
-    
     public func capturer(_ capturer: RTCVideoCapturer!, didCapture frame: RTCVideoFrame!) -> RTCVideoFrame! {
         if let rtcCVPixelBuffer = frame.buffer as? RTCCVPixelBuffer {
             let pixelBuffer = rtcCVPixelBuffer.pixelBuffer
@@ -99,7 +62,7 @@ open class VideoFilter: NSObject, VideoFrameProcessorDelegate {
                 Input(
                     originalImage: CIImage(cvPixelBuffer: pixelBuffer),
                     originalPixelBuffer: pixelBuffer,
-                    originalImageOrientation: self.sceneOrientation.cgOrientation
+                    originalImageOrientation: frame.rotation.cgOrientation
                 )
             )
             CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)

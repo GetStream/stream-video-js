@@ -21,7 +21,7 @@ type CallParticipantListingItemProps = {
   DisplayName?: ComponentType<{ participant: StreamVideoParticipant }>;
 };
 export const CallParticipantListingItem = memo(
-  function CallParticipantListingItem({
+  function CallParticipantListingItemRender({
     participant,
     DisplayName = DefaultDisplayName,
   }: CallParticipantListingItemProps) {
@@ -114,7 +114,7 @@ const DefaultDisplayName = ({ participant }: DisplayNameProps) => {
 };
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
-  function ToggleButton(props, ref) {
+  function ToggleButtonRender(props, ref) {
     return <IconButton enabled={props.menuShown} icon="ellipsis" ref={ref} />;
   },
 );

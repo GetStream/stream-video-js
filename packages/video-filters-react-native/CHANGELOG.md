@@ -2,6 +2,23 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.16.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.15.0...@stream-io/video-filters-react-native-0.16.0) (2026-08-18)
+
+### Features
+
+- hi-fi audio ([#2305](https://github.com/GetStream/stream-video-js/issues/2305)) ([c2e0f21](https://github.com/GetStream/stream-video-js/commit/c2e0f21d4f57bbf2c64fdc3f5bca45a988f3a176))
+
+### Bug Fixes
+
+- background video filters should refresh on orientation change ([#2364](https://github.com/GetStream/stream-video-js/issues/2364)) ([e52384b](https://github.com/GetStream/stream-video-js/commit/e52384bf72999c6dc222357494845266b693b135))
+
+## [0.15.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.14.5...@stream-io/video-filters-react-native-0.15.0) (2026-08-07)
+
+### Features
+
+- added audio capture for ios broadcast screensharing mode ([#2346](https://github.com/GetStream/stream-video-js/issues/2346)) ([eb40f3e](https://github.com/GetStream/stream-video-js/commit/eb40f3ea5bfc5cfc28f3f6ef81c54bcbdeb1a804))
+- **react-native:** Expo SDK 57 / RN 0.86.2 upgrade and iOS 27 compatibility fixes ([#2355](https://github.com/GetStream/stream-video-js/issues/2355)) ([ea3c29b](https://github.com/GetStream/stream-video-js/commit/ea3c29b227f7a2a9ddb0eb046325e4783b558c94))
+
 ## [0.14.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.14.4...@stream-io/video-filters-react-native-0.14.5) (2026-07-30)
 
 ### Dependency Updates

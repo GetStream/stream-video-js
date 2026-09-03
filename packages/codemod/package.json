@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-codemod",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "Stream Video SDK Codemods",
   "license": "See license in LICENSE",
   "bin": "./bin/cli.js",
@@ -21,10 +21,10 @@
     "directory": "packages/codemod"
   },
   "dependencies": {
-    "jscodeshift": "^17.3.0"
+    "jscodeshift": "^17.4.0"
   },
   "devDependencies": {
     "@types/jscodeshift": "^17.3.0",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.10"
   }
 }

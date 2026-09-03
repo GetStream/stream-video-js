@@ -509,6 +509,23 @@ export abstract class DeviceManager<
     }
   }
 
+  protected reconcileOptimisticStatus = async (): Promise<void> => {
+    const target = this.state.optimisticStatus;
+    await withCancellation(this.statusChangeConcurrencyTag, async (signal) => {
+      try {
+        if (target === 'enabled' && this.state.status !== 'enabled') {
+          await this.unmuteStream();
+          if (!signal.aborted) this.state.setStatus('enabled');
+        } else if (target === 'disabled' && this.state.status === 'enabled') {
+          // mirror whatever disable() does to stop/pause the track per disableMode
+          if (!signal.aborted) this.state.setStatus('disabled');
+        }
+      } finally {
+        if (!signal.aborted) this.state.setPendingStatus(this.state.status);
+      }
+    });
+  };
+
   private disableTracks() {
     this.getTracks().forEach((track) => {
       if (track.enabled) track.enabled = false;
@@ -825,7 +842,10 @@ export abstract class DeviceManager<
     writePreferences(currentDevice, deviceKey, muted, storageKey);
   }
 
-  protected async applyPersistedPreferences(enabledInCallType: boolean) {
+  protected async applyPersistedPreferences(
+    enabledInCallType: boolean,
+    forceDisabled = false,
+  ) {
     const deviceKey: DevicePreferenceKey =
       this.trackType === TrackType.AUDIO ? 'microphone' : 'camera';
     const preferences = readPreferences(this.devicePersistence.storageKey);
@@ -858,15 +878,15 @@ export abstract class DeviceManager<
 
     const canPublish = this.call.permissionsContext.canPublish(this.trackType);
     if (typeof muted === 'boolean' && enabledInCallType && canPublish) {
-      await this.applyMutedState(muted);
+      await this.applyMutedState(muted, forceDisabled);
       appliedMute = true;
     }
 
     return appliedDevice || appliedMute;
   }
 
-  private async applyMutedState(muted: boolean) {
-    if (this.state.status !== undefined) return;
+  private async applyMutedState(muted: boolean, forceDisabled: boolean) {
+    if (forceDisabled || this.state.status !== undefined) return;
     if (muted) {
       await this.disable();
     } else {

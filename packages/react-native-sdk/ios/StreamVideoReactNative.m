@@ -51,6 +51,7 @@ void broadcastNotificationCallback(CFNotificationCenterRef center,
     bool hasListeners;
     CFNotificationCenterRef _notificationCenter;
     AVAudioPlayer *_busyTonePlayer; // Instance variable
+    ScreenAudioCapture *_screenAudioCapture; // Broadcast screen-share audio receiver
 }
 
 RCT_EXPORT_MODULE();
@@ -647,19 +648,25 @@ RCT_EXPORT_METHOD(startScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
     if (apmId && [apmId isKindOfClass:[RTCDefaultAudioProcessingModule class]]) {
         RTCDefaultAudioProcessingModule *apm = (RTCDefaultAudioProcessingModule *)apmId;
         apm.capturePostProcessingDelegate = mixer;
-        NSLog(@"[SSAMixer] Set capturePostProcessingDelegate on APM");
     } else {
-        NSLog(@"[SSAMixer] WARNING: No RTCDefaultAudioProcessingModule available, mixing will not work");
+        NSLog(@"[SSAudio][Native] WARNING: No RTCDefaultAudioProcessingModule available, screen-share audio mixing will not work");
     }
 
     [mixer startMixing];
 
-    // Wire audio buffer handler on the active capturer → mixer.enqueue
     InAppScreenCapturer *capturer = options.activeInAppScreenCapturer;
     if (capturer) {
         capturer.audioBufferHandler = ^(CMSampleBufferRef sampleBuffer) {
             [mixer enqueue:sampleBuffer];
         };
+    } else {
+        if (!_screenAudioCapture) {
+            _screenAudioCapture = [ScreenAudioCapture new];
+        }
+        _screenAudioCapture.onAudioBuffer = ^(AVAudioPCMBuffer *pcmBuffer) {
+            [mixer enqueuePCM:pcmBuffer];
+        };
+        [_screenAudioCapture start];
     }
 
     resolve(nil);
@@ -671,10 +678,14 @@ RCT_EXPORT_METHOD(stopScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
     WebRTCModule *webrtcModule = [self.moduleRegistry moduleForName:"WebRTCModule"];
     WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
 
-    // Stop feeding audio to the mixer
     InAppScreenCapturer *capturer = options.activeInAppScreenCapturer;
     if (capturer) {
         capturer.audioBufferHandler = nil;
+    }
+
+    if (_screenAudioCapture) {
+        _screenAudioCapture.onAudioBuffer = nil;
+        [_screenAudioCapture stop];
     }
 
     // Stop mixing
@@ -686,7 +697,6 @@ RCT_EXPORT_METHOD(stopScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
     if (apmId && [apmId isKindOfClass:[RTCDefaultAudioProcessingModule class]]) {
         RTCDefaultAudioProcessingModule *apm = (RTCDefaultAudioProcessingModule *)apmId;
         apm.capturePostProcessingDelegate = nil;
-        NSLog(@"[SSAMixer] Cleared capturePostProcessingDelegate on APM");
     }
 
     resolve(nil);

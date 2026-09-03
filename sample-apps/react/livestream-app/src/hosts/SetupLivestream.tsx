@@ -1,6 +1,6 @@
 import { Button, Input, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 export const SetupLivestream = () => {
   const [callId, setCallId] = useState<string>(() =>

@@ -2,6 +2,44 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.59.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.58.0...@stream-io/video-client-1.59.0) (2026-08-28)
+
+### Features
+
+- **react-sdk:** pre-call testing ([#2370](https://github.com/GetStream/stream-video-js/issues/2370)) ([3f4b62a](https://github.com/GetStream/stream-video-js/commit/3f4b62ab379d9d4203bc64b5d5e3658fba389efd))
+
+### Bug Fixes
+
+- do not end callingx service without call leave ([#2396](https://github.com/GetStream/stream-video-js/issues/2396)) ([15d6abb](https://github.com/GetStream/stream-video-js/commit/15d6abbfa9f4cc2a47c01d8fc8204016a2f8a448))
+- **client:** keep devices disabled when querying calls ([#2382](https://github.com/GetStream/stream-video-js/issues/2382)) ([1c69755](https://github.com/GetStream/stream-video-js/commit/1c6975546dd70baf991410300fbf6de5ddfd9c65))
+- **client:** Prevent concurrent joins ([#2386](https://github.com/GetStream/stream-video-js/issues/2386)) ([92b2cf6](https://github.com/GetStream/stream-video-js/commit/92b2cf62a719ffb98156250eeffa706841c6781c))
+- **client:** refresh live call state on reconnect re-watch ([#2383](https://github.com/GetStream/stream-video-js/issues/2383)) ([d28067e](https://github.com/GetStream/stream-video-js/commit/d28067e543592e9ab8d8219fcaa9250d938dbc70))
+- **client:** use generated call reporting types and remove unused fields ([#2377](https://github.com/GetStream/stream-video-js/issues/2377)) ([2eab662](https://github.com/GetStream/stream-video-js/commit/2eab66293c41c8e1d6467f2536525511186862e2))
+- missing own capabilities for incoming call ([#2388](https://github.com/GetStream/stream-video-js/issues/2388)) ([0a04d34](https://github.com/GetStream/stream-video-js/commit/0a04d34a258d7ab3702348a1f929f87e62531875))
+
+## [1.58.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.57.0...@stream-io/video-client-1.58.0) (2026-08-18)
+
+### Features
+
+- **client:** add E2EE support via WebRTC Encoded Transforms ([#2198](https://github.com/GetStream/stream-video-js/issues/2198)) ([063de51](https://github.com/GetStream/stream-video-js/commit/063de510e877526089073a46dbd08f329c4af058))
+- hi-fi audio ([#2305](https://github.com/GetStream/stream-video-js/issues/2305)) ([c2e0f21](https://github.com/GetStream/stream-video-js/commit/c2e0f21d4f57bbf2c64fdc3f5bca45a988f3a176))
+
+### Bug Fixes
+
+- **client:** E2EE framing-version detection and event renames ([#2366](https://github.com/GetStream/stream-video-js/issues/2366)) ([050aebf](https://github.com/GetStream/stream-video-js/commit/050aebf6efea84089bee6ded5e62ba02ecc22716))
+- **client:** granular E2EE key removal ([#2368](https://github.com/GetStream/stream-video-js/issues/2368)) ([8f52b9a](https://github.com/GetStream/stream-video-js/commit/8f52b9a6ff9b87382dcd5ebd7414388153be8a13)), closes [#2366](https://github.com/GetStream/stream-video-js/issues/2366)
+- **client:** only deselect the speaker device on a real disconnect ([#2375](https://github.com/GetStream/stream-video-js/issues/2375)) ([d7f780d](https://github.com/GetStream/stream-video-js/commit/d7f780d0924471adfe9ba85accf42e889b01e20b))
+
+## [1.57.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.56.0...@stream-io/video-client-1.57.0) (2026-08-07)
+
+### Features
+
+- **react-native:** Expo SDK 57 / RN 0.86.2 upgrade and iOS 27 compatibility fixes ([#2355](https://github.com/GetStream/stream-video-js/issues/2355)) ([ea3c29b](https://github.com/GetStream/stream-video-js/commit/ea3c29b227f7a2a9ddb0eb046325e4783b558c94))
+
+### Bug Fixes
+
+- **client:** require stable playback before resetting watchdog retries ([#2361](https://github.com/GetStream/stream-video-js/issues/2361)) ([3e6b675](https://github.com/GetStream/stream-video-js/commit/3e6b67527702111cd0ea80e3bee1c9e6995406aa))
+
 ## [1.56.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.55.2...@stream-io/video-client-1.56.0) (2026-07-30)
 
 ### Features

@@ -62,5 +62,4 @@ export type StreamInCallManagerConfig =
     }
   | {
       audioRole: 'listener';
-      enableStereoAudioOutput?: boolean;
     };

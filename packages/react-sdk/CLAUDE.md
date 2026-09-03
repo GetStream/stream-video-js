@@ -539,13 +539,22 @@ Audio is simpler than video (no visibility concerns):
 ## Build System
 
 - **Rollup** for bundling (see `rollup.config.mjs`)
-- Produces 2 bundles:
-  - `dist/index.es.js` - ESM build
-  - `dist/index.cjs.js` - CommonJS build
+- Produces 3 builds:
+  - `dist/esm/` - ESM, one file per source module (`preserveModules`), covering
+    both the `index` and `embedded` entrypoints in a single pass so they share
+    their common modules
+  - `dist/index.cjs.js` - CommonJS, a single bundle
+  - `dist/embedded.cjs.js` - CommonJS, embedded entrypoint
+- ESM keeps per-module output so a consumer's bundler can tree-shake at module
+  granularity; CommonJS is never tree-shaken, so it stays a single bundle
+- `package.json#sideEffects` lists the CSS plus the entry files (they carry the
+  top-level `setSdkInfo` call) - every other module must stay side-effect free,
+  or tree-shaking silently stops working
 - CSS copied from `@stream-io/video-styling` during build
 - TypeScript compilation for type definitions
 - Source maps included
-- Special handling for lazy-loaded chunks (e.g., `CallStatsLatencyChart`)
+- Special handling for lazy-loaded chunks (e.g., `CallStatsLatencyChart`) applies
+  to the CommonJS builds; the ESM build has no chunks, every module is its own file
 
 ## Dependencies
 

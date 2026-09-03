@@ -2,6 +2,32 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.20.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.20.0...@stream-io/video-react-bindings-1.20.1) (2026-08-28)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.59.0`
+
+### Performance Improvements
+
+- emit per-module ESM builds for the React packages ([#2378](https://github.com/GetStream/stream-video-js/issues/2378)) ([9c937f4](https://github.com/GetStream/stream-video-js/commit/9c937f4b5845aa0e8108a218b1c84b7acb249d77))
+
+## [1.20.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.19.2...@stream-io/video-react-bindings-1.20.0) (2026-08-18)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.58.0`
+
+### Features
+
+- **client:** add E2EE support via WebRTC Encoded Transforms ([#2198](https://github.com/GetStream/stream-video-js/issues/2198)) ([063de51](https://github.com/GetStream/stream-video-js/commit/063de510e877526089073a46dbd08f329c4af058))
+
+## [1.19.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.19.1...@stream-io/video-react-bindings-1.19.2) (2026-08-07)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.57.0`
+
 ## [1.19.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.19.0...@stream-io/video-react-bindings-1.19.1) (2026-07-30)
 
 ### Dependency Updates

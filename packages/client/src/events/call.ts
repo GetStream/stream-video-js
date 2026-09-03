@@ -81,7 +81,6 @@ export const watchCallRejected = (call: Call) => {
  */
 export const watchCallEnded = (call: Call) => {
   return function onCallEnded() {
-    globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
     const { callingState } = call.state;
     if (
       callingState !== CallingState.IDLE &&
@@ -92,9 +91,13 @@ export const watchCallEnded = (call: Call) => {
         reason: 'call.ended event received',
       });
       call
-        .leave({ message: 'call.ended event received', reject: false })
+        .leave({
+          message: 'call.ended event received',
+          reject: false,
+          reason: 'ended',
+        })
         .catch((err) => {
-          call.logger.error('Failed to leave call after call.ended ', err);
+          call.logger.error('Failed to leave call after call.ended', err);
         });
     }
   };

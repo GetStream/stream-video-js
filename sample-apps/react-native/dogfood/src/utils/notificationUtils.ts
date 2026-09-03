@@ -4,9 +4,7 @@ import { deeplinkCallId$ } from '../hooks/useDeepLinkEffect';
 export const NON_RINGING_CHANNEL_ID = 'stream_non_ringing_calls';
 
 export type NonRingingPushEvent =
-  | 'call.live_started'
-  | 'call.notification'
-  | 'call.missed';
+  'call.live_started' | 'call.notification' | 'call.missed';
 
 export const NON_RINGING_EVENTS = new Set<string>([
   'call.live_started',

@@ -1,10 +1,6 @@
 import ReactDOM from 'react-dom/client';
-import {
-  createBrowserRouter,
-  Navigate,
-  redirect,
-  RouterProvider,
-} from 'react-router-dom';
+import { createBrowserRouter, Navigate, redirect } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 
 import { Root } from './Root';
 import { UserList } from './components/UserList';

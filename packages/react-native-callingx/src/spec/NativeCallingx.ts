@@ -39,6 +39,10 @@ export interface Spec extends TurboModule {
     skipIncomingPushInForeground: boolean;
   }): void;
 
+  wireAudioEngineSubscription(): void;
+
+  unwireAudioEngineSubscription(): void;
+
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;
 
   setDefaultAudioDeviceEndpointType(endpointType: string): void;
@@ -75,6 +79,16 @@ export interface Spec extends TurboModule {
       phase?: string;
       reason?: string;
       shouldResume?: boolean;
+      // `ringCallPushReceived` — raw FCM `call.ring` data payload (Android)
+      call_cid?: string;
+      sender?: string;
+      type?: string;
+      created_by_id?: string;
+      created_by_display_name?: string;
+      call_display_name?: string;
+      receiver_id?: string;
+      video?: string;
+      version?: string;
     };
   }>;
 
@@ -153,7 +167,6 @@ export interface Spec extends TurboModule {
 
   setOnHoldCall(callId: string, isOnHold: boolean): Promise<void>;
 
-  registerBackgroundTaskAvailable(): void;
   startBackgroundTask(taskName: string, timeout: number): Promise<void>;
 
   stopBackgroundTask(taskName: string): Promise<void>;
@@ -177,6 +190,16 @@ export interface Spec extends TurboModule {
       phase?: string;
       reason?: string;
       shouldResume?: boolean;
+      // `ringCallPushReceived` — raw FCM `call.ring` data payload (Android)
+      call_cid?: string;
+      sender?: string;
+      type?: string;
+      created_by_id?: string;
+      created_by_display_name?: string;
+      call_display_name?: string;
+      receiver_id?: string;
+      video?: string;
+      version?: string;
     };
   }>;
 

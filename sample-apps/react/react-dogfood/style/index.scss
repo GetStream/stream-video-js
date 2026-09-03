@@ -26,6 +26,7 @@
 @use 'CallParticipantsView';
 @use 'CallParticipantsScreenView';
 @use 'CallLayout';
+@use 'AdaptivePipGrid';
 
 @use 'SettingsTabModal';
 @use 'ToggleMoreOptionsListButton';
@@ -42,6 +43,8 @@
 @use 'LayoutSelector';
 @use 'DevMenu';
 @use 'Inspector';
+@use 'E2EEKeyNotification';
+@use 'PreCallTest';
 
 @use 'barebones';
 @use 'livestream';

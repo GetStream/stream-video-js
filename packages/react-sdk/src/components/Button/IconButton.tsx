@@ -9,7 +9,7 @@ export type ButtonWithIconProps = {
 } & ComponentProps<'button'> &
   IconProps;
 
-export const IconButton = forwardRef(function IconButton(
+export const IconButton = forwardRef(function IconButtonRender(
   props: ButtonWithIconProps,
   ref: ForwardedRef<HTMLButtonElement>,
 ) {

@@ -1,5 +1,5 @@
 import { StreamVideo } from '@stream-io/video-react-sdk';
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router';
 import { useInitVideoClient } from '../hooks/useInitVideoClient';
 
 export const Hosts = () => {

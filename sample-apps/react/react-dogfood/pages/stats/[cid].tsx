@@ -35,8 +35,7 @@ export default function Stats(props: ServerSideCredentialsProps) {
         const userId =
           (router.query['user_id'] as string | undefined) || user.id;
         const userSessionId = router.query['user_session_id'] as
-          | string
-          | undefined;
+          string | undefined;
         const kind =
           (router.query['kind'] as 'details' | 'timeline') || 'details';
         const stats = await _call.getCallParticipantsStats({

@@ -17,9 +17,7 @@ export type KeepAliveAndroidNotificationTexts = {
 };
 
 export type NonRingingPushEvent =
-  | 'call.live_started'
-  | 'call.notification'
-  | 'call.missed';
+  'call.live_started' | 'call.notification' | 'call.missed';
 
 export type StreamVideoConfig = {
   /**
@@ -28,6 +26,9 @@ export type StreamVideoConfig = {
    * @default undefined
    */
   push?: {
+    /**
+     * @deprecated Expo is auto-detected; this value is ignored and the property will be removed in a future major version.
+     */
     isExpo?: boolean;
     /**
      * The publish options to be used when joining a call from a push notification.
@@ -175,8 +176,7 @@ export type StreamVideoConfig = {
        */
       notificationTexts: KeepAliveAndroidNotificationTexts;
       /**
-       * The task to run in the foreground service
-       * The task must resolve a promise once complete
+       * The task to run in the foreground service.
        */
       taskToRun: (call: Call) => Promise<void>;
     };

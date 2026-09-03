@@ -74,6 +74,26 @@ export const publishingAudio: Comparator<StreamVideoParticipant> = (a, b) => {
 };
 
 /**
+ * A comparator which prioritizes participants who are publishing any track
+ * over participants who are not publishing at all.
+ *
+ * Unlike `publishingVideo` and `publishingAudio`, this comparator does not
+ * distinguish between track types. Muting the microphone or turning off the
+ * camera does not change a participant's rank as long as they still publish
+ * something, which keeps the ordering stable across ordinary device toggles.
+ *
+ * @param a the first participant.
+ * @param b the second participant.
+ */
+export const publishing: Comparator<StreamVideoParticipant> = (a, b) => {
+  const hasA = a.publishedTracks.length > 0;
+  const hasB = b.publishedTracks.length > 0;
+  if (hasA && !hasB) return -1;
+  if (!hasA && hasB) return 1;
+  return 0;
+};
+
+/**
  * A comparator which prioritizes participants who are pinned.
  *
  * @param a the first participant.

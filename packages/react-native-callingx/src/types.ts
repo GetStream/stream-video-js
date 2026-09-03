@@ -4,11 +4,7 @@ export type DefaultDeviceEndpointType = 'speaker' | 'earpiece';
 
 /** Generic Telecom audio endpoint type names (Android). */
 export type AudioEndpointType =
-  | 'earpiece'
-  | 'speaker'
-  | 'wired_headset'
-  | 'bluetooth'
-  | 'unknown';
+  'earpiece' | 'speaker' | 'wired_headset' | 'bluetooth' | 'unknown';
 
 /** A single Telecom audio endpoint. `id` is opaque and passed back to select it. */
 export type AudioEndpoint = {
@@ -51,6 +47,19 @@ export interface ICallingxModule {
    * @param options - The options to setup the callingx module. See {@link CallingExpOptions}
    */
   setup(options: CallingExpOptions): void;
+
+  /**
+   * Wire the audio engine subscription to the live call factory's ADM.
+   */
+  wireAudioEngineSubscription(): void;
+
+  /**
+   * Cancels the ADM engine-lifecycle subscription wired by
+   * {@link wireAudioEngineSubscription}. iOS only; no-op on Android.
+   * Call when the per-call media engine is disposed.
+   */
+  unwireAudioEngineSubscription(): void;
+
   /**
    * Set whether to reject calls when the user is busy.
    * The value is used in iOS native module to prevent calls registration in CallKit when the user is busy.
@@ -194,6 +203,14 @@ export interface ICallingxModule {
 
   registerVoipToken(): void;
 
+  /**
+   * Asks the Android call service to stop. Android-only; resolves as a no-op on iOS.
+   *
+   * This is a *request*, not a command: the service hosts every call, so it stays alive while any
+   * call is registered or in the middle of being registered. Use {@link endCallWithReason} to tear
+   * down an individual call — this method never ends calls, and never dismisses their
+   * notifications.
+   */
   stopService(): Promise<void>;
 
   /**
@@ -361,7 +378,20 @@ export type EventName =
   | 'didPerformSetMutedCallAction'
   | 'didActivateAudioSession'
   | 'didDeactivateAudioSession'
-  | 'providerReset';
+  | 'providerReset'
+  | 'ringCallPushReceived';
+
+export type RingCallPushPayload = {
+  call_cid?: string;
+  sender?: string;
+  type?: string;
+  created_by_id?: string;
+  created_by_display_name?: string;
+  call_display_name?: string;
+  receiver_id?: string;
+  video?: string;
+  version?: string;
+};
 
 export type IOSAudioInterruptionEvent = {
   source: 'callingx';
@@ -401,11 +431,11 @@ export type EventParams = {
   providerReset: {
     callCids: string[];
   };
+  ringCallPushReceived: RingCallPushPayload;
 };
 
 export type VoipEventName =
-  | 'voipNotificationsRegistered'
-  | 'voipNotificationReceived';
+  'voipNotificationsRegistered' | 'voipNotificationReceived';
 
 export type VoipEventParams = {
   voipNotificationsRegistered: {

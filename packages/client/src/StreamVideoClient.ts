@@ -39,7 +39,6 @@ import {
   getInstanceKey,
 } from './helpers/clientUtils';
 import { logToConsole, ScopedLogger, videoLoggerSystem } from './logger';
-import { isReactNative } from './helpers/platforms';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
 import { ClientEventReporter } from './reporting';
@@ -211,6 +210,7 @@ export class StreamVideoClient {
               await call.reject('busy');
             } else {
               await call.updateFromRingingEvent(e as CallRingEvent);
+              await call.get();
             }
           } else {
             call.state.updateFromCallResponse(e.call);
@@ -249,6 +249,17 @@ export class StreamVideoClient {
   };
 
   /**
+   * Queries the API for calls matching the given filters.
+   * @param data the query data.
+   */
+  private doQueryCalls = (data: QueryCallsRequest) => {
+    return this.streamClient.post<QueryCallsResponse, QueryCallsRequest>(
+      '/calls',
+      data,
+    );
+  };
+
+  /**
    * Rewatches the given calls with retry logic.
    * @param callsToReWatch array of call IDs to rewatch
    */
@@ -261,10 +272,21 @@ export class StreamVideoClient {
           `Rewatching calls ${callsToReWatch.join(', ')} attempt ${attempt + 1}`,
         );
 
-        await this.queryCalls({
+        const response = await this.doQueryCalls({
           watch: true,
           filter_conditions: { cid: { $in: callsToReWatch } },
         });
+
+        for (const c of response.calls) {
+          const call = this.writeableStateStore.findCall(
+            c.call.type,
+            c.call.id,
+          );
+
+          if (call) {
+            call.updateFromCallStateResponse(c);
+          }
+        }
 
         return;
       } catch (err) {
@@ -452,12 +474,14 @@ export class StreamVideoClient {
    * Will query the API for calls matching the given filters.
    *
    * @param data the query data.
+   * @param opts additional options, for tweaking the API behavior.
    */
-  queryCalls = async (data: QueryCallsRequest = {}) => {
-    const response = await this.streamClient.post<
-      QueryCallsResponse,
-      QueryCallsRequest
-    >('/calls', data);
+  queryCalls = async (
+    data: QueryCallsRequest = {},
+    opts: { withDisabledDevices?: boolean } = {},
+  ) => {
+    const { withDisabledDevices = true } = opts;
+    const response = await this.doQueryCalls(data);
     const calls = [];
     for (const c of response.calls) {
       const call = new Call({
@@ -471,7 +495,10 @@ export class StreamVideoClient {
         clientStore: this.writeableStateStore,
       });
       call.state.updateFromCallResponse(c.call);
-      await call.applyDeviceConfig(c.call.settings, false, isReactNative());
+      await call.applyDeviceConfig(c.call.settings, {
+        publish: false,
+        withDisabledDevices,
+      });
       if (data.watch) {
         await call.setup();
         this.writeableStateStore.registerCall(call);

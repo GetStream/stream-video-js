@@ -1,13 +1,13 @@
-import { lib, type Type } from './lib';
-import { videoLoggerSystem } from '@stream-io/video-client';
-
-export type { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
-export type FirebaseMessagingType = Type;
+import { lib, type MessagingModule } from './lib';
 
 const INSTALLATION_INSTRUCTION =
   'Please see https://rnfirebase.io/messaging/usage#installation for installation instructions';
 
-export function getFirebaseMessagingLib(): FirebaseMessagingType {
+export type FirebaseRemoteMessage = NonNullable<
+  Awaited<ReturnType<MessagingModule['getInitialNotification']>>
+>;
+
+function getFirebaseMessagingModule() {
   if (!lib) {
     throw Error(
       '@react-native-firebase/messaging is not installed. ' +
@@ -17,20 +17,12 @@ export function getFirebaseMessagingLib(): FirebaseMessagingType {
   return lib;
 }
 
-export function getFirebaseMessagingLibNoThrow(
-  isExpo: boolean,
-): FirebaseMessagingType | undefined {
-  if (!lib) {
-    const logger = videoLoggerSystem.getLogger(
-      'getFirebaseMessagingLibNoThrow',
-    );
-    logger.debug(
-      `${
-        isExpo
-          ? 'In Expo, @react-native-firebase/messaging library is required to receive ringing notifications in app killed state for Android.'
-          : ''
-      }${INSTALLATION_INSTRUCTION}`,
-    );
-  }
-  return lib;
+export function getFirebaseMessagingLib() {
+  const messagingModule = getFirebaseMessagingModule();
+  const messaging = messagingModule.getMessaging();
+  return () => ({
+    getToken: () => messagingModule.getToken(messaging),
+    onTokenRefresh: (listener: (token: string) => void) =>
+      messagingModule.onTokenRefresh(messaging, listener),
+  });
 }

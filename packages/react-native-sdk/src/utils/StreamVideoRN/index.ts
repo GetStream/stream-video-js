@@ -1,6 +1,7 @@
 import type { StreamVideoConfig } from './types';
 import pushLogoutCallbacks from '../internal/pushLogoutCallback';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
+import { setupAndroidPushEvents } from '../push/setupAndroidPushEvents';
 import { setupCallingExpEvents } from '../push/setupCallingExpEvents';
 import {
   extractCallingExpOptions,
@@ -133,6 +134,7 @@ export class StreamVideoRN {
 
     setupCallingExpEvents(pushConfig);
     setupIosVoipPushEvents(pushConfig);
+    setupAndroidPushEvents(pushConfig);
   }
 
   static getConfig() {

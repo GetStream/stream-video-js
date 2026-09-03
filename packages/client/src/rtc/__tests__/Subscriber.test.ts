@@ -17,6 +17,7 @@ import { NegotiationError } from '../NegotiationError';
 import { ReconnectReason } from '../types';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
+import { fromPartial } from '@total-typescript/shoehorn';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -446,6 +447,65 @@ describe('Subscriber', () => {
   });
 
   describe('OnTrack', () => {
+    const audioStreamNamed = (trackLookupPrefix: string) => {
+      const stream = new MediaStream();
+      // @ts-expect-error - mock
+      stream.id = `${trackLookupPrefix}:TRACK_TYPE_AUDIO`;
+      return stream;
+    };
+
+    const audioTrack = () => {
+      const track = new MediaStreamTrack();
+      // @ts-expect-error - mock
+      track.kind = 'audio';
+      return track;
+    };
+
+    it('replaces the local capture stream with the echoed one, leaving the capture tracks live', () => {
+      const captureTrack = audioTrack();
+      const captureStream = new MediaStream();
+      captureStream.getTracks = () => [captureTrack];
+      const echoedStream = audioStreamNamed('self-lookup');
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('self-session', {
+        sessionId: 'self-session',
+        trackLookupPrefix: 'self-lookup',
+        isLocalParticipant: true,
+        audioStream: captureStream,
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [echoedStream], track: audioTrack() });
+
+      const participant = state.participants.find(
+        (p) => p.sessionId === 'self-session',
+      );
+      expect(participant?.audioStream).toBe(echoedStream);
+      // the device manager owns the capture stream and is still publishing it
+      expect(captureTrack.stop).not.toHaveBeenCalled();
+      expect(captureStream.removeTrack).not.toHaveBeenCalled();
+    });
+
+    it('reports streams it received as self-subscribed, and capture streams as not', () => {
+      const echoedStream = audioStreamNamed('self-lookup');
+      const captureStream = new MediaStream();
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('self-session', {
+        sessionId: 'self-session',
+        trackLookupPrefix: 'self-lookup',
+        isLocalParticipant: true,
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [echoedStream], track: audioTrack() });
+
+      expect(subscriber.isSelfSubscribedStream(echoedStream)).toBe(true);
+      expect(subscriber.isSelfSubscribedStream(captureStream)).toBe(false);
+      expect(subscriber.isSelfSubscribedStream(undefined)).toBe(false);
+    });
+
     it('should add unknown tracks to the to the call state', () => {
       const mediaStream = new MediaStream();
       const mediaStreamTrack = new MediaStreamTrack();
@@ -522,6 +582,94 @@ describe('Subscriber', () => {
       expect(baseTrack.stop).toHaveBeenCalled();
       expect(baseStream.removeTrack).toHaveBeenCalledWith(baseTrack);
     });
+
+    it('should store receiver in orphaned track when E2EE is enabled', () => {
+      const e2eeMock = {
+        encrypt: vi.fn(),
+        decrypt: vi.fn(),
+      };
+      subscriber.dispose();
+      const e2eeState = new CallState();
+      subscriber = new Subscriber({
+        sfuClient,
+        dispatcher,
+        state: e2eeState,
+        connectionConfig: { iceServers: [] },
+        tag: 'test',
+        enableTracing: true,
+        e2ee: e2eeMock,
+      });
+
+      const mediaStream = new MediaStream();
+      const mediaStreamTrack = new MediaStreamTrack();
+      const receiver = {};
+      // @ts-expect-error - mock
+      mediaStream.id = 'orphan-prefix:TRACK_TYPE_VIDEO';
+
+      const registerOrphanedTrackSpy = vi.spyOn(
+        e2eeState,
+        'registerOrphanedTrack',
+      );
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track: mediaStreamTrack, receiver });
+
+      // Decrypt is NOT called immediately for orphaned tracks
+      expect(e2eeMock.decrypt).not.toHaveBeenCalled();
+      // Receiver is stored with the orphaned track for later reconciliation
+      expect(registerOrphanedTrackSpy).toHaveBeenCalledWith({
+        id: mediaStream.id,
+        trackLookupPrefix: 'orphan-prefix',
+        track: mediaStream,
+        trackType: TrackType.VIDEO,
+        receiver,
+      });
+    });
+
+    it('should decrypt with userId when participant is found', () => {
+      const e2eeMock = {
+        encrypt: vi.fn(),
+        decrypt: vi.fn(),
+      };
+      subscriber.dispose();
+      const e2eeState = new CallState();
+      subscriber = new Subscriber({
+        sfuClient,
+        dispatcher,
+        state: e2eeState,
+        connectionConfig: { iceServers: [] },
+        tag: 'test',
+        enableTracing: true,
+        e2ee: e2eeMock,
+      });
+
+      // Register a participant whose trackLookupPrefix matches the stream
+      e2eeState.updateOrAddParticipant(
+        'session-id',
+        fromPartial({
+          sessionId: 'session-id',
+          userId: 'real-user-id',
+          trackLookupPrefix: '123',
+        }),
+      );
+
+      const mediaStream = new MediaStream();
+      const mediaStreamTrack = new MediaStreamTrack();
+      const receiver = {};
+      // @ts-expect-error - mock
+      mediaStream.id = '123:TRACK_TYPE_VIDEO';
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track: mediaStreamTrack, receiver });
+
+      // Uses the participant's userId (not trackLookupPrefix) for key lookup
+      expect(e2eeMock.decrypt).toHaveBeenCalledWith(
+        receiver,
+        'real-user-id',
+        'VIDEO',
+      );
+    });
   });
 
   describe('interruptedTracks', () => {
@@ -592,6 +740,48 @@ describe('Subscriber', () => {
       handlers['ended']();
 
       expect(interruptedFor('session-id')).toEqual([]);
+    });
+
+    it('leaves the local participant alone on a self-sub track', () => {
+      const mediaStream = new MediaStream();
+      const track = new MediaStreamTrack();
+      // @ts-expect-error - mock
+      mediaStream.id = 'self-lookup:TRACK_TYPE_AUDIO';
+      // @ts-expect-error - mock
+      track.kind = 'audio';
+      Object.defineProperty(track, 'muted', {
+        configurable: true,
+        get: () => true,
+      });
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('self-session', {
+        sessionId: 'self-session',
+        trackLookupPrefix: 'self-lookup',
+        isLocalParticipant: true,
+        interruptedTracks: [],
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track });
+
+      expect(interruptedFor('self-session')).toEqual([]);
+
+      const handlers: Record<string, () => void> = {};
+      for (const [event, handler] of (
+        track.addEventListener as ReturnType<typeof vi.fn>
+      ).mock.calls) {
+        handlers[event] = handler as () => void;
+      }
+
+      handlers['mute']();
+      expect(interruptedFor('self-session')).toEqual([]);
+
+      state.updateParticipant('self-session', {
+        interruptedTracks: [TrackType.AUDIO],
+      });
+      handlers['unmute']();
+      expect(interruptedFor('self-session')).toEqual([TrackType.AUDIO]);
     });
 
     it('ignores non-audio remote tracks to avoid Dynascale false positives', () => {

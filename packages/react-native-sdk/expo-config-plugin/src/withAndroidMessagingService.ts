@@ -18,6 +18,7 @@ const RN_FIREBASE_SERVICE =
 /** expo-notifications' FCM service — the default base auto-detected when installed. */
 const EXPO_NOTIFICATIONS_SERVICE =
   'expo.modules.notifications.service.ExpoFirebaseMessagingService';
+const EXPO_NOTIFICATIONS_PACKAGE = 'expo-notifications';
 
 const MESSAGING_EVENT_ACTION = 'com.google.firebase.MESSAGING_EVENT';
 /**
@@ -49,8 +50,7 @@ function getAndroidPackage(config: {
   modResults?: unknown;
 }): string {
   const modResults = config.modResults as
-    | AndroidConfig.Manifest.AndroidManifest
-    | undefined;
+    AndroidConfig.Manifest.AndroidManifest | undefined;
   const pkg = config.android?.package ?? modResults?.manifest?.$?.package;
   if (!pkg) {
     throw new Error(
@@ -81,15 +81,46 @@ function validateBaseClass(baseClass: string): void {
 }
 
 function isExpoNotificationsInstalled(projectRoot?: string): boolean {
-  try {
-    require.resolve(
-      'expo-notifications/package.json',
-      projectRoot ? { paths: [projectRoot] } : undefined,
-    );
-    return true;
-  } catch {
-    return false;
+  return isPackageUsedByApp(EXPO_NOTIFICATIONS_PACKAGE, projectRoot);
+}
+
+/**
+ * Whether `packageName` belongs to this app's own dependency graph.
+ *
+ * Deliberately avoids `require.resolve`, which walks up the directory tree: in a
+ * workspace that also finds packages hoisted to the repo root by a *sibling*
+ * app. Those are not linked into this app's Android build, so extending their
+ * service generates Kotlin that cannot compile.
+ */
+function isPackageUsedByApp(
+  packageName: string,
+  projectRoot?: string,
+): boolean {
+  if (!projectRoot) {
+    // No project context to scope the lookup to; plain resolution is all we have.
+    try {
+      require.resolve(`${packageName}/package.json`);
+      return true;
+    } catch {
+      return false;
+    }
   }
+
+  try {
+    const appPackageJson = JSON.parse(
+      fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'),
+    );
+    // Only runtime dependencies: a devDependency is not linked into the build.
+    if (packageName in { ...appPackageJson?.dependencies }) {
+      return true;
+    }
+  } catch {
+    // Unreadable app package.json: fall through to the filesystem check.
+  }
+
+  return fs.existsSync(
+    path.join(projectRoot, 'node_modules', packageName, 'package.json'),
+  );
 }
 
 function resolveBaseClass(
@@ -311,7 +342,9 @@ function addFirebaseMessagingDependency(
 
   const lines =
     `    ${FIREBASE_DEP_MARKER}\n` +
-    `    compileOnly(platform("com.google.firebase:firebase-bom:${bomVersion ?? FIREBASE_BOM_FALLBACK_VERSION}"))\n` +
+    `    compileOnly(platform("com.google.firebase:firebase-bom:${
+      bomVersion ?? FIREBASE_BOM_FALLBACK_VERSION
+    }"))\n` +
     `    compileOnly("${FIREBASE_MESSAGING_ARTIFACT}")`;
   return contents.replace(DEPENDENCIES_BLOCK, (match) => `${match}\n${lines}`);
 }

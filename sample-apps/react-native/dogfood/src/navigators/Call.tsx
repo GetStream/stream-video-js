@@ -10,16 +10,13 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { StyleSheet, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { CallStackParamList, RootStackParamList } from '../../types';
+import { CallStackParamList } from '../../types';
 import { NavigationHeader } from '../components/NavigationHeader';
 import { useOrientation } from '../hooks/useOrientation';
 import { ActiveCall } from '../components/ActiveCall';
 import { LayoutProvider } from '../contexts/LayoutContext';
-import { createNavigationContainerRef } from '@react-navigation/native';
 
 const CallStack = createNativeStackNavigator<CallStackParamList>();
-
-const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 const Calls = () => {
   const calls = useCalls().filter((c) => c.ringing);

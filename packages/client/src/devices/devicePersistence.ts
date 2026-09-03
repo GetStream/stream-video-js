@@ -24,8 +24,7 @@ export type LocalDevicePreference = {
 
 export type LocalDevicePreferences = {
   [type in DevicePreferenceKey]?:
-    | LocalDevicePreference
-    | LocalDevicePreference[];
+    LocalDevicePreference | LocalDevicePreference[];
 };
 
 export const defaultDeviceId = 'default';

@@ -66,6 +66,7 @@ import {
   useRemoteFilePublisher,
 } from './RemoteFilePublisher';
 import { ModerationNotification } from './ModerationNotification';
+import { E2EEKeyNotification } from './E2EEKeyNotification';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -75,16 +76,14 @@ export type ActiveCallProps = {
 };
 
 type SidebarContent =
-  | 'participants'
-  | 'chat'
-  | 'stats'
-  | 'closed-captions'
-  | null;
+  'participants' | 'chat' | 'stats' | 'closed-captions' | null;
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
-  const { useParticipantCount } = useCallStateHooks();
+  const { useParticipantCount, useIsCallCaptioningInProgress } =
+    useCallStateHooks();
   const participantCount = useParticipantCount();
+  const isCaptioning = useIsCallCaptioningInProgress();
   const {
     current: currentTourStep,
     active: isTourActive,
@@ -198,7 +197,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 close={() => setShowInvitePopup(false)}
               />
             )}
-            {isPronto && <ClosedCaptions />}
+            {isCaptioning && <ClosedCaptions />}
           </div>
 
           <div
@@ -241,6 +240,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
           </div>
         </div>
         <ModerationNotification />
+        <E2EEKeyNotification />
         <div className="rd__notifications">
           <Restricted
             requiredGrants={[OwnCapability.SEND_AUDIO]}

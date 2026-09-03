@@ -62,7 +62,7 @@ const RecordEndConfirmation = (props: PropsWithErrorHandler) => {
 const ToggleEndRecordingMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
->(function ToggleEndRecordingMenuButton(props, ref) {
+>(function ToggleEndRecordingMenuButtonRender(props, ref) {
   return (
     <CompositeButton
       ref={ref}

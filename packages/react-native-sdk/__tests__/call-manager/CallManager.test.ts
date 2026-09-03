@@ -14,6 +14,7 @@ const makeNativeManager = () => ({
   setAudioRole: jest.fn(),
   setDefaultAudioDeviceEndpointType: jest.fn(),
   setDisableCommunicationModeWorkaround: jest.fn(),
+  setEnableStereoAudioOutput: jest.fn(),
   start: jest.fn(),
   stop: jest.fn(),
   setup: jest.fn(),
@@ -27,6 +28,7 @@ const makeCallingx = (overrides: Partial<any> = {}) => ({
   isTelecomBacked: true,
   isOngoingCallsEnabled: false,
   hasRegisteredCall: jest.fn().mockReturnValue(true),
+  isCallTracked: jest.fn().mockReturnValue(true),
   getRegisteredCallIds: jest.fn().mockReturnValue(['type:id']),
   getAvailableAudioEndpoints: jest.fn(),
   requestAudioEndpointChange: jest.fn().mockResolvedValue(undefined),
@@ -46,10 +48,17 @@ const loadCallManager = ({
   callingx: ReturnType<typeof makeCallingx> | undefined;
 }) => {
   let mod!: typeof import('../../src/modules/call-manager/CallManager');
+  let publicCallManager!: import('../../src/modules/call-manager/CallManager').CallManager;
+  let internalCallManager!: NonNullable<
+    typeof globalThis.streamRNVideoSDK
+  >['callManager'];
   jest.isolateModules(() => {
     jest.doMock('react-native', () => ({
       Platform: { OS: os, select: (o: any) => o[os] },
-      NativeModules: { StreamInCallManager: nativeManager },
+      NativeModules: {
+        StreamInCallManager: nativeManager,
+        StreamVideoReactNative: {},
+      }, // mock to avoid pulling the video-client / react-native-webrtc runtime into the test
       NativeEventEmitter: class {
         addListener() {
           return { remove: jest.fn() };
@@ -59,9 +68,29 @@ const loadCallManager = ({
     jest.doMock('../../src/utils/push/libs/callingx', () => ({
       getCallingxLibIfAvailable: () => callingx,
     }));
+    jest.doMock('../../src/utils/internal/callingx/callingx', () => ({
+      endCallingxCall: jest.fn(),
+      registerOutgoingCall: jest.fn(),
+      joinCallingxCall: jest.fn(),
+      wireAudioEngineSubscription: jest.fn(),
+      unwireAudioEngineSubscription: jest.fn(),
+    }));
+    jest.doMock('../../src/utils/internal/registerMediaEngine', () => ({
+      registerCallMediaEngine: jest.fn(),
+    }));
     mod = require('../../src/modules/call-manager/CallManager');
+    publicCallManager = require('../../src/modules/call-manager').callManager;
+    const {
+      registerSDKGlobals,
+    } = require('../../src/utils/internal/registerSDKGlobals');
+    // registerSDKGlobals() is a no-op once globalThis.streamRNVideoSDK is set, and that
+    // global outlives jest.resetModules(). Clear it so each test binds the internal call
+    // manager to its own mocked native module instead of the first test's.
+    delete (globalThis as { streamRNVideoSDK?: unknown }).streamRNVideoSDK;
+    registerSDKGlobals();
+    internalCallManager = globalThis.streamRNVideoSDK!.callManager;
   });
-  return mod;
+  return { ...mod, publicCallManager, internalCallManager };
 };
 
 const speakerSnapshot: Snapshot = {
@@ -74,7 +103,10 @@ const speakerSnapshot: Snapshot = {
 };
 
 describe('CallManager Android Telecom branch', () => {
-  afterEach(() => jest.resetModules());
+  afterEach(() => {
+    jest.resetModules();
+    delete (globalThis as any).streamRNVideoSDK;
+  });
 
   it('adapts a callingx snapshot to AudioDevicesState', async () => {
     const nativeManager = makeNativeManager();
@@ -164,15 +196,16 @@ describe('CallManager Android Telecom branch', () => {
   it('start() enters telecom-managed mode and forwards the default endpoint', () => {
     const nativeManager = makeNativeManager();
     const callingx = makeCallingx();
-    const { CallManager } = loadCallManager({
+    const { publicCallManager, internalCallManager } = loadCallManager({
       os: 'android',
       nativeManager,
       callingx,
     });
-    new CallManager().start({
+    publicCallManager.start({
       audioRole: 'communicator',
       deviceEndpointType: 'earpiece',
     });
+    internalCallManager.start({ isRingingTypeCall: false, cid: 'type:id' });
 
     expect(callingx.setDefaultAudioDeviceEndpointType).toHaveBeenCalledWith(
       'earpiece',
@@ -187,14 +220,16 @@ describe('CallManager Android Telecom branch', () => {
     // callingx present but no registered call and ongoing disabled -> classic path.
     const callingx = makeCallingx({
       hasRegisteredCall: jest.fn().mockReturnValue(false),
+      isCallTracked: jest.fn().mockReturnValue(false),
       isOngoingCallsEnabled: false,
     });
-    const { CallManager } = loadCallManager({
+    const { publicCallManager, internalCallManager } = loadCallManager({
       os: 'android',
       nativeManager,
       callingx,
     });
-    new CallManager().start({ audioRole: 'communicator' });
+    publicCallManager.start({ audioRole: 'communicator' });
+    internalCallManager.start({ isRingingTypeCall: false, cid: 'type:id' });
 
     expect(nativeManager.setTelecomManagedMode).toHaveBeenCalledWith(false);
     expect(nativeManager.start).toHaveBeenCalled();
@@ -238,14 +273,29 @@ describe('CallManager Android Telecom branch', () => {
 describe('CallManager communication-mode workaround opt-out', () => {
   afterEach(() => jest.resetModules());
 
+  /**
+   * The public call manager only records config; the SDK's internal call manager applies it
+   * to native at join. Both steps are needed to exercise the opt-out plumbing.
+   */
+  const startCall = (
+    publicCallManager: { start: (c?: any) => void },
+    internalCallManager: { start: (a: any) => void },
+    config?: any,
+  ) => {
+    publicCallManager.start(config);
+    internalCallManager.start({ isRingingTypeCall: false, cid: 'type:id' });
+  };
+
   it('start(): classic communicator call does not touch the sticky preference by default', () => {
     const nativeManager = makeNativeManager();
-    const { CallManager } = loadCallManager({
+    const { publicCallManager, internalCallManager } = loadCallManager({
       os: 'android',
       nativeManager,
       callingx: undefined,
     });
-    new CallManager().start({ audioRole: 'communicator' });
+    startCall(publicCallManager, internalCallManager, {
+      audioRole: 'communicator',
+    });
 
     expect(nativeManager.setTelecomManagedMode).toHaveBeenCalledWith(false);
     // Not forwarded unless explicitly set, so a sticky opt-out is never clobbered.
@@ -257,12 +307,12 @@ describe('CallManager communication-mode workaround opt-out', () => {
 
   it('start(): forwards an explicit disable=true for a classic communicator call', () => {
     const nativeManager = makeNativeManager();
-    const { CallManager } = loadCallManager({
+    const { publicCallManager, internalCallManager } = loadCallManager({
       os: 'android',
       nativeManager,
       callingx: undefined,
     });
-    new CallManager().start({
+    startCall(publicCallManager, internalCallManager, {
       audioRole: 'communicator',
       disableCommunicationModeWorkaround: true,
     });
@@ -274,12 +324,12 @@ describe('CallManager communication-mode workaround opt-out', () => {
 
   it('start(): forwards an explicit disable=false for a classic communicator call', () => {
     const nativeManager = makeNativeManager();
-    const { CallManager } = loadCallManager({
+    const { publicCallManager, internalCallManager } = loadCallManager({
       os: 'android',
       nativeManager,
       callingx: undefined,
     });
-    new CallManager().start({
+    startCall(publicCallManager, internalCallManager, {
       audioRole: 'communicator',
       disableCommunicationModeWorkaround: false,
     });
@@ -291,12 +341,14 @@ describe('CallManager communication-mode workaround opt-out', () => {
 
   it('start(): listener role never forwards the workaround flag', () => {
     const nativeManager = makeNativeManager();
-    const { CallManager } = loadCallManager({
+    const { publicCallManager, internalCallManager } = loadCallManager({
       os: 'android',
       nativeManager,
       callingx: undefined,
     });
-    new CallManager().start({ audioRole: 'listener' });
+    startCall(publicCallManager, internalCallManager, {
+      audioRole: 'listener',
+    });
 
     expect(
       nativeManager.setDisableCommunicationModeWorkaround,
@@ -305,12 +357,12 @@ describe('CallManager communication-mode workaround opt-out', () => {
 
   it('start(): iOS never forwards the workaround flag', () => {
     const nativeManager = makeNativeManager();
-    const { CallManager } = loadCallManager({
+    const { publicCallManager, internalCallManager } = loadCallManager({
       os: 'ios',
       nativeManager,
       callingx: undefined,
     });
-    new CallManager().start({
+    startCall(publicCallManager, internalCallManager, {
       audioRole: 'communicator',
       disableCommunicationModeWorkaround: true,
     });
@@ -323,17 +375,19 @@ describe('CallManager communication-mode workaround opt-out', () => {
   it('start(): Telecom-managed calls never forward the workaround flag', () => {
     const nativeManager = makeNativeManager();
     const callingx = makeCallingx();
-    const { CallManager } = loadCallManager({
+    const { publicCallManager, internalCallManager } = loadCallManager({
       os: 'android',
       nativeManager,
       callingx,
     });
-    new CallManager().start({
+    startCall(publicCallManager, internalCallManager, {
       audioRole: 'communicator',
       disableCommunicationModeWorkaround: true,
     });
 
     expect(nativeManager.setTelecomManagedMode).toHaveBeenCalledWith(true);
+    // Telecom owns the audio mode, so the keep-alive never runs there; leave the
+    // sticky preference untouched rather than letting a per-call config clobber it.
     expect(
       nativeManager.setDisableCommunicationModeWorkaround,
     ).not.toHaveBeenCalled();
@@ -341,12 +395,12 @@ describe('CallManager communication-mode workaround opt-out', () => {
 
   it('setDisableCommunicationModeWorkaround: sets the sticky preference on Android', () => {
     const nativeManager = makeNativeManager();
-    const { CallManager } = loadCallManager({
+    const { publicCallManager } = loadCallManager({
       os: 'android',
       nativeManager,
       callingx: undefined,
     });
-    new CallManager().setDisableCommunicationModeWorkaround(true);
+    publicCallManager.setDisableCommunicationModeWorkaround(true);
 
     expect(
       nativeManager.setDisableCommunicationModeWorkaround,
@@ -355,12 +409,12 @@ describe('CallManager communication-mode workaround opt-out', () => {
 
   it('setDisableCommunicationModeWorkaround: no-op on iOS', () => {
     const nativeManager = makeNativeManager();
-    const { CallManager } = loadCallManager({
+    const { publicCallManager } = loadCallManager({
       os: 'ios',
       nativeManager,
       callingx: undefined,
     });
-    new CallManager().setDisableCommunicationModeWorkaround(true);
+    publicCallManager.setDisableCommunicationModeWorkaround(true);
 
     expect(
       nativeManager.setDisableCommunicationModeWorkaround,
@@ -372,14 +426,14 @@ describe('CallManager communication-mode workaround opt-out', () => {
     // Simulate an older native binary that predates the method.
     delete (nativeManager as Partial<typeof nativeManager>)
       .setDisableCommunicationModeWorkaround;
-    const { CallManager } = loadCallManager({
+    const { publicCallManager, internalCallManager } = loadCallManager({
       os: 'android',
       nativeManager,
       callingx: undefined,
     });
 
     expect(() =>
-      new CallManager().start({
+      startCall(publicCallManager, internalCallManager, {
         audioRole: 'communicator',
         disableCommunicationModeWorkaround: true,
       }),

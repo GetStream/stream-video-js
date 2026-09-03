@@ -57,6 +57,14 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         impl.requestAudioEndpointChange(callId, endpointId, promise)
     }
 
+    override fun wireAudioEngineSubscription() {
+        // leave empty
+    }
+
+    override fun unwireAudioEngineSubscription() {
+        // leave empty
+    }
+
     override fun setupAndroid(options: ReadableMap) {
         impl.setupAndroid(options)
     }
@@ -153,11 +161,6 @@ class CallingxModule(reactContext: ReactApplicationContext) :
     override fun stopBackgroundTask(taskName: String, promise: Promise) {
         impl.stopBackgroundTask(taskName, promise)
     }
-
-    override fun registerBackgroundTaskAvailable() {
-        impl.registerBackgroundTaskAvailable()
-    }
-
 
     override fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
         impl.fulfillAnswerCallAction(callId, didFail)
