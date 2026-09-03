@@ -28,6 +28,12 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const localIpAddress = useAppGlobalStoreValue(
     (store) => store.localIpAddress,
   );
+  const coordinatorBaseUrl = useAppGlobalStoreValue(
+    (store) => store.coordinatorBaseUrl,
+  );
+  const disableRingStatePolling = useAppGlobalStoreValue(
+    (store) => store.disableRingStatePolling,
+  );
   const customTheme = useCustomTheme(themeMode);
   const setState = useAppGlobalStoreSetState();
 
@@ -60,6 +66,8 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
         token,
         tokenProvider,
         options: {
+          baseURL: coordinatorBaseUrl || undefined,
+          ringStatePolling: disableRingStatePolling ? false : undefined,
           rejectCallWhenBusy: false,
           logLevel: 'debug',
           logger: (level, message, ...args) => {
@@ -107,7 +115,15 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       _videoClient?.disconnectUser();
       setVideoClient(undefined);
     };
-  }, [appEnvironment, setState, useLocalSfu, localIpAddress, user]);
+  }, [
+    appEnvironment,
+    setState,
+    useLocalSfu,
+    localIpAddress,
+    user,
+    coordinatorBaseUrl,
+    disableRingStatePolling,
+  ]);
 
   if (!videoClient) {
     return null;

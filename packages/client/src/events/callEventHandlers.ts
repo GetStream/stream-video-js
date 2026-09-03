@@ -1,12 +1,11 @@
 import { Call } from '../Call';
+import { reconcileRingState } from '../ringing';
 import { Dispatcher } from '../rtc';
 import {
   handleRemoteSoftMute,
   watchAudioLevelChanged,
-  watchCallAccepted,
   watchCallEnded,
   watchCallGrantsUpdated,
-  watchCallRejected,
   watchConnectionQualityChanged,
   watchDominantSpeakerChanged,
   watchInboundStateNotification,
@@ -21,16 +20,6 @@ import {
   watchTrackPublished,
   watchTrackUnpublished,
 } from '../events';
-import {
-  AllCallEvents,
-  AllClientCallEvents,
-  CallEventListener,
-} from '../coordinator/connection/types';
-
-type RingCallEvents = Extract<
-  AllClientCallEvents,
-  'call.accepted' | 'call.rejected' | 'call.missed'
->;
 
 /**
  * Registers the default event handlers for a call during its lifecycle.
@@ -83,19 +72,18 @@ export const registerEventHandlers = (call: Call, dispatcher: Dispatcher) => {
  * @param call the call to register event handlers for.
  */
 export const registerRingingCallEventHandlers = (call: Call) => {
-  const coordinatorRingEvents: {
-    [key in RingCallEvents]: (
-      call: Call,
-    ) => CallEventListener<AllCallEvents[key]>;
-  } = {
-    'call.accepted': watchCallAccepted(call),
-    'call.rejected': watchCallRejected(call),
+  const reconcile = () => {
+    reconcileRingState(call).catch((err) => {
+      call.logger.error('Failed to reconcile the ring state', err);
+    });
   };
 
-  const eventHandlers = Object.keys(coordinatorRingEvents).map((event) => {
-    const eventName = event as RingCallEvents;
-    return call.on(eventName, coordinatorRingEvents[eventName]);
-  });
+  // each event needs its own closure
+  const eventHandlers = [
+    call.on('call.accepted', () => reconcile()),
+    call.on('call.rejected', () => reconcile()),
+    call.on('call.missed', () => reconcile()),
+  ];
 
   return () => {
     eventHandlers.forEach((unsubscribe) => unsubscribe());

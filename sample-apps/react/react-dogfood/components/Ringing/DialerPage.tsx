@@ -16,7 +16,10 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { useAppEnvironment } from '../../context/AppEnvironmentContext';
+import {
+  useAppEnvironment,
+  useIsProntoEnvironment,
+} from '../../context/AppEnvironmentContext';
 import { useSettings } from '../../context/SettingsContext';
 import { getClient } from '../../helpers/client';
 import { ServerSideCredentialsProps } from '../../lib/getServerSideCredentialsProps';
@@ -24,6 +27,7 @@ import { meetingId } from '../../lib/idGenerators';
 import appTranslations from '../../translations';
 import { DefaultAppHeader } from '../DefaultAppHeader';
 import { DialingCallNotification } from './DialingCallNotification';
+import { RingStateDebugPane } from './RingStateDebugPane';
 
 function findLastIndex<T>(
   arr: readonly T[],
@@ -46,14 +50,28 @@ export const DialerPage = ({
   const [error, setError] = useState<Error | undefined>();
   const [videoClient, setVideoClient] = useState<StreamVideoClient>();
   const router = useRouter();
-  const callType = (router.query['type'] as string) || 'default';
+  // `call_type` and `call_id` pin the ring to one call instance, so repeated
+  // rings reuse it. `type` is the name the rest of the app uses.
+  const callType =
+    (router.query['call_type'] as string) ||
+    (router.query['type'] as string) ||
+    'default';
+  const pinnedCallId = router.query['call_id'] as string | undefined;
+  const useLocalCoordinator = router.query['use_local_coordinator'] === 'true';
+  const coordinatorUrl = useLocalCoordinator
+    ? 'http://localhost:3030/video'
+    : (router.query['coordinator_url'] as string | undefined);
   const [userIds, setUserIds] = useState(['']);
   const [ringingCall, setRingingCall] = useState<Call | undefined>(undefined);
   const environment = useAppEnvironment();
+  const isProntoEnvironment = useIsProntoEnvironment();
   const { t } = useI18n();
 
   useEffect(() => {
-    const _client = getClient({ apiKey, user, userToken }, environment);
+    const _client = getClient(
+      { apiKey, user, userToken, coordinatorUrl },
+      environment,
+    );
     setVideoClient(_client);
 
     window.client = _client;
@@ -62,7 +80,7 @@ export const DialerPage = ({
       setVideoClient(undefined);
       window.client = undefined;
     };
-  }, [apiKey, user, userToken, environment]);
+  }, [apiKey, user, userToken, environment, coordinatorUrl]);
 
   const handleUserIdChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>, index: number) => {
@@ -131,7 +149,7 @@ export const DialerPage = ({
       return;
     }
 
-    const call = videoClient.call(callType, meetingId());
+    const call = videoClient.call(callType, pinnedCallId || meetingId());
     const members = userIds
       .filter((uid) => uid !== '')
       .map((uid) => ({ user_id: uid }));
@@ -155,7 +173,7 @@ export const DialerPage = ({
             ring: {
               auto_cancel_timeout_ms: 60_000,
               incoming_call_timeout_ms: 60_000,
-              missed_call_timeout_ms: 5000,
+              missed_call_timeout_ms: 60_000,
             },
           },
         },
@@ -173,6 +191,8 @@ export const DialerPage = ({
       const params = new URLSearchParams(
         router.query as Record<string, string>,
       );
+      // the join page reads `type`, so carry over whichever alias was used
+      params.set('type', callType);
       params.set('skip_lobby', 'true');
       router.push(`/join/${ringingCall.id}?${params.toString()}`);
     }
@@ -251,6 +271,7 @@ export const DialerPage = ({
             />
           </div>
         </form>
+        {isProntoEnvironment && <RingStateDebugPane call={ringingCall} />}
       </div>
     </StreamVideo>
   );

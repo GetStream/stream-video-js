@@ -37,6 +37,7 @@ import {
   CallSessionParticipantLeftEvent,
   CallSessionResponse,
   CallSettingsResponse,
+  GetCallRingStateResponse,
   ClosedCaptionEvent,
   EgressResponse,
   MemberResponse,
@@ -1350,6 +1351,30 @@ export class CallState {
     this.setCurrentValue(this.transcribingSubject, call.transcribing);
     this.setCurrentValue(this.captioningSubject, call.captioning);
     this.setCurrentValue(this.thumbnailsSubject, call.thumbnails);
+  };
+
+  /**
+   * Merges a polled ring state into the current session. Only the ring fields
+   * are touched: the endpoint does not return the session roster.
+   *
+   * @internal
+   *
+   * @param ringState the ring state as returned by the coordinator.
+   */
+  updateFromRingState = (ringState: GetCallRingStateResponse) => {
+    this.setCurrentValue(this.sessionSubject, (session) => {
+      if (!session || session.id !== ringState.session_id) return session;
+      return {
+        ...session,
+        accepted_by: ringState.accepted_by,
+        rejected_by: ringState.rejected_by,
+        missed_by: ringState.missed_by,
+        ended_at: ringState.session_ended_at ?? session.ended_at,
+      };
+    });
+    if (ringState.call_ended_at) {
+      this.setEndedAt(new Date(ringState.call_ended_at));
+    }
   };
 
   /**
