@@ -5,25 +5,36 @@ import UIKit
 @objcMembers public class Settings: NSObject {
     private static let settingsKey = "CallingxSettings"
 
+    // In-memory cache of the settings dictionary
+    private static var cachedSettings: [String: Any]?
+    private static let cacheQueue = DispatchQueue(label: "io.getstream.callingx.settings")
+
     public static func getSettings() -> [String: Any] {
-        return UserDefaults.standard.dictionary(forKey: settingsKey) ?? [:]
+        return cacheQueue.sync {
+            if let cached = cachedSettings {
+                return cached
+            }
+            cachedSettings = UserDefaults.standard.dictionary(forKey: settingsKey) ?? [:]
+            return cachedSettings!
+        }
     }
 
     public static func setSettings(_ options: [String: Any]?) {
-        #if DEBUG
-        NSLog("%@","[Settings][setSettings] options = \(String(describing: options))")
-        #endif
+        CallingxLog.settings.debugPublic("[setSettings] options = \(String(describing: options))")
 
-        var settings: [String: Any] = getSettings()
+        cacheQueue.sync {
+            // Load lazily here rather than via getSettings() to avoid re-entrant sync on cacheQueue.
+            var settings = cachedSettings ?? UserDefaults.standard.dictionary(forKey: settingsKey) ?? [:]
 
-        if let options = options {
-            for (key, value) in options {
-                settings[key] = value
+            if let options = options {
+                for (key, value) in options {
+                    settings[key] = value
+                }
             }
-        }
 
-        UserDefaults.standard.set(settings, forKey: settingsKey)
-        UserDefaults.standard.synchronize()
+            cachedSettings = settings
+            UserDefaults.standard.set(settings, forKey: settingsKey)
+        }
     }
 
     public static func getShouldRejectCallWhenBusy() -> Bool {
@@ -37,10 +48,15 @@ import UIKit
         setSettings(["shouldRejectCallWhenBusy": shouldReject])
     }
 
+    public static func getSkipIncomingPushInForeground() -> Bool {
+        guard let skip = getSettings()["skipIncomingPushInForeground"] as? Bool else {
+            return false
+        }
+        return skip
+    }
+
     public static func getProviderConfiguration() -> CXProviderConfiguration {
-        #if DEBUG
-        NSLog("%@","[Settings][getProviderConfiguration]")
-        #endif
+        CallingxLog.settings.debugPublic("[getProviderConfiguration]")
       
         let settings = getSettings()
         let providerConfiguration = CXProviderConfiguration()

@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
-  BackgroundFiltersProvider,
   CallingState,
   useCall,
   useCallStateHooks,
@@ -13,9 +12,7 @@ import { ActiveCall } from './ActiveCall';
 import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import { AuthenticationProgress } from './AuthenticatingProgress';
 import { CallErrorComponent } from './CallErrorComponent';
-import { useUnreadCount } from '../hooks/useUnreadCount';
 import { LayoutProvider } from '../contexts/LayoutContext';
-
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
   'MeetingScreen' | 'GuestMeetingScreen'
@@ -28,7 +25,6 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const appStoreSetState = useAppGlobalStoreSetState();
   const { t } = useI18n();
-  const unreadCountIndicator = useUnreadCount();
 
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
@@ -131,14 +127,11 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   } else {
     return (
       <LayoutProvider>
-        <BackgroundFiltersProvider>
-          <ActiveCall
-            onCallEnded={onCallEnded}
-            onHangupCallHandler={onHangupCallHandler}
-            onChatOpenHandler={onChatOpenHandler}
-            unreadCountIndicator={unreadCountIndicator}
-          />
-        </BackgroundFiltersProvider>
+        <ActiveCall
+          onCallEnded={onCallEnded}
+          onHangupCallHandler={onHangupCallHandler}
+          onChatOpenHandler={onChatOpenHandler}
+        />
       </LayoutProvider>
     );
   }

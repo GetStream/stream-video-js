@@ -38,7 +38,7 @@ export const ParticipantReaction = ({
   } = useTheme();
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     if (call) {
       timeoutId = setTimeout(() => {
         call.resetReaction(sessionId);

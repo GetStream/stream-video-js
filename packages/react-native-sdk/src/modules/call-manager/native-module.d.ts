@@ -1,6 +1,6 @@
 import 'react-native';
 import type { NativeModule } from 'react-native';
-import type { AudioDeviceStatus, AudioRole, DeviceEndpointType } from './types';
+import type { AudioDevicesState, AudioRole, DeviceEndpointType } from './types';
 
 export interface CallManager extends NativeModule {
   /**
@@ -25,16 +25,31 @@ export interface CallManager extends NativeModule {
   setDefaultAudioDeviceEndpointType: (type: DeviceEndpointType) => void;
 
   /**
-   * Choose an audio device endpoint.
-   * @param endpointName - The name of the audio device endpoint to choose.
+   * Enables/disables Telecom-managed mode (Android). Must be set before **start()**.
+   * When enabled, audio focus, mode and device routing are owned by the Android
+   * Telecom stack (via callingx); StreamInCallManager only keeps proximity,
+   * keep-screen-on and mic/output mute.
    */
-  chooseAudioDeviceEndpoint: (endpoint: string) => void;
+  setTelecomManagedMode: (enabled: boolean) => void;
 
   /**
-   * Get the current audio device status.
-   * @returns The audio device status.
+   * Choose an audio device endpoint by its stable id.
+   * @param deviceId - The id of the audio device to choose (`AudioDevice.id`).
    */
-  getAudioDeviceStatus: () => Promise<AudioDeviceStatus>;
+  chooseAudioDeviceEndpoint: (deviceId: string) => void;
+
+  /**
+   * Re-applies the current audio output pick (iOS). Used to restore a Bluetooth/wired
+   * route after an interruption ends, where the ephemeral route override is lost.
+   * No-op if no explicit pick has been made.
+   */
+  reapplyAudioRoute: () => void;
+
+  /**
+   * Get the current audio device state (available devices + selected one).
+   * @returns The audio devices state.
+   */
+  getAudioDeviceStatus: () => Promise<AudioDevicesState>;
 
   /**
    * Shows the iOS audio route picker.
@@ -76,6 +91,19 @@ export interface CallManager extends NativeModule {
    * @param enable - Whether to enable stereo audio output.
    */
   setEnableStereoAudioOutput: (enable: boolean) => void;
+
+  /**
+   * Sets the microphone mute mode on the call's ADM. No-ops when no call ADM is active. iOS-only.
+   * @param mode - The `AudioEngineMuteMode` value.
+   */
+  setMuteMode: (mode: number) => void;
+
+  /**
+   * Keeps the recording chain prepared while muted so the engine stays
+   * full-duplex. No-ops when no call ADM is active. iOS-only.
+   * @param enabled - Whether to keep recording always prepared.
+   */
+  setRecordingAlwaysPreparedMode: (enabled: boolean) => void;
 
   /**
    * Log the current audio state natively.

@@ -54,4 +54,38 @@ describe('Tracer', () => {
     const slice = tracer.take();
     expect(slice.snapshot.length).toBe(0);
   });
+
+  it('exposes its id via .id', () => {
+    expect(new Tracer('abc').id).toBe('abc');
+    expect(new Tracer(null).id).toBeNull();
+  });
+
+  it('caps the buffer, dropping oldest and leaving an overflow marker', () => {
+    const capped = new Tracer('id', 3);
+    capped.trace('e', { n: 1 });
+    capped.trace('e', { n: 2 });
+    capped.trace('e', { n: 3 });
+    capped.trace('e', { n: 4 }); // overflows the cap of 3
+
+    const slice = capped.take();
+    expect(slice.snapshot.length).toBe(3);
+    expect(slice.snapshot[0][0]).toBe('traceBufferOverflow');
+    // newest record is retained
+    expect(slice.snapshot[slice.snapshot.length - 1][2]).toEqual({ n: 4 });
+  });
+
+  it('caps the buffer on rollback too', () => {
+    const capped = new Tracer('id', 3);
+    capped.trace('e', { n: 1 });
+    const slice = capped.take();
+
+    capped.trace('e', { n: 2 });
+    capped.trace('e', { n: 3 });
+    capped.trace('e', { n: 4 }); // buffer now at the cap of 3
+    slice.rollback(); // prepends the old record, exceeding the cap
+
+    const after = capped.take();
+    expect(after.snapshot.length).toBe(3);
+    expect(after.snapshot[0][0]).toBe('traceBufferOverflow');
+  });
 });

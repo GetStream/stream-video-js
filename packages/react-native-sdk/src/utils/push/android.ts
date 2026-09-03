@@ -1,36 +1,10 @@
-import {
-  CallingState,
-  StreamVideoClient,
-  videoLoggerSystem,
-} from '@stream-io/video-client';
-import { AppState, Platform } from 'react-native';
-import type {
-  NonRingingPushEvent,
-  StreamVideoConfig,
-} from '../StreamVideoRN/types';
-import {
-  type FirebaseMessagingTypes,
-  getExpoNotificationsLib,
-  getExpoNotificationsLibNoThrow,
-  getFirebaseMessagingLib,
-  getFirebaseMessagingLibNoThrow,
-  getNotifeeLibThrowIfNotInstalledForPush,
-  type NotifeeLib,
-} from './libs';
-import { pushNonRingingCallData$ } from './internal/rxSubjects';
-import { pushUnsubscriptionCallbacks } from './internal/constants';
-import { canListenToWS, shouldCallBeClosed } from './internal/utils';
+import { StreamVideoClient, videoLoggerSystem } from '@stream-io/video-client';
+import { Platform } from 'react-native';
+import type { StreamVideoConfig } from '../StreamVideoRN/types';
+import { getFirebaseMessagingLib } from './libs';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
-import { StreamVideoRN } from '../StreamVideoRN';
-import { getCallingxLib } from './libs/callingx';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
-
-type onBackgroundEventFunctionParams = Parameters<
-  NotifeeLib['default']['onBackgroundEvent']
->[0];
-
-type Event = Parameters<onBackgroundEventFunctionParams>[0];
 
 let lastFirebaseToken = { token: '', userId: '' };
 
@@ -73,340 +47,28 @@ export async function initAndroidPushToken(
     logger.debug(`sending firebase token: ${token} for userId: ${userId}`);
     await client.addDevice(token, 'firebase', push_provider_name);
   };
-  if (pushConfig.isExpo) {
-    const expoNotificationsLib = pushConfig.onTapNonRingingCallNotification
-      ? getExpoNotificationsLib()
-      : getExpoNotificationsLibNoThrow();
-    if (expoNotificationsLib) {
-      logger.debug(`setting expo notification token listeners`);
-      const subscription = expoNotificationsLib.addPushTokenListener(
-        (devicePushToken) => {
-          setDeviceToken(devicePushToken.data);
-        },
-      );
-      setUnsubscribeListener(() => subscription.remove());
-      const devicePushToken =
-        await expoNotificationsLib.getDevicePushTokenAsync();
-      const token = devicePushToken.data;
-      await setDeviceToken(token);
-    }
-  }
 
-  const messaging = pushConfig.isExpo
-    ? getFirebaseMessagingLibNoThrow(true)
-    : getFirebaseMessagingLib();
-  if (messaging) {
-    logger.debug(`setting firebase token listeners`);
-    const unsubscribe = messaging().onTokenRefresh((refreshedToken) =>
-      setDeviceToken(refreshedToken),
-    );
-    setUnsubscribeListener(unsubscribe);
-    const token = await messaging().getToken();
-    await setDeviceToken(token);
-  }
+  const messaging = getFirebaseMessagingLib();
+  logger.debug(`setting firebase token listeners`);
+  const unsubscribe = messaging().onTokenRefresh((refreshedToken) =>
+    setDeviceToken(refreshedToken),
+  );
+  setUnsubscribeListener(unsubscribe);
+  const token = await messaging().getToken();
+  await setDeviceToken(token);
 }
 
+let firebaseDataHandlerDeprecationLogged = false;
 /**
- * Creates notification from the push message data.
- * For Ringing and Non-Ringing calls.
+ * @deprecated Ring notifications are now handled by the SDK internally. This method is a no-op;
+ * you can safely remove `firebaseDataHandler(...)` wiring from your Firebase messaging handlers.
  */
-
-export const firebaseDataHandler = async (
-  data: FirebaseMessagingTypes.RemoteMessage['data'],
-) => {
-  /* Example data from firebase
-    "message": {
-        "data": {
-          call_cid: 'audio_room:dcc1638c-e90d-4dcb-bf3b-8fa7767bfbb0',
-          call_display_name: '',
-          created_by_display_name: 'tommaso',
-          created_by_id: 'tommaso-03dcddb7-e9e2-42ec-b2f3-5043aac666ee',
-          receiver_id: 'martin-21824f17-319b-401b-a61b-fcab646f0d3f',
-          sender: 'stream.video',
-          type: 'call.live_started',
-          version: 'v2'
-        },
-        // other stuff
-    }
-  */
-  if (Platform.OS !== 'android') return;
-
-  const logger = videoLoggerSystem.getLogger('firebaseDataHandler');
-  const pushConfig = StreamVideoRN.getConfig().push;
-  if (!pushConfig || !data || data.sender !== 'stream.video') {
-    return;
-  }
-
-  if (data.type === 'call.ring') {
-    const call_cid = data.call_cid as string;
-    const callingx = getCallingxLib();
-
-    const client = await pushConfig.createStreamVideoClient();
-    if (!client) {
-      logger.debug(
-        `video client not found, skipping the call.ring notification`,
-      );
-      await callingx.stopService();
-      return;
-    }
-
-    const asForegroundService = canListenToWS();
-
-    if (asForegroundService) {
-      // Listen to call events from WS through fg service
-      // note: this will replace the current empty fg service runner
-      //we need to start service (e.g. by calling display incoming call) and than launch bg task, consider making those steps independent
-      await callingx.startBackgroundTask((_: unknown, stopTask: () => void) => {
-        return new Promise((resolve) => {
-          const finishBackgroundTask = () => {
-            callingx.log(
-              `Finishing background task for callCid: ${call_cid}`,
-              'debug',
-            );
-            resolve(undefined);
-            stopTask();
-          };
-
-          (async () => {
-            try {
-              const _client = await pushConfig.createStreamVideoClient();
-              if (!_client) {
-                logger.debug(
-                  `Closing fg service as there is no client to create from push config`,
-                );
-                finishBackgroundTask();
-                return;
-              }
-
-              const callFromPush = await _client.onRingingCall(call_cid);
-              const { mustEndCall, endCallReason } = shouldCallBeClosed(
-                callFromPush,
-                data,
-              );
-              if (mustEndCall) {
-                logger.debug(
-                  `Closing fg service callCid: ${call_cid} endCallReason: ${endCallReason}`,
-                );
-
-                callingx.log(
-                  `Ending call with callCid: ${call_cid} endCallReason: ${endCallReason}`,
-                  'debug',
-                );
-                callingx.endCallWithReason(call_cid, endCallReason);
-                resolve(undefined);
-                return;
-              }
-
-              const unsubscribeFunctions: Array<() => void> = [];
-              // check if service needs to be closed if accept/decline event was done on another device
-              const unsubscribe = callFromPush.on('all', (event) => {
-                const _canListenToWS = canListenToWS();
-                if (!_canListenToWS) {
-                  logger.debug(
-                    `Closing fg service from event callCid: ${call_cid} canListenToWS: ${_canListenToWS}`,
-                    { event },
-                  );
-                  unsubscribeFunctions.forEach((fn) => fn());
-
-                  finishBackgroundTask();
-                  return;
-                }
-
-                const {
-                  mustEndCall: mustEndCallFromEvent,
-                  endCallReason: endCallReasonFromEvent,
-                } = shouldCallBeClosed(callFromPush, data);
-                if (mustEndCallFromEvent) {
-                  logger.debug(
-                    `Closing fg service from event callCid: ${call_cid} canListenToWS: ${_canListenToWS} shouldCallBeClosed`,
-                    { event },
-                  );
-                  unsubscribeFunctions.forEach((fn) => fn());
-
-                  callingx.endCallWithReason(call_cid, endCallReasonFromEvent);
-                  resolve(undefined);
-                }
-              });
-
-              // check if service needs to be closed if call was left
-              const stateSubscription =
-                callFromPush.state.callingState$.subscribe((callingState) => {
-                  if (
-                    callingState === CallingState.IDLE ||
-                    callingState === CallingState.LEFT
-                  ) {
-                    logger.debug(
-                      `Closing fg service from callingState callCid: ${call_cid} callingState: ${callingState}`,
-                    );
-                    unsubscribeFunctions.forEach((fn) => fn());
-                    callingx.log(
-                      `Ending call with callCid: ${call_cid} callingState: ${callingState}`,
-                      'debug',
-                    );
-                    resolve(undefined);
-                  }
-                });
-
-              const endCallSubscription = callingx.addEventListener(
-                'endCall',
-                async ({ callId }: { callId: string }) => {
-                  unsubscribeFunctions.forEach((fn) => fn());
-                  try {
-                    await callFromPush.leave({
-                      reject:
-                        callFromPush.state.callingState ===
-                        CallingState.RINGING,
-                      reason: 'decline',
-                    });
-                  } catch (error) {
-                    logger.error(
-                      `Failed to leave call with callCid: ${call_cid} error: ${error}`,
-                    );
-                  } finally {
-                    callingx.log(
-                      `Ending call with callCid: ${call_cid} callId: ${callId}`,
-                      'debug',
-                    );
-                    resolve(undefined);
-                  }
-                },
-              );
-
-              //stop background task when app comes to foreground
-              const appStateSubscription = AppState.addEventListener(
-                'change',
-                (nextAppState) => {
-                  const _canListenToWS = canListenToWS();
-                  callingx.log(
-                    `AppState changed to: ${nextAppState} for callCid: ${call_cid} canListenToWS: ${_canListenToWS}`,
-                    'debug',
-                  );
-                  if (!_canListenToWS) {
-                    unsubscribeFunctions.forEach((fn) => fn());
-                    finishBackgroundTask();
-                    return;
-                  }
-                },
-              );
-
-              unsubscribeFunctions.push(unsubscribe);
-              unsubscribeFunctions.push(() => stateSubscription.unsubscribe());
-              unsubscribeFunctions.push(() => endCallSubscription.remove());
-              unsubscribeFunctions.push(() => appStateSubscription.remove());
-              pushUnsubscriptionCallbacks.get(call_cid)?.forEach((cb) => cb());
-              pushUnsubscriptionCallbacks.set(call_cid, unsubscribeFunctions);
-            } catch (error) {
-              callingx.log(
-                `Failed to start background task with callCid: ${call_cid} error: ${error}`,
-                'error',
-              );
-              finishBackgroundTask();
-            }
-          })();
-        });
-      });
-    }
-
-    if (asForegroundService) {
-      // no need to check if call has be closed as that will be handled by the fg service
-      return;
-    }
-
-    const callFromPush = await client.onRingingCall(call_cid);
-
-    const { mustEndCall, endCallReason } = shouldCallBeClosed(
-      callFromPush,
-      data,
-    );
-    if (mustEndCall) {
-      logger.debug(
-        `Removing incoming call notification immediately with callCid: ${call_cid} as it should be closed`,
-      );
-      callingx.endCallWithReason(call_cid, endCallReason);
-    }
-  } else {
-    const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
-    const notifee = notifeeLib.default;
-    const settings = await notifee.getNotificationSettings();
-    if (settings.authorizationStatus !== 1) {
-      logger.debug(
-        `Notification permission not granted, unable to post ${data.type} notifications`,
-      );
-      return;
-    }
-
-    // the other types are call.live_started and call.notification
-    const callChannel = pushConfig.android?.callChannel;
-    const callNotificationTextGetters =
-      pushConfig.android?.callNotificationTextGetters;
-    if (!callChannel || !callNotificationTextGetters) {
-      logger.debug(
-        "Can't show call notification as either or both callChannel and callNotificationTextGetters is not provided",
-      );
-      return;
-    }
-    await notifee.createChannel(callChannel);
-    const channelId = callChannel.id;
-    const { getTitle, getBody } = callNotificationTextGetters;
-    const createdUserName = data.created_by_display_name as string;
-    // we can safely cast to string because the data is from "stream.video"
-    const type = data.type as NonRingingPushEvent;
-
-    const title = getTitle(type, createdUserName);
-    const body = getBody(type, createdUserName);
-
-    logger.debug(
-      `Displaying NonRingingPushEvent ${type} notification with title: ${title} body: ${body}`,
-    );
-    await notifee.displayNotification({
-      title,
-      body,
-      data,
-      android: {
-        sound: callChannel.sound,
-        smallIcon: pushConfig.android?.smallIcon,
-        vibrationPattern: callChannel.vibrationPattern,
-        channelId,
-        importance: 4, // high importance
-        pressAction: {
-          id: 'default',
-          launchActivity: 'default', // open the app when the notification is pressed
-        },
-        timeoutAfter: 60000, // 60 seconds, after which the notification will be dismissed automatically
-      },
-    });
-    const cid = data.call_cid as string;
-    pushNonRingingCallData$.next({ cid, type });
-  }
-};
-
-export const onAndroidNotifeeEvent = async ({ event }: { event: Event }) => {
-  if (Platform.OS !== 'android') return;
-  const { type, detail } = event;
-  const { notification } = detail;
-  const notificationId = notification?.id;
-  const data = notification?.data;
-  const pushConfig = StreamVideoRN.getConfig().push;
-  if (
-    !pushConfig ||
-    !data ||
-    !notificationId ||
-    data.sender !== 'stream.video'
-  ) {
-    return;
-  }
-
-  // we can safely cast to string because the data is from "stream.video"
-  const call_cid = data.call_cid as string;
-
-  const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
-  if (type === notifeeLib.EventType.PRESS) {
-    videoLoggerSystem
-      .getLogger('onAndroidNotifeeEvent')
-      .debug(`onTapNonRingingCallNotification with callCId: ${call_cid}`);
-    pushConfig.onTapNonRingingCallNotification?.(
-      call_cid,
-      data.type as NonRingingPushEvent,
+export const firebaseDataHandler = async (data?: any) => {
+  void data;
+  if (!firebaseDataHandlerDeprecationLogged) {
+    firebaseDataHandlerDeprecationLogged = true;
+    console.warn(
+      '[@stream-io/video-react-native-sdk] `firebaseDataHandler` is deprecated. Ring notifications are now handled by the SDK internally — you can remove calls to it from your Firebase messaging handlers.',
     );
   }
 };

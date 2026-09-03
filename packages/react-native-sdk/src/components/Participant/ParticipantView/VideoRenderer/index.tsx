@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { LayoutChangeEvent, Platform, StyleSheet, View } from 'react-native';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import { RTCView } from '@stream-io/react-native-webrtc';
 import type { ParticipantViewProps } from '../ParticipantView';
@@ -7,15 +7,17 @@ import {
   hasPausedTrack,
   hasScreenShare,
   hasVideo,
+  SfuModels,
   type VideoTrackType,
   VisibilityState,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { BehaviorSubject } from 'rxjs';
 import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from '../ParticipantVideoFallback';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useTrackDimensions } from '../../../../hooks/useTrackDimensions';
 import { useScreenshotIosContext } from '../../../../contexts/internal/ScreenshotIosContext';
-import TrackSubscriber, { TrackSubscriberHandle } from './TrackSubscriber';
+import TrackSubscriber from './TrackSubscriber';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -44,197 +46,213 @@ export type VideoRendererProps = Pick<
  *
  * It internally used `RTCView` to render video stream.
  */
-export const VideoRenderer = ({
-  trackType = 'videoTrack',
-  participant,
-  isVisible = true,
-  ParticipantVideoFallback = DefaultParticipantVideoFallback,
-  objectFit,
-  videoZOrder = 0,
-  mirror: mirrorOverride,
-}: VideoRendererProps) => {
-  const {
-    theme: { videoRenderer },
-  } = useTheme();
-  const call = useCall();
-  const { useCameraState, useIncomingVideoSettings } = useCallStateHooks();
-  const trackSubscriberRef = useRef<TrackSubscriberHandle>(null);
-  const { isParticipantVideoEnabled } = useIncomingVideoSettings();
-  const { direction } = useCameraState();
-  const viewRef = useRef(null);
-  const {
-    register: registerIosScreenshot,
-    deregister: deregisterIosScreenshot,
-  } = useScreenshotIosContext();
+export const VideoRenderer = React.memo(
+  ({
+    trackType = 'videoTrack',
+    participant,
+    isVisible = true,
+    ParticipantVideoFallback = DefaultParticipantVideoFallback,
+    objectFit,
+    videoZOrder = 0,
+    mirror: mirrorOverride,
+  }: VideoRendererProps) => {
+    const {
+      theme: { videoRenderer },
+    } = useTheme();
+    const call = useCall();
+    const { useCameraState, useIncomingVideoSettings } = useCallStateHooks();
+    // a sticky note of the dimensions of the RTCView from onLayout
+    // to reuse for a new participant even if dimensions dont change
+    const dimensions$ = useMemo(
+      () =>
+        new BehaviorSubject<SfuModels.VideoDimension | undefined>(undefined),
+      [],
+    );
+    const { isParticipantVideoEnabled } = useIncomingVideoSettings();
+    const { direction } = useCameraState();
+    const viewRef = useRef(null);
+    const {
+      register: registerIosScreenshot,
+      deregister: deregisterIosScreenshot,
+    } = useScreenshotIosContext();
 
-  const videoDimensions = useTrackDimensions(participant, trackType);
+    const videoDimensions = useTrackDimensions(participant, trackType);
 
-  const isVideoDimensionsValid =
-    videoDimensions.width > 0 && videoDimensions.height > 0;
+    const isVideoDimensionsValid =
+      videoDimensions.width > 0 && videoDimensions.height > 0;
 
-  const {
-    isLocalParticipant,
-    sessionId,
-    viewportVisibilityState,
-    videoStream,
-    screenShareStream,
-  } = participant;
+    const {
+      isLocalParticipant,
+      sessionId,
+      viewportVisibilityState,
+      videoStream,
+      screenShareStream,
+    } = participant;
 
-  const isScreenSharing = trackType === 'screenShareTrack';
-  const isPublishingVideoTrack = isScreenSharing
-    ? hasScreenShare(participant)
-    : hasVideo(participant);
+    const isScreenSharing = trackType === 'screenShareTrack';
+    const isPublishingVideoTrack = isScreenSharing
+      ? hasScreenShare(participant)
+      : hasVideo(participant);
 
-  const videoStreamToRender = (isScreenSharing
-    ? screenShareStream
-    : videoStream) as unknown as MediaStream | undefined;
+    const videoStreamToRender = (isScreenSharing
+      ? screenShareStream
+      : videoStream) as unknown as MediaStream | undefined;
 
-  const canShowVideo =
-    !!videoStreamToRender &&
-    isVisible &&
-    isPublishingVideoTrack &&
-    !hasPausedTrack(participant, trackType) &&
-    isParticipantVideoEnabled(participant.sessionId);
+    const hasVideoTrackInStream =
+      !!videoStreamToRender && videoStreamToRender.getVideoTracks().length > 0;
 
-  useEffect(() => {
-    if (Platform.OS === 'ios' && registerIosScreenshot && canShowVideo) {
+    const canShowVideo =
+      hasVideoTrackInStream &&
+      isVisible &&
+      isPublishingVideoTrack &&
+      !hasPausedTrack(participant, trackType) &&
+      isParticipantVideoEnabled(participant.sessionId);
+
+    useEffect(() => {
+      if (Platform.OS !== 'ios' || !registerIosScreenshot || !canShowVideo)
+        return;
       registerIosScreenshot(participant, trackType, viewRef);
       return () => {
         deregisterIosScreenshot(participant, trackType);
       };
-    }
-  }, [
-    participant,
-    trackType,
-    registerIosScreenshot,
-    canShowVideo,
-    deregisterIosScreenshot,
-  ]);
+    }, [
+      participant,
+      trackType,
+      registerIosScreenshot,
+      canShowVideo,
+      deregisterIosScreenshot,
+    ]);
 
-  const mirror = isScreenSharing
-    ? false
-    : mirrorOverride !== undefined
-      ? mirrorOverride
-      : isLocalParticipant && direction === 'front';
+    const mirror = isScreenSharing
+      ? false
+      : mirrorOverride !== undefined
+        ? mirrorOverride
+        : isLocalParticipant && direction === 'front';
 
-  /**
-   * This effect updates the participant's viewportVisibilityState
-   * Additionally makes sure that when this view becomes visible again, the layout to subscribe is known
-   */
-  useEffect(() => {
-    if (!call || isLocalParticipant) {
-      return;
-    }
-    if (isVisible) {
-      if (
-        trackType === 'videoTrack' &&
-        viewportVisibilityState?.videoTrack !== VisibilityState.VISIBLE
-      ) {
-        call.state.updateParticipant(sessionId, (p) => ({
-          ...p,
-          viewportVisibilityState: {
-            ...(p.viewportVisibilityState ?? DEFAULT_VIEWPORT_VISIBILITY_STATE),
-            videoTrack: VisibilityState.VISIBLE,
-          },
-        }));
+    const videoTrackVisibility = viewportVisibilityState?.videoTrack;
+    const screenShareTrackVisibility =
+      viewportVisibilityState?.screenShareTrack;
+
+    /**
+     * This effect updates the participant's viewportVisibilityState
+     * Additionally makes sure that when this view becomes visible again, the layout to subscribe is known
+     */
+    useEffect(() => {
+      if (!call || isLocalParticipant) {
+        return;
       }
-      if (
-        trackType === 'screenShareTrack' &&
-        viewportVisibilityState?.screenShareTrack !== VisibilityState.VISIBLE
-      ) {
-        call.state.updateParticipant(sessionId, (p) => ({
-          ...p,
-          viewportVisibilityState: {
-            ...(p.viewportVisibilityState ?? DEFAULT_VIEWPORT_VISIBILITY_STATE),
-            screenShareTrack: VisibilityState.VISIBLE,
-          },
-        }));
+      if (isVisible) {
+        if (
+          trackType === 'videoTrack' &&
+          videoTrackVisibility !== VisibilityState.VISIBLE
+        ) {
+          call.state.updateParticipant(sessionId, (p) => ({
+            ...p,
+            viewportVisibilityState: {
+              ...(p.viewportVisibilityState ??
+                DEFAULT_VIEWPORT_VISIBILITY_STATE),
+              videoTrack: VisibilityState.VISIBLE,
+            },
+          }));
+        }
+        if (
+          trackType === 'screenShareTrack' &&
+          screenShareTrackVisibility !== VisibilityState.VISIBLE
+        ) {
+          call.state.updateParticipant(sessionId, (p) => ({
+            ...p,
+            viewportVisibilityState: {
+              ...(p.viewportVisibilityState ??
+                DEFAULT_VIEWPORT_VISIBILITY_STATE),
+              screenShareTrack: VisibilityState.VISIBLE,
+            },
+          }));
+        }
+      } else {
+        if (
+          trackType === 'videoTrack' &&
+          videoTrackVisibility !== VisibilityState.INVISIBLE
+        ) {
+          call.state.updateParticipant(sessionId, (p) => ({
+            ...p,
+            viewportVisibilityState: {
+              ...(p.viewportVisibilityState ??
+                DEFAULT_VIEWPORT_VISIBILITY_STATE),
+              videoTrack: VisibilityState.INVISIBLE,
+            },
+          }));
+        }
+        if (
+          trackType === 'screenShareTrack' &&
+          screenShareTrackVisibility !== VisibilityState.INVISIBLE
+        ) {
+          call.state.updateParticipant(sessionId, (p) => ({
+            ...p,
+            viewportVisibilityState: {
+              ...(p.viewportVisibilityState ??
+                DEFAULT_VIEWPORT_VISIBILITY_STATE),
+              screenShareTrack: VisibilityState.INVISIBLE,
+            },
+          }));
+        }
       }
-    } else {
-      if (
-        trackType === 'videoTrack' &&
-        viewportVisibilityState?.videoTrack !== VisibilityState.INVISIBLE
-      ) {
-        call.state.updateParticipant(sessionId, (p) => ({
-          ...p,
-          viewportVisibilityState: {
-            ...(p.viewportVisibilityState ?? DEFAULT_VIEWPORT_VISIBILITY_STATE),
-            videoTrack: VisibilityState.INVISIBLE,
-          },
-        }));
-      }
-      if (
-        trackType === 'screenShareTrack' &&
-        viewportVisibilityState?.screenShareTrack !== VisibilityState.INVISIBLE
-      ) {
-        call.state.updateParticipant(sessionId, (p) => ({
-          ...p,
-          viewportVisibilityState: {
-            ...(p.viewportVisibilityState ?? DEFAULT_VIEWPORT_VISIBILITY_STATE),
-            screenShareTrack: VisibilityState.INVISIBLE,
-          },
-        }));
-      }
-    }
-  }, [
-    sessionId,
-    viewportVisibilityState,
-    isVisible,
-    call,
-    trackType,
-    isLocalParticipant,
-  ]);
+    }, [
+      sessionId,
+      videoTrackVisibility,
+      screenShareTrackVisibility,
+      isVisible,
+      call,
+      trackType,
+      isLocalParticipant,
+    ]);
 
-  const onLayout: React.ComponentProps<typeof RTCView>['onLayout'] = (
-    event,
-  ) => {
-    trackSubscriberRef.current?.onLayoutUpdate(event);
-  };
+    const onLayout: React.ComponentProps<typeof RTCView>['onLayout'] = (
+      event: LayoutChangeEvent,
+    ) => {
+      dimensions$.next({
+        width: Math.trunc(event.nativeEvent.layout.width),
+        height: Math.trunc(event.nativeEvent.layout.height),
+      });
+    };
 
-  return (
-    <View
-      onLayout={onLayout}
-      style={[styles.container, videoRenderer.container]}
-    >
-      {call && !isLocalParticipant && (
-        <TrackSubscriber
-          ref={trackSubscriberRef}
-          call={call}
-          participantSessionId={sessionId}
-          trackType={trackType}
-          isVisible={isVisible}
-        />
-      )}
-      {canShowVideo &&
-      videoStreamToRender &&
-      (objectFit || isVideoDimensionsValid) ? (
-        <RTCView
-          style={[styles.videoStream, videoRenderer.videoStream]}
-          streamURL={videoStreamToRender.toURL()}
-          mirror={mirror}
-          ref={viewRef}
-          objectFit={
-            objectFit ??
-            (videoDimensions.width > videoDimensions.height
-              ? 'contain'
-              : 'cover')
-          }
-          zOrder={videoZOrder}
-        />
-      ) : (
-        ParticipantVideoFallback && (
-          <ParticipantVideoFallback participant={participant} />
-        )
-      )}
-    </View>
-  );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
+    return (
+      <View
+        onLayout={onLayout}
+        style={[StyleSheet.absoluteFill, videoRenderer.container]}
+      >
+        {call && !isLocalParticipant && (
+          <TrackSubscriber
+            call={call}
+            participantSessionId={sessionId}
+            trackType={trackType}
+            isVisible={isVisible}
+            dimensions$={dimensions$}
+          />
+        )}
+        {canShowVideo &&
+        videoStreamToRender &&
+        (objectFit || isVideoDimensionsValid) ? (
+          <RTCView
+            style={[StyleSheet.absoluteFill, videoRenderer.videoStream]}
+            streamURL={videoStreamToRender.toURL()}
+            mirror={mirror}
+            ref={viewRef}
+            objectFit={
+              objectFit ??
+              (videoDimensions.width > videoDimensions.height
+                ? 'contain'
+                : 'cover')
+            }
+            zOrder={videoZOrder}
+          />
+        ) : (
+          ParticipantVideoFallback && (
+            <ParticipantVideoFallback participant={participant} />
+          )
+        )}
+      </View>
+    );
   },
-  videoStream: {
-    ...StyleSheet.absoluteFillObject,
-  },
-});
+);
+
+VideoRenderer.displayName = 'VideoRenderer';

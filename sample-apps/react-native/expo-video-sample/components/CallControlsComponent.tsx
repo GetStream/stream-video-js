@@ -11,7 +11,6 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Hearing from '../assets/Hearing';
 import AutoAwesome from '../assets/AutoAwesome';
 import { useCustomVideoFilters } from './hooks/useCustomVideoFilters';
@@ -57,12 +56,10 @@ const BackgroundFiltersButton = () => {
 };
 
 export const CallControlsComponent = ({ landscape }: CallControlProps) => {
-  const { bottom } = useSafeAreaInsets();
   const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'column-reverse' : 'row',
     paddingHorizontal: landscape ? 12 : 0,
     paddingVertical: landscape ? 0 : 12,
-    paddingBottom: landscape ? 0 : Math.max(bottom, 16),
   };
 
   return (

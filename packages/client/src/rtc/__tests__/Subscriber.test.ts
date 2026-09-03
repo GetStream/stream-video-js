@@ -17,6 +17,7 @@ import { NegotiationError } from '../NegotiationError';
 import { ReconnectReason } from '../types';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
+import { fromPartial } from '@total-typescript/shoehorn';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -28,10 +29,11 @@ vi.mock('../../StreamSfuClient', () => {
 describe('Subscriber', () => {
   let sfuClient: StreamSfuClient;
   let subscriber: Subscriber;
-  const state = new CallState();
+  let state: CallState;
   let dispatcher: Dispatcher;
 
   beforeEach(() => {
+    state = new CallState();
     dispatcher = new Dispatcher();
     sfuClient = new StreamSfuClient({
       dispatcher,
@@ -63,11 +65,11 @@ describe('Subscriber', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers();
     vi.clearAllMocks();
     vi.resetModules();
-    subscriber.dispose();
+    await subscriber.dispose();
   });
 
   describe('Subscriber ICE restart', () => {
@@ -140,26 +142,6 @@ describe('Subscriber', () => {
       );
     });
 
-    it(`isStable() returns true only when ICE is connected/completed and connectionState is connected`, () => {
-      // @ts-expect-error - private field
-      subscriber['pc'].iceConnectionState = 'connected';
-      // @ts-expect-error - private field
-      subscriber['pc'].connectionState = 'connected';
-      expect(subscriber.isStable()).toBe(true);
-
-      // @ts-expect-error - private field
-      subscriber['pc'].iceConnectionState = 'completed';
-      expect(subscriber.isStable()).toBe(true);
-
-      // @ts-expect-error - private field
-      subscriber['pc'].iceConnectionState = 'disconnected';
-      expect(subscriber.isStable()).toBe(false);
-
-      // @ts-expect-error - private field
-      subscriber['pc'].iceConnectionState = 'new';
-      expect(subscriber.isStable()).toBe(false);
-    });
-
     it(`iceHasEverConnected tracks lifetime connectivity`, () => {
       expect(subscriber['iceHasEverConnected']).toBe(false);
       simulatePriorIceConnected();
@@ -193,7 +175,337 @@ describe('Subscriber', () => {
     });
   });
 
+  describe('Subscriber negotiation', () => {
+    const subscriberOffer: SubscriberOffer = {
+      sdp: 'subscriber-offer-sdp',
+      iceRestart: false,
+      negotiationId: 10,
+    };
+
+    beforeEach(() => {
+      sfuClient.sendAnswer = vi.fn().mockResolvedValue({ response: {} });
+    });
+
+    it('resets isIceRestarting once a negotiation completes', async () => {
+      subscriber['isIceRestarting'] = true;
+
+      await subscriber['negotiate'](subscriberOffer);
+
+      expect(sfuClient.sendAnswer).toHaveBeenCalledWith({
+        peerType: PeerType.SUBSCRIBER,
+        sdp: '',
+        negotiationId: 10,
+      });
+      expect(subscriber['isIceRestarting']).toBe(false);
+    });
+
+    it('resets isIceRestarting even when the negotiation fails', async () => {
+      subscriber['isIceRestarting'] = true;
+      sfuClient.sendAnswer = vi
+        .fn()
+        .mockRejectedValue(new Error('send answer failed'));
+
+      await expect(subscriber['negotiate'](subscriberOffer)).rejects.toThrow(
+        'send answer failed',
+      );
+      expect(subscriber['isIceRestarting']).toBe(false);
+    });
+
+    it('rolls back the remote description when a negotiation fails mid-offer', async () => {
+      const setRemoteDescription = vi.fn().mockResolvedValue({});
+      subscriber['pc'].setRemoteDescription = setRemoteDescription;
+      // @ts-expect-error - readonly field
+      subscriber['pc'].signalingState = 'have-remote-offer';
+      sfuClient.sendAnswer = vi
+        .fn()
+        .mockRejectedValue(new Error('send answer failed'));
+
+      await expect(subscriber['negotiate'](subscriberOffer)).rejects.toThrow(
+        'send answer failed',
+      );
+      expect(setRemoteDescription).toHaveBeenCalledWith({ type: 'rollback' });
+    });
+
+    it('does not roll back when the peer connection never applied the offer', async () => {
+      // signalingState stays 'stable' because setRemoteDescription rejected
+      subscriber['pc'].setRemoteDescription = vi
+        .fn()
+        .mockRejectedValue(new Error('set remote description failed'));
+
+      await expect(subscriber['negotiate'](subscriberOffer)).rejects.toThrow(
+        'set remote description failed',
+      );
+      expect(subscriber['pc'].setRemoteDescription).not.toHaveBeenCalledWith({
+        type: 'rollback',
+      });
+    });
+
+    it('propagates the original error even when the rollback itself fails', async () => {
+      subscriber['pc'].setRemoteDescription = vi
+        .fn()
+        .mockResolvedValueOnce({}) // applying the offer succeeds
+        .mockRejectedValueOnce(new Error('rollback failed')); // rollback fails
+      // @ts-expect-error - readonly field
+      subscriber['pc'].signalingState = 'have-remote-offer';
+      sfuClient.sendAnswer = vi
+        .fn()
+        .mockRejectedValue(new Error('send answer failed'));
+
+      await expect(subscriber['negotiate'](subscriberOffer)).rejects.toThrow(
+        'send answer failed',
+      );
+    });
+
+    it('restores the previous generation in the buffer when a negotiation rolls back', async () => {
+      const sdp = (ufrag: string) =>
+        `v=0\r\na=ice-ufrag:${ufrag}\r\na=ice-pwd:pwd\r\n`;
+      const updateActiveGeneration = vi.spyOn(
+        sfuClient.iceTrickleBuffer,
+        'updateActiveGeneration',
+      );
+      // previously-committed generation u0; the new (failing) offer is u1
+      // @ts-expect-error - overriding readonly mock field
+      subscriber['pc'].currentRemoteDescription = {
+        type: 'offer',
+        sdp: sdp('u0'),
+      };
+      // @ts-expect-error - overriding readonly mock field
+      subscriber['pc'].remoteDescription = { type: 'offer', sdp: sdp('u1') };
+      // @ts-expect-error - readonly field
+      subscriber['pc'].signalingState = 'have-remote-offer';
+      sfuClient.sendAnswer = vi
+        .fn()
+        .mockRejectedValue(new Error('send answer failed'));
+
+      await expect(subscriber['negotiate'](subscriberOffer)).rejects.toThrow(
+        'send answer failed',
+      );
+
+      // advanced to the new generation, then restored to the rolled-back one
+      expect(updateActiveGeneration).toHaveBeenCalledWith(
+        PeerType.SUBSCRIBER,
+        sdp('u1'),
+      );
+      expect(updateActiveGeneration).toHaveBeenLastCalledWith(
+        PeerType.SUBSCRIBER,
+        sdp('u0'),
+      );
+    });
+  });
+
+  describe('negotiation failure recovery', () => {
+    const offer = SubscriberOffer.create({
+      sdp: 'offer-sdp',
+      iceRestart: false,
+    });
+    const dispatchOffer = () =>
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'subscriberOffer',
+            subscriberOffer: offer,
+          },
+        }) as DispatchableMessage<'subscriberOffer'>,
+        'test',
+      );
+    const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    it('retries via ICE restart on a single negotiation failure', async () => {
+      // @ts-expect-error - private method
+      subscriber.negotiate = vi.fn().mockRejectedValue(new Error('boom'));
+      // @ts-expect-error - protected method
+      subscriber.tryRestartIce = vi.fn();
+      subscriber['onReconnectionNeeded'] = vi.fn();
+
+      dispatchOffer();
+      await flush();
+
+      // @ts-expect-error - protected method
+      expect(subscriber.tryRestartIce).toHaveBeenCalledTimes(1);
+      expect(subscriber['onReconnectionNeeded']).not.toHaveBeenCalled();
+    });
+
+    it('escalates to REJOIN after repeated failures instead of looping ICE restarts', async () => {
+      // @ts-expect-error - private method
+      subscriber.negotiate = vi.fn().mockRejectedValue(new Error('boom'));
+      // @ts-expect-error - protected method
+      subscriber.tryRestartIce = vi.fn();
+      subscriber['onReconnectionNeeded'] = vi.fn();
+
+      // three consecutive failures (the configured ceiling)
+      for (let i = 0; i < 3; i++) {
+        dispatchOffer();
+        await flush();
+      }
+
+      // the first two fall through to an ICE restart; the third gives up and rejoins
+      // @ts-expect-error - protected method
+      expect(subscriber.tryRestartIce).toHaveBeenCalledTimes(2);
+      expect(subscriber['onReconnectionNeeded']).toHaveBeenCalledWith(
+        WebsocketReconnectStrategy.REJOIN,
+        ReconnectReason.SUBSCRIBER_NEGOTIATION_FAILED,
+        PeerType.SUBSCRIBER,
+      );
+    });
+
+    it('resets the failure counter after a successful negotiation', async () => {
+      // @ts-expect-error - private method
+      subscriber.negotiate = vi
+        .fn()
+        .mockRejectedValueOnce(new Error('boom'))
+        .mockRejectedValueOnce(new Error('boom'))
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('boom'))
+        .mockRejectedValueOnce(new Error('boom'));
+      // @ts-expect-error - protected method
+      subscriber.tryRestartIce = vi.fn();
+      subscriber['onReconnectionNeeded'] = vi.fn();
+
+      for (let i = 0; i < 5; i++) {
+        dispatchOffer();
+        await flush();
+      }
+
+      // four failures total, but never three in a row, so no REJOIN
+      expect(subscriber['onReconnectionNeeded']).not.toHaveBeenCalled();
+      // @ts-expect-error - protected method
+      expect(subscriber.tryRestartIce).toHaveBeenCalledTimes(4);
+    });
+  });
+
+  describe('ICE candidate trickling', () => {
+    const trickle = (ufrag: string, candidate: string) => ({
+      peerType: PeerType.SUBSCRIBER,
+      iceCandidate: JSON.stringify({ usernameFragment: ufrag, candidate }),
+    });
+
+    const sdp = (ufrag: string) =>
+      `v=0\r\na=ice-ufrag:${ufrag}\r\na=ice-pwd:pwd\r\n`;
+
+    const setRemoteUfrag = (ufrag: string) => {
+      // @ts-expect-error - overriding readonly remoteDescription on the mock
+      subscriber['pc'].remoteDescription = { type: 'offer', sdp: sdp(ufrag) };
+    };
+
+    const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    it('declares the active generation from the remote description and adds emitted candidates', async () => {
+      const addIceCandidate = vi
+        .spyOn(subscriber['pc'], 'addIceCandidate')
+        .mockResolvedValue();
+      const updateActiveGeneration = vi.spyOn(
+        sfuClient.iceTrickleBuffer,
+        'updateActiveGeneration',
+      );
+      setRemoteUfrag('u1');
+      sfuClient.iceTrickleBuffer.push(trickle('u1', 'c1'));
+
+      subscriber['addTrickledIceCandidates']();
+      await flush();
+
+      expect(updateActiveGeneration).toHaveBeenCalledWith(
+        PeerType.SUBSCRIBER,
+        sdp('u1'),
+      );
+      expect(addIceCandidate).toHaveBeenCalledWith({
+        usernameFragment: 'u1',
+        candidate: 'c1',
+      });
+    });
+
+    it('does not re-add a superseded-generation candidate after an ICE restart', async () => {
+      const addIceCandidate = vi
+        .spyOn(subscriber['pc'], 'addIceCandidate')
+        .mockResolvedValue();
+
+      setRemoteUfrag('u0');
+      sfuClient.iceTrickleBuffer.push(trickle('u0', 'c0'));
+      subscriber['addTrickledIceCandidates']();
+      await flush();
+      expect(addIceCandidate).toHaveBeenCalledWith({
+        usernameFragment: 'u0',
+        candidate: 'c0',
+      });
+
+      addIceCandidate.mockClear();
+
+      // ICE restart -> generation u1; the old u0 candidate must not be re-added
+      setRemoteUfrag('u1');
+      sfuClient.iceTrickleBuffer.push(trickle('u1', 'c1'));
+      subscriber['addTrickledIceCandidates']();
+      await flush();
+
+      expect(addIceCandidate).toHaveBeenCalledWith({
+        usernameFragment: 'u1',
+        candidate: 'c1',
+      });
+      expect(addIceCandidate).not.toHaveBeenCalledWith({
+        usernameFragment: 'u0',
+        candidate: 'c0',
+      });
+    });
+  });
+
   describe('OnTrack', () => {
+    const audioStreamNamed = (trackLookupPrefix: string) => {
+      const stream = new MediaStream();
+      // @ts-expect-error - mock
+      stream.id = `${trackLookupPrefix}:TRACK_TYPE_AUDIO`;
+      return stream;
+    };
+
+    const audioTrack = () => {
+      const track = new MediaStreamTrack();
+      // @ts-expect-error - mock
+      track.kind = 'audio';
+      return track;
+    };
+
+    it('replaces the local capture stream with the echoed one, leaving the capture tracks live', () => {
+      const captureTrack = audioTrack();
+      const captureStream = new MediaStream();
+      captureStream.getTracks = () => [captureTrack];
+      const echoedStream = audioStreamNamed('self-lookup');
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('self-session', {
+        sessionId: 'self-session',
+        trackLookupPrefix: 'self-lookup',
+        isLocalParticipant: true,
+        audioStream: captureStream,
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [echoedStream], track: audioTrack() });
+
+      const participant = state.participants.find(
+        (p) => p.sessionId === 'self-session',
+      );
+      expect(participant?.audioStream).toBe(echoedStream);
+      // the device manager owns the capture stream and is still publishing it
+      expect(captureTrack.stop).not.toHaveBeenCalled();
+      expect(captureStream.removeTrack).not.toHaveBeenCalled();
+    });
+
+    it('reports streams it received as self-subscribed, and capture streams as not', () => {
+      const echoedStream = audioStreamNamed('self-lookup');
+      const captureStream = new MediaStream();
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('self-session', {
+        sessionId: 'self-session',
+        trackLookupPrefix: 'self-lookup',
+        isLocalParticipant: true,
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [echoedStream], track: audioTrack() });
+
+      expect(subscriber.isSelfSubscribedStream(echoedStream)).toBe(true);
+      expect(subscriber.isSelfSubscribedStream(captureStream)).toBe(false);
+      expect(subscriber.isSelfSubscribedStream(undefined)).toBe(false);
+    });
+
     it('should add unknown tracks to the to the call state', () => {
       const mediaStream = new MediaStream();
       const mediaStreamTrack = new MediaStreamTrack();
@@ -270,6 +582,280 @@ describe('Subscriber', () => {
       expect(baseTrack.stop).toHaveBeenCalled();
       expect(baseStream.removeTrack).toHaveBeenCalledWith(baseTrack);
     });
+
+    it('should store receiver in orphaned track when E2EE is enabled', () => {
+      const e2eeMock = {
+        encrypt: vi.fn(),
+        decrypt: vi.fn(),
+      };
+      subscriber.dispose();
+      const e2eeState = new CallState();
+      subscriber = new Subscriber({
+        sfuClient,
+        dispatcher,
+        state: e2eeState,
+        connectionConfig: { iceServers: [] },
+        tag: 'test',
+        enableTracing: true,
+        e2ee: e2eeMock,
+      });
+
+      const mediaStream = new MediaStream();
+      const mediaStreamTrack = new MediaStreamTrack();
+      const receiver = {};
+      // @ts-expect-error - mock
+      mediaStream.id = 'orphan-prefix:TRACK_TYPE_VIDEO';
+
+      const registerOrphanedTrackSpy = vi.spyOn(
+        e2eeState,
+        'registerOrphanedTrack',
+      );
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track: mediaStreamTrack, receiver });
+
+      // Decrypt is NOT called immediately for orphaned tracks
+      expect(e2eeMock.decrypt).not.toHaveBeenCalled();
+      // Receiver is stored with the orphaned track for later reconciliation
+      expect(registerOrphanedTrackSpy).toHaveBeenCalledWith({
+        id: mediaStream.id,
+        trackLookupPrefix: 'orphan-prefix',
+        track: mediaStream,
+        trackType: TrackType.VIDEO,
+        receiver,
+      });
+    });
+
+    it('should decrypt with userId when participant is found', () => {
+      const e2eeMock = {
+        encrypt: vi.fn(),
+        decrypt: vi.fn(),
+      };
+      subscriber.dispose();
+      const e2eeState = new CallState();
+      subscriber = new Subscriber({
+        sfuClient,
+        dispatcher,
+        state: e2eeState,
+        connectionConfig: { iceServers: [] },
+        tag: 'test',
+        enableTracing: true,
+        e2ee: e2eeMock,
+      });
+
+      // Register a participant whose trackLookupPrefix matches the stream
+      e2eeState.updateOrAddParticipant(
+        'session-id',
+        fromPartial({
+          sessionId: 'session-id',
+          userId: 'real-user-id',
+          trackLookupPrefix: '123',
+        }),
+      );
+
+      const mediaStream = new MediaStream();
+      const mediaStreamTrack = new MediaStreamTrack();
+      const receiver = {};
+      // @ts-expect-error - mock
+      mediaStream.id = '123:TRACK_TYPE_VIDEO';
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track: mediaStreamTrack, receiver });
+
+      // Uses the participant's userId (not trackLookupPrefix) for key lookup
+      expect(e2eeMock.decrypt).toHaveBeenCalledWith(
+        receiver,
+        'real-user-id',
+        'VIDEO',
+      );
+    });
+  });
+
+  describe('interruptedTracks', () => {
+    const setup = ({ muted = false }: { muted?: boolean } = {}) => {
+      const mediaStream = new MediaStream();
+      const track = new MediaStreamTrack();
+      // @ts-expect-error - mock
+      mediaStream.id = 'lookup:TRACK_TYPE_AUDIO';
+      // @ts-expect-error - mock
+      track.kind = 'audio';
+      Object.defineProperty(track, 'muted', {
+        configurable: true,
+        get: () => muted,
+      });
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('session-id', {
+        sessionId: 'session-id',
+        trackLookupPrefix: 'lookup',
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track });
+
+      const calls = (track.addEventListener as ReturnType<typeof vi.fn>).mock
+        .calls;
+      const handlers: Record<string, () => void> = {};
+      for (const [event, handler] of calls) {
+        handlers[event] = handler as () => void;
+      }
+      return { track, handlers };
+    };
+
+    const interruptedFor = (sessionId: string) =>
+      state.participants.find((p) => p.sessionId === sessionId)
+        ?.interruptedTracks ?? [];
+
+    it('adds the track type when the mute handler fires', () => {
+      const { handlers } = setup();
+      expect(interruptedFor('session-id')).toEqual([]);
+
+      handlers['mute']();
+
+      expect(interruptedFor('session-id')).toEqual([TrackType.AUDIO]);
+    });
+
+    it('removes the track type when the unmute handler fires', () => {
+      const { handlers } = setup();
+      handlers['mute']();
+      expect(interruptedFor('session-id')).toEqual([TrackType.AUDIO]);
+
+      handlers['unmute']();
+
+      expect(interruptedFor('session-id')).toEqual([]);
+    });
+
+    it('seeds the track type when the track arrives already muted', () => {
+      setup({ muted: true });
+
+      expect(interruptedFor('session-id')).toEqual([TrackType.AUDIO]);
+    });
+
+    it('clears the track type when the track ends', () => {
+      const { handlers } = setup();
+      handlers['mute']();
+      expect(interruptedFor('session-id')).toEqual([TrackType.AUDIO]);
+
+      handlers['ended']();
+
+      expect(interruptedFor('session-id')).toEqual([]);
+    });
+
+    it('leaves the local participant alone on a self-sub track', () => {
+      const mediaStream = new MediaStream();
+      const track = new MediaStreamTrack();
+      // @ts-expect-error - mock
+      mediaStream.id = 'self-lookup:TRACK_TYPE_AUDIO';
+      // @ts-expect-error - mock
+      track.kind = 'audio';
+      Object.defineProperty(track, 'muted', {
+        configurable: true,
+        get: () => true,
+      });
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('self-session', {
+        sessionId: 'self-session',
+        trackLookupPrefix: 'self-lookup',
+        isLocalParticipant: true,
+        interruptedTracks: [],
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track });
+
+      expect(interruptedFor('self-session')).toEqual([]);
+
+      const handlers: Record<string, () => void> = {};
+      for (const [event, handler] of (
+        track.addEventListener as ReturnType<typeof vi.fn>
+      ).mock.calls) {
+        handlers[event] = handler as () => void;
+      }
+
+      handlers['mute']();
+      expect(interruptedFor('self-session')).toEqual([]);
+
+      state.updateParticipant('self-session', {
+        interruptedTracks: [TrackType.AUDIO],
+      });
+      handlers['unmute']();
+      expect(interruptedFor('self-session')).toEqual([TrackType.AUDIO]);
+    });
+
+    it('ignores non-audio remote tracks to avoid Dynascale false positives', () => {
+      // Remote video track.muted is dominated by viewport-driven
+      // SFU unsubscriptions, so we deliberately only track audio
+      // interruption on remote participants.
+      const mediaStream = new MediaStream();
+      const track = new MediaStreamTrack();
+      // @ts-expect-error - mock
+      mediaStream.id = 'video-lookup:TRACK_TYPE_VIDEO';
+      // @ts-expect-error - mock
+      track.kind = 'video';
+      Object.defineProperty(track, 'muted', {
+        configurable: true,
+        get: () => true,
+      });
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('video-session', {
+        sessionId: 'video-session',
+        trackLookupPrefix: 'video-lookup',
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track });
+
+      // Seeded muted track is ignored.
+      expect(interruptedFor('video-session')).toEqual([]);
+
+      // Subsequent mute / unmute events are ignored too.
+      const calls = (track.addEventListener as ReturnType<typeof vi.fn>).mock
+        .calls;
+      const handlers: Record<string, () => void> = {};
+      for (const [event, handler] of calls) {
+        handlers[event] = handler as () => void;
+      }
+      handlers['mute']();
+      handlers['unmute']();
+      expect(interruptedFor('video-session')).toEqual([]);
+    });
+
+    it('does not mutate state for orphaned tracks until associated', () => {
+      const mediaStream = new MediaStream();
+      const track = new MediaStreamTrack();
+      // @ts-expect-error - mock
+      mediaStream.id = 'orphan:TRACK_TYPE_AUDIO';
+      // @ts-expect-error - mock
+      track.kind = 'audio';
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track });
+
+      const calls = (track.addEventListener as ReturnType<typeof vi.fn>).mock
+        .calls;
+      const handlers: Record<string, () => void> = {};
+      for (const [event, handler] of calls) {
+        handlers[event] = handler as () => void;
+      }
+
+      // Orphan: handler fires before the participant exists.
+      handlers['mute']();
+      expect(state.participants).toEqual([]);
+
+      // Once the participant is registered, the next event lands.
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('orphan-session', {
+        sessionId: 'orphan-session',
+        trackLookupPrefix: 'orphan',
+      });
+      handlers['mute']();
+
+      expect(interruptedFor('orphan-session')).toEqual([TrackType.AUDIO]);
+    });
   });
 
   describe('Negotiation', () => {
@@ -280,7 +866,10 @@ describe('Subscriber', () => {
         .mockResolvedValue({ sdp: 'answer-sdp' });
       vi.spyOn(subscriber['pc'], 'setRemoteDescription').mockResolvedValue();
 
-      const offer = SubscriberOffer.create({ sdp: 'offer-sdp' });
+      const offer = SubscriberOffer.create({
+        sdp: 'offer-sdp',
+        negotiationId: 42,
+      });
       // @ts-expect-error - private method
       await subscriber.negotiate(offer);
       expect(subscriber['pc'].setRemoteDescription).toHaveBeenCalledWith({
@@ -292,6 +881,7 @@ describe('Subscriber', () => {
       expect(sfuClient.sendAnswer).toHaveBeenCalledWith({
         peerType: PeerType.SUBSCRIBER,
         sdp: 'answer-sdp',
+        negotiationId: 42,
       });
     });
   });

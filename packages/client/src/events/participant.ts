@@ -5,7 +5,7 @@ import type {
   TrackPublished,
   TrackUnpublished,
 } from '../gen/video/sfu/event/events';
-import type { Participant } from '../gen/video/sfu/models/models';
+import { type Participant, TrackType } from '../gen/video/sfu/models/models';
 import {
   StreamVideoParticipant,
   StreamVideoParticipantPatch,
@@ -14,11 +14,21 @@ import {
 import { CallState } from '../store';
 import { trackTypeToParticipantStreamKey } from '../rtc';
 import { pushToIfMissing } from '../helpers/array';
+import type { E2EEManager } from '../rtc/e2ee/E2EEManager';
+
+/**
+ * Reads the call's current encryption manager. Deliberately not the manager
+ * itself: `Call.setE2EEManager` may be called after these handlers are wired up.
+ */
+type GetE2EEManager = () => E2EEManager | undefined;
 
 /**
  * An event responder which handles the `participantJoined` event.
  */
-export const watchParticipantJoined = (state: CallState) => {
+export const watchParticipantJoined = (
+  state: CallState,
+  e2ee: GetE2EEManager | undefined = undefined,
+) => {
   return function onParticipantJoined(e: ParticipantJoined) {
     const { participant } = e;
     if (!participant) return;
@@ -30,7 +40,7 @@ export const watchParticipantJoined = (state: CallState) => {
     // The SFU would send participant info as part of the `join`
     // response and then follow up with a `participantJoined` event for
     // already announced participants.
-    const orphanedTracks = reconcileOrphanedTracks(state, participant);
+    const orphanedTracks = reconcileOrphanedTracks(state, participant, e2ee);
     state.updateOrAddParticipant(
       participant.sessionId,
       Object.assign<
@@ -77,7 +87,10 @@ export const watchParticipantUpdated = (state: CallState) => {
  * An event responder which handles the `trackPublished` event.
  * The SFU will send this event when a participant publishes a track.
  */
-export const watchTrackPublished = (state: CallState) => {
+export const watchTrackPublished = (
+  state: CallState,
+  e2ee: GetE2EEManager | undefined = undefined,
+) => {
   return function onTrackPublished(e: TrackPublished) {
     const { type, sessionId } = e;
     // An optimization for large calls.
@@ -85,7 +98,11 @@ export const watchTrackPublished = (state: CallState) => {
     // events, and instead, it would only provide the participant's information
     // once they start publishing a track.
     if (e.participant) {
-      const orphanedTracks = reconcileOrphanedTracks(state, e.participant);
+      const orphanedTracks = reconcileOrphanedTracks(
+        state,
+        e.participant,
+        e2ee,
+      );
       const participant = Object.assign(e.participant, orphanedTracks);
       state.updateOrAddParticipant(sessionId, participant);
     } else {
@@ -100,12 +117,19 @@ export const watchTrackPublished = (state: CallState) => {
  * An event responder which handles the `trackUnpublished` event.
  * The SFU will send this event when a participant unpublishes a track.
  */
-export const watchTrackUnpublished = (state: CallState) => {
+export const watchTrackUnpublished = (
+  state: CallState,
+  e2ee: GetE2EEManager | undefined = undefined,
+) => {
   return function onTrackUnpublished(e: TrackUnpublished) {
     const { type, sessionId } = e;
     // An optimization for large calls. See `watchTrackPublished`.
     if (e.participant) {
-      const orphanedTracks = reconcileOrphanedTracks(state, e.participant);
+      const orphanedTracks = reconcileOrphanedTracks(
+        state,
+        e.participant,
+        e2ee,
+      );
       const participant = Object.assign(e.participant, orphanedTracks);
       state.updateOrAddParticipant(sessionId, participant, (p) => ({
         pausedTracks: p.pausedTracks?.filter((t) => t !== type),
@@ -124,18 +148,29 @@ export const watchTrackUnpublished = (state: CallState) => {
  *
  * @param state the call state.
  * @param participant the participant.
+ * @param e2ee accessor for the call's encryption manager, if any.
  */
 const reconcileOrphanedTracks = (
   state: CallState,
   participant: Participant,
+  e2ee: GetE2EEManager | undefined,
 ): StreamVideoParticipantPatch | undefined => {
   const orphanTracks = state.takeOrphanedTracks(participant.trackLookupPrefix);
   if (!orphanTracks.length) return;
+  const manager = e2ee?.();
   const reconciledTracks: StreamVideoParticipantPatch = {};
   for (const orphan of orphanTracks) {
     const key = trackTypeToParticipantStreamKey(orphan.trackType);
     if (!key) continue;
     reconciledTracks[key] = orphan.track;
+
+    if (manager && orphan.receiver) {
+      manager.decrypt(
+        orphan.receiver,
+        participant.userId,
+        TrackType[orphan.trackType],
+      );
+    }
   }
   return reconciledTracks;
 };

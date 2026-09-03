@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Alert,
   Image,
-  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,

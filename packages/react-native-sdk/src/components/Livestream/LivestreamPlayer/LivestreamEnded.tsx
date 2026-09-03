@@ -1,16 +1,44 @@
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
-import { useState, useEffect, useMemo } from 'react';
 import { useTheme } from '../../../contexts';
 import { ListRecordingsResponse } from '@stream-io/video-client';
 import {
   FlatList,
-  Pressable,
-  View,
-  Text,
-  StyleSheet,
   Linking,
+  type ListRenderItem,
+  Pressable,
+  type StyleProp,
+  StyleSheet,
+  Text,
+  type TextStyle,
+  View,
+  type ViewStyle,
 } from 'react-native';
+
+type RecordingItem = ListRecordingsResponse['recordings'][number];
+
+type RecordingRowProps = {
+  recording: RecordingItem;
+  onPress: (url: string) => void;
+  buttonStyle: StyleProp<ViewStyle>;
+  textStyle: StyleProp<TextStyle>;
+};
+
+const RecordingRow = React.memo(
+  ({ recording, onPress, buttonStyle, textStyle }: RecordingRowProps) => {
+    const handlePress = useCallback(
+      () => onPress(recording.url),
+      [onPress, recording.url],
+    );
+    return (
+      <Pressable style={buttonStyle} onPress={handlePress}>
+        <Text style={textStyle}>{recording.url.substring(0, 70)}...</Text>
+      </Pressable>
+    );
+  },
+);
+
+RecordingRow.displayName = 'RecordingRow';
 
 export const CallEndedView = () => {
   const { t } = useI18n();
@@ -46,7 +74,7 @@ export const CallEndedView = () => {
     };
   }, [call, recordingsResponse]);
 
-  const openUrl = (url: string) => {
+  const openUrl = useCallback((url: string) => {
     Linking.canOpenURL(url).then((supported) => {
       if (supported) {
         Linking.openURL(url);
@@ -54,7 +82,24 @@ export const CallEndedView = () => {
         console.log('Cannot open URL:', url);
       }
     });
-  };
+  }, []);
+
+  const keyExtractor = useCallback(
+    (item: RecordingItem) => item.session_id,
+    [],
+  );
+
+  const renderItem = useCallback<ListRenderItem<RecordingItem>>(
+    ({ item }) => (
+      <RecordingRow
+        recording={item}
+        onPress={openUrl}
+        buttonStyle={styles.recordingButton}
+        textStyle={styles.recordingText}
+      />
+    ),
+    [openUrl, styles.recordingButton, styles.recordingText],
+  );
 
   const showRecordings =
     recordingsResponse && recordingsResponse.recordings.length > 0;
@@ -69,17 +114,8 @@ export const CallEndedView = () => {
           <View style={styles.recordingsContainer}>
             <FlatList
               data={recordingsResponse.recordings}
-              keyExtractor={(item) => item.session_id}
-              renderItem={({ item }) => (
-                <Pressable
-                  style={styles.recordingButton}
-                  onPress={() => openUrl(item.url)}
-                >
-                  <Text style={styles.recordingText}>
-                    {item.url.substring(0, 70)}...
-                  </Text>
-                </Pressable>
-              )}
+              keyExtractor={keyExtractor}
+              renderItem={renderItem}
             />
           </View>
         </>

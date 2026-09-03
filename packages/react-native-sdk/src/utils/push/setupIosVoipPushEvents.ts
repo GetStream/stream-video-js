@@ -9,20 +9,21 @@ import { getCallingxLib } from './libs';
 export function setupIosVoipPushEvents(
   pushConfig: NonNullable<StreamVideoConfig['push']>,
 ) {
-  if (Platform.OS !== 'ios' || !pushConfig.ios?.pushProviderName) {
-    return;
-  }
   const logger = videoLoggerSystem.getLogger('setupIosVoipPushEvents');
-  if (!pushConfig.ios.pushProviderName) {
-    // TODO: remove this check and find a better way once we have telecom integration for android
+  if (Platform.OS !== 'ios' || !pushConfig.ios?.pushProviderName) {
     logger.debug(
-      'ios pushProviderName is not defined, so skipping the setupIosVoipPushEvents',
+      `setupIosVoipPushEvents skipped: platform=${Platform.OS} pushProviderName=${pushConfig.ios?.pushProviderName}`,
     );
     return;
   }
 
   const callingx = getCallingxLib();
   callingx.addEventListener('voipNotificationReceived', (params) => {
-    onVoipNotificationReceived(params, pushConfig);
+    logger.debug(
+      `voipNotificationReceived event call_cid: ${params?.stream?.call_cid}`,
+    );
+    onVoipNotificationReceived(params, pushConfig).catch((error) => {
+      logger.error(`Error in onVoipNotificationReceived: ${error}`);
+    });
   });
 }

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
 import {
-  type SendReactionRequest,
+  type SendVideoReactionRequest,
   videoLoggerSystem,
 } from '@stream-io/video-client';
 import { ComponentTestIds } from '../../../../constants/TestIds';
@@ -82,7 +82,7 @@ export const ReactionsPicker = ({
     left: reactionsButtonLayoutRectangle?.x,
   };
 
-  const onClose = (reaction?: SendReactionRequest) => {
+  const onClose = (reaction?: SendVideoReactionRequest) => {
     if (reaction) {
       call?.sendReaction(reaction).catch((e) => {
         const logger = videoLoggerSystem.getLogger('ReactionsPicker');

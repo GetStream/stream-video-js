@@ -2,31 +2,29 @@
 // @generated from protobuf file "video/sfu/event/events.proto" (package "stream.video.sfu.event", syntax proto3)
 // tslint:disable
 import { MessageType } from '@protobuf-ts/runtime';
-import {
-  CallEndedReason,
-  CallGrants,
-  CallState,
-  ClientCapability,
-  ClientDetails,
-  Codec,
-  ConnectionQuality,
-  Error as Error$,
-  GoAwayReason,
-  ICETrickle as ICETrickle$,
-  Participant,
-  ParticipantCount,
-  ParticipantSource,
-  PeerType,
-  Pin,
-  PublishOption,
-  SubscribeOption,
-  TrackInfo,
-  TrackType,
-  TrackUnpublishReason,
-  WebsocketReconnectStrategy,
-} from '../models/models';
+import { CallEndedReason } from '../models/models';
+import { GoAwayReason } from '../models/models';
+import { CallGrants } from '../models/models';
+import { DegradationPreference } from '../models/models';
+import { Codec } from '../models/models';
+import { ConnectionQuality } from '../models/models';
+import { CallState } from '../models/models';
 import { TrackSubscriptionDetails } from '../signal_rpc/signal';
-
+import { TrackInfo } from '../models/models';
+import { ParticipantSource } from '../models/models';
+import { ClientCapability } from '../models/models';
+import { SubscribeOption } from '../models/models';
+import { ClientDetails } from '../models/models';
+import { TrackUnpublishReason } from '../models/models';
+import { Participant } from '../models/models';
+import { TrackType } from '../models/models';
+import { ParticipantCount } from '../models/models';
+import { PeerType } from '../models/models';
+import { WebsocketReconnectStrategy } from '../models/models';
+import { Error as Error$ } from '../models/models';
+import { Pin } from '../models/models';
+import { PublishOption } from '../models/models';
+import { ICETrickle as ICETrickle$ } from '../models/models';
 /**
  * SFUEvent is a message that is sent from the SFU to the client.
  *
@@ -674,6 +672,10 @@ export interface SubscriberOffer {
    * @generated from protobuf field: string sdp = 2;
    */
   sdp: string;
+  /**
+   * @generated from protobuf field: uint32 negotiation_id = 3;
+   */
+  negotiationId: number;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.PublisherAnswer
@@ -836,6 +838,10 @@ export interface VideoSender {
    * @generated from protobuf field: int32 publish_option_id = 5;
    */
   publishOptionId: number;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.DegradationPreference degradation_preference = 6;
+   */
+  degradationPreference: DegradationPreference;
 }
 /**
  * sent to users when they need to change the quality of their video
@@ -1601,6 +1607,12 @@ class SubscriberOffer$Type extends MessageType<SubscriberOffer> {
     super('stream.video.sfu.event.SubscriberOffer', [
       { no: 1, name: 'ice_restart', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 2, name: 'sdp', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 3,
+        name: 'negotiation_id',
+        kind: 'scalar',
+        T: 13 /*ScalarType.UINT32*/,
+      },
     ]);
   }
 }
@@ -1795,6 +1807,16 @@ class VideoSender$Type extends MessageType<VideoSender> {
         name: 'publish_option_id',
         kind: 'scalar',
         T: 5 /*ScalarType.INT32*/,
+      },
+      {
+        no: 6,
+        name: 'degradation_preference',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.DegradationPreference',
+          DegradationPreference,
+          'DEGRADATION_PREFERENCE_',
+        ],
       },
     ]);
   }

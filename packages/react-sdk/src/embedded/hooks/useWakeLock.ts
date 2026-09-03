@@ -20,6 +20,7 @@ export const useWakeLock = () => {
       .then((wls: WakeLockSentinel) => {
         if (interrupted) return wls.release();
         wakeLockSentinel = wls;
+        return undefined;
       })
       .catch((error: unknown) =>
         console.debug(`Couldn't setup WakeLock due to: ${error}`),

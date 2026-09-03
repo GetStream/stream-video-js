@@ -55,7 +55,7 @@ await CallingxModule.displayIncomingCall(
 - `setOnHoldCall(callId, isOnHold)`.
 - `addEventListener(eventName, callback)`.
 - `getInitialEvents()` and `getInitialVoipEvents()`.
-- `registerBackgroundTask(taskProvider)` / `startBackgroundTask()` / `stopBackgroundTask()` (Android).
+- `acquireBackgroundTask(owner)` / `releaseBackgroundTask(owner)` (Android) — ref-counted keep-alive task that keeps the JS runtime/timers alive in the background; the underlying HeadlessJS task starts on the first acquire and stops once all owners release.
 
 ## Event names
 
@@ -66,7 +66,6 @@ Call events:
 - `didDisplayIncomingCall`
 - `didToggleHoldCallAction`
 - `didPerformSetMutedCallAction`
-- `didChangeAudioRoute`
 - `didReceiveStartCallAction`
 - `didActivateAudioSession`
 - `didDeactivateAudioSession`
@@ -75,6 +74,31 @@ VoIP events:
 
 - `voipNotificationsRegistered`
 - `voipNotificationReceived`
+
+## Skip CallKit when the app is in the foreground (iOS 26.4+)
+
+Set `skipIncomingPushInForeground: true` in `setup()` to hide CallKit for
+ringing pushes that arrive while the user is already inside your app. The
+push is still delivered to JS via `voipNotificationReceived`, so the app
+must show its own ringing UI. Background pushes are unaffected.
+
+Requires iOS 26.4+ (no-op on older versions). Also add this delegate to your
+`AppDelegate.swift`:
+
+```swift title="AppDelegate.swift"
+private func pushRegistry(
+  _ registry: PKPushRegistry,
+  didReceiveIncomingVoIPPushWith payload: PKPushPayload,
+  metadata: AnyObject,
+  withCompletionHandler completion: @escaping () -> Void
+) {
+  StreamVideoReactNative.didReceiveIncomingVoIPPush(
+    payload,
+    metadata: metadata,
+    completionHandler: completion
+  )
+}
+```
 
 ## Notes
 

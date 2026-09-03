@@ -4,13 +4,16 @@ import { UsersList } from '../components/UsersList';
 import { VideoWrapper } from '../components/VideoWrapper';
 import { AppProvider, useAppContext } from '../context/AppContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function Root() {
   // Set up the auth context and render our layout inside of it.
   return (
-    <AppProvider>
-      <Home />
-    </AppProvider>
+    <SafeAreaProvider>
+      <AppProvider>
+        <Home />
+      </AppProvider>
+    </SafeAreaProvider>
   );
 }
 

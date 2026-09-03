@@ -43,6 +43,7 @@ import {
   readPreferences,
   toPreferenceList,
 } from '../devicePersistence';
+import { ClientEventReporter } from '../../reporting';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -76,9 +77,17 @@ vi.mock('../../helpers/no-audio-detector.ts', () => {
 vi.mock('../../Call.ts', () => {
   console.log('MOCKING Call');
   return {
-    Call: vi.fn(() => mockCall()),
+    Call: vi.fn(function () {
+      return mockCall();
+    }),
   };
 });
+
+vi.mock('../../reporting/ClientEventReporter', () => ({
+  ClientEventReporter: vi.fn(function () {
+    return {};
+  }),
+}));
 
 describe('MicrophoneManager', () => {
   let manager: MicrophoneManager;
@@ -90,10 +99,12 @@ describe('MicrophoneManager', () => {
       of('granted'),
     );
 
+    const streamClient = new StreamClient('abc123');
     call = new Call({
       id: '',
       type: '',
-      streamClient: new StreamClient('abc123'),
+      streamClient,
+      clientEventReporter: new ClientEventReporter({ streamClient }),
       clientStore: new StreamVideoWriteableStateStore(),
     });
     const devicePersistence = { enabled: false, storageKey: '' };
@@ -475,7 +486,29 @@ describe('MicrophoneManager', () => {
       // @ts-expect-error - partial data
       await persistedManager.apply({ mic_default_on: true }, true);
 
-      expect(applySpy).toHaveBeenCalledWith(true);
+      expect(applySpy).toHaveBeenCalledWith(true, false);
+      expect(enableSpy).not.toHaveBeenCalled();
+    });
+
+    it('should apply persisted device preferences without enabling when forced disabled', async () => {
+      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+        of('granted'),
+      );
+      const devicePersistence = { enabled: true, storageKey: '' };
+      const persistedManager = new MicrophoneManager(
+        call,
+        devicePersistence,
+        'disable-tracks',
+      );
+      const applySpy = vi
+        .spyOn(persistedManager as never, 'applyPersistedPreferences')
+        .mockResolvedValue(true);
+      const enableSpy = vi.spyOn(persistedManager, 'enable');
+
+      // @ts-expect-error - partial data
+      await persistedManager.apply({ mic_default_on: true }, false, true);
+
+      expect(applySpy).toHaveBeenCalledWith(true, true);
       expect(enableSpy).not.toHaveBeenCalled();
     });
 

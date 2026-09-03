@@ -25,6 +25,16 @@ import appTranslations from '../../translations';
 import { DefaultAppHeader } from '../DefaultAppHeader';
 import { DialingCallNotification } from './DialingCallNotification';
 
+function findLastIndex<T>(
+  arr: readonly T[],
+  predicate: (value: T) => boolean,
+): number {
+  for (let i = arr.length - 1; i >= 0; i--) {
+    if (predicate(arr[i])) return i;
+  }
+  return -1;
+}
+
 export const DialerPage = ({
   apiKey,
   user,
@@ -61,7 +71,7 @@ export const DialerPage = ({
         const nextUserIds = [...prevUserIds];
         nextUserIds[index] = value;
         nextUserIds.splice(
-          nextUserIds.findLastIndex((uid) => uid !== '') + 1,
+          findLastIndex(nextUserIds, (uid) => uid !== '') + 1,
           Number.POSITIVE_INFINITY,
           '',
         );
@@ -101,7 +111,7 @@ export const DialerPage = ({
           ...pastedUserIds,
         );
         nextUserIds.splice(
-          nextUserIds.findLastIndex((uid) => uid !== '') + 1,
+          findLastIndex(nextUserIds, (uid) => uid !== '') + 1,
           Number.POSITIVE_INFINITY,
           '',
         );
@@ -135,6 +145,10 @@ export const DialerPage = ({
       setRingingCall(call);
       await call.getOrCreate({
         ring: true,
+        // the backend rejects ring requests with `video: true` on call types
+        // that have video disabled (e.g. `audio_call`):
+        // "Video is not enabled for this call"
+        video: callType !== 'audio_call',
         data: {
           members,
           settings_override: {
@@ -195,7 +209,7 @@ export const DialerPage = ({
                 className="rd__input rd__dialer-input"
                 name={`user-id-${index}`}
                 type="text"
-                placeholder="User ID"
+                placeholder={t('User ID')}
                 value={userId}
                 data-index={index}
                 data-1p-ignore
@@ -209,7 +223,7 @@ export const DialerPage = ({
                 <button
                   className="rd__button"
                   type="button"
-                  aria-label="Delete user"
+                  aria-label={t('Delete user')}
                   data-testid={`callee-user-id-${index}-delete`}
                   onClick={() => handleDeleteUserId(index)}
                 >

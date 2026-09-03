@@ -1,7 +1,4 @@
-export * from './expoNotifications';
 export * from './firebaseMessaging';
-export * from './iosPushNotification';
-export * from './notifee';
 export * from './callingx';
 
 /*

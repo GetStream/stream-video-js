@@ -113,6 +113,10 @@ object CallRegistrationStore {
         return trackedCallIds.isNotEmpty()
     }
 
+    fun getTrackedCallIds(): List<String> {
+        return trackedCallIds.toList()
+    }
+
     /**
      * Queues an action for a call that is not yet registered.
      * Pending actions are drained and executed once registration completes.

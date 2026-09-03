@@ -3,8 +3,10 @@ interface PendingPromise {
   onContinued: () => void;
 }
 
+type TagKey = string | symbol | object;
+
 type AsyncWrapper<P extends unknown[], T> = (
-  tag: string | symbol,
+  tag: TagKey,
   cb: (...args: P) => Promise<T>,
 ) => {
   cb: () => Promise<T>;
@@ -41,13 +43,37 @@ export const withoutConcurrency = createRunner(wrapWithContinuationTracking);
  */
 export const withCancellation = createRunner(wrapWithCancellation);
 
-const pendingPromises = new Map<string | symbol, PendingPromise>();
+const pendingPromises = new Map<TagKey, PendingPromise>();
 
-export function hasPending(tag: string | symbol) {
+/**
+ * Wraps an async function so concurrent calls share the in-flight promise
+ * instead of queueing another execution.
+ *
+ * @param cb Async function to wrap.
+ * @returns Wrapped async function.
+ */
+export function singleFlight<P extends unknown[], T>(
+  cb: (...args: P) => Promise<T>,
+): (...args: P) => Promise<T> {
+  let pending: Promise<T> | undefined;
+  return (...args: P): Promise<T> => {
+    if (pending) return pending;
+
+    const promise = cb(...args).finally(() => {
+      if (pending === promise) {
+        pending = undefined;
+      }
+    });
+    pending = promise;
+    return promise;
+  };
+}
+
+export function hasPending(tag: TagKey) {
   return pendingPromises.has(tag);
 }
 
-export async function settled(tag: string | symbol) {
+export async function settled(tag: TagKey) {
   let pending: PendingPromise | undefined;
   while ((pending = pendingPromises.get(tag))) {
     await pending.promise;
@@ -66,7 +92,7 @@ export async function settled(tag: string | symbol) {
  * is defined by the wrapper.
  */
 function createRunner<P extends unknown[], T>(wrapper: AsyncWrapper<P, T>) {
-  return function run(tag: string | symbol, cb: (...args: P) => Promise<T>) {
+  return function run(tag: TagKey, cb: (...args: P) => Promise<T>) {
     const { cb: wrapped, onContinued } = wrapper(tag, cb);
     const pending = pendingPromises.get(tag);
     pending?.onContinued();
@@ -83,10 +109,7 @@ function createRunner<P extends unknown[], T>(wrapper: AsyncWrapper<P, T>) {
  * if the function is the last in the queue, it cleans up the whole chain
  * of promises after finishing.
  */
-function wrapWithContinuationTracking<T>(
-  tag: string | symbol,
-  cb: () => Promise<T>,
-) {
+function wrapWithContinuationTracking<T>(tag: TagKey, cb: () => Promise<T>) {
   let hasContinuation = false;
   const wrapped = () =>
     cb().finally(() => {
@@ -108,7 +131,7 @@ function wrapWithContinuationTracking<T>(
  *    of promises after finishing.
  */
 function wrapWithCancellation<T>(
-  tag: string | symbol,
+  tag: TagKey,
   cb: (signal: AbortSignal) => Promise<T | 'canceled'>,
 ) {
   const ac = new AbortController();

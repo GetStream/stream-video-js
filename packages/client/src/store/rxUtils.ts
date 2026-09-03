@@ -3,11 +3,27 @@ import { withoutConcurrency } from '../helpers/concurrency';
 import { videoLoggerSystem } from '../logger';
 
 type FunctionPatch<T> = (currentValue: T) => T;
+type AsyncFunctionPatch<T> = (currentValue: T) => Promise<T>;
 
 /**
  * A value or a function which takes the current value and returns a new value.
  */
 export type Patch<T> = T | FunctionPatch<T>;
+
+/**
+ * Performs shallow comparison of two arrays.
+ * Expects primitive values: [1, 2, 3] is equal to [2, 1, 3].
+ */
+export const isShallowArrayEqual = <T>(a: Array<T>, b: Array<T>): boolean => {
+  if (a.length !== b.length) return false;
+  for (const item of a) {
+    if (!b.includes(item)) return false;
+  }
+  for (const item of b) {
+    if (!a.includes(item)) return false;
+  }
+  return true;
+};
 
 /**
  * Checks if the provided update is a function patch.
@@ -57,6 +73,24 @@ export const setCurrentValue = <T>(subject: Subject<T>, update: Patch<T>) => {
 
   subject.next(next);
   return next;
+};
+
+/**
+ * Updates the value of the provided Subject asynchronously.
+ * Locks the subject to prevent concurrent updates.
+ *
+ * @param subject the subject to update.
+ * @param update the update to apply to the subject.
+ */
+export const setCurrentValueAsync = async <T>(
+  subject: Subject<T>,
+  update: AsyncFunctionPatch<T>,
+) => {
+  return withoutConcurrency(subject, async () => {
+    const next = await update(getCurrentValue(subject));
+    subject.next(next);
+    return next;
+  });
 };
 
 /**

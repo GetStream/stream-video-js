@@ -47,6 +47,7 @@
 }
 
 .str-video__no-media-permission,
+.str-video__system-muted,
 .str-video__pending-permission {
   position: absolute;
   height: 12px;
@@ -72,6 +73,11 @@
 .str-video__pending-permission {
   background-color: var(--str-video__button-secondary-active);
   color: var(--str-video__text-color1);
+}
+
+.str-video__system-muted {
+  background-color: var(--str-video__alert-caution);
+  color: var(--str-video__base-color4);
 }
 
 .str-video__composite-button.str-video__device-unavailable {

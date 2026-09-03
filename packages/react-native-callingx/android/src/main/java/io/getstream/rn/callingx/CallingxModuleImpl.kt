@@ -1,17 +1,14 @@
 package io.getstream.rn.callingx
 
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
+import android.os.ParcelUuid
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
@@ -22,6 +19,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.getstream.rn.callingx.notifications.NotificationsConfig
+import io.getstream.rn.callingx.utils.LifecycleListener
 import io.getstream.rn.callingx.utils.SettingsStore
 
 class CallingxModuleImpl(
@@ -37,7 +35,6 @@ class CallingxModuleImpl(
         const val EXTRA_MUTED = "is_muted"
         const val EXTRA_ON_HOLD = "hold"
         const val EXTRA_DISCONNECT_CAUSE = "disconnect_cause"
-        const val EXTRA_AUDIO_ENDPOINT = "audio_endpoint"
         const val EXTRA_SOURCE = "source"
         const val EXTRA_ACTION = "action_name"
 
@@ -48,10 +45,12 @@ class CallingxModuleImpl(
         const val CALL_INACTIVE_ACTION = "io.getstream.CALL_INACTIVE"
         const val CALL_ACTIVE_ACTION = "io.getstream.CALL_ACTIVE"
         const val CALL_MUTED_ACTION = "io.getstream.CALL_MUTED"
-        const val CALL_ENDPOINT_CHANGED_ACTION = "io.getstream.CALL_ENDPOINT_CHANGED"
+        const val CALL_AUDIO_ENDPOINTS_CHANGED_ACTION = "io.getstream.CALL_AUDIO_ENDPOINTS_CHANGED"
         const val CALL_END_ACTION = "io.getstream.CALL_END"
         const val CALL_REGISTRATION_FAILED_ACTION = "io.getstream.CALL_REGISTRATION_FAILED"
         const val CALL_OPTIMISTIC_ACCEPT_ACTION = "io.getstream.ACCEPT_CALL_OPTIMISTIC"
+        // Published directly to CallEventBus (not a broadcast), so no manifest intent-filter entry.
+        const val CALL_RING_PUSH_ACTION = "io.getstream.CALL_RING_PUSH"
         // Background task name
         const val HEADLESS_TASK_NAME = "HandleCallBackgroundState"
     }
@@ -68,12 +67,15 @@ class CallingxModuleImpl(
 
     fun initialize() {
         debugLog(TAG, "[module] initialize: Initializing module")
+        LifecycleListener.register(reactApplicationContext)
     }
 
     fun invalidate() {
         debugLog(TAG, "[module] invalidate: Invalidating module")
 
+        LifecycleListener.unregister()
         CallRegistrationStore.clearAll()
+        AudioEndpointStore.clearAll()
         CallEventBus.unsubscribe(this)
 
         isModuleInitialized = false
@@ -106,6 +108,14 @@ class CallingxModuleImpl(
             )
         }
 
+        val skipIncomingPushInForeground =
+                options.hasKey("skipIncomingPushInForeground") &&
+                        options.getBoolean("skipIncomingPushInForeground")
+        SettingsStore.setSkipIncomingPushInForeground(
+                reactApplicationContext,
+                skipIncomingPushInForeground,
+        )
+
         isModuleInitialized = true
     }
 
@@ -134,9 +144,8 @@ class CallingxModuleImpl(
         // event and clear it immediately after getting initial events
         val events = delayedEvents
         debugLog(TAG, "[module] getInitialEvents: Getting initial events: $events")
-        delayedEvents = WritableNativeArray()
         canSendEvents = true
-        CallEventBus.markJsReady()
+        delayedEvents = WritableNativeArray()
         return events
     }
 
@@ -186,12 +195,7 @@ class CallingxModuleImpl(
 
     fun answerIncomingCall(callId: String, promise: Promise) {
         debugLog(TAG, "[module] answerIncomingCall: Answering call: $callId")
-        // TODO: get the call type from the call attributes
-        val isAudioCall = true // TODO: get the call type from the call attributes
-        // registeredCall.callAttributes.callType ==
-        //         CallAttributesCompat.CALL_TYPE_AUDIO_CALL
-        // currentCall?.processAction(TelecomCallAction.Answer(isAudioCall))
-        executeServiceAction(callId, CallAction.Answer(isAudioCall), promise)
+        executeServiceAction(callId, CallAction.Answer, promise)
     }
 
     fun startCall(
@@ -285,6 +289,35 @@ class CallingxModuleImpl(
         return CallRegistrationStore.hasRegisteredCall()
     }
 
+    /** Android backs Telecom audio routing only when the Jetpack Telecom repository is used (API 26+). */
+    fun isTelecomBacked(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+
+    fun getAvailableAudioEndpoints(callId: String, promise: Promise) {
+        promise.resolve(AudioEndpointStore.getSnapshot(callId))
+    }
+
+    fun requestAudioEndpointChange(callId: String, endpointId: String, promise: Promise) {
+        debugLog(TAG, "[module] requestAudioEndpointChange: $callId -> $endpointId")
+        val parcelUuid =
+                try {
+                    ParcelUuid.fromString(endpointId)
+                } catch (e: IllegalArgumentException) {
+                    promise.reject("INVALID_ENDPOINT_ID", "Invalid endpoint id: $endpointId", e)
+                    return
+                }
+        executeServiceAction(callId, CallAction.SwitchAudioEndpoint(parcelUuid), promise)
+    }
+
+    fun setDefaultAudioDeviceEndpointType(endpointType: String?) {
+        debugLog(TAG, "[module] setDefaultAudioDeviceEndpointType: $endpointType")
+        AudioEndpointStore.setDefaultEndpointPref(endpointType)
+        SettingsStore.setDefaultDeviceEndpointType(reactApplicationContext, endpointType)
+    }
+
+    fun getRegisteredCallIds(): WritableArray {
+        return Arguments.fromList(CallRegistrationStore.getTrackedCallIds())
+    }
+
     fun setMutedCall(callId: String, isMuted: Boolean, promise: Promise) {
         debugLog(TAG, "[module] setMutedCall: Setting muted call: $callId, $isMuted")
         val action = CallAction.ToggleMute(isMuted)
@@ -330,11 +363,6 @@ class CallingxModuleImpl(
             promise.reject("START_SERVICE_ERROR", e.message, e)
         }
     }
-
-    fun registerBackgroundTaskAvailable() {
-        debugLog(TAG, "[module] registerBackgroundTaskAvailable: Headless task registered")
-    }
-
 
     fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
         // no-op: Android Telecom doesn't require explicit action fulfillment
@@ -482,11 +510,14 @@ class CallingxModuleImpl(
                 }
                 sendJSEvent("didPerformSetMutedCallAction", params)
             }
-            CALL_ENDPOINT_CHANGED_ACTION -> {
-                if (extras.containsKey(EXTRA_AUDIO_ENDPOINT)) {
-                    params.putString("output", extras.getString(EXTRA_AUDIO_ENDPOINT))
-                }
+            CALL_AUDIO_ENDPOINTS_CHANGED_ACTION -> {
                 sendJSEvent("didChangeAudioRoute", params)
+            }
+            CALL_RING_PUSH_ACTION -> {
+                extras.keySet().forEach { key ->
+                    params.putString(key, extras.getString(key))
+                }
+                sendJSEvent("ringCallPushReceived", params)
             }
         }
     }

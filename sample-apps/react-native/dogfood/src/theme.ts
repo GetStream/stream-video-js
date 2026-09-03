@@ -38,45 +38,31 @@ export const appTheme = {
 export const useCustomTheme = (mode: ThemeMode): DeepPartial<Theme> => {
   const { top, right, bottom, left } = useSafeAreaInsets();
 
-  const variants: DeepPartial<Theme['variants']> = {
-    insets: {
-      top,
-      right,
-      bottom,
-      left,
-    },
-  };
-
-  const callContent: DeepPartial<Theme['callContent']> = {
-    container: { paddingTop: 0, paddingBottom: 0, flexDirection: 'column' },
-  };
-
-  const lightThemeColors: DeepPartial<Theme['colors']> = {
-    buttonPrimary: '#3399ff',
-    buttonSecondary: '#eff0f1',
-    buttonDisabled: '#ccdfff',
-    buttonWarning: '#dc433b',
-    iconPrimary: '#19232d',
-    iconSecondary: '#3399ff',
-    iconSuccess: '#00e2a1',
-    iconWarning: '#dc433b',
-    sheetPrimary: '#ffffff',
-    sheetSecondary: '#eff0f1',
-    sheetTertiary: '#e3e4e5',
-    sheetOverlay: '#eff0f1a6',
-    textPrimary: '#000000',
-    textSecondary: '#19232d',
-  };
-
   const baseTheme: DeepPartial<Theme> = {
-    variants,
-    callContent,
+    variants: {
+      insets: { top, right, bottom, left },
+    },
   };
 
   if (mode === 'light') {
     return {
       ...baseTheme,
-      colors: lightThemeColors,
+      colors: {
+        buttonPrimary: '#3399ff',
+        buttonSecondary: '#eff0f1',
+        buttonDisabled: '#ccdfff',
+        buttonWarning: '#dc433b',
+        iconPrimary: '#19232d',
+        iconSecondary: '#3399ff',
+        iconSuccess: '#00e2a1',
+        iconWarning: '#dc433b',
+        sheetPrimary: '#ffffff',
+        sheetSecondary: '#eff0f1',
+        sheetTertiary: '#e3e4e5',
+        sheetOverlay: '#eff0f1a6',
+        textPrimary: '#000000',
+        textSecondary: '#19232d',
+      },
     };
   }
 

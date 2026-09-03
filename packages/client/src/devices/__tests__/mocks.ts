@@ -6,7 +6,7 @@ import {
   OwnCapability,
 } from '../../gen/coordinator';
 import { Call } from '../../Call';
-import { of, Subject } from 'rxjs';
+import { of, ReplaySubject } from 'rxjs';
 import { BrowserPermission } from '../BrowserPermission';
 import { Tracer } from '../../stats';
 
@@ -71,6 +71,35 @@ export const mockAudioDevices = [
   },
 ] as MediaDeviceInfo[];
 
+export const mockAudioOutputDevices = [
+  {
+    deviceId:
+      'f1602a62d9d363c0711de07182751b646b87cfc0edd9e89d2849289e49304158',
+    kind: 'audiooutput',
+    label: 'RODECaster Video (19f7:006b)',
+    groupId: '27f43ef815ab224429532d6e8ebbeb00d7a895e0cbb0c2e4fcbe5b370f234259',
+  },
+  {
+    deviceId:
+      'd542885e6a47d7a38837aee0323bd2c50e825971690f47295cb338e1f1061283',
+    kind: 'audiooutput',
+    label: 'MacBook Pro Speakers (Built-in)',
+    groupId: 'a8708545cb3969c0b7e3712d2ffdbc381992aeb5577b06cd71ba7a94ee20cf3e',
+  },
+] as MediaDeviceInfo[];
+
+export const mockDevicesWithoutAudioPermission = [
+  { deviceId: '', kind: 'audioinput', label: '', groupId: '' },
+  {
+    deviceId:
+      'f10561a0bbd3effbd25645e7f06fc2e261255afeb05f6bc4fdaba3ed7bd9c2b7',
+    kind: 'videoinput',
+    label: 'RODECaster Video (19f7:006b)',
+    groupId: '27f43ef815ab224429532d6e8ebbeb00d7a895e0cbb0c2e4fcbe5b370f234259',
+  },
+  { deviceId: '', kind: 'audiooutput', label: '', groupId: '' },
+] as MediaDeviceInfo[];
+
 export const mockCall = (): Partial<Call> => {
   const callState = new CallState();
   callState.setCallingState(CallingState.JOINED);
@@ -97,6 +126,7 @@ export const mockCall = (): Partial<Call> => {
   return {
     cid: 'default:test-call',
     state: callState,
+    hasMediaEngine: true,
     publish: vi.fn(),
     stopPublish: vi.fn(),
     streamClient: fromPartial({
@@ -104,6 +134,11 @@ export const mockCall = (): Partial<Call> => {
     }),
     notifyNoiseCancellationStarting: vi.fn().mockResolvedValue(undefined),
     notifyNoiseCancellationStopped: vi.fn().mockResolvedValue(undefined),
+    notifyTrackMuteState: vi.fn().mockResolvedValue(undefined),
+    refreshPublishedTrack: vi.fn().mockResolvedValue(undefined),
+    ensureMediaFactory: vi.fn().mockResolvedValue({
+      dispose: vi.fn().mockResolvedValue(undefined),
+    }),
     tracer: new Tracer('tests'),
   };
 };
@@ -250,9 +285,9 @@ export const createLocalStorageMock = (): LocalStorageMock => {
   };
 };
 
-let deviceIds: Subject<MediaDeviceInfo[]>;
+let deviceIds: ReplaySubject<MediaDeviceInfo[]>;
 export const mockDeviceIds$ = () => {
-  deviceIds = new Subject();
+  deviceIds = new ReplaySubject(1);
   return deviceIds;
 };
 

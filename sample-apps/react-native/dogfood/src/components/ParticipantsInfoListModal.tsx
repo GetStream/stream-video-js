@@ -127,7 +127,9 @@ export const ParticipantsInfoListModal = ({
       <>
         {/*independent background, needed due to desired opacity only
          on background, exc. modal content*/}
-        <SafeAreaView style={styles.backDropBackground}>
+        <SafeAreaView
+          style={[StyleSheet.absoluteFill, styles.backDropBackground]}
+        >
           <View style={styles.content}>
             <View style={styles.header}>
               <View style={styles.leftHeaderElement} />
@@ -261,7 +263,6 @@ const useStyles = () => {
     () =>
       StyleSheet.create({
         backDropBackground: {
-          ...StyleSheet.absoluteFillObject,
           zIndex: Z_INDEX.IN_BACK,
         },
         content: {

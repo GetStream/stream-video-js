@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { useChatContext } from 'stream-chat-react';
 

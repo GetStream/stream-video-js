@@ -6,9 +6,9 @@ import {
   useCalls,
 } from '@stream-io/video-react-native-sdk';
 import { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
+import { CallId } from '../components/CallId';
 
 export default function JoinRingingCallScreen() {
   const calls = useCalls().filter((c) => c.ringing);
@@ -28,9 +28,10 @@ export default function JoinRingingCallScreen() {
   return (
     <StreamCall call={firstCall}>
       <CallLeaveOnUnmount call={firstCall} />
-      <SafeAreaView style={styles.flexedContainer}>
+      <View style={styles.flexedContainer}>
         <RingingCallContent />
-      </SafeAreaView>
+        <CallId />
+      </View>
     </StreamCall>
   );
 }

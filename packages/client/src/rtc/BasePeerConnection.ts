@@ -8,15 +8,20 @@ import {
   TrackType,
   WebsocketReconnectStrategy,
 } from '../gen/video/sfu/models/models';
+import type { E2EEManager } from './e2ee/E2EEManager';
+import { hasInsertableStreams } from './e2ee/transformSupport';
 import { NegotiationError } from './NegotiationError';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
+import { toJSON } from './helpers/iceCandiates';
 import {
   BasePeerConnectionOpts,
   OnIceConnected,
+  OnPeerConnectionStateChange,
   OnReconnectionNeeded,
+  OnRemoteTrackUnmute,
   ReconnectReason,
 } from './types';
 import type { ClientPublishOptions } from '../types';
@@ -32,17 +37,20 @@ export abstract class BasePeerConnection {
   protected readonly state: CallState;
   protected readonly dispatcher: Dispatcher;
   protected readonly clientPublishOptions?: ClientPublishOptions;
+  protected readonly e2ee?: E2EEManager;
   protected tag: string;
   protected sfuClient: StreamSfuClient;
 
-  private onReconnectionNeeded?: OnReconnectionNeeded;
+  protected onReconnectionNeeded?: OnReconnectionNeeded;
   private onIceConnected?: OnIceConnected;
+  private onPeerConnectionStateChange?: OnPeerConnectionStateChange;
+  protected onRemoteTrackUnmute?: OnRemoteTrackUnmute;
   private readonly iceRestartDelay: number;
   private iceHasEverConnected = false;
   private iceRestartTimeout?: NodeJS.Timeout;
   private preConnectStuckTimeout?: NodeJS.Timeout;
   protected isIceRestarting = false;
-  private isDisposed = false;
+  protected isDisposed = false;
 
   protected trackIdToTrackType = new Map<string, TrackType>();
 
@@ -65,10 +73,14 @@ export abstract class BasePeerConnection {
       dispatcher,
       onReconnectionNeeded,
       onIceConnected,
+      onPeerConnectionStateChange,
+      onRemoteTrackUnmute,
       tag,
       enableTracing,
       clientPublishOptions,
+      e2ee,
       iceRestartDelay = 2500,
+      statsTimestampDriftThresholdMs = 0,
     }: BasePeerConnectionOpts,
   ) {
     this.peerType = peerType;
@@ -77,15 +89,23 @@ export abstract class BasePeerConnection {
     this.dispatcher = dispatcher;
     this.iceRestartDelay = iceRestartDelay;
     this.clientPublishOptions = clientPublishOptions;
+    this.e2ee = e2ee;
     this.tag = tag;
     this.onReconnectionNeeded = onReconnectionNeeded;
     this.onIceConnected = onIceConnected;
+    this.onPeerConnectionStateChange = onPeerConnectionStateChange;
+    this.onRemoteTrackUnmute = onRemoteTrackUnmute;
     this.logger = videoLoggerSystem.getLogger(
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
       { tags: [tag] },
     );
     this.pc = this.createPeerConnection(connectionConfig);
-    this.stats = new StatsTracer(this.pc, peerType, this.trackIdToTrackType);
+    this.stats = new StatsTracer(
+      this.pc,
+      peerType,
+      this.trackIdToTrackType,
+      statsTimestampDriftThresholdMs,
+    );
     if (enableTracing) {
       this.tracer = new Tracer(
         `${tag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`,
@@ -99,7 +119,13 @@ export abstract class BasePeerConnection {
   }
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
-    const pc = new RTCPeerConnection(connectionConfig);
+    const config: RTCConfiguration = { ...connectionConfig };
+    // The legacy Insertable Streams path requires this non-standard flag.
+    if (this.e2ee && hasInsertableStreams()) {
+      // @ts-expect-error not part of the standard lib yet
+      config.encodedInsertableStreams = true;
+    }
+    const pc = new RTCPeerConnection(config);
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('icecandidateerror', this.onIceCandidateError);
     pc.addEventListener(
@@ -115,13 +141,15 @@ export abstract class BasePeerConnection {
   /**
    * Disposes the `RTCPeerConnection` instance.
    */
-  dispose() {
+  async dispose(): Promise<void> {
     clearTimeout(this.iceRestartTimeout);
     this.iceRestartTimeout = undefined;
     clearTimeout(this.preConnectStuckTimeout);
     this.preConnectStuckTimeout = undefined;
     this.onReconnectionNeeded = undefined;
     this.onIceConnected = undefined;
+    this.onPeerConnectionStateChange = undefined;
+    this.onRemoteTrackUnmute = undefined;
     this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
@@ -141,6 +169,10 @@ export abstract class BasePeerConnection {
       this.onIceConnectionStateChange,
     );
     pc.removeEventListener('icegatheringstatechange', this.onIceGatherChange);
+    pc.removeEventListener(
+      'connectionstatechange',
+      this.onConnectionStateChange,
+    );
     this.unsubscribeIceTrickle?.();
     this.subscriptions.forEach((unsubscribe) => unsubscribe());
     this.subscriptions = [];
@@ -183,7 +215,7 @@ export abstract class BasePeerConnection {
     const getTag = () => this.tag;
     this.subscriptions.push(
       this.dispatcher.on(event, getTag, (e) => {
-        const lockKey = `pc.${this.lock}.${event}`;
+        const lockKey = this.eventLockKey(event);
         withoutConcurrency(lockKey, async () => fn(e)).catch((err) => {
           if (this.isDisposed) return;
           this.logger.warn(`Error handling ${event}`, err);
@@ -193,14 +225,28 @@ export abstract class BasePeerConnection {
   };
 
   /**
+   * Returns the per-event `withoutConcurrency` tag used to serialize the
+   * dispatcher handler for `event` on this peer connection.
+   */
+  protected eventLockKey = (event: keyof AllSfuEvents): string => {
+    return `pc.${this.lock}.${event}`;
+  };
+
+  /**
    * Appends the trickled ICE candidates to the `RTCPeerConnection`.
    */
   protected addTrickledIceCandidates = () => {
+    // Declare the ICE generation this negotiation established so the buffer
+    // only replays candidates of the current generation.
     const { iceTrickleBuffer } = this.sfuClient;
+    const sdp = this.pc.remoteDescription?.sdp;
+    iceTrickleBuffer.updateActiveGeneration(this.peerType, sdp);
+
+    const { subscriber, publisher } = iceTrickleBuffer;
     const observable =
       this.peerType === PeerType.SUBSCRIBER
-        ? iceTrickleBuffer.subscriberCandidates
-        : iceTrickleBuffer.publisherCandidates;
+        ? subscriber.candidates
+        : publisher.candidates;
 
     this.unsubscribeIceTrickle?.();
     this.unsubscribeIceTrickle = createSafeAsyncSubscription(
@@ -256,20 +302,6 @@ export abstract class BasePeerConnection {
   };
 
   /**
-   * Returns true only when the peer connection is currently fully established
-   * (ICE `connected`/`completed` AND connection state `connected`).
-   * Transient states like `disconnected`, `checking`, or `new` return false.
-   */
-  isStable = () => {
-    const iceState = this.pc.iceConnectionState;
-    const connectionState = this.pc.connectionState;
-    return (
-      (iceState === 'connected' || iceState === 'completed') &&
-      connectionState === 'connected'
-    );
-  };
-
-  /**
    * Handles the ICECandidate event and
    * Initiates an ICE Trickle process with the SFU.
    */
@@ -280,7 +312,7 @@ export abstract class BasePeerConnection {
       return;
     }
 
-    const iceCandidate = this.asJSON(candidate);
+    const iceCandidate = toJSON(candidate);
     this.sfuClient
       .iceTrickle({ peerType: this.peerType, iceCandidate })
       .catch((err) => {
@@ -290,29 +322,21 @@ export abstract class BasePeerConnection {
   };
 
   /**
-   * Converts the ICE candidate to a JSON string.
-   */
-  private asJSON = (candidate: RTCIceCandidate): string => {
-    if (!candidate.usernameFragment) {
-      // react-native-webrtc doesn't include usernameFragment in the candidate
-      const segments = candidate.candidate.split(' ');
-      const ufragIndex = segments.findIndex((s) => s === 'ufrag') + 1;
-      const usernameFragment = segments[ufragIndex];
-      return JSON.stringify({ ...candidate, usernameFragment });
-    }
-    return JSON.stringify(candidate.toJSON());
-  };
-
-  /**
    * Handles the ConnectionStateChange event.
    */
   private onConnectionStateChange = async () => {
     const state = this.pc.connectionState;
     this.logger.debug(`Connection state changed`, state);
+    this.fireOnPeerConnectionStateChange({
+      stateType: 'peerConnection',
+      state,
+    });
     if (this.tracer && (state === 'connected' || state === 'failed')) {
       try {
-        const stats = await this.stats.get();
-        this.tracer.trace('getstats', stats.delta);
+        // Sample stats into the delivery chain at connect/fail. The reporter
+        // ships and commits the un-acked chain, so we must not trace the delta
+        // separately here (that would double-send it and corrupt the chain).
+        await this.stats.takeSample();
       } catch (err) {
         this.tracer.trace('getstatsOnFailure', (err as Error).toString());
       }
@@ -337,7 +361,24 @@ export abstract class BasePeerConnection {
   private onIceConnectionStateChange = () => {
     const state = this.pc.iceConnectionState;
     this.logger.debug(`ICE connection state changed`, state);
+    this.fireOnPeerConnectionStateChange({ stateType: 'ice', state });
     this.handleConnectionStateUpdate(state);
+  };
+
+  private fireOnPeerConnectionStateChange = (
+    event:
+      | { stateType: 'ice'; state: RTCIceConnectionState }
+      | { stateType: 'peerConnection'; state: RTCPeerConnectionState },
+  ) => {
+    try {
+      this.onPeerConnectionStateChange?.({
+        peerType: this.peerType,
+        iceConnectionState: this.pc.iceConnectionState,
+        ...event,
+      });
+    } catch (err) {
+      this.logger.warn('onPeerConnectionStateChange listener threw', err);
+    }
   };
 
   private handleConnectionStateUpdate = (

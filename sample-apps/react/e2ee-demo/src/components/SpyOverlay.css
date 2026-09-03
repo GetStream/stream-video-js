@@ -1,0 +1,26 @@
+.spy-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  /* Translucent tint so the undecryptable (gibberish) video shows underneath. */
+  background: rgba(40, 0, 0, 0.25);
+  color: #ffd7d2;
+  text-align: center;
+  pointer-events: none;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+}
+.spy-overlay__lock {
+  font-size: 28px;
+}
+.spy-overlay__title {
+  font-weight: 700;
+  font-size: 14px;
+}
+.spy-overlay__sub {
+  font-size: 11px;
+  opacity: 0.95;
+}

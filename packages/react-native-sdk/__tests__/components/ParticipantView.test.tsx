@@ -28,7 +28,7 @@ describe('ParticipantView', () => {
     });
     render(
       <ParticipantView
-        reactions={defaultEmojiReactions}
+        supportedReactions={defaultEmojiReactions}
         participant={testParticipant}
         trackType="videoTrack"
         isVisible={false}

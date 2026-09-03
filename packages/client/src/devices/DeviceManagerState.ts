@@ -36,7 +36,6 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
 
   /**
    * An Observable that emits the current media stream, or `undefined` if the device is currently disabled.
-   *
    */
   mediaStream$ = this.mediaStreamSubject.asObservable();
 
@@ -184,7 +183,10 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
     RxUtils.setCurrentValue(this.mediaStreamSubject, stream);
     RxUtils.setCurrentValue(this.rootMediaStreamSubject, rootStream);
     if (rootStream) {
-      this.setDevice(this.getDeviceIdFromStream(rootStream));
+      const derived = this.getDeviceIdFromStream(rootStream);
+      if (derived) {
+        this.setDevice(derived);
+      }
     }
   }
 

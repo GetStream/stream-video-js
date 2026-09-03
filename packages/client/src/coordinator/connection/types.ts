@@ -42,6 +42,21 @@ export type APIErrorResponse = {
   unrecoverable?: boolean;
 };
 
+/**
+ * A standard `Error` augmented with the metadata that the coordinator
+ * WebSocket connection layer attaches to rejection causes.
+ * `isWSFailure: true` marks transient/retriable failures; absent or `false`
+ * indicates a permanent failure that should not be retried.
+ */
+export type WSConnectionError = Error & {
+  code?: string | number;
+  isWSFailure?: boolean;
+  StatusCode?: string | number;
+  reason?: string;
+  wasClean?: boolean;
+  target?: EventTarget | null;
+};
+
 export class ErrorFromResponse<T> extends Error {
   public code: number | null;
   public status: number;
@@ -197,6 +212,13 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    */
   baseURL?: string;
   browser?: boolean;
+
+  /**
+   * Enables the client-side event reporter (call lifecycle telemetry).
+   * Set to `false` for non-interactive sessions such as egress/recording
+   * where the telemetry adds no value. Defaults to `true`.
+   */
+  clientEventsReportingEnabled?: boolean;
 
   /**
    *  @deprecated Use `logOptions` instead.

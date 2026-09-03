@@ -1,5 +1,4 @@
-import { forwardRef, useImperativeHandle, useEffect, useMemo } from 'react';
-import { LayoutChangeEvent } from 'react-native';
+import { useEffect } from 'react';
 import {
   Call,
   CallingState,
@@ -7,6 +6,7 @@ import {
   hasScreenShare,
   hasVideo,
   SfuModels,
+  type StreamVideoParticipant,
   type VideoTrackType,
 } from '@stream-io/video-client';
 import {
@@ -14,18 +14,20 @@ import {
   combineLatest,
   distinctUntilChanged,
   distinctUntilKeyChanged,
+  filter,
   map,
-  takeWhile,
 } from 'rxjs';
-export type TrackSubscriberHandle = {
-  onLayoutUpdate: (event: LayoutChangeEvent) => void;
-};
 
 type TrackSubscriberProps = {
   participantSessionId: string;
   call: Call;
   trackType: VideoTrackType;
   isVisible: boolean;
+  /**
+   * The dimensions of the view rendering the track, owned by the parent so that
+   * the last reported layout survives a remount of this component.
+   */
+  dimensions$: BehaviorSubject<SfuModels.VideoDimension | undefined>;
 };
 
 /**
@@ -39,81 +41,61 @@ type TrackSubscriberProps = {
  * 1. When the participant stops publishing the video track
  * 2. When the participant becomes invisible
 */
-const TrackSubscriber = forwardRef<TrackSubscriberHandle, TrackSubscriberProps>(
-  (props, ref) => {
-    const { call, participantSessionId, trackType, isVisible } = props;
-    const dimensions$ = useMemo(() => {
-      return new BehaviorSubject<SfuModels.VideoDimension | undefined>(
-        undefined,
-      );
-    }, []);
+const TrackSubscriber = (props: TrackSubscriberProps) => {
+  const { call, participantSessionId, trackType, isVisible, dimensions$ } =
+    props;
 
-    useEffect(() => {
-      const requestTrackWithDimensions = (
-        debounceType: DebounceType,
-        dimension: SfuModels.VideoDimension | undefined,
-      ) => {
-        if (dimension && (dimension.width === 0 || dimension.height === 0)) {
-          // ignore 0x0 dimensions. this can happen when the video element
-          // is not visible (e.g., has display: none).
-          // we treat this as "unsubscription" as we don't want to keep
-          // consuming bandwidth for a video that is not visible on the screen.
-          dimension = undefined;
-        }
-        call.state.updateParticipantTracks(trackType, {
-          [participantSessionId]: { dimension },
-        });
-        call.dynascaleManager.applyTrackSubscriptions(debounceType);
-      };
-      const isPublishingTrack$ = call.state.participants$.pipe(
-        map((ps) => ps.find((p) => p.sessionId === participantSessionId)),
-        takeWhile((p) => !!p),
-        distinctUntilKeyChanged('publishedTracks'),
-        map((p) =>
-          trackType === 'videoTrack' ? hasVideo(p) : hasScreenShare(p),
-        ),
-        distinctUntilChanged(),
-      );
-      const isJoinedState$ = call.state.callingState$.pipe(
-        map((callingState) => callingState === CallingState.JOINED),
-      );
-
-      const subscription = combineLatest([
-        dimensions$,
-        isPublishingTrack$,
-        isJoinedState$,
-      ]).subscribe(([dimension, isPublishing, isJoined]) => {
-        if (isJoined) {
-          if (!isVisible || !isPublishing) {
-            requestTrackWithDimensions(DebounceType.MEDIUM, undefined);
-          } else if (dimension) {
-            requestTrackWithDimensions(DebounceType.IMMEDIATE, dimension);
-          }
-        }
+  useEffect(() => {
+    const requestTrackWithDimensions = (
+      debounceType: DebounceType,
+      dimension: SfuModels.VideoDimension | undefined,
+    ) => {
+      if (dimension && (dimension.width === 0 || dimension.height === 0)) {
+        // ignore 0x0 dimensions. this can happen when the video element
+        // is not visible (e.g., has display: none).
+        // we treat this as "unsubscription" as we don't want to keep
+        // consuming bandwidth for a video that is not visible on the screen.
+        dimension = undefined;
+      }
+      call.state.updateParticipantTracks(trackType, {
+        [participantSessionId]: { dimension },
       });
-
-      return () => {
-        subscription.unsubscribe();
-      };
-    }, [call, participantSessionId, trackType, isVisible, dimensions$]);
-
-    useImperativeHandle(
-      ref,
-      () => ({
-        onLayoutUpdate: (event) => {
-          const dimension = {
-            width: Math.trunc(event.nativeEvent.layout.width),
-            height: Math.trunc(event.nativeEvent.layout.height),
-          };
-          dimensions$.next(dimension);
-        },
-      }),
-      [dimensions$],
+      call.trackSubscriptionManager.apply(debounceType);
+    };
+    const isPublishingTrack$ = call.state.participants$.pipe(
+      map((ps) => ps.find((p) => p.sessionId === participantSessionId)),
+      filter((p): p is StreamVideoParticipant => !!p),
+      distinctUntilKeyChanged('publishedTracks'),
+      map((p) =>
+        trackType === 'videoTrack' ? hasVideo(p) : hasScreenShare(p),
+      ),
+      distinctUntilChanged(),
+    );
+    const isJoinedState$ = call.state.callingState$.pipe(
+      map((callingState) => callingState === CallingState.JOINED),
     );
 
-    return null;
-  },
-);
+    const subscription = combineLatest([
+      dimensions$,
+      isPublishingTrack$,
+      isJoinedState$,
+    ]).subscribe(([dimension, isPublishing, isJoined]) => {
+      if (isJoined) {
+        if (!isVisible || !isPublishing) {
+          requestTrackWithDimensions(DebounceType.MEDIUM, undefined);
+        } else if (dimension) {
+          requestTrackWithDimensions(DebounceType.IMMEDIATE, dimension);
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [call, participantSessionId, trackType, isVisible, dimensions$]);
+
+  return null;
+};
 
 TrackSubscriber.displayName = 'TrackSubscriber';
 

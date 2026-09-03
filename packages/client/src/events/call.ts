@@ -82,16 +82,23 @@ export const watchCallRejected = (call: Call) => {
  */
 export const watchCallEnded = (call: Call) => {
   return function onCallEnded() {
-    globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
     const { callingState } = call.state;
     if (
       callingState !== CallingState.IDLE &&
       callingState !== CallingState.LEFT
     ) {
+      call.clientEventReporter.abort(call.cid, {
+        code: 'BACKEND_LEAVE',
+        reason: 'call.ended event received',
+      });
       call
-        .leave({ message: CallLeaveReasons.eventCallEnded, reject: false })
+        .leave({
+          message: CallLeaveReasons.eventCallEnded,
+          reject: false,
+          reason: 'ended',
+        })
         .catch((err) => {
-          call.logger.error('Failed to leave call after call.ended ', err);
+          call.logger.error('Failed to leave call after call.ended', err);
         });
     }
   };
@@ -117,6 +124,10 @@ export const watchSfuCallEnded = (call: Call) => {
       call.state.setEndedAt(new Date());
       const reason = CallEndedReason[e.reason];
       globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
+      call.clientEventReporter.abort(call.cid, {
+        code: 'BACKEND_LEAVE',
+        reason: `callEnded received: ${reason}`,
+      });
       await call.leave({ message: CallLeaveReasons.sfuCallEnded(reason) });
     } catch (err) {
       call.logger.error(

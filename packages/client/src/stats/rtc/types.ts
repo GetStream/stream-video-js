@@ -12,10 +12,17 @@ export type RTCStatsDataType =
   | boolean
   | RTCOfferOptions
   | [string | RTCDataChannelInit | undefined] // createDataChannel
-  | (RTCOfferOptions | undefined) // createOffer | createAnswer
+  | (
+      | RTCOfferOptions
+      | undefined // createOffer | createAnswer
+    )
   | RTCSessionDescriptionInit
-  | (RTCIceCandidateInit | RTCIceCandidate) // addIceCandidate
+  | (
+      | RTCIceCandidateInit
+      | RTCIceCandidate // addIceCandidate
+    )
   | object
+  | number
   | null
   | undefined;
 
@@ -40,11 +47,18 @@ export type ComputedStats = {
    */
   stats: RTCStatsReport;
   /**
-   * Delta between the current stats and the previous stats.
-   */
-  delta: Record<any, any>;
-  /**
    * The current iteration of the stats.
    */
   performanceStats: PerformanceStats[];
+};
+
+/**
+ * A single, not-yet-delivered delta-compressed stats sample.
+ * The `delta` is computed against the immediately preceding sample, so a
+ * sequence of `PendingDelta`s forms a chain that the server applies in order
+ * onto its running accumulator. `ts` is the wall-clock time the sample was taken.
+ */
+export type PendingDelta = {
+  delta: Record<any, any>;
+  ts: number;
 };

@@ -24,6 +24,7 @@ import { useObservableValue } from './useObservableValue';
 const EMPTY_DEVICES_ARRAY = Object.freeze<MediaDeviceInfo[]>(
   [],
 ) as MediaDeviceInfo[];
+const EMPTY_BLOCKED_SESSION_IDS = Object.freeze<string[]>([]) as string[];
 
 export type UseInputMediaDeviceOptions = {
   /**
@@ -186,6 +187,14 @@ export const useCallSettings = (): CallSettingsResponse | undefined => {
 export const useIsCallTranscribingInProgress = (): boolean => {
   const { transcribing$ } = useCallState();
   return useObservableValue(transcribing$);
+};
+
+/**
+ * Returns whether end-to-end encryption is active for the current call.
+ */
+export const useE2eeEnabled = (): boolean => {
+  const { e2eeEnabled$ } = useCallState();
+  return useObservableValue(e2eeEnabled$);
 };
 
 /**
@@ -495,19 +504,49 @@ export const useScreenShareState = ({
  */
 export const useIncomingVideoSettings = () => {
   const call = useCall() as Call;
-  return useObservableValue(call.dynascaleManager.incomingVideoSettings$);
+  return useObservableValue(
+    call.trackSubscriptionManager.incomingVideoSettings$,
+  );
 };
+
+/**
+ * Static fallback emitted when no `Call` is active. Module-scope so the
+ * `useObservableValue` dep reference stays stable across renders.
+ */
+const AUTOPLAY_BLOCKED$ = of(false);
 
 /**
  * Returns whether the browser's autoplay policy is blocking audio playback.
  *
  * When the browser blocks audio autoplay (e.g., no prior user interaction),
  * this hook returns `true`. Use `call.resumeAudio()` inside a click handler
- * to unblock audio playback.
+ * to unblock audio playback. Returns `false` on React Native.
  */
 export const useIsAutoplayBlocked = (): boolean => {
-  const call = useCall() as Call;
-  return useObservableValue(call.dynascaleManager.autoplayBlocked$);
+  const call = useCall();
+  return useObservableValue(
+    call?.blockedAudioTracker.autoplayBlocked$ ?? AUTOPLAY_BLOCKED$,
+  );
+};
+
+/**
+ * Stable empty-array fallback for {@link useAutoplayBlockedSessionIds}, kept at
+ * module scope so the `useObservableValue` dep reference is stable.
+ */
+const BLOCKED_SESSION_IDS$ = of(EMPTY_BLOCKED_SESSION_IDS);
+
+/**
+ * Returns the participant `sessionId`s whose audio is currently blocked
+ * by the browser's autoplay policy. Use it to render a per-participant audio
+ * affordance; only some participants may be blocked. Returns an empty list on
+ * React Native / when there is no call.
+ */
+export const useAutoplayBlockedSessionIds = (): string[] => {
+  const call = useCall();
+  return useObservableValue(
+    call?.blockedAudioTracker.blockedSessionIds$ ?? BLOCKED_SESSION_IDS$,
+    EMPTY_BLOCKED_SESSION_IDS,
+  );
 };
 
 /**

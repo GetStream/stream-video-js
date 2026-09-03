@@ -4,12 +4,11 @@ import type {
   IKrispSDK,
   ISDKPartialOptions,
 } from './krispai';
+import { AudioContextRecovery } from './AudioContextRecovery';
 import { packageName, packageVersion } from './version';
 import { promiseWithResolvers } from './withResolvers';
 import { simd } from 'wasm-feature-detect';
 import type { Tracer } from './tracer';
-
-const MODEL_FILENAME = 'krisp-nc-o-med-v7.kef';
 
 /**
  * Options to pass to the NoiseCancellation instance.
@@ -53,7 +52,6 @@ export interface INoiseCancellation {
   enable: () => Promise<void>;
   disable: () => Promise<void>;
   dispose: () => Promise<void>;
-  resume: () => void;
   setSuppressionLevel: (level: number) => void;
   toFilter: () => (mediaStream: MediaStream) => {
     output: MediaStream;
@@ -84,11 +82,13 @@ export class NoiseCancellation implements INoiseCancellation {
   private sdk?: IKrispSDK;
   private filterNode?: IAudioFilterNode;
   private audioContext?: AudioContext;
+  private recovery?: AudioContextRecovery;
   private restoreTimeoutId?: number;
   private tracer?: Tracer;
 
   private readonly initializing: Promise<void>;
   private readonly resolveInitialized!: () => void;
+  private readonly rejectInitialized!: (reason?: unknown) => void;
 
   private readonly basePath: string;
   private readonly restoreTimeoutMs: number;
@@ -106,9 +106,10 @@ export class NoiseCancellation implements INoiseCancellation {
     restoreAttempts = 3,
     krispSDKParams,
   }: NoiseCancellationOptions = {}) {
-    const { promise, resolve } = promiseWithResolvers<void>();
+    const { promise, resolve, reject } = promiseWithResolvers<void>();
     this.initializing = promise;
     this.resolveInitialized = resolve;
+    this.rejectInitialized = reject;
 
     this.basePath = basePath;
     this.restoreTimeoutMs = restoreTimeoutMs;
@@ -148,7 +149,7 @@ export class NoiseCancellation implements INoiseCancellation {
         useSharedArrayBuffer: false,
         models: {
           // https://sdk-docs.krisp.ai/docs/krisp-audio-sdk-model-selection-guide
-          modelNC: `${this.basePath}/${MODEL_FILENAME}`,
+          modelNC: `${this.basePath}/krisp-nc-o-med-v7.kef`,
         },
         ...this.krispSDKParams,
       },
@@ -160,38 +161,17 @@ export class NoiseCancellation implements INoiseCancellation {
     const audioContext = new AudioContext();
     this.audioContext = audioContext;
 
-    this.tracer?.trace(
-      'noiseCancellation.audioContextState',
-      audioContext.state,
-    );
-
-    this.audioContext.addEventListener('statechange', () => {
-      this.tracer?.trace(
-        'noiseCancellation.audioContextState',
-        audioContext.state,
-      );
+    this.recovery = new AudioContextRecovery({
+      audioContext,
+      tracer: this.tracer,
     });
 
-    // AudioContext requires user interaction to start:
-    // https://developer.chrome.com/blog/autoplay/#webaudio
-    const resume = () => {
-      this.resume();
-      document.removeEventListener('click', resume);
-    };
-
-    if (this.audioContext.state === 'suspended') {
-      document.addEventListener('click', resume);
-    }
-
-    const filterNode = await sdk.createNoiseFilter(
-      this.audioContext,
-      () => {
-        this.tracer?.trace('noiseCancellation.started', 'true');
-        this.resolveInitialized();
-      },
-      () => document.removeEventListener('click', resume),
-    );
+    const filterNode = await sdk.createNoiseFilter(this.audioContext, () => {
+      this.tracer?.trace('noiseCancellation.started', 'true');
+      this.resolveInitialized();
+    });
     filterNode.addEventListener('buffer_overflow', this.handleBufferOverflow);
+    filterNode.addEventListener('error', this.handleError);
     this.filterNode = filterNode;
 
     return this.initializing;
@@ -232,20 +212,27 @@ export class NoiseCancellation implements INoiseCancellation {
    */
   dispose = async () => {
     window.clearTimeout(this.restoreTimeoutId);
-    if (this.audioContext && this.audioContext.state !== 'closed') {
-      await this.audioContext.close().catch((err) => {
-        console.warn('Failed to close the audio context', err);
-      });
-      this.audioContext = undefined;
+    if (this.recovery) {
+      this.recovery.dispose();
+      this.recovery = undefined;
     }
     if (this.filterNode) {
-      await this.disable();
+      await this.disable().catch((err) =>
+        console.warn('Failed to disable noise cancellation on dispose', err),
+      );
+      this.filterNode.removeEventListener('error', this.handleError);
       this.filterNode.removeEventListener(
         'buffer_overflow',
         this.handleBufferOverflow,
       );
       this.filterNode.dispose();
       this.filterNode = undefined;
+    }
+    if (this.audioContext && this.audioContext.state !== 'closed') {
+      await this.audioContext.close().catch((err) => {
+        console.warn('Failed to close the audio context', err);
+      });
+      this.audioContext = undefined;
     }
     if (this.sdk) {
       this.sdk.dispose();
@@ -288,31 +275,8 @@ export class NoiseCancellation implements INoiseCancellation {
     destination.channelCount = audioTrack.getSettings().channelCount ?? 1;
 
     source.connect(this.filterNode).connect(destination);
-    // When filter is started, user's microphone media stream is active.
-    // That means that most probably we can resume audio context without
-    // any autoplay policy limitations.
-    this.resume();
-    return { output: destination.stream };
-  };
 
-  resume = () => {
-    // resume if still suspended
-    if (!this.audioContext) return;
-    const state = this.audioContext.state;
-    if (state === 'suspended' || state === 'interrupted') {
-      const tag = 'audioContextResumeNC';
-      this.audioContext.resume().then(
-        () => this.tracer?.trace(tag, this.audioContext?.state),
-        (err) => {
-          const data = [this.audioContext?.state, err?.message];
-          this.tracer?.trace(`${tag}Error`, data);
-          console.warn(
-            'Failed to resume the audio context. Noise Cancellation may not work correctly',
-            err,
-          );
-        },
-      );
-    }
+    return { output: destination.stream };
   };
 
   /**
@@ -356,6 +320,27 @@ export class NoiseCancellation implements INoiseCancellation {
   };
 
   /**
+   * Traces errors reported by the Krisp SDK.
+   *
+   * The SDK surfaces model fetch/load and unsupported sample-rate failures
+   * (`MODEL_URL_FETCH_ERROR`, `MODEL_LOAD_ERROR`, `SAMPLING_RATE_NOT_SUPPORTED`)
+   * via an `error` event on the filter node, separately from the `ready` callback.
+   * We record them for diagnostics.
+   */
+  private handleError = (
+    e: Event & { data?: { errorCode?: string; errorMessage?: string } },
+  ) => {
+    const code = (e && e.data && e.data.errorCode) || 'UNKNOWN';
+    const message = (e && e.data && e.data.errorMessage) || '';
+    this.tracer?.trace('noiseCancellation.error', `${code} ${message}`.trim());
+    this.rejectInitialized(
+      new Error(
+        `NoiseCancellation failed to initialize: ${code} ${message}`.trim(),
+      ),
+    );
+  };
+
+  /**
    * Handles the buffer overflow event.
    * Disables the filter and waits for the restore timeout before enabling it again.
    *
@@ -364,15 +349,27 @@ export class NoiseCancellation implements INoiseCancellation {
   private handleBufferOverflow = (
     // extending the Event type to include the data property as it is not yet
     // in the types but exists in the implementation
-    e: Event & { data?: { overflowCount: number } },
+    e: Event & {
+      data?: {
+        overflowCount?: number;
+        isBufferDropped?: boolean;
+      };
+    },
   ) => {
     const count = (e && e.data && e.data.overflowCount) ?? 0;
+    const isBufferDropped = (e && e.data && e.data.isBufferDropped) ?? false;
+
     this.tracer?.trace('noiseCancellation.bufferOverflowCount', String(count));
 
     window.clearTimeout(this.restoreTimeoutId);
     this.disable().catch((err) =>
       console.error('Failed to disable noise cancellation ', err),
     );
+
+    if (isBufferDropped) {
+      this.tracer?.trace('noiseCancellation.bufferDropped', 'true');
+      return;
+    }
 
     if (count < this.restoreAttempts) {
       this.restoreTimeoutId = window.setTimeout(() => {

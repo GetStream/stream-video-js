@@ -1,8 +1,4 @@
-// A random id of length 15. (based on https://stackoverflow.com/a/38622545)
+// A short, lowercase alphanumeric id of up to 6 chars, easy to type by hand.
 export function randomId() {
-  return (
-    Math.random().toString(36).slice(2, 7) +
-    Math.random().toString(36).slice(2, 7) +
-    Math.random().toString(36).slice(2, 7)
-  );
+  return Math.random().toString(36).slice(2, 8);
 }

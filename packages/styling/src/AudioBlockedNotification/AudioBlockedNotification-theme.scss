@@ -1,0 +1,23 @@
+.str-video__audio-blocked-notification {
+  background: var(--str-video__audio-blocked-overlay-color);
+  border-radius: inherit;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: var(--str-video__audio-blocked-overlay-color-hovered);
+  }
+
+  .str-video__audio-blocked-notification__message {
+    background-color: var(--str-video__background-color1);
+    border-radius: var(--str-video__border-radius-xs);
+    color: var(--str-video__text-color1);
+
+    .str-video__icon {
+      background-color: var(--str-video__text-color1);
+    }
+  }
+
+  .str-video__audio-blocked-notification__subtitle {
+    color: var(--str-video__text-color2);
+  }
+}

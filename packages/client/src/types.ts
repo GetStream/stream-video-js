@@ -9,11 +9,12 @@ import type {
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
-  ReactionResponse,
+  VideoReactionResponse,
   StartRecordingRequest,
   StartRecordingResponse,
 } from './gen/coordinator';
 import type { StreamClient } from './coordinator/connection/client';
+import type { ClientEventReporter } from './reporting';
 import type {
   RejectReason,
   StreamClientOptions,
@@ -26,7 +27,7 @@ import { AxiosError } from 'axios';
 import type { Call } from './Call';
 
 export type StreamReaction = Pick<
-  ReactionResponse,
+  VideoReactionResponse,
   'type' | 'emoji_code' | 'custom'
 >;
 
@@ -91,6 +92,25 @@ export interface StreamVideoParticipant extends Participant {
   pausedTracks?: TrackType[];
 
   /**
+   * The list of tracks that are currently not producing media.
+   *
+   * For remote participants this is currently surfaced for `TrackType.AUDIO`
+   * only and reflects the receiver-side `RTCRtpReceiver` track `mute`/`unmute`
+   * state, so it covers system mute on the sender (OS audio session
+   * interruption, etc.), the sender pausing its track, sustained RTP stalls,
+   * and SFU drops. Remote video and screen-share interruption is not tracked.
+   *
+   * For the local participant it reflects the local track `mute`/`unmute`
+   * events surfaced by the browser (e.g. bluetooth disconnect, OS-level
+   * mic/camera kill switch, iOS audio session interruption).
+   *
+   * Orthogonal to `publishedTracks`: a track can be in `publishedTracks`
+   * AND in `interruptedTracks` (the participant intends to publish, but
+   * no media is flowing right now).
+   */
+  interruptedTracks?: TrackType[];
+
+  /**
    * True if the participant is the local participant.
    */
   isLocalParticipant?: boolean;
@@ -123,10 +143,7 @@ export interface StreamVideoParticipant extends Participant {
 export type VideoTrackType = 'videoTrack' | 'screenShareTrack';
 export type AudioTrackType = 'audioTrack' | 'screenShareAudioTrack';
 export type TrackMuteType =
-  | 'audio'
-  | 'video'
-  | 'screenshare'
-  | 'screenshare_audio';
+  'audio' | 'video' | 'screenshare' | 'screenshare_audio';
 
 /**
  * Represents a participant's pin state.
@@ -293,6 +310,11 @@ export type CallConstructor = {
   streamClient: StreamClient;
 
   /**
+   * The shared client event reporter, owned by `StreamVideoClient`.
+   */
+  clientEventReporter: ClientEventReporter;
+
+  /**
    * The Call type.
    */
   type: string;
@@ -399,7 +421,18 @@ type StreamRNVideoSDKCallManagerRingingParams = {
 
 type StreamRNVideoSDKCallManagerSetupParams =
   StreamRNVideoSDKCallManagerRingingParams & {
+    cid: string;
     defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
+  };
+
+type StreamRNVideoSDKCallManagerStartParams =
+  StreamRNVideoSDKCallManagerRingingParams & {
+    cid: string;
+  };
+
+type StreamRNVideoSDKCallManagerStopParams =
+  StreamRNVideoSDKCallManagerRingingParams & {
+    shouldStopCallManager: boolean;
   };
 
 type StreamRNVideoSDKEndCallReason =
@@ -431,6 +464,8 @@ type StreamRNVideoSDKCallingX = {
     reason?: StreamRNVideoSDKEndCallReason,
   ) => Promise<void>;
   registerOutgoingCall: (call: Call) => Promise<void>;
+  wireAudioEngineSubscription: () => void;
+  unwireAudioEngineSubscription: () => void;
 };
 
 export type StreamRNVideoSDKGlobals = {
@@ -442,6 +477,7 @@ export type StreamRNVideoSDKGlobals = {
     setup({
       defaultDevice,
       isRingingTypeCall,
+      cid,
     }: StreamRNVideoSDKCallManagerSetupParams): void;
 
     /**
@@ -449,12 +485,28 @@ export type StreamRNVideoSDKGlobals = {
      */
     start({
       isRingingTypeCall,
-    }: StreamRNVideoSDKCallManagerRingingParams): void;
+      cid,
+    }: StreamRNVideoSDKCallManagerStartParams): void;
 
     /**
      * Stops the in call manager.
      */
-    stop({ isRingingTypeCall }: StreamRNVideoSDKCallManagerRingingParams): void;
+    stop({
+      isRingingTypeCall,
+      shouldStopCallManager,
+    }: StreamRNVideoSDKCallManagerStopParams): void;
+
+    /**
+     * iOS-only. Keeps the audio engine's microphone-input (voice-processing)
+     * chain prepared while the mic is muted, so the `AVAudioEngine` stays full-duplex
+     * meaning: mic going out and speaker coming in, simultaneously
+     *
+     * Without this, joining muted builds an output-only engine under the
+     * `PlayAndRecord`/`VoiceChat` (VPIO) session, which makes the remote audio
+     * not audible when joining muted. As echo cancellation expects the mic to be
+     * prepared.
+     */
+    setMutedRecordingPrepared?(enabled: boolean): void;
   };
   permissions: {
     /**
@@ -480,5 +532,5 @@ declare global {
 /**
  * The options to pass to {@link Call.join} method.
  */
-export type JoinCallData = Omit<JoinCallRequest, 'location'>;
+export type JoinCallData = Omit<JoinCallRequest, 'location' | 'e2ee'>;
 export { AxiosError };

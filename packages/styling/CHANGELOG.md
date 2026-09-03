@@ -2,6 +2,28 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.15.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.15.0...@stream-io/video-styling-1.15.1) (2026-08-07)
+
+## [1.15.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.14.2...@stream-io/video-styling-1.15.0) (2026-07-30)
+
+### Features
+
+- **react-sdk:** show blocked audio overlay per participant ([#2341](https://github.com/GetStream/stream-video-js/issues/2341)) ([4fe5c40](https://github.com/GetStream/stream-video-js/commit/4fe5c40aaed1829125bff49deec39a008c7abec5))
+
+## [1.14.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.14.1...@stream-io/video-styling-1.14.2) (2026-06-26)
+
+### Performance Improvements
+
+- **react-sdk:** reduce re-renders and event-listener churn ([#2273](https://github.com/GetStream/stream-video-js/issues/2273)) ([0234d1e](https://github.com/GetStream/stream-video-js/commit/0234d1e2e3e2f031d69ab6335c97924f9f47a6ec))
+
+## [1.14.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.14.0...@stream-io/video-styling-1.14.1) (2026-06-01)
+
+## [1.14.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.13.0...@stream-io/video-styling-1.14.0) (2026-05-18)
+
+### Features
+
+- Automatic audio recovery ([#2240](https://github.com/GetStream/stream-video-js/issues/2240)) ([8131e5b](https://github.com/GetStream/stream-video-js/commit/8131e5b35a1c87c46d99eeaab434f8889ba5d126))
+
 ## [1.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.12.0...@stream-io/video-styling-1.13.0) (2026-04-09)
 
 ### Features

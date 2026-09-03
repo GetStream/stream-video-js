@@ -64,6 +64,18 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun setTelecomManagedMode(enabled: Boolean) {
+        AudioDeviceManager.runInAudioThread {
+            if (audioManagerActivated) {
+                Log.e(TAG, "setTelecomManagedMode(): AudioManager is already activated and so telecom-managed mode cannot be changed")
+                return@runInAudioThread
+            }
+            Log.d(TAG, "setTelecomManagedMode(): $enabled")
+            mAudioDeviceManager.telecomManagedMode = enabled
+        }
+    }
+
+    @ReactMethod
     fun setDefaultAudioDeviceEndpointType(endpointDeviceTypeName: String) {
         AudioDeviceManager.runInAudioThread {
             if (audioManagerActivated) {
@@ -178,7 +190,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
 
     @Suppress("unused")
     @ReactMethod
-    fun chooseAudioDeviceEndpoint(endpointDeviceName: String) {
+    fun chooseAudioDeviceEndpoint(deviceId: String) {
         AudioDeviceManager.runInAudioThread {
             if (mAudioDeviceManager.callAudioRole !== CallAudioRole.Communicator) {
                 Log.e(
@@ -187,8 +199,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
                 )
                 return@runInAudioThread
             }
-            mAudioDeviceManager.switchDeviceFromDeviceName(
-                endpointDeviceName
+            mAudioDeviceManager.switchDeviceById(
+                deviceId
             )
         }
     }

@@ -17,8 +17,9 @@ import Foundation
     public private(set) var isSelfAnswered: Bool = false
     /// Whether endCall was initiated from the app (vs system UI)
     public private(set) var isSelfEnded: Bool = false
-    /// Whether setMutedCall was initiated from the app (vs system UI)
-    public private(set) var isSelfMuted: Bool = false
+    // Mute action-source attribution is tracked per-action by UUID in `CallingxImpl`
+    // (`appInitiatedMuteActionIds`), not via a per-call flag, to avoid a race between
+    // concurrent app-initiated mute toggles.
 
     // MARK: - Lifecycle timestamps
 
@@ -54,17 +55,14 @@ import Foundation
 
     public func markSelfAnswered() { isSelfAnswered = true }
     public func markSelfEnded() { isSelfEnded = true }
-    public func markSelfMuted() { isSelfMuted = true }
 
     public func resetSelfAnswered() { isSelfAnswered = false }
     public func resetSelfEnded() { isSelfEnded = false }
-    public func resetSelfMuted() { isSelfMuted = false }
 
     /// Resets all action-source flags. Called when a CXTransaction fails.
     public func resetAllSelfFlags() {
         isSelfAnswered = false
         isSelfEnded = false
-        isSelfMuted = false
     }
 
     // MARK: - Lifecycle transition methods

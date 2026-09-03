@@ -2,7 +2,7 @@ import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
 import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import { getUser } from '../utils/getUser';
 import { getURLCredentials } from '../utils/getURLCredentials';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { DEFAULT_CALL_TYPE } from '../utils/constants';
 
 const envApiKey =

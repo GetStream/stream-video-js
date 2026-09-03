@@ -124,13 +124,56 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     }
   }
 
+  override enable(): Promise<void> {
+    if (isReactNative() && !this.call.hasMediaEngine) {
+      this.state.setPendingStatus('enabled');
+      return Promise.resolve();
+    }
+
+    return super.enable();
+  }
+
+  override disable(options: { forceStop?: boolean }): Promise<void>;
+  override disable(forceStop?: boolean): Promise<void>;
+  override async disable(
+    forceStopOrOptions?: boolean | { forceStop?: boolean },
+  ): Promise<void> {
+    if (isReactNative() && !this.call.hasMediaEngine) {
+      this.state.setPendingStatus('disabled');
+      return;
+    }
+
+    // forward verbatim to the base, narrowing so the right overload is selected
+    if (forceStopOrOptions === undefined) return super.disable();
+    if (typeof forceStopOrOptions === 'boolean') {
+      return super.disable(forceStopOrOptions);
+    }
+    return super.disable(forceStopOrOptions);
+  }
+
+  override toggle(): Promise<void> {
+    if (isReactNative() && !this.call.hasMediaEngine) {
+      this.state.setPendingStatus(
+        this.state.optimisticStatus === 'enabled' ? 'disabled' : 'enabled',
+      );
+      return Promise.resolve();
+    }
+
+    return super.toggle();
+  }
+
   /**
    * Applies the video settings to the camera.
    *
    * @param settings the video settings to apply.
    * @param publish whether to publish the stream after applying the settings.
+   * @param forceDisabled whether to keep the camera disabled, regardless of server-side or local preferences.
    */
-  async apply(settings: VideoSettingsResponse, publish: boolean) {
+  async apply(
+    settings: VideoSettingsResponse,
+    publish: boolean,
+    forceDisabled: boolean = false,
+  ): Promise<void> {
     // Wait for any in progress camera operation
     await this.statusChangeSettled();
     await this.selectTargetResolution(settings.target_resolution);
@@ -148,8 +191,10 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
       this.devicePersistence.enabled &&
       permissionState === 'granted'
     ) {
-      persistedPreferencesApplied =
-        await this.applyPersistedPreferences(enabledInCallType);
+      persistedPreferencesApplied = await this.applyPersistedPreferences(
+        enabledInCallType,
+        forceDisabled,
+      );
     }
 
     // apply a direction and enable the camera only if in "pristine" state,
@@ -161,14 +206,25 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
         await this.selectDirection(direction, { enableCamera: false });
       }
 
-      if (canPublish && settings.camera_default_on && enabledInCallType) {
+      if (
+        !forceDisabled &&
+        canPublish &&
+        settings.camera_default_on &&
+        enabledInCallType
+      ) {
         await this.enable();
       }
     }
 
-    const { mediaStream } = this.state;
-    if (canPublish && publish && this.enabled && mediaStream) {
-      await this.publishStream(mediaStream);
+    if (isReactNative() && publish && canPublish) {
+      // On RN the camera is enabled/disabled optimistically before JOINED. Reconcile now
+      // acquires the track and publishes it, so it fully owns the publish.
+      await this.reconcileOptimisticStatus();
+    } else {
+      const { mediaStream } = this.state;
+      if (canPublish && publish && this.enabled && mediaStream) {
+        await this.publishStream(mediaStream);
+      }
     }
   }
 
@@ -176,9 +232,9 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     return getVideoDevices(this.call.tracer);
   }
 
-  protected override getStream(
+  protected override getResolvedConstraints(
     constraints: MediaTrackConstraints,
-  ): Promise<MediaStream> {
+  ): MediaTrackConstraints {
     constraints.width = this.targetResolution.width;
     constraints.height = this.targetResolution.height;
     // We can't set both device id and facing mode
@@ -192,6 +248,16 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
       constraints.facingMode =
         this.state.direction === 'front' ? 'user' : 'environment';
     }
+
+    return constraints;
+  }
+
+  protected override async getStream(
+    constraints: MediaTrackConstraints,
+  ): Promise<MediaStream> {
+    // Ensure the call's media factory exists before capture so the resulting
+    // track is owned by it (the WebRTC globals resolve to the live factory).
+    await this.call.ensureMediaFactory();
     return getVideoStream(constraints, this.call.tracer);
   }
 }

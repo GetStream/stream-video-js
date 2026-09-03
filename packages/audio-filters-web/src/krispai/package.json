@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@krispai/javascript-sdk",
-  "version": "2.3.4_updated_models",
+  "version": "2.3.8",
   "description": "Krisp Javascript SDK",
   "types": "./dist/krispsdk.d.ts",
   "main": "./dist/krispsdk.js",

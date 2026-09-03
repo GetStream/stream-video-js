@@ -76,6 +76,10 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
         ]) => {
           try {
             if (callingState === CallingState.LEFT) {
+              // The muted-recording-prepared mode is reset in `callManager.stop()`
+              // (during leave, while the call factory is still alive), not here —
+              // this subscription fires asynchronously and could land after the
+              // factory is disposed, forcing a default-ADM rebuild.
               await this.stopSpeakingWhileMutedDetection();
             }
             if (callingState !== CallingState.JOINED) return;
@@ -84,11 +88,14 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
             if (ownCapabilities.includes(OwnCapability.SEND_AUDIO)) {
               const hasPermission = await this.hasPermission(permissionState);
               if (hasPermission && status !== 'enabled') {
+                this.setMutedRecordingPrepared(true);
                 await this.startSpeakingWhileMutedDetection(deviceId);
               } else {
+                this.setMutedRecordingPrepared(false);
                 await this.stopSpeakingWhileMutedDetection();
               }
             } else {
+              this.setMutedRecordingPrepared(false);
               await this.stopSpeakingWhileMutedDetection();
             }
           } catch (err) {
@@ -181,6 +188,44 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       );
       this.subscriptions.push(unsubscribe);
     }
+  }
+
+  override enable(): Promise<void> {
+    if (isReactNative() && !this.call.hasMediaEngine) {
+      this.state.setPendingStatus('enabled');
+      return Promise.resolve();
+    }
+
+    return super.enable();
+  }
+
+  override disable(options: { forceStop?: boolean }): Promise<void>;
+  override disable(forceStop?: boolean): Promise<void>;
+  override async disable(
+    forceStopOrOptions?: boolean | { forceStop?: boolean },
+  ): Promise<void> {
+    if (isReactNative() && !this.call.hasMediaEngine) {
+      this.state.setPendingStatus('disabled');
+      return;
+    }
+
+    // forward verbatim to the base, narrowing so the right overload is selected
+    if (forceStopOrOptions === undefined) return super.disable();
+    if (typeof forceStopOrOptions === 'boolean') {
+      return super.disable(forceStopOrOptions);
+    }
+    return super.disable(forceStopOrOptions);
+  }
+
+  override toggle(): Promise<void> {
+    if (isReactNative() && !this.call.hasMediaEngine) {
+      this.state.setPendingStatus(
+        this.state.optimisticStatus === 'enabled' ? 'disabled' : 'enabled',
+      );
+      return Promise.resolve();
+    }
+
+    return super.toggle();
   }
 
   /**
@@ -343,8 +388,13 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
    * Applies the audio settings to the microphone.
    * @param settings the audio settings to apply.
    * @param publish whether to publish the stream after applying the settings.
+   * @param forceDisabled whether to keep the mic disabled, regardless of server-side or local preferences.
    */
-  async apply(settings: AudioSettingsResponse, publish: boolean) {
+  async apply(
+    settings: AudioSettingsResponse,
+    publish: boolean,
+    forceDisabled: boolean = false,
+  ) {
     // Wait for any in progress mic operation
     await this.statusChangeSettled();
 
@@ -362,19 +412,28 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       this.devicePersistence.enabled &&
       permissionState === 'granted'
     ) {
-      persistedPreferencesApplied = await this.applyPersistedPreferences(true);
+      persistedPreferencesApplied = await this.applyPersistedPreferences(
+        true,
+        forceDisabled,
+      );
     }
 
     const canPublish = this.call.permissionsContext.canPublish(this.trackType);
     if (shouldApplyDefaults && !persistedPreferencesApplied) {
-      if (canPublish && settings.mic_default_on) {
+      if (!forceDisabled && canPublish && settings.mic_default_on) {
         await this.enable();
       }
     }
 
-    const { mediaStream } = this.state;
-    if (canPublish && publish && this.enabled && mediaStream) {
-      await this.publishStream(mediaStream);
+    if (isReactNative() && publish && canPublish) {
+      // On RN the microphone is enabled/disabled optimistically before JOINED. Reconcile now
+      // acquires the track and publishes it, so it fully owns the publish.
+      await this.reconcileOptimisticStatus();
+    } else {
+      const { mediaStream } = this.state;
+      if (canPublish && publish && this.enabled && mediaStream) {
+        await this.publishStream(mediaStream);
+      }
     }
   }
 
@@ -382,9 +441,12 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     return getAudioDevices(this.call.tracer);
   }
 
-  protected override getStream(
+  protected override async getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
+    // Ensure the call's media factory exists before capture so the resulting
+    // track is owned by it (the WebRTC globals resolve to the live factory).
+    await this.call.ensureMediaFactory();
     return getAudioStream(constraints, this.call.tracer);
   }
 
@@ -465,6 +527,18 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     await soundDetectorCleanup().catch((err) => {
       this.logger.warn('Failed to stop speaking while muted detector', err);
     });
+  }
+
+  /**
+   * iOS-only: keep the mic-input chain prepared while muted
+   * so the `AVAudioEngine` stays full-duplex and remote audio renders on a
+   * muted join.
+   */
+  private setMutedRecordingPrepared(enabled: boolean): void {
+    if (!isReactNative()) return;
+    globalThis.streamRNVideoSDK?.callManager.setMutedRecordingPrepared?.(
+      enabled,
+    );
   }
 
   private async hasPermission(

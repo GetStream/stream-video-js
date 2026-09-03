@@ -25,8 +25,10 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+import com.facebook.react.bridge.ReadableMap
 import com.oney.WebRTCModule.WebRTCModule
 import com.oney.WebRTCModule.WebRTCModuleOptions
+import com.streamvideo.reactnative.recorder.TracksRecorderManager
 import com.streamvideo.reactnative.screenshare.ScreenAudioCapture
 import com.streamvideo.reactnative.keepalive.StreamCallKeepAliveHeadlessService
 import com.streamvideo.reactnative.util.CallAlivePermissionsHelper
@@ -41,6 +43,7 @@ import kotlinx.coroutines.launch
 import org.webrtc.VideoSink
 import org.webrtc.VideoTrack
 import java.io.ByteArrayOutputStream
+import java.io.File
 import kotlin.math.sin
 
 
@@ -606,8 +609,86 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    // ── Track recorder bridge ────────────────────────────────────────────
+
+    @ReactMethod
+    fun startTrackRecording(options: ReadableMap, promise: Promise) {
+        val videoTrackId = if (options.hasKey("videoTrackId") && !options.isNull("videoTrackId")) {
+            options.getString("videoTrackId")
+        } else {
+            null
+        }
+        val maxDurationMs = if (options.hasKey("maxDurationMs") && !options.isNull("maxDurationMs")) {
+            options.getInt("maxDurationMs").toLong()
+        } else {
+            DEFAULT_RECORDING_DURATION_MS
+        }
+        val targetWidth = if (options.hasKey("targetWidth") && !options.isNull("targetWidth")) {
+            options.getInt("targetWidth")
+        } else {
+            0
+        }
+        val targetHeight = if (options.hasKey("targetHeight") && !options.isNull("targetHeight")) {
+            options.getInt("targetHeight")
+        } else {
+            0
+        }
+
+        val webRTCModule = reactApplicationContext.getNativeModule(WebRTCModule::class.java)
+        if (webRTCModule == null) {
+            promise.reject(RECORDING_ERROR_CODE, "WebRTCModule not available")
+            return
+        }
+
+        TracksRecorderManager.shared.startRecording(
+            context = reactApplicationContext,
+            webRTCModule = webRTCModule,
+            videoTrackId = videoTrackId,
+            maxDurationMs = maxDurationMs,
+            targetWidth = targetWidth,
+            targetHeight = targetHeight,
+        ) { file, error ->
+            if (error != null) {
+                promise.reject(RECORDING_ERROR_CODE, error.message ?: "recording failed", error)
+            } else {
+                promise.resolve(file?.let { "file://${it.absolutePath}" })
+            }
+        }
+    }
+
+    @ReactMethod
+    fun stopTrackRecording(promise: Promise) {
+        TracksRecorderManager.shared.stopRecording {
+            promise.resolve(null)
+        }
+    }
+
+    @ReactMethod
+    fun clearStreamRecordings(promise: Promise) {
+        TracksRecorderManager.shared.clearRecordingsDirectory(reactApplicationContext) { error ->
+            if (error != null) {
+                promise.reject(RECORDING_CLEAR_ERROR_CODE, error.message ?: "clear failed", error)
+            } else {
+                promise.resolve(null)
+            }
+        }
+    }
+
+    @ReactMethod
+    fun getStreamRecordings(promise: Promise) {
+        val files: List<File> = TracksRecorderManager.shared.listRecordings(reactApplicationContext)
+        val arr = Arguments.createArray()
+        for (f in files) {
+            arr.pushString("file://${f.absolutePath}")
+        }
+        promise.resolve(arr)
+    }
+
     companion object {
         private const val NAME = "StreamVideoReactNative"
         private const val SAMPLE_RATE = 22050
+        private const val DEFAULT_RECORDING_DURATION_MS = 5000L
+        private const val RECORDING_ERROR_CODE = "recording_error"
+        private const val RECORDING_CLEAR_ERROR_CODE = "clear_error"
     }
 }

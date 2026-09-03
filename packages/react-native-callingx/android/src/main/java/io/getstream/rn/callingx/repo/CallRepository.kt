@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.telecom.CallAttributesCompat
+import androidx.core.telecom.CallEndpointCompat
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.CallService
@@ -36,7 +37,11 @@ abstract class CallRepository(protected val context: Context) {
     fun onIsCallActive(callId: String)
     fun onCallRegistered(callId: String, incoming: Boolean)
     fun onMuteCallChanged(callId: String, isMuted: Boolean)
-    fun onCallEndpointChanged(callId: String, endpoint: String)
+
+    /**
+     * Fired when the current endpoint or the set of available endpoints changes.
+     */
+    fun onCallAudioEndpointsChanged(callId: String) {}
   }
 
   protected val _calls: MutableStateFlow<Map<String, Call.Registered>> = MutableStateFlow(emptyMap())
@@ -143,7 +148,8 @@ abstract class CallRepository(protected val context: Context) {
     displayName: String,
     address: Uri,
     isIncoming: Boolean,
-    isVideo: Boolean
+    isVideo: Boolean,
+    preferredStartingCallEndpoint: CallEndpointCompat? = null,
   ): CallAttributesCompat {
     return CallAttributesCompat(
       displayName = displayName,
@@ -164,6 +170,7 @@ abstract class CallRepository(protected val context: Context) {
         CallAttributesCompat.SUPPORTS_SET_INACTIVE or
           CallAttributesCompat.SUPPORTS_STREAM or
           CallAttributesCompat.SUPPORTS_TRANSFER,
+      preferredStartingCallEndpoint = preferredStartingCallEndpoint,
     )
   }
 

@@ -39,9 +39,9 @@ import {
   getInstanceKey,
 } from './helpers/clientUtils';
 import { logToConsole, ScopedLogger, videoLoggerSystem } from './logger';
-import { isReactNative } from './helpers/platforms';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
+import { ClientEventReporter } from './reporting';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -60,6 +60,7 @@ export class StreamVideoClient {
 
   protected readonly writeableStateStore: StreamVideoWriteableStateStore;
   streamClient: StreamClient;
+  readonly clientEventReporter: ClientEventReporter;
 
   private effectsRegistered = false;
   private eventHandlersToUnregister: Array<() => void> = [];
@@ -97,6 +98,10 @@ export class StreamVideoClient {
     this.rejectCallWhenBusy = clientOptions?.rejectCallWhenBusy ?? false;
 
     this.streamClient = createCoordinatorClient(apiKey, clientOptions);
+    this.clientEventReporter = new ClientEventReporter({
+      streamClient: this.streamClient,
+      enabled: clientOptions?.clientEventsReportingEnabled ?? true,
+    });
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
@@ -205,6 +210,7 @@ export class StreamVideoClient {
               await call.reject('busy');
             } else {
               await call.updateFromRingingEvent(e as CallRingEvent);
+              await call.get();
             }
           } else {
             call.state.updateFromCallResponse(e.call);
@@ -214,6 +220,7 @@ export class StreamVideoClient {
 
         call = new Call({
           streamClient: this.streamClient,
+          clientEventReporter: this.clientEventReporter,
           type: e.call.type,
           id: e.call.id,
           members: e.members,
@@ -242,6 +249,17 @@ export class StreamVideoClient {
   };
 
   /**
+   * Queries the API for calls matching the given filters.
+   * @param data the query data.
+   */
+  private doQueryCalls = (data: QueryCallsRequest) => {
+    return this.streamClient.post<QueryCallsResponse, QueryCallsRequest>(
+      '/calls',
+      data,
+    );
+  };
+
+  /**
    * Rewatches the given calls with retry logic.
    * @param callsToReWatch array of call IDs to rewatch
    */
@@ -254,10 +272,21 @@ export class StreamVideoClient {
           `Rewatching calls ${callsToReWatch.join(', ')} attempt ${attempt + 1}`,
         );
 
-        await this.queryCalls({
+        const response = await this.doQueryCalls({
           watch: true,
           filter_conditions: { cid: { $in: callsToReWatch } },
         });
+
+        for (const c of response.calls) {
+          const call = this.writeableStateStore.findCall(
+            c.call.type,
+            c.call.id,
+          );
+
+          if (call) {
+            call.updateFromCallStateResponse(c);
+          }
+        }
 
         return;
       } catch (err) {
@@ -296,6 +325,9 @@ export class StreamVideoClient {
       return this.connectAnonymousUser(user as UserWithId, tokenOrProvider);
     }
 
+    const reporter = this.clientEventReporter;
+    reporter.startCoordinatorConnection(user.id);
+
     const connectUserResponse = await withoutConcurrency(
       this.connectionConcurrencyTag,
       async () => {
@@ -309,13 +341,16 @@ export class StreamVideoClient {
         for (let attempt = 0; attempt < maxConnectUserRetries; attempt++) {
           try {
             this.logger.trace(`Connecting user (${attempt})`, user);
-            return user.type === 'guest'
-              ? await client.connectGuestUser(user)
-              : await client.connectUser(user, tokenOrProvider);
+            return await reporter.trackCoordinatorWs(() =>
+              user.type === 'guest'
+                ? client.connectGuestUser(user)
+                : client.connectUser(user, tokenOrProvider),
+            );
           } catch (err) {
             this.logger.warn(`Failed to connect a user (${attempt})`, err);
             errorQueue.push(err as Error);
             if (attempt === maxConnectUserRetries - 1) {
+              reporter.closeCoordinatorWs();
               onConnectUserError?.(err as Error, errorQueue);
               throw err;
             }
@@ -415,6 +450,7 @@ export class StreamVideoClient {
       call ??
       new Call({
         streamClient: this.streamClient,
+        clientEventReporter: this.clientEventReporter,
         id: id,
         type: type,
         clientStore: this.writeableStateStore,
@@ -438,16 +474,19 @@ export class StreamVideoClient {
    * Will query the API for calls matching the given filters.
    *
    * @param data the query data.
+   * @param opts additional options, for tweaking the API behavior.
    */
-  queryCalls = async (data: QueryCallsRequest = {}) => {
-    const response = await this.streamClient.post<
-      QueryCallsResponse,
-      QueryCallsRequest
-    >('/calls', data);
+  queryCalls = async (
+    data: QueryCallsRequest = {},
+    opts: { withDisabledDevices?: boolean } = {},
+  ) => {
+    const { withDisabledDevices = true } = opts;
+    const response = await this.doQueryCalls(data);
     const calls = [];
     for (const c of response.calls) {
       const call = new Call({
         streamClient: this.streamClient,
+        clientEventReporter: this.clientEventReporter,
         id: c.call.id,
         type: c.call.type,
         members: c.members,
@@ -456,7 +495,10 @@ export class StreamVideoClient {
         clientStore: this.writeableStateStore,
       });
       call.state.updateFromCallResponse(c.call);
-      await call.applyDeviceConfig(c.call.settings, false, isReactNative());
+      await call.applyDeviceConfig(c.call.settings, {
+        publish: false,
+        withDisabledDevices,
+      });
       if (data.watch) {
         await call.setup();
         this.writeableStateStore.registerCall(call);
@@ -591,6 +633,7 @@ export class StreamVideoClient {
         const [callType, callId] = call_cid.split(':');
         call = new Call({
           streamClient: this.streamClient,
+          clientEventReporter: this.clientEventReporter,
           type: callType,
           id: callId,
           clientStore: this.writeableStateStore,

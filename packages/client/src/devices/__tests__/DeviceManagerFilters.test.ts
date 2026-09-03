@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { of } from 'rxjs';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
+import { ClientEventReporter } from '../../reporting';
 import { StreamVideoWriteableStateStore } from '../../store';
 import { DeviceManagerState } from '../DeviceManagerState';
 import { DeviceManager } from '../DeviceManager';
@@ -45,11 +46,13 @@ describe('MediaStream Filters', () => {
   let manager: TestInputMediaDeviceManager;
 
   beforeEach(() => {
+    const streamClient = new StreamClient('abc123');
     manager = new TestInputMediaDeviceManager(
       new Call({
         id: '',
         type: '',
-        streamClient: new StreamClient('abc123'),
+        streamClient,
+        clientEventReporter: new ClientEventReporter({ streamClient }),
         clientStore: new StreamVideoWriteableStateStore(),
       }),
     );

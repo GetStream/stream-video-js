@@ -17,6 +17,8 @@ permissions:
   id-token: write # Required for OIDC
   actions: write # Required for dispatching other workflows
   contents: write # required for committing the version bump
+  pull-requests: write # required for commenting on released PRs
+  issues: write # required for commenting on closed issues
 
 concurrency:
   group: version-and-release-${{ github.ref }}
@@ -28,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -40,7 +42,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: ESLint Cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: './.eslintcache'
           key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}-${{ hashFiles('.eslintcache') }}

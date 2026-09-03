@@ -8,8 +8,9 @@ This package sits on top of `@stream-io/video-react-bindings` (React hooks layer
 
 - React Native UI components with native module integrations
 - Platform-specific implementations for iOS and Android (native code in `ios/` and `android/`)
-- Push notification support (VoIP for iOS, Firebase/Notifee for Android)
-- CallKeep integration for native call UI
+- Push notification support for ringing calls (VoIP for iOS, Firebase for Android)
+- CallKit (iOS) and Telecom (Android) integration via `@stream-io/react-native-callingx`
+- Non-ringing notifications (call.missed, call.live_started, call.notification) are NOT handled by the SDK — app-level responsibility
 - Picture-in-Picture (PiP) support
 - Native foreground services for keeping calls alive
 - Expo support via config plugin
@@ -81,7 +82,7 @@ yarn test ParticipantView.test.tsx
 
 **Test structure:**
 
-- SDK tests: `__tests__/**/*.test.tsx`
+- SDK tests: `__tests__/**/*.test.{ts,tsx}`
 - Expo plugin tests: `expo-config-plugin/__tests__/**/*.test.ts`
 - Mocks: `__tests__/mocks/`
 - Test utilities: `__tests__/utils/`
@@ -131,14 +132,15 @@ The React Native SDK extends the standard three-layer architecture with platform
 3. **@stream-io/video-react-native-sdk** (UI + Native Layer - this package)
    - React Native components built on bindings
    - Native modules for platform-specific functionality
-   - Push notification handling
+   - Ringing push notification handling (VoIP + Firebase)
    - PiP support
    - Foreground services
-   - CallKeep integration
+   - CallKit/Telecom integration via `@stream-io/react-native-callingx`
 
 4. **Native Modules** (Platform Integration)
-   - iOS: Swift modules in `ios/` (CallKeep, VoIP, PiP, InCallManager)
-   - Android: Kotlin modules in `android/` (CallKeep equivalent, PiP, foreground service)
+   - iOS: Swift modules in `ios/` (VoIP, PiP, InCallManager)
+   - Android: Kotlin modules in `android/` (PiP, foreground service)
+   - `@stream-io/react-native-callingx` - Internal package for CallKit (iOS) and Telecom (Android) integration
 
 **Critical Rule:** This package should NEVER directly use RxJS observables from the client. All state access must go through bindings hooks.
 
@@ -190,8 +192,9 @@ Wraps `StreamCallProvider` from bindings with React Native lifecycle management:
 
 - **AppStateListener**: Handles background/foreground transitions
 - **AndroidKeepCallAlive**: Foreground service to prevent call termination
-- **IosInformCallkeepCallEnd**: Notifies CallKeep when call ends
+- **CallingExpWithCallingState**: Syncs callingx (CallKit/Telecom) with call state
 - **ClearPushWSSubscriptions**: Cleanup push subscriptions on unmount
+- **ScreenShareAudioMixer**: Mixes screen share audio with microphone audio
 - **DeviceStats**: Collects device performance metrics
 
 **Architecture pattern:**
@@ -201,18 +204,28 @@ Uses renderless child components for side effects - keeps logic separated and te
 
 #### CallManager (Android/iOS)
 
+The public `callManager` (`src/modules/call-manager/CallManager.ts`) is a **config store**, not a native invoker. Its `start(config?)` / `stop()` record the desired audio config for the next join; the SDK's internal call manager (attached to `globalThis.streamRNVideoSDK.callManager` in `src/utils/internal/registerSDKGlobals.ts`) reads that config at join time and drives the native module. Mid-call `start(newConfig)` only updates the stored config — the change takes effect on the next call/rejoin.
+
 **Files:**
 
-- `src/modules/call-manager/CallManager.ts` - TypeScript interface
-- `android/src/main/java/com/streamvideo/reactnative/callmanager/` - Android implementation
-- `ios/StreamInCallManager.swift` - iOS implementation
+- `src/modules/call-manager/CallManager.ts` — public TypeScript API.
+- `src/modules/call-manager/index.ts` — exports the `callManager` singleton.
+- `src/utils/internal/registerSDKGlobals.ts` — internal, native-owning call manager wired to `globalThis.streamRNVideoSDK.callManager`.
+- `android/src/main/java/com/streamvideo/reactnative/callmanager/` — Android native module.
+- `ios/StreamInCallManager.swift` — iOS native module.
 
-**Responsibilities:**
+**Public API surface:**
 
-- Proximity sensor management (screen on/off during calls)
-- Speaker mode control
-- Ringer/vibration control
-- CallKeep-like functionality on Android
+- `audioDevices` (`AudioDevicesManager`) — cross-platform picker: `getStatus`, `select(id)`, `addChangeListener`. On Android Telecom-managed calls it adapts callingx's endpoints; otherwise reads native.
+- `speaker` (`SpeakerManager`) — `setMute`, `setForceSpeakerphoneOn`. Routes via callingx on Telecom-managed Android.
+- `ios` (`IOSCallManager`) — iOS-only: `showDeviceSelector`, `addAudioInterruptionListener`.
+- `start(config?)` / `stop()` — config store (see above).
+- `logAudioState`, `getAudioStateLog` — debug.
+
+**Config shape (`StreamInCallManagerConfig`):**
+
+- `audioRole`: `'communicator'` (default — video/voice, SDK controls routing, manual device switching supported) or `'listener'` (livestream viewing, high-quality stereo, OS controls routing).
+- `deviceEndpointType`: `'speaker'` | `'earpiece'` — communicator-only override for the default endpoint (otherwise derived from call settings).
 
 #### PiP Support
 
@@ -229,70 +242,79 @@ Uses renderless child components for side effects - keeps logic separated and te
 
 #### Foreground Service (Android)
 
-**Purpose:** Keeps call alive when app is backgrounded
+**Purpose:** Keeps the call alive when the app is backgrounded — JS timers stay hot and mic/camera access is retained.
 
 **Files:**
 
-- `src/hooks/useAndroidKeepCallAliveEffect.ts`
-- `android/src/main/java/com/streamvideo/reactnative/util/CallAliveServiceChecker.kt`
+- `src/hooks/useAndroidKeepCallAliveEffect.ts` — decides which keep-alive mechanism to use for the current call and drives its lifecycle.
+- `android/src/main/java/com/streamvideo/reactnative/keepalive/StreamCallKeepAliveHeadlessService.kt` — the SDK's own foreground service (FGS types `microphone | camera | mediaPlayback`).
+- `android/src/main/java/com/streamvideo/reactnative/util/CallAlivePermissionsHelper.kt` — POST_NOTIFICATIONS permission check helper.
 
-**Flow:**
+**Two mutually-exclusive mechanisms:**
 
-1. Requests permissions (CAMERA, RECORD_AUDIO, POST_NOTIFICATIONS)
-2. Starts foreground service when call is joined
-3. Shows persistent notification with call info
-4. Stops service when call ends or app is foregrounded
+- **SDK FGS** (`StreamCallKeepAliveHeadlessService`) — used for non-callingx calls. Started on `CallingState.JOINED`, shows a persistent notification, keeps a HeadlessJS task running.
+- **Callingx background task** — used when the call is managed by callingx (ringing calls, or `enableOngoingCalls`). The hook calls `callingx.acquireBackgroundTask(owner)` / `releaseBackgroundTask(owner)`, so the existing callingx `CallService` FGS carries the keep-alive without adding a second notification. Ownership is ref-counted inside callingx so the push→keepalive handoff can't strand the task.
+
+**Flow — SDK FGS path:**
+
+1. Check POST_NOTIFICATIONS permission (Android 13+); bail with a warning if not granted.
+2. On `CallingState.JOINED`, call `StreamVideoReactNative.startKeepCallAliveService(...)` with the configured channel + notification texts.
+3. Stop the FGS on `LEFT`/`IDLE`, or when the app foregrounds.
+
+**Flow — callingx path:**
+
+1. Acquire the background task as soon as the call is callingx-managed and has a cid (early acquire prevents the hand-off gap with the push flow).
+2. Release on `LEFT`/`IDLE`.
 
 ### Push Notifications
 
-**Critical for ringing calls** - allows incoming call notifications even when app is terminated.
+**The SDK only handles ringing call push notifications.** Non-ringing notifications (call.missed, call.live_started, call.notification) are delivered by the Stream backend directly to the device — displaying them and handling taps is the app's responsibility.
 
-#### iOS VoIP Push
+#### iOS VoIP Push (Ringing)
 
 **Files:**
 
 - `src/utils/push/setupIosVoipPushEvents.ts`
-- `src/utils/push/setupIosCallKeepEvents.ts`
-- `ios/StreamInCallManager.swift`
+- `src/utils/push/setupCallingExpEvents.ts`
 
 **Libraries:**
 
-- `react-native-voip-push-notification` - VoIP push
-- `react-native-callkeep` - Native call UI
+- `@stream-io/react-native-callingx` - Internal package for CallKit integration (replaces deprecated `react-native-callkeep`)
 
 **Flow:**
 
 1. VoIP push wakes app in background
-2. CallKeep displays native incoming call UI
+2. Callingx displays native CallKit incoming call UI
 3. User accepts/rejects on system UI
 4. SDK joins call or rejects it
 
-#### Android Push (Firebase/Notifee)
+#### Android Push (Ringing)
 
 **Files:**
 
 - `src/utils/push/android.ts`
-- Android native modules
 
 **Libraries:**
 
 - `@react-native-firebase/messaging` - Firebase Cloud Messaging
-- `@notifee/react-native` - Local notification display
+- `@stream-io/react-native-callingx` - Internal package for Android Telecom integration
 
 **Flow:**
 
 1. Firebase receives push notification
-2. Notifee displays notification (even in killed state)
-3. User taps notification
-4. App opens and joins call
+2. Callingx displays incoming call notification via Android Telecom
+3. User accepts/rejects
+4. SDK joins call or rejects it
 
-**Note:** Uses foreground service for ringing calls on Android 10+
+#### Non-Ringing Notifications
 
-#### Expo Push Support
+**Not handled by the SDK.** The Stream backend sends non-ringing push notifications directly to the device. Apps must:
 
-**Expo alternative** using Expo Notifications instead of Firebase.
+1. Register the device token with Stream (`client.addDevice()`)
+2. Handle the incoming push and display a notification
+3. Handle notification taps
 
-**File:** `expo-config-plugin/` - Auto-configures native projects for Expo
+See sample apps (`dogfood/`, `expo-video-sample/`) for working examples.
 
 ### Components
 
@@ -330,19 +352,12 @@ Uses renderless child components for side effects - keeps logic separated and te
 
 #### Push Notification Hooks (`src/hooks/push/`)
 
-**Most complex part of the SDK** - handles all push scenarios:
+Handles ringing call push setup:
 
-- `useIosCallkeepWithCallingStateEffect` - Syncs CallKeep with call state
-- `useAndroidIncomingCallRejectionEffect` - Handles Android call rejection
-- `usePushRegisterEffect` - Registers device for push notifications
-
-**RxJS Subjects** (`src/utils/push/internal/rxSubjects.ts`):
-Observable streams for push events:
-
-- `pushTappedIncomingCallCId$` - User tapped notification
-- `pushAcceptedIncomingCallCId$` - User accepted on native UI
-- `pushRejectedIncomingCallCId$` - User rejected on native UI
-- `voipPushNotificationCallCId$` - VoIP push received
+- `usePushRegisterEffect` - Orchestrates push registration (calls the hooks below)
+- `useIosVoipPushEventsSetupEffect` - Sets up iOS VoIP push event listeners
+- `useInitAndroidTokenAndRest` - Registers Firebase token and sets up Android push handling
+- `useCallingExpWithCallingStateEffect` - Syncs callingx (CallKit/Telecom) with call state
 
 #### Platform-Specific Hooks
 
@@ -366,25 +381,16 @@ Observable streams for push events:
 Main configuration utility for React Native-specific settings:
 
 ```tsx
-StreamVideoRN.configure({
-  foregroundService: {
-    android: {
-      channel: { id: 'calls', name: 'Calls' },
-      notificationTexts: { title: 'Ongoing call', body: 'Tap to return' },
-    },
+StreamVideoRN.setPushConfig({
+  ios: {
+    pushProviderName: 'my-voip-provider',
   },
-  push: {
-    ios: {
-      pushProviderName: 'my-voip-provider',
-      callkeep: { appName: 'MyApp', supportsVideo: true },
-    },
-    android: {
-      pushProviderName: 'firebase',
-      callChannel: { id: 'calls', name: 'Calls' },
-    },
+  android: {
+    pushProviderName: 'firebase',
   },
-  newNotificationCallback: (notification) => {
-    // Handle incoming call notification
+  createStreamVideoClient: async () => {
+    // Create client for handling ringing calls in background
+    return StreamVideoClient.getOrCreateInstance({ apiKey, user, token });
   },
 });
 ```
@@ -392,9 +398,9 @@ StreamVideoRN.configure({
 **Configuration sections:**
 
 - `foregroundService.android` - Android foreground service settings
-- `push.ios` - iOS push and CallKeep configuration
-- `push.android` - Android push notification configuration
-- `newNotificationCallback` - Called when push arrives
+- `push.ios` - iOS VoIP push provider configuration
+- `push.android` - Android Firebase push provider configuration
+- `createStreamVideoClient` - Factory for creating client in background push handling
 
 ### Theming System
 
@@ -437,7 +443,6 @@ Auto-configures native projects for Expo apps:
 - Android manifest modifications
 - iOS Info.plist modifications
 - iOS background modes
-- CallKeep configuration
 
 **Usage in app.json:**
 
@@ -447,14 +452,10 @@ Auto-configures native projects for Expo apps:
     [
       "@stream-io/video-react-native-sdk",
       {
-        "ios": {
-          "pushProviderName": "apn-voip",
-          "callkeepAppName": "MyApp"
-        },
-        "android": {
-          "pushProviderName": "firebase",
-          "enableCallAliveForegroundService": true
-        }
+        "enableScreenshare": true,
+        "ringing": true,
+        "androidKeepCallAlive": true,
+        "androidPictureInPicture": true
       }
     ]
   ]
@@ -484,38 +485,27 @@ export const callManager = new CallManager();
 - Android: `StreamVideoReactNativePackage.kt` registers modules
 - iOS: `StreamVideoReactNative.m` bridges Swift code
 
-### 2. Push Notification Architecture
+### 2. Push Notification Architecture (Ringing Only)
 
-**Multi-provider support** via strategy pattern:
+The SDK only handles **ringing call** push notifications. Non-ringing notifications are the app's responsibility.
 
 **iOS Stack:**
 
-- VoIP push → `react-native-voip-push-notification`
-- CallKeep → `react-native-callkeep`
-- Background handling in native code
+- VoIP push received in native code
+- `@stream-io/react-native-callingx` displays CallKit incoming call UI
+- Events forwarded to JS via callingx event listeners
 
 **Android Stack:**
 
 - Firebase → `@react-native-firebase/messaging`
-- Notifee → `@notifee/react-native`
-- Foreground service for ringing
+- `@stream-io/react-native-callingx` displays incoming call via Android Telecom
+- Foreground service keeps call alive in background
 
-**Expo Stack:**
-
-- Expo Notifications → `expo-notifications`
-- No Firebase dependency
-
-**Library detection** (`src/utils/push/libs.ts`):
+**Library detection** (`src/utils/push/libs/`):
 
 ```tsx
 // Safely check if library is installed
-const firebase = getFirebaseMessagingLibNoThrow();
-if (firebase) {
-  // Use Firebase
-} else {
-  const expo = getExpoNotificationsLib();
-  // Use Expo
-}
+const callingx = getCallingxLib();
 ```
 
 ### 3. RxJS Subject Bridge Pattern
@@ -524,7 +514,7 @@ Push events flow through RxJS subjects to decouple native events from React:
 
 **Flow:**
 
-1. Native module emits event (VoIP push, CallKeep action)
+1. Native module emits event (VoIP push, callingx action)
 2. Event handler updates RxJS subject
 3. React hooks subscribe to subject
 4. UI updates reactively
@@ -556,7 +546,9 @@ export const StreamCall = ({ call, children }) => {
     <StreamCallProvider call={call}>
       <AppStateListener /> {/* Side effect only */}
       <AndroidKeepCallAlive /> {/* Side effect only */}
-      <IosInformCallkeepCallEnd /> {/* Side effect only */}
+      <CallingExpWithCallingState /> {/* Side effect only */}
+      <ClearPushWSSubscriptions /> {/* Side effect only */}
+      <ScreenShareAudioMixer /> {/* Side effect only */}
       <DeviceStats /> {/* Side effect only */}
       {children}
     </StreamCallProvider>
@@ -610,7 +602,7 @@ if (hasPermissions.microphone) {
 
 - Video tracks must be disabled when backgrounded (battery drain)
 - Audio continues in background via AVAudioSession
-- CallKeep provides native call UI
+- CallKit (via callingx) provides native call UI
 
 **Android quirks:**
 
@@ -677,8 +669,8 @@ useEffect(() => {
 
 **Setup:**
 
-1. Register for VoIP push in AppDelegate
-2. Configure CallKeep with app name
+1. Register for VoIP push in AppDelegate (`StreamVideoReactNative.voipRegistration()`)
+2. Forward VoIP push credentials and incoming pushes to `StreamVideoReactNative`
 3. Set push provider name in backend
 
 **Runtime flow:**
@@ -686,14 +678,14 @@ useEffect(() => {
 1. Backend sends VoIP push with call details
 2. iOS delivers push even if app is killed
 3. App wakes in background (30 seconds to respond)
-4. CallKeep displays native incoming call UI
-5. User accepts → `didAcceptIncomingCall` event → join call
-6. User rejects → `didRejectIncomingCall` event → reject call
+4. Callingx displays native CallKit incoming call UI
+5. User accepts → `answerCall` event → SDK joins call
+6. User rejects → `endCall` event → SDK rejects call
 
 **Gotchas:**
 
-- Must call `CallKeep.displayIncomingCall()` within 30s or iOS kills app
-- Must end CallKeep call when Stream call ends
+- Must display CallKit UI within 30s or iOS kills app
+- Must end CallKit call when Stream call ends
 - VoIP push certificates expire yearly
 
 ### 10. React Native WebRTC Integration
@@ -717,6 +709,46 @@ if (Platform.OS !== 'web') {
   registerGlobals(); // Creates window and navigator globals
 }
 ```
+
+### 11. Per-Call PeerConnectionFactory (Media Engine)
+
+**One native `PeerConnectionFactory` per call**, built at join and disposed at leave. Each call owns its own `AudioDeviceModule`, so audio configs are baked in per call rather than on a process-global factory.
+
+**Files:**
+
+- `src/utils/internal/registerMediaEngine.ts` — registers the RN provider via `setCallMediaEngineProvider()`, wired from `registerSDKGlobals()`.
+- `packages/client/src/Call.ts` — `ensureMediaFactory()` runs at the top of `doJoin()`; `hasMediaEngine` (`@internal`) is the "call is live" gate for RN-only pre-join APIs (e.g. `setAudioBitrateProfile`); `leave()` disposes.
+- `@stream-io/react-native-webrtc` — `CallFactory.create({ bypassVoiceProcessing, stereoInputEnabled })` / `factory.dispose()`.
+
+**Baked in at creation (immutable per call):**
+
+- `bypassVoiceProcessing` — `true` when `callManager.getStoredConfig().audioRole === 'listener'` (music/livestream: hardware AEC/NS off).
+- `stereoInputEnabled` — Android-only mic stereo capture. Not currently supported.
+
+Set factory-level audio config via `callManager.start(config)` **before** `call.join()`. Mid-call changes only take effect on the next join.
+
+### 12. RN Capabilities Bridge (`globalThis.streamRNVideoSDK`)
+
+The client (`packages/client`) is platform-agnostic and can't `import` React Native. Instead, the RN SDK **registers a namespace on `globalThis.streamRNVideoSDK`** at init, and the client's RN-only paths (Call.ts, MicrophoneManager.ts, etc.) call through it via optional chaining.
+
+**Files:**
+
+- `src/utils/internal/registerSDKGlobals.ts` — `registerSDKGlobals()` builds the object; called from `src/index.ts` on import.
+- `packages/client/src/types.ts` — typed as `StreamRNVideoSDKGlobals`, declared as `var streamRNVideoSDK: StreamRNVideoSDKGlobals | undefined`.
+
+**Surface:**
+
+- `callingX` — `joinCall`, `endCall`, `registerOutgoingCall`, `wireAudioEngineSubscription`, `unwireAudioEngineSubscription`. Bridge to the callingx package.
+- `callManager` — the **native-owning** call manager. `setup`/`start`/`stop` drive the native `StreamInCallManager` module at join/leave; `setMutedRecordingPrepared` (iOS-only) toggles the ADM's muted-recording chain.
+- `permissions.check(permission)` — cross-platform runtime permission query for mic/camera.
+- `nativeEvents.speechActivity.subscribe(cb)` — bridges the native speech-detector event to `MicrophoneManager`.
+
+**Public vs internal `callManager` — the gotcha:**
+
+- Public `callManager` (`src/modules/call-manager` singleton) is a **config store**. `.start(config)` writes `storedConfig`; does not invoke native.
+- Internal `globalThis.streamRNVideoSDK.callManager` is the **native owner**. `.start({ isRingingTypeCall, cid })` reads the public store's config and drives native. Called from `Call.join()` / `Call.leave()`.
+
+Any join-time audio setup needs BOTH — the public store to record the config, the internal manager to trigger native. Getting this wrong shows up as "the config isn't being applied", usually because someone called `.start()` on only one of the two.
 
 ## Common Development Workflows
 
@@ -776,8 +808,7 @@ yarn android
 1. Check device token registration in logs
 2. Verify VoIP certificate in Apple Developer
 3. Test with push tool (Pusher, Knuff)
-4. Check CallKeep configuration
-5. Monitor logs: `react-native log-ios`
+4. Monitor logs: `react-native log-ios`
 
 **Android:**
 
@@ -838,7 +869,7 @@ try {
 
 **Critical timing:**
 
-- iOS VoIP push must display CallKeep UI within 30 seconds
+- iOS VoIP push must display CallKit UI within 30 seconds
 - Android foreground service must start immediately on background
 - Push token registration should happen on app launch
 
@@ -930,20 +961,9 @@ import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
 // SDK handles automatically, but check if manually implementing
 ```
 
-### 4. CallKeep Configuration Mismatch
+### 4. Callingx / CallKit Setup
 
-```tsx
-// iOS: CallKeep appName must match what's configured
-StreamVideoRN.configure({
-  push: {
-    ios: {
-      callkeep: {
-        appName: 'MyApp', // Must match native CallKeep setup
-      },
-    },
-  },
-});
-```
+CallKit and Android Telecom integration is handled by `@stream-io/react-native-callingx` (internal workspace package). It replaces the deprecated `react-native-callkeep`. The callingx setup is configured automatically via `StreamVideoRN.setPushConfig()`.
 
 ### 5. Screen Share iOS
 
@@ -993,11 +1013,10 @@ npx expo prebuild --clean
 ### 10. Platform-Specific Imports
 
 ```tsx
-// ✅ CORRECT - Check platform before importing
-const CallKeep =
-  Platform.OS === 'ios' ? require('react-native-callkeep').default : null;
-
-// Or use getCallKeepLib() helper from SDK
+// ✅ CORRECT - Use platform-specific file extensions
+// myModule.android.ts — Android-specific code
+// myModule.ts — iOS/default code
+// Metro resolves the correct file per platform automatically
 ```
 
 ## Dependencies
@@ -1011,17 +1030,21 @@ const CallKeep =
 - `react-native-reanimated` - Animations
 - `react-native-gesture-handler` - Gesture handling
 
+**Internal Dependencies (workspace):**
+
+- `@stream-io/react-native-callingx` - CallKit (iOS) and Telecom (Android) integration for ringing calls
+
 **Optional Peer Dependencies:**
 
-- `react-native-callkeep` - iOS/Android native call UI
-- `react-native-voip-push-notification` - iOS VoIP push
-- `@react-native-firebase/app` + `@react-native-firebase/messaging` - Android push
-- `@notifee/react-native` - Android local notifications
+- `@react-native-firebase/app` + `@react-native-firebase/messaging` - Android push for ringing calls
 - `@react-native-community/netinfo` - Network status
-- `@react-native-community/push-notification-ios` - iOS push alternative
 - `@stream-io/video-filters-react-native` - Video filters (background blur)
 - `@stream-io/noise-cancellation-react-native` - Noise cancellation
-- `expo`, `expo-notifications`, `expo-build-properties` - Expo support
+- `expo`, `expo-build-properties` - Expo support
+
+**Not part of the SDK (app-level for non-ringing notifications):**
+
+- `@notifee/react-native`, `@react-native-community/push-notification-ios`, `expo-notifications` — used in sample apps for non-ringing notification display, but not SDK dependencies
 
 ## Sample Applications
 

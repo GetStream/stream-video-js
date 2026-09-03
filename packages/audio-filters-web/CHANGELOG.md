@@ -2,6 +2,66 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.10.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.10.3...@stream-io/audio-filters-web-0.10.4) (2026-08-07)
+
+## [0.10.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.10.2...@stream-io/audio-filters-web-0.10.3) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.10.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.10.1...@stream-io/audio-filters-web-0.10.2) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.10.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.10.0...@stream-io/audio-filters-web-0.10.1) (2026-07-17)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.9.1...@stream-io/audio-filters-web-0.10.0) (2026-07-09)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Features
+
+- **audio-filters-web:** Upgrade krisp to 2.3.8 ([#2308](https://github.com/GetStream/stream-video-js/issues/2308)) ([acde928](https://github.com/GetStream/stream-video-js/commit/acde928e53363f40a685f3713a9a5c41126063a2))
+
+## [0.9.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.9.0...@stream-io/audio-filters-web-0.9.1) (2026-07-02)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.8.2...@stream-io/audio-filters-web-0.9.0) (2026-06-26)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Features
+
+- upgrade to TypeScript 6.0.3, pin ES2022, raise supported-browser floors ([#2290](https://github.com/GetStream/stream-video-js/issues/2290)) ([d9ea158](https://github.com/GetStream/stream-video-js/commit/d9ea15846582fa8db86b3b873eca2afe92ae3593))
+
+## [0.8.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.8.1...@stream-io/audio-filters-web-0.8.2) (2026-06-01)
+
+## [0.8.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.8.0...@stream-io/audio-filters-web-0.8.1) (2026-05-25)
+
+### Bug Fixes
+
+- **audio-filters-web:** recover AudioContext after iOS interruption ([#2249](https://github.com/GetStream/stream-video-js/issues/2249)) ([1dc4f22](https://github.com/GetStream/stream-video-js/commit/1dc4f22bdd0568c355611cff42d0a817f73afe0d))
+
+## [0.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.7.3...@stream-io/audio-filters-web-0.8.0) (2026-05-18)
+
+### Features
+
+- Automatic audio recovery ([#2240](https://github.com/GetStream/stream-video-js/issues/2240)) ([8131e5b](https://github.com/GetStream/stream-video-js/commit/8131e5b35a1c87c46d99eeaab434f8889ba5d126))
+
 ## [0.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.7.2...@stream-io/audio-filters-web-0.7.3) (2026-03-09)
 
 ### Bug Fixes

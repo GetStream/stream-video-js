@@ -65,17 +65,21 @@ final class StreamRTCYUVBuffer: NSObject, RTCVideoFrameBuffer {
                 scaleHeight: Int32(targetSize.height)
             )
             return .init(source: resizedSource, conversion: conversion)
-        } else if
-            let pixelBuffer = source as? RTCCVPixelBuffer,
-            let dequeuedPixelBuffer = try? pixelBufferRepository.dequeuePixelBuffer(
-                of: targetSize,
-                pixelFormat: CVPixelBufferGetPixelFormatType(pixelBuffer.pixelBuffer)
-            ) {
-            let count = pixelBuffer.bufferSizeForCroppingAndScaling(toWidth: Int32(targetSize.width), height: Int32(targetSize.height))
-            let tempBuffer: UnsafeMutableRawPointer? = malloc(Int(count))
-            pixelBuffer.cropAndScale(to: dequeuedPixelBuffer, withTempBuffer: tempBuffer)
-            tempBuffer?.deallocate()
-            return .init(source: RTCCVPixelBuffer(pixelBuffer: dequeuedPixelBuffer))
+        } else if let pixelBuffer = source as? RTCCVPixelBuffer {
+            do {
+                let dequeuedPixelBuffer = try pixelBufferRepository.dequeuePixelBuffer(
+                    of: targetSize,
+                    pixelFormat: CVPixelBufferGetPixelFormatType(pixelBuffer.pixelBuffer)
+                )
+                let count = pixelBuffer.bufferSizeForCroppingAndScaling(toWidth: Int32(targetSize.width), height: Int32(targetSize.height))
+                let tempBuffer: UnsafeMutableRawPointer? = malloc(Int(count))
+                pixelBuffer.cropAndScale(to: dequeuedPixelBuffer, withTempBuffer: tempBuffer)
+                tempBuffer?.deallocate()
+                return .init(source: RTCCVPixelBuffer(pixelBuffer: dequeuedPixelBuffer))
+            } catch {
+                // No pixel buffer available for this size; drop the frame.
+                return nil
+            }
         } else {
             return nil
         }
@@ -97,9 +101,9 @@ final class StreamRTCYUVBuffer: NSObject, RTCVideoFrameBuffer {
         guard let pixelBuffer else {
             return nil
         }
-        
+
         var sampleBuffer: CMSampleBuffer?
-        
+
         var timingInfo = CMSampleTimingInfo()
         var formatDescription: CMFormatDescription?
         CMVideoFormatDescriptionCreateForImageBuffer(
@@ -107,12 +111,12 @@ final class StreamRTCYUVBuffer: NSObject, RTCVideoFrameBuffer {
             imageBuffer: pixelBuffer,
             formatDescriptionOut: &formatDescription
         )
-        
+
         guard let formatDescription = formatDescription else {
 //            log.error("Cannot create sample buffer formatDescription.")
             return nil
         }
-        
+
         _ = CMSampleBufferCreateReadyWithImageBuffer(
             allocator: kCFAllocatorDefault,
             imageBuffer: pixelBuffer,
@@ -120,7 +124,7 @@ final class StreamRTCYUVBuffer: NSObject, RTCVideoFrameBuffer {
             sampleTiming: &timingInfo,
             sampleBufferOut: &sampleBuffer
         )
-        
+
         guard let buffer = sampleBuffer else {
 //            log.error("Cannot create sample buffer")
             return nil

@@ -5,6 +5,7 @@ import {
   noopComparator,
   useCall,
   useCallStateHooks,
+  useI18n,
   useModeration,
 } from '@stream-io/video-react-sdk';
 import Gleap from 'gleap';
@@ -12,7 +13,11 @@ import { useRouter } from 'next/router';
 import { JSX, useCallback, useEffect, useState } from 'react';
 import { StreamChat } from 'stream-chat';
 
-import { useIsRestrictedEnvironment } from '../context/AppEnvironmentContext';
+import {
+  useIsE2EEEnvironment,
+  useIsRestrictedEnvironment,
+} from '../context/AppEnvironmentContext';
+import { useLobbyE2EE } from '../context/LobbyE2EEContext';
 import {
   useKeyboardShortcuts,
   usePersistedVideoFilter,
@@ -28,6 +33,7 @@ import {
   RemoteFilePublisher,
   RemoteFilePublisherContext,
 } from './RemoteFilePublisher';
+import { applyDisplayName } from '../helpers/client';
 import { applyQueryConfigParams } from '../lib/queryConfigParams';
 
 const contents = {
@@ -51,10 +57,13 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const [lastError, setLastError] = useState<Error>();
   const router = useRouter();
   const call = useCall();
+  const { t } = useI18n();
   const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
   useModeration();
   const isRestricted = useIsRestrictedEnvironment();
+  const allowEncryption = useIsE2EEEnvironment();
+  const e2ee = useLobbyE2EE();
   const [remoteFilePublisherAPI, setRemoteFilePublisherAPI] =
     useState<RemoteFilePublisher>();
 
@@ -63,15 +72,17 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       if (!options.fastJoin) setShow('loading');
       if (!call) throw new Error('No active call found');
       try {
-        const { videoFile, videoFileLeaveCallOnEnd } = applyQueryConfigParams(
-          call,
-          router.query,
-        );
+        const { videoFile, videoFileLeaveCallOnEnd } =
+          await applyQueryConfigParams(call, router.query, {
+            allowEncryption,
+            encryptionKey: e2ee?.encryptionKey,
+          });
         if (call.state.callingState !== CallingState.JOINED) {
           if (typeof options.displayName === 'string') {
             const name = options.displayName || getRandomName();
             const id = chatClient?.user?.id ?? sanitizeUserId(name);
             const email = chatClient?.user?.email;
+            await applyDisplayName(name);
             await chatClient
               ?.partialUpdateUser({ id, set: { name, email } })
               .catch((err) => console.error(`Failed to update user`, err));
@@ -93,7 +104,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         setShow('error-join');
       }
     },
-    [call, router, chatClient, isRestricted],
+    [call, router, chatClient, isRestricted, allowEncryption, e2ee],
   );
 
   const onLeave = useCallback(
@@ -159,7 +170,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   if (show === 'error-join' || show === 'error-leave') {
     childrenToRender = (
       <ErrorPage
-        heading={contents[show].heading}
+        heading={t(contents[show].heading)}
         error={lastError}
         onClickHome={() => router.push(`/`)}
         onClickLobby={() => setShow('lobby')}
@@ -185,7 +196,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   } else if (!call) {
     childrenToRender = (
       <ErrorPage
-        heading={'Lost active call connection'}
+        heading={t('Lost active call connection')}
         onClickHome={() => router.push(`/`)}
         onClickLobby={() => setShow('lobby')}
       />
@@ -218,49 +229,52 @@ const ErrorPage = ({
   onClickHome,
   onClickLobby,
   error,
-}: ErrorPageProps) => (
-  <div className="rd__error">
-    <div className="rd__error__container">
-      <h1 className="rd__error__header">{heading}</h1>
-      <div className="rd__error__content">
-        {error?.stack && (
-          <div className="rd__error__message">
-            <pre>{error.stack}</pre>
-          </div>
-        )}
-        <p>(see the console for more info)</p>
-      </div>
+}: ErrorPageProps) => {
+  const { t } = useI18n();
+  return (
+    <div className="rd__error">
+      <div className="rd__error__container">
+        <h1 className="rd__error__header">{heading}</h1>
+        <div className="rd__error__content">
+          {error?.stack && (
+            <div className="rd__error__message">
+              <pre>{error.stack}</pre>
+            </div>
+          )}
+          <p>{t('(see the console for more info)')}</p>
+        </div>
 
-      <div className="rd__error__actions">
-        <button
-          data-testid="return-home-button"
-          className="rd__button rd__button--primary"
-          onClick={onClickHome}
-        >
-          Return home
-        </button>
+        <div className="rd__error__actions">
+          <button
+            data-testid="return-home-button"
+            className="rd__button rd__button--primary"
+            onClick={onClickHome}
+          >
+            {t('Return home')}
+          </button>
 
-        <button
-          data-testid="return-home-button"
-          className="rd__button rd__button--secondary"
-          onClick={onClickLobby}
-        >
-          Back to lobby
-        </button>
+          <button
+            data-testid="return-home-button"
+            className="rd__button rd__button--secondary"
+            onClick={onClickLobby}
+          >
+            {t('Back to lobby')}
+          </button>
 
-        <button
-          data-testid="report-issue-button"
-          className="rd__button"
-          onClick={() => {
-            Gleap.startFeedbackFlow('bugreporting');
-          }}
-        >
-          Report an issue
-        </button>
+          <button
+            data-testid="report-issue-button"
+            className="rd__button"
+            onClick={() => {
+              Gleap.startFeedbackFlow('bugreporting');
+            }}
+          >
+            {t('Report an issue')}
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const LoadingScreen = () => {
   const { useCallCallingState } = useCallStateHooks();

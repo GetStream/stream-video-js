@@ -50,6 +50,7 @@ const JoinCallScreen = () => {
       const call = videoClient?.call('default', randomId());
       await call?.getOrCreate({
         ring: true,
+        video: true,
         data: {
           // more timeout to cancel the call automatically so that it works when callee's app is in quit state
           settings_override: {

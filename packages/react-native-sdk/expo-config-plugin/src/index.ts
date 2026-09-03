@@ -9,10 +9,10 @@ import withAndroidManifest from './withAndroidManifest';
 import withiOSInfoPlist from './withiOSInfoPlist';
 import withMainActivity from './withMainActivity';
 import withMainApplication from './withMainApplication';
-import withBuildProperties from './withBuildProperties';
 import withAppBuildGradle from './withAppBuildGradle';
 import withIosScreenCapture from './withIosScreenCapture';
 import withCallResources from './withCallResources';
+import withAndroidMessagingService from './withAndroidMessagingService';
 import { type ConfigProps } from './common/types';
 
 // path should be relative to dist
@@ -30,11 +30,11 @@ const withStreamVideoReactNativeSDK: ConfigPlugin<ConfigProps> = (
     // android
     () => withAndroidPermissions(config, props),
     withAppBuildGradle,
-    withBuildProperties,
     () => withAndroidManifest(config, props),
     () => withMainActivity(config, props),
     () => withMainApplication(config, props),
     () => withCallResources(config, props),
+    () => withAndroidMessagingService(config, props),
   ]);
 };
 

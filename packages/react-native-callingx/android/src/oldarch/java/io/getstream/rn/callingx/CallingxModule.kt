@@ -45,6 +45,31 @@ class CallingxModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun setDefaultAudioDeviceEndpointType(endpointType: String?) {
+        impl.setDefaultAudioDeviceEndpointType(endpointType)
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun isTelecomBacked(): Boolean {
+        return impl.isTelecomBacked()
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun getRegisteredCallIds(): WritableArray {
+        return impl.getRegisteredCallIds()
+    }
+
+    @ReactMethod
+    fun getAvailableAudioEndpoints(callId: String, promise: Promise) {
+        impl.getAvailableAudioEndpoints(callId, promise)
+    }
+
+    @ReactMethod
+    fun requestAudioEndpointChange(callId: String, endpointId: String, promise: Promise) {
+        impl.requestAudioEndpointChange(callId, endpointId, promise)
+    }
+
+    @ReactMethod
     fun setupAndroid(options: ReadableMap) {
         impl.setupAndroid(options)
     }
@@ -158,11 +183,6 @@ class CallingxModule(private val reactContext: ReactApplicationContext) :
     @ReactMethod
     fun stopBackgroundTask(taskName: String, promise: Promise) {
         impl.stopBackgroundTask(taskName, promise)
-    }
-
-    @ReactMethod
-    fun registerBackgroundTaskAvailable() {
-        impl.registerBackgroundTaskAvailable()
     }
 
     @ReactMethod

@@ -1,5 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import {
   Channel,
   MessageComposer,
@@ -10,11 +17,13 @@ import { AuthenticationProgress } from '../../components/AuthenticatingProgress'
 import { Channel as ChannelType } from 'stream-chat';
 import { MeetingStackParamList } from '../../../types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { useTheme } from '@stream-io/video-react-native-sdk';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ChatScreenProps = NativeStackScreenProps<
   MeetingStackParamList,
@@ -56,6 +65,12 @@ export const ChatScreen = ({ route }: ChatScreenProps) => {
   const styles = useStyles();
   const [channel, setChannel] = useState<ChannelType>();
   const { client } = useChatContext();
+  const headerHeight = useHeaderHeight();
+  const { bottom } = useSafeAreaInsets();
+
+  const topInset =
+    Platform.OS === 'android' ? bottom + headerHeight : headerHeight;
+
   const {
     params: { callId },
   } = route;
@@ -73,7 +88,11 @@ export const ChatScreen = ({ route }: ChatScreenProps) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="default" />
-      <Channel channel={channel} keyboardVerticalOffset={120}>
+      <Channel
+        channel={channel}
+        keyboardVerticalOffset={topInset}
+        topInset={topInset}
+      >
         <ChannelHeader />
         <MessageList />
         <MessageComposer />

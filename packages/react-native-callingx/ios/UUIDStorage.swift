@@ -1,14 +1,58 @@
 import Foundation
+import CallKit
 
-@objcMembers public class UUIDStorage: NSObject {
+@objcMembers public class UUIDStorage: NSObject, CXCallObserverDelegate {
     /// Primary storage: cid -> CallingxCall
     private var callsByCid: [String: CallingxCall] = [:]
     /// Reverse lookup: lowercased UUID string -> CallingxCall
     private var callsByUUID: [String: CallingxCall] = [:]
     private let queue = DispatchQueue(label: "com.stream.uuidstorage", attributes: [])
 
+    /// Warm, long-lived observer of CallKit's call state — a cold observer can report empty even for a
+    /// call that's been live for a while.
+    private let callObserver = CXCallObserver()
+    /// CallKit's live view, maintained from observer callbacks. NOTE: contains UUIDs of ALL
+    /// system calls. Only ever intersect it with our own UUIDs — never treat it as "our calls".
+    private var liveCallKitUUIDs: Set<UUID> = []
+
     public override init() {
         super.init()
+        callObserver.setDelegate(self, queue: queue)
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            self.liveCallKitUUIDs = Set(
+                self.callObserver.calls.filter { !$0.hasEnded }.map { $0.uuid }
+            )
+        }
+    }
+
+    // MARK: - CXCallObserverDelegate
+
+    /// IMPORTANT: delivered on `queue`, NEVER call the `queue.sync` helpers below —
+    /// re-entering the serial queue would deadlock.
+    public func callObserver(_ callObserver: CXCallObserver, callChanged call: CXCall) {
+        if call.hasEnded {
+            liveCallKitUUIDs.remove(call.uuid)
+        } else {
+            liveCallKitUUIDs.insert(call.uuid)
+        }
+    }
+
+    // MARK: - CallKit liveness queries
+
+    public func hasRegisteredCall() -> Bool {
+        return queue.sync {
+            guard !callsByCid.isEmpty else { return false }
+            let ours = Set(callsByCid.values.map { $0.uuid })
+            return !ours.isDisjoint(with: liveCallKitUUIDs)
+        }
+    }
+
+    public func isCallTracked(forCid cid: String) -> Bool {
+        return queue.sync {
+            guard let call = callsByCid[cid] else { return false }
+            return liveCallKitUUIDs.contains(call.uuid)
+        }
     }
 
     // MARK: - CallingxCall-based API (new)
@@ -17,9 +61,7 @@ import Foundation
     public func getOrCreateCall(forCid cid: String, isOutgoing: Bool = false) -> CallingxCall {
         return queue.sync {
             if let existing = callsByCid[cid] {
-                #if DEBUG
-                NSLog("%@","[UUIDStorage] getOrCreateCall: found existing \(existing)")
-                #endif
+                CallingxLog.uuid.debugPublic("getOrCreateCall: found existing \(existing)")
                 return existing
             }
 
@@ -28,9 +70,7 @@ import Foundation
             let uuidString = uuid.uuidString.lowercased()
             callsByCid[cid] = call
             callsByUUID[uuidString] = call
-            #if DEBUG
-            NSLog("%@","[UUIDStorage] getOrCreateCall: created \(call)")
-            #endif
+            CallingxLog.uuid.debugPublic("getOrCreateCall: created \(call)")
             return call
         }
     }
@@ -50,6 +90,12 @@ import Foundation
         }
     }
 
+    public func allCids() -> [String] {
+        return queue.sync {
+            return Array(callsByCid.keys)
+        }
+    }
+    
     // MARK: - Legacy API (preserved for backward compatibility)
 
     public func allUUIDs() -> [UUID] {
@@ -62,9 +108,7 @@ import Foundation
     public func getOrCreateUUID(forCid cid: String) -> UUID {
         return queue.sync {
             if let existing = callsByCid[cid] {
-                #if DEBUG
-                NSLog("%@","[UUIDStorage] getUUIDForCid: found existing UUID \(existing.uuid.uuidString.lowercased()) for cid \(cid)")
-                #endif
+                CallingxLog.uuid.debugPublic("getUUIDForCid: found existing UUID \(existing.uuid.uuidString.lowercased()) for cid \(cid)")
                 return existing.uuid
             }
 
@@ -73,9 +117,7 @@ import Foundation
             let uuidString = uuid.uuidString.lowercased()
             callsByCid[cid] = call
             callsByUUID[uuidString] = call
-            #if DEBUG
-            NSLog("%@","[UUIDStorage] getUUIDForCid: created new UUID \(uuidString) for cid \(cid)")
-            #endif
+            CallingxLog.uuid.debugPublic("getUUIDForCid: created new UUID \(uuidString) for cid \(cid)")
             return uuid
         }
     }
@@ -90,9 +132,7 @@ import Foundation
         return queue.sync {
             let uuidString = uuid.uuidString.lowercased()
             let cid = callsByUUID[uuidString]?.cid
-            #if DEBUG
-            NSLog("%@","[UUIDStorage] getCidForUUID: UUID \(uuidString) -> cid \(cid ?? "(not found)")")
-            #endif
+            CallingxLog.uuid.debugPublic("getCidForUUID: UUID \(uuidString) -> cid \(cid ?? "(not found)")")
             return cid
         }
     }
@@ -103,13 +143,9 @@ import Foundation
             if let call = callsByUUID[uuidString] {
                 callsByCid.removeValue(forKey: call.cid)
                 callsByUUID.removeValue(forKey: uuidString)
-                #if DEBUG
-                NSLog("%@","[UUIDStorage] removeCidForUUID: removed cid \(call.cid) for UUID \(uuidString)")
-                #endif
+                CallingxLog.uuid.debugPublic("removeCidForUUID: removed cid \(call.cid) for UUID \(uuidString)")
             } else {
-                #if DEBUG
-                NSLog("%@","[UUIDStorage] removeCidForUUID: no cid found for UUID \(uuidString)")
-                #endif
+                CallingxLog.uuid.debugPublic("removeCidForUUID: no cid found for UUID \(uuidString)")
             }
         }
     }
@@ -120,13 +156,9 @@ import Foundation
                 let uuidString = call.uuid.uuidString.lowercased()
                 callsByUUID.removeValue(forKey: uuidString)
                 callsByCid.removeValue(forKey: cid)
-                #if DEBUG
-                NSLog("%@","[UUIDStorage] removeCid: removed cid \(cid) with UUID \(uuidString)")
-                #endif
+                CallingxLog.uuid.debugPublic("removeCid: removed cid \(cid) with UUID \(uuidString)")
             } else {
-                #if DEBUG
-                NSLog("%@","[UUIDStorage] removeCid: no UUID found for cid \(cid)")
-                #endif
+                CallingxLog.uuid.debugPublic("removeCid: no UUID found for cid \(cid)")
             }
         }
     }
@@ -136,9 +168,7 @@ import Foundation
             let count = callsByCid.count
             callsByCid.removeAll()
             callsByUUID.removeAll()
-            #if DEBUG
-            NSLog("%@","[UUIDStorage] removeAllObjects: cleared \(count) entries")
-            #endif
+            CallingxLog.uuid.debugPublic("removeAllObjects: cleared \(count) entries")
         }
     }
 

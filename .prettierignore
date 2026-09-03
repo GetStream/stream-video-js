@@ -1,2 +1,4 @@
 **/next-env.d.ts
 **/__testfixtures__/**
+**/.expo/**
+**/.next/**

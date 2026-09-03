@@ -35,7 +35,7 @@ const LoginScreen = () => {
   const { t } = useI18n();
   const orientation = useOrientation();
   const [tapCount, setTapCount] = useState(0);
-  const tapTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const setState = useAppGlobalStoreSetState();
   const appEnvironment = useAppGlobalStoreValue(

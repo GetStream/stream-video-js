@@ -2,6 +2,77 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.16.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.15.0...@stream-io/video-filters-react-native-0.16.0) (2026-08-18)
+
+### Features
+
+- hi-fi audio ([#2305](https://github.com/GetStream/stream-video-js/issues/2305)) ([c2e0f21](https://github.com/GetStream/stream-video-js/commit/c2e0f21d4f57bbf2c64fdc3f5bca45a988f3a176))
+
+### Bug Fixes
+
+- background video filters should refresh on orientation change ([#2364](https://github.com/GetStream/stream-video-js/issues/2364)) ([e52384b](https://github.com/GetStream/stream-video-js/commit/e52384bf72999c6dc222357494845266b693b135))
+
+## [0.15.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.14.5...@stream-io/video-filters-react-native-0.15.0) (2026-08-07)
+
+### Features
+
+- added audio capture for ios broadcast screensharing mode ([#2346](https://github.com/GetStream/stream-video-js/issues/2346)) ([eb40f3e](https://github.com/GetStream/stream-video-js/commit/eb40f3ea5bfc5cfc28f3f6ef81c54bcbdeb1a804))
+- **react-native:** Expo SDK 57 / RN 0.86.2 upgrade and iOS 27 compatibility fixes ([#2355](https://github.com/GetStream/stream-video-js/issues/2355)) ([ea3c29b](https://github.com/GetStream/stream-video-js/commit/ea3c29b227f7a2a9ddb0eb046325e4783b558c94))
+
+## [0.14.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.14.4...@stream-io/video-filters-react-native-0.14.5) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.14.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.14.3...@stream-io/video-filters-react-native-0.14.4) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Bug Fixes
+
+- wait for callkit audio activation and then start audio engine, remove the previous timeout ([#2328](https://github.com/GetStream/stream-video-js/issues/2328)) ([64d6cff](https://github.com/GetStream/stream-video-js/commit/64d6cff02112fa7f9b2ed273f27006675f1d798d))
+
+## [0.14.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.14.2...@stream-io/video-filters-react-native-0.14.3) (2026-07-17)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.14.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.14.1...@stream-io/video-filters-react-native-0.14.2) (2026-07-09)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.14.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.14.0...@stream-io/video-filters-react-native-0.14.1) (2026-07-02)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.14.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.13.0...@stream-io/video-filters-react-native-0.14.0) (2026-06-26)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Features
+
+- upgrade to TypeScript 6.0.3, pin ES2022, raise supported-browser floors ([#2290](https://github.com/GetStream/stream-video-js/issues/2290)) ([d9ea158](https://github.com/GetStream/stream-video-js/commit/d9ea15846582fa8db86b3b873eca2afe92ae3593))
+
+## [0.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.12.4...@stream-io/video-filters-react-native-0.13.0) (2026-06-11)
+
+### Features
+
+- webrtc 145 upgrade ([#2133](https://github.com/GetStream/stream-video-js/issues/2133)) ([07825e4](https://github.com/GetStream/stream-video-js/commit/07825e402193ed07acf1d41831545326a0ad93d9)), closes [rn-webrtc#27](https://github.com/GetStream/rn-webrtc/issues/27)
+
+## [0.12.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.12.3...@stream-io/video-filters-react-native-0.12.4) (2026-06-01)
+
+## [0.12.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.12.2...@stream-io/video-filters-react-native-0.12.3) (2026-05-26)
+
 ## [0.12.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.12.1...@stream-io/video-filters-react-native-0.12.2) (2026-05-08)
 
 ## [0.12.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.12.0...@stream-io/video-filters-react-native-0.12.1) (2026-04-28)

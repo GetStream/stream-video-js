@@ -37,7 +37,10 @@ export const useModeration = (options?: ModerationOptions) => {
 
       // not scheduling a timeout to enable the camera
       clearTimeout(blurTimeoutRef.current);
-      if (!isSupported) return turnCameraOff();
+      if (!isSupported) {
+        void turnCameraOff();
+        return;
+      }
 
       restoreRef.current = (restoreRef.current || Promise.resolve()).then(() =>
         applyVideoBlurFilter?.('heavy').then(() => {

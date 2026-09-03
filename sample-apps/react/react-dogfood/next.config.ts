@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: '/(.*)',
+        headers: [
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'none';" },
+        ],
+      },
+      {
         source: '/.well-known/apple-app-site-association',
         headers: [{ key: 'content-type', value: 'application/json' }],
       },

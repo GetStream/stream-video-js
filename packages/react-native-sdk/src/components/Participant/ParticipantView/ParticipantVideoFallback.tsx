@@ -28,6 +28,7 @@ export const ParticipantVideoFallback = ({
   return (
     <View
       style={[
+        StyleSheet.absoluteFill,
         styles.container,
         { backgroundColor: colors.sheetTertiary },
         participantVideoFallback.container,
@@ -61,6 +62,5 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    ...StyleSheet.absoluteFillObject,
   },
 });

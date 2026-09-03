@@ -1,9 +1,7 @@
 import type { StreamVideoConfig } from './types';
 import pushLogoutCallbacks from '../internal/pushLogoutCallback';
-import newNotificationCallbacks, {
-  type NewCallNotificationCallback,
-} from '../internal/newNotificationCallbacks';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
+import { setupAndroidPushEvents } from '../push/setupAndroidPushEvents';
 import { setupCallingExpEvents } from '../push/setupCallingExpEvents';
 import {
   extractCallingExpOptions,
@@ -65,7 +63,6 @@ const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
 
 export class StreamVideoRN {
   private static config = DEFAULT_STREAM_VIDEO_CONFIG;
-  private static busyToneTimeout: NodeJS.Timeout | null = null;
 
   /**
    * Update the global config for StreamVideoRN except for push config.
@@ -137,6 +134,7 @@ export class StreamVideoRN {
 
     setupCallingExpEvents(pushConfig);
     setupIosVoipPushEvents(pushConfig);
+    setupAndroidPushEvents(pushConfig);
   }
 
   static getConfig() {
@@ -158,25 +156,6 @@ export class StreamVideoRN {
 
   static clearPushLogoutCallbacks() {
     pushLogoutCallbacks.current = [];
-  }
-
-  /**
-   * This function is used to add a callback to be called when a new call notification is received.
-   * @param callback
-   * @returns Unsubscribe function
-   */
-  static addOnNewCallNotificationListener(
-    callback: NewCallNotificationCallback,
-  ) {
-    if (!newNotificationCallbacks.current) {
-      newNotificationCallbacks.current = [callback];
-    } else {
-      newNotificationCallbacks.current.push(callback);
-    }
-    return () => {
-      newNotificationCallbacks.current =
-        newNotificationCallbacks.current?.filter((cb) => cb !== callback);
-    };
   }
 
   /**

@@ -1,5 +1,6 @@
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
+import { ClientEventReporter } from '../../reporting';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
@@ -50,9 +51,17 @@ vi.mock('../devices.ts', () => {
 vi.mock('../../Call.ts', () => {
   console.log('MOCKING Call');
   return {
-    Call: vi.fn(() => mockCall()),
+    Call: vi.fn(function () {
+      return mockCall();
+    }),
   };
 });
+
+vi.mock('../../reporting/ClientEventReporter', () => ({
+  ClientEventReporter: vi.fn(function () {
+    return {};
+  }),
+}));
 
 vi.mock('../../helpers/compatibility.ts', () => {
   console.log('MOCKING mobile device');
@@ -74,10 +83,12 @@ describe('CameraManager', () => {
 
   beforeEach(() => {
     const devicePersistence = { enabled: false, storageKey: '' };
+    const streamClient = new StreamClient('abc123', { devicePersistence });
     call = new Call({
       id: '',
       type: '',
-      streamClient: new StreamClient('abc123', { devicePersistence }),
+      streamClient,
+      clientEventReporter: new ClientEventReporter({ streamClient }),
       clientStore: new StreamVideoWriteableStateStore(),
     });
     manager = new CameraManager(call, devicePersistence);
@@ -210,6 +221,25 @@ describe('CameraManager', () => {
     });
   });
 
+  it('should pass resolved camera constraints to virtual devices', async () => {
+    const virtualStream = mockVideoStream();
+    const getUserMedia = vi.fn(() => ({ stream: virtualStream }));
+
+    const { deviceId } = manager.registerVirtualDevice({
+      label: 'Virtual camera',
+      getUserMedia,
+    });
+
+    await manager.select(deviceId);
+    await manager.enable();
+
+    expect(getUserMedia).toHaveBeenCalledWith({
+      deviceId: { exact: deviceId },
+      width: 1280,
+      height: 720,
+    });
+  });
+
   it(`should set target resolution, but shouldn't change device status`, async () => {
     manager['targetResolution'] = { width: 640, height: 480 };
 
@@ -327,8 +357,34 @@ describe('CameraManager', () => {
         true,
       );
 
-      expect(applySpy).toHaveBeenCalledWith(true);
+      expect(applySpy).toHaveBeenCalledWith(true, false);
       expect(selectDirectionSpy).not.toHaveBeenCalled();
+      expect(enableSpy).not.toHaveBeenCalled();
+    });
+
+    it('should apply persisted device preferences without enabling when forced disabled', async () => {
+      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+        of('granted'),
+      );
+      const devicePersistence = { enabled: true, storageKey: '' };
+      const persistedManager = new CameraManager(call, devicePersistence);
+      const applySpy = vi
+        .spyOn(persistedManager as never, 'applyPersistedPreferences')
+        .mockResolvedValue(true);
+      const enableSpy = vi.spyOn(persistedManager, 'enable');
+
+      await persistedManager.apply(
+        fromPartial({
+          enabled: true,
+          target_resolution: { width: 640, height: 480 },
+          camera_facing: 'front',
+          camera_default_on: true,
+        }),
+        false,
+        true,
+      );
+
+      expect(applySpy).toHaveBeenCalledWith(true, true);
       expect(enableSpy).not.toHaveBeenCalled();
     });
 

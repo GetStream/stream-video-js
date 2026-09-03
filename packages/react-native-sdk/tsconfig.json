@@ -1,19 +1,9 @@
 {
+  "extends": "@stream-io/typescript-config/library-rn.json",
   "compilerOptions": {
-    "target": "ES6",
-    "declaration": true,
-    "module": "ES2020",
-    "moduleResolution": "node",
-    "lib": ["es6", "dom"],
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "strictNullChecks": true,
-    "noUncheckedIndexedAccess": true,
-    "jsx": "react"
+    "rootDir": "./src",
+    "lib": ["ES2022", "DOM"],
+    "declaration": true
   },
   "include": ["src"]
 }

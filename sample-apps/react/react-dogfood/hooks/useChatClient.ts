@@ -6,6 +6,7 @@ import {
   TokenOrProvider,
   UserResponse,
 } from 'stream-chat';
+import { useAppEnvironment } from '../context/AppEnvironmentContext';
 
 export const useCreateStreamChatClient = ({
   apiKey,
@@ -18,6 +19,7 @@ export const useCreateStreamChatClient = ({
 }) => {
   const [chatClient, setChatClient] = useState<StreamChat | null>(null);
   const router = useRouter();
+  const environment = useAppEnvironment();
   useEffect(() => {
     const disableChat =
       router.query['disable_chat'] === 'true' ||
@@ -27,6 +29,7 @@ export const useCreateStreamChatClient = ({
     const client = new StreamChat(apiKey, {
       timeout: 5000,
     });
+    client.appIdentifier = { name: environment };
 
     let didUserConnectInterrupt = false;
     const connectionPromise = client
@@ -45,7 +48,7 @@ export const useCreateStreamChatClient = ({
         });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiKey, router.query, userData.id, tokenOrProvider]);
+  }, [apiKey, router.query, userData.id, tokenOrProvider, environment]);
 
   return chatClient;
 };

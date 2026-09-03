@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Avatar, useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { useUserContext } from '../contexts';
 import { LeaveIcon } from './icons';

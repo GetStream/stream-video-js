@@ -12,7 +12,7 @@ export type BaseVideoProps = ComponentPropsWithRef<'video'> & {
  * (`srcObject`) to reactively handle stream changes
  */
 export const BaseVideo = forwardRef<HTMLVideoElement, BaseVideoProps>(
-  function BaseVideo({ stream, ...rest }, ref) {
+  function BaseVideoRender({ stream, ...rest }, ref) {
     const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
       null,
     );
@@ -22,9 +22,10 @@ export const BaseVideo = forwardRef<HTMLVideoElement, BaseVideoProps>(
       if (stream === videoElement.srcObject) return;
 
       videoElement.srcObject = stream;
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
       if (Browsers.isSafari() || Browsers.isFirefox()) {
         // Firefox and Safari have some timing issue
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
           videoElement.srcObject = stream;
           videoElement.play().catch((e) => {
             console.error(`Failed to play stream`, e);
@@ -33,6 +34,7 @@ export const BaseVideo = forwardRef<HTMLVideoElement, BaseVideoProps>(
       }
 
       return () => {
+        clearTimeout(timeoutId);
         videoElement.pause();
         videoElement.srcObject = null;
       };

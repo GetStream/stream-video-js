@@ -9,11 +9,13 @@ import type {
 export class Tracer {
   private buffer: TraceRecord[] = [];
   private enabled = true;
-  private readonly id: string | null;
+  readonly id: string | null;
+  private readonly maxBuffer: number;
   private keys?: Map<TraceKey, boolean>;
 
-  constructor(id: string | null) {
+  constructor(id: string | null, maxBuffer: number = 2500) {
     this.id = id;
+    this.maxBuffer = maxBuffer;
   }
 
   setEnabled = (enabled: boolean) => {
@@ -25,6 +27,7 @@ export class Tracer {
   trace: Trace = (tag, data) => {
     if (!this.enabled) return;
     this.buffer.push([tag, this.id, data, Date.now()]);
+    this.capBuffer();
   };
 
   traceOnce = (key: TraceKey, tag: string, data: RTCStatsDataType) => {
@@ -44,6 +47,7 @@ export class Tracer {
       snapshot,
       rollback: () => {
         this.buffer.unshift(...snapshot);
+        this.capBuffer();
       },
     };
   };
@@ -51,5 +55,22 @@ export class Tracer {
   dispose = () => {
     this.buffer = [];
     this.keys?.clear();
+  };
+
+  /**
+   * Bounds the buffer to 2500 records by dropping the oldest ones,
+   * leaving a single `traceBufferOverflow` breadcrumb at the front so the
+   * consumer knows records were dropped.
+   */
+  private capBuffer = () => {
+    const overflow = this.buffer.length - this.maxBuffer;
+    if (overflow <= 0) return;
+    this.buffer.splice(0, overflow);
+    this.buffer[0] = [
+      'traceBufferOverflow',
+      this.id,
+      { dropped: overflow },
+      Date.now(),
+    ];
   };
 }

@@ -28,11 +28,17 @@
 @property (nonatomic, strong) CXCallController *callKeepCallController;
 @property (nonatomic, strong) CXProvider *callKeepProvider;
 
+// Returns the persisted `skipIncomingPushInForeground` setting.
+// Dispatched from StreamVideoReactNative via runtime lookup.
++ (BOOL)shouldSkipIncomingPushInForeground;
+
 @end
 
 @implementation Callingx {
   CallingxImpl *_moduleImpl;
 }
+
+@synthesize moduleRegistry = _moduleRegistry;
 
 #pragma mark - Singleton
 
@@ -91,6 +97,10 @@ RCT_EXPORT_MODULE(Callingx)
 
 + (BOOL)canRegisterCall {
   return [CallingxImpl canRegisterCall];
+}
+
++ (BOOL)shouldSkipIncomingPushInForeground {
+  return [Settings getSkipIncomingPushInForeground];
 }
 
 + (void)endCall:(NSString *)callId reason:(int)reason {
@@ -153,10 +163,10 @@ RCT_EXPORT_MODULE(Callingx)
 - (void)_setupiOSWithOptions:(NSDictionary *)optionsDict {
   [_moduleImpl setupWithOptions:optionsDict];
 
-  // Inject WebRTCModule so CallingxImpl can access AudioDeviceModule.
-  // self.bridge is NOT available on TurboModules — use currentBridge instead,
-  // which returns the real RCTBridge or RCTBridgeProxy (bridgeless interop).
-  WebRTCModule *webrtcModule = [[RCTBridge currentBridge] moduleForName:@"WebRTCModule"];
+  // Resolve WebRTCModule via the injected RCTModuleRegistry so CallingxImpl can
+  // access its AudioDeviceModule. Works on both old and new arch, including
+  // bridgeless (where [RCTBridge currentBridge] is a stub that returns nil).
+  WebRTCModule *webrtcModule = [self.moduleRegistry moduleForName:"WebRTCModule"];
   _moduleImpl.webRTCModule = webrtcModule;
 
   self.callKeepCallController = _moduleImpl.callKeepCallController;
@@ -175,9 +185,10 @@ RCT_EXPORT_MODULE(Callingx)
     @"ringtoneSound" : options.sound(),
     @"imageName" : options.imageName(),
     @"includesCallsInRecents" : @(options.callsHistory()),
-    @"displayCallTimeout" : @(options.displayCallTimeout())
+    @"displayCallTimeout" : @(options.displayCallTimeout()),
+    @"skipIncomingPushInForeground" : @(options.skipIncomingPushInForeground())
   };
-  
+
   [self _setupiOSWithOptions:optionsDict];
 }
 #else
@@ -190,7 +201,8 @@ RCT_EXPORT_METHOD(setupiOS:(NSDictionary *)options) {
     @"ringtoneSound" : options[@"sound"] ?: @"",
     @"imageName" : options[@"imageName"] ?: @"",
     @"includesCallsInRecents" : options[@"callsHistory"] ?: @(NO),
-    @"displayCallTimeout" : options[@"displayCallTimeout"] ?: @(0)
+    @"displayCallTimeout" : options[@"displayCallTimeout"] ?: @(0),
+    @"skipIncomingPushInForeground" : options[@"skipIncomingPushInForeground"] ?: @(NO)
   };
 
   [self _setupiOSWithOptions:optionsDict];
@@ -209,6 +221,30 @@ RCT_EXPORT_METHOD(setupAndroid:(NSDictionary *)options) {
 }
 #endif
 
+#pragma mark - wireAudioEngineSubscription
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (void)wireAudioEngineSubscription {
+  [_moduleImpl wireAudioEngineSubscription];
+}
+#else
+RCT_EXPORT_METHOD(wireAudioEngineSubscription) {
+  [_moduleImpl wireAudioEngineSubscription];
+}
+#endif
+
+#pragma mark - unwireAudioEngineSubscription
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (void)unwireAudioEngineSubscription {
+  [_moduleImpl unwireAudioEngineSubscription];
+}
+#else
+RCT_EXPORT_METHOD(unwireAudioEngineSubscription) {
+  [_moduleImpl unwireAudioEngineSubscription];
+}
+#endif
+
 #pragma mark - stopService
 
 #ifdef RCT_NEW_ARCH_ENABLED
@@ -223,8 +259,8 @@ RCT_EXPORT_METHOD(stopService:(RCTPromiseResolveBlock)resolve
   // Not implemented on iOS
   resolve(@YES);
 }
-
 #endif
+
 #pragma mark - setShouldRejectCallWhenBusy
 
 #ifdef RCT_NEW_ARCH_ENABLED
@@ -234,6 +270,18 @@ RCT_EXPORT_METHOD(stopService:(RCTPromiseResolveBlock)resolve
 #else
 RCT_EXPORT_METHOD(setShouldRejectCallWhenBusy:(BOOL)shouldReject) {
   [Settings setShouldRejectCallWhenBusy:shouldReject];
+}
+#endif
+
+#pragma mark - setDefaultAudioDeviceEndpointType
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (void)setDefaultAudioDeviceEndpointType:(NSString *)endpointType {
+  [_moduleImpl setDefaultAudioDeviceEndpointType:endpointType];
+}
+#else
+RCT_EXPORT_METHOD(setDefaultAudioDeviceEndpointType:(NSString *)endpointType) {
+  [_moduleImpl setDefaultAudioDeviceEndpointType:endpointType];
 }
 #endif
 
@@ -389,6 +437,67 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(hasRegisteredCall) {
 }
 #endif
 
+#pragma mark - isTelecomBacked
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (NSNumber *)isTelecomBacked {
+  // Android-only Telecom routing; iOS uses the CallKit bypass instead.
+  return @NO;
+}
+#else
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(isTelecomBacked) {
+  return @NO;
+}
+#endif
+
+#pragma mark - getRegisteredCallIds
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (NSArray<NSString *> *)getRegisteredCallIds {
+  return @[];
+}
+#else
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getRegisteredCallIds) {
+  return @[];
+}
+#endif
+
+#pragma mark - getAvailableAudioEndpoints
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (void)getAvailableAudioEndpoints:(nonnull NSString *)callId
+                           resolve:(nonnull RCTPromiseResolveBlock)resolve
+                            reject:(nonnull RCTPromiseRejectBlock)reject {
+  resolve(@"{\"endpoints\":[],\"currentEndpoint\":null}");
+}
+#else
+RCT_EXPORT_METHOD(getAvailableAudioEndpoints:(NSString *)callId
+                           resolve:(RCTPromiseResolveBlock)resolve
+                            reject:(RCTPromiseRejectBlock)reject) {
+  resolve(@"{\"endpoints\":[],\"currentEndpoint\":null}");
+}
+#endif
+
+#pragma mark - requestAudioEndpointChange
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (void)requestAudioEndpointChange:(nonnull NSString *)callId
+                        endpointId:(nonnull NSString *)endpointId
+                           resolve:(nonnull RCTPromiseResolveBlock)resolve
+                            reject:(nonnull RCTPromiseRejectBlock)reject {
+  // Not implemented on iOS
+  resolve(@YES);
+}
+#else
+RCT_EXPORT_METHOD(requestAudioEndpointChange:(NSString *)callId
+                        endpointId:(NSString *)endpointId
+                           resolve:(RCTPromiseResolveBlock)resolve
+                            reject:(RCTPromiseRejectBlock)reject) {
+  // Not implemented on iOS
+  resolve(@YES);
+}
+#endif
+
 #pragma mark - setCurrentCallActive
 
 #ifdef RCT_NEW_ARCH_ENABLED
@@ -535,11 +644,11 @@ RCT_EXPORT_METHOD(fulfillEndCallAction:(NSString *)callId didFail:(BOOL)didFail)
 
 #ifdef RCT_NEW_ARCH_ENABLED
 - (void)log:(NSString *)message level:(NSString *)level {
-  NSLog(@"[Callingx][log] %@, %@", message, level);
+  [CallingxLogBridge js:message level:level];
 }
 #else
 RCT_EXPORT_METHOD(log:(NSString *)message level:(NSString *)level) {
-  NSLog(@"[Callingx][log] %@, %@", message, level);
+  [CallingxLogBridge js:message level:level];
 }
 #endif
 
@@ -578,18 +687,6 @@ RCT_EXPORT_METHOD(stopBackgroundTask:(NSString *)taskName
                     reject:(RCTPromiseRejectBlock)reject) {
   // Not implemented on iOS
   resolve(@YES);
-}
-#endif
-
-#pragma mark - registerBackgroundTaskAvailable
-
-#ifdef RCT_NEW_ARCH_ENABLED
-- (void)registerBackgroundTaskAvailable {
-  // Not implemented on iOS - background tasks work differently on iOS
-}
-#else
-RCT_EXPORT_METHOD(registerBackgroundTaskAvailable) {
-  // Not implemented on iOS - background tasks work differently on iOS
 }
 #endif
 

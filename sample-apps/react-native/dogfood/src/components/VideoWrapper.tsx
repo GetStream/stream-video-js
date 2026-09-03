@@ -14,6 +14,7 @@ import translations from '../translations';
 import { useCustomTheme } from '../theme';
 import axios, { AxiosResponseTransformer } from 'axios';
 import { Alert } from 'react-native';
+import { useRegisterNonRingingPushToken } from '../hooks/useRegisterNonRingingPushToken';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
@@ -118,9 +119,19 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       style={customTheme}
       translationsOverrides={translations}
     >
+      <NonRingingPushTokenRegistration />
       {children}
     </StreamVideo>
   );
+};
+
+/**
+ * Registers APN token with Stream backend on iOS for non-ringing notifications.
+ * No-op on Android (SDK handles Firebase token registration).
+ */
+const NonRingingPushTokenRegistration = () => {
+  useRegisterNonRingingPushToken();
+  return null;
 };
 
 const getCustomSfuResponseTransformers = (localIpAddress: string) =>

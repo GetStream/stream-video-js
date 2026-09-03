@@ -15,7 +15,7 @@ import { SettingsTabModalMenu } from './Settings/SettingsTabModal';
 const ToggleEffectsMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
->(function ToggleEffectsMenuButton(props, ref) {
+>(function ToggleEffectsMenuButtonRender(props, ref) {
   const { isSupported: effectsSupported } = useBackgroundFilters();
   const { t } = useI18n();
   return (

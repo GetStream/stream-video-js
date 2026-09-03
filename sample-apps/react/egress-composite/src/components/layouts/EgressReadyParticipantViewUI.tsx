@@ -47,6 +47,7 @@ const useNotifyEgressReadyOnFirstFrame = () => {
     if (!isPublishingTrack && videoPlaceholderElement) {
       notifyReady(true);
     }
+    return undefined;
   }, [
     notifyReady,
     participant?.publishedTracks,

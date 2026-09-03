@@ -42,6 +42,21 @@ export const isPinned = (p: StreamVideoParticipant): boolean =>
   !!p.pin && (p.pin.isLocalPin || p.pin.pinnedAt > 0);
 
 /**
+ * Check if a participant has a track that is currently interrupted: the
+ * participant intends to publish it (it is in `publishedTracks`) but no
+ * media is flowing right now (it is in `interruptedTracks`).
+ *
+ * @param p the participant to check.
+ * @param trackType the track type to check.
+ */
+export const hasInterruptedTrack = (
+  p: StreamVideoParticipant,
+  trackType: TrackType,
+): boolean =>
+  !!p.interruptedTracks?.includes(trackType) &&
+  p.publishedTracks.includes(trackType);
+
+/**
  * Check if a participant has a paused track of the specified type.
  *
  * @param p the participant to check.

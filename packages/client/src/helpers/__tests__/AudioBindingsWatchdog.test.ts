@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AudioBindingsWatchdog } from '../AudioBindingsWatchdog';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
+import { ClientEventReporter } from '../../reporting';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import { noopComparator } from '../../sorting';
 import { fromPartial } from '@total-typescript/shoehorn';
@@ -19,12 +20,14 @@ describe('AudioBindingsWatchdog', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+    const streamClient = new StreamClient('api-key', {
+      devicePersistence: { enabled: false },
+    });
     call = new Call({
       id: 'id',
       type: 'default',
-      streamClient: new StreamClient('api-key', {
-        devicePersistence: { enabled: false },
-      }),
+      streamClient,
+      clientEventReporter: new ClientEventReporter({ streamClient }),
       clientStore: new StreamVideoWriteableStateStore(),
     });
     call.setSortParticipantsBy(noopComparator());

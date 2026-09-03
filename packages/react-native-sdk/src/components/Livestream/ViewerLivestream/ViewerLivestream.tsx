@@ -103,12 +103,11 @@ export const ViewerLivestream = ({
   // Automatically route audio to speaker devices as relevant for watching videos.
   useEffect(() => {
     const prevInCallManager = getRNInCallManagerLibNoThrow();
-    if (prevInCallManager) {
-      prevInCallManager.start({ media: 'video' });
-      return () => {
-        prevInCallManager.stop();
-      };
-    }
+    if (!prevInCallManager) return;
+    prevInCallManager.start({ media: 'video' });
+    return () => {
+      prevInCallManager.stop();
+    };
   }, []);
 
   useEffect(() => {
@@ -148,11 +147,19 @@ export const ViewerLivestream = ({
   ]);
 
   if (endedAt != null) {
-    return <CallEndedView />;
+    return (
+      <View style={[styles.container, viewerLivestream.container]}>
+        <CallEndedView />
+      </View>
+    );
   }
 
   if (!canJoinLive || callingState !== CallingState.JOINED) {
-    return <ViewerLobby isLive={canJoinLive} />;
+    return (
+      <View style={[styles.container, viewerLivestream.container]}>
+        <ViewerLobby isLive={canJoinLive} />
+      </View>
+    );
   }
 
   return (
@@ -197,13 +204,12 @@ const useCanJoinEarly = () => {
   );
 
   useEffect(() => {
-    if (!canJoinEarly) {
-      const handle = setInterval(() => {
-        setCanJoinEarly(checkCanJoinEarly(startsAt, joinAheadTimeSeconds));
-      }, 1000);
+    if (canJoinEarly) return;
+    const handle = setInterval(() => {
+      setCanJoinEarly(checkCanJoinEarly(startsAt, joinAheadTimeSeconds));
+    }, 1000);
 
-      return () => clearInterval(handle);
-    }
+    return () => clearInterval(handle);
   }, [canJoinEarly, startsAt, joinAheadTimeSeconds]);
 
   return canJoinEarly;

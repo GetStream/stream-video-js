@@ -1,6 +1,7 @@
 import {
   ComponentPropsWithoutRef,
   ComponentType,
+  CSSProperties,
   useEffect,
   useLayoutEffect,
   useState,
@@ -24,6 +25,8 @@ import {
   DefaultPictureInPicturePlaceholder,
   PictureInPicturePlaceholderProps,
 } from './DefaultPictureInPicturePlaceholder';
+
+const ABSOLUTE_POSITION_STYLE: CSSProperties = { position: 'absolute' };
 
 export type VideoProps = ComponentPropsWithoutRef<'video'> & {
   /**
@@ -203,14 +206,14 @@ export const Video = ({
       )}
       {isPiP && PictureInPicturePlaceholder && (
         <PictureInPicturePlaceholder
-          style={{ position: 'absolute' }}
+          style={ABSOLUTE_POSITION_STYLE}
           participant={participant}
         />
       )}
       {/* TODO: add condition to "hold" the placeholder until track unmutes as well */}
       {(hasNoVideoOrInvisible || isVideoPaused) && VideoPlaceholder && (
         <VideoPlaceholder
-          style={{ position: 'absolute' }}
+          style={ABSOLUTE_POSITION_STYLE}
           participant={participant}
           ref={refs?.setVideoPlaceholderElement}
         />

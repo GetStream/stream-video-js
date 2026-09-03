@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Pressable,
   type StyleProp,
@@ -25,10 +25,7 @@ import { useFloatingVideoDimensions } from './useFloatingVideoDimensions';
 import { type StreamVideoParticipant } from '@stream-io/video-client';
 
 export type FloatingParticipantViewAlignment =
-  | 'top-left'
-  | 'top-right'
-  | 'bottom-left'
-  | 'bottom-right';
+  'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
 /**
  * Props to be passed for the LocalVideoView component.
@@ -61,6 +58,16 @@ export type FloatingParticipantViewProps = ParticipantViewComponentProps &
     onPressHandler?: () => void;
   };
 
+const floatingAlignmentMap: Record<
+  FloatingParticipantViewAlignment,
+  FloatingViewAlignment
+> = {
+  'top-left': FloatingViewAlignment.topLeft,
+  'top-right': FloatingViewAlignment.topRight,
+  'bottom-left': FloatingViewAlignment.bottomLeft,
+  'bottom-right': FloatingViewAlignment.bottomRight,
+};
+
 const DefaultLocalParticipantViewVideoFallback = () => {
   const {
     theme: {
@@ -74,6 +81,7 @@ const DefaultLocalParticipantViewVideoFallback = () => {
   return (
     <View
       style={[
+        StyleSheet.absoluteFill,
         styles.videoFallback,
         { backgroundColor: colors.sheetSecondary },
         floatingParticipantsView.videoFallback,
@@ -113,16 +121,6 @@ export const FloatingParticipantView = ({
     },
   } = useTheme();
 
-  const floatingAlignmentMap: Record<
-    FloatingParticipantViewAlignment,
-    FloatingViewAlignment
-  > = {
-    'top-left': FloatingViewAlignment.topLeft,
-    'top-right': FloatingViewAlignment.topRight,
-    'bottom-left': FloatingViewAlignment.bottomLeft,
-    'bottom-right': FloatingViewAlignment.bottomRight,
-  };
-
   const [containerDimensions, setContainerDimensions] = React.useState<{
     width: number;
     height: number;
@@ -133,13 +131,21 @@ export const FloatingParticipantView = ({
     'videoTrack',
   );
 
-  const participantViewProps: ParticipantViewComponentProps = {
-    ParticipantLabel: null,
-    ParticipantNetworkQualityIndicator,
-    ParticipantReaction,
-    ParticipantVideoFallback,
-    VideoRenderer,
-  };
+  const participantViewProps: ParticipantViewComponentProps = useMemo(
+    () => ({
+      ParticipantLabel: null,
+      ParticipantNetworkQualityIndicator,
+      ParticipantReaction,
+      ParticipantVideoFallback,
+      VideoRenderer,
+    }),
+    [
+      ParticipantNetworkQualityIndicator,
+      ParticipantReaction,
+      ParticipantVideoFallback,
+      VideoRenderer,
+    ],
+  );
 
   if (!participant) {
     return null;
@@ -224,7 +230,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   videoFallback: {
-    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -8,7 +8,6 @@ import { Users } from '../constants/Users';
 const API_KEY = 'par8f5s3gn2j';
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
-    isExpo: true,
     ios: {
       pushProviderName: 'expo-apn-video-ringingtutorial',
     },

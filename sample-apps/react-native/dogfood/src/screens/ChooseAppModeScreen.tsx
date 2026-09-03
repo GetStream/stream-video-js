@@ -34,6 +34,10 @@ export const ChooseAppModeScreen = () => {
     setState({ appMode: 'LiveStream' });
   };
 
+  const onTestRecordingSelect = () => {
+    setState({ appMode: 'TestRecording' });
+  };
+
   const onRingingSelect = () => {
     setState({ appMode: 'Call' });
   };
@@ -69,6 +73,11 @@ export const ChooseAppModeScreen = () => {
         <Button
           title={t('Livestreaming')}
           onPress={onLiveStreamSelect}
+          buttonStyle={styles.callButton}
+        />
+        <Button
+          title={t('Test Recording')}
+          onPress={onTestRecordingSelect}
           buttonStyle={styles.callButton}
         />
       </View>

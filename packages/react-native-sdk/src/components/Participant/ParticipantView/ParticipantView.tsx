@@ -100,76 +100,80 @@ export type ParticipantViewProps = ParticipantViewComponentProps &
  * and additional info. By an absence of a video track or when isVisible is truthy,
  * only an avatar and audio track will be rendered.
  */
-export const ParticipantView = ({
-  participant,
-  trackType = 'videoTrack',
-  isVisible = true,
-  style,
-  ParticipantLabel = DefaultParticipantLabel,
-  ParticipantReaction = DefaultParticipantReaction,
-  VideoRenderer = DefaultVideoRenderer,
-  ParticipantNetworkQualityIndicator = DefaultParticipantNetworkQualityIndicator,
-  ParticipantVideoFallback = DefaultParticipantVideoFallback,
-  objectFit,
-  videoZOrder = 0,
-  mirror,
-  supportedReactions,
-}: ParticipantViewProps) => {
-  const {
-    theme: { colors, participantView },
-  } = useTheme();
-  const { isSpeaking, userId } = participant;
-  const styles = useStyles();
-  const isScreenSharing = trackType === 'screenShareTrack';
-  const applySpeakerStyle = isSpeaking && !isScreenSharing;
-  const speakerStyle = applySpeakerStyle && [
-    { borderColor: colors.buttonPrimary },
-    participantView.highlightedContainer,
-  ];
+export const ParticipantView = React.memo(
+  ({
+    participant,
+    trackType = 'videoTrack',
+    isVisible = true,
+    style,
+    ParticipantLabel = DefaultParticipantLabel,
+    ParticipantReaction = DefaultParticipantReaction,
+    VideoRenderer = DefaultVideoRenderer,
+    ParticipantNetworkQualityIndicator = DefaultParticipantNetworkQualityIndicator,
+    ParticipantVideoFallback = DefaultParticipantVideoFallback,
+    objectFit,
+    videoZOrder = 0,
+    mirror,
+    supportedReactions,
+  }: ParticipantViewProps) => {
+    const {
+      theme: { colors, participantView },
+    } = useTheme();
+    const { isSpeaking, userId } = participant;
+    const styles = useStyles();
+    const isScreenSharing = trackType === 'screenShareTrack';
+    const applySpeakerStyle = isSpeaking && !isScreenSharing;
+    const speakerStyle = applySpeakerStyle && [
+      { borderColor: colors.buttonPrimary },
+      participantView.highlightedContainer,
+    ];
 
-  return (
-    <View
-      style={[styles.container, style, speakerStyle]}
-      testID={
-        isSpeaking
-          ? `participant-${userId}-is-speaking`
-          : `participant-${userId}-is-not-speaking`
-      }
-    >
-      {ParticipantReaction && (
-        <ParticipantReaction
-          participant={participant}
-          supportedReactions={supportedReactions}
-        />
-      )}
-      {VideoRenderer && (
-        <VideoRenderer
-          isVisible={isVisible}
-          participant={participant}
-          trackType={trackType}
-          ParticipantVideoFallback={ParticipantVideoFallback}
-          objectFit={objectFit}
-          videoZOrder={videoZOrder}
-          mirror={mirror}
-        />
-      )}
+    return (
       <View
-        style={[
-          styles.footerContainer,
-          participantView.footerContainer,
-          !ParticipantLabel && styles.networkIndicatorOnly,
-        ]}
+        style={[styles.container, style, speakerStyle]}
+        testID={
+          isSpeaking
+            ? `participant-${userId}-is-speaking`
+            : `participant-${userId}-is-not-speaking`
+        }
       >
-        {ParticipantLabel && (
-          <ParticipantLabel participant={participant} trackType={trackType} />
+        {ParticipantReaction && (
+          <ParticipantReaction
+            participant={participant}
+            supportedReactions={supportedReactions}
+          />
         )}
-        {ParticipantNetworkQualityIndicator && (
-          <ParticipantNetworkQualityIndicator participant={participant} />
+        {VideoRenderer && (
+          <VideoRenderer
+            isVisible={isVisible}
+            participant={participant}
+            trackType={trackType}
+            ParticipantVideoFallback={ParticipantVideoFallback}
+            objectFit={objectFit}
+            videoZOrder={videoZOrder}
+            mirror={mirror}
+          />
         )}
+        <View
+          style={[
+            styles.footerContainer,
+            participantView.footerContainer,
+            !ParticipantLabel && styles.networkIndicatorOnly,
+          ]}
+        >
+          {ParticipantLabel && (
+            <ParticipantLabel participant={participant} trackType={trackType} />
+          )}
+          {ParticipantNetworkQualityIndicator && (
+            <ParticipantNetworkQualityIndicator participant={participant} />
+          )}
+        </View>
       </View>
-    </View>
-  );
-};
+    );
+  },
+);
+
+ParticipantView.displayName = 'ParticipantView';
 
 const useStyles = () => {
   const { theme } = useTheme();

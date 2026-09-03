@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  ImageBackground,
-  StyleSheet,
-  Text,
-  View,
-  type ViewStyle,
-} from 'react-native';
+import { Image, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import {
   useCallStateHooks,
   useConnectedUser,
@@ -45,17 +39,29 @@ export const IncomingCall = ({
 }: IncomingCallProps) => {
   const { t } = useI18n();
   const {
-    theme: { colors, incomingCall, typefaces },
+    theme: { colors, incomingCall, typefaces, variants },
   } = useTheme();
 
   const landscapeContentStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };
 
+  const insetStyles: ViewStyle = {
+    paddingTop: variants.insets.top,
+    paddingBottom: variants.insets.bottom,
+    paddingLeft: variants.insets.left,
+    paddingRight: variants.insets.right,
+  };
+
   return (
     <Background>
       <View
-        style={[styles.content, landscapeContentStyles, incomingCall.content]}
+        style={[
+          styles.content,
+          landscapeContentStyles,
+          insetStyles,
+          incomingCall.content,
+        ]}
       >
         <View style={[styles.topContainer, incomingCall.topContainer]}>
           <UserInfo />
@@ -108,18 +114,22 @@ const Background: React.FunctionComponent<{
 
   if (avatarsToShow.length) {
     return (
-      <ImageBackground
-        source={{
-          uri: avatarsToShow[0],
-        }}
+      <View
         style={[
           styles.background,
           { backgroundColor: colors.sheetTertiary },
           incomingCall.background,
         ]}
       >
+        <Image
+          source={{
+            uri: avatarsToShow[0],
+          }}
+          resizeMode="cover"
+          style={StyleSheet.absoluteFill}
+        />
         {children}
-      </ImageBackground>
+      </View>
     );
   }
   return (

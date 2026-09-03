@@ -74,6 +74,7 @@ type OrphanedTrack = {
   trackLookupPrefix: string;
   trackType: TrackType;
   track: MediaStream;
+  receiver?: RTCRtpReceiver;
 };
 
 /**
@@ -108,6 +109,7 @@ export class CallState {
   >(undefined);
   private transcribingSubject = new BehaviorSubject<boolean>(false);
   private captioningSubject = new BehaviorSubject<boolean>(false);
+  private e2eeEnabledSubject = new BehaviorSubject<boolean>(false);
   private endedBySubject = new BehaviorSubject<UserResponse | undefined>(
     undefined,
   );
@@ -312,6 +314,12 @@ export class CallState {
   captioning$: Observable<boolean>;
 
   /**
+   * Whether end-to-end encryption is active for this call, as reported by the
+   * SFU in the join response.
+   */
+  e2eeEnabled$: Observable<boolean>;
+
+  /**
    * Will provide the user who ended this call.
    */
   endedBy$: Observable<UserResponse | undefined>;
@@ -341,8 +349,7 @@ export class CallState {
 
   private readonly eventHandlers: {
     [EventType in VideoEvent['type']]:
-      | ((event: Extract<VideoEvent, { type: EventType }>) => void)
-      | undefined;
+      ((event: Extract<VideoEvent, { type: EventType }>) => void) | undefined;
   };
 
   /**
@@ -409,21 +416,6 @@ export class CallState {
     this.closedCaptions$ = this.closedCaptionsSubject.asObservable();
 
     /**
-     * Performs shallow comparison of two arrays.
-     * Expects primitive values: [1, 2, 3] is equal to [2, 1, 3].
-     */
-    const isShallowEqual = <T>(a: Array<T>, b: Array<T>): boolean => {
-      if (a.length !== b.length) return false;
-      for (const item of a) {
-        if (!b.includes(item)) return false;
-      }
-      for (const item of b) {
-        if (!a.includes(item)) return false;
-      }
-      return true;
-    };
-
-    /**
      * Creates an Observable from the given subject by piping to the
      * `distinctUntilChanged()` operator.
      */
@@ -436,7 +428,10 @@ export class CallState {
     this.anonymousParticipantCount$ = duc(
       this.anonymousParticipantCountSubject,
     );
-    this.blockedUserIds$ = duc(this.blockedUserIdsSubject, isShallowEqual);
+    this.blockedUserIds$ = duc(
+      this.blockedUserIdsSubject,
+      RxUtils.isShallowArrayEqual,
+    );
     this.backstage$ = duc(this.backstageSubject);
     this.callingState$ = duc(this.callingStateSubject);
     this.ownCapabilities$ = combineLatest([
@@ -471,7 +466,7 @@ export class CallState {
 
         return nextCapabilities;
       }),
-      distinctUntilChanged(isShallowEqual),
+      distinctUntilChanged(RxUtils.isShallowArrayEqual),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
     this.participantCount$ = duc(this.participantCountSubject);
@@ -480,6 +475,7 @@ export class CallState {
     this.rawRecording$ = duc(this.rawRecordingSubject);
     this.transcribing$ = duc(this.transcribingSubject);
     this.captioning$ = duc(this.captioningSubject);
+    this.e2eeEnabled$ = duc(this.e2eeEnabledSubject);
 
     this.eventHandlers = {
       // these events are not updating the call state:
@@ -587,6 +583,7 @@ export class CallState {
       clearTimeout(taskId);
       this.closedCaptionsTasks.delete(ccKey);
     }
+    this.removeAllOrphanedTracks();
   };
 
   /**
@@ -599,6 +596,13 @@ export class CallState {
     this.sortParticipantsBy = comparator;
     // trigger re-sorting of participants
     this.setCurrentValue(this.participantsSubject, (ps) => ps);
+  };
+
+  /**
+   * Returns the comparator currently used to sort the participants.
+   */
+  getSortParticipantsBy = (): Comparator<StreamVideoParticipant> => {
+    return this.sortParticipantsBy;
   };
 
   /**
@@ -980,6 +984,13 @@ export class CallState {
   }
 
   /**
+   * Whether end-to-end encryption is active for this call.
+   */
+  get e2eeEnabled() {
+    return this.getCurrentValue(this.e2eeEnabled$);
+  }
+
+  /**
    * Will provide the user who ended this call.
    */
   get endedBy() {
@@ -1256,6 +1267,19 @@ export class CallState {
   };
 
   /**
+   * Drops every orphaned track. Call this when the peer connections that own
+   * the stored receivers go away (full leave, reconnect, or migration):
+   * `pc.close()` does not raise the track `ended` event, so the per-track
+   * cleanup never fires and the receivers + their closed PCs would otherwise
+   * leak for the call's lifetime.
+   *
+   * @internal
+   */
+  removeAllOrphanedTracks = () => {
+    this.orphanedTracks = [];
+  };
+
+  /**
    * Takes all orphaned tracks with the given track lookup prefix.
    * All orphaned tracks with the given track lookup prefix are removed from the call state.
    *
@@ -1342,7 +1366,8 @@ export class CallState {
     currentSessionId: string,
     reconnectDetails?: ReconnectDetails,
   ) => {
-    const { participants, participantCount, startedAt, pins } = callState;
+    const { participants, participantCount, startedAt, pins, e2EeEnabled } =
+      callState;
     const localPublishedTracks =
       reconnectDetails?.announcedTracks.map((t) => t.trackType) ?? [];
     this.setParticipants(() => {
@@ -1371,6 +1396,7 @@ export class CallState {
     this.setAnonymousParticipantCount(participantCount?.anonymous || 0);
     this.setStartedAt(startedAt ? Timestamp.toDate(startedAt) : new Date());
     this.setServerSidePins(pins);
+    this.setCurrentValue(this.e2eeEnabledSubject, e2EeEnabled);
   };
 
   private updateFromMemberRemoved = (event: CallMemberRemovedEvent) => {

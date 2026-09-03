@@ -2,11 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CallContent,
   NoiseCancellationProvider,
+  StreamTheme,
   useCall,
   useIsInPiPMode,
   useModeration,
   useTheme,
   useToggleCallRecording,
+  BackgroundFiltersProvider,
 } from '@stream-io/video-react-native-sdk';
 import {
   ActivityIndicator,
@@ -16,11 +18,10 @@ import {
   View,
 } from 'react-native';
 import { ParticipantsInfoListModal } from './ParticipantsInfoListModal';
-import { BottomControls } from './CallControlls/BottomControls';
+import { BottomControls } from './CallControls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
-import { TopControls } from './CallControlls/TopControls';
-import { AudioConnectingParticipantLabel } from './AudioConnectingParticipantLabel';
+import { TopControls } from './CallControls/TopControls';
 import { useLayout } from '../contexts/LayoutContext';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import DeviceInfo from 'react-native-device-info';
@@ -29,15 +30,31 @@ import Toast from 'react-native-toast-message';
 type ActiveCallProps = {
   onHangupCallHandler?: () => void;
   onCallEnded: () => void;
-  onChatOpenHandler: () => void;
-  unreadCountIndicator: number;
+  onChatOpenHandler: (() => void) | null;
+};
+
+// Since we are adding CustomTopControls, we need to override the callContent container paddingTop to 0
+const CustomCallContentThemeOverride = ({
+  children,
+}: React.PropsWithChildren<{}>) => {
+  const { theme } = useTheme();
+  const customTheme = {
+    ...theme,
+    callContent: {
+      ...theme.callContent,
+      container: {
+        ...theme.callContent.container,
+        paddingTop: 0,
+      },
+    },
+  };
+  return <StreamTheme theme={customTheme}>{children}</StreamTheme>;
 };
 
 export const ActiveCall = ({
   onChatOpenHandler,
   onHangupCallHandler,
   onCallEnded,
-  unreadCountIndicator,
 }: ActiveCallProps) => {
   const [isCallParticipantsVisible, setIsCallParticipantsVisible] =
     useState<boolean>(false);
@@ -89,7 +106,6 @@ export const ActiveCall = ({
       <BottomControls
         onParticipantInfoPress={onOpenCallParticipantsInfo}
         onChatOpenHandler={onChatOpenHandler}
-        unreadCountIndicator={unreadCountIndicator}
         toggleCallRecording={toggleCallRecording}
         isCallRecordingInProgress={isCallRecordingInProgress}
         isAwaitingResponse={isAwaitingResponse}
@@ -98,7 +114,6 @@ export const ActiveCall = ({
   }, [
     onChatOpenHandler,
     onOpenCallParticipantsInfo,
-    unreadCountIndicator,
     toggleCallRecording,
     isAwaitingResponse,
     isCallRecordingInProgress,
@@ -119,26 +134,29 @@ export const ActiveCall = ({
   }
 
   return (
-    <NoiseCancellationProvider>
-      <View style={styles.container}>
-        <StatusBar
-          barStyle={themeMode === 'light' ? 'dark-content' : 'light-content'}
-        />
-        {!isInPiPMode && <CustomTopControls />}
-        <CallContent
-          iOSPiPIncludeLocalParticipantVideo
-          onHangupCallHandler={onHangupCallHandler}
-          CallControls={CustomBottomControls}
-          ParticipantLabel={AudioConnectingParticipantLabel}
-          landscape={isLandscape}
-          layout={selectedLayout}
-        />
-        <ParticipantsInfoListModal
-          isCallParticipantsInfoVisible={isCallParticipantsVisible}
-          setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
-        />
-      </View>
-    </NoiseCancellationProvider>
+    <BackgroundFiltersProvider>
+      <NoiseCancellationProvider>
+        <View style={styles.container}>
+          <StatusBar
+            barStyle={themeMode === 'light' ? 'dark-content' : 'light-content'}
+          />
+          {!isInPiPMode && <CustomTopControls />}
+          <CustomCallContentThemeOverride>
+            <CallContent
+              iOSPiPIncludeLocalParticipantVideo
+              onHangupCallHandler={onHangupCallHandler}
+              CallControls={CustomBottomControls}
+              landscape={isLandscape}
+              layout={selectedLayout}
+            />
+          </CustomCallContentThemeOverride>
+          <ParticipantsInfoListModal
+            isCallParticipantsInfoVisible={isCallParticipantsVisible}
+            setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
+          />
+        </View>
+      </NoiseCancellationProvider>
+    </BackgroundFiltersProvider>
   );
 };
 
@@ -185,10 +203,6 @@ const useStyles = () => {
           right: 0,
           width: theme.variants.insets.right,
           backgroundColor: theme.colors.sheetPrimary,
-        },
-        view: {
-          ...StyleSheet.absoluteFillObject,
-          zIndex: Z_INDEX.IN_FRONT,
         },
       }),
     [theme],

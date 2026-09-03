@@ -2,6 +2,65 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.10.0...@stream-io/noise-cancellation-react-native-0.11.0) (2026-08-18)
+
+### Features
+
+- hi-fi audio ([#2305](https://github.com/GetStream/stream-video-js/issues/2305)) ([c2e0f21](https://github.com/GetStream/stream-video-js/commit/c2e0f21d4f57bbf2c64fdc3f5bca45a988f3a176))
+
+## [0.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.9.5...@stream-io/noise-cancellation-react-native-0.10.0) (2026-08-07)
+
+### Features
+
+- added audio capture for ios broadcast screensharing mode ([#2346](https://github.com/GetStream/stream-video-js/issues/2346)) ([eb40f3e](https://github.com/GetStream/stream-video-js/commit/eb40f3ea5bfc5cfc28f3f6ef81c54bcbdeb1a804))
+- **react-native:** Expo SDK 57 / RN 0.86.2 upgrade and iOS 27 compatibility fixes ([#2355](https://github.com/GetStream/stream-video-js/issues/2355)) ([ea3c29b](https://github.com/GetStream/stream-video-js/commit/ea3c29b227f7a2a9ddb0eb046325e4783b558c94))
+
+## [0.9.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.9.4...@stream-io/noise-cancellation-react-native-0.9.5) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.9.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.9.3...@stream-io/noise-cancellation-react-native-0.9.4) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.9.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.9.2...@stream-io/noise-cancellation-react-native-0.9.3) (2026-07-17)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.9.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.9.1...@stream-io/noise-cancellation-react-native-0.9.2) (2026-07-09)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.9.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.9.0...@stream-io/noise-cancellation-react-native-0.9.1) (2026-07-02)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.8.0...@stream-io/noise-cancellation-react-native-0.9.0) (2026-06-26)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Features
+
+- upgrade to TypeScript 6.0.3, pin ES2022, raise supported-browser floors ([#2290](https://github.com/GetStream/stream-video-js/issues/2290)) ([d9ea158](https://github.com/GetStream/stream-video-js/commit/d9ea15846582fa8db86b3b873eca2afe92ae3593))
+
+## [0.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.7.0...@stream-io/noise-cancellation-react-native-0.8.0) (2026-06-11)
+
+### Features
+
+- webrtc 145 upgrade ([#2133](https://github.com/GetStream/stream-video-js/issues/2133)) ([07825e4](https://github.com/GetStream/stream-video-js/commit/07825e402193ed07acf1d41831545326a0ad93d9)), closes [rn-webrtc#27](https://github.com/GetStream/rn-webrtc/issues/27)
+
 ## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.6.0...@stream-io/noise-cancellation-react-native-0.7.0) (2026-04-09)
 
 ### Features

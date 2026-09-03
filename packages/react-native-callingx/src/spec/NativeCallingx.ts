@@ -18,6 +18,7 @@ export interface Spec extends TurboModule {
     imageName: string | null;
     callsHistory: boolean;
     displayCallTimeout: number;
+    skipIncomingPushInForeground: boolean;
   }): void;
 
   setupAndroid(options: {
@@ -35,20 +36,59 @@ export interface Spec extends TurboModule {
       accepting?: string;
       rejecting?: string;
     };
+    skipIncomingPushInForeground: boolean;
   }): void;
+
+  wireAudioEngineSubscription(): void;
+
+  unwireAudioEngineSubscription(): void;
 
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;
 
+  setDefaultAudioDeviceEndpointType(endpointType: string): void;
+
   canPostNotifications(): boolean;
+
+  /**
+   * Whether audio routing is backed by the Jetpack Telecom stack on this device.
+   * Android: true on API 26+. iOS: always false (CallKit path uses its own bypass).
+   */
+  isTelecomBacked(): boolean;
+
+  /** Call ids currently registered with Telecom (Android). Empty on iOS. */
+  getRegisteredCallIds(): Array<string>;
+
+  /**
+   * Resolves a JSON string snapshot `{ endpoints: [{id,name,type}], currentEndpoint }`
+   * of the Telecom audio endpoints for the given call (Android). Resolves an empty
+   * snapshot on iOS / when the call is unknown.
+   */
+  getAvailableAudioEndpoints(callId: string): Promise<string>;
+
+  /** Requests a Telecom audio-endpoint change by endpoint id (Android). */
+  requestAudioEndpointChange(callId: string, endpointId: string): Promise<void>;
 
   getInitialEvents(): Array<{
     eventName: string;
     params: {
-      callId: string;
+      callId?: string;
       cause?: string;
       muted?: boolean;
       hold?: boolean;
       source?: string;
+      phase?: string;
+      reason?: string;
+      shouldResume?: boolean;
+      // `ringCallPushReceived` — raw FCM `call.ring` data payload (Android)
+      call_cid?: string;
+      sender?: string;
+      type?: string;
+      created_by_id?: string;
+      created_by_display_name?: string;
+      call_display_name?: string;
+      receiver_id?: string;
+      video?: string;
+      version?: string;
     };
   }>;
 
@@ -127,7 +167,6 @@ export interface Spec extends TurboModule {
 
   setOnHoldCall(callId: string, isOnHold: boolean): Promise<void>;
 
-  registerBackgroundTaskAvailable(): void;
   startBackgroundTask(taskName: string, timeout: number): Promise<void>;
 
   stopBackgroundTask(taskName: string): Promise<void>;
@@ -143,10 +182,24 @@ export interface Spec extends TurboModule {
   readonly onNewEvent: EventEmitter<{
     eventName: string;
     params: {
-      callId: string;
+      callId?: string;
       cause?: string;
       muted?: boolean;
       hold?: boolean;
+      source?: string;
+      phase?: string;
+      reason?: string;
+      shouldResume?: boolean;
+      // `ringCallPushReceived` — raw FCM `call.ring` data payload (Android)
+      call_cid?: string;
+      sender?: string;
+      type?: string;
+      created_by_id?: string;
+      created_by_display_name?: string;
+      call_display_name?: string;
+      receiver_id?: string;
+      video?: string;
+      version?: string;
     };
   }>;
 

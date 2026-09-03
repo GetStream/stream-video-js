@@ -14,6 +14,7 @@ export default [
       '**/node_modules/**',
       '**/build/**',
       '**/dist/**',
+      '**/.next/**',
       '**/__testfixtures__/**',
     ],
   },

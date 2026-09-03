@@ -4,7 +4,8 @@
     "outDir": "dist",
     "rootDir": "src",
     "sourceMap": false,
-    "declaration": false
+    "declaration": false,
+    "types": ["node"]
   },
   "include": ["./src"],
   "exclude": ["**/__mocks__/*", "**/__tests__/*"]

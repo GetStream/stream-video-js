@@ -1,6 +1,7 @@
 import { StreamClient } from '@stream-io/node-sdk';
 import { NextApiRequest, NextApiResponse } from 'next';
 import getRawBody from 'raw-body';
+import { deleteCallChatChannel } from '../../helpers/chat';
 import { uploadCallRecording } from '../../helpers/gong';
 import { saveParticipantAsCallMember } from '../../helpers/participants';
 
@@ -42,8 +43,7 @@ const handleWebhook = (req: NextApiRequest, res: NextApiResponse) => {
 
     let event: any;
     let processor:
-      | ((client: StreamClient, event: any) => Promise<void>)
-      | undefined;
+      ((client: StreamClient, event: any) => Promise<void>) | undefined;
 
     try {
       event = JSON.parse(body);
@@ -56,6 +56,8 @@ const handleWebhook = (req: NextApiRequest, res: NextApiResponse) => {
       processor = uploadCallRecording;
     } else if (event.type === 'call.session_participant_joined') {
       processor = saveParticipantAsCallMember;
+    } else if (event.type === 'call.session_ended') {
+      processor = deleteCallChatChannel;
     }
 
     processor?.(client, event)

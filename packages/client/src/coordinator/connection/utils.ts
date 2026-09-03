@@ -1,8 +1,24 @@
 import type { AxiosResponse } from 'axios';
 import type { APIErrorResponse } from './types';
 import type { ConnectionErrorEvent } from '../../gen/coordinator';
+import type { ScopedLogger } from '../../logger';
 
 export const sleep = (m: number) => new Promise((r) => setTimeout(r, m));
+
+export const timeboxed = async <T extends Promise<unknown>[]>(
+  promises: [...T],
+  ms: number,
+): Promise<{ [K in keyof T]: Awaited<T[K]> }> => {
+  let timerId: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timerId = setTimeout(() => reject(new Error('timebox error')), ms);
+  });
+  try {
+    return await Promise.race([Promise.all(promises), timeout]);
+  } finally {
+    clearTimeout(timerId!);
+  }
+};
 
 export function isFunction<T>(value: Function | T): value is Function {
   return (
@@ -103,3 +119,30 @@ export function isCloseEvent(
 ): res is CloseEvent {
   return (res as CloseEvent).code !== undefined;
 }
+
+/**
+ * Invokes a single event listener in isolation, so that a faulty listener
+ * cannot abort the dispatch loop nor the bookkeeping that follows it.
+ *
+ * @param listener the listener to invoke.
+ * @param event the event to pass to the listener.
+ * @param logger the logger to report listener failures with.
+ */
+export const invokeEventListener = <T>(
+  listener: (event: T) => unknown,
+  event: T,
+  logger: ScopedLogger,
+) => {
+  try {
+    const result = listener(event);
+    if (result && typeof (result as PromiseLike<unknown>).then === 'function') {
+      Promise.resolve(result).catch((error) => report(logger, error, event));
+    }
+  } catch (error) {
+    report(logger, error, event);
+  }
+};
+
+const report = (logger: ScopedLogger, error: unknown, event: unknown) => {
+  logger.error('Unhandled error in event listener', error, event);
+};

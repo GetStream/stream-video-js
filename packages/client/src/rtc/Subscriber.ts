@@ -1,9 +1,14 @@
 import { BasePeerConnection } from './BasePeerConnection';
-import { BasePeerConnectionOpts } from './types';
+import { BasePeerConnectionOpts, ReconnectReason } from './types';
 import { NegotiationError } from './NegotiationError';
-import { PeerType } from '../gen/video/sfu/models/models';
+import {
+  PeerType,
+  TrackType,
+  WebsocketReconnectStrategy,
+} from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
+import { pushToIfMissing, removeFromIfPresent } from '../helpers/array';
 import { enableStereo, removeCodecsExcept } from './helpers/sdp';
 
 /**
@@ -14,6 +19,15 @@ import { enableStereo, removeCodecsExcept } from './helpers/sdp';
  */
 export class Subscriber extends BasePeerConnection {
   /**
+   * Remote streams received from the SFU. For a self-sub case
+   * we need to be able to distinguish between the local capture stream.
+   * The map will never contain local streams so we can safely use it to
+   * check if the stream is remote and dispose it when needed.
+   */
+  private trackedStreams?: WeakSet<MediaStream>;
+  private negotiationFailures = 0;
+
+  /**
    * Constructs a new `Subscriber` instance.
    */
   constructor(opts: BasePeerConnectionOpts) {
@@ -21,9 +35,25 @@ export class Subscriber extends BasePeerConnection {
     this.pc.addEventListener('track', this.handleOnTrack);
 
     this.on('subscriberOffer', async (subscriberOffer) => {
-      return this.negotiate(subscriberOffer).catch((err) => {
-        this.logger.error(`Negotiation failed.`, err);
-      });
+      try {
+        const result = await this.negotiate(subscriberOffer);
+        this.negotiationFailures = 0;
+        return result;
+      } catch (err: any) {
+        const message = 'subscriber.negotiationFailed';
+        this.tracer?.trace(message, err.message);
+        this.logger.warn(message, err);
+
+        const failures = ++this.negotiationFailures;
+        if (failures < 3) return this.tryRestartIce();
+
+        this.logger.error(`negotiation failed ${failures} times, rejoining`);
+        this.onReconnectionNeeded?.(
+          WebsocketReconnectStrategy.REJOIN,
+          ReconnectReason.SUBSCRIBER_NEGOTIATION_FAILED,
+          this.peerType,
+        );
+      }
     });
   }
 
@@ -43,13 +73,11 @@ export class Subscriber extends BasePeerConnection {
   restartIce = async () => {
     this.logger.debug('Restarting ICE connection');
     if (this.pc.signalingState === 'have-remote-offer') {
-      this.logger.debug('ICE restart is already in progress');
+      this.logger.debug('ICE negotiation is already in progress');
       return;
     }
     if (this.pc.connectionState === 'new') {
-      this.logger.debug(
-        `ICE connection is not yet established, skipping restart.`,
-      );
+      this.logger.debug(`ICE connection not yet established, skipping restart`);
       return;
     }
     const previousIsIceRestarting = this.isIceRestarting;
@@ -66,39 +94,59 @@ export class Subscriber extends BasePeerConnection {
     }
   };
 
+  /**
+   * Whether the given stream is one the SFU echoed back to us
+   * (`allowOwnTracksLoopback`) rather than a local capture stream.
+   */
+  isSelfSubscribedStream = (stream: MediaStream | undefined): boolean =>
+    !!stream && !!this.trackedStreams?.has(stream);
+
   private handleOnTrack = (e: RTCTrackEvent) => {
-    const [primaryStream] = e.streams;
+    const { streams, track } = e;
+    const [primaryStream] = streams;
     // example: `e3f6aaf8-b03d-4911-be36-83f47d37a76a:TRACK_TYPE_VIDEO`
     const [trackId, rawTrackType] = primaryStream.id.split(':');
     const participantToUpdate = this.state.participants.find(
       (p) => p.trackLookupPrefix === trackId,
     );
+    const isSelfSub = !!participantToUpdate?.isLocalParticipant;
     this.logger.debug(
       `[onTrack]: Got remote ${rawTrackType} track for userId: ${participantToUpdate?.userId}`,
-      e.track.id,
-      e.track,
+      track.id,
+      track,
     );
-
-    const trackDebugInfo = `${participantToUpdate?.userId} ${rawTrackType}:${trackId}`;
-    e.track.addEventListener('mute', () => {
-      this.logger.info(`[onTrack]: Track muted: ${trackDebugInfo}`);
-    });
-
-    e.track.addEventListener('unmute', () => {
-      this.logger.info(`[onTrack]: Track unmuted: ${trackDebugInfo}`);
-    });
-
-    e.track.addEventListener('ended', () => {
-      this.logger.info(`[onTrack]: Track ended: ${trackDebugInfo}`);
-      this.state.removeOrphanedTrack(primaryStream.id);
-    });
 
     const trackType = toTrackType(rawTrackType);
     if (!trackType) {
       return this.logger.error(`Unknown track type: ${rawTrackType}`);
     }
 
-    this.trackIdToTrackType.set(e.track.id, trackType);
+    const trackDebugInfo = `${participantToUpdate?.userId} ${rawTrackType}:${trackId}`;
+    track.addEventListener('mute', () => {
+      this.logger.info(`[onTrack]: Track muted: ${trackDebugInfo}`);
+      this.setRemoteTrackInterrupted(trackId, trackType, true);
+    });
+    track.addEventListener('unmute', () => {
+      this.logger.info(`[onTrack]: Track unmuted: ${trackDebugInfo}`);
+      this.setRemoteTrackInterrupted(trackId, trackType, false);
+      this.onRemoteTrackUnmute?.(trackType, track.id);
+    });
+    track.addEventListener('ended', () => {
+      this.logger.info(`[onTrack]: Track ended: ${trackDebugInfo}`);
+      this.setRemoteTrackInterrupted(trackId, trackType, false);
+      this.state.removeOrphanedTrack(primaryStream.id);
+    });
+
+    if (track.muted) {
+      this.setRemoteTrackInterrupted(trackId, trackType, true);
+    }
+
+    this.trackIdToTrackType.set(track.id, trackType);
+
+    if (isSelfSub) {
+      this.trackedStreams ??= new WeakSet<MediaStream>();
+      this.trackedStreams.add(primaryStream);
+    }
 
     if (!participantToUpdate) {
       this.logger.warn(
@@ -110,14 +158,26 @@ export class Subscriber extends BasePeerConnection {
         trackLookupPrefix: trackId,
         track: primaryStream,
         trackType,
+        receiver: this.e2ee ? e.receiver : undefined,
       });
       return;
+    } else if (this.e2ee) {
+      const { userId } = participantToUpdate;
+      this.e2ee.decrypt(e.receiver, userId, TrackType[trackType]);
+      this.logger.debug('E2EE decryptor attached to receiver', userId);
     }
 
     const streamKindProp = trackTypeToParticipantStreamKey(trackType);
     if (!streamKindProp) {
       this.logger.error(`Unknown track type: ${rawTrackType}`);
       return;
+    }
+
+    // Self-sub loopback audio routes to the speaker by default, which
+    // would echo the local user's voice. Default-mute here; consumers
+    // (the loopback recording hook) re-enable explicitly when needed.
+    if (isSelfSub && e.track.kind === 'audio') {
+      e.track.enabled = false;
     }
 
     // get the previous stream to dispose it later
@@ -130,10 +190,17 @@ export class Subscriber extends BasePeerConnection {
       [streamKindProp]: primaryStream,
     });
 
-    // now, dispose the previous stream if it exists
     if (previousStream) {
+      if (isSelfSub && !this.trackedStreams?.has(previousStream)) {
+        // this is the local capture stream, we don't want to dispose it
+        this.logger.debug(
+          `[onTrack]: Skipping cleanup of previous ${e.track.kind} stream for userId: ${participantToUpdate.userId} because it is not tracked`,
+        );
+        return;
+      }
+
       this.logger.info(
-        `[onTrack]: Cleaning up previous remote ${e.track.kind} tracks for userId: ${participantToUpdate.userId}`,
+        `[onTrack]: Cleaning up previous remote ${track.kind} tracks for userId: ${participantToUpdate.userId}`,
       );
       previousStream.getTracks().forEach((t) => {
         t.stop();
@@ -142,34 +209,71 @@ export class Subscriber extends BasePeerConnection {
     }
   };
 
+  private setRemoteTrackInterrupted = (
+    trackId: string,
+    trackType: TrackType,
+    interrupted: boolean,
+  ) => {
+    if (trackType !== TrackType.AUDIO) return;
+    const target = this.state.participants.find(
+      (p) => p.trackLookupPrefix === trackId,
+    );
+    if (!target) return;
+    if (target.isLocalParticipant) return;
+    this.state.updateParticipant(target.sessionId, (p) => {
+      const current = p.interruptedTracks ?? [];
+      const has = current.includes(trackType);
+      if (interrupted === has) return {};
+      const next = interrupted
+        ? pushToIfMissing([...current], trackType)
+        : removeFromIfPresent([...current], trackType);
+      return { interruptedTracks: next };
+    });
+  };
+
   private negotiate = async (subscriberOffer: SubscriberOffer) => {
-    await this.pc.setRemoteDescription({
-      type: 'offer',
-      sdp: subscriberOffer.sdp,
-    });
+    // The generation currently committed on the peer connection. If this
+    // negotiation fails and rolls back, the buffer is restored to it.
+    const previousSdp = this.pc.currentRemoteDescription?.sdp;
+    try {
+      await this.pc.setRemoteDescription({
+        type: 'offer',
+        sdp: subscriberOffer.sdp,
+      });
 
-    this.addTrickledIceCandidates();
+      this.addTrickledIceCandidates();
 
-    const answer = await this.pc.createAnswer();
-    if (answer.sdp) {
-      answer.sdp = enableStereo(subscriberOffer.sdp, answer.sdp);
-      const { dangerouslyForceCodec, subscriberFmtpLine } =
-        this.clientPublishOptions || {};
-      if (dangerouslyForceCodec) {
-        answer.sdp = removeCodecsExcept(
-          answer.sdp,
-          dangerouslyForceCodec,
-          subscriberFmtpLine,
-        );
+      const answer = await this.pc.createAnswer();
+      if (answer.sdp) {
+        answer.sdp = enableStereo(subscriberOffer.sdp, answer.sdp);
+        const { dangerouslyForceCodec, subscriberFmtpLine } =
+          this.clientPublishOptions || {};
+        if (dangerouslyForceCodec) {
+          answer.sdp = removeCodecsExcept(
+            answer.sdp,
+            dangerouslyForceCodec,
+            subscriberFmtpLine,
+          );
+        }
       }
+      await this.pc.setLocalDescription(answer);
+
+      await this.sfuClient.sendAnswer({
+        peerType: PeerType.SUBSCRIBER,
+        sdp: answer.sdp || '',
+        negotiationId: subscriberOffer.negotiationId,
+      });
+    } catch (err) {
+      if (this.pc.signalingState === 'have-remote-offer') {
+        await this.pc.setRemoteDescription({ type: 'rollback' }).catch((e) => {
+          this.logger.warn('Failed to rollback after negotiation error', e);
+        });
+        const { iceTrickleBuffer } = this.sfuClient;
+        iceTrickleBuffer.updateActiveGeneration(this.peerType, previousSdp);
+      }
+      throw err;
+    } finally {
+      this.isIceRestarting = false;
     }
-    await this.pc.setLocalDescription(answer);
-
-    await this.sfuClient.sendAnswer({
-      peerType: PeerType.SUBSCRIBER,
-      sdp: answer.sdp || '',
-    });
-
-    this.isIceRestarting = false;
   };
 }

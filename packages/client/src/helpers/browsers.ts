@@ -9,6 +9,30 @@ export const isSafari = () => {
 };
 
 /**
+ * Checks whether the current runtime is a WebKit-engine browser.
+ *
+ * Returns true for desktop Safari, iOS Safari, bare iOS WKWebView hosts
+ * (in-app browsers, React Native WebView, Tauri-on-macOS, etc.), and for
+ * Chromium / Gecko-branded iOS browsers (`CriOS`, `EdgiOS`, `OPiOS`,
+ * `FxiOS`) since Apple forces every iOS browser onto WKWebView and they
+ * share the underlying WebKit quirks.
+ *
+ * Returns false for desktop Chromium-based browsers (which reuse the
+ * `AppleWebKit/` token in their UA) and Android.
+ */
+export const isWebKit = () => {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  if (!/AppleWebKit\//.test(ua)) return false;
+  // Desktop Chromium reuses the AppleWebKit/ token. The `Chrome/` and
+  // `Chromium/` markers are only present on desktop Chromium builds
+  // (their iOS counterparts use `CriOS/` instead). `Android` rules out
+  // the mobile Blink stack.
+  const regExp = /Chrome\/|Chromium\/|Android/;
+  return !regExp.test(ua);
+};
+
+/**
  * Checks whether the current browser is Firefox.
  */
 export const isFirefox = () => {
@@ -38,11 +62,11 @@ export const isSupportedBrowser = async (): Promise<boolean> => {
   const [major] = browser.version.split('.');
   const version = parseInt(major, 10);
   return (
-    (name.includes('chrome') && version >= 124) ||
-    (name.includes('edge') && version >= 124) ||
-    (name.includes('firefox') && version >= 124) ||
-    (name.includes('safari') && version >= 17) ||
+    (name.includes('chrome') && version >= 136) ||
+    (name.includes('edge') && version >= 136) ||
+    (name.includes('firefox') && version >= 137) ||
+    (name.includes('safari') && version >= 18) ||
     (name.includes('webkit') && version >= 605) || // WebView on iOS
-    (name.includes('webview') && version >= 124) // WebView on Android
+    (name.includes('webview') && version >= 136) // WebView on Android
   );
 };

@@ -12,6 +12,7 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { Call, disposeOfMediaStream } from '@stream-io/video-client';
 import {
   BackgroundBlurLevel,
+  BackgroundEffectOptions,
   createRenderer,
   isMediaPipePlatformSupported,
   isPlatformSupported,
@@ -106,14 +107,12 @@ const useTrackFramesPerSecond = (call: Call | undefined) => {
     }
 
     let previousSnapshot:
-      | (MediaStreamTrackVideoStats & { capturedAt: number })
-      | undefined;
+      (MediaStreamTrackVideoStats & { capturedAt: number }) | undefined;
     let previousTrackId: string | undefined;
 
     const intervalId = setInterval(() => {
       const track = rootMediaStream?.getVideoTracks()[0] as
-        | MediaStreamTrackWithStats
-        | undefined;
+        MediaStreamTrackWithStats | undefined;
 
       const stats = track?.stats;
       if (!track || !stats) {
@@ -433,8 +432,10 @@ const BackgroundFilters = (props: {
   >(undefined);
   handleStatsRef.current = onStats;
 
+  const filterActive = !!backgroundFilter;
+
   useEffect(() => {
-    if (!call || !backgroundFilter) return;
+    if (!call || !filterActive) return;
 
     setIsLoading(true);
     const { unregister, registered } = call.camera.registerFilter((ms) => {
@@ -451,7 +452,7 @@ const BackgroundFilters = (props: {
     return () => {
       unregister().catch((err) => console.warn(`Can't unregister filter`, err));
     };
-  }, [call, start, backgroundFilter, setIsLoading]);
+  }, [call, start, filterActive, setIsLoading]);
 
   return children;
 };
@@ -471,6 +472,16 @@ const useRenderer = (
     segmentationOptions,
   } = api;
 
+  const optionsRef = useRef<BackgroundEffectOptions>({});
+  optionsRef.current = {
+    backgroundFilter,
+    backgroundBlurLevel,
+    backgroundImage,
+    segmentationOptions,
+  };
+
+  const processorRef = useRef<VirtualBackground | undefined>(undefined);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgImageRef = useRef<HTMLImageElement>(null);
@@ -481,7 +492,7 @@ const useRenderer = (
     },
   );
 
-  const start = useCallback(
+  const startMediaPipe = useCallback(
     (
       ms: MediaStream,
       onError?: (error: any) => void,
@@ -489,6 +500,65 @@ const useRenderer = (
     ) => {
       let outputStream: MediaStream | undefined;
       let processor: VirtualBackground | undefined;
+
+      const output = new Promise<MediaStream>((resolve, reject) => {
+        const options = optionsRef.current;
+        if (!options.backgroundFilter) {
+          reject(new Error('No filter specified'));
+          return;
+        }
+
+        const [track] = ms.getVideoTracks();
+        if (!track) {
+          reject(new Error('No video tracks in input media stream'));
+          return;
+        }
+
+        call?.tracer.trace('backgroundFilters.enable', {
+          ...options,
+          engine: FilterEngine.MEDIA_PIPE,
+          modelFilePath,
+        });
+
+        const trackSettings = track.getSettings();
+        flushSync(() =>
+          setVideoSize({
+            width: trackSettings.width ?? 0,
+            height: trackSettings.height ?? 0,
+          }),
+        );
+
+        processor = new VirtualBackground(
+          track,
+          { ...options, basePath, modelPath: modelFilePath },
+          { onError, onStats },
+        );
+        processorRef.current = processor;
+        processor
+          .start()
+          .then((processedTrack) => {
+            outputStream = new MediaStream([processedTrack]);
+            resolve(outputStream);
+          })
+          .catch(reject);
+      });
+
+      return {
+        output,
+        stop: () => {
+          call?.tracer.trace('backgroundFilters.disable', null);
+          processorRef.current = undefined;
+          processor?.stop();
+          if (outputStream) disposeOfMediaStream(outputStream);
+        },
+      };
+    },
+    [call?.tracer, modelFilePath, basePath],
+  );
+
+  const startTf = useCallback(
+    (ms: MediaStream, onError?: (error: any) => void) => {
+      let outputStream: MediaStream | undefined;
       let renderer: Renderer | undefined;
 
       const output = new Promise<MediaStream>((resolve, reject) => {
@@ -502,117 +572,63 @@ const useRenderer = (
         const bgImageEl = bgImageRef.current;
 
         const [track] = ms.getVideoTracks();
-
         if (!track) {
           reject(new Error('No video tracks in input media stream'));
           return;
         }
 
-        if (engine === FilterEngine.MEDIA_PIPE) {
-          call?.tracer.trace('backgroundFilters.enable', {
-            backgroundFilter,
-            backgroundBlurLevel,
-            backgroundImage,
-            engine,
-            modelFilePath,
-          });
+        if (!videoEl || !canvasEl || (backgroundImage && !bgImageEl)) {
+          reject(new Error('Renderer started before elements are ready'));
+          return;
+        }
 
-          if (!videoEl) {
-            reject(new Error('Renderer started before elements are ready'));
-            return;
-          }
-
-          const trackSettings = track.getSettings();
-          flushSync(() =>
-            setVideoSize({
-              width: trackSettings.width ?? 0,
-              height: trackSettings.height ?? 0,
-            }),
-          );
-
-          processor = new VirtualBackground(
-            track,
-            {
-              basePath: basePath,
-              modelPath: modelFilePath,
+        videoEl.srcObject = ms;
+        videoEl.play().then(
+          () => {
+            const trackSettings = track.getSettings();
+            flushSync(() =>
+              setVideoSize({
+                width: trackSettings.width ?? 0,
+                height: trackSettings.height ?? 0,
+              }),
+            );
+            call?.tracer.trace('backgroundFilters.enable', {
+              backgroundFilter,
               backgroundBlurLevel,
               backgroundImage,
-              backgroundFilter,
-              segmentationOptions,
-            },
-            { onError, onStats },
-          );
-          processor
-            .start()
-            .then((processedTrack) => {
-              outputStream = new MediaStream([processedTrack]);
-              resolve(outputStream);
-            })
-            .catch((error) => {
-              reject(error);
+              engine: FilterEngine.TF,
             });
 
-          return;
-        }
+            if (!tfLite) {
+              reject(new Error('TensorFlow Lite not loaded'));
+              return;
+            }
 
-        if (engine === FilterEngine.TF) {
-          if (!videoEl || !canvasEl || (backgroundImage && !bgImageEl)) {
-            reject(new Error('Renderer started before elements are ready'));
-            return;
-          }
-
-          videoEl.srcObject = ms;
-          videoEl.play().then(
-            () => {
-              const trackSettings = track.getSettings();
-              flushSync(() =>
-                setVideoSize({
-                  width: trackSettings.width ?? 0,
-                  height: trackSettings.height ?? 0,
-                }),
-              );
-              call?.tracer.trace('backgroundFilters.enable', {
+            renderer = createRenderer(
+              tfLite,
+              videoEl,
+              canvasEl,
+              {
                 backgroundFilter,
                 backgroundBlurLevel,
-                backgroundImage,
-                engine,
-              });
+                backgroundImage: bgImageEl ?? undefined,
+              },
+              onError,
+            );
+            outputStream = canvasEl.captureStream();
 
-              if (!tfLite) {
-                reject(new Error('TensorFlow Lite not loaded'));
-                return;
-              }
-
-              renderer = createRenderer(
-                tfLite,
-                videoEl,
-                canvasEl,
-                {
-                  backgroundFilter,
-                  backgroundBlurLevel,
-                  backgroundImage: bgImageEl ?? undefined,
-                },
-                onError,
-              );
-              outputStream = canvasEl.captureStream();
-
-              resolve(outputStream);
-            },
-            () => {
-              reject(new Error('Could not play the source video stream'));
-            },
-          );
-          return;
-        }
-
-        reject(new Error('No supported engine available'));
+            resolve(outputStream);
+          },
+          () => {
+            reject(new Error('Could not play the source video stream'));
+          },
+        );
       });
 
       return {
         output,
         stop: () => {
           call?.tracer.trace('backgroundFilters.disable', null);
-          processor?.stop();
           renderer?.dispose();
           if (videoRef.current) videoRef.current.srcObject = null;
           if (outputStream) disposeOfMediaStream(outputStream);
@@ -620,17 +636,35 @@ const useRenderer = (
       };
     },
     [
-      backgroundBlurLevel,
-      backgroundFilter,
-      backgroundImage,
       call?.tracer,
       tfLite,
-      engine,
-      modelFilePath,
-      basePath,
-      segmentationOptions,
+      backgroundFilter,
+      backgroundBlurLevel,
+      backgroundImage,
     ],
   );
+
+  const start = engine === FilterEngine.TF ? startTf : startMediaPipe;
+
+  useEffect(() => {
+    if (!backgroundFilter) return;
+
+    processorRef.current
+      ?.updateOptions({
+        backgroundFilter,
+        backgroundBlurLevel,
+        backgroundImage,
+        segmentationOptions,
+      })
+      .catch((err) =>
+        console.warn(`[filters] Can't apply the background options`, err),
+      );
+  }, [
+    backgroundFilter,
+    backgroundBlurLevel,
+    backgroundImage,
+    segmentationOptions,
+  ]);
 
   const children = (
     <div className="str-video__background-filters">

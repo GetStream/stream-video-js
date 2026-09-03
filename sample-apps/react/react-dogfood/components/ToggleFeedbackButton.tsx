@@ -13,7 +13,7 @@ import {
 import { Feedback } from './Feedback/Feedback';
 
 const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
-  function ToggleMenuButton(props, ref) {
+  function ToggleMenuButtonRender(props, ref) {
     const { t } = useI18n();
     return (
       <WithTooltip title={t('Feedback')}>

@@ -24,8 +24,11 @@ struct StreamBufferTransformer {
         let pixelBuffer: RTCVideoFrameBuffer? = {
             if let i420buffer = frame.buffer as? RTCI420Buffer {
                 return i420buffer
+            } else if let cvPixelBuffer = frame.buffer as? RTCCVPixelBuffer {
+                return cvPixelBuffer
             } else {
-                return frame.buffer
+                // Convert other buffer types (e.g. NV12) to i420 so the resize path can handle them.
+                return frame.buffer.toI420()
             }
         }()
 
@@ -87,10 +90,16 @@ struct StreamBufferTransformer {
         
         // Calculate the new size while maintaining the aspect ratio.
         let newSize = CGSize(
-            width: size.width * ratioToUse,
-            height: size.height * ratioToUse
+            width: roundedDownToEven(size.width * ratioToUse),
+            height: roundedDownToEven(size.height * ratioToUse)
         )
-        
+
         return newSize
+    }
+
+    /// Rounds down to the nearest even integer (minimum 2), required for YUV buffers.
+    private func roundedDownToEven(_ value: CGFloat) -> CGFloat {
+        let floored = Int(value)
+        return CGFloat(max(floored - (floored % 2), 2))
     }
 }

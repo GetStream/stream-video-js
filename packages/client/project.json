@@ -13,10 +13,10 @@
           "types": [
             { "type": "feat", "section": "Features" },
             { "type": "fix", "section": "Bug Fixes" },
-            { "type": "chore", "hidden": false },
+            { "type": "chore", "section": "Chores" },
             { "type": "docs", "hidden": true },
             { "type": "style", "hidden": true },
-            { "type": "refactor", "hidden": true },
+            { "type": "refactor", "section": "Refactors" },
             { "type": "perf", "section": "Features" },
             { "type": "test", "hidden": true }
           ]

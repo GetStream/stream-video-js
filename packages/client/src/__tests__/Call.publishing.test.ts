@@ -2,8 +2,9 @@ import '../rtc/__tests__/mocks/webrtc.mocks';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Call } from '../Call';
-import { Publisher } from '../rtc';
+import { Publisher, Subscriber } from '../rtc';
 import { StreamClient } from '../coordinator/connection/client';
+import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { PermissionsContext } from '../permissions';
 import { OwnCapability } from '../gen/coordinator';
@@ -15,10 +16,12 @@ describe('Publishing and Unpublishing tracks', () => {
   let call: Call;
 
   beforeEach(async () => {
+    const streamClient = new StreamClient('abc');
     call = new Call({
       type: 'test',
       id: generateUUIDv4(),
-      streamClient: new StreamClient('abc'),
+      streamClient,
+      clientEventReporter: new ClientEventReporter({ streamClient }),
       clientStore: new StreamVideoWriteableStateStore(),
     });
 
@@ -178,6 +181,47 @@ describe('Publishing and Unpublishing tracks', () => {
       expect(participant).toBeDefined();
       expect(participant!.publishedTracks).toEqual([TrackType.AUDIO]);
       expect(participant!.audioStream).toEqual(mediaStream);
+    });
+
+    it('keeps a stream the SFU already echoed back instead of the capture one', async () => {
+      // `allowOwnTracksLoopback`: the echo can land on the participant before
+      // publishing gets to write the capture stream to the same field.
+      const echoedStream = new MediaStream();
+      call.subscriber = {
+        isSelfSubscribedStream: (stream: MediaStream | undefined) =>
+          stream === echoedStream,
+      } as unknown as Subscriber;
+      call.state.updateParticipant(sessionId, { audioStream: echoedStream });
+
+      const track = new MediaStreamTrack();
+      const captureStream = new MediaStream();
+      vi.spyOn(captureStream, 'getAudioTracks').mockReturnValue([track]);
+
+      await call.publish(captureStream, TrackType.AUDIO);
+
+      const participant = call.state.findParticipantBySessionId(sessionId);
+      expect(participant!.publishedTracks).toEqual([TrackType.AUDIO]);
+      expect(participant!.audioStream).toBe(echoedStream);
+    });
+
+    it('keeps an echoed stream when the track is unpublished', async () => {
+      // a device switch unpublishes and republishes; the echoed track goes
+      // briefly silent but is never replaced, so the reference has to survive
+      const echoedStream = new MediaStream();
+      call.subscriber = {
+        isSelfSubscribedStream: (stream: MediaStream | undefined) =>
+          stream === echoedStream,
+      } as unknown as Subscriber;
+      call.state.updateParticipant(sessionId, {
+        audioStream: echoedStream,
+        publishedTracks: [TrackType.AUDIO],
+      });
+
+      await call.stopPublish(TrackType.AUDIO);
+
+      const participant = call.state.findParticipantBySessionId(sessionId);
+      expect(participant!.publishedTracks).toEqual([]);
+      expect(participant!.audioStream).toBe(echoedStream);
     });
 
     it('publish screen share stream', async () => {

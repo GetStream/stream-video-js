@@ -1,16 +1,20 @@
-import { videoLoggerSystem } from '@stream-io/video-client';
+import {
+  CallingState,
+  videoLoggerSystem,
+  type StreamVideoClient,
+} from '@stream-io/video-client';
 import type { StreamVideoConfig } from '../StreamVideoRN/types';
 import {
   clearPushWSEventSubscriptions,
   processCallFromPushInBackground,
 } from './internal/utils';
-import { resolvePendingAudioSession } from '../internal/callingx/audioSessionPromise';
 import {
   getCallingxLib,
   type EventData,
   type EventParams,
 } from './libs/callingx';
 import { Platform } from 'react-native';
+import { onRingNotificationReceived } from './internal/android';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -50,33 +54,71 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     onDidDeactivateAudioSession,
   );
 
+  callingx.addEventListener('providerReset', (params) => {
+    onProviderReset(pushConfig)(params);
+  });
+
   //NOTE: until getInitialEvents invocation, events are delayed and won't be sent to event listeners, this is a way to make sure none of required events are missed
   //in most cases there will be no delayed answers or ends, but if so we don't want to miss any of them
   const events = callingx.getInitialEvents();
   events.forEach((event: EventData) => {
     const { eventName, params } = event;
+    logger.debug(`${eventName} delayed event`);
     if (eventName === 'answerCall') {
-      logger.debug(`answerCall delayed event callId: ${params?.callId}`);
       onAcceptCall(pushConfig)(params as EventParams['answerCall']);
     } else if (eventName === 'endCall') {
-      logger.debug(`endCall delayed event callId: ${params?.callId}`);
       onEndCall(pushConfig)(params as EventParams['endCall']);
     } else if (eventName === 'didActivateAudioSession') {
       onDidActivateAudioSession();
     } else if (eventName === 'didDeactivateAudioSession') {
       onDidDeactivateAudioSession();
+    } else if (eventName === 'providerReset') {
+      onProviderReset(pushConfig)(params as EventParams['providerReset']);
+    } else if (eventName === 'ringCallPushReceived') {
+      onRingNotificationReceived(params).catch((error) => {
+        logger.error(`Error in onRingNotificationReceived: ${error}`);
+      });
     }
   });
 }
 
 const onDidActivateAudioSession = () => {
   logger.debug('callingExpDidActivateAudioSession');
-  resolvePendingAudioSession();
 };
 
 const onDidDeactivateAudioSession = () => {
   logger.debug('callingExpDidDeactivateAudioSession');
 };
+
+const onProviderReset =
+  (pushConfig: PushConfig) =>
+  async ({ callCids }: EventParams['providerReset']) => {
+    logger.debug(`onProviderReset event callCids: ${callCids?.join(', ')}`);
+
+    if (!callCids?.length) {
+      return;
+    }
+
+    let videoClient: StreamVideoClient | undefined;
+    try {
+      videoClient = await pushConfig.createStreamVideoClient();
+    } catch (e) {
+      logger.error('onProviderReset: failed to resolve video client', e);
+      return;
+    }
+    if (!videoClient) {
+      return;
+    }
+
+    for (const cid of callCids) {
+      const call = videoClient.state.calls.find((c) => c.cid === cid);
+      if (call && call.state.callingState !== CallingState.LEFT) {
+        call?.leave().catch((error: unknown) => {
+          logger.error(`onProviderReset: error leaving call ${cid}`, error);
+        });
+      }
+    }
+  };
 
 const onAcceptCall =
   (pushConfig: PushConfig) =>
@@ -90,7 +132,6 @@ const onAcceptCall =
 
     const callingx = getCallingxLib();
     clearPushWSEventSubscriptions(call_cid);
-
     processCallFromPushInBackground(
       pushConfig,
       call_cid,
