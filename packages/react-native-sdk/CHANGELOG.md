@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.45.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.44.0...@stream-io/video-react-native-sdk-1.45.0) (2026-08-28)
+
+### Dependency Updates
+
+- `@stream-io/react-native-callingx` updated to version `0.11.0`
+- `@stream-io/video-client` updated to version `1.59.0`
+- `@stream-io/video-react-bindings` updated to version `1.20.1`
+
+### Features
+
+- handle ring notification internally ([#2380](https://github.com/GetStream/stream-video-js/issues/2380)) ([0259217](https://github.com/GetStream/stream-video-js/commit/0259217ea2df613483bee5918ca2f93a68b6c3b9))
+- **react-sdk:** pre-call testing ([#2370](https://github.com/GetStream/stream-video-js/issues/2370)) ([3f4b62a](https://github.com/GetStream/stream-video-js/commit/3f4b62ab379d9d4203bc64b5d5e3658fba389efd))
+
+### Bug Fixes
+
+- do not allow empty android call display names ([#2392](https://github.com/GetStream/stream-video-js/issues/2392)) ([2ef3065](https://github.com/GetStream/stream-video-js/commit/2ef3065038fc293d0e2c96d2cc26feaf317e7b2d))
+- fixed ringing calls mute issue ([#2385](https://github.com/GetStream/stream-video-js/issues/2385)) ([b3bcdad](https://github.com/GetStream/stream-video-js/commit/b3bcdadc9f9f4eedf7dabde101b96e44863dcc64))
+
 ## [1.44.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.43.0...@stream-io/video-react-native-sdk-1.44.0) (2026-08-18)
 
 ### Dependency Updates

@@ -1,9 +1,9 @@
-export type Type = typeof import('@react-native-firebase/messaging').default;
+export type MessagingModule = typeof import('@react-native-firebase/messaging');
 
-let lib: Type | undefined;
+let lib: MessagingModule | undefined;
 
 try {
-  lib = require('@react-native-firebase/messaging').default;
+  lib = require('@react-native-firebase/messaging');
 } catch {}
 
 export { lib };
