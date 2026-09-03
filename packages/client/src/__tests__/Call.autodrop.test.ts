@@ -63,7 +63,7 @@ describe('Auto drop ringing calls', () => {
     expect(call.leave).toHaveBeenCalledWith({
       reject: true,
       reason: 'timeout',
-      message: 'ring:timeout-creator',
+      message: 'ringing timeout - no one accepted',
     });
   });
 
@@ -94,7 +94,8 @@ describe('Auto drop ringing calls', () => {
     expect(call.leave).toHaveBeenCalledWith({
       reject: true,
       reason: 'timeout',
-      message: 'ring:timeout-callee',
+      message:
+        "ringing timeout - user didn't interact with incoming call screen",
     });
   });
 

@@ -89,7 +89,7 @@ export const watchCallEnded = (call: Call) => {
     ) {
       call.clientEventReporter.abort(call.cid, {
         code: 'BACKEND_LEAVE',
-        reason: 'call.ended event received',
+        reason: CallLeaveReasons.eventCallEnded,
       });
       call
         .leave({
@@ -124,11 +124,12 @@ export const watchSfuCallEnded = (call: Call) => {
       call.state.setEndedAt(new Date());
       const reason = CallEndedReason[e.reason];
       globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
+      const message = CallLeaveReasons.sfuCallEnded(reason);
       call.clientEventReporter.abort(call.cid, {
         code: 'BACKEND_LEAVE',
-        reason: `callEnded received: ${reason}`,
+        reason: message,
       });
-      await call.leave({ message: CallLeaveReasons.sfuCallEnded(reason) });
+      await call.leave({ message });
     } catch (err) {
       call.logger.error(
         'Failed to leave call after being ended by the SFU',

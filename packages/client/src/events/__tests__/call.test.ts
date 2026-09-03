@@ -126,7 +126,7 @@ describe('Call ringing events', () => {
       expect(call.leave).toHaveBeenCalledWith({
         reject: true,
         reason: 'cancel',
-        message: 'ring:everyone-rejected',
+        message: 'ring: everyone rejected',
       });
     });
 
@@ -207,11 +207,11 @@ describe('Call ringing events', () => {
       await handler(event);
 
       expect(call.leave).toHaveBeenCalledWith({
-        message: 'ring:creator-rejected',
+        message: 'ring: creator rejected',
       });
     });
 
-    it('all uninvited callees stop ringing when creator cancels before pickup', async () => {
+    it('all ringing callees stop ringing when creator cancels before pickup', async () => {
       // Two separate callee Call instances simulate B and C in
       // "A rings B and C, A cancels before anyone picks up".
       const calleeB = fakeCall({ currentUserId: 'B' });
@@ -249,10 +249,10 @@ describe('Call ringing events', () => {
       await watchCallRejected(calleeC)(event);
 
       expect(calleeB.leave).toHaveBeenCalledWith({
-        message: 'ring:creator-rejected',
+        message: 'ring: creator rejected',
       });
       expect(calleeC.leave).toHaveBeenCalledWith({
-        message: 'ring:creator-rejected',
+        message: 'ring: creator rejected',
       });
     });
   });
@@ -271,7 +271,7 @@ describe('Call ringing events', () => {
       await handler(event);
 
       expect(call.leave).toHaveBeenCalledWith({
-        message: 'event:call-ended',
+        message: 'call.ended event received',
         reject: false,
         reason: 'ended',
       });
@@ -297,7 +297,7 @@ describe('Call ringing events', () => {
       await handler(event);
 
       expect(call.leave).toHaveBeenCalledWith({
-        message: 'event:call-ended',
+        message: 'call.ended event received',
         reject: false,
         reason: 'ended',
       });
@@ -338,7 +338,7 @@ describe('Call ringing events', () => {
       call['dispatcher'].dispatch(event);
 
       expect(call.leave).toHaveBeenCalledWith({
-        message: 'sfu:call-ended:ENDED',
+        message: 'callEnded received: ENDED',
       });
       expect(call.state.endedAt).toBeDefined();
     });
