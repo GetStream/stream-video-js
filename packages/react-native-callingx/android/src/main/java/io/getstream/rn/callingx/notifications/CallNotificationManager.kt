@@ -1,7 +1,6 @@
 package io.getstream.rn.callingx.notifications
 
 import android.app.Notification
-import android.app.NotificationManager
 import android.content.Context
 import android.media.Ringtone
 import android.media.RingtoneManager
@@ -149,9 +148,16 @@ class CallNotificationManager(
         foregroundCallId = null
     }
 
-    private fun recordPostedLocked(callId: String, notification: Notification) {
+    private fun recordPostedLocked(
+            callId: String,
+            notification: Notification,
+            snapshot: NotificationSnapshot? = null
+    ) {
         val current = notificationsState[callId] ?: CallNotificationState()
-        notificationsState[callId] = current.copy(postedNotification = notification)
+        notificationsState[callId] = current.copy(
+                postedNotification = notification,
+                lastSnapshot = snapshot ?: current.lastSnapshot
+        )
     }
 
     /**
@@ -258,7 +264,7 @@ class CallNotificationManager(
         // Record the snapshot only once the post succeeds, so a rejected notification stays
         // retryable instead of being skipped as "no state change".
         if (notifySafely(notificationId, notification)) {
-            recordPostedLocked(callId, notification)
+            recordPostedLocked(callId, notification, newSnapshot)
             debugLog(TAG, "[notifications] updateCallNotification[$callId]: Notification posted (id=$notificationId)")
         }
     }
@@ -270,19 +276,8 @@ class CallNotificationManager(
         }
     }
 
-    private fun activePostedNotifications(): Map<Int, Notification> {
-        return try {
-            val manager =
-                    context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            manager.activeNotifications.associate { it.id to it.notification }
-        } catch (t: Throwable) {
-            Log.w(TAG, "[notifications] activePostedNotifications: query failed", t)
-            emptyMap()
-        }
-    }
-
     fun isNotificationPosted(callId: String): Boolean =
-            activePostedNotifications().containsKey(getNotificationId(callId))
+            synchronized(lock) { notificationsState[callId]?.postedNotification != null }
 
     fun lastPostedNotification(callId: String): Notification? =
             synchronized(lock) { notificationsState[callId]?.postedNotification }
@@ -329,12 +324,13 @@ class CallNotificationManager(
             return@synchronized null
         }
 
+        val postedNotification = next.value.postedNotification ?: return@synchronized null
         val nextNotificationId = getNotificationId(next.key)
         debugLog(TAG, "[notifications] nextAnchorCandidate: ${next.key} (id=$nextNotificationId)")
         return@synchronized PromotionTarget(
                 next.key,
                 nextNotificationId,
-                next.value.postedNotification!!
+                postedNotification
         )
     }
 

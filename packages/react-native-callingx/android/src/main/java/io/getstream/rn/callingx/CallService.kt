@@ -348,7 +348,9 @@ class CallService : Service(), CallRepository.Listener {
                             "[service] onCallStateChanged[$callId]: Starting foreground for call"
                     )
                     notificationManager.resetOptimisticState(callId)
-                    //TODO: check if this branch is not outdated
+                    // Recovery path: a registered call changed state while the service is not
+                    // foreground (e.g. an earlier promote failed, or we demoted after a failed
+                    // re-anchor). Promote here so the call keeps an FGS anchor.
                     val notification = notificationManager.createNotification(callId, call)
                     startForegroundSafely(callId, notificationId, notification)
                 }
