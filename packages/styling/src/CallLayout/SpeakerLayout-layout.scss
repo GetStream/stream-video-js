@@ -26,8 +26,8 @@ $scope-name: 'str-video__speaker-layout';
     height: 100%;
 
     .str-video__participant-view--speaking:has(
-        .str-video__video--screen-share
-      ) {
+      .str-video__video--screen-share
+    ) {
       outline: none;
     }
 
@@ -37,7 +37,7 @@ $scope-name: 'str-video__speaker-layout';
     }
 
     .str-video__participant-details,
-    .str-video__call-controls__button {
+    .str-video__button {
       opacity: 1;
     }
   }
@@ -48,7 +48,7 @@ $scope-name: 'str-video__speaker-layout';
     justify-content: center;
     align-items: center;
 
-    & > .str-video__call-controls__button {
+    & > .str-video__button {
       .str-video__icon {
         width: 1rem;
         height: 1rem;

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
-  createSoundDetector,
   DeviceSettings,
   IconButton,
-  useCallStateHooks,
   VideoPreview,
+  createSoundDetector,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 export const Preview = {
@@ -56,12 +56,18 @@ export const Preview = {
         <div className="flex justify-between items-center lg:w-3/5 xl:w-1/4 w-full">
           <div className="str-video__call-controls bg-zinc-700 rounded-full px-6">
             <IconButton
-              icon={isMicMute ? 'mic-off' : 'mic'}
+              size="sm"
+              variant="secondary"
+              className="str-video__call-controls__button"
               onClick={() => microphone.toggle()}
+              icon={isMicMute ? 'mic-off' : 'mic'}
             />
             <IconButton
-              icon={isCameraMute ? 'camera-off' : 'camera'}
+              size="sm"
+              variant="secondary"
+              className="str-video__call-controls__button"
               onClick={() => camera.toggle()}
+              icon={isCameraMute ? 'camera-off' : 'camera'}
             />
           </div>
         </div>

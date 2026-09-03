@@ -17,7 +17,7 @@ const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
     const { t } = useI18n();
     return (
       <WithTooltip title={t('Feedback')}>
-        <CompositeButton ref={ref} active={props.menuShown} variant="primary">
+        <CompositeButton ref={ref} active={props.menuShown}>
           <Icon icon="feedback" />
         </CompositeButton>
       </WithTooltip>

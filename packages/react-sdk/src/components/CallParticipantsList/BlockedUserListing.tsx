@@ -1,7 +1,7 @@
 import { Restricted, useCall } from '@stream-io/video-react-bindings';
 import { OwnCapability } from '@stream-io/video-client';
 
-import { TextButton } from '../Button';
+import { Button } from '../Button';
 
 export const BlockedUserListing = ({ data }: { data: string[] }) => {
   if (!data.length) return null;
@@ -30,7 +30,14 @@ const BlockedUserListingItem = ({ userId }: { userId: string }) => {
         {userId}
       </div>
       <Restricted requiredGrants={[OwnCapability.BLOCK_USERS]}>
-        <TextButton onClick={unblockUserClickHandler}>Unblock</TextButton>
+        <Button
+          appearance="ghost"
+          size="xs"
+          variant="secondary"
+          onClick={unblockUserClickHandler}
+        >
+          Unblock
+        </Button>
       </Restricted>
     </div>
   );

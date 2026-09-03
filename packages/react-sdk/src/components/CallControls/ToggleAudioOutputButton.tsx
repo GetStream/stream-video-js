@@ -1,4 +1,4 @@
-import { CompositeButton, IconButtonWithMenuProps } from '../Button';
+import { CompositeButton, CompositeButtonProps } from '../Button';
 import { useI18n } from '@stream-io/video-react-bindings';
 import { Icon } from '../Icon';
 import { DeviceSelectorAudioOutput } from '../DeviceSettings';
@@ -6,7 +6,7 @@ import { WithTooltip } from '../Tooltip';
 import { useState } from 'react';
 
 export type ToggleAudioOutputButtonProps = Pick<
-  IconButtonWithMenuProps,
+  CompositeButtonProps,
   'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
 >;
 

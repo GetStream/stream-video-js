@@ -46,14 +46,6 @@
   }
 }
 
-.str-video__embedded-call-feedback__actions .str-video__button {
-  background-color: var(--str-video__button-primary-active);
-
-  &:not([disabled]):hover {
-    background-color: var(--str-video__button-primary-hover);
-  }
-}
-
 .str-video__embedded-call-feedback__checkmark {
   background: color-mix(
     in srgb,

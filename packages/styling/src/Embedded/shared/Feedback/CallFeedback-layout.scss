@@ -4,17 +4,17 @@
   justify-content: center;
   min-height: 100%;
   width: 100%;
-  padding: var(--str-video__spacing-xl);
+  padding: var(--str-video__spacing-lg);
 }
 
 .str-video__embedded-call-feedback__container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--str-video__spacing-xl);
+  gap: var(--str-video__spacing-lg);
   width: 100%;
   max-width: 400px;
-  padding: var(--str-video__spacing-xl);
+  padding: var(--str-video__spacing-lg);
   font-size: 0.9375rem;
   text-align: center;
 
@@ -33,8 +33,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--str-video__spacing-xl);
-  padding: var(--str-video__spacing-lg) 0;
+  gap: var(--str-video__spacing-lg);
+  padding: var(--str-video__spacing-md) 0;
 }
 
 .str-video__embedded-call-feedback__rating-label {
@@ -66,7 +66,7 @@
 .str-video__embedded-call-feedback__textarea {
   width: 100%;
   min-height: 72px;
-  padding: var(--str-video__spacing-md);
+  padding: var(--str-video__spacing-sm);
   border: 1px solid transparent;
   border-radius: var(--str-video__border-radius-md);
   background: transparent;
@@ -88,19 +88,19 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--str-video__spacing-lg);
+  gap: var(--str-video__spacing-md);
   width: 100%;
-  padding-top: var(--str-video__spacing-lg);
+  padding-top: var(--str-video__spacing-md);
 
-  .str-video__button:disabled {
-    opacity: 0.5;
+  .str-video__button {
+    inline-size: 100%;
   }
 }
 
 .str-video__embedded-call-feedback__ended-actions {
   display: flex;
   align-items: center;
-  gap: var(--str-video__spacing-xl);
+  gap: var(--str-video__spacing-lg);
   justify-content: center;
 }
 
@@ -108,7 +108,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--str-video__spacing-md);
+  gap: var(--str-video__spacing-sm);
 }
 
 .str-video__embedded-call-feedback__ended-divider {
@@ -120,9 +120,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--str-video__spacing-sm);
+  gap: var(--str-video__spacing-xs);
   height: 44px;
-  padding: 0 var(--str-video__spacing-xl);
+  padding: 0 var(--str-video__spacing-lg);
   border: 1px solid transparent;
   border-radius: var(--str-video__border-radius-circle);
   background: transparent;

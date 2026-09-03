@@ -19,7 +19,7 @@ export const ToggleMenuButton = forwardRef<
   const { t } = useI18n();
   return (
     <WithTooltip title={t('Dev Settings')} tooltipDisabled={props.menuShown}>
-      <CompositeButton ref={ref} active={props.menuShown} variant="primary">
+      <CompositeButton ref={ref} active={props.menuShown}>
         <Icon icon="developer" />
       </CompositeButton>
     </WithTooltip>

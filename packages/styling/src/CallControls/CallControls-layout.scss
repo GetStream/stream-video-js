@@ -8,7 +8,7 @@
     background-color: var(--str-video__base-color6);
     display: flex;
 
-    padding: var(--str-video__spacing-sm);
+    padding: var(--str-video__spacing-xs);
     gap: 0.5rem;
 
     border-radius: var(--str-video__border-radius-lg);
@@ -78,14 +78,4 @@
 .str-video__system-muted {
   background-color: var(--str-video__alert-caution);
   color: var(--str-video__base-color4);
-}
-
-.str-video__composite-button.str-video__device-unavailable {
-  .str-video__composite-button__button-group {
-    background-color: var(--str-video__button-default-disabled);
-
-    &:hover {
-      background-color: var(--str-video__button-default-hover);
-    }
-  }
 }

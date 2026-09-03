@@ -9,10 +9,11 @@ import {
 } from 'react';
 import { Placement } from '@floating-ui/react';
 
+import { Button, ButtonAppearance, ButtonSize, ButtonVariant } from './Button';
 import { IconButton } from './IconButton';
 import { isComponentType } from '../../utilities';
 
-export type IconButtonWithMenuProps<E extends HTMLElement = HTMLButtonElement> =
+export type CompositeButtonProps<E extends HTMLElement = HTMLButtonElement> =
   PropsWithChildren<{
     active?: boolean;
     Menu?: ComponentType | ReactElement | null;
@@ -21,91 +22,93 @@ export type IconButtonWithMenuProps<E extends HTMLElement = HTMLButtonElement> =
     menuPlacement?: Placement;
     menuOffset?: number;
     ToggleMenuButton?: ComponentType<ToggleMenuButtonProps<E>>;
-    variant?: 'primary' | 'secondary';
+    variant?: ButtonVariant;
+    appearance?: ButtonAppearance;
+    size?: Exclude<ButtonSize, 'xs'>;
     onMenuToggle?: (menuShown: boolean) => void;
   }> &
     ComponentProps<'button'>;
 
-export const CompositeButton = forwardRef<
-  HTMLDivElement,
-  IconButtonWithMenuProps
->(function CompositeButtonRender(
-  {
-    disabled,
-    caption,
-    children,
-    className,
-    active,
-    Menu,
-    menuPlacement,
-    menuOffset,
-    title,
-    ToggleMenuButton = DefaultToggleMenuButton,
-    variant,
-    onClick,
-    onMenuToggle,
-    ...restButtonProps
-  },
-  ref,
-) {
-  return (
-    <div
-      className={clsx('str-video__composite-button', className, {
-        'str-video__composite-button--caption': caption,
-        'str-video__composite-button--menu': Menu,
-      })}
-      title={title}
-      ref={ref}
-    >
+export const CompositeButton = forwardRef<HTMLDivElement, CompositeButtonProps>(
+  function CompositeButtonRender(
+    {
+      appearance,
+      caption,
+      children,
+      className,
+      disabled,
+      Menu,
+      menuOffset,
+      menuPlacement,
+      onMenuToggle,
+      active,
+      size = 'md',
+      title,
+      ToggleMenuButton = CompositeCaret,
+      variant = 'secondary',
+      ...buttonProps
+    },
+    ref,
+  ) {
+    return (
       <div
-        className={clsx('str-video__composite-button__button-group', {
-          'str-video__composite-button__button-group--active': active,
-          'str-video__composite-button__button-group--active-primary':
-            active && variant === 'primary',
-          'str-video__composite-button__button-group--active-secondary':
-            active && variant === 'secondary',
-          'str-video__composite-button__button-group--disabled': disabled,
-        })}
+        ref={ref}
+        title={title}
+        className={clsx(
+          'str-video__composite-button',
+          `str-video__composite-button--${variant}`,
+          `str-video__composite-button--size-${size}`,
+          Menu && 'str-video__composite-button--menu',
+          className,
+        )}
       >
-        <button
-          type="button"
-          className="str-video__composite-button__button"
-          onClick={(e) => {
-            e.preventDefault();
-            onClick?.(e);
-          }}
-          disabled={disabled}
-          {...restButtonProps}
-        >
-          {children}
-        </button>
-        {Menu && (
-          <MenuToggle
-            offset={menuOffset}
-            placement={menuPlacement}
-            ToggleButton={ToggleMenuButton}
-            onToggle={onMenuToggle}
+        <div className="str-video__composite-button__group">
+          <Button
+            variant={variant}
+            appearance={appearance}
+            size={size}
+            disabled={disabled}
+            active={active}
+            className="str-video__composite-button__action"
+            {...buttonProps}
           >
-            {isComponentType(Menu) ? <Menu /> : Menu}
-          </MenuToggle>
+            {children}
+          </Button>
+          {Menu &&
+            (disabled ? (
+              <CompositeCaret menuShown={false} disabled />
+            ) : (
+              <MenuToggle
+                offset={menuOffset}
+                placement={menuPlacement}
+                ToggleButton={ToggleMenuButton}
+                onToggle={onMenuToggle}
+              >
+                {isComponentType(Menu) ? <Menu /> : Menu}
+              </MenuToggle>
+            ))}
+        </div>
+        {caption && (
+          <span className="str-video__composite-button__caption">
+            {caption}
+          </span>
         )}
       </div>
-      {caption && (
-        <div className="str-video__composite-button__caption">{caption}</div>
-      )}
-    </div>
-  );
-});
+    );
+  },
+);
 
-const DefaultToggleMenuButton = forwardRef<
+const CompositeCaret = forwardRef<
   HTMLButtonElement,
-  ToggleMenuButtonProps
->(function DefaultToggleMenuButtonRender({ menuShown }, ref) {
+  { menuShown: boolean; disabled?: boolean }
+>(function CompositeCaretRender({ menuShown, disabled }, ref) {
   return (
     <IconButton
-      className={clsx('str-video__menu-toggle-button', {
-        'str-video__menu-toggle-button--active': menuShown,
-      })}
+      className="str-video__composite-button__caret"
+      size="xs"
+      appearance="ghost"
+      disabled={disabled}
+      aria-expanded={menuShown}
       icon={menuShown ? 'caret-down' : 'caret-up'}
       ref={ref}
     />

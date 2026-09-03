@@ -17,6 +17,7 @@ import {
 import clsx from 'clsx';
 
 import {
+  Button,
   Icon,
   IconButton,
   LoadingIndicator,
@@ -57,7 +58,16 @@ export type DefaultParticipantViewUIProps = {
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleButtonRender(props, ref) {
-    return <IconButton enabled={props.menuShown} icon="ellipsis" ref={ref} />;
+    return (
+      <IconButton
+        className="str-video__participant-view__menu-button"
+        active={props.menuShown}
+        size="sm"
+        variant="secondary"
+        ref={ref}
+        icon="ellipsis"
+      />
+    );
   },
 );
 
@@ -77,13 +87,13 @@ export const DefaultScreenShareOverlay = () => {
       <span className="str-video__screen-share-overlay__title">
         {t('You are presenting your screen')}
       </span>
-      <button
+      <Button
+        variant="destructive"
         onClick={stopScreenShare}
-        type="button"
         className="str-video__screen-share-overlay__button"
       >
         <Icon icon="close" /> {t('Stop Screen Sharing')}
-      </button>
+      </Button>
     </div>
   );
 };

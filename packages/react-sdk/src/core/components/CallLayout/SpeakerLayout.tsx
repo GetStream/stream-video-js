@@ -295,6 +295,8 @@ const HorizontalScrollButtons = <T extends HTMLElement>({
     <>
       {scrollPosition && scrollPosition !== 'start' && (
         <IconButton
+          size="sm"
+          variant="secondary"
           onClick={scrollStartClickHandler}
           icon="caret-left"
           className="str-video__speaker-layout__participants-bar--button-left"
@@ -302,6 +304,8 @@ const HorizontalScrollButtons = <T extends HTMLElement>({
       )}
       {scrollPosition && scrollPosition !== 'end' && (
         <IconButton
+          size="sm"
+          variant="secondary"
           onClick={scrollEndClickHandler}
           icon="caret-right"
           className="str-video__speaker-layout__participants-bar--button-right"
@@ -327,6 +331,8 @@ const VerticalScrollButtons = <T extends HTMLElement>({
     <>
       {scrollPosition && scrollPosition !== 'top' && (
         <IconButton
+          size="sm"
+          variant="secondary"
           onClick={scrollTopClickHandler}
           icon="caret-up"
           className="str-video__speaker-layout__participants-bar--button-top"
@@ -334,6 +340,8 @@ const VerticalScrollButtons = <T extends HTMLElement>({
       )}
       {scrollPosition && scrollPosition !== 'bottom' && (
         <IconButton
+          size="sm"
+          variant="secondary"
           onClick={scrollBottomClickHandler}
           icon="caret-down"
           className="str-video__speaker-layout__participants-bar--button-bottom"

@@ -116,6 +116,8 @@ export const Grid = (props: PipLayoutGridProps) => {
         {pageArrowsVisible && page > 0 && (
           <IconButton
             icon="caret-left"
+            size="sm"
+            variant="secondary"
             onClick={() =>
               setPage((currentPage) => Math.max(0, currentPage - 1))
             }
@@ -144,6 +146,8 @@ export const Grid = (props: PipLayoutGridProps) => {
         {pageArrowsVisible && page < pageCount - 1 && (
           <IconButton
             icon="caret-right"
+            size="sm"
+            variant="secondary"
             onClick={() =>
               setPage((currentPage) => Math.min(pageCount - 1, currentPage + 1))
             }

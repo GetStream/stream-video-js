@@ -40,7 +40,6 @@ export const ToggleHiFiButton = () => {
       <CompositeButton
         active={isHiFiEnabled}
         disabled={!allowHiFi}
-        variant="primary"
         onClick={toggleHiFi}
       >
         <Icon icon="speaker" />

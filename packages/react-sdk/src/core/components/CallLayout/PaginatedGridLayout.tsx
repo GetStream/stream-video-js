@@ -184,6 +184,8 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
       <div className="str-video__paginated-grid-layout">
         {pageArrowsVisible && pageCount > 1 && (
           <IconButton
+            size="sm"
+            variant="secondary"
             icon="caret-left"
             disabled={page === 0}
             onClick={() =>
@@ -202,6 +204,8 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
         )}
         {pageArrowsVisible && pageCount > 1 && (
           <IconButton
+            size="sm"
+            variant="secondary"
             disabled={page === pageCount - 1}
             icon="caret-right"
             onClick={() =>
