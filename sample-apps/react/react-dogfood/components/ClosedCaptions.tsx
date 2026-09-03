@@ -53,11 +53,8 @@ export const ToggleClosedCaptionsButton = () => {
 };
 
 export const ClosedCaptions = () => {
-  const { useCallClosedCaptions, useIsCallCaptioningInProgress } =
-    useCallStateHooks();
+  const { useCallClosedCaptions } = useCallStateHooks();
   const closedCaptions = useCallClosedCaptions();
-  const isCaptioning = useIsCallCaptioningInProgress();
-  if (!isCaptioning) return null;
   return (
     <div className="rd__closed-captions">
       <ClosedCaptionList queue={closedCaptions} />

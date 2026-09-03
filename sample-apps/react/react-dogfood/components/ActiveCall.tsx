@@ -80,8 +80,10 @@ type SidebarContent =
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
-  const { useParticipantCount } = useCallStateHooks();
+  const { useParticipantCount, useIsCallCaptioningInProgress } =
+    useCallStateHooks();
   const participantCount = useParticipantCount();
+  const isCaptioning = useIsCallCaptioningInProgress();
   const {
     current: currentTourStep,
     active: isTourActive,
@@ -195,7 +197,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 close={() => setShowInvitePopup(false)}
               />
             )}
-            <ClosedCaptions />
+            {isCaptioning && <ClosedCaptions />}
           </div>
 
           <div
