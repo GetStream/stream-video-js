@@ -42,27 +42,33 @@ class HeadlessTaskManager(
   }
 
   /**
-   * True while a task we started is still running. The service treats this as a reason to stay
-   * alive, so an abandoned task must not pin it forever.
+   * The tracked task id, or null once it is no longer ours to act on.
    *
    * React Native drops in-flight headless tasks when a React context is reloaded or destroyed —
    * there is no teardown for them — and these tasks are started with `timeout = 0`, so nothing
-   * would ever finish one and clear [activeTaskId]. The context the task was started on is
-   * therefore checked against the live one, and a task orphaned by a reload is dropped here.
+   * would ever finish one and clear [activeTaskId]. Task ids also restart at 1 in a new context,
+   * so a stale id can name a *different* library's task. Both problems are avoided by only
+   * trusting the id while the context it was started on is still the live one.
    */
-  fun hasActiveTask(): Boolean {
-    val taskId = activeTaskId ?: return false
+  private fun liveActiveTaskId(): Int? {
+    val taskId = activeTaskId ?: return null
 
     val startedOn = startedOnContext?.get()
-    if (startedOn != null && startedOn === currentReactContextOrNull()) return true
+    if (startedOn != null && startedOn === currentReactContextOrNull()) return taskId
 
     debugLog(
             TAG,
-            "[headless] hasActiveTask: task $taskId was abandoned with its React context, clearing"
+            "[headless] liveActiveTaskId: task $taskId was abandoned with its React context, dropping it"
     )
     clearActiveTask()
-    return false
+    return null
   }
+
+  /**
+   * True while a task we started is still running. The service treats this as a reason to stay
+   * alive, so an abandoned task must not pin it forever.
+   */
+  fun hasActiveTask(): Boolean = liveActiveTaskId() != null
 
   private fun clearActiveTask() {
     activeTaskId = null
@@ -124,7 +130,10 @@ class HeadlessTaskManager(
 
   public fun stopHeadlessTask() {
     debugLog(TAG, "[headless] stopHeadlessTask: Stopping headless task")
-    activeTaskId?.let { taskId ->
+    // Deliberately via liveActiveTaskId: HeadlessJsTaskContext.finishTask has no notion of task
+    // ownership, so finishing a stale id after a context reload would cut short whichever
+    // library's task inherited that number.
+    liveActiveTaskId()?.let { taskId ->
       if (UiThreadUtil.isOnUiThread()) {
         stopTask(taskId)
       } else {
@@ -163,7 +172,7 @@ class HeadlessTaskManager(
   }
 
   private fun stopTask(taskId: Int) {
-    reactContext?.let { context ->
+    currentReactContextOrNull()?.let { context ->
       val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(context)
       if (headlessJsTaskContext.isTaskRunning(taskId)) {
         headlessJsTaskContext.finishTask(taskId)
@@ -188,7 +197,7 @@ class HeadlessTaskManager(
     // it fires and lose the finish log.
     UiThreadUtil.runOnUiThread {
       clearActiveTask()
-      reactContext?.let { context ->
+      currentReactContextOrNull()?.let { context ->
         val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(context)
         headlessJsTaskContext.removeTaskEventListener(this)
       }

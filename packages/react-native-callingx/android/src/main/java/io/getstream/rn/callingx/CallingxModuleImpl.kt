@@ -79,6 +79,20 @@ class CallingxModuleImpl(
         CallEventBus.unsubscribe(this)
 
         isModuleInitialized = false
+
+        // The JS runtime is going away, so any keep-alive owner it held is gone with it. A React
+        // context teardown does not finish in-flight headless tasks, so the service would never
+        // otherwise be told to re-check whether it still has a reason to run. Telecom-registered
+        // calls survive this and still veto the stop inside CallService.
+        if (CallService.isRunning) {
+            try {
+                Intent(reactApplicationContext, CallService::class.java)
+                        .apply { action = CallService.ACTION_STOP_SERVICE }
+                        .also { reactApplicationContext.startService(it) }
+            } catch (e: Exception) {
+                Log.e(TAG, "[module] invalidate: Failed to sweep the call service: ${e.message}", e)
+            }
+        }
     }
 
     fun setShouldRejectCallWhenBusy(shouldReject: Boolean) {
