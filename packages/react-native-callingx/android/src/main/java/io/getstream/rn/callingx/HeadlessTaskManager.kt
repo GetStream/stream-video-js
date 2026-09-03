@@ -27,11 +27,11 @@ class HeadlessTaskManager(
         private val onTaskFinished: () -> Unit = {},
 ) : HeadlessJsTaskEventListener {
 
+  /** A started task and the React context it belongs to, kept together so the pair cannot tear. */
+  private class ActiveTask(val id: Int, val context: WeakReference<ReactContext>)
+
   @Volatile
-  private var activeTaskId: Int? = null
-  /** The React context [activeTaskId] was started on. See [hasActiveTask]. */
-  @Volatile
-  private var startedOnContext: WeakReference<ReactContext>? = null
+  private var activeTask: ActiveTask? = null
   private var isStarting: Boolean = false
   private var pendingReactInstanceListener: ReactInstanceEventListener? = null
   @Volatile
@@ -46,14 +46,15 @@ class HeadlessTaskManager(
    *
    * React Native drops in-flight headless tasks when a React context is reloaded or destroyed —
    * there is no teardown for them — and these tasks are started with `timeout = 0`, so nothing
-   * would ever finish one and clear [activeTaskId]. Task ids also restart at 1 in a new context,
+   * would ever finish one and clear it. Task ids also restart at 1 in a new context,
    * so a stale id can name a *different* library's task. Both problems are avoided by only
    * trusting the id while the context it was started on is still the live one.
    */
   private fun liveActiveTaskId(): Int? {
-    val taskId = activeTaskId ?: return null
+    val task = activeTask ?: return null
+    val taskId = task.id
 
-    val startedOn = startedOnContext?.get()
+    val startedOn = task.context.get()
     if (startedOn != null && startedOn === currentReactContextOrNull()) return taskId
 
     debugLog(
@@ -71,8 +72,7 @@ class HeadlessTaskManager(
   fun hasActiveTask(): Boolean = liveActiveTaskId() != null
 
   private fun clearActiveTask() {
-    activeTaskId = null
-    startedOnContext = null
+    activeTask = null
   }
 
   /**
@@ -106,9 +106,9 @@ class HeadlessTaskManager(
   public fun startHeadlessTask(taskName: String, data: Bundle, timeout: Long) {
     debugLog(
             TAG,
-            "[headless] startHeadlessTask entry: activeTaskId=$activeTaskId isStarting=$isStarting"
+            "[headless] startHeadlessTask entry: activeTaskId=${activeTask?.id} isStarting=$isStarting"
     )
-    if (activeTaskId != null || isStarting) {
+    if (liveActiveTaskId() != null || isStarting) {
       Log.w(
               TAG,
               "[headless] startHeadlessTask: Task already starting or active, ignoring new task request"
@@ -164,8 +164,7 @@ class HeadlessTaskManager(
 
     UiThreadUtil.runOnUiThread {
       val taskId = headlessJsTaskContext.startTask(taskConfig)
-      activeTaskId = taskId
-      startedOnContext = WeakReference(reactContext)
+      activeTask = ActiveTask(taskId, WeakReference(reactContext))
       debugLog(TAG, "[headless] invokeStartTask: Task started: $taskId")
       isStarting = false
     }
@@ -221,10 +220,10 @@ class HeadlessTaskManager(
   }
 
   override fun onHeadlessJsTaskFinish(taskId: Int) {
-    if (taskId != activeTaskId) {
+    if (taskId != liveActiveTaskId()) {
       debugLog(
               TAG,
-              "[headless] onHeadlessJsTaskFinish: IGNORED foreign taskId=$taskId (our=$activeTaskId)"
+              "[headless] onHeadlessJsTaskFinish: IGNORED foreign taskId=$taskId (our=${activeTask?.id})"
       )
       return
     }

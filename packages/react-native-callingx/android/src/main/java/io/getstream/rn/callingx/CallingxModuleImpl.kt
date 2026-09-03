@@ -74,7 +74,7 @@ class CallingxModuleImpl(
         debugLog(TAG, "[module] invalidate: Invalidating module")
 
         LifecycleListener.unregister()
-        CallRegistrationStore.clearAll()
+        CallRegistrationStore.clearPendingPromises()
         AudioEndpointStore.clearAll()
         CallEventBus.unsubscribe(this)
 
@@ -82,8 +82,9 @@ class CallingxModuleImpl(
 
         // The JS runtime is going away, so any keep-alive owner it held is gone with it. A React
         // context teardown does not finish in-flight headless tasks, so the service would never
-        // otherwise be told to re-check whether it still has a reason to run. Telecom-registered
-        // calls survive this and still veto the stop inside CallService.
+        // otherwise be told to re-check whether it still has a reason to run. Native calls survive
+        // this — both registered ones and those still resolving Telecom endpoints — and veto the
+        // stop inside CallService, which is why the tracked ids above are left intact.
         if (CallService.isRunning) {
             try {
                 Intent(reactApplicationContext, CallService::class.java)

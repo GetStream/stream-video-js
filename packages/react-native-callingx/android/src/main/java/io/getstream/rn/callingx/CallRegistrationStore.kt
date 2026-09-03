@@ -137,13 +137,19 @@ object CallRegistrationStore {
         synchronized(list) { return list.toList() }
     }
 
-    fun clearAll() {
+    /**
+     * Drops the JS-coupled state only: the promises and their timeouts belong to a React context
+     * that is going away, so nothing can resolve them.
+     *
+     * [trackedCallIds] and [pendingActionsByCallId] are deliberately kept. They describe native
+     * calls, which outlive a JS teardown — a call still resolving its Telecom endpoints has its
+     * tracked id as its only protection against the service being stopped underneath it.
+     */
+    fun clearPendingPromises() {
         synchronized(pendingPromises) {
             pendingTimeouts.values.forEach { mainHandler.removeCallbacks(it) }
             pendingTimeouts.clear()
             pendingPromises.clear()
         }
-        trackedCallIds.clear()
-        pendingActionsByCallId.clear()
     }
 }
