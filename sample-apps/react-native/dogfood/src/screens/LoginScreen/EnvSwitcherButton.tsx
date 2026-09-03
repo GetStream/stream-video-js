@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Pressable, StyleSheet } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text } from 'react-native';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
@@ -7,6 +7,7 @@ import {
 import { View } from 'react-native';
 import { defaultTheme } from '@stream-io/video-react-native-sdk';
 import { Button } from '../../components/Button';
+import { TextInput } from '../../components/TextInput';
 
 const appEnvironments: AppEnvironment[] = [
   'pronto',
@@ -43,6 +44,7 @@ export default function EnvSwitcherButton() {
               closeModal={closeModal}
               useLocalSfu
             />
+            <RingStateOptions />
           </View>
         </Pressable>
       </Modal>
@@ -55,6 +57,53 @@ export default function EnvSwitcherButton() {
     </>
   );
 }
+
+/**
+ * Ring state options, used to dogfood the pollable ring state (VID-1444):
+ * a coordinator override for reaching an edge that serves the `ring_state`
+ * endpoint, and a switch to compare the ringing experience with polling off.
+ *
+ * Both are persisted, so the client created for a push in the background picks
+ * them up too.
+ */
+const RingStateOptions = () => {
+  const coordinatorBaseUrl = useAppGlobalStoreValue(
+    (store) => store.coordinatorBaseUrl,
+  );
+  const disableRingStatePolling = useAppGlobalStoreValue(
+    (store) => store.disableRingStatePolling,
+  );
+  const setState = useAppGlobalStoreSetState();
+
+  return (
+    <>
+      <Text style={styles.modalSectionText}>{'Ring state'}</Text>
+      <TextInput
+        placeholder={'Coordinator URL (blank = default)'}
+        defaultValue={coordinatorBaseUrl}
+        onEndEditing={(e) =>
+          setState({ coordinatorBaseUrl: e.nativeEvent.text.trim() })
+        }
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="url"
+        style={styles.modalInput}
+      />
+      <Button
+        title={`Polling: ${disableRingStatePolling ? 'off' : 'on'}`}
+        buttonStyle={[
+          styles.modalButton,
+          disableRingStatePolling
+            ? styles.unselectedModalButton
+            : styles.selectedModalButton,
+        ]}
+        onPress={() =>
+          setState({ disableRingStatePolling: !disableRingStatePolling })
+        }
+      />
+    </>
+  );
+};
 
 const SwitcherButton = ({
   environment,
@@ -142,5 +191,18 @@ const styles = StyleSheet.create({
   },
   modalText: {
     fontSize: 20,
+  },
+  modalSectionText: {
+    color: defaultTheme.colors.textPrimary,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: defaultTheme.variants.spacingSizes.md,
+    marginHorizontal: defaultTheme.variants.spacingSizes.sm,
+  },
+  modalInput: {
+    // the shared input is `flex: 1`, which would stretch it in this column
+    flex: 0,
+    minWidth: 260,
+    marginHorizontal: defaultTheme.variants.spacingSizes.sm,
   },
 });

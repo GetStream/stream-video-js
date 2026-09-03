@@ -26,9 +26,14 @@ import { KnownUsers } from '../../constants/KnownUsers';
 import { randomId } from '../../modules/helpers/randomId';
 import { useOrientation } from '../../hooks/useOrientation';
 
+const ENABLE_RING_PINNING = __DEV__;
+
 const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
+  const [callType, setCallType] = useState<string>('default');
+  const [pinnedCallId, setPinnedCallId] = useState<string>('');
   const userId = useAppGlobalStoreValue((store) => store.userId);
+  const devMode = useAppGlobalStoreValue((store) => store.devMode);
   const [ringingUsers, setRingingUsers] = useState<string[]>([]);
   const videoClient = useStreamVideoClient();
   const { t } = useI18n();
@@ -47,7 +52,10 @@ const JoinCallScreen = () => {
     ringingUserIds = [...new Set([...ringingUserIds, userId])];
 
     try {
-      const call = videoClient?.call('default', randomId());
+      const call = videoClient?.call(
+        callType || 'default',
+        pinnedCallId || randomId(),
+      );
       await call?.getOrCreate({
         ring: true,
         video: true,
@@ -57,6 +65,7 @@ const JoinCallScreen = () => {
             ring: {
               auto_cancel_timeout_ms: 30000,
               incoming_call_timeout_ms: 30000,
+              missed_call_timeout_ms: 30000,
             },
           },
           members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
@@ -74,7 +83,14 @@ const JoinCallScreen = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [ringingUserIdsText, ringingUsers, videoClient, userId]);
+  }, [
+    ringingUserIdsText,
+    ringingUsers,
+    videoClient,
+    userId,
+    callType,
+    pinnedCallId,
+  ]);
 
   const isRingingUserSelected = (userid: string) =>
     ringingUsers.find((ringingUser) => ringingUser === userid);
@@ -148,6 +164,29 @@ const JoinCallScreen = () => {
             disabled={startCallDisabled}
             onPress={startCallHandler}
           />
+          {(ENABLE_RING_PINNING || devMode) && (
+            <View style={styles.pinningContainer}>
+              <Text style={styles.pinningText}>
+                Pin the ring to one call instance (leave blank for a new one)
+              </Text>
+              <TextInput
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder={'Call type (default)'}
+                value={callType}
+                onChangeText={setCallType}
+                style={styles.textInputStyle}
+              />
+              <TextInput
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder={'Call ID (random when blank)'}
+                value={pinnedCallId}
+                onChangeText={setPinnedCallId}
+                style={styles.textInputStyle}
+              />
+            </View>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -212,6 +251,13 @@ const useStyles = () => {
         },
         textInputStyle: {
           flex: 0,
+        },
+        pinningContainer: {
+          marginTop: appTheme.spacing.lg,
+        },
+        pinningText: {
+          color: theme.colors.textPrimary,
+          fontSize: 13,
         },
       }),
     [theme],

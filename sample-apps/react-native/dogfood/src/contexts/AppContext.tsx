@@ -17,6 +17,8 @@ type AppGlobalStore = {
   localIpAddress: string;
   useLocalSfu?: boolean;
   devMode?: boolean;
+  coordinatorBaseUrl?: string;
+  disableRingStatePolling?: boolean;
 };
 
 export const {
@@ -37,6 +39,8 @@ export const {
     useLocalSfu: false,
     localIpAddress: '127.0.0.1',
     devMode: false,
+    coordinatorBaseUrl: '',
+    disableRingStatePolling: false,
   },
   [
     'apiKey',
@@ -48,5 +52,7 @@ export const {
     'appMode',
     'themeMode',
     'devMode',
+    'coordinatorBaseUrl',
+    'disableRingStatePolling',
   ],
 );

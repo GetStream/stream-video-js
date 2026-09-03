@@ -1,7 +1,8 @@
 import {
   Call,
   GetCallRingStateResponse,
-  useObservableValue,
+  StreamCall,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { useState } from 'react';
 
@@ -14,7 +15,10 @@ export const RingStateDebugPane = ({ call }: { call?: Call }) => (
   <aside className="rd__dialer-debug">
     <h3 className="rd__dialer-debug-title">Ring state</h3>
     {call ? (
-      <RingStateDebug call={call} />
+      // the pane sits outside the page's `StreamCall`, so it provides its own
+      <StreamCall call={call}>
+        <RingStateDebug call={call} />
+      </StreamCall>
     ) : (
       <p className="rd__dialer-debug-empty">No call is ringing.</p>
     )}
@@ -22,8 +26,9 @@ export const RingStateDebugPane = ({ call }: { call?: Call }) => (
 );
 
 const RingStateDebug = ({ call }: { call: Call }) => {
-  const callingState = useObservableValue(call.state.callingState$);
-  const session = useObservableValue(call.state.session$);
+  const { useCallCallingState, useCallSession } = useCallStateHooks();
+  const callingState = useCallCallingState();
+  const session = useCallSession();
   const [polled, setPolled] = useState<GetCallRingStateResponse>();
   const [polledAt, setPolledAt] = useState<string>();
   const [error, setError] = useState<string>();
@@ -47,6 +52,7 @@ const RingStateDebug = ({ call }: { call: Call }) => {
     <>
       <dl className="rd__dialer-debug-list">
         <Row label="CID" value={call.cid} />
+        <Row label="Created by me" value={String(call.isCreatedByMe)} />
         <Row label="Calling state" value={callingState} />
         <Row label="Session" value={session?.id} />
         <Row label="Accepted" value={formatMap(session?.accepted_by)} />
