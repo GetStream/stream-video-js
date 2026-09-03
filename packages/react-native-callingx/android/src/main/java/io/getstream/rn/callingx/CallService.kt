@@ -27,6 +27,7 @@ import io.getstream.rn.callingx.repo.CallRepositoryFactory
 import io.getstream.rn.callingx.utils.AudioEndpointUtils
 import io.getstream.rn.callingx.utils.LifecycleListener
 import io.getstream.rn.callingx.utils.SettingsStore
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -157,6 +158,13 @@ class CallService : Service(), CallRepository.Listener {
 
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob())
     private val actionProcessingLock = Object()
+
+    /**
+     * Calls this instance has launched a registration for that have not reached the repository yet.
+     * Scoped to the instance on purpose: it vetoes stopping the service, so a stale entry must die
+     * with the instance rather than outlive it in process-global state.
+     */
+    private val registeringCallIds: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
     @Volatile
     private var isInForeground = false
@@ -420,6 +428,11 @@ class CallService : Service(), CallRepository.Listener {
     }
 
     override fun onCallRegistered(callId: String, incoming: Boolean) {
+        // The repository now reports this call, so hasAnyCalls() takes over the veto. This has to
+        // happen here rather than when registerCall returns: that only happens once the call has
+        // already been removed and Call.None has run the stop check.
+        registeringCallIds.remove(callId)
+
         if (incoming) {
             sendBroadcastEvent(CallingxModuleImpl.CALL_REGISTERED_INCOMING_ACTION) {
                 putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
@@ -521,6 +534,8 @@ class CallService : Service(), CallRepository.Listener {
             return
         }
 
+        registeringCallIds.add(callInfo.callId)
+
         scope.launch {
             try {
                 callRepository.registerCall(
@@ -538,8 +553,9 @@ class CallService : Service(), CallRepository.Listener {
                         "[service] registerCall: Registration canceled for ${callInfo.callId} during teardown"
                 )
                 // The call never made it into the repository, so nothing else will drop its tracked
-                // id — and a stale one blocks every later stop (see stopServiceIfIdle).
+                // id — and a stale one wrongly marks the user as busy for later pushes.
                 CallRegistrationStore.removeTrackedCall(callInfo.callId)
+                registeringCallIds.remove(callInfo.callId)
             } catch (e: Exception) {
                 Log.e(TAG, "[service] registerCall: Error registering call: ${e.message}")
 
@@ -551,10 +567,15 @@ class CallService : Service(), CallRepository.Listener {
                 // above, but only if a JS module instance is alive — which it need not be in a
                 // headless push flow. Removing it here too is idempotent.
                 CallRegistrationStore.removeTrackedCall(callInfo.callId)
+                registeringCallIds.remove(callInfo.callId)
 
                 repromoteForegroundIfNeeded(callInfo.callId)
 
                 stopServiceIfIdle(lastStartId)
+            } finally {
+                // Backstop for a registration that neither threw nor reached onCallRegistered.
+                // A no-op otherwise: the handover happens there, long before registerCall returns.
+                registeringCallIds.remove(callInfo.callId)
             }
         }
     }
@@ -590,8 +611,8 @@ class CallService : Service(), CallRepository.Listener {
      *
      * Each check catches a new call at a different stage, so none is enough alone:
      * - `hasAnyCalls` — registered in the repository.
-     * - `hasRegisteredCall` — tracked but not registered yet. Tracking happens before the start
-     *   intent is sent, and registration completes well after it is delivered.
+     * - `registeringCallIds` — this instance launched a registration that has not landed yet.
+     *   Registration spends up to 1.5s resolving Telecom endpoints before the repository sees it.
      * - `hasActiveTask` — JS still holds a keep-alive owner; stopping would end its task early.
      * - [stopSelfResult] — a newer start is already queued. ActivityManager bumps its last start id
      *   when `startService` is called, before we see the intent.
@@ -601,12 +622,12 @@ class CallService : Service(), CallRepository.Listener {
      */
     private fun stopServiceIfIdle(startId: Int) {
         if (callRepository.hasAnyCalls() ||
-                        CallRegistrationStore.hasRegisteredCall() ||
+                        registeringCallIds.isNotEmpty() ||
                         headlessJSManager.hasActiveTask()
         ) {
             debugLog(
                     TAG,
-                    "[service] stopServiceIfIdle: Still in use (tracked=${CallRegistrationStore.getTrackedCallIds()}, activeTask=${headlessJSManager.hasActiveTask()}), keeping service alive"
+                    "[service] stopServiceIfIdle: Still in use (registering=$registeringCallIds, activeTask=${headlessJSManager.hasActiveTask()}), keeping service alive"
             )
             return
         }
