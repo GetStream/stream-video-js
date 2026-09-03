@@ -307,9 +307,10 @@ class CallNotificationManager(
     }
 
     /**
-     * Returns the first tracked call we have actually posted a notification for, along with that
-     * notification so the caller can promote without rebuilding it. [excluding] is skipped because it
-     * is the call giving up the anchor.
+     * Returns the oldest tracked call with a posted notification, skipping [excluding] (the call
+     * giving up the anchor). Order is by age, not call state: Telecom allows only one ringing call
+     * and the JS SDK leaves other calls before registering a new one, so a ringing call is never
+     * picked over an active one. The notification is returned so the caller need not rebuild it.
      */
     fun nextAnchorCandidate(excluding: String): PromotionTarget? = synchronized(lock) {
         val next =
