@@ -27,12 +27,19 @@ class HeadlessTaskManager(
         private val onTaskFinished: () -> Unit = {},
 ) : HeadlessJsTaskEventListener {
 
-  /** A started task and the React context it belongs to, kept together so the pair cannot tear. */
-  private class ActiveTask(val id: Int, val context: WeakReference<ReactContext>)
+  /** Our ownership of the single HeadlessJS task slot. */
+  private sealed interface TaskState {
+    /** Nothing of ours is running or being started. */
+    object None : TaskState
+    /** A start was requested; React Native has not assigned an id yet. */
+    object Starting : TaskState
+    /** React Native is running our task, on [context]. */
+    class Active(val id: Int, val context: WeakReference<ReactContext>) : TaskState
+  }
 
-  @Volatile
-  private var activeTask: ActiveTask? = null
-  private var isStarting: Boolean = false
+  /** Guards [state] so an inspection and the replacement that follows it cannot interleave. */
+  private val stateLock = Any()
+  private var state: TaskState = TaskState.None
   private var pendingReactInstanceListener: ReactInstanceEventListener? = null
   @Volatile
   private var released: Boolean = false
@@ -42,37 +49,37 @@ class HeadlessTaskManager(
   }
 
   /**
-   * The tracked task id, or null once it is no longer ours to act on.
+   * The running task's id, or null when we have none to act on.
    *
    * React Native drops in-flight headless tasks when a React context is reloaded or destroyed —
    * there is no teardown for them — and these tasks are started with `timeout = 0`, so nothing
-   * would ever finish one and clear it. Task ids also restart at 1 in a new context,
-   * so a stale id can name a *different* library's task. Both problems are avoided by only
-   * trusting the id while the context it was started on is still the live one.
+   * would ever finish one. Ids also restart at 1 in a new context, so a stale one can name a
+   * *different* library's task. Both are avoided by trusting [TaskState.Active] only while the
+   * context it was started on is still the live one, and dropping it otherwise.
    */
-  private fun liveActiveTaskId(): Int? {
-    val task = activeTask ?: return null
-    val taskId = task.id
+  private fun liveTaskId(): Int? = synchronized(stateLock) {
+    val active = state as? TaskState.Active ?: return@synchronized null
 
-    val startedOn = task.context.get()
-    if (startedOn != null && startedOn === currentReactContextOrNull()) return taskId
+    val startedOn = active.context.get()
+    if (startedOn != null && startedOn === currentReactContextOrNull()) {
+      return@synchronized active.id
+    }
 
     debugLog(
             TAG,
-            "[headless] liveActiveTaskId: task $taskId was abandoned with its React context, dropping it"
+            "[headless] liveTaskId: task ${active.id} was abandoned with its React context, dropping it"
     )
-    clearActiveTask()
-    return null
+    state = TaskState.None
+    return@synchronized null
   }
 
   /**
-   * True while a task we started is still running. The service treats this as a reason to stay
-   * alive, so an abandoned task must not pin it forever.
+   * True while we own the task slot. The service treats this as a reason to stay alive, so a task
+   * abandoned by a context reload must not pin it — but a start that has been requested and not
+   * yet acknowledged must, since its id does not exist yet.
    */
-  fun hasActiveTask(): Boolean = liveActiveTaskId() != null
-
-  private fun clearActiveTask() {
-    activeTask = null
+  fun hasActiveTask(): Boolean = synchronized(stateLock) {
+    state is TaskState.Starting || liveTaskId() != null
   }
 
   /**
@@ -106,16 +113,18 @@ class HeadlessTaskManager(
   public fun startHeadlessTask(taskName: String, data: Bundle, timeout: Long) {
     debugLog(
             TAG,
-            "[headless] startHeadlessTask entry: activeTaskId=${activeTask?.id} isStarting=$isStarting"
+            "[headless] startHeadlessTask entry: state=${state::class.simpleName}"
     )
-    if (liveActiveTaskId() != null || isStarting) {
-      Log.w(
-              TAG,
-              "[headless] startHeadlessTask: Task already starting or active, ignoring new task request"
-      )
-      return
+    synchronized(stateLock) {
+      if (state is TaskState.Starting || liveTaskId() != null) {
+        Log.w(
+                TAG,
+                "[headless] startHeadlessTask: Task already starting or active, ignoring new task request"
+        )
+        return
+      }
+      state = TaskState.Starting
     }
-    isStarting = true
 
     if (UiThreadUtil.isOnUiThread()) {
       startTask(HeadlessJsTaskConfig(taskName, Arguments.fromBundle(data), timeout, true))
@@ -130,10 +139,10 @@ class HeadlessTaskManager(
 
   public fun stopHeadlessTask() {
     debugLog(TAG, "[headless] stopHeadlessTask: Stopping headless task")
-    // Deliberately via liveActiveTaskId: HeadlessJsTaskContext.finishTask has no notion of task
+    // Deliberately via liveTaskId: HeadlessJsTaskContext.finishTask has no notion of task
     // ownership, so finishing a stale id after a context reload would cut short whichever
     // library's task inherited that number.
-    liveActiveTaskId()?.let { taskId ->
+    liveTaskId()?.let { taskId ->
       if (UiThreadUtil.isOnUiThread()) {
         stopTask(taskId)
       } else {
@@ -164,9 +173,8 @@ class HeadlessTaskManager(
 
     UiThreadUtil.runOnUiThread {
       val taskId = headlessJsTaskContext.startTask(taskConfig)
-      activeTask = ActiveTask(taskId, WeakReference(reactContext))
+      synchronized(stateLock) { state = TaskState.Active(taskId, WeakReference(reactContext)) }
       debugLog(TAG, "[headless] invokeStartTask: Task started: $taskId")
-      isStarting = false
     }
   }
 
@@ -183,7 +191,8 @@ class HeadlessTaskManager(
   fun release() {
     released = true
     stopHeadlessTask()
-    isStarting = false
+    // Give up the slot synchronously: a Starting state would otherwise outlive the service.
+    synchronized(stateLock) { state = TaskState.None }
     // Proactively unregister the pending React-context init listener. Otherwise the callback
     // would fire after CallService is destroyed, invokeStartTask a stale task on this dead
     // manager, and register `this` as a task listener on the live ReactContext (leak).
@@ -195,7 +204,6 @@ class HeadlessTaskManager(
     // posted by finishTask() drains first — otherwise we'd unregister the listener before
     // it fires and lose the finish log.
     UiThreadUtil.runOnUiThread {
-      clearActiveTask()
       currentReactContextOrNull()?.let { context ->
         val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(context)
         headlessJsTaskContext.removeTaskEventListener(this)
@@ -220,16 +228,12 @@ class HeadlessTaskManager(
   }
 
   override fun onHeadlessJsTaskFinish(taskId: Int) {
-    if (taskId != liveActiveTaskId()) {
-      debugLog(
-              TAG,
-              "[headless] onHeadlessJsTaskFinish: IGNORED foreign taskId=$taskId (our=${activeTask?.id})"
-      )
+    if (taskId != liveTaskId()) {
+      debugLog(TAG, "[headless] onHeadlessJsTaskFinish: IGNORED foreign taskId=$taskId")
       return
     }
-    debugLog(TAG, "[headless] onHeadlessJsTaskFinish Task finished: $taskId state cleared: activeTaskId=null isStarting=false")
-    clearActiveTask()
-    isStarting = false
+    debugLog(TAG, "[headless] onHeadlessJsTaskFinish: Task finished: $taskId, slot released")
+    synchronized(stateLock) { state = TaskState.None }
 
     if (released) {
       // release() runs from CallService.onDestroy and finishes the task itself; the service is

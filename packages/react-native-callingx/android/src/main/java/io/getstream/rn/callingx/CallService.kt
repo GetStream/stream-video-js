@@ -284,6 +284,16 @@ class CallService : Service(), CallRepository.Listener {
 
         notificationManager.cancelAllNotifications()
         notificationManager.stopRingtone()
+
+        // release() below disconnects every call without emitting Call.None — it cancels the
+        // observer — so nothing else would drop these process-global entries. A left-behind
+        // tracked id makes rejectCallWhenBusy skip later pushes, and a left-behind action would
+        // be replayed against a future call with the same id.
+        (callRepository.calls.value.keys + registeringCallIds).forEach { callId ->
+            CallRegistrationStore.removeTrackedCall(callId)
+            CallRegistrationStore.takePendingActions(callId) // discarded: only the removal matters
+        }
+
         callRepository.release()
         headlessJSManager.release()
 
@@ -322,6 +332,9 @@ class CallService : Service(), CallRepository.Listener {
             }
             ACTION_UPDATE_CALL -> {
                 updateCall(intent)
+                // This action never registers anything, and plain startService may have created
+                // the service just to deliver it, so re-check whether it has a reason to run.
+                stopServiceIfIdle(startId)
             }
             ACTION_PROCESS_ACTION -> {
                 processAction(intent)
@@ -513,6 +526,11 @@ class CallService : Service(), CallRepository.Listener {
 
         val callInfo = extractIntentParams(intent)
 
+        // Claimed before anything else: lastStartId is already this call's, so from here until the
+        // registration lands, this entry is the only thing stopping another call's teardown from
+        // taking the service down with a matching start id.
+        registeringCallIds.add(callInfo.callId)
+
         startForegroundForCall(callInfo, incoming)
 
         // If this specific call is already registered, just notify
@@ -531,10 +549,10 @@ class CallService : Service(), CallRepository.Listener {
                     putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callInfo.callId)
                 }
             }
+            // hasAnyCalls() already covers an existing call, so hand the veto straight over.
+            registeringCallIds.remove(callInfo.callId)
             return
         }
-
-        registeringCallIds.add(callInfo.callId)
 
         scope.launch {
             try {

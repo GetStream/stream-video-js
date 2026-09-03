@@ -274,14 +274,6 @@ class CallingxModuleImpl(
             return
         }
 
-        if (!CallService.isRunning) {
-            // Plain startService, so this would create a service with no call in it — and nothing
-            // would stop it. There is no notification to update in that state anyway.
-            debugLog(TAG, "[module] updateDisplay: Service is not running, nothing to update")
-            promise.resolve(true)
-            return
-        }
-
         try {
             Intent(reactApplicationContext, CallService::class.java)
                     .apply {
