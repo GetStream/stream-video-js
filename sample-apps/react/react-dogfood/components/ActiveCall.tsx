@@ -195,7 +195,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 close={() => setShowInvitePopup(false)}
               />
             )}
-            {isPronto && <ClosedCaptions />}
+            <ClosedCaptions />
           </div>
 
           <div
