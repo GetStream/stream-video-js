@@ -1,0 +1,23 @@
+.str-video__connection-quality-indicator {
+  background-color: var(--str-video__background-core-overlay-dark-strong);
+
+  .str-video__connection-quality-indicator__bar {
+    background-color: var(--str-video__base-transparent-white-30);
+
+    &--active {
+      background-color: var(--str-video__text-on-accent);
+    }
+  }
+
+  &--poor .str-video__connection-quality-indicator__bar--active {
+    background-color: var(--str-video__indicator-poor);
+  }
+
+  &--good .str-video__connection-quality-indicator__bar--active {
+    background-color: var(--str-video__indicator-fair);
+  }
+
+  &--excellent .str-video__connection-quality-indicator__bar--active {
+    background-color: var(--str-video__indicator-great);
+  }
+}

@@ -1,0 +1,10 @@
+@use 'tokens/generated/light' as light;
+@use 'tokens/generated/dark' as dark;
+
+.str-video {
+  @include light.variables;
+}
+
+.str-video__theme-dark {
+  @include dark.variables;
+}

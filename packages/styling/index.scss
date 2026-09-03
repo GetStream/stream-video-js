@@ -2,6 +2,8 @@
 
 @use 'src/base';
 @use 'src/global-theme-variables';
+@use 'src/variable-tokens';
+@use 'src/icons';
 @use 'src/utils';
 
 @use 'src/AudioBlockedNotification';
