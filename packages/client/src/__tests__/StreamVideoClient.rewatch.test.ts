@@ -123,7 +123,11 @@ describe('StreamVideoClient re-watching calls on reconnect', () => {
     reconnect();
 
     // accepted on another device -> this device should stop ringing
-    await vi.waitFor(() => expect(leave).toHaveBeenCalled());
+    await vi.waitFor(() =>
+      expect(leave).toHaveBeenCalledWith({
+        message: 'user-responded-elsewhere',
+      }),
+    );
   });
 
   it('queryCalls returns an independent instance for registered calls', async () => {
