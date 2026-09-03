@@ -585,33 +585,19 @@ class CallService : Service(), CallRepository.Listener {
     }
 
     /**
-     * The single place this service stops itself. Every caller — a call unregistering, a failed
-     * registration, [ACTION_STOP_SERVICE], an unknown action, and [HeadlessTaskManager]'s
-     * task-finished callback — is making a *request*, not issuing a command: the service hosts
-     * every call, so it may only go down once nothing owns it.
+     * The only place this service stops itself. Callers are asking, not telling: the service hosts
+     * every call, so it may only go down once nothing needs it.
      *
-     * Two of the checks cover opposite interleavings of "tear this call down" against "a new call
-     * is arriving", which is why neither alone is enough:
-     * - [CallRegistrationStore.hasRegisteredCall] covers a call already tracked when we read state.
-     *   Tracking happens synchronously *before* `startForegroundService`, so it is set even while
-     *   the new call's intent is still queued and the repository is empty.
-     * - [stopSelfResult] with the delivered start id covers an owner whose start reached
-     *   ActivityManager *after* we read state, which the checks above cannot see. ActivityManager
-     *   bumps its own last start id when `startService` is called, before delivery, so a mismatch
-     *   means a start is already in flight and the service must stay up for it.
+     * Each check catches a new call at a different stage, so none is enough alone:
+     * - `hasAnyCalls` — registered in the repository.
+     * - `hasRegisteredCall` — tracked but not registered yet. Tracking happens before the start
+     *   intent is sent, and registration completes well after it is delivered.
+     * - `hasActiveTask` — JS still holds a keep-alive owner; stopping would end its task early.
+     * - [stopSelfResult] — a newer start is already queued. ActivityManager bumps its last start id
+     *   when `startService` is called, before we see the intent.
      *
-     * A running headless task counts as an owner: JS holding entries in `_keepAliveOwners` keeps
-     * the keep-alive task's promise pending, which is what [HeadlessTaskManager.hasActiveTask]
-     * reports. `releaseBackgroundTask` debounces its stop by 2s so the ringing-push -> keep-alive
-     * hand-off can reuse the task, and destroying the service calls [HeadlessTaskManager.release],
-     * which would finish that task early. The window between JS adding an owner and the native
-     * start arriving is covered by the start-id check, since that start is what creates the
-     * service in the first place.
-     *
-     * Teardown (foreground demotion, notifications, ringtone) is left to [onDestroy]: nothing
-     * binds to this service, so destruction is not deferred, and the call-state paths have already
-     * been through [repromoteForegroundIfNeeded], which demotes when it cannot re-anchor. Demoting
-     * here would give up a valid anchor whenever the stop is refused.
+     * Teardown is [onDestroy]'s job, which always runs since nothing binds here. Demoting from the
+     * foreground here would also drop a still-valid anchor when the stop is refused.
      */
     private fun stopServiceIfIdle(startId: Int) {
         if (callRepository.hasAnyCalls() ||
