@@ -74,11 +74,26 @@ class CallingxModuleImpl(
         debugLog(TAG, "[module] invalidate: Invalidating module")
 
         LifecycleListener.unregister()
-        CallRegistrationStore.clearAll()
+        CallRegistrationStore.clearPendingPromises()
         AudioEndpointStore.clearAll()
         CallEventBus.unsubscribe(this)
 
         isModuleInitialized = false
+
+        // The JS runtime is going away, so any keep-alive owner it held is gone with it. A React
+        // context teardown does not finish in-flight headless tasks, so the service would never
+        // otherwise be told to re-check whether it still has a reason to run. Native calls survive
+        // this — both registered ones and those still resolving Telecom endpoints — and veto the
+        // stop inside CallService, which is why the tracked ids above are left intact.
+        if (CallService.isRunning) {
+            try {
+                Intent(reactApplicationContext, CallService::class.java)
+                        .apply { action = CallService.ACTION_STOP_SERVICE }
+                        .also { reactApplicationContext.startService(it) }
+            } catch (e: Exception) {
+                Log.e(TAG, "[module] invalidate: Failed to sweep the call service: ${e.message}", e)
+            }
+        }
     }
 
     fun setShouldRejectCallWhenBusy(shouldReject: Boolean) {
@@ -125,6 +140,15 @@ class CallingxModuleImpl(
 
     fun stopService(promise: Promise) {
         debugLog(TAG, "[module] stopService: Stopping CallService explicitly from JS")
+
+        if (!CallService.isRunning) {
+            // Starting the service just to stop it would construct (and immediately release) a
+            // whole CallRepository, and `startService` from the background can throw on API 26+.
+            debugLog(TAG, "[module] stopService: Service is not running, nothing to stop")
+            promise.resolve(true)
+            return
+        }
+
         try {
             Intent(reactApplicationContext, CallService::class.java)
                     .apply { action = CallService.ACTION_STOP_SERVICE }
@@ -250,20 +274,21 @@ class CallingxModuleImpl(
             return
         }
 
-        // for now only display options will be updated, rest of the parameters will be ignored
         try {
-            startCallService(
-                    CallService.ACTION_UPDATE_CALL,
-                    callId,
-                    callerName,
-                    phoneNumber,
-                    true,
-                    displayOptions,
-            )
+            Intent(reactApplicationContext, CallService::class.java)
+                    .apply {
+                        this.action = CallService.ACTION_UPDATE_CALL
+                        putExtra(CallService.EXTRA_CALL_ID, callId)
+                        putExtra(CallService.EXTRA_NAME, callerName)
+                        putExtra(CallService.EXTRA_URI, phoneNumber.toUri())
+                        putExtra(CallService.EXTRA_IS_VIDEO, true)
+                        putExtra(CallService.EXTRA_DISPLAY_OPTIONS, Arguments.toBundle(displayOptions))
+                    }
+                    .also { reactApplicationContext.startService(it) }
             promise.resolve(true)
         } catch (e: Exception) {
-            Log.e(TAG, "[module] updateDisplay: Failed to start foreground service: ${e.message}", e)
-            promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
+            Log.e(TAG, "[module] updateDisplay: Failed to start service: ${e.message}", e)
+            promise.reject("START_SERVICE_ERROR", e.message, e)
         }
     }
 
