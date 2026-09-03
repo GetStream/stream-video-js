@@ -272,15 +272,12 @@ class CallService : Service(), CallRepository.Listener {
 
         unregisterReceiver(optimisticNotificationReceiver)
 
+        demoteForeground()
+
         notificationManager.cancelAllNotifications()
         notificationManager.stopRingtone()
         callRepository.release()
         headlessJSManager.release()
-
-        if (isInForeground) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            isInForeground = false
-        }
 
         scope.cancel()
     }
@@ -371,8 +368,11 @@ class CallService : Service(), CallRepository.Listener {
                             "[service] onCallStateChanged[$callId]: Starting foreground for call"
                     )
                     notificationManager.resetOptimisticState(callId)
+                    // Recovery path: a registered call changed state while the service is not
+                    // foreground (e.g. an earlier promote failed, or we demoted after a failed
+                    // re-anchor). Promote here so the call keeps an FGS anchor.
                     val notification = notificationManager.createNotification(callId, call)
-                    startForegroundSafely(notificationId, notification)
+                    startForegroundSafely(callId, notificationId, notification)
                 }
             }
             is Call.None, is Call.Unregistered -> {
@@ -612,12 +612,19 @@ class CallService : Service(), CallRepository.Listener {
      *   the new call's intent is still queued and the repository is empty.
      * - [stopSelfIfNoPendingStart] covers a call whose start reached ActivityManager *after* we
      *   read state, which the check above cannot see.
+     *
+     * A running headless task also counts as an owner. `releaseBackgroundTask` debounces its stop
+     * by 2s so the ringing-push -> keep-alive hand-off can reuse the task, and destroying the
+     * service calls [HeadlessTaskManager.release], which would finish that task early.
      */
     private fun stopServiceIfIdle(startId: Int) {
-        if (callRepository.hasAnyCalls() || CallRegistrationStore.hasRegisteredCall()) {
+        if (callRepository.hasAnyCalls() ||
+                        CallRegistrationStore.hasRegisteredCall() ||
+                        headlessJSManager.hasActiveTask()
+        ) {
             debugLog(
                     TAG,
-                    "[service] stopServiceIfIdle: Calls still present (tracked=${CallRegistrationStore.getTrackedCallIds()}), keeping service alive"
+                    "[service] stopServiceIfIdle: Still in use (tracked=${CallRegistrationStore.getTrackedCallIds()}, activeTask=${headlessJSManager.hasActiveTask()}), keeping service alive"
             )
             return
         }
@@ -630,9 +637,10 @@ class CallService : Service(), CallRepository.Listener {
      * its own last start id when `startService` is called — before delivery — so a mismatch here
      * means an incoming-call start is already in flight and the service must stay up for it.
      *
-     * Teardown (foreground demotion, notifications, ringtone) is deliberately left to [onDestroy]:
-     * nothing binds to this service, so destruction is not deferred and that is the single place
-     * every stop path converges on.
+     * Deliberately does not [demoteForeground]: [onDestroy] does it, nothing binds to this service
+     * so destruction is not deferred, and the call-state stop paths have already been through
+     * [repromoteForegroundIfNeeded], which demotes when it cannot re-anchor. Demoting here would
+     * also give up a valid anchor on the paths where the stop is refused.
      */
     private fun stopSelfIfNoPendingStart(startId: Int) {
         if (!stopSelfResult(startId)) {
@@ -643,20 +651,41 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
-    private fun startForegroundSafely(notificationId: Int, notification: Notification) {
-        try {
+    private fun demoteForeground() {
+        if (!isInForeground) return
+        debugLog(TAG, "[service] demoteForeground: leaving foreground")
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        isInForeground = false
+        notificationManager.clearAnchor()
+    }
+
+    /**
+     * Promotes the service using [callId]'s notification, and records the resulting FGS anchor.
+     *
+     * @return true when the platform accepted the promotion. On failure the recorded anchor is left
+     *   untouched: a previously valid anchor must not be discarded because a new promote failed.
+     */
+    private fun startForegroundSafely(
+            callId: String,
+            notificationId: Int,
+            notification: Notification,
+    ): Boolean {
+        return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 startForeground(notificationId, notification, computeForegroundServiceType())
             } else {
                 startForeground(notificationId, notification)
             }
             isInForeground = true
+            notificationManager.commitAnchor(callId, notification)
+            true
         } catch (e: Exception) {
             Log.e(
                     TAG,
                     "[service] startForegroundSafely: Failed to start foreground service: ${e.message}",
                     e
             )
+            false
         }
     }
 
@@ -708,26 +737,28 @@ class CallService : Service(), CallRepository.Listener {
         if (!isInForeground) return // service is not foreground yet — nothing to upgrade
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
 
-        val type = computeForegroundServiceType()
-        if (type == ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL) {
+        if (computeForegroundServiceType() == ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL) {
             // Nothing extra to promote (no while-in-use permissions, or not foreground).
             return
         }
 
         val foregroundCallId = notificationManager.getForegroundCallId() ?: return
-        val call = callRepository.getCall(foregroundCallId) ?: return
-        val notificationId = notificationManager.getOrCreateNotificationId(foregroundCallId)
-        val notification = notificationManager.createNotification(foregroundCallId, call)
-
-        try {
-            startForeground(notificationId, notification, type)
-        } catch (e: Exception) {
-            Log.e(
+        val notification = notificationManager.lastPostedNotification(foregroundCallId)
+        if (notification == null) {
+            Log.w(
                     TAG,
-                    "[service] repromoteForegroundType: failed to upgrade FGS type: ${e.message}",
-                    e
+                    "[service] repromoteForegroundType: nothing posted for anchor $foregroundCallId"
             )
+            return
         }
+
+        // Deliberately ignoring the result: a failed type upgrade leaves a valid FGS on the previous,
+        // narrower type. Unlike repromoteForegroundIfNeeded, this must NOT demote.
+        startForegroundSafely(
+                foregroundCallId,
+                notificationManager.getOrCreateNotificationId(foregroundCallId),
+                notification,
+        )
     }
 
     /**
@@ -735,16 +766,35 @@ class CallService : Service(), CallRepository.Listener {
      * and other calls remain, re-promotes the service with the next call's notification.
      */
     private fun repromoteForegroundIfNeeded(callId: String) {
-        val newForegroundNotificationId = notificationManager.cancelNotification(callId)
-        if (newForegroundNotificationId != null && isInForeground) {
-            val newForegroundCallId = notificationManager.getForegroundCallId()
-            val call = if (newForegroundCallId != null) callRepository.getCall(newForegroundCallId) else null
-            if (call != null && newForegroundCallId != null) {
-                debugLog(TAG, "[service] repromoteForegroundIfNeeded: Re-promoting with call $newForegroundCallId (notificationId=$newForegroundNotificationId)")
-                val notification = notificationManager.createNotification(newForegroundCallId, call)
-                startForegroundSafely(newForegroundNotificationId, notification)
-            }
+        val wasAnchor = notificationManager.getForegroundCallId() == callId
+        if (!isInForeground || !wasAnchor) {
+            debugLog(TAG, "[service] repromoteForegroundIfNeeded: Another call still holds the anchor, not re-anchoring")
+            notificationManager.cancelNotification(callId)
+            return
         }
+
+        val next = notificationManager.nextAnchorCandidate(excluding = callId)
+        val anchored =
+                if (next == null) {
+                    debugLog(TAG, "[service] repromoteForegroundIfNeeded: No next anchor candidate, not re-anchoring")
+                    false
+                } else {
+                    debugLog(
+                            TAG,
+                            "[service] repromoteForegroundIfNeeded: Re-anchoring to ${next.callId} (notificationId=${next.notificationId})"
+                    )
+                    startForegroundSafely(next.callId, next.notificationId, next.notification)
+                }
+
+        if (!anchored) {
+            // Nothing to anchor to, or the promote failed. Never leave isInForeground claiming an
+            // anchor we do not have — that is what surfaces later as
+            // SecurityException: Invalid FGS notification.
+            debugLog(TAG, "[service] repromoteForegroundIfNeeded: No anchor available, demoting")
+            demoteForeground()
+        }
+
+        notificationManager.cancelNotification(callId)
     }
 
     private fun startForegroundForCall(callInfo: CallInfo, incoming: Boolean) {
@@ -757,7 +807,7 @@ class CallService : Service(), CallRepository.Listener {
                     "[service] registerCall: Starting foreground for call: ${callInfo.callId}"
             )
             val notification = notificationManager.createNotification(callInfo.callId, tempCall)
-            startForegroundSafely(notificationId, notification)
+            startForegroundSafely(callInfo.callId, notificationId, notification)
         } else if (!notificationManager.isNotificationPosted(callInfo.callId)) {
             // Post only when this call has no notification yet (e.g. a second concurrent call).
             val notification = notificationManager.createNotification(callInfo.callId, tempCall)

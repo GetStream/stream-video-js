@@ -43,9 +43,46 @@ const processor = new VirtualBackground(
 // 4. Start the processor and use the processed track
 const processedTrack = await processor.start();
 
-// 5. Stop the processor
+// 5. Change the effect at any time, without restarting the track
+await processor.updateOptions({
+  backgroundFilter: 'blur',
+  backgroundBlurLevel: 'high',
+});
+
+// 6. Stop the processor
 processor.stop();
 ```
+
+### Updating the effect
+
+`updateOptions` changes the background effect of a running processor. The new
+effect is applied on the next frame - the input track, renderer and segmenter
+are preserved, so there is no interruption and the processed track doesn't
+need to be re-published.
+
+```typescript
+// switch between blur levels
+await processor.updateOptions({
+  backgroundFilter: 'blur',
+  backgroundBlurLevel: 3,
+});
+
+// switch to an image background
+await processor.updateOptions({
+  backgroundFilter: 'image',
+  backgroundImage: 'https://example.com/background.jpg',
+});
+```
+
+Notes:
+
+- `updateOptions` replaces the effect options, so always pass the complete
+  set you want applied.
+- `basePath` and `modelPath` are fixed for the lifetime of the processor;
+  changing the model requires a new instance.
+- When several updates overlap, the last one wins.
+- If the background image fails to load, the promise rejects and the current
+  background keeps rendering.
 
 ## Known limitations
 

@@ -34,7 +34,7 @@ describe('withStreamVideoReactNativeSDKAndroidPermissions', () => {
         'android.permission.BLUETOOTH_ADMIN',
         'android.permission.FOREGROUND_SERVICE_CAMERA',
         'android.permission.FOREGROUND_SERVICE_MICROPHONE',
-        'android.permission.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK',
+        'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
       ]),
     );
   });

@@ -26,6 +26,7 @@ class HeadlessTaskManager(
         private val onTaskFinished: () -> Unit = {},
 ) : HeadlessJsTaskEventListener {
 
+  @Volatile
   private var activeTaskId: Int? = null
   private var isStarting: Boolean = false
   private var pendingReactInstanceListener: ReactInstanceEventListener? = null
@@ -35,6 +36,9 @@ class HeadlessTaskManager(
   companion object {
     private const val TAG = "[Callingx] HeadlessTaskManager"
   }
+
+  /** True while a headless task is running. The service uses it as a reason to stay alive. */
+  fun hasActiveTask(): Boolean = activeTaskId != null
 
   private fun hasReactContext(): Boolean = reactContext != null
 
