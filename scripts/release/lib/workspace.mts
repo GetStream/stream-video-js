@@ -10,6 +10,7 @@ import { join } from 'node:path';
 
 export interface PackageManifest {
   name?: string;
+  version?: string;
   private?: boolean;
   dependencies?: Record<string, string>;
 }

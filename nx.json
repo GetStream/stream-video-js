@@ -1,14 +1,5 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "tasksRunnerOptions": {
-    "default": {
-      "runner": "nx/tasks-runners/default",
-      "options": {
-        "cacheableOperations": []
-      }
-    }
-  },
-  "defaultBase": "main",
   "targetDefaults": {
     "version": {
       "dependsOn": ["^version"]
