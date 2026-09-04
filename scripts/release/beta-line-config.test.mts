@@ -54,15 +54,16 @@ test('every v2 package releases on the beta preid', () => {
   }
 });
 
-// `premajor` is single-use: it establishes 2.0.0-beta.0 from 1.x, but from
-// 2.0.0-beta.0 it yields 3.0.0-beta.0. `prerelease` is the steady state and
-// increments beta.N. Anything else silently leaves the v2 line.
-test('every v2 package uses a supported releaseAs', () => {
+// The bootstrap is done: 2.0.0-beta.0 is published, so `premajor` must no
+// longer appear. From 2.0.0-beta.0 it would yield 3.0.0-beta.0. `prerelease` is
+// the steady state and increments beta.N.
+test('every v2 package uses the steady-state releaseAs', () => {
   for (const pkg of V2_PACKAGES) {
     const releaseAs = readProject(pkg).targets?.version?.options?.releaseAs;
-    assert.ok(
-      releaseAs === 'premajor' || releaseAs === 'prerelease',
-      `packages/${pkg} has releaseAs "${releaseAs}", expected "premajor" (bootstrap) or "prerelease" (steady state)`,
+    assert.equal(
+      releaseAs,
+      'prerelease',
+      `packages/${pkg} has releaseAs "${releaseAs}"; the v2 line is bootstrapped, so it must be "prerelease"`,
     );
   }
 });

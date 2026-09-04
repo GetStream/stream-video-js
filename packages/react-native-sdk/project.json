@@ -24,7 +24,7 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["ci", "docs"],
-        "releaseAs": "premajor",
+        "releaseAs": "prerelease",
         "preid": "beta",
         "postTargets": [
           "@stream-io/video-react-native-sdk:update-version",

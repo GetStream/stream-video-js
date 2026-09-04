@@ -23,7 +23,7 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["ci", "refactor", "test"],
-        "releaseAs": "premajor",
+        "releaseAs": "prerelease",
         "preid": "beta",
         "postTargets": [
           "@stream-io/video-styling:github",
