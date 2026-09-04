@@ -286,7 +286,7 @@ describe('CallManager communication-mode workaround opt-out', () => {
     internalCallManager.start({ isRingingTypeCall: false, cid: 'type:id' });
   };
 
-  it('start(): classic communicator call does not touch the sticky preference by default', () => {
+  it('forwards the default preference (false) on a classic communicator call', () => {
     const nativeManager = makeNativeManager();
     const { publicCallManager, internalCallManager } = loadCallManager({
       os: 'android',
@@ -298,73 +298,96 @@ describe('CallManager communication-mode workaround opt-out', () => {
     });
 
     expect(nativeManager.setTelecomManagedMode).toHaveBeenCalledWith(false);
-    // Not forwarded unless explicitly set, so a sticky opt-out is never clobbered.
-    expect(
-      nativeManager.setDisableCommunicationModeWorkaround,
-    ).not.toHaveBeenCalled();
-    expect(nativeManager.start).toHaveBeenCalled();
-  });
-
-  it('start(): forwards an explicit disable=true for a classic communicator call', () => {
-    const nativeManager = makeNativeManager();
-    const { publicCallManager, internalCallManager } = loadCallManager({
-      os: 'android',
-      nativeManager,
-      callingx: undefined,
-    });
-    startCall(publicCallManager, internalCallManager, {
-      audioRole: 'communicator',
-      disableCommunicationModeWorkaround: true,
-    });
-
-    expect(
-      nativeManager.setDisableCommunicationModeWorkaround,
-    ).toHaveBeenCalledWith(true);
-  });
-
-  it('start(): forwards an explicit disable=false for a classic communicator call', () => {
-    const nativeManager = makeNativeManager();
-    const { publicCallManager, internalCallManager } = loadCallManager({
-      os: 'android',
-      nativeManager,
-      callingx: undefined,
-    });
-    startCall(publicCallManager, internalCallManager, {
-      audioRole: 'communicator',
-      disableCommunicationModeWorkaround: false,
-    });
-
     expect(
       nativeManager.setDisableCommunicationModeWorkaround,
     ).toHaveBeenCalledWith(false);
+    expect(nativeManager.start).toHaveBeenCalled();
   });
 
-  it('start(): listener role never forwards the workaround flag', () => {
+  it('forwards the preference recorded via the setter', () => {
     const nativeManager = makeNativeManager();
     const { publicCallManager, internalCallManager } = loadCallManager({
       os: 'android',
       nativeManager,
       callingx: undefined,
     });
+    publicCallManager.setDisableCommunicationModeWorkaround(true);
+    startCall(publicCallManager, internalCallManager, {
+      audioRole: 'communicator',
+    });
+
+    expect(
+      nativeManager.setDisableCommunicationModeWorkaround,
+    ).toHaveBeenLastCalledWith(true);
+  });
+
+  it('forwards the preference when start() is given no config at all', () => {
+    const nativeManager = makeNativeManager();
+    const { publicCallManager, internalCallManager } = loadCallManager({
+      os: 'android',
+      nativeManager,
+      callingx: undefined,
+    });
+    publicCallManager.setDisableCommunicationModeWorkaround(true);
+    startCall(publicCallManager, internalCallManager, undefined);
+
+    expect(
+      nativeManager.setDisableCommunicationModeWorkaround,
+    ).toHaveBeenLastCalledWith(true);
+  });
+
+  it('re-applies the preference on the next join when it changed mid-call', () => {
+    const nativeManager = makeNativeManager();
+    const { publicCallManager, internalCallManager } = loadCallManager({
+      os: 'android',
+      nativeManager,
+      callingx: undefined,
+    });
+    startCall(publicCallManager, internalCallManager, {
+      audioRole: 'communicator',
+    });
+    expect(
+      nativeManager.setDisableCommunicationModeWorkaround,
+    ).toHaveBeenLastCalledWith(false);
+
+    // Native drops this while its audio manager is activated, so it must be re-applied
+    // at the next join rather than silently lost.
+    publicCallManager.setDisableCommunicationModeWorkaround(true);
+    startCall(publicCallManager, internalCallManager, {
+      audioRole: 'communicator',
+    });
+    expect(
+      nativeManager.setDisableCommunicationModeWorkaround,
+    ).toHaveBeenLastCalledWith(true);
+  });
+
+  it('forwards for the listener role too; native gates the keep-alive on audio role', () => {
+    const nativeManager = makeNativeManager();
+    const { publicCallManager, internalCallManager } = loadCallManager({
+      os: 'android',
+      nativeManager,
+      callingx: undefined,
+    });
+    publicCallManager.setDisableCommunicationModeWorkaround(true);
     startCall(publicCallManager, internalCallManager, {
       audioRole: 'listener',
     });
 
     expect(
       nativeManager.setDisableCommunicationModeWorkaround,
-    ).not.toHaveBeenCalled();
+    ).toHaveBeenLastCalledWith(true);
   });
 
-  it('start(): iOS never forwards the workaround flag', () => {
+  it('iOS never forwards the workaround flag', () => {
     const nativeManager = makeNativeManager();
     const { publicCallManager, internalCallManager } = loadCallManager({
       os: 'ios',
       nativeManager,
       callingx: undefined,
     });
+    publicCallManager.setDisableCommunicationModeWorkaround(true);
     startCall(publicCallManager, internalCallManager, {
       audioRole: 'communicator',
-      disableCommunicationModeWorkaround: true,
     });
 
     expect(
@@ -372,7 +395,7 @@ describe('CallManager communication-mode workaround opt-out', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('start(): Telecom-managed calls never forward the workaround flag', () => {
+  it('Telecom-managed calls never forward the workaround flag', () => {
     const nativeManager = makeNativeManager();
     const callingx = makeCallingx();
     const { publicCallManager, internalCallManager } = loadCallManager({
@@ -380,14 +403,15 @@ describe('CallManager communication-mode workaround opt-out', () => {
       nativeManager,
       callingx,
     });
+    publicCallManager.setDisableCommunicationModeWorkaround(true);
+    // The setter writes to native itself; clear so we observe only what the join forwards.
+    nativeManager.setDisableCommunicationModeWorkaround.mockClear();
     startCall(publicCallManager, internalCallManager, {
       audioRole: 'communicator',
-      disableCommunicationModeWorkaround: true,
     });
 
     expect(nativeManager.setTelecomManagedMode).toHaveBeenCalledWith(true);
-    // Telecom owns the audio mode, so the keep-alive never runs there; leave the
-    // sticky preference untouched rather than letting a per-call config clobber it.
+    // Telecom owns the audio mode, so the keep-alive never runs there.
     expect(
       nativeManager.setDisableCommunicationModeWorkaround,
     ).not.toHaveBeenCalled();
@@ -421,7 +445,7 @@ describe('CallManager communication-mode workaround opt-out', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('start(): survives a native module missing the workaround method (version skew)', () => {
+  it('survives a native module missing the workaround method (version skew)', () => {
     const nativeManager = makeNativeManager();
     // Simulate an older native binary that predates the method.
     delete (nativeManager as Partial<typeof nativeManager>)
@@ -432,12 +456,12 @@ describe('CallManager communication-mode workaround opt-out', () => {
       callingx: undefined,
     });
 
-    expect(() =>
+    expect(() => {
+      publicCallManager.setDisableCommunicationModeWorkaround(true);
       startCall(publicCallManager, internalCallManager, {
         audioRole: 'communicator',
-        disableCommunicationModeWorkaround: true,
-      }),
-    ).not.toThrow();
+      });
+    }).not.toThrow();
     expect(nativeManager.start).toHaveBeenCalled();
   });
 });

@@ -121,12 +121,12 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
         config?.audioRole === 'communicator'
           ? config.deviceEndpointType
           : undefined;
-      // Android-only, communicator-only opt-out for the communication-mode keep-alive.
-      // Read here (not in the public `start`) because the public call manager only stores config.
+      // App-level opt-out for the communication-mode keep-alive, recorded via
+      // `callManager.setDisableCommunicationModeWorkaround()`. Re-applied on every join so a
+      // setter call made during an active call (which native rejects once its audio manager
+      // is activated) still takes effect from the next call onwards.
       const disableKeepAlive =
-        config?.audioRole === 'communicator'
-          ? config.disableCommunicationModeWorkaround
-          : undefined;
+        publicCallManager.getDisableCommunicationModeWorkaround();
 
       if (shouldBypassForCallKit({ isRingingTypeCall })) {
         // CallKit owns activation. Only forward an explicit endpoint override; the
@@ -166,14 +166,9 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
         }
       }
 
-      // Forward only when explicitly set, so a per-call config never clobbers a sticky
-      // preference set via `callManager.setDisableCommunicationModeWorkaround()`. Must run
-      // before `start()` — native rejects the change once the audio manager is activated.
-      if (
-        Platform.OS === 'android' &&
-        !isTelecomManaged &&
-        disableKeepAlive !== undefined
-      ) {
+      // Must run before `start()` — native rejects the change once the audio manager is
+      // activated. Telecom owns the audio mode, so the keep-alive never runs there.
+      if (Platform.OS === 'android' && !isTelecomManaged) {
         safeNativeCall('start disableCommunicationModeWorkaround', () =>
           StreamInCallManagerNativeModule.setDisableCommunicationModeWorkaround(
             disableKeepAlive,

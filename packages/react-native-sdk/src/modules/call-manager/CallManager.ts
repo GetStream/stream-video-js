@@ -353,18 +353,36 @@ export class CallManager {
       .debug('[public] stop(): cleared stored config');
   };
 
+  /** The sticky opt-out recorded via {@link setDisableCommunicationModeWorkaround}. */
+  private disableCommunicationModeWorkaround = false;
+
+  /**
+   * The sticky opt-out recorded via {@link setDisableCommunicationModeWorkaround}.
+   *
+   * @internal Read by the SDK's internal call manager at join; not intended for app use.
+   */
+  getDisableCommunicationModeWorkaround = (): boolean =>
+    this.disableCommunicationModeWorkaround;
+
   /**
    * Android only. Opt out of the Android 11+ communication-mode keep-alive workaround.
    *
    * The SDK plays a silent voice-communication track during communicator-role calls to
    * stop Android from resetting `MODE_IN_COMMUNICATION` (which breaks routing/AEC).
    * No-op on iOS and on Android below API 30.
+   *
+   * The native module only accepts this before its audio manager is activated, so calling
+   * it during an active call does NOT change that call — the preference is recorded and
+   * applied from the next join onwards. Call it before joining for immediate effect.
+   *
    * See {@link https://issuetracker.google.com/issues/209493718}
    */
   setDisableCommunicationModeWorkaround = (disabled: boolean): void => {
     if (Platform.OS !== 'android') {
       return;
     }
+    // Recorded so the next join re-applies it; the call below only lands pre-activation.
+    this.disableCommunicationModeWorkaround = disabled;
     safeNativeCall('setDisableCommunicationModeWorkaround', () =>
       NativeManager.setDisableCommunicationModeWorkaround(disabled),
     );

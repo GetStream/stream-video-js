@@ -53,12 +53,6 @@ export type StreamInCallManagerConfig =
   | {
       audioRole: 'communicator';
       deviceEndpointType?: DeviceEndpointType;
-      /**
-       * Android only. Opt out of the Android 11+ communication-mode keep-alive
-       * workaround for this call.
-       * See {@link https://issuetracker.google.com/issues/209493718}
-       */
-      disableCommunicationModeWorkaround?: boolean;
     }
   | {
       audioRole: 'listener';

@@ -108,17 +108,22 @@ class AudioDeviceManager(
     var telecomManagedMode: Boolean = false
 
     /**
-     * Opt-out for the Android 11+ communication-mode keep-alive
-     * (see [CommunicationModeKeepAlive]). Sticky developer preference — intentionally
-     * NOT reset in [stop] (unlike role/stereo/defaultDevice, which are per-call).
+     * Opt-out for the Android 11+ communication-mode keep-alive. Sticky developer preference —
+     * intentionally NOT reset in [stop], unlike the per-call fields above.
      */
     var disableCommunicationModeWorkaround: Boolean = false
 
     /**
-     * Keeps MODE_IN_COMMUNICATION owned for the whole Communicator call on Android 11+.
-     * Instantiated once; a no-op below R (SDK-version split), with per-call gating
-     * (role / telecom / opt-out) applied at [start].
+     * True once [stop]/[close] have torn routing down, until the next [start].
+     *
+     * [updateAudioDeviceState] is enqueued from off-thread sources (Bluetooth receivers,
+     * audio-focus and device callbacks), so a task can still land after teardown. Re-routing
+     * then would re-assert MODE_IN_COMMUNICATION via AudioManagerUtil, undoing the
+     * MODE_NORMAL restore in [stop]. Audio-thread confined.
      */
+    private var routingStopped = false
+
+    /** Keeps MODE_IN_COMMUNICATION owned for the whole Communicator call on Android 11+. */
     private val communicationModeKeepAlive: CommunicationModeKeepAlive =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             SilentPlaybackKeepAlive(mReactContext)
@@ -149,66 +154,64 @@ class AudioDeviceManager(
         audioFocusUtil.setup(callAudioRole, mReactContext)
     }
 
+    /** Runs inline; callers must already be on the audio thread (see [runInAudioThread]). */
     fun start(activity: Activity) {
-        runInAudioThread {
-            setup()
-            selectedAudioDeviceEndpoint = null
-            if (callAudioRole == CallAudioRole.Communicator) {
-                // Audio routing is manually controlled by the SDK in communication media mode
-                // and local microphone can be published
-                activity.volumeControlStream = AudioManager.STREAM_VOICE_CALL
-                if (!telecomManagedMode) {
-                    // Telecom owns routing/focus; only run our own routing when not Telecom-managed.
-                    bluetoothManager.start()
-                    mAudioManager.registerAudioDeviceCallback(this, null)
-                    updateAudioDeviceState()
-                }
-                proximityManager.start()
-            } else {
-                activity.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
-            }
+        routingStopped = false
+        setup()
+        selectedAudioDeviceEndpoint = null
+        if (callAudioRole == CallAudioRole.Communicator) {
+            // Audio routing is manually controlled by the SDK in communication media mode
+            // and local microphone can be published
+            activity.volumeControlStream = AudioManager.STREAM_VOICE_CALL
             if (!telecomManagedMode) {
-                audioFocusUtil.requestFocus(callAudioRole, mReactContext)
+                // Telecom owns routing/focus; only run our own routing when not Telecom-managed.
+                bluetoothManager.start()
+                mAudioManager.registerAudioDeviceCallback(this, null)
+                updateAudioDeviceState()
             }
-            // Keep MODE_IN_COMMUNICATION owned for the whole call (Android 11+).
-            // Built last, after focus/routing, so the silent track picks up the correct route.
-            if (callAudioRole == CallAudioRole.Communicator &&
-                !telecomManagedMode &&
-                !disableCommunicationModeWorkaround
-            ) {
-                communicationModeKeepAlive.start()
-            }
+            proximityManager.start()
+        } else {
+            activity.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
+        }
+        if (!telecomManagedMode) {
+            audioFocusUtil.requestFocus(callAudioRole, mReactContext)
+        }
+        // Started last, after focus/routing, so the silent track uses the correct route.
+        if (callAudioRole == CallAudioRole.Communicator &&
+            !telecomManagedMode &&
+            !disableCommunicationModeWorkaround
+        ) {
+            communicationModeKeepAlive.start()
         }
     }
 
+    /** Runs inline; callers must already be on the audio thread (see [runInAudioThread]). */
     fun stop(activity: Activity?) {
-        runInAudioThread {
-            communicationModeKeepAlive.stop()
-            if (callAudioRole == CallAudioRole.Communicator) {
-                if (!telecomManagedMode) {
-                    // Only tear down what we set up ourselves; Telecom owns its own teardown.
-                    if (Build.VERSION.SDK_INT >= 31) {
-                        mAudioManager.clearCommunicationDevice()
-                    } else {
-                        mAudioManager.setSpeakerphoneOn(false)
-                    }
-                    bluetoothManager.stop()
-                    // Restore the global audio mode set in setup(). It was previously left at
-                    // MODE_IN_COMMUNICATION after a call, holding the device in in-call routing.
-                    // Safe here: the keep-alive was stopped above.
-                    mAudioManager.mode = AudioManager.MODE_NORMAL
-                }
-                callAudioRole = CallAudioRole.Communicator
-                enableStereo = false
-                defaultAudioDevice = AudioDeviceEndpoint.TYPE_SPEAKER
-                proximityManager.stop()
-            }
-            activity?.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
+        routingStopped = true
+        communicationModeKeepAlive.stop()
+        if (callAudioRole == CallAudioRole.Communicator) {
             if (!telecomManagedMode) {
-                audioFocusUtil.abandonFocus()
+                // Only tear down what we set up ourselves; Telecom owns its own teardown.
+                if (Build.VERSION.SDK_INT >= 31) {
+                    mAudioManager.clearCommunicationDevice()
+                } else {
+                    mAudioManager.setSpeakerphoneOn(false)
+                }
+                bluetoothManager.stop()
+                // Restore the mode set in setup(); it was previously left at
+                // MODE_IN_COMMUNICATION, holding the device in in-call routing.
+                mAudioManager.mode = AudioManager.MODE_NORMAL
             }
-            telecomManagedMode = false
+            callAudioRole = CallAudioRole.Communicator
+            enableStereo = false
+            defaultAudioDevice = AudioDeviceEndpoint.TYPE_SPEAKER
+            proximityManager.stop()
         }
+        activity?.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
+        if (!telecomManagedMode) {
+            audioFocusUtil.abandonFocus()
+        }
+        telecomManagedMode = false
     }
 
     fun setMicrophoneMute(enable: Boolean) {
@@ -260,6 +263,9 @@ class AudioDeviceManager(
     }
 
     private fun switchDeviceEndpointType(@EndpointType deviceType: Int) {
+        // Sole sink for routing changes, and AudioManagerUtil re-asserts MODE_IN_COMMUNICATION
+        // here — so late work of any origin must not reach it after teardown.
+        if (routingStopped) return
         val newDevice = AudioManagerUtil.switchDeviceEndpointType(
             deviceType,
             mEndpointMaps,
@@ -269,38 +275,40 @@ class AudioDeviceManager(
         this.selectedAudioDeviceEndpoint = newDevice
     }
 
+    /** Runs inline; callers must already be on the audio thread (see [runInAudioThread]). */
     fun switchDeviceById(
         deviceId: String
     ) {
         Log.d(TAG, "switchDeviceById: deviceId = $deviceId")
-        runInAudioThread {
-            val btDevice = mEndpointMaps.bluetoothEndpoints[deviceId]
-            if (btDevice != null) {
-                if (Build.VERSION.SDK_INT >= 31) {
-                    mAudioManager.setCommunicationDevice(btDevice.deviceInfo)
-                    bluetoothManager.updateDevice()
-                    this.selectedAudioDeviceEndpoint = btDevice
-                } else {
-                    switchDeviceEndpointType(
-                        AudioDeviceEndpoint.TYPE_BLUETOOTH
-                    )
-                }
+        // Guarded here too: the branch below sets the communication device directly rather
+        // than going through switchDeviceEndpointType().
+        if (routingStopped) return
+        val btDevice = mEndpointMaps.bluetoothEndpoints[deviceId]
+        if (btDevice != null) {
+            if (Build.VERSION.SDK_INT >= 31) {
+                mAudioManager.setCommunicationDevice(btDevice.deviceInfo)
+                bluetoothManager.updateDevice()
+                this.selectedAudioDeviceEndpoint = btDevice
             } else {
-                val endpoint = nonBluetoothEndpointById(deviceId)
-                if (endpoint != null) {
-                    switchDeviceEndpointType(endpoint.type)
-                } else {
-                    Log.e(TAG, "switchDeviceById: no endpoint found for id $deviceId")
-                }
+                switchDeviceEndpointType(
+                    AudioDeviceEndpoint.TYPE_BLUETOOTH
+                )
+            }
+        } else {
+            val endpoint = nonBluetoothEndpointById(deviceId)
+            if (endpoint != null) {
+                switchDeviceEndpointType(endpoint.type)
+            } else {
+                Log.e(TAG, "switchDeviceById: no endpoint found for id $deviceId")
             }
         }
     }
 
     override fun close() {
-        // Queue teardown on the same single-thread audio executor as start()/stop() so it
-        // is serialized after any pending audio work and can't race a queued start() that
-        // would otherwise touch the keep-alive's track/poller after release.
+        // Unlike start()/stop(), this is called straight from the module, so it must be queued
+        // to land after any start/stop already pending on the audio thread.
         runInAudioThread {
+            routingStopped = true
             communicationModeKeepAlive.release()
             mAudioManager.unregisterAudioDeviceCallback(this)
             proximityManager.onDestroy()
@@ -464,6 +472,9 @@ class AudioDeviceManager(
      */
     fun updateAudioDeviceState() {
         runInAudioThread {
+            // Bail early: on API < 31 bluetoothState survives stop(), so a late pass could
+            // still start SCO after the call ended.
+            if (routingStopped) return@runInAudioThread
             if (telecomManagedMode) {
                 // Telecom is the single source of truth for routing/endpoints in this mode.
                 return@runInAudioThread

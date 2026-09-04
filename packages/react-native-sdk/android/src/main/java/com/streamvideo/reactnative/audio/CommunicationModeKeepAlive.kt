@@ -90,19 +90,28 @@ internal class SilentPlaybackKeepAlive(
         engaged = true
 
         val player = track ?: createSilentTrack()?.also { track = it }
-        if (player == null) {
-            // Silent player unavailable on this device — fall back to reactive repair.
-            startModePoller()
+        if (player != null && player.state == AudioTrack.STATE_INITIALIZED && play(player)) {
             return
         }
-        if (player.state == AudioTrack.STATE_INITIALIZED) {
-            player.play()
-        } else {
-            player.release()
-            track = null
-            startModePoller()
-        }
+        // No usable silent player on this device — fall back to reactive repair.
+        player?.release()
+        track = null
+        startModePoller()
     }
+
+    /**
+     * Starts playback, reporting whether the track actually entered the playing state.
+     * `play()` can throw or leave the track stopped even from STATE_INITIALIZED; treating
+     * that as success would strand the keep-alive with neither a track nor the poller.
+     */
+    private fun play(player: AudioTrack): Boolean =
+        try {
+            player.play()
+            player.playState == AudioTrack.PLAYSTATE_PLAYING
+        } catch (e: IllegalStateException) {
+            Log.w(TAG, "Silent keep-alive track refused to start.", e)
+            false
+        }
 
     override fun stop() = synchronized(gate) {
         live = false
