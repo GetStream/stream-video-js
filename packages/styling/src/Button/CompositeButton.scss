@@ -94,8 +94,11 @@
     color: var(--str-video__button-destructive-text-on-accent);
   }
 
-  .str-video__composite-button__action[aria-pressed='true'] {
-    --str-video__button-selected: transparent;
+  &--primary,
+  &--destructive {
+    .str-video__composite-button__action[aria-pressed='true'] {
+      --str-video__button-selected: transparent;
+    }
   }
 
   &:has(.str-video__composite-button__caret[aria-expanded='true']) {
@@ -111,7 +114,7 @@
   }
 }
 
-.str-video__device-unavailable {
+.str-video__composite-button.str-video__device-unavailable {
   .str-video__composite-button__action,
   .str-video__composite-button__caret {
     --str-video__button-overlay: var(--str-video__background-utility-disabled);
