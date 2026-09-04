@@ -2,29 +2,44 @@
   --str-video__button-h: var(--str-video__button-visual-height-md);
   --str-video__button-py: var(--str-video__button-padding-y-md);
   --str-video__button-px: var(--str-video__button-padding-x-with-label-md);
+  --str-video__button-px-icon-only: var(
+    --str-video__button-padding-x-icon-only-md
+  );
 
   &--size-xs {
     --str-video__button-h: var(--str-video__button-visual-height-xs);
     --str-video__button-py: var(--str-video__button-padding-y-xs);
     --str-video__button-px: var(--str-video__button-padding-x-with-label-xs);
+    --str-video__button-px-icon-only: var(
+      --str-video__button-padding-x-icon-only-xs
+    );
   }
 
   &--size-sm {
     --str-video__button-h: var(--str-video__button-visual-height-sm);
     --str-video__button-py: var(--str-video__button-padding-y-sm);
     --str-video__button-px: var(--str-video__button-padding-x-with-label-sm);
+    --str-video__button-px-icon-only: var(
+      --str-video__button-padding-x-icon-only-sm
+    );
   }
 
   &--size-md {
     --str-video__button-h: var(--str-video__button-visual-height-md);
     --str-video__button-py: var(--str-video__button-padding-y-md);
     --str-video__button-px: var(--str-video__button-padding-x-with-label-md);
+    --str-video__button-px-icon-only: var(
+      --str-video__button-padding-x-icon-only-md
+    );
   }
 
   &--size-lg {
     --str-video__button-h: var(--str-video__button-visual-height-lg);
     --str-video__button-py: var(--str-video__button-padding-y-lg);
     --str-video__button-px: var(--str-video__button-padding-x-with-label-lg);
+    --str-video__button-px-icon-only: var(
+      --str-video__button-padding-x-icon-only-lg
+    );
   }
 
   display: inline-flex;
@@ -50,8 +65,6 @@
   }
 
   &--icon-only {
-    padding-inline: calc(
-      (var(--str-video__button-h) - var(--str-video__icon-size-sm)) / 2
-    );
+    padding-inline: var(--str-video__button-px-icon-only);
   }
 }

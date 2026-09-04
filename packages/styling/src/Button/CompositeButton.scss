@@ -2,23 +2,27 @@
   --str-video__composite-button-caret: var(
     --str-video__button-visual-height-xs
   );
+  --str-video__composite-button-lead: var(--str-video__spacing-sm);
 
   &--size-sm {
     --str-video__composite-button-caret: var(
       --str-video__button-visual-height-xs
     );
+    --str-video__composite-button-lead: var(--str-video__spacing-xs);
   }
 
   &--size-md {
     --str-video__composite-button-caret: var(
       --str-video__button-visual-height-xs
     );
+    --str-video__composite-button-lead: var(--str-video__spacing-sm);
   }
 
   &--size-lg {
     --str-video__composite-button-caret: var(
       --str-video__button-visual-height-sm
     );
+    --str-video__composite-button-lead: var(--str-video__spacing-md);
   }
 
   display: inline-flex;
@@ -32,9 +36,7 @@
   }
 
   &__action {
-    padding-inline: calc(
-      (var(--str-video__button-h) - var(--str-video__icon-size-sm)) / 2
-    );
+    padding-inline: var(--str-video__button-px-icon-only);
   }
 
   &__caption {
@@ -49,18 +51,20 @@
 
   &--menu {
     .str-video__composite-button__action {
-      padding-inline: calc(
-          (var(--str-video__button-h) - var(--str-video__icon-size-sm)) / 2
-        )
+      // Figma binds `spacing/sm` (12) on the md split. It ships no sm or lg
+      // split, but the scale continues: 8/12/16 are exactly spacing xs/sm/md.
+      // One fixed token per variant, the way Figma's auto-layout does it.
+      padding-inline: var(--str-video__composite-button-lead)
         calc(
-          var(--str-video__composite-button-caret) + var(--str-video__space-8) *
-            2
+          var(--str-video__spacing-xs) +
+            var(--str-video__composite-button-caret) +
+            var(--str-video__spacing-xs)
         );
     }
 
     .str-video__composite-button__caret {
       position: absolute;
-      inset-inline-end: var(--str-video__space-8);
+      inset-inline-end: var(--str-video__spacing-xs);
       inset-block-start: 50%;
       translate: 0 -50%;
     }
