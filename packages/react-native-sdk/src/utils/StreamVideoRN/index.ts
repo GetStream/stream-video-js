@@ -159,6 +159,33 @@ export class StreamVideoRN {
   }
 
   /**
+   * Android only. Opt out of the Android 11+ communication-mode keep-alive.
+   *
+   * By default the SDK plays a silent voice-communication track for the duration of a
+   * communicator-role call, so Android does not reset `MODE_IN_COMMUNICATION` ~6s after it is
+   * set (which breaks audio routing and echo cancellation).
+   * See {@link https://issuetracker.google.com/issues/209493718}
+   *
+   * Call this at app start, alongside {@link setPushConfig} — the native audio manager
+   * rejects the change once it has been activated for a call. No-op on iOS and on
+   * Android below API 30.
+   */
+  static setDisableCommunicationModeWorkaround(disabled: boolean) {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+    try {
+      NativeModules.StreamInCallManager?.setDisableCommunicationModeWorkaround(
+        disabled,
+      );
+    } catch (error) {
+      videoLoggerSystem
+        .getLogger('StreamVideoRN')
+        .warn('setDisableCommunicationModeWorkaround failed', error);
+    }
+  }
+
+  /**
    * Play native busy tone for call rejection
    */
   static async playBusyTone() {
