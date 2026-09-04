@@ -23,7 +23,7 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["chore", "ci", "docs"],
-        "releaseAs": "premajor",
+        "releaseAs": "prerelease",
         "preid": "beta",
         "postTargets": [
           "@stream-io/react-native-callingx:build",
