@@ -8,7 +8,7 @@
         "dryRun": false,
         "preset": {
           "name": "conventionalcommits",
-          "preMajor": true,
+          "preMajor": false,
           "types": [
             { "type": "feat", "section": "Features" },
             { "type": "fix", "section": "Bug Fixes" },
@@ -23,6 +23,8 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["ci", "refactor", "test", "docs"],
+        "releaseAs": "premajor",
+        "preid": "beta",
         "postTargets": [
           "@stream-io/audio-filters-web:update-version",
           "@stream-io/audio-filters-web:github",
@@ -44,6 +46,7 @@
     "github": {
       "executor": "@jscutlery/semver:github",
       "options": {
+        "prerelease": true,
         "tag": "${tag}",
         "notes": "${notes}"
       }
