@@ -24,6 +24,8 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["ci", "refactor", "test", "docs"],
+        "releaseAs": "premajor",
+        "preid": "beta",
         "postTargets": [
           "@stream-io/video-codemod:github",
           "@stream-io/video-codemod:publish"
@@ -33,6 +35,7 @@
     "github": {
       "executor": "@jscutlery/semver:github",
       "options": {
+        "prerelease": true,
         "tag": "${tag}",
         "notes": "${notes}"
       }
