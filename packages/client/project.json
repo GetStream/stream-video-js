@@ -23,6 +23,8 @@
         },
         "push": true,
         "skipCommitTypes": ["ci", "refactor", "test", "docs"],
+        "releaseAs": "premajor",
+        "preid": "beta",
         "postTargets": [
           "@stream-io/video-client:update-version",
           "@stream-io/video-client:github",
@@ -44,6 +46,7 @@
     "github": {
       "executor": "@jscutlery/semver:github",
       "options": {
+        "prerelease": true,
         "tag": "${tag}",
         "notes": "${notes}"
       }

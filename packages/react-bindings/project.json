@@ -24,6 +24,8 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["ci", "refactor", "test", "docs"],
+        "releaseAs": "premajor",
+        "preid": "beta",
         "postTargets": [
           "@stream-io/video-react-bindings:enrich-changelog",
           "@stream-io/video-react-bindings:github",
@@ -34,6 +36,7 @@
     "github": {
       "executor": "@jscutlery/semver:github",
       "options": {
+        "prerelease": true,
         "tag": "${tag}",
         "notesFile": "packages/react-bindings/.release-notes.md"
       }
