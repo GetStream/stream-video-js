@@ -79,6 +79,21 @@ The monorepo consists of multiple folders, the most important of which are `pack
 Before running this project please ensure you have set up your [development environment for React Native](https://reactnative.dev/docs/environment-setup).
 The Stream Video React Native SDK supports apps created with the React Native CLI.
 
+### Optional native add-ons
+
+Noise cancellation, video filters and CallKit/Telecom ringing ship as separate
+optional peer packages. On the `2.0.0-beta` line they are published on their own
+`1.0.0-beta` line under the `beta` npm tag, so install them from that tag:
+
+```sh
+yarn add @stream-io/noise-cancellation-react-native@beta
+yarn add @stream-io/video-filters-react-native@beta
+yarn add @stream-io/react-native-callingx@beta
+```
+
+Installing the `latest` builds of these packages alongside the v2 beta pulls the
+v1 line and will report an unmet peer dependency.
+
 ## **Contributing** 🤝
 
 - How can I submit a sample app?
