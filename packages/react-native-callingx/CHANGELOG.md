@@ -2,6 +2,8 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.11.1...@stream-io/react-native-callingx-1.0.0-beta.0) (2026-09-04)
+
 ## [0.11.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.11.0...@stream-io/react-native-callingx-0.11.1) (2026-09-04)
 
 ### Bug Fixes
