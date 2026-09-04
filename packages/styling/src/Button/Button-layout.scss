@@ -1,5 +1,4 @@
 .str-video__button {
-  --str-video__button-h: var(--str-video__button-visual-height-md);
   --str-video__button-py: var(--str-video__button-padding-y-md);
   --str-video__button-px: var(--str-video__button-padding-x-with-label-md);
   --str-video__button-px-icon-only: var(
@@ -7,7 +6,6 @@
   );
 
   &--size-xs {
-    --str-video__button-h: var(--str-video__button-visual-height-xs);
     --str-video__button-py: var(--str-video__button-padding-y-xs);
     --str-video__button-px: var(--str-video__button-padding-x-with-label-xs);
     --str-video__button-px-icon-only: var(
@@ -16,7 +14,6 @@
   }
 
   &--size-sm {
-    --str-video__button-h: var(--str-video__button-visual-height-sm);
     --str-video__button-py: var(--str-video__button-padding-y-sm);
     --str-video__button-px: var(--str-video__button-padding-x-with-label-sm);
     --str-video__button-px-icon-only: var(
@@ -25,7 +22,6 @@
   }
 
   &--size-md {
-    --str-video__button-h: var(--str-video__button-visual-height-md);
     --str-video__button-py: var(--str-video__button-padding-y-md);
     --str-video__button-px: var(--str-video__button-padding-x-with-label-md);
     --str-video__button-px-icon-only: var(
@@ -34,7 +30,6 @@
   }
 
   &--size-lg {
-    --str-video__button-h: var(--str-video__button-visual-height-lg);
     --str-video__button-py: var(--str-video__button-padding-y-lg);
     --str-video__button-px: var(--str-video__button-padding-x-with-label-lg);
     --str-video__button-px-icon-only: var(
@@ -50,8 +45,6 @@
   border: none;
   border-radius: var(--str-video__button-radius-full);
 
-  block-size: var(--str-video__button-h);
-  min-inline-size: var(--str-video__button-h);
   padding-block: var(--str-video__button-py);
   padding-inline: var(--str-video__button-px);
 
@@ -65,6 +58,6 @@
   }
 
   &--icon-only {
-    padding-inline: var(--str-video__button-px-icon-only);
+    padding: var(--str-video__button-px-icon-only);
   }
 }
