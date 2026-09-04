@@ -103,15 +103,15 @@ test('every beta-line package uses a supported releaseAs', () => {
   }
 });
 
-// The core line is already bootstrapped at 2.0.0-beta.0, so `premajor` there
-// would compute 3.0.0-beta.0.
-test('the core packages use the steady-state releaseAs', () => {
-  for (const pkg of CORE_PACKAGES) {
+// Both lines are bootstrapped now, so `premajor` anywhere would walk the major
+// forward: 2.0.0-beta.0 to 3.0.0-beta.0, 1.0.0-beta.0 to 2.0.0-beta.0.
+test('every beta-line package uses the steady-state releaseAs', () => {
+  for (const pkg of BETA_LINE_PACKAGES) {
     const releaseAs = readProject(pkg).targets?.version?.options?.releaseAs;
     assert.equal(
       releaseAs,
       'prerelease',
-      `packages/${pkg} has releaseAs "${releaseAs}"; the core v2 line is bootstrapped, so it must be "prerelease"`,
+      `packages/${pkg} has releaseAs "${releaseAs}"; the beta lines are bootstrapped, so it must be "prerelease"`,
     );
   }
 });
