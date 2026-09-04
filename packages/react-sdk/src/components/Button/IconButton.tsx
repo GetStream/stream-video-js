@@ -9,15 +9,11 @@ export type IconButtonProps = Omit<ButtonProps, 'children'> & {
 };
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
-  function IconButtonRender({ icon, onClick, className, ...props }, ref) {
+  function IconButtonRender({ icon, className, ...props }, ref) {
     return (
       <Button
         ref={ref}
         className={clsx('str-video__button--icon-only', className)}
-        onClick={(e) => {
-          e.preventDefault();
-          onClick?.(e);
-        }}
         {...props}
       >
         <Icon icon={icon} />

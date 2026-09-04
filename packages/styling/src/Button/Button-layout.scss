@@ -4,6 +4,7 @@
   --str-video__button-px-icon-only: var(
     --str-video__button-padding-x-icon-only-md
   );
+  --str-video__button-radius: var(--str-video__button-radius-md);
 
   &--size-xs {
     --str-video__button-py: var(--str-video__button-padding-y-xs);
@@ -11,6 +12,7 @@
     --str-video__button-px-icon-only: var(
       --str-video__button-padding-x-icon-only-xs
     );
+    --str-video__button-radius: var(--str-video__button-radius-sm);
   }
 
   &--size-sm {
@@ -19,6 +21,7 @@
     --str-video__button-px-icon-only: var(
       --str-video__button-padding-x-icon-only-sm
     );
+    --str-video__button-radius: var(--str-video__button-radius-sm);
   }
 
   &--size-md {
@@ -27,6 +30,7 @@
     --str-video__button-px-icon-only: var(
       --str-video__button-padding-x-icon-only-md
     );
+    --str-video__button-radius: var(--str-video__button-radius-md);
   }
 
   &--size-lg {
@@ -35,6 +39,7 @@
     --str-video__button-px-icon-only: var(
       --str-video__button-padding-x-icon-only-lg
     );
+    --str-video__button-radius: var(--str-video__button-radius-lg);
   }
 
   display: inline-flex;
@@ -43,7 +48,7 @@
   gap: var(--str-video__spacing-xs);
   white-space: nowrap;
   border: none;
-  border-radius: var(--str-video__button-radius-full);
+  border-radius: var(--str-video__button-radius);
 
   padding-block: var(--str-video__button-py);
   padding-inline: var(--str-video__button-px);
@@ -58,6 +63,8 @@
   }
 
   &--icon-only {
+    aspect-ratio: 1 / 1;
     padding: var(--str-video__button-px-icon-only);
+    border-radius: var(--str-video__button-radius-full);
   }
 }

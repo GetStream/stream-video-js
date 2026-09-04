@@ -91,7 +91,7 @@
 
   &--primary,
   &--destructive {
-    .str-video__composite-button__action[aria-pressed='true'] {
+    .str-video__composite-button__action.str-video__button[aria-pressed='true'] {
       --str-video__button-selected: transparent;
     }
   }
@@ -103,7 +103,7 @@
       );
     }
 
-    .str-video__composite-button__caret {
+    .str-video__composite-button__caret.str-video__button {
       --str-video__button-selected: transparent;
     }
   }

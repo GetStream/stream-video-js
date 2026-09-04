@@ -58,6 +58,8 @@ export type DefaultParticipantViewUIProps = {
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleButtonRender(props, ref) {
+    const { t } = useI18n();
+
     return (
       <IconButton
         className="str-video__participant-view__menu-button"
@@ -65,6 +67,7 @@ const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
         size="sm"
         variant="secondary"
         ref={ref}
+        title={t('More options')}
         icon="ellipsis"
       />
     );
