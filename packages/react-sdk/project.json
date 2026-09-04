@@ -67,7 +67,7 @@
       "options": {
         "commands": [
           {
-            "command": "gh workflow run 'Deploy React Sample Apps'",
+            "command": "gh workflow run 'Deploy React Sample Apps' --ref ${GITHUB_REF_NAME:-$(git rev-parse --abbrev-ref HEAD)}",
             "forwardAllArgs": false
           }
         ],

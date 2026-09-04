@@ -7108,6 +7108,7 @@ __metadata:
     "@eslint/js": "npm:^9.39.5"
     "@jscutlery/semver": "npm:^7.1.0"
     "@nx/devkit": "npm:^23.2.0"
+    "@types/semver": "npm:^7.8.0"
     eslint: "npm:^9.39.5"
     eslint-plugin-import: "npm:^2.32.0"
     eslint-plugin-react: "npm:^7.37.5"
@@ -7120,6 +7121,7 @@ __metadata:
     prettier: "npm:^3.9.6"
     react: "npm:19.2.8"
     react-dom: "npm:19.2.8"
+    semver: "npm:^7.8.5"
     typescript: "npm:^6.0.3"
     typescript-eslint: "npm:^8.65.0"
     vite: "npm:^8.2.0"
@@ -7930,6 +7932,13 @@ __metadata:
   version: 2.15.0
   resolution: "@types/sdp-transform@npm:2.15.0"
   checksum: 10/4959381837749f3b870fc74659e7d4b1e9f6539cedb1ce5c013278831cf9a62b840fd2698d27dc283603311c03a28cd5d7e0a4c9a8e870df2862df2fc69b160f
+  languageName: node
+  linkType: hard
+
+"@types/semver@npm:^7.8.0":
+  version: 7.8.0
+  resolution: "@types/semver@npm:7.8.0"
+  checksum: 10/bbb33a88cdbc72759cf6b2750f1a28468f4470a61a1543061f494c21a53ad53bb85976e5282d79c811579e7073db0ecb6643ee0bcbf0466e8b5b3cb57ea97de0
   languageName: node
   linkType: hard
 

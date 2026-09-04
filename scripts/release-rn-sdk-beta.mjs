@@ -3,6 +3,11 @@
 /**
  * Prerelease the React Native SDK and its workspace dependencies as beta.
  *
+ * This flow serves the v1 line. Versions keep the readable `-beta.N` suffix,
+ * but they publish under the `v1-beta` npm dist-tag, because the plain `beta`
+ * dist-tag carries the v2 prereleases cut from main. The preid and the dist-tag
+ * are therefore separate options (`--tag` and `--dist-tag`).
+ *
  * Flow:
  *   1. Detect which in-scope packages changed vs the base ref.
  *   2. Cascade: if a dep is prereleased, any sibling with a peerDep on it
@@ -28,8 +33,37 @@ const DEPENDENCY_FIELDS = [
   'optionalDependencies',
 ];
 const RN_PIN_FIELDS = ['dependencies', 'devDependencies'];
-const DEFAULT_BASE_REF = 'origin/main';
+
+// Change detection is relative to the current branch's own remote tracking ref,
+// so this works on any release branch instead of always diffing against main.
+// Falls back to origin/main when that ref does not exist, which is the common
+// case on a local feature branch that has never been pushed.
+function currentBranchBaseRef() {
+  try {
+    const branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+      encoding: 'utf8',
+    }).trim();
+    if (branch && branch !== 'HEAD') {
+      const candidate = `origin/${branch}`;
+      execFileSync('git', ['rev-parse', '--verify', candidate], {
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+      return candidate;
+    }
+  } catch {
+    // Fall through to the default below.
+  }
+  return 'origin/main';
+}
+
+const DEFAULT_BASE_REF = currentBranchBaseRef();
+
+// The version suffix (`1.45.1-beta.0`) stays `beta`, but the npm dist-tag does
+// not: the plain `beta` tag belongs to the v2 prereleases published from main.
+// Keeping them separate means the two prerelease lines can never overwrite each
+// other's dist-tag while v1 versions stay readable.
 const DEFAULT_TAG = 'beta';
+const DEFAULT_DIST_TAG = 'v1-beta';
 const VERIFY_ATTEMPTS = 15;
 const VERIFY_DELAY_MS = 4000;
 
@@ -47,6 +81,7 @@ function parseArgs(argv) {
   const options = {
     baseRef: DEFAULT_BASE_REF,
     tag: DEFAULT_TAG,
+    distTag: DEFAULT_DIST_TAG,
     dryRun: false,
     allowEmpty: false,
     keepChanges: false,
@@ -59,6 +94,9 @@ function parseArgs(argv) {
       i += 1;
     } else if (arg === '--tag') {
       options.tag = readFlagValue(argv, i, '--tag');
+      i += 1;
+    } else if (arg === '--dist-tag') {
+      options.distTag = readFlagValue(argv, i, '--dist-tag');
       i += 1;
     } else if (arg === '--dry-run') {
       options.dryRun = true;
@@ -73,8 +111,11 @@ function parseArgs(argv) {
     }
   }
 
-  if (!options.baseRef || !options.tag) {
-    printHelpAndExit(1, 'Both --base-ref and --tag must have values.');
+  if (!options.baseRef || !options.tag || !options.distTag) {
+    printHelpAndExit(
+      1,
+      '--base-ref, --tag and --dist-tag must all have values.',
+    );
   }
 
   return options;
@@ -94,7 +135,8 @@ Usage:
 
 Options:
   --base-ref <git-ref>   Base ref for change detection (default: ${DEFAULT_BASE_REF})
-  --tag <npm-tag>        Prerelease tag name (default: ${DEFAULT_TAG})
+  --tag <preid>          Version prerelease identifier (default: ${DEFAULT_TAG})
+  --dist-tag <npm-tag>   npm dist-tag to publish under (default: ${DEFAULT_DIST_TAG})
   --dry-run              Print release plan without publishing
   --allow-empty          Release RN SDK even if no package changed
   --keep-changes         Keep mutated package.json files after script exits
@@ -636,7 +678,7 @@ function printSummary(
   } else {
     for (const [packageName, version] of publishedVersions.entries()) {
       console.log(
-        `- ${action} ${packageName}@${version} ${preposition} --tag ${options.tag}`,
+        `- ${action} ${packageName}@${version} ${preposition} --tag ${options.distTag}`,
       );
     }
   }
@@ -767,7 +809,7 @@ async function main() {
         backupAndWriteManifest(workspaceInfo, nextManifest, backups);
       }
       runBuild(depName, options.dryRun);
-      publishWorkspace(depName, options.tag, options);
+      publishWorkspace(depName, options.distTag, options);
       verifyPublishedVersion(depName, depNextVersion, options.dryRun);
 
       publishedVersions.set(depName, depNextVersion);
@@ -797,7 +839,7 @@ async function main() {
         );
       }
       runBuild(RN_SDK_NAME, options.dryRun);
-      publishWorkspace(RN_SDK_NAME, options.tag, options);
+      publishWorkspace(RN_SDK_NAME, options.distTag, options);
       verifyPublishedVersion(RN_SDK_NAME, rnNextVersion, options.dryRun);
 
       publishedVersions.set(RN_SDK_NAME, rnNextVersion);
