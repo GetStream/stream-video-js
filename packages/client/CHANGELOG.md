@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.59.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.59.0...@stream-io/video-client-1.59.1) (2026-09-04)
+
+### Bug Fixes
+
+- **client:** isolate coordinator event listener errors from the dispatch loop ([#2404](https://github.com/GetStream/stream-video-js/issues/2404)) ([4ab49de](https://github.com/GetStream/stream-video-js/commit/4ab49decc4bbc70b0fc35d6b92f2bd18922a105c)), closes [GetStream/stream-chat-js#1850](https://github.com/GetStream/stream-chat-js/issues/1850)
+- **client:** keep passive participants out of the spotlight ([#2405](https://github.com/GetStream/stream-video-js/issues/2405)) ([0713650](https://github.com/GetStream/stream-video-js/commit/0713650fa90caa8a82ce0bee75acf4dbaaad33e9))
+
 ## [1.59.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.58.0...@stream-io/video-client-1.59.0) (2026-08-28)
 
 ### Features
