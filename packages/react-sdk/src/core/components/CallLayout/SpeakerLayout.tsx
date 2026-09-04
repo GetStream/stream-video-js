@@ -4,6 +4,7 @@ import { hasScreenShare } from '@stream-io/video-client';
 import {
   useCall,
   useCallStateHooks,
+  useI18n,
   useSpeakerLayoutSortPreset,
 } from '@stream-io/video-react-bindings';
 
@@ -282,6 +283,7 @@ type ScrollButtonsProps<T extends HTMLElement> = {
 const HorizontalScrollButtons = <T extends HTMLElement>({
   scrollWrapper,
 }: ScrollButtonsProps<T>) => {
+  const { t } = useI18n();
   const scrollPosition = useHorizontalScrollPosition(scrollWrapper);
 
   const scrollStartClickHandler = () => {
@@ -295,15 +297,21 @@ const HorizontalScrollButtons = <T extends HTMLElement>({
     <>
       {scrollPosition && scrollPosition !== 'start' && (
         <IconButton
+          size="sm"
+          variant="secondary"
           onClick={scrollStartClickHandler}
           icon="caret-left"
+          aria-label={t('Scroll participants left')}
           className="str-video__speaker-layout__participants-bar--button-left"
         />
       )}
       {scrollPosition && scrollPosition !== 'end' && (
         <IconButton
+          size="sm"
+          variant="secondary"
           onClick={scrollEndClickHandler}
           icon="caret-right"
+          aria-label={t('Scroll participants right')}
           className="str-video__speaker-layout__participants-bar--button-right"
         />
       )}
@@ -314,6 +322,7 @@ const HorizontalScrollButtons = <T extends HTMLElement>({
 const VerticalScrollButtons = <T extends HTMLElement>({
   scrollWrapper,
 }: ScrollButtonsProps<T>) => {
+  const { t } = useI18n();
   const scrollPosition = useVerticalScrollPosition(scrollWrapper);
 
   const scrollTopClickHandler = () => {
@@ -327,15 +336,21 @@ const VerticalScrollButtons = <T extends HTMLElement>({
     <>
       {scrollPosition && scrollPosition !== 'top' && (
         <IconButton
+          size="sm"
+          variant="secondary"
           onClick={scrollTopClickHandler}
           icon="caret-up"
+          aria-label={t('Scroll participants up')}
           className="str-video__speaker-layout__participants-bar--button-top"
         />
       )}
       {scrollPosition && scrollPosition !== 'bottom' && (
         <IconButton
+          size="sm"
+          variant="secondary"
           onClick={scrollBottomClickHandler}
           icon="caret-down"
+          aria-label={t('Scroll participants down')}
           className="str-video__speaker-layout__participants-bar--button-bottom"
         />
       )}

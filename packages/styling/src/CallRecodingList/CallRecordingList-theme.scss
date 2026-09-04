@@ -6,14 +6,6 @@
   line-height: 1.25rem;
 }
 
-.str-video__call-controls__button--icon-call-recordings {
-  @include utils.apply-mask-image(
-    var(--str-video__icon--film-roll),
-    var(--str-video__text-color1),
-    2px
-  );
-}
-
 .str-video__call-recordings__toggle-button--active {
   background-color: var(--str-video__background-color7);
 }

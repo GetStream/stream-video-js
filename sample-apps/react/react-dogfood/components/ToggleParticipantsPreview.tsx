@@ -61,7 +61,6 @@ const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
       <CompositeButton
         ref={ref}
         active={props.menuShown}
-        variant="primary"
         className="rd__participants-preview__button"
         title={t('Participants already in the call')}
       >

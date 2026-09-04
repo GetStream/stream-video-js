@@ -4,7 +4,7 @@ import {
   useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { Icon } from '../../../components';
+import { Button, Icon } from '../../../components';
 import { DeviceControls } from './DeviceControls';
 
 interface LobbyProps {
@@ -48,10 +48,10 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
           <span className="str-video__embedded-lobby__display-name-value">
             {user?.name}
           </span>
-          <button className="str-video__button" onClick={onJoin}>
-            <Icon className="str-video__button__icon" icon="login" />
+          <Button size="sm" onClick={onJoin}>
+            <Icon icon="login" />
             {resolvedJoinLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

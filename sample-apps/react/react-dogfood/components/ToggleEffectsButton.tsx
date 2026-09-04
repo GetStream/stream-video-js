@@ -30,7 +30,6 @@ const ToggleEffectsMenuButton = forwardRef<
         ref={ref}
         disabled={!effectsSupported}
         active={props.menuShown}
-        variant="primary"
       >
         <Icon icon="video-effects" />
       </CompositeButton>

@@ -32,7 +32,7 @@ export const ToggleClosedCaptionsButton = () => {
       <CompositeButton
         active={isCaptioned}
         disabled={!canToggle}
-        variant="primary"
+        variant={isCaptioned ? 'primary' : 'secondary'}
         onClick={async () => {
           if (!call) return;
           try {

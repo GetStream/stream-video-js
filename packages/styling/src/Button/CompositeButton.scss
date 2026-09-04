@@ -1,0 +1,118 @@
+.str-video__composite-button {
+  --str-video__composite-button-caret: var(
+    --str-video__button-visual-height-xs
+  );
+  --str-video__composite-button-lead: var(--str-video__spacing-sm);
+
+  &--size-sm {
+    --str-video__composite-button-caret: var(
+      --str-video__button-visual-height-xs
+    );
+    --str-video__composite-button-lead: var(--str-video__spacing-xs);
+  }
+
+  &--size-md {
+    --str-video__composite-button-caret: var(
+      --str-video__button-visual-height-xs
+    );
+    --str-video__composite-button-lead: var(--str-video__spacing-sm);
+  }
+
+  &--size-lg {
+    --str-video__composite-button-caret: var(
+      --str-video__button-visual-height-sm
+    );
+    --str-video__composite-button-lead: var(--str-video__spacing-md);
+  }
+
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--str-video__spacing-xxs);
+
+  &__group {
+    position: relative;
+    display: inline-flex;
+  }
+
+  &__action {
+    padding: var(--str-video__button-px-icon-only);
+  }
+
+  &__caption {
+    max-inline-size: 100%;
+    overflow: hidden;
+    font-size: var(--str-video__typography-font-size-xs);
+    line-height: var(--str-video__typography-line-height-tight);
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &--menu {
+    .str-video__composite-button__action {
+      // Figma binds `spacing/sm` (12) on the md split. It ships no sm or lg
+      // split, but the scale continues: 8/12/16 are exactly spacing xs/sm/md.
+      // One fixed token per variant, the way Figma's auto-layout does it.
+      padding-inline: var(--str-video__composite-button-lead)
+        calc(
+          var(--str-video__spacing-xs) +
+            var(--str-video__composite-button-caret) +
+            var(--str-video__spacing-xs)
+        );
+    }
+
+    .str-video__composite-button__caret {
+      position: absolute;
+      inset-inline-end: var(--str-video__spacing-xs);
+      inset-block-start: 50%;
+      translate: 0 -50%;
+    }
+  }
+
+  &--size-lg .str-video__composite-button__caret {
+    padding: var(--str-video__button-padding-x-icon-only-sm);
+  }
+
+  &--primary .str-video__composite-button__caret:not(:disabled) {
+    background-color: var(--str-video__button-primary-bg);
+    color: var(--str-video__button-primary-text-on-accent);
+  }
+
+  &--secondary .str-video__composite-button__caret:not(:disabled) {
+    background-color: var(--str-video__button-secondary-bg);
+    color: var(--str-video__button-secondary-text-on-accent);
+  }
+
+  &--destructive .str-video__composite-button__caret:not(:disabled) {
+    background-color: var(--str-video__button-destructive-bg);
+    color: var(--str-video__button-destructive-text-on-accent);
+  }
+
+  &--primary,
+  &--destructive {
+    .str-video__composite-button__action.str-video__button[aria-pressed='true'] {
+      --str-video__button-selected: transparent;
+    }
+  }
+
+  &:has(.str-video__composite-button__caret[aria-expanded='true']) {
+    .str-video__composite-button__action {
+      --str-video__button-selected: var(
+        --str-video__background-utility-selected
+      );
+    }
+
+    .str-video__composite-button__caret.str-video__button {
+      --str-video__button-selected: transparent;
+    }
+  }
+}
+
+.str-video__composite-button.str-video__device-unavailable {
+  .str-video__composite-button__action,
+  .str-video__composite-button__caret {
+    --str-video__button-overlay: var(--str-video__background-utility-disabled);
+    color: var(--str-video__text-disabled);
+  }
+}

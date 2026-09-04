@@ -10,7 +10,7 @@ import {
   type UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
-import { CompositeButton, IconButtonWithMenuProps } from '../Button';
+import { CompositeButton, CompositeButtonProps } from '../Button';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
@@ -24,7 +24,7 @@ import {
 
 export type ToggleAudioPreviewButtonProps = PropsWithErrorHandler<
   Pick<
-    IconButtonWithMenuProps,
+    CompositeButtonProps,
     'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
   > &
     UseInputMediaDeviceOptions
@@ -76,7 +76,7 @@ export const ToggleAudioPreviewButton = (
         className={clsx(
           !hasBrowserPermission && 'str-video__device-unavailable',
         )}
-        variant="secondary"
+        variant={optionsAwareIsMute ? 'destructive' : 'secondary'}
         disabled={
           !hasBrowserPermission || (!optimisticUpdates && isTogglePending)
         }
@@ -123,7 +123,7 @@ export const ToggleAudioPreviewButton = (
 
 export type ToggleAudioPublishingButtonProps = PropsWithErrorHandler<
   Pick<
-    IconButtonWithMenuProps,
+    CompositeButtonProps,
     'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
   > &
     UseInputMediaDeviceOptions
@@ -191,7 +191,7 @@ export const ToggleAudioPublishingButton = (
           <CompositeButton
             active={optionsAwareIsMute}
             caption={caption}
-            variant="secondary"
+            variant={optionsAwareIsMute ? 'destructive' : 'secondary'}
             disabled={
               !hasBrowserPermission ||
               !hasPermission ||

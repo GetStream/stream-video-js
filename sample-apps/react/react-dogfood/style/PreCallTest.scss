@@ -6,14 +6,14 @@
 .rd__pre-call-test-page {
   display: grid;
   justify-items: center;
-  gap: var(--str-video__spacing-md);
-  padding: var(--str-video__spacing-lg);
+  gap: var(--str-video__spacing-sm);
+  padding: var(--str-video__spacing-md);
 }
 
 .rd__pre-call-test {
   display: flex;
   flex-direction: column;
-  gap: var(--str-video__spacing-md);
+  gap: var(--str-video__spacing-sm);
   width: 100%;
   max-width: 40rem;
 }
@@ -21,7 +21,7 @@
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: var(--str-video__spacing-md);
+  gap: var(--str-video__spacing-sm);
   min-height: 2rem;
 }
 
@@ -29,7 +29,7 @@
   grid-column: 3;
   justify-self: end;
   display: flex;
-  gap: var(--str-video__spacing-sm);
+  gap: var(--str-video__spacing-xs);
 }
 
 .rd__pre-call-test__heading {
@@ -61,10 +61,10 @@
 }
 .rd__pre-call-test__media-toggle {
   position: absolute;
-  inset-block-end: var(--str-video__spacing-md);
+  inset-block-end: var(--str-video__spacing-sm);
   display: flex;
   justify-content: center;
-  gap: var(--str-video__spacing-sm);
+  gap: var(--str-video__spacing-xs);
   width: 100%;
 }
 
@@ -73,8 +73,8 @@
   inset-block-end: 0;
   inset-inline-end: 0;
   display: flex;
-  gap: var(--str-video__spacing-md);
-  padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
+  gap: var(--str-video__spacing-sm);
+  padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
   border-start-start-radius: var(--str-video__border-radius-md);
   background-color: var(--str-video__background-color5);
 }
@@ -82,7 +82,7 @@
 .rd__pre-call-test__loopback-badge {
   display: flex;
   align-items: center;
-  gap: var(--str-video__spacing-xs);
+  gap: var(--str-video__space-6);
   opacity: 0.5;
 
   .str-video__icon {
@@ -109,7 +109,7 @@
 .rd__pre-call-test__devices {
   display: flex;
   justify-content: center;
-  gap: var(--str-video__spacing-sm);
+  gap: var(--str-video__spacing-xs);
   .rd__button {
     width: auto;
   }
@@ -125,13 +125,13 @@
   .str-video__call-stats__card-container {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--str-video__spacing-sm);
+    gap: var(--str-video__spacing-xs);
   }
 
   .str-video__call-stats__card {
     width: auto;
     min-width: 0;
-    gap: var(--str-video__spacing-xs);
+    gap: var(--str-video__space-6);
   }
 
   .str-video__call-stats__card-content {
@@ -154,7 +154,7 @@
 
 .rd__pre-call-test__error {
   margin: 0;
-  padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
+  padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
   border-radius: var(--str-video__border-radius-xs);
   font-size: var(--str-video__font-size-sm);
   background-color: var(--str-video__alert-warning-background);

@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
   flex-grow: 1;
-  padding: var(--str-video__spacing-lg);
+  padding: var(--str-video__spacing-md);
 }
 
 .rd__dialer-form {
@@ -14,8 +14,8 @@
 .rd__dialer-ringee {
   display: flex;
   align-items: center;
-  gap: var(--str-video__spacing-xs);
-  margin-bottom: var(--str-video__spacing-sm);
+  gap: var(--str-video__space-6);
+  margin-bottom: var(--str-video__spacing-xs);
 
   .rd__input {
     flex-grow: 1;
@@ -45,9 +45,9 @@
 .rd__dialer-ringing-call-notification {
   display: flex;
   align-items: center;
-  gap: var(--str-video__spacing-sm);
+  gap: var(--str-video__spacing-xs);
 }
 
 .rd__dialer-ringing-call-notification-text {
-  margin-right: var(--str-video__spacing-md);
+  margin-right: var(--str-video__spacing-sm);
 }

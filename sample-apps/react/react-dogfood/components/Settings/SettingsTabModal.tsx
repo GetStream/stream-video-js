@@ -79,6 +79,8 @@ const TabPanel = ({ children }: PropsWithChildren) => {
           className="rd__tab-panel__close"
           icon="close"
           onClick={close}
+          size="sm"
+          variant="secondary"
         />
       </div>
       <div className="rd__tab-panel__content">{children}</div>
@@ -211,7 +213,7 @@ const ToggleSettingsMenuButton = forwardRef<
   const { t } = useI18n();
   return (
     <WithTooltip title={t('Settings')}>
-      <CompositeButton ref={ref} active={props.menuShown} variant="primary">
+      <CompositeButton ref={ref} active={props.menuShown}>
         <Icon icon="device-settings" />
       </CompositeButton>
     </WithTooltip>

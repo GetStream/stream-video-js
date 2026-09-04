@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import {
   Avatar,
   CompositeButton,
+  CompositeButtonProps,
   Icon,
-  IconButtonWithMenuProps,
   useCall,
   useCallStateHooks,
   useI18n,
@@ -13,7 +13,7 @@ import {
 import { useFloatingUIPreset } from '../hooks/useFloatingUIPreset';
 
 export type ToggleParticipantListButtonProps = { caption?: string } & Omit<
-  IconButtonWithMenuProps,
+  CompositeButtonProps,
   'icon' | 'ref'
 >;
 

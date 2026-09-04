@@ -1,178 +1,109 @@
-@use '../utils';
-
-.str-video {
-  /* The font color applied inside the component */
-  --str-video__composite-button__button-group--color: var(
-    --str-video__text-color1
+.str-video__button {
+  --str-video__button-bg: var(--str-video__button-primary-bg);
+  --str-video__button-border: var(--str-video__button-primary-border);
+  --str-video__button-fg: var(--str-video__button-primary-text);
+  --str-video__button-fg-on-fill: var(
+    --str-video__button-primary-text-on-accent
   );
 
-  /* The background color of the component */
-  --str-video__composite-button__button-group--background-color: var(
-    --str-video__button-primary-base
-  );
-
-  /* The active background color of the component */
-  --str-video__composite-button__button-group-active--background-color: var(
-    --str-video__button-primary-active
-  );
-
-  --str-video__composite-button__button-group-active-primary--background-color: var(
-    --str-video__button-primary-active
-  );
-
-  --str-video__composite-button__button-group-active-secondary--background-color: var(
-    --str-video__button-secondary-active
-  );
-
-  --str-video__composite-button__button-group-active-secondary-hover--background-color: var(
-    --str-video__button-secondary-hover
-  );
-
-  /* The hover background color of the component */
-  --str-video__composite-button__button-group-hover--background-color: var(
-    --str-video__button-default-hover
-  );
-
-  /* The border radius used for the borders of the component */
-  --str-video__composite-button__button-group--border-radius: var(
-    --str-video__border-radius-xs
-  );
-}
-
-.str-video__composite-button__button-group {
-  @include utils.component-layer-overrides('composite-button__button-group');
-  background-color: var(
-    --str-video__composite-button__button-group--background-color
-  );
-  border-radius: var(--str-video__border-radius-circle);
-
-  .str-video__call-controls__button.str-video__menu-toggle-button {
-    background-color: var(--str-video__button-primary-base);
-
-    &:hover {
-      background-color: var(--str-video__button-default-hover);
-    }
-
-    &--active {
-      background-color: var(
-        --str-video__composite-button__button-group-hover--background-color
-      );
-      color: white;
-
-      &:hover {
-        background-color: var(
-          --str-video__composite-button__button-group-hover--background-color
-        );
-      }
-
-      &:disabled {
-        background-color: var(
-          --str-video__composite-button__button-group-hover--background-color
-        );
-      }
-    }
-  }
-
-  &.str-video__composite-button__button-group--active {
-    background-color: var(
-      --str-video__composite-button__button-group-active--background-color
-    );
-
-    &:hover {
-      background-color: var(--str-video__button-primary-hover);
-    }
-
-    .str-video__icon {
-      background-color: var(--str-video__icon-active);
-    }
-  }
-
-  &.str-video__composite-button__button-group--active-primary {
-    background-color: var(
-      --str-video__composite-button__button-group-active-primary--background-color
+  &--primary {
+    --str-video__button-bg: var(--str-video__button-primary-bg);
+    --str-video__button-border: var(--str-video__button-primary-border);
+    --str-video__button-fg: var(--str-video__button-primary-text);
+    --str-video__button-fg-on-fill: var(
+      --str-video__button-primary-text-on-accent
     );
   }
 
-  &.str-video__composite-button__button-group--active-secondary {
-    background-color: var(
-      --str-video__composite-button__button-group-active-secondary--background-color
+  &--secondary {
+    --str-video__button-bg: var(--str-video__button-secondary-bg);
+    --str-video__button-border: var(--str-video__button-secondary-border);
+    --str-video__button-fg: var(--str-video__button-secondary-text);
+    --str-video__button-fg-on-fill: var(
+      --str-video__button-secondary-text-on-accent
     );
   }
-}
 
-.str-video__composite-button__caption {
-  font-size: 12px;
-  line-height: 15px;
-  text-align: center;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.str-video__composite-button__button-group:not(
-    .str-video__composite-button__button-group--disabled
-  ):hover {
-  background-color: var(
-    --str-video__composite-button__button-group-hover--background-color
-  );
-
-  &.str-video__composite-button__button-group--active-secondary:hover {
-    background-color: var(
-      --str-video__composite-button__button-group-active-secondary-hover--background-color
+  &--destructive {
+    --str-video__button-bg: var(--str-video__button-destructive-bg);
+    --str-video__button-border: var(--str-video__button-destructive-border);
+    --str-video__button-fg: var(--str-video__button-destructive-text);
+    --str-video__button-fg-on-fill: var(
+      --str-video__button-destructive-text-on-accent
     );
   }
+
+  background-color: transparent;
+
+  background-image:
+    linear-gradient(
+      to bottom,
+      var(--str-video__button-overlay, transparent),
+      var(--str-video__button-overlay, transparent)
+    ),
+    linear-gradient(
+      to bottom,
+      var(--str-video__button-selected, transparent),
+      var(--str-video__button-selected, transparent)
+    );
 
   .str-video__icon {
-    background-color: var(--str-video__icon-hover);
-  }
-}
-
-.str-video__call-controls__button {
-  border-radius: var(--str-video__border-radius-circle);
-  text-decoration: none;
-  box-shadow: none;
-  border: none;
-  background-color: var(--str-video__button-primary-base);
-
-  &:hover {
-    text-decoration: none;
-    background-color: var(
-      --str-video__composite-button__button-group-hover--background-color
-    );
-
-    .str-video__icon {
-      background-color: var(--str-video__icon-hover);
-    }
+    background-color: currentColor;
   }
 
-  &--variant-danger {
-    background-color: var(--str-video__button-tertiary-base);
+  &--solid {
+    background-color: var(--str-video__button-bg);
+    color: var(--str-video__button-fg-on-fill);
+  }
 
-    .str-video__icon {
-      background-color: white;
-    }
+  &--outline {
+    box-shadow: inset 0 0 0 var(--str-video__w100)
+      var(--str-video__button-border);
+    color: var(--str-video__button-fg);
+  }
 
+  &--ghost {
+    color: var(--str-video__button-fg);
+  }
+
+  &:not(:disabled):not([aria-disabled='true']) {
     &:hover {
-      background-color: var(--str-video__button-tertiary-hover);
+      --str-video__button-overlay: var(--str-video__background-utility-hover);
+    }
+
+    &[aria-expanded='true'],
+    &:active {
+      --str-video__button-overlay: var(--str-video__background-utility-pressed);
+    }
+
+    &[aria-pressed='true'] {
+      --str-video__button-selected: var(
+        --str-video__background-utility-selected
+      );
     }
   }
 
-  &--variant-success {
-    background-color: var(--str-video__info-color);
+  &:not(:disabled):focus-visible {
+    outline: var(--str-video__w200) solid
+      var(--str-video__border-utility-focused);
+  }
 
-    &:hover {
-      background-color: var(--str-video__info-color--accent);
+  &:disabled,
+  &[aria-disabled='true'] {
+    color: var(--str-video__text-disabled);
+    cursor: default;
+
+    &.str-video__button--solid {
+      background-color: var(--str-video__background-utility-disabled);
+    }
+
+    &.str-video__button--outline {
+      box-shadow: inset 0 0 0 var(--str-video__w100)
+        var(--str-video__border-utility-disabled);
     }
   }
 
-  &--variant-active {
-    background-color: var(--str-video__button-primary-active);
-
-    &:hover {
-      background-color: var(--str-video__button-primary-hover);
-    }
-  }
-
-  &--enabled {
-    background: var(--str-video__background-color7);
+  &[aria-disabled='true'] {
+    pointer-events: none;
   }
 }

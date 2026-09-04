@@ -14,12 +14,7 @@ export const ToggleStatsButton = (props: {
   const { t } = useI18n();
   return (
     <WithTooltip title={t('Stats')}>
-      <CompositeButton
-        active={active}
-        variant="primary"
-        title={t('Stats')}
-        onClick={onClick}
-      >
+      <CompositeButton active={active} title={t('Stats')} onClick={onClick}>
         <Icon icon="stats" />
       </CompositeButton>
     </WithTooltip>

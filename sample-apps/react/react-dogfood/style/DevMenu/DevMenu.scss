@@ -6,17 +6,17 @@
   text-align: center;
 
   width: 100vw;
-  padding: var(--str-video__spacing-lg);
+  padding: var(--str-video__spacing-md);
 
   margin: 0;
   list-style: none;
 
-  gap: var(--str-video__spacing-xs);
+  gap: var(--str-video__space-6);
 
   &__item {
     &--divider {
       border-bottom: 1px solid var(--str-video__base-color3);
-      margin: var(--str-video__spacing-sm) 0;
+      margin: var(--str-video__spacing-xs) 0;
     }
   }
 }

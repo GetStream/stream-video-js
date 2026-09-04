@@ -17,23 +17,23 @@ $scope-name: 'str-video__participant-view';
     outline: 2px solid var(--str-video__primary-color);
   }
 
-  .str-video__call-controls__button {
+  .str-video__participant-view__menu-button {
     transition: opacity 200ms ease-out;
     opacity: 0.3;
     color: var(--str-video__text-color1);
   }
 
   &:hover {
-    .str-video__call-controls__button {
+    .str-video__participant-view__menu-button {
       opacity: 1;
     }
   }
 
-  & > .str-video__call-controls__button {
+  & > .str-video__participant-view__menu-button {
     position: absolute;
     top: 0.875rem;
     left: 0.875rem;
-    padding: 0.3rem;
+    --str-video__button-h: calc(var(--str-video__icon-size-sm) + 0.6rem);
   }
 
   .str-video__participant-details {
@@ -42,7 +42,7 @@ $scope-name: 'str-video__participant-view';
     bottom: 0;
     display: flex;
     align-items: center;
-    gap: var(--str-video__spacing-sm);
+    gap: var(--str-video__spacing-xs);
     border-radius: 0 var(--str-video__border-radius-xs) 0
       var(--str-video__border-radius-sm);
     background-color: var(--str-video__background-color4);
@@ -50,7 +50,7 @@ $scope-name: 'str-video__participant-view';
     .str-video__participant-details__name {
       display: flex;
       align-items: center;
-      gap: var(--str-video__spacing-sm);
+      gap: var(--str-video__spacing-xs);
       padding: 4px 6px;
       white-space: nowrap;
       overflow: hidden;
@@ -110,9 +110,13 @@ $scope-name: 'str-video__participant-view';
   }
 
   .str-video__connection-quality-indicator {
+    // Figma places this as the last item of the bottom Participant Tile
+    // Toolbar, inset 8px from the right and 8px from the bar's top edge
+    // (Toolbar Type=Bottom is 48 tall, the indicator 32x32 at x=600 y=8).
+    // Until the toolbar itself is built out, match that inset rather than
+    // sitting hard in the tile's corner.
     position: absolute;
-    bottom: 0;
-    right: 0;
+    inset: auto var(--str-video__space-8) var(--str-video__space-8) auto;
 
     inline-size: var(--str-video__size-32);
     block-size: var(--str-video__size-32);

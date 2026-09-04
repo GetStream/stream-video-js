@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: var(--str-video__spacing-lg);
+  padding: var(--str-video__spacing-md);
   text-align: center;
 
   &__icon {
@@ -30,7 +30,7 @@
   justify-content: space-between;
   align-items: center;
 
-  padding: var(--str-video__spacing-md) var(--str-video__spacing-lg);
+  padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
 
   .rd__chat-header__title {
     flex: 1;
@@ -86,10 +86,10 @@
 
 .rd-chat__new-message-toast {
   position: fixed;
-  right: var(--str-video__spacing-lg);
+  right: var(--str-video__spacing-md);
   bottom: 96px;
   max-width: 280px;
-  padding: var(--str-video__spacing-md);
+  padding: var(--str-video__spacing-sm);
   background: var(--str-video__background-color1);
   border-radius: var(--str-video__border-radius-md);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);

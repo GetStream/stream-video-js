@@ -316,7 +316,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
               <WithTooltip title={t('Pop out Picture-in-Picture')}>
                 <CompositeButton
                   active={!!pipWindow}
-                  variant="primary"
+                  variant={pipWindow ? 'primary' : 'secondary'}
                   onClick={pipWindow ? closePipWindow : openPipWindow}
                 >
                   <Icon icon="pip" />
@@ -344,7 +344,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 <WithTooltip title={t('Closed Captions Queue')}>
                   <CompositeButton
                     active={showClosedCaptions}
-                    variant="primary"
                     onClick={() => {
                       setSidebarContent(
                         showClosedCaptions ? null : 'closed-captions',
