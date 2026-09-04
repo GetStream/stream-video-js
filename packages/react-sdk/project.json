@@ -24,6 +24,8 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["ci", "refactor", "test", "docs"],
+        "releaseAs": "premajor",
+        "preid": "beta",
         "postTargets": [
           "@stream-io/video-react-sdk:update-version",
           "@stream-io/video-react-sdk:enrich-changelog",
@@ -47,6 +49,7 @@
     "github": {
       "executor": "@jscutlery/semver:github",
       "options": {
+        "prerelease": true,
         "tag": "${tag}",
         "notesFile": "packages/react-sdk/.release-notes.md"
       }
