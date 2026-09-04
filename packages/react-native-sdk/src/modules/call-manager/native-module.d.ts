@@ -33,6 +33,20 @@ export interface CallManager extends NativeModule {
   setTelecomManagedMode: (enabled: boolean) => void;
 
   /**
+   * Opt out of the Android 11+ communication-mode keep-alive workaround.
+   *
+   * On Android 11+ (API 30) the OS resets `MODE_IN_COMMUNICATION` ~6s after it is
+   * set when there is no active voice-communication playback/recording, which
+   * breaks audio routing and AEC. By default the SDK plays a silent
+   * voice-communication track for the duration of a communicator-role call to
+   * prevent this. Pass `true` to disable it. Sticky for the process lifetime.
+   *
+   * No-op on iOS and on Android below API 30. See
+   * https://issuetracker.google.com/issues/209493718
+   */
+  setDisableCommunicationModeWorkaround: (disabled: boolean) => void;
+
+  /**
    * Choose an audio device endpoint by its stable id.
    * @param deviceId - The id of the audio device to choose (`AudioDevice.id`).
    */

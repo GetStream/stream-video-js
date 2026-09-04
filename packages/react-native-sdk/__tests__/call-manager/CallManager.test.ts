@@ -82,6 +82,10 @@ const loadCallManager = ({
     const {
       registerSDKGlobals,
     } = require('../../src/utils/internal/registerSDKGlobals');
+    // registerSDKGlobals() is a no-op once globalThis.streamRNVideoSDK is set, and that
+    // global outlives jest.resetModules(). Clear it so each test binds the internal call
+    // manager to its own mocked native module instead of the first test's.
+    delete (globalThis as { streamRNVideoSDK?: unknown }).streamRNVideoSDK;
     registerSDKGlobals();
     internalCallManager = globalThis.streamRNVideoSDK!.callManager;
   });
