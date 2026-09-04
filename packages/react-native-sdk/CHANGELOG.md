@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.45.0...@stream-io/video-react-native-sdk-2.0.0-beta.0) (2026-09-04)
+
+### Bug Fixes
+
+- **callingx:** don't tear down concurrent calls on stop service ([#2394](https://github.com/GetStream/stream-video-js/issues/2394)) ([d6e9deb](https://github.com/GetStream/stream-video-js/commit/d6e9debbe98ae91cc349f010eb92f76b35a3f932))
+- **rn:** auto-leave previous callingx calls on new join ([#2402](https://github.com/GetStream/stream-video-js/issues/2402)) ([5a3dfdd](https://github.com/GetStream/stream-video-js/commit/5a3dfddd8ddbfacf6e8ea109656be82da91a3436))
+- **rn:** wrong expo plugin Android call-alive foreground service detection ([#2398](https://github.com/GetStream/stream-video-js/issues/2398)) ([eac10b5](https://github.com/GetStream/stream-video-js/commit/eac10b5a390f6949b25535d2b4c4cf9bc3d5f065))
+
 ## [1.45.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.44.0...@stream-io/video-react-native-sdk-1.45.0) (2026-08-28)
 
 ### Dependency Updates
