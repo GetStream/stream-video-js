@@ -134,7 +134,9 @@ internal class SilentPlaybackKeepAlive(
     }
 
     override fun describeState(): String = synchronized(gate) {
-        "enabled, built=${track != null}, playing=$engaged, modePoller=${modePoller != null}"
+        val playing = track?.playState == AudioTrack.PLAYSTATE_PLAYING
+        "enabled, engaged=$engaged, built=${track != null}, playing=$playing, " +
+            "modePoller=${modePoller != null}"
     }
 
     @SuppressLint("Range")
