@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.9.1...@stream-io/video-filters-web-0.10.0) (2026-09-04)
+
+### Features
+
+- **video-filters-web:** apply background filter changes without re-registering the filter ([#2403](https://github.com/GetStream/stream-video-js/issues/2403)) ([4fbb30a](https://github.com/GetStream/stream-video-js/commit/4fbb30a640f87a61d400179b24f844b04f2f3bd5))
+
 ## [0.8.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.8.6...@stream-io/video-filters-web-0.8.7) (2026-08-28)
 
 ### Performance Improvements
