@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-2.0.0-beta.0...@stream-io/video-react-native-sdk-2.0.0-beta.1) (2026-09-04)
+
+### Bug Fixes
+
+- **react-native-sdk:** publish the corrected satellite peer ranges ([15172ec](https://github.com/GetStream/stream-video-js/commit/15172ec5a2e96ec7ad62c83be631776a9f315485)), closes [#2414](https://github.com/GetStream/stream-video-js/issues/2414)
+
 ## [2.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.45.0...@stream-io/video-react-native-sdk-2.0.0-beta.0) (2026-09-04)
 
 ### Bug Fixes
