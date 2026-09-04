@@ -126,7 +126,7 @@ export class DynascaleManager {
     };
 
     const participant$ = this.callState.participants$.pipe(
-      map((ps) => ps.find((p) => p.sessionId === sessionId)),
+      map(() => this.callState.findParticipantBySessionId(sessionId)),
       takeWhile((participant) => !!participant),
       distinctUntilChanged(),
       shareReplay({ bufferSize: 1, refCount: true }),
@@ -299,7 +299,7 @@ export class DynascaleManager {
     if (!participant || participant.isLocalParticipant) return;
 
     const participant$ = this.callState.participants$.pipe(
-      map((ps) => ps.find((p) => p.sessionId === sessionId)),
+      map(() => this.callState.findParticipantBySessionId(sessionId)),
       takeWhile((p) => !!p),
       distinctUntilChanged(),
       shareReplay({ bufferSize: 1, refCount: true }),

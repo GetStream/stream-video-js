@@ -177,7 +177,9 @@ describe('CallState', () => {
     it('updates an existing participant if session_id matches', () => {
       const state = new CallState();
       // @ts-expect-error - incomplete data
-      state.setParticipants([{ sessionId: '123', userId: 'alice' }]);
+      state.setParticipants([
+        { publishedTracks: [], sessionId: '123', userId: 'alice' },
+      ]);
 
       // @ts-expect-error - incomplete data
       state.updateOrAddParticipant('123', { userId: 'bob' });
@@ -189,10 +191,15 @@ describe('CallState', () => {
       const state = new CallState();
       state.setSortParticipantsBy(noopComparator());
       // @ts-expect-error - incomplete data
-      state.setParticipants([{ sessionId: '123', userId: 'alice' }]);
+      state.setParticipants([
+        { publishedTracks: [], sessionId: '123', userId: 'alice' },
+      ]);
 
       // @ts-expect-error - incomplete data
-      state.updateOrAddParticipant('12345', { userId: 'bob' });
+      state.updateOrAddParticipant('12345', {
+        userId: 'bob',
+        publishedTracks: [],
+      });
       expect(state.participants.length).toBe(2);
       expect(state.participants[0].userId).toBe('alice');
       expect(state.participants[1].userId).toBe('bob');
@@ -203,7 +210,9 @@ describe('CallState', () => {
     it('does nothing when the patch is empty', () => {
       const state = new CallState();
       // @ts-expect-error - incomplete data
-      state.setParticipants([{ sessionId: '123', userId: 'alice' }]);
+      state.setParticipants([
+        { publishedTracks: [], sessionId: '123', userId: 'alice' },
+      ]);
 
       const p1Ref = state.participants;
       state.updateParticipants({});
@@ -216,9 +225,9 @@ describe('CallState', () => {
       state.setSortParticipantsBy(noopComparator());
       state.setParticipants([
         // @ts-expect-error - incomplete data
-        { sessionId: '123', userId: 'alice' },
+        { publishedTracks: [], sessionId: '123', userId: 'alice' },
         // @ts-expect-error - incomplete data
-        { sessionId: '1234', userId: 'charlie ' },
+        { publishedTracks: [], sessionId: '1234', userId: 'charlie ' },
       ]);
 
       const p1Ref = state.participants;
@@ -343,13 +352,20 @@ describe('CallState', () => {
       const state = new CallState();
       state.setSortParticipantsBy(noopComparator());
       // @ts-expect-error - incomplete data
-      state.setParticipants([{ sessionId: '123' }, { sessionId: '456' }]);
+      state.setParticipants([
+        { publishedTracks: [], sessionId: '123' },
+        { publishedTracks: [], sessionId: '456' },
+      ]);
 
       state.setServerSidePins([{ sessionId: '123', userId: 'user-id' }]);
 
       expect(state.participants).toEqual([
-        { sessionId: '123', pin: { isLocalPin: false, pinnedAt: anyNumber() } },
-        { sessionId: '456' },
+        {
+          publishedTracks: [],
+          sessionId: '123',
+          pin: { isLocalPin: false, pinnedAt: anyNumber() },
+        },
+        { publishedTracks: [], sessionId: '456' },
       ]);
     });
 
@@ -358,16 +374,20 @@ describe('CallState', () => {
       state.setSortParticipantsBy(noopComparator());
       state.setParticipants([
         // @ts-expect-error - incomplete data
-        { sessionId: '123', pin: { isLocalPin: false, pinnedAt: 1000 } },
+        {
+          publishedTracks: [],
+          sessionId: '123',
+          pin: { isLocalPin: false, pinnedAt: 1000 },
+        },
         // @ts-expect-error - incomplete data
-        { sessionId: '456' },
+        { publishedTracks: [], sessionId: '456' },
       ]);
 
       state.setServerSidePins([]);
 
       expect(state.participants).toEqual([
-        { sessionId: '123', pin: undefined },
-        { sessionId: '456' },
+        { publishedTracks: [], sessionId: '123', pin: undefined },
+        { publishedTracks: [], sessionId: '456' },
       ]);
     });
 
@@ -376,16 +396,24 @@ describe('CallState', () => {
       state.setSortParticipantsBy(noopComparator());
       state.setParticipants([
         // @ts-expect-error - incomplete data
-        { sessionId: '123', pin: { isLocalPin: true, pinnedAt: 1000 } },
+        {
+          publishedTracks: [],
+          sessionId: '123',
+          pin: { isLocalPin: true, pinnedAt: 1000 },
+        },
         // @ts-expect-error - incomplete data
-        { sessionId: '456' },
+        { publishedTracks: [], sessionId: '456' },
       ]);
 
       state.setServerSidePins([]);
 
       expect(state.participants).toEqual([
-        { sessionId: '123', pin: { isLocalPin: true, pinnedAt: 1000 } },
-        { sessionId: '456' },
+        {
+          publishedTracks: [],
+          sessionId: '123',
+          pin: { isLocalPin: true, pinnedAt: 1000 },
+        },
+        { publishedTracks: [], sessionId: '456' },
       ]);
     });
   });
@@ -513,7 +541,9 @@ describe('CallState', () => {
       it('handles call.permissions_updated', () => {
         const state = new CallState();
         // @ts-expect-error incomplete data
-        state.setParticipants([{ userId: 'test', isLocalParticipant: true }]);
+        state.setParticipants([
+          { userId: 'test', isLocalParticipant: true, publishedTracks: [] },
+        ]);
 
         state.updateFromEvent({
           type: 'call.permissions_updated',

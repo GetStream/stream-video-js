@@ -25,6 +25,7 @@ describe('Participant events', () => {
       onParticipantJoined({
         // @ts-expect-error incomplete data
         participant: {
+          publishedTracks: [],
           userId: 'user-id',
           sessionId: 'session-id',
           roles: ['user'],
@@ -33,6 +34,7 @@ describe('Participant events', () => {
 
       expect(state.participants).toEqual([
         {
+          publishedTracks: [],
           userId: 'user-id',
           sessionId: 'session-id',
           roles: ['user'],
@@ -46,6 +48,7 @@ describe('Participant events', () => {
       onParticipantUpdated({
         // @ts-expect-error incomplete data
         participant: {
+          publishedTracks: [],
           userId: 'user-id',
           sessionId: 'session-id',
           roles: ['host'],
@@ -54,6 +57,7 @@ describe('Participant events', () => {
 
       expect(state.participants).toEqual([
         {
+          publishedTracks: [],
           userId: 'user-id',
           sessionId: 'session-id',
           roles: ['host'],
@@ -67,6 +71,7 @@ describe('Participant events', () => {
       onParticipantLeft({
         // @ts-expect-error incomplete data
         participant: {
+          publishedTracks: [],
           userId: 'user-id',
           sessionId: 'session-id',
         },
@@ -85,6 +90,7 @@ describe('Participant events', () => {
       onParticipantJoined({
         // @ts-expect-error incomplete data
         participant: {
+          publishedTracks: [],
           userId: 'user-id',
           sessionId: 'session-id',
         },
@@ -106,6 +112,7 @@ describe('Participant events', () => {
       onParticipantJoined({
         // @ts-expect-error incomplete data
         participant: {
+          publishedTracks: [],
           userId: 'user-id',
           sessionId: 'session-id',
         },
@@ -131,6 +138,7 @@ describe('Participant events', () => {
       onParticipantJoined({
         // @ts-expect-error incomplete data
         participant: {
+          publishedTracks: [],
           userId: 'user-id',
           sessionId: 'session-id',
           trackLookupPrefix: 'track-lookup-prefix',
@@ -156,6 +164,7 @@ describe('Participant events', () => {
       onTrackPublished({
         // @ts-expect-error incomplete data
         participant: {
+          publishedTracks: [],
           userId: 'user-id',
           sessionId: 'session-id',
           trackLookupPrefix: 'track-lookup-prefix',
@@ -181,6 +190,7 @@ describe('Participant events', () => {
       onTrackUnPublished({
         // @ts-expect-error incomplete data
         participant: {
+          publishedTracks: [],
           userId: 'user-id',
           sessionId: 'session-id',
           trackLookupPrefix: 'track-lookup-prefix',
@@ -210,6 +220,7 @@ describe('Participant events', () => {
       onParticipantJoined({
         // @ts-expect-error incomplete data
         participant: {
+          publishedTracks: [],
           userId: 'user-id',
           sessionId: 'session-id',
           trackLookupPrefix: 'track-lookup-prefix',
@@ -236,6 +247,7 @@ describe('Participant events', () => {
       onTrackPublished({
         // @ts-expect-error incomplete data
         participant: {
+          publishedTracks: [],
           userId: 'user-id',
           sessionId: 'session-id',
           trackLookupPrefix: 'track-lookup-prefix',
@@ -262,6 +274,7 @@ describe('Participant events', () => {
       onTrackUnPublished({
         // @ts-expect-error incomplete data
         participant: {
+          publishedTracks: [],
           userId: 'user-id',
           sessionId: 'session-id',
           trackLookupPrefix: 'track-lookup-prefix',
@@ -290,6 +303,7 @@ describe('Participant events', () => {
       onParticipantJoined({
         // @ts-expect-error incomplete data
         participant: {
+          publishedTracks: [],
           userId: 'user-id',
           sessionId: 'session-id',
           trackLookupPrefix: 'track-lookup-prefix',
@@ -315,6 +329,7 @@ describe('Participant events', () => {
       onParticipantJoined({
         // @ts-expect-error incomplete data
         participant: {
+          publishedTracks: [],
           userId: 'user-id',
           sessionId: 'session-id',
           trackLookupPrefix: 'track-lookup-prefix',

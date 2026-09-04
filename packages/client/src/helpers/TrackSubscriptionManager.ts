@@ -144,9 +144,7 @@ export class TrackSubscriptionManager {
    */
   get subscriptions(): TrackSubscriptionDetails[] {
     const subscriptions: TrackSubscriptionDetails[] = [];
-    // Use getParticipantsSnapshot() to bypass the observable pipeline
-    // and avoid stale data caused by shareReplay with no active subscribers
-    const participants = this.callState.getParticipantsSnapshot();
+    const participants = this.callState.participants;
     const overrides = this.overridesSubject.getValue();
     for (const p of participants) {
       if (p.isLocalParticipant) continue;
