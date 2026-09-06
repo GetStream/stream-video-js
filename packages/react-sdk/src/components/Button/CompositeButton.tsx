@@ -69,7 +69,7 @@ export const CompositeButton = forwardRef<HTMLDivElement, CompositeButtonProps>(
             size={size}
             disabled={disabled}
             active={active}
-            className="str-video__composite-button__action"
+            className="str-video__composite-button__action str-video__button--icon-only"
             {...buttonProps}
           >
             {children}

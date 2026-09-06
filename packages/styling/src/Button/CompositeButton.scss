@@ -5,17 +5,7 @@
   --str-video__composite-button-lead: var(--str-video__spacing-sm);
 
   &--size-sm {
-    --str-video__composite-button-caret: var(
-      --str-video__button-visual-height-xs
-    );
     --str-video__composite-button-lead: var(--str-video__spacing-xs);
-  }
-
-  &--size-md {
-    --str-video__composite-button-caret: var(
-      --str-video__button-visual-height-xs
-    );
-    --str-video__composite-button-lead: var(--str-video__spacing-sm);
   }
 
   &--size-lg {
@@ -35,10 +25,6 @@
     display: inline-flex;
   }
 
-  &__action {
-    padding: var(--str-video__button-px-icon-only);
-  }
-
   &__caption {
     max-inline-size: 100%;
     overflow: hidden;
@@ -51,14 +37,11 @@
 
   &--menu {
     .str-video__composite-button__action {
-      // Figma binds `spacing/sm` (12) on the md split. It ships no sm or lg
-      // split, but the scale continues: 8/12/16 are exactly spacing xs/sm/md.
-      // One fixed token per variant, the way Figma's auto-layout does it.
+      aspect-ratio: auto;
       padding-inline: var(--str-video__composite-button-lead)
         calc(
-          var(--str-video__spacing-xs) +
-            var(--str-video__composite-button-caret) +
-            var(--str-video__spacing-xs)
+          2 * var(--str-video__spacing-xs) +
+            var(--str-video__composite-button-caret)
         );
     }
 
@@ -71,6 +54,7 @@
   }
 
   &--size-lg .str-video__composite-button__caret {
+    --str-video__button-visual: var(--str-video__button-visual-height-sm);
     padding: var(--str-video__button-padding-x-icon-only-sm);
   }
 
@@ -101,10 +85,6 @@
       --str-video__button-selected: var(
         --str-video__background-utility-selected
       );
-    }
-
-    .str-video__composite-button__caret.str-video__button {
-      --str-video__button-selected: transparent;
     }
   }
 }

@@ -6,7 +6,7 @@ import {
   useI18n,
   useToggleCallRecording,
 } from '@stream-io/video-react-bindings';
-import { CompositeButton } from '../Button/';
+import { Button, CompositeButton } from '../Button/';
 import { Icon } from '../Icon';
 import {
   MenuToggle,
@@ -45,19 +45,15 @@ const RecordEndConfirmation = (props: PropsWithErrorHandler) => {
         {t('Are you sure you want end the recording?')}
       </p>
       <div className="str-video__end-recording__actions">
-        <CompositeButton
-          variant="secondary"
-          appearance="outline"
-          onClick={close}
-        >
+        <Button variant="secondary" appearance="outline" onClick={close}>
           {t('Cancel')}
-        </CompositeButton>
-        <CompositeButton
+        </Button>
+        <Button
           variant="destructive"
           onClick={isAwaitingResponse ? undefined : handleClick}
         >
           {isAwaitingResponse ? <LoadingIndicator /> : t('End recording')}
-        </CompositeButton>
+        </Button>
       </div>
     </div>
   );

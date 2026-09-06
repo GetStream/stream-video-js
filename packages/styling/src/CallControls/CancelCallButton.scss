@@ -46,9 +46,7 @@
   justify-content: space-between;
   gap: var(--str-video__spacing-sm);
 
-  .str-video__composite-button,
-  .str-video__composite-button__group,
-  .str-video__composite-button__action {
-    inline-size: 100%;
+  .str-video__button {
+    flex: 1;
   }
 }
