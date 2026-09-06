@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.8.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.8.6...@stream-io/video-filters-web-0.8.7) (2026-08-28)
+
+### Performance Improvements
+
+- emit per-module ESM builds for the React packages ([#2378](https://github.com/GetStream/stream-video-js/issues/2378)) ([9c937f4](https://github.com/GetStream/stream-video-js/commit/9c937f4b5845aa0e8108a218b1c84b7acb249d77))
+
 ## [0.8.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.8.5...@stream-io/video-filters-web-0.8.6) (2026-08-07)
 
 ## [0.8.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.8.4...@stream-io/video-filters-web-0.8.5) (2026-07-30)

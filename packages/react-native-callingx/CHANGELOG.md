@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.10.0...@stream-io/react-native-callingx-0.11.0) (2026-08-28)
+
+### Features
+
+- handle ring notification internally ([#2380](https://github.com/GetStream/stream-video-js/issues/2380)) ([0259217](https://github.com/GetStream/stream-video-js/commit/0259217ea2df613483bee5918ca2f93a68b6c3b9))
+
+### Bug Fixes
+
+- do not allow empty android call display names ([#2392](https://github.com/GetStream/stream-video-js/issues/2392)) ([2ef3065](https://github.com/GetStream/stream-video-js/commit/2ef3065038fc293d0e2c96d2cc26feaf317e7b2d))
+
 ## [0.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.9.0...@stream-io/react-native-callingx-0.10.0) (2026-08-18)
 
 ### Features

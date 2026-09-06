@@ -1,6 +1,7 @@
 import type { AxiosResponse } from 'axios';
 import type { APIErrorResponse } from './types';
 import type { ConnectionErrorEvent } from '../../gen/coordinator';
+import type { ScopedLogger } from '../../logger';
 
 export const sleep = (m: number) => new Promise((r) => setTimeout(r, m));
 
@@ -118,3 +119,30 @@ export function isCloseEvent(
 ): res is CloseEvent {
   return (res as CloseEvent).code !== undefined;
 }
+
+/**
+ * Invokes a single event listener in isolation, so that a faulty listener
+ * cannot abort the dispatch loop nor the bookkeeping that follows it.
+ *
+ * @param listener the listener to invoke.
+ * @param event the event to pass to the listener.
+ * @param logger the logger to report listener failures with.
+ */
+export const invokeEventListener = <T>(
+  listener: (event: T) => unknown,
+  event: T,
+  logger: ScopedLogger,
+) => {
+  try {
+    const result = listener(event);
+    if (result && typeof (result as PromiseLike<unknown>).then === 'function') {
+      Promise.resolve(result).catch((error) => report(logger, error, event));
+    }
+  } catch (error) {
+    report(logger, error, event);
+  }
+};
+
+const report = (logger: ScopedLogger, error: unknown, event: unknown) => {
+  logger.error('Unhandled error in event listener', error, event);
+};

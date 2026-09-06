@@ -758,7 +758,10 @@ export class Call {
           }
         }
       }
-      globalThis.streamRNVideoSDK?.callingX?.endCall(this);
+      globalThis.streamRNVideoSDK?.callingX?.endCall(
+        this,
+        reason === 'ended' ? 'remote' : undefined,
+      );
 
       this.statsReporter?.stop();
       this.statsReporter = undefined;

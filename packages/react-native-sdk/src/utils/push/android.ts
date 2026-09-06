@@ -1,7 +1,7 @@
 import { StreamVideoClient, videoLoggerSystem } from '@stream-io/video-client';
 import { Platform } from 'react-native';
 import type { StreamVideoConfig } from '../StreamVideoRN/types';
-import { type FirebaseMessagingTypes, getFirebaseMessagingLib } from './libs';
+import { getFirebaseMessagingLib } from './libs';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
@@ -63,9 +63,7 @@ let firebaseDataHandlerDeprecationLogged = false;
  * @deprecated Ring notifications are now handled by the SDK internally. This method is a no-op;
  * you can safely remove `firebaseDataHandler(...)` wiring from your Firebase messaging handlers.
  */
-export const firebaseDataHandler = async (
-  data?: FirebaseMessagingTypes.RemoteMessage['data'],
-) => {
+export const firebaseDataHandler = async (data?: any) => {
   void data;
   if (!firebaseDataHandlerDeprecationLogged) {
     firebaseDataHandlerDeprecationLogged = true;
