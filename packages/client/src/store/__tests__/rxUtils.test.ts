@@ -1,5 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
-import { BehaviorSubject, Subject, throwError } from 'rxjs';
+import {
+  AsyncSubject,
+  BehaviorSubject,
+  EMPTY,
+  of,
+  ReplaySubject,
+  Subject,
+  throwError,
+} from 'rxjs';
 import { promiseWithResolvers } from '../../helpers/promise';
 import {
   createSafeAsyncSubscription,
@@ -25,6 +33,64 @@ describe('getCurrentValue', () => {
   it('rethrows errors emitted by the observable', () => {
     const err = new Error('observable failed');
     expect(() => getCurrentValue(throwError(() => err))).toThrow(err);
+  });
+
+  it('rethrows the error of an errored BehaviorSubject', () => {
+    const err = new Error('subject failed');
+    const subject = new BehaviorSubject(7);
+    subject.error(err);
+    expect(() => getCurrentValue(subject)).toThrow(err);
+  });
+
+  it('throws when the BehaviorSubject has been unsubscribed', () => {
+    const subject = new BehaviorSubject(7);
+    subject.unsubscribe();
+    expect(() => getCurrentValue(subject)).toThrow(/unsubscribed/);
+  });
+
+  it('still reads the value of a completed BehaviorSubject', () => {
+    // A completed BehaviorSubject keeps holding its value, and we read that
+    // value directly. Subscribing instead would yield nothing, because RxJS
+    // doesn't replay to subscribers of a stopped subject.
+    const subject = new BehaviorSubject(7);
+    subject.complete();
+    expect(getCurrentValue(subject)).toBe(7);
+  });
+
+  it('returns undefined for a Subject that has not emitted', () => {
+    expect(getCurrentValue(new Subject<number>())).toBeUndefined();
+    expect(getCurrentValue(EMPTY)).toBeUndefined();
+  });
+
+  it('returns the last buffered value of a ReplaySubject', () => {
+    const subject = new ReplaySubject<string>(1);
+    subject.next('a');
+    subject.next('b');
+    expect(getCurrentValue(subject)).toBe('b');
+
+    const buffered = new ReplaySubject<string>(2);
+    buffered.next('a');
+    buffered.next('b');
+    expect(getCurrentValue(buffered)).toBe('b');
+  });
+
+  it('still reads a completed ReplaySubject, which does replay', () => {
+    const subject = new ReplaySubject<string>(1);
+    subject.next('z');
+    subject.complete();
+    expect(getCurrentValue(subject)).toBe('z');
+  });
+
+  it('reads the value an AsyncSubject emitted on completion', () => {
+    const pending = new AsyncSubject<string>();
+    pending.next('q');
+    expect(getCurrentValue(pending)).toBeUndefined();
+    pending.complete();
+    expect(getCurrentValue(pending)).toBe('q');
+  });
+
+  it('returns the last synchronous emission, not the first', () => {
+    expect(getCurrentValue(of(1, 2, 3))).toBe(3);
   });
 });
 
