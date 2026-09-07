@@ -10,6 +10,7 @@ import {
   type UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
+import { Badge, ErrorBadge } from '../Badge';
 import { CompositeButton, CompositeButtonProps } from '../Button';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
@@ -62,17 +63,26 @@ export const ToggleAudioPreviewButton = (
   return (
     <WithTooltip
       title={
-        !hasBrowserPermission
-          ? t('Check your browser audio permissions')
-          : isSystemMuted
-            ? t('Microphone is paused by your system')
-            : (caption ?? t('Mic'))
+        isPromptingPermission
+          ? t('Waiting for permission')
+          : !hasBrowserPermission
+            ? t('Check your browser audio permissions')
+            : isSystemMuted
+              ? t('Microphone is paused by your system')
+              : (caption ?? t('Mic'))
       }
       tooltipDisabled={tooltipDisabled}
     >
       <CompositeButton
         active={optionsAwareIsMute}
         caption={caption}
+        badge={
+          isPromptingPermission ? (
+            <Badge variant="error">?</Badge>
+          ) : !hasBrowserPermission || isSystemMuted ? (
+            <ErrorBadge />
+          ) : undefined
+        }
         className={clsx(
           !hasBrowserPermission && 'str-video__device-unavailable',
         )}
@@ -95,27 +105,6 @@ export const ToggleAudioPreviewButton = (
         }}
       >
         <Icon icon={!optionsAwareIsMute ? 'mic' : 'mic-off'} />
-        {!hasBrowserPermission && (
-          <span
-            className="str-video__no-media-permission"
-            title={t('Check your browser audio permissions')}
-            children="!"
-          />
-        )}
-        {isPromptingPermission && (
-          <span
-            className="str-video__pending-permission"
-            title={t('Waiting for permission')}
-            children="?"
-          />
-        )}
-        {isSystemMuted && hasBrowserPermission && (
-          <span
-            className="str-video__system-muted"
-            title={t('Microphone is paused by your system')}
-            children="!"
-          />
-        )}
       </CompositeButton>
     </WithTooltip>
   );
@@ -178,19 +167,28 @@ export const ToggleAudioPublishingButton = (
       >
         <WithTooltip
           title={
-            !hasPermission
-              ? t('You have no permission to share your audio')
-              : !hasBrowserPermission
-                ? t('Check your browser mic permissions')
-                : isSystemMuted
-                  ? t('Microphone is paused by your system')
-                  : (caption ?? t('Mic'))
+            isPromptingPermission
+              ? t('Waiting for permission')
+              : !hasPermission
+                ? t('You have no permission to share your audio')
+                : !hasBrowserPermission
+                  ? t('Check your browser mic permissions')
+                  : isSystemMuted
+                    ? t('Microphone is paused by your system')
+                    : (caption ?? t('Mic'))
           }
           tooltipDisabled={tooltipDisabled}
         >
           <CompositeButton
             active={optionsAwareIsMute}
             caption={caption}
+            badge={
+              isPromptingPermission ? (
+                <Badge variant="error">?</Badge>
+              ) : !hasBrowserPermission || !hasPermission || isSystemMuted ? (
+                <ErrorBadge />
+              ) : undefined
+            }
             variant={optionsAwareIsMute ? 'destructive' : 'secondary'}
             disabled={
               !hasBrowserPermission ||
@@ -212,25 +210,6 @@ export const ToggleAudioPublishingButton = (
             }}
           >
             <Icon icon={optionsAwareIsMute ? 'mic-off' : 'mic'} />
-            {(!hasBrowserPermission || !hasPermission) && (
-              <span className="str-video__no-media-permission">!</span>
-            )}
-            {isPromptingPermission && (
-              <span
-                className="str-video__pending-permission"
-                title={t('Waiting for permission')}
-              >
-                ?
-              </span>
-            )}
-            {isSystemMuted && hasBrowserPermission && hasPermission && (
-              <span
-                className="str-video__system-muted"
-                title={t('Microphone is paused by your system')}
-              >
-                !
-              </span>
-            )}
           </CompositeButton>
         </WithTooltip>
       </PermissionNotification>

@@ -135,6 +135,11 @@
     mask-image: var(--str-video__icon--call-accept);
   }
 
+  &--exclamation-mark-fill {
+    -webkit-mask-image: var(--str-video__icon--exclamation-mark-fill);
+    mask-image: var(--str-video__icon--exclamation-mark-fill);
+  }
+
   &--info {
     -webkit-mask-image: var(--str-video__icon--info-icon);
     mask-image: var(--str-video__icon--info-icon);

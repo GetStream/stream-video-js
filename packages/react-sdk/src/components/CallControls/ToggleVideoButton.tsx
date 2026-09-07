@@ -10,6 +10,7 @@ import {
   RequestPermissionRequestPermissionsEnum,
   SfuModels,
 } from '@stream-io/video-client';
+import { Badge, ErrorBadge } from '../Badge';
 import { CompositeButton, CompositeButtonProps } from '../Button/';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
@@ -71,6 +72,13 @@ export const ToggleVideoPreviewButton = (
       <CompositeButton
         active={optionsAwareIsMute}
         caption={caption}
+        badge={
+          isPromptingPermission ? (
+            <Badge variant="error">?</Badge>
+          ) : !hasBrowserPermission || isSystemMuted ? (
+            <ErrorBadge />
+          ) : undefined
+        }
         className={clsx(
           !hasBrowserPermission && 'str-video__device-unavailable',
         )}
@@ -93,27 +101,6 @@ export const ToggleVideoPreviewButton = (
         }}
       >
         <Icon icon={!optionsAwareIsMute ? 'camera' : 'camera-off'} />
-        {!hasBrowserPermission && (
-          <span
-            className="str-video__no-media-permission"
-            title={t('Check your browser video permissions')}
-            children="!"
-          />
-        )}
-        {isPromptingPermission && (
-          <span
-            className="str-video__pending-permission"
-            title={t('Waiting for permission')}
-            children="?"
-          />
-        )}
-        {isSystemMuted && hasBrowserPermission && (
-          <span
-            className="str-video__system-muted"
-            title={t('Camera is paused by your system')}
-            children="!"
-          />
-        )}
       </CompositeButton>
     </WithTooltip>
   );
@@ -195,6 +182,16 @@ export const ToggleVideoPublishingButton = (
           <CompositeButton
             active={optionsAwareIsMute}
             caption={caption}
+            badge={
+              isPromptingPermission ? (
+                <Badge variant="error">?</Badge>
+              ) : !hasBrowserPermission ||
+                !hasPermission ||
+                !isPublishingVideoAllowed ||
+                isSystemMuted ? (
+                <ErrorBadge />
+              ) : undefined
+            }
             variant={optionsAwareIsMute ? 'destructive' : 'secondary'}
             disabled={
               !hasBrowserPermission ||
@@ -216,30 +213,6 @@ export const ToggleVideoPublishingButton = (
             }}
           >
             <Icon icon={optionsAwareIsMute ? 'camera-off' : 'camera'} />
-            {(!hasBrowserPermission ||
-              !hasPermission ||
-              !isPublishingVideoAllowed) && (
-              <span className="str-video__no-media-permission">!</span>
-            )}
-            {isPromptingPermission && (
-              <span
-                className="str-video__pending-permission"
-                title={t('Waiting for permission')}
-              >
-                ?
-              </span>
-            )}
-            {isSystemMuted &&
-              hasBrowserPermission &&
-              hasPermission &&
-              isPublishingVideoAllowed && (
-                <span
-                  className="str-video__system-muted"
-                  title={t('Camera is paused by your system')}
-                >
-                  !
-                </span>
-              )}
           </CompositeButton>
         </WithTooltip>
       </PermissionNotification>

@@ -79,33 +79,23 @@
   --str-video__system-scrollbar: rgba(255, 255, 255, 0.5);
   /**
    * Minimum interactive hit target size.
-   * 
+   *
    * iOS / Android: enforce minimum touch target.
    * Web: do not apply a min-width or min-height; size to content.
-   * 
+   *
    * Note: Web uses a placeholder value in Figma due to variable mode constraints.
    */
   /**
    * Minimum interactive hit target size.
-   * 
+   *
    * iOS / Android: enforce minimum touch target.
    * Web: do not apply a min-width or min-height; size to content.
-   * 
+   *
    * Note: Web uses a placeholder value in Figma due to variable mode constraints.
    */
   --str-video__background-core-highlight: var(
     --str-video__yellow-800
   ); /** A tint for drawing attention to content. Used for highlights and pinned messages. */
-  --str-video__avatar-palette-bg-1: var(--str-video__blue-600);
-  --str-video__avatar-palette-bg-2: var(--str-video__cyan-600);
-  --str-video__avatar-palette-bg-3: var(--str-video__green-600);
-  --str-video__avatar-palette-bg-4: var(--str-video__purple-600);
-  --str-video__avatar-palette-bg-5: var(--str-video__yellow-600);
-  --str-video__avatar-palette-text-1: var(--str-video__blue-100);
-  --str-video__avatar-palette-text-2: var(--str-video__cyan-100);
-  --str-video__avatar-palette-text-3: var(--str-video__green-100);
-  --str-video__avatar-palette-text-4: var(--str-video__purple-100);
-  --str-video__avatar-palette-text-5: var(--str-video__yellow-100);
   --str-video__accent-success: var(
     --str-video__green-300
   ); /** Indicates a positive or completed state. Used for confirmations, sent indicators, and success feedback. */
