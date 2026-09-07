@@ -5,6 +5,7 @@ import { Call } from '../Call';
 import { CallingState } from './CallingState';
 import type { OwnUserResponse } from '../gen/coordinator';
 import { videoLoggerSystem } from '../logger';
+import { CallLeaveReasons } from '../helpers/CallLeaveReasons';
 
 export class StreamVideoWriteableStateStore {
   /**
@@ -29,7 +30,7 @@ export class StreamVideoWriteableStateStore {
 
           logger.info(`User disconnected, leaving call: ${call.cid}`);
           await call
-            .leave({ message: 'client.disconnectUser() called' })
+            .leave({ message: CallLeaveReasons.disconnectUser })
             .catch((err) => {
               logger.error(`Error leaving call: ${call.cid}`, err);
             });

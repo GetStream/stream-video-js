@@ -118,6 +118,7 @@ import {
   UpdateUserPermissionsResponse,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
+import { CallLeaveReasons } from './helpers/CallLeaveReasons';
 import {
   AudioTrackType,
   CallConstructor,
@@ -510,9 +511,11 @@ export class Call {
         if (currentUserId && blockedUserIds.includes(currentUserId)) {
           this.logger.info('Leaving call because of being blocked');
           globalThis.streamRNVideoSDK?.callingX?.endCall(this, 'restricted');
-          await this.leave({ message: 'user blocked' }).catch((err) => {
-            this.logger.error('Error leaving call after being blocked', err);
-          });
+          await this.leave({ message: CallLeaveReasons.userBlocked }).catch(
+            (err) => {
+              this.logger.error('Error leaving call after being blocked', err);
+            },
+          );
         }
       }),
     );
@@ -558,7 +561,9 @@ export class Call {
             this,
             isAcceptedElsewhere ? 'answeredElsewhere' : 'rejected',
           );
-          this.leave().catch(() => {
+          this.leave({
+            message: CallLeaveReasons.userRespondedElsewhere,
+          }).catch(() => {
             this.logger.error(
               'Could not leave a call that was accepted or rejected elsewhere',
             );
@@ -766,7 +771,7 @@ export class Call {
       this.statsReporter?.stop();
       this.statsReporter = undefined;
 
-      const leaveReason = message ?? reason ?? 'user is leaving the call';
+      const leaveReason = message ?? reason ?? CallLeaveReasons.userLeaving;
       this.tracer.trace('call.leaveReason', leaveReason);
       // await the final sample so it's captured from the still-live peer
       // connections (disposed below); the send itself stays best-effort.
@@ -1880,7 +1885,7 @@ export class Call {
         if (
           this.iceFailuresWithoutConnect >= this.maxIceFailuresWithoutConnect
         ) {
-          await giveUpAndLeave('webrtc_unsupported_network');
+          await giveUpAndLeave(CallLeaveReasons.webrtcUnsupportedNetwork);
           return;
         }
       }
@@ -1908,7 +1913,7 @@ export class Call {
           this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE
         ) {
           if (!this.rejoinRateLimiter.tryRegister()) {
-            await giveUpAndLeave('rejoin_attempt_limit_exceeded');
+            await giveUpAndLeave(CallLeaveReasons.rejoinAttemptLimitExceeded);
             return;
           }
         }
@@ -2008,7 +2013,9 @@ export class Call {
               this.consecutiveNegotiationFailures >=
               this.maxConsecutiveNegotiationFailures
             ) {
-              await giveUpAndLeave('repeated_negotiation_failures');
+              await giveUpAndLeave(
+                CallLeaveReasons.repeatedNegotiationFailures,
+              );
               return;
             }
           }
@@ -2193,7 +2200,7 @@ export class Call {
       if (strategy === WebsocketReconnectStrategy.UNSPECIFIED) return;
       if (strategy === WebsocketReconnectStrategy.DISCONNECT) {
         globalThis.streamRNVideoSDK?.callingX?.endCall(this, 'error');
-        this.leave({ message: 'SFU instructed to disconnect' }).catch((err) => {
+        this.leave({ message: CallLeaveReasons.sfuGoAway }).catch((err) => {
           this.logger.warn(`Can't leave call after disconnect request`, err);
         });
       } else {
@@ -3133,11 +3140,9 @@ export class Call {
       this.leave({
         reject: true,
         reason: 'timeout',
-        message: `ringing timeout - ${
-          this.isCreatedByMe
-            ? 'no one accepted'
-            : `user didn't interact with incoming call screen`
-        }`,
+        message: this.isCreatedByMe
+          ? CallLeaveReasons.ringTimeoutCreator
+          : CallLeaveReasons.ringTimeoutCallee,
       }).catch((err) => {
         this.logger.error('Failed to drop call', err);
       });

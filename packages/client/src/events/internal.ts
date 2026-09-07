@@ -3,6 +3,7 @@ import { Call } from '../Call';
 import { CallState } from '../store';
 import { StreamVideoParticipantPatches } from '../types';
 import { pushToIfMissing, removeFromIfPresent } from '../helpers/array';
+import { CallLeaveReasons } from '../helpers/CallLeaveReasons';
 import type {
   InboundStateNotification,
   PinsChanged,
@@ -59,7 +60,7 @@ export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
 
     call.state.setBackstage(true);
     if (!call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE)) {
-      call.leave({ message: 'live ended' }).catch((err) => {
+      call.leave({ message: CallLeaveReasons.liveEnded }).catch((err) => {
         call.logger.error('Failed to leave call after live ended', err);
       });
     }

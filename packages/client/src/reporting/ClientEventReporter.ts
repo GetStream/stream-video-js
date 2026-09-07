@@ -49,7 +49,7 @@ export type ClientEventStandardCode =
   | 'CLIENT_ABORTED'
   | 'BACKEND_LEAVE'
   | 'REQUEST_TIMEOUT'
-  | 'NETWORK_ERROR'
+  | 'NETWORK_OFFLINE'
   | 'SFU_ERROR'
   | 'SFU_GO_AWAY'
   | 'ICE_CONNECTIVITY_FAILED'

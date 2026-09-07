@@ -7,6 +7,7 @@ import {
 } from '../gen/coordinator';
 import { CallEnded } from '../gen/video/sfu/event/events';
 import { CallEndedReason } from '../gen/video/sfu/models/models';
+import { CallLeaveReasons } from '../helpers/CallLeaveReasons';
 
 /**
  * Event handler that watched the delivery of `call.accepted`.
@@ -63,14 +64,14 @@ export const watchCallRejected = (call: Call) => {
         await call.leave({
           reject: true,
           reason: 'cancel',
-          message: 'ring: everyone rejected',
+          message: CallLeaveReasons.ringEveryoneRejected,
         });
       }
     } else {
       if (rejectedBy[eventCall.created_by.id]) {
         call.logger.info('call creator rejected, leaving call');
         globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
-        await call.leave({ message: 'ring: creator rejected' });
+        await call.leave({ message: CallLeaveReasons.ringCreatorRejected });
       }
     }
   };
@@ -88,11 +89,11 @@ export const watchCallEnded = (call: Call) => {
     ) {
       call.clientEventReporter.abort(call.cid, {
         code: 'BACKEND_LEAVE',
-        reason: 'call.ended event received',
+        reason: CallLeaveReasons.eventCallEnded,
       });
       call
         .leave({
-          message: 'call.ended event received',
+          message: CallLeaveReasons.eventCallEnded,
           reject: false,
           reason: 'ended',
         })
@@ -123,11 +124,12 @@ export const watchSfuCallEnded = (call: Call) => {
       call.state.setEndedAt(new Date());
       const reason = CallEndedReason[e.reason];
       globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
+      const message = CallLeaveReasons.sfuCallEnded(reason);
       call.clientEventReporter.abort(call.cid, {
         code: 'BACKEND_LEAVE',
-        reason: `callEnded received: ${reason}`,
+        reason: message,
       });
-      await call.leave({ message: `callEnded received: ${reason}` });
+      await call.leave({ message });
     } catch (err) {
       call.logger.error(
         'Failed to leave call after being ended by the SFU',
