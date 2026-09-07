@@ -21,20 +21,9 @@
     mask-image: var(--str-video__icon--recording-on);
   }
 
-  &--caret-up {
-    -webkit-mask-image: var(--str-video__icon--caret-up);
-    mask-image: var(--str-video__icon--caret-up);
-  }
-
   &--download {
     -webkit-mask-image: var(--str-video__icon--download);
     mask-image: var(--str-video__icon--download);
-  }
-
-  &--caret-down {
-    -webkit-mask-image: var(--str-video__icon--caret-down);
-    mask-image: var(--str-video__icon--caret-down);
-    transform: rotate(180deg);
   }
 
   &--chevron-right {
@@ -154,6 +143,21 @@
   &--stats {
     -webkit-mask-image: var(--str-video__icon--stats);
     mask-image: var(--str-video__icon--stats);
+  }
+
+  &--speaker-off {
+    -webkit-mask-image: var(--str-video__icon--speaker-off);
+    mask-image: var(--str-video__icon--speaker-off);
+  }
+
+  &--fullscreen {
+    -webkit-mask-image: var(--str-video__icon--fullscreen);
+    mask-image: var(--str-video__icon--fullscreen);
+  }
+
+  &--livestream-viewers {
+    -webkit-mask-image: var(--str-video__icon--livestream-viewers);
+    mask-image: var(--str-video__icon--livestream-viewers);
   }
 
   &--speaker {

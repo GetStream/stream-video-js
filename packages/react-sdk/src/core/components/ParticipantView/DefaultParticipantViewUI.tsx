@@ -25,6 +25,7 @@ import {
   ToggleMenuButtonProps,
 } from '../../../components';
 import { ParticipantActionsContextMenu as DefaultParticipantActionsContextMenu } from './ParticipantActionsContextMenu';
+import { ConnectionQualityIndicator } from './ConnectionQualityIndicator';
 import { Reaction } from '../../../components/Reaction';
 import { useParticipantViewContext } from './ParticipantViewContext';
 
@@ -182,10 +183,6 @@ export const ParticipantDetails = ({
   const call = useCall();
 
   const { t } = useI18n();
-  const connectionQualityAsString =
-    !!connectionQuality &&
-    SfuModels.ConnectionQuality[connectionQuality].toLowerCase();
-
   const hasAudioTrack = hasAudio(participant);
   const hasVideoTrack = hasVideo(participant);
   const canUnpin = !!pin && pin.isLocalPin;
@@ -242,14 +239,8 @@ export const ParticipantDetails = ({
           }
           message={t('Poor connection quality')}
         >
-          {connectionQualityAsString && (
-            <span
-              className={clsx(
-                'str-video__participant-details__connection-quality',
-                `str-video__participant-details__connection-quality--${connectionQualityAsString}`,
-              )}
-              title={connectionQualityAsString}
-            />
+          {connectionQuality && (
+            <ConnectionQualityIndicator quality={connectionQuality} />
           )}
         </Notification>
       )}

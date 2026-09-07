@@ -6,6 +6,7 @@
   -webkit-mask-size: contain;
   mask-size: contain;
   display: block;
-  width: 1.25rem;
-  height: 1.25rem;
+  flex-shrink: 0;
+  inline-size: var(--str-video__icon-size-sm);
+  block-size: var(--str-video__icon-size-sm);
 }
