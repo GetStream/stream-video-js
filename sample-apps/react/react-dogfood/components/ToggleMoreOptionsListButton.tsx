@@ -74,7 +74,7 @@ export const ToggleMenuButton = forwardRef<
   ToggleMenuButtonProps
 >(function ToggleMenuButtonRender(props, ref) {
   return (
-    <CompositeButton ref={ref} active={props.menuShown} variant="primary">
+    <CompositeButton ref={ref} active={props.menuShown}>
       <Icon icon="more" />
     </CompositeButton>
   );

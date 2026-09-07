@@ -6,7 +6,7 @@ import {
   useI18n,
   useToggleCallRecording,
 } from '@stream-io/video-react-bindings';
-import { CompositeButton } from '../Button/';
+import { Button, CompositeButton } from '../Button/';
 import { Icon } from '../Icon';
 import {
   MenuToggle,
@@ -45,15 +45,15 @@ const RecordEndConfirmation = (props: PropsWithErrorHandler) => {
         {t('Are you sure you want end the recording?')}
       </p>
       <div className="str-video__end-recording__actions">
-        <CompositeButton variant="secondary" onClick={close}>
+        <Button variant="secondary" appearance="outline" onClick={close}>
           {t('Cancel')}
-        </CompositeButton>
-        <CompositeButton
-          variant="primary"
+        </Button>
+        <Button
+          variant="destructive"
           onClick={isAwaitingResponse ? undefined : handleClick}
         >
           {isAwaitingResponse ? <LoadingIndicator /> : t('End recording')}
-        </CompositeButton>
+        </Button>
       </div>
     </div>
   );
@@ -67,7 +67,7 @@ const ToggleEndRecordingMenuButton = forwardRef<
     <CompositeButton
       ref={ref}
       active={true}
-      variant="secondary"
+      variant="destructive"
       data-testid="recording-stop-button"
     >
       <Icon icon="recording-off" />
@@ -118,7 +118,7 @@ export const RecordCallConfirmationButton = (
         <CompositeButton
           active={isCallRecordingInProgress}
           caption={caption}
-          variant="secondary"
+          variant={isCallRecordingInProgress ? 'destructive' : 'secondary'}
           data-testid="recording-start-button"
           onClick={isAwaitingResponse ? undefined : handleClick}
         >
@@ -159,7 +159,7 @@ export const RecordCallButton = (props: RecordCallButtonProps) => {
       <CompositeButton
         active={isCallRecordingInProgress}
         caption={caption}
-        variant="secondary"
+        variant={isCallRecordingInProgress ? 'destructive' : 'secondary'}
         data-testid={
           isCallRecordingInProgress
             ? 'recording-stop-button'

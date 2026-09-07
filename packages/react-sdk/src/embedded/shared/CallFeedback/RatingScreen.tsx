@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useI18n } from '@stream-io/video-react-bindings';
+import { Button } from '../../../components';
 import { StarRating } from './StarRating';
 
 interface RatingScreenProps {
@@ -33,14 +34,9 @@ export const RatingScreen = ({ onSubmit }: RatingScreenProps) => {
       />
 
       <div className="str-video__embedded-call-feedback__actions">
-        <button
-          type="button"
-          className="str-video__button"
-          onClick={handleSubmit}
-          disabled={rating === 0}
-        >
+        <Button size="sm" onClick={handleSubmit} disabled={rating === 0}>
           {t('Submit feedback')}
-        </button>
+        </Button>
       </div>
     </div>
   );

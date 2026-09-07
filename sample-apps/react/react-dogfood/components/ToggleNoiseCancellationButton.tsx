@@ -25,7 +25,6 @@ export const ToggleNoiseCancellationButton = () => {
       <CompositeButton
         disabled={!isReady}
         onClick={() => setEnabled((v) => !v)}
-        variant="primary"
       >
         {!isReady ? (
           <LoadingIndicator />

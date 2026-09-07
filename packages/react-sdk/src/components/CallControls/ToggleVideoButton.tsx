@@ -10,7 +10,7 @@ import {
   RequestPermissionRequestPermissionsEnum,
   SfuModels,
 } from '@stream-io/video-client';
-import { CompositeButton, IconButtonWithMenuProps } from '../Button/';
+import { CompositeButton, CompositeButtonProps } from '../Button/';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
@@ -24,7 +24,7 @@ import {
 
 export type ToggleVideoPreviewButtonProps = PropsWithErrorHandler<
   Pick<
-    IconButtonWithMenuProps,
+    CompositeButtonProps,
     'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
   > &
     UseInputMediaDeviceOptions
@@ -74,7 +74,7 @@ export const ToggleVideoPreviewButton = (
         className={clsx(
           !hasBrowserPermission && 'str-video__device-unavailable',
         )}
-        variant="secondary"
+        variant={optionsAwareIsMute ? 'destructive' : 'secondary'}
         data-testid={
           optionsAwareIsMute
             ? 'preview-video-unmute-button'
@@ -121,7 +121,7 @@ export const ToggleVideoPreviewButton = (
 
 type ToggleVideoPublishingButtonProps = PropsWithErrorHandler<
   Pick<
-    IconButtonWithMenuProps,
+    CompositeButtonProps,
     'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
   > &
     UseInputMediaDeviceOptions
@@ -195,7 +195,7 @@ export const ToggleVideoPublishingButton = (
           <CompositeButton
             active={optionsAwareIsMute}
             caption={caption}
-            variant="secondary"
+            variant={optionsAwareIsMute ? 'destructive' : 'secondary'}
             disabled={
               !hasBrowserPermission ||
               !hasPermission ||

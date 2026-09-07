@@ -70,7 +70,7 @@ const ToggleReactionsMenuButton = forwardRef<
   const { t } = useI18n();
   return (
     <WithTooltip title={t('Reactions')} tooltipDisabled={menuShown}>
-      <CompositeButton ref={ref} active={menuShown} variant="primary">
+      <CompositeButton ref={ref} active={menuShown}>
         <Icon icon="reactions" />
       </CompositeButton>
     </WithTooltip>

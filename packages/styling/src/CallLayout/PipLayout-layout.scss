@@ -11,9 +11,9 @@
 
 .str-video__pip-screen-share-local {
   display: flex;
-  gap: var(--str-video__spacing-sm);
+  gap: var(--str-video__spacing-xs);
   border-radius: var(--str-video__border-radius-sm);
-  padding: var(--str-video__spacing-md);
+  padding: var(--str-video__spacing-sm);
   font-size: var(--str-video__font-size-sm);
 
   .str-video__icon {

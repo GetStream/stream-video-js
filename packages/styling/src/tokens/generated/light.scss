@@ -301,10 +301,10 @@
   --str-video__button-padding-y-lg: 14px;
   --str-video__button-padding-y-md: 10px;
   --str-video__button-padding-y-sm: 6px;
-  --str-video__button-padding-y-xs: 4px;
-  --str-video__button-padding-x-icon-only-lg: 14px;
-  --str-video__button-padding-x-icon-only-md: 10px;
-  --str-video__button-padding-x-icon-only-sm: 6px;
+  --str-video__button-padding-y-xs: 2px;
+  --str-video__button-padding-x-icon-only-lg: 16px;
+  --str-video__button-padding-x-icon-only-md: 12px;
+  --str-video__button-padding-x-icon-only-sm: 8px;
   --str-video__button-padding-x-icon-only-xs: 4px;
   --str-video__button-padding-x-with-label-lg: 16px;
   --str-video__button-padding-x-with-label-md: 16px;
@@ -491,19 +491,19 @@
   --str-video__button-visual-height-xs: var(--str-video__size-24);
   /**
    * Minimum interactive hit target size.
-   * 
+   *
    * iOS / Android: enforce minimum touch target.
    * Web: do not apply a min-width or min-height; size to content.
-   * 
+   *
    * Note: Web uses a placeholder value in Figma due to variable mode constraints.
    */
   --str-video__button-hit-target-min-height: var(--str-video__size-48);
   /**
    * Minimum interactive hit target size.
-   * 
+   *
    * iOS / Android: enforce minimum touch target.
    * Web: do not apply a min-width or min-height; size to content.
-   * 
+   *
    * Note: Web uses a placeholder value in Figma due to variable mode constraints.
    */
   --str-video__button-hit-target-min-width: var(--str-video__size-48);

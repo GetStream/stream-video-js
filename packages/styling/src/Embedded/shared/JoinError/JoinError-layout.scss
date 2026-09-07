@@ -3,13 +3,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--str-video__spacing-xl);
+  gap: var(--str-video__spacing-lg);
   min-height: 100%;
   width: 100%;
   max-width: 400px;
   margin: 0 auto;
-  padding: var(--str-video__spacing-xl);
+  padding: var(--str-video__spacing-lg);
   text-align: center;
+}
+
+.str-video__embedded-join-error .str-video__button {
+  inline-size: 100%;
 }
 
 .str-video__embedded-join-error__message {

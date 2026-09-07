@@ -29,8 +29,7 @@ const tourData: Step[] = Array.from({
 tourData[StepNames.Start] = {
   header: 'Modern SDKs',
   placement: 'bottom-start',
-  anchor:
-    '.rd__documentation-button .str-video__composite-button__button-group',
+  anchor: '.rd__documentation-button .str-video__composite-button__group',
   component: TourSDKOptions,
   explanation: `
     Modern SDKs to build video calling, audio rooms and livestreaming in days.

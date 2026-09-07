@@ -191,8 +191,8 @@
   }
 
   &--device-settings {
-    -webkit-mask-image: var(--str-video__icon--settings);
-    mask-image: var(--str-video__icon--settings);
+    -webkit-mask-image: var(--str-video__icon--settings-fill);
+    mask-image: var(--str-video__icon--settings-fill);
   }
 
   &--filter {

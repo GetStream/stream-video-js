@@ -45,6 +45,9 @@ const ToggleDeviceSettingsMenuButton = forwardRef<
   const { t } = useI18n();
   return (
     <IconButton
+      active={menuShown}
+      size="sm"
+      variant="secondary"
       className={clsx('str-video__device-settings__button', {
         'str-video__device-settings__button--active': menuShown,
       })}
