@@ -86,6 +86,7 @@
   &:not(:disabled):focus-visible {
     outline: var(--str-video__w200) solid
       var(--str-video__border-utility-focused);
+    outline-offset: calc(var(--str-video__w200) * -1);
   }
 
   &:disabled,
