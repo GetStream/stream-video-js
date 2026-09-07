@@ -48,9 +48,15 @@ export type ErrorBadgeProps = Omit<BadgeProps, 'variant' | 'children'>;
  * A `Badge` preset to the error variant, carrying the exclamation glyph.
  */
 export const ErrorBadge = forwardRef<HTMLSpanElement, ErrorBadgeProps>(
-  function ErrorBadgeRender({ size = 'sm', ...rest }, ref) {
+  function ErrorBadgeRender({ size = 'sm', className, ...rest }, ref) {
     return (
-      <Badge ref={ref} variant="error" size={size} {...rest}>
+      <Badge
+        ref={ref}
+        variant="error"
+        size={size}
+        className={clsx('str-video__badge--icon', className)}
+        {...rest}
+      >
         <Icon icon="exclamation-mark-fill" />
       </Badge>
     );
