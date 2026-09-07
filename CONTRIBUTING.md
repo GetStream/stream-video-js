@@ -72,12 +72,41 @@ Alternatively you can use the following script `cd stream-video-js/packages/clie
 
 ## Release flow (internal)
 
-Commits to `main` will trigger the following CI steps:
+### Release branches
+
+Two long-lived branches release in parallel:
+
+| Branch       | Line                | npm dist-tag |
+| ------------ | ------------------- | ------------ |
+| `main`       | v2 (`2.0.0-beta.N`) | `beta`       |
+| `release-v1` | v1 (`1.x.y`)        | `latest`     |
+
+The dist-tag is derived from the branch by the release workflow, never passed in
+by hand. A dispatch from any other branch is rejected before it can publish.
+
+Fix v1 bugs on `release-v1` first, then `git cherry-pick -x` them forward to
+`main`. Forward-porting is easier than back-porting once the branches diverge.
+
+### Cutting a release
+
+Releases are **not** automatic. Run the `Version and release` workflow manually
+(`workflow_dispatch`) against the branch you want to release. It will:
 
 - Version and release all changed packages
   - The new version is calculated for each package automatically based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
   - The release configuration for each public package can be found in the `packages/<package name>/project.json` file
   - For more information checkout the documentation of the [release tool](https://github.com/jscutlery/semver) we are using
+  - Every publish goes through `scripts/release/publish.mts`, which refuses to
+    publish a version that does not belong to the branch's release line, for
+    example a prerelease to `latest` or a stable version to `beta`
   - [Known issue about the release process](https://getstream.slack.com/archives/C04ATV49DU3/p1687161389232829)
-- Documentation is deployed to the [production site](https://getstream.io/video/docs/). An exception is the Node.js documentation, which needs to be deployed separately ([see Client section](#client) for more details).
-- All relevant sample apps are deployed
+- Deploy documentation to the [production site](https://getstream.io/video/docs/). An exception is the Node.js documentation, which needs to be deployed separately ([see Client section](#client) for more details).
+- Trigger a sample-app deploy on the same branch. Whether an app reaches
+  production depends on its `production-branch` in
+  `.github/workflows/deploy-react-sample-apps.yml`: pronto and pronto-staging
+  deploy from `main` so they dogfood v2, and the public-facing demos deploy from
+  `release-v1` so they stay on v1. Every other ref gets a preview deployment.
+
+App-store releases of the React Native dogfood app run only from `release-v1`,
+since the app builds the SDKs from workspace source and store builds must ship
+v1.

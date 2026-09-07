@@ -10,11 +10,12 @@ on:
   push:
     branches:
       - main
+      - release-v1
   pull_request:
     types: [opened, synchronize, reopened]
 
 # Least-privilege token: read code, comment on PRs, and read prior runs to fetch
-# the main bundle-size baseline artifact.
+# the base branch's bundle-size baseline artifact.
 permissions:
   contents: read
   pull-requests: write
@@ -53,20 +54,24 @@ jobs:
 
       # --- Bundle-size report (auxiliary, never fails CI) ---
 
-      # PR: find the most recent successful main run that published a baseline.
-      - name: Resolve main bundle-size baseline run
+      # PR: find the most recent successful run on the PR's own base branch that
+      # published a baseline. Resolved per-PR rather than pinned to main, so a
+      # release-v1 PR is measured against v1 rather than against v2 on main.
+      - name: Resolve base branch bundle-size baseline run
         id: bundle-size-baseline
         if: github.event_name == 'pull_request'
         continue-on-error: true
+        env:
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
         run: |
-          latest=$(gh run list --workflow test.yml --branch main --status success \
+          latest=$(gh run list --workflow test.yml --branch "$BASE_BRANCH" --status success \
             --limit 1 --json databaseId,headSha)
           run_id=$(echo "$latest" | jq -r '.[0].databaseId // empty')
           sha=$(echo "$latest" | jq -r '.[0].headSha // empty' | cut -c1-7)
           echo "run-id=$run_id" >> "$GITHUB_OUTPUT"
-          echo "baseline-ref=${sha:+main@$sha}" >> "$GITHUB_OUTPUT"
+          echo "baseline-ref=${sha:+$BASE_BRANCH@$sha}" >> "$GITHUB_OUTPUT"
 
-      - name: Download main bundle-size baseline
+      - name: Download base branch bundle-size baseline
         if: github.event_name == 'pull_request' && steps.bundle-size-baseline.outputs.run-id != ''
         continue-on-error: true
         uses: actions/download-artifact@v8

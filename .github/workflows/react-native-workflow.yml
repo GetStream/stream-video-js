@@ -115,6 +115,19 @@ jobs:
     if: ${{ (github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (!github.event.inputs.platform || github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'both')) }}
     runs-on: macos-15
     steps:
+      # The dogfood app builds the SDKs from workspace source, so a store build
+      # ships whatever major the branch carries. Store releases must stay on v1,
+      # and `workflow_dispatch` (the only path that reaches this job in practice)
+      # carries no branch restriction of its own, so this is the check that
+      # enforces it. Fails loudly rather than skipping, so a dispatch from the
+      # wrong branch is not mistaken for a successful release.
+      - name: Verify the release branch
+        run: |
+          if [ "${{ github.ref_name }}" != "release-v1" ]; then
+            echo "::error::App-store deployments may only run from 'release-v1', not '${{ github.ref_name }}'."
+            exit 1
+          fi
+
       - uses: actions/checkout@v7
 
       - name: Select XCode version
@@ -189,6 +202,14 @@ jobs:
     if: ${{ (github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (!github.event.inputs.platform || github.event.inputs.platform == 'android' || github.event.inputs.platform == 'both')) }}
     runs-on: ubuntu-latest
     steps:
+      # See the matching guard on deploy_ios: store releases stay on v1.
+      - name: Verify the release branch
+        run: |
+          if [ "${{ github.ref_name }}" != "release-v1" ]; then
+            echo "::error::App-store deployments may only run from 'release-v1', not '${{ github.ref_name }}'."
+            exit 1
+          fi
+
       - uses: actions/checkout@v7
 
       - uses: ./.github/actions/rn-bootstrap
