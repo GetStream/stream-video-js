@@ -43,6 +43,66 @@ test('collectUpstreamRange is empty when old === new', () => {
   assert.equal(collectUpstreamRange(entries, '1.53.2', '1.53.2').length, 0);
 });
 
+// Comparing only the numeric core made every 2.0.0-beta.* compare equal, so the
+// range came back empty and prerelease release notes lost all upstream detail.
+test('collectUpstreamRange spans consecutive prereleases of the same core', () => {
+  const entries = parseEntries(
+    [
+      '## [2.0.0-beta.3](https://example.com/compare) (2026-09-04)',
+      '',
+      '### Bug Fixes',
+      '',
+      '- **client:** third beta fix',
+      '',
+      '## [2.0.0-beta.2](https://example.com/compare) (2026-09-03)',
+      '',
+      '### Features',
+      '',
+      '- **client:** second beta feature',
+      '',
+      '## [2.0.0-beta.1](https://example.com/compare) (2026-09-02)',
+      '',
+      '### Features',
+      '',
+      '- **client:** first beta feature',
+      '',
+    ].join('\n'),
+  );
+
+  assert.deepEqual(
+    collectUpstreamRange(entries, '2.0.0-beta.1', '2.0.0-beta.3').map(
+      (e) => e.version,
+    ),
+    ['2.0.0-beta.3', '2.0.0-beta.2'],
+  );
+});
+
+test('collectUpstreamRange orders a prerelease below its stable release', () => {
+  const entries = parseEntries(
+    [
+      '## [2.0.0](https://example.com/compare) (2026-09-04)',
+      '',
+      '### Features',
+      '',
+      '- **client:** stable release',
+      '',
+      '## [2.0.0-beta.1](https://example.com/compare) (2026-09-02)',
+      '',
+      '### Features',
+      '',
+      '- **client:** beta feature',
+      '',
+    ].join('\n'),
+  );
+
+  assert.deepEqual(
+    collectUpstreamRange(entries, '2.0.0-beta.1', '2.0.0').map(
+      (e) => e.version,
+    ),
+    ['2.0.0'],
+  );
+});
+
 test('bulletIdentity extracts the commit hash', () => {
   const bullet =
     '- **client:** x ([#2284](https://github.com/GetStream/stream-video-js/issues/2284)) ([4403348](https://github.com/GetStream/stream-video-js/commit/4403348115500499cd60919a417d97659546bb8b))';
