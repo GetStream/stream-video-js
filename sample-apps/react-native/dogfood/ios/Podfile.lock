@@ -1,5 +1,5 @@
 PODS:
-  - Callingx (0.10.0):
+  - Callingx (0.11.3):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2595,9 +2595,10 @@ PODS:
     - ReactNativeDependencies
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (145.3.1):
+  - stream-react-native-webrtc (145.4.0-alpha.1):
     - React-Core
-  - stream-video-react-native (1.44.0):
+    - StreamWebRTC (= 145.17.0)
+  - stream-video-react-native (1.45.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2621,6 +2622,7 @@ PODS:
     - stream-react-native-webrtc
     - Yoga
   - StreamVideoNoiseCancellation (1.0.3)
+  - StreamWebRTC (145.17.0)
   - Teleport (1.1.12):
     - hermes-engine
     - RCTRequired
@@ -2785,6 +2787,7 @@ SPEC REPOS:
   trunk:
     - MMKVCore
     - StreamVideoNoiseCancellation
+    - StreamWebRTC
 
 EXTERNAL SOURCES:
   Callingx:
@@ -2998,7 +3001,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Callingx: 631a3ee7de8214aa735585ec810528bf3f91c553
+  Callingx: 584a90e0f473fb2a8136b07291267d99bece031f
   FBLazyVector: 3c3be9a019176b5699455f7f66c5444b78a411c6
   hermes-engine: bea2770719c59875d56e955d6b155b36f4b5a08e
   MMKVCore: 3d16ce9f7d411e135020915fde98a056859a1efa
@@ -3098,9 +3101,10 @@ SPEC CHECKSUMS:
   stream-chat-react-native: e97f6d3ed0c2828b20610ffc0023ad7f9c90738d
   stream-io-noise-cancellation-react-native: 2d3908635106b04f39569c7cc7504ec9d534f447
   stream-io-video-filters-react-native: 2f542b1b19ce0827c1723f2e372cf67fdf9d9adf
-  stream-react-native-webrtc: 8fe731cfda4b2e84d2ddfccd8145346b9244bb95
-  stream-video-react-native: f8d181de2e7a347fc90c9d256ee416a4ffbc8dd6
+  stream-react-native-webrtc: 8347bb401bfe33b52fd0da1a0b66b2b3016aef2f
+  stream-video-react-native: c169d8e5942fa02247f5bd0a667dce96f6979213
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
+  StreamWebRTC: 8543c52d49cadcbe051582d0b13de01c8085735f
   Teleport: c56b30b08bd20d10da1efb0f21c6bc50c269ee6a
   VisionCamera: b51af005669c6642dd1b4fca434eda4c1778de87
   Yoga: 542a30dafe5b0f5f1d9f185ea7b2a3811ac54801
