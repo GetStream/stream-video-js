@@ -76,13 +76,6 @@ export const ToggleAudioPreviewButton = (
       <CompositeButton
         active={optionsAwareIsMute}
         caption={caption}
-        badge={
-          isPromptingPermission ? (
-            <Badge variant="error" icon="question-mark-fill" />
-          ) : !hasBrowserPermission || isSystemMuted ? (
-            <Badge variant="error" icon="exclamation-mark-fill" />
-          ) : undefined
-        }
         className={clsx(
           !hasBrowserPermission && 'str-video__device-unavailable',
         )}
@@ -105,6 +98,11 @@ export const ToggleAudioPreviewButton = (
         }}
       >
         <Icon icon={!optionsAwareIsMute ? 'mic' : 'mic-off'} />
+        {isPromptingPermission ? (
+          <Badge variant="error" icon="question-mark-fill" />
+        ) : !hasBrowserPermission || isSystemMuted ? (
+          <Badge variant="error" icon="exclamation-mark-fill" />
+        ) : null}
       </CompositeButton>
     </WithTooltip>
   );
@@ -182,13 +180,6 @@ export const ToggleAudioPublishingButton = (
           <CompositeButton
             active={optionsAwareIsMute}
             caption={caption}
-            badge={
-              isPromptingPermission ? (
-                <Badge variant="error" icon="question-mark-fill" />
-              ) : !hasBrowserPermission || !hasPermission || isSystemMuted ? (
-                <Badge variant="error" icon="exclamation-mark-fill" />
-              ) : undefined
-            }
             variant={optionsAwareIsMute ? 'destructive' : 'secondary'}
             disabled={
               !hasBrowserPermission ||
@@ -210,6 +201,11 @@ export const ToggleAudioPublishingButton = (
             }}
           >
             <Icon icon={optionsAwareIsMute ? 'mic-off' : 'mic'} />
+            {isPromptingPermission ? (
+              <Badge variant="error" icon="question-mark-fill" />
+            ) : !hasBrowserPermission || !hasPermission || isSystemMuted ? (
+              <Badge variant="error" icon="exclamation-mark-fill" />
+            ) : null}
           </CompositeButton>
         </WithTooltip>
       </PermissionNotification>

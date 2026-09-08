@@ -72,13 +72,6 @@ export const ToggleVideoPreviewButton = (
       <CompositeButton
         active={optionsAwareIsMute}
         caption={caption}
-        badge={
-          isPromptingPermission ? (
-            <Badge variant="error" icon="question-mark-fill" />
-          ) : !hasBrowserPermission || isSystemMuted ? (
-            <Badge variant="error" icon="exclamation-mark-fill" />
-          ) : undefined
-        }
         className={clsx(
           !hasBrowserPermission && 'str-video__device-unavailable',
         )}
@@ -101,6 +94,11 @@ export const ToggleVideoPreviewButton = (
         }}
       >
         <Icon icon={!optionsAwareIsMute ? 'camera' : 'camera-off'} />
+        {isPromptingPermission ? (
+          <Badge variant="error" icon="question-mark-fill" />
+        ) : !hasBrowserPermission || isSystemMuted ? (
+          <Badge variant="error" icon="exclamation-mark-fill" />
+        ) : null}
       </CompositeButton>
     </WithTooltip>
   );
@@ -182,16 +180,6 @@ export const ToggleVideoPublishingButton = (
           <CompositeButton
             active={optionsAwareIsMute}
             caption={caption}
-            badge={
-              isPromptingPermission ? (
-                <Badge variant="error" icon="question-mark-fill" />
-              ) : !hasBrowserPermission ||
-                !hasPermission ||
-                !isPublishingVideoAllowed ||
-                isSystemMuted ? (
-                <Badge variant="error" icon="exclamation-mark-fill" />
-              ) : undefined
-            }
             variant={optionsAwareIsMute ? 'destructive' : 'secondary'}
             disabled={
               !hasBrowserPermission ||
@@ -213,6 +201,14 @@ export const ToggleVideoPublishingButton = (
             }}
           >
             <Icon icon={optionsAwareIsMute ? 'camera-off' : 'camera'} />
+            {isPromptingPermission ? (
+              <Badge variant="error" icon="question-mark-fill" />
+            ) : !hasBrowserPermission ||
+              !hasPermission ||
+              !isPublishingVideoAllowed ||
+              isSystemMuted ? (
+              <Badge variant="error" icon="exclamation-mark-fill" />
+            ) : null}
           </CompositeButton>
         </WithTooltip>
       </PermissionNotification>

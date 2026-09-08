@@ -25,11 +25,16 @@
     display: inline-flex;
   }
 
-  &__group > .str-video__badge {
-    position: absolute;
-    inset-block-start: calc(var(--str-video__spacing-xxs) * -1);
-    inset-inline-end: calc(var(--str-video__spacing-xxs) * -1);
-    pointer-events: none;
+  &__action {
+    position: relative;
+
+    & > .str-video__badge {
+      position: absolute;
+      z-index: 1;
+      inset-block-start: calc(var(--str-video__spacing-xxs) * -1);
+      inset-inline-end: calc(var(--str-video__spacing-xxs) * -1);
+      pointer-events: none;
+    }
   }
 
   &__caption {

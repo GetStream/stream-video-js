@@ -6,7 +6,6 @@ import {
   forwardRef,
   PropsWithChildren,
   ReactElement,
-  ReactNode,
 } from 'react';
 import { Placement } from '@floating-ui/react';
 import { useI18n } from '@stream-io/video-react-bindings';
@@ -18,7 +17,6 @@ import { isComponentType } from '../../utilities';
 export type CompositeButtonProps<E extends HTMLElement = HTMLButtonElement> =
   PropsWithChildren<{
     active?: boolean;
-    badge?: ReactNode;
     Menu?: ComponentType | ReactElement | null;
     caption?: string;
     className?: string;
@@ -36,7 +34,6 @@ export const CompositeButton = forwardRef<HTMLDivElement, CompositeButtonProps>(
   function CompositeButtonRender(
     {
       appearance,
-      badge,
       caption,
       children,
       className,
@@ -92,7 +89,6 @@ export const CompositeButton = forwardRef<HTMLDivElement, CompositeButtonProps>(
                 {isComponentType(Menu) ? <Menu /> : Menu}
               </MenuToggle>
             ))}
-          {badge}
         </div>
         {caption && (
           <span className="str-video__composite-button__caption">

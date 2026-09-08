@@ -21,8 +21,8 @@ export type BadgeProps = ComponentPropsWithoutRef<'span'> & {
  * circle of the size given by `size`.
  *
  * The badge carries no positioning of its own — whatever it annotates places
- * it. For the call controls that is `CompositeButton`, which anchors it to the
- * top-right of the button.
+ * it. For the call controls, rendering a badge among `CompositeButton`'s
+ * children anchors it to the top-right corner of the button.
  */
 export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
   function BadgeRender(
