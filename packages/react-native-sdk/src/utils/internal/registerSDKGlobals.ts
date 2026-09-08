@@ -16,7 +16,7 @@ import {
   unwireAudioEngineSubscription,
 } from './callingx/callingx';
 import { registerCallMediaEngine } from './registerMediaEngine';
-import { onLeave, runJoin } from './ringingCallLifecycle';
+import { beforeJoin, onJoinFailed, onLeave } from './ringingCallLifecycle';
 import { callManager as publicCallManager } from '../../modules/call-manager';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
@@ -92,7 +92,7 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
     wireAudioEngineSubscription: wireAudioEngineSubscription,
     unwireAudioEngineSubscription: unwireAudioEngineSubscription,
   },
-  ringingCallLifecycle: { runJoin, onLeave },
+  ringingCallLifecycle: { beforeJoin, onJoinFailed, onLeave },
   callManager: {
     setup: ({ defaultDevice, isRingingTypeCall, cid }) => {
       const isTelecomManaged = isAndroidTelecomManaged({ cid });

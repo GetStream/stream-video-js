@@ -45,6 +45,8 @@ export type RingingCallLifecycleHooks = {
    * That is deliberate: joining without whatever this hook installs would, in the
    * E2EE case, publish unencrypted media on a call the user believes is private.
    * On the push path there is no UI to reveal it, so the join fails closed instead.
+   * A failed join also ends the call, so the `Call` it failed on is finished with -
+   * a later attempt happens on a new incoming call or a newly created one.
    *
    * Keep it fast. On the CallKit accept path it runs inside iOS's accept deadline
    * (roughly 30s before the app is killed) and anything slower than five seconds is
@@ -58,11 +60,9 @@ export type RingingCallLifecycleHooks = {
    */
   onBeforeCallJoin?: (call: Call) => Promise<void>;
   /**
-   * Called once, when a ringing call is finished with: normally when it leaves, and
-   * also when a join fails after {@link onBeforeCallJoin} has already run -
-   * otherwise whatever that hook installed would never be released. A call that
-   * rings and is then rejected, cancelled or missed never joins, so it was never
-   * set up and there is nothing here to release.
+   * Called once, when a ringing call is finished with - it left, whether because
+   * the user hung up, the other side ended it, or its join failed and the SDK
+   * ended the flow.
    *
    * Use it to free per-call resources the SDK does not own. An E2EE manager is the
    * motivating case: it has no native detach, closing the peer connections does not
@@ -70,9 +70,16 @@ export type RingingCallLifecycleHooks = {
    * background, where no React cleanup ever runs.
    *
    * When an {@link onBeforeCallJoin} is also registered, this is only called for a
-   * call that hook actually entered, so it always pairs with a setup that happened.
-   * Registered on its own it has no such pairing to honour and is called for every
-   * ringing call that ends.
+   * call that hook actually entered, so it always pairs with a setup that happened -
+   * a call that rings and is then rejected, cancelled or missed was never set up and
+   * releases nothing. Registered on its own it has no such pairing to honour and is
+   * called for every ringing call that ends. Either way it is tied to the call
+   * ending rather than to any view's lifetime, so navigating away from a live call
+   * does not release it.
+   *
+   * If the setup hook is still running when the call ends - it timed out, say - the
+   * release waits for it to settle, so it cannot free something that hook is about
+   * to create.
    *
    * May return a promise; rejections are logged. Nothing is gated on it, so do not
    * rely on it completing before the OS suspends the app.

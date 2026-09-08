@@ -156,9 +156,9 @@ export class StreamVideoRN {
    *   onAfterCallLeave: (call) => disposeE2EEManager(call),
    * });
    */
-  static setRingingCallLifecycleHooks(hooks: RingingCallLifecycleHooks) {
+  static setRingingCallLifecycleHooks = (hooks: RingingCallLifecycleHooks) => {
     storeRingingCallLifecycleHooks(hooks);
-  }
+  };
 
   static getConfig() {
     return this.config;

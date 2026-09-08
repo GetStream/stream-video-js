@@ -240,10 +240,6 @@ export const attachE2EEIfConfigured = async (call: Call): Promise<void> => {
     return;
   }
 
-  // Re-joining from the lobby attaches a second manager, and nothing else
-  // releases the native side of the first one.
-  disposeE2EEManager(call);
-
   let manager: EncryptionManager | undefined;
   try {
     manager = await EncryptionManager.create(userId);

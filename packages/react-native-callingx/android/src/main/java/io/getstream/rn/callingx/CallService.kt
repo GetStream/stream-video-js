@@ -574,7 +574,6 @@ class CallService : Service(), CallRepository.Listener {
                 CallRegistrationStore.removeTrackedCall(callInfo.callId)
                 registeringCallIds.remove(callInfo.callId)
             } catch (e: Exception) {
-                // we dont remove the call from store 
                 Log.e(TAG, "[service] registerCall: Error registering call: ${e.message}")
 
                 sendBroadcastEvent(CallingxModuleImpl.CALL_REGISTRATION_FAILED_ACTION) {

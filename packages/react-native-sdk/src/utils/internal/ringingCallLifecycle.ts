@@ -1,6 +1,9 @@
-import { videoLoggerSystem, type Call } from '@stream-io/video-client';
+import {
+  CallingState,
+  videoLoggerSystem,
+  type Call,
+} from '@stream-io/video-client';
 import type { RingingCallLifecycleHooks } from '../StreamVideoRN/types';
-import { endCallingxCall } from './callingx/callingx';
 
 const logger = videoLoggerSystem.getLogger('ringingCallLifecycle');
 
@@ -13,19 +16,6 @@ const logger = videoLoggerSystem.getLogger('ringingCallLifecycle');
  * needs longer than this does not belong on the accept path at all.
  */
 const ON_BEFORE_CALL_JOIN_TIMEOUT_MS = 5_000;
-
-/**
- * Thrown when a ringing call is asked to join again while its previous attempt
- * is still settling. Callers may retry once that attempt finishes.
- */
-export class RingingJoinBusyError extends Error {
-  constructor(cid: string) {
-    super(
-      `A previous ringing join for ${cid} is still settling; retry once it finishes.`,
-    );
-    this.name = 'RingingJoinBusyError';
-  }
-}
 
 /**
  * The registered hooks.
@@ -42,32 +32,15 @@ export const setRingingCallLifecycleHooks = (
   hooks = next;
 };
 
-export const getRingingCallLifecycleHooks = () => hooks;
-
 /**
- * The one join a ringing call may have in progress.
+ * How to release what a call's setup hook installed.
  *
- * Only one exists per call at a time, which is what keeps the rest of this file
- * small: with no overlapping attempt there is never a second owner competing for
- * the same manager or the same native cid, so cleanup needs no ownership test.
- *
- * `hookSettled` is tracked apart from `operation` because the timeout can end
- * the caller's wait while the app's hook is still running. The hook cannot be
- * cancelled, so this entry outlives the join until it settles - and until then
- * a retry is refused rather than being allowed to race it.
+ * Kept per call rather than in a single current-call slot: an abandoned call's
+ * hook can still finish after the next call has joined, and it has to release
+ * its own manager rather than whatever is current. An entry exists only for a
+ * call whose setup hook actually ran.
  */
-type RingingJoin = {
-  operation: Promise<void>;
-  hookSettled: boolean;
-  operationDone: boolean;
-  /** No further join may start until this one settles and is cleaned up. */
-  closed: boolean;
-  /** Setup ran, so a release is owed once the lifecycle ends. */
-  setupRan: boolean;
-  releaseOwed: boolean;
-};
-
-const joins = new WeakMap<Call, RingingJoin>();
+const cleanups = new WeakMap<Call, () => void>();
 
 /** Invokes the release hook, swallowing whatever it throws. */
 const fireRelease = (call: Call): void => {
@@ -82,34 +55,40 @@ const fireRelease = (call: Call): void => {
   }
 };
 
+/** Releases what the setup hook installed, at most once. */
+const requestRelease = (call: Call): void => {
+  const cleanup = cleanups.get(call);
+  if (!cleanup) return;
+  // Dropped before it runs: that is what makes a failed join followed by a
+  // leave release exactly once.
+  cleanups.delete(call);
+  cleanup();
+};
+
 /**
- * Runs the app's hook, bounded by the deadline.
+ * Runs the app's pre-join setup, bounded by the deadline.
  *
- * Resolves the *hook's* own promise separately from the bounded wait, so a late
- * completion still has an owner: whatever it installs is released by
- * {@link settle} rather than stranded.
+ * Rejecting fails the join closed - joining without whatever this installs would
+ * publish unencrypted media on a call the user believes is private.
  */
-const runHook = (call: Call, entry: RingingJoin): Promise<void> => {
+export const beforeJoin = (call: Call): Promise<void> => {
   const hook = hooks?.onBeforeCallJoin;
-  if (!hook) {
-    entry.hookSettled = true;
-    return Promise.resolve();
-  }
+  if (!hook) return Promise.resolve();
+
   // Invoked synchronously - a caller expects its hook to start now - but a
   // synchronous throw becomes a rejection so it cannot escape the bookkeeping.
   let started: Promise<void>;
   try {
     started = Promise.resolve(hook(call));
-  } catch (e) {
-    started = Promise.reject(e);
+  } catch (error) {
+    started = Promise.reject(error);
   }
 
-  const settled = started
-    .catch(() => {})
-    .then(() => {
-      entry.hookSettled = true;
-      settle(call, entry);
-    });
+  // Cleanup tracks the hook's own promise, never the bounded wait below. The
+  // deadline ends this join's wait but cannot cancel the app's work, so a
+  // manager the hook creates late still has an owner waiting to release it.
+  const settled = started.catch(() => {});
+  cleanups.set(call, () => void settled.then(() => fireRelease(call)));
 
   let timeout: ReturnType<typeof setTimeout> | undefined;
   const expiry = new Promise<never>((_, reject) => {
@@ -124,111 +103,46 @@ const runHook = (call: Call, entry: RingingJoin): Promise<void> => {
     );
   });
 
-  return Promise.race([started, expiry]).finally(() => {
-    clearTimeout(timeout);
-    void settled;
-  });
+  return Promise.race([started, expiry]).finally(() => clearTimeout(timeout));
 };
 
 /**
- * Retires the join once both the operation and the app's hook have finished,
- * releasing anything the hook installed if the join did not succeed.
+ * The join failed and will not be retried on this call.
  *
- * Both conditions matter: retiring early would let a retry start while the old
- * hook is still working, which is the overlap this design exists to avoid.
+ * Ends the ringing flow rather than leaving the call sitting in `RINGING`: one
+ * `Call` is one call flow, so the accept button must not be able to offer this
+ * instance again. Never rejects, so the original join error survives.
  */
-const settle = (call: Call, entry: RingingJoin): void => {
-  if (!entry.hookSettled || !entry.operationDone) return;
-  // A join that succeeded keeps its record: it owns the live call's setup until
-  // something actually ends the call, and a duplicate trigger must find it here
-  // rather than starting a second setup that would dispose the live manager.
-  if (!entry.releaseOwed) return;
-  if (joins.get(call) === entry) joins.delete(call);
-  entry.releaseOwed = false;
-  if (entry.setupRan) fireRelease(call);
-};
-
-/**
- * Runs one ringing join: the app's setup hook, then the join itself.
- *
- * A second trigger for the same live attempt joins it rather than starting
- * another, so a double tap or a push racing an in-app accept cannot produce two
- * setups or two native registrations. A trigger arriving after cancellation is
- * refused with {@link RingingJoinBusyError} until the previous attempt settles;
- * it does not queue, and it does not run alongside.
- */
-export const runJoin = async (
-  call: Call,
-  proceed: () => Promise<void>,
-): Promise<void> => {
-  const existing = joins.get(call);
-  if (existing) {
-    // Closed means the previous attempt is cancelled, or failed with its hook
-    // still running. Either way it may still be holding the manager or the
-    // native registration, so a retry is refused rather than run alongside.
-    if (existing.closed) throw new RingingJoinBusyError(call.cid);
-    // Otherwise this is a duplicate trigger for a live or already-successful
-    // join: hand back the same operation. Never a second hook, and never a
-    // release that would dispose the manager the call is still using.
-    return existing.operation;
-  }
-
-  const entry: RingingJoin = {
-    operation: undefined as unknown as Promise<void>,
-    hookSettled: false,
-    operationDone: false,
-    closed: false,
-    setupRan: false,
-    releaseOwed: false,
-  };
-  joins.set(call, entry);
-
-  entry.operation = (async () => {
+export const onJoinFailed = async (call: Call): Promise<void> => {
+  if (call.state.callingState !== CallingState.LEFT) {
     try {
-      if (hooks?.onBeforeCallJoin) entry.setupRan = true;
-      await runHook(call, entry);
-      await proceed();
+      // Takes the call out of the client's list, which unmounts the ringing UI.
+      // `reject: false`: the join failed locally, so this is not the callee
+      // declining, and the native call has already been ended with 'error'.
+      await call.leave({ reject: false });
     } catch (error) {
-      // Fail closed. The native side may already be showing this call as
-      // answered - the push path reports the accept before the join - so end it
-      // rather than leaving it on screen with nothing behind it.
-      await endCallingxCall(call, 'error').catch(() => {});
-      if (entry.hookSettled) {
-        // Nothing else can still be installed: release now and let a retry start.
-        entry.releaseOwed = true;
-      } else {
-        // The hook is still running and may yet install something. Hold the
-        // lifecycle closed until it settles, then release.
-        entry.closed = true;
-        entry.releaseOwed = true;
-      }
-      throw error;
-    } finally {
-      entry.operationDone = true;
-      settle(call, entry);
+      logger.warn(`failed to leave after a failed join: ${call.cid}`, error);
     }
-  })();
-
-  return entry.operation;
+  }
+  // The leave above notifies {@link onLeave}, which consumes the cleanup. This
+  // covers what it could not: a call already left, or a leave that itself failed.
+  requestRelease(call);
 };
 
 /**
  * The call has ended.
  *
- * Marks any attempt still in flight as cancelled, so a retry is refused until it
- * finishes rather than racing it, and releases what the hook installed once it
- * has settled.
+ * Releases what the setup hook installed, once the hook has actually settled -
+ * a hook still running may yet install something, and releasing before it
+ * finishes would strand that.
  */
 export const onLeave = (call: Call): void => {
-  const entry = joins.get(call);
-  if (!entry) {
-    // No join ever ran for this call - a ringing call declined without being
-    // accepted, say. With a setup hook configured there is nothing paired to
-    // release; a release-only registration is still called, as documented.
-    if (!hooks?.onBeforeCallJoin) fireRelease(call);
+  // A release-only registration has nothing to pair with, so its hook belongs to
+  // the call ending rather than to a join: it is owed for every ringing call
+  // that ends, including one declined without ever joining.
+  if (!hooks?.onBeforeCallJoin) {
+    fireRelease(call);
     return;
   }
-  entry.closed = true;
-  entry.releaseOwed = true;
-  settle(call, entry);
+  requestRelease(call);
 };

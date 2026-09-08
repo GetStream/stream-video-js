@@ -459,8 +459,8 @@ type StreamRNVideoSDKEndCallReason =
 
 type StreamRNVideoSDKCallingX = {
   /**
-   * @param isCancelled - polled after any wait inside the bridge. Registration
-   *   is skipped when it returns true. Supplied by the join attempt itself,
+   * @param isCancelled - polled around the bridge's waits: registration is
+   *   skipped, or undone, when it returns true. Supplied by the join attempt
    *   because the call's own state cannot distinguish a fresh join starting
    *   from `LEFT` from an abandoned one that reached `LEFT` while waiting.
    */
@@ -479,24 +479,25 @@ type StreamRNVideoSDKCallingX = {
 };
 
 /**
- * React Native's owner for a ringing call's join.
+ * React Native's preparation and cleanup for a ringing call's join.
  *
- * A ringing call is joined by the SDK rather than by app code - the accept
- * button joins internally, and an outgoing call joins itself once the callee
- * answers - so there is no point at which the app holds the call and can still
- * set it up. React Native therefore takes the whole operation: it runs the
- * app's pre-join hook, decides what a duplicate or retried trigger does, and
- * releases whatever it installed when the join fails.
+ * A ringing call is joined by the SDK rather than by app code, so there is no
+ * point at which the app holds the call and can still set it up. These are that
+ * point, and the matching release.
  */
 type StreamRNVideoSDKRingingCallLifecycle = {
   /**
-   * Runs one ringing join. `proceed` performs the actual join and must not be
-   * called before the app's setup hook has resolved.
-   *
-   * Rejects when setup fails or is refused, which fails the join closed rather
-   * than connecting with nothing installed.
+   * Runs the app's pre-join setup and resolves once it is done, bounded by a
+   * deadline. Rejecting fails the join closed rather than joining with nothing
+   * installed.
    */
-  runJoin: (call: Call, proceed: () => Promise<void>) => Promise<void>;
+  beforeJoin: (call: Call) => Promise<void>;
+
+  /**
+   * The join failed terminally. Ends the ringing flow and releases what the
+   * setup installed. Never rejects, so the original join error survives.
+   */
+  onJoinFailed: (call: Call) => Promise<void>;
 
   /** The call has ended; release whatever the pre-join hook installed. */
   onLeave: (call: Call) => void;

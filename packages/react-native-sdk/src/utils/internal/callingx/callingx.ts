@@ -166,6 +166,9 @@ export async function joinCallingxCall(
     const callArgs = getCallingxCallArgs(call);
     if (isIncomingCall) {
       await CallingxModule.displayIncomingCall(...callArgs);
+      // never answer a call that was hung up while the OS was displaying it -
+      // the cleanup below ends the registration instead
+      if (isCancelled?.()) return;
       await CallingxModule.answerIncomingCall(call.cid);
     } else {
       await CallingxModule.startCall(...callArgs);
@@ -175,6 +178,19 @@ export async function joinCallingxCall(
       `startCallingxCall: Error starting call in callingx: ${call.cid} isIncoming: ${isIncomingCall} isOutgoing: ${isOutcomingCall}`,
       error,
     );
+  } finally {
+    // The registration above can outlive the join that asked for it: `leave()`
+    // may land while native is still bringing the call up, and by the time the
+    // caller aborts, the call exists natively with nobody to end it. Ringing
+    // calls have a lifecycle owner that would clean up; ordinary ones do not.
+    // Nothing was registered when the check above already skipped it, and
+    // `endCallingxCall` no-ops for an untracked cid, so this is safe either way.
+    if (isCancelled?.()) {
+      logger.debug(
+        `joinCallingxCall: ending ${call.cid}: join was cancelled while registering`,
+      );
+      await endCallingxCall(call, 'canceled');
+    }
   }
 }
 

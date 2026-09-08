@@ -796,9 +796,8 @@ export class Call {
       await this.dynascaleManager?.dispose();
 
       this.state.setCallingState(CallingState.LEFT);
-      // Ringing only, and driven by the call ending rather than by any view's
-      // lifetime. `ringingSubject` is cleared further down, so this reads true
-      // here for a call that was ringing.
+      // `ringingSubject` is cleared further down, so this still reads true for
+      // a call that was ringing.
       if (this.ringing) {
         globalThis.streamRNVideoSDK?.ringingCallLifecycle?.onLeave(this);
       }
@@ -1110,48 +1109,13 @@ export class Call {
   /**
    * Will start to watch for call related WebSocket events and initiate a call session with the server.
    *
+   * One instance is one call flow: discard it after leaving, cancelling, or a
+   * failed join, and create a fresh one for a later flow. Reconnection inside a
+   * live call is handled here and needs no new instance.
+   *
    * @returns a promise which resolves once the call join-flow has finished.
    */
-  /**
-   * Ringing calls are joined by the SDK rather than by app code, so React Native
-   * takes the whole operation: it runs the app's pre-join hook, applies its
-   * duplicate/busy policy, and releases what it installed if the join fails.
-   * Everything else - web, and every ordinary call - goes straight to the
-   * coalesced join below.
-   */
-  join = (
-    options: JoinCallData & {
-      maxJoinRetries?: number;
-      joinResponseTimeout?: number;
-      rpcRequestTimeout?: number;
-      allowOwnTracksLoopback?: boolean;
-    } = {},
-  ): Promise<void> => {
-    const ringingLifecycle = globalThis.streamRNVideoSDK?.ringingCallLifecycle;
-    // `options.ring` counts: a reused instance is `LEFT` and not yet ringing, and
-    // it is this join that makes it a ringing call again.
-    const isRingingJoin = this.ringing || options.ring === true;
-    if (!isRingingJoin || !ringingLifecycle) {
-      return this.coreJoin(options);
-    }
-    // Recorded before the hook runs, not inside the join below: a `leave()` that
-    // lands while the app is still preparing would otherwise see a call that is
-    // not ringing yet and never tell the owner its lifecycle ended.
-    if (options.ring) {
-      this.ringingSubject.next(true);
-    }
-    // Captured before the hook runs, so a `leave()` that lands while the app is
-    // still preparing stops this join instead of resuming into media setup.
-    const generationBeforeSetup = this.leaveGeneration;
-    return ringingLifecycle.runJoin(this, () => {
-      if (this.leaveGeneration !== generationBeforeSetup) {
-        throw new Error('Call was left while the pre-join setup was running');
-      }
-      return this.coreJoin(options);
-    });
-  };
-
-  private coreJoin = singleFlight(
+  join = singleFlight(
     async ({
       maxJoinRetries = 3,
       joinResponseTimeout,
@@ -1166,6 +1130,8 @@ export class Call {
     } = {}): Promise<void> => {
       const callingState = this.state.callingState;
 
+      // Ahead of the failure boundary below on purpose: a duplicate join on a
+      // live call is refused without tearing that call down.
       if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
         throw new Error(`Illegal State: call.join() shall be called only once`);
       }
@@ -1178,13 +1144,17 @@ export class Call {
         this.ringingSubject.next(true);
       }
 
+      // A ringing call is joined by the SDK rather than by app code, so React
+      // Native prepares it from in here - there is no earlier point at which the
+      // app holds the call. Read after `data.ring` above, which is what makes an
+      // outgoing call ringing in the first place.
+      const ringingLifecycle = this.ringing
+        ? globalThis.streamRNVideoSDK?.ringingCallLifecycle
+        : undefined;
+      // `doJoin` captures `leaveGeneration` itself, so its own staleness checks
+      // compare the new value with itself; only a generation captured out here
+      // sees a `leave()` that landed during an earlier await or a retry backoff.
       const generationAtJoin = this.leaveGeneration;
-      /**
-       * Must live here: `doJoin` captures `leaveGeneration` itself, so from then
-       * on its own staleness checks compare the new value with itself and cannot
-       * see a `leave()` that landed during an earlier await or a retry backoff.
-       * Reuses the existing signal rather than adding another.
-       */
       const assertNotSuperseded = () => {
         if (this.leaveGeneration !== generationAtJoin) {
           throw new Error('Call was left while the join was in progress');
@@ -1192,42 +1162,46 @@ export class Call {
       };
 
       const callingX = globalThis.streamRNVideoSDK?.callingX;
-      if (callingX) {
-        // for Android/iOS, we need to start the call in the callingx library as soon as possible
-        await callingX.joinCall(
-          this,
-          this.clientStore.calls,
-          () => this.leaveGeneration !== generationAtJoin,
-        );
-        assertNotSuperseded();
-      }
-
-      await this.setup();
-      assertNotSuperseded();
-
-      this.clientEventReporter.registerCall(this.cid, {
-        callType: this.type,
-        callId: this.id,
-        getCallSessionId: () => this.state.session?.id ?? '',
-        getSfuId: () => this.credentials?.server.edge_name ?? '',
-      });
-
-      this.joinResponseTimeout = joinResponseTimeout;
-      this.rpcRequestTimeout = rpcRequestTimeout;
-      // we will count the number of join failures per SFU.
-      // once the number of failures reaches 2, we will piggyback on the `migrating_from`
-      // field to force the coordinator to provide us another SFU
-      const sfuJoinFailures = new Map<string, number>();
-      const joinData: JoinCallData = data;
-      maxJoinRetries = Math.max(maxJoinRetries, 1);
       try {
+        if (ringingLifecycle) {
+          await ringingLifecycle.beforeJoin(this);
+          assertNotSuperseded();
+        }
+
+        if (callingX) {
+          // for Android/iOS, we need to start the call in the callingx library as soon as possible
+          await callingX.joinCall(
+            this,
+            this.clientStore.calls,
+            () => this.leaveGeneration !== generationAtJoin,
+          );
+          assertNotSuperseded();
+        }
+
+        await this.setup();
+        assertNotSuperseded();
+
+        this.clientEventReporter.registerCall(this.cid, {
+          callType: this.type,
+          callId: this.id,
+          getCallSessionId: () => this.state.session?.id ?? '',
+          getSfuId: () => this.credentials?.server.edge_name ?? '',
+        });
+
+        this.joinResponseTimeout = joinResponseTimeout;
+        this.rpcRequestTimeout = rpcRequestTimeout;
+        // we will count the number of join failures per SFU.
+        // once the number of failures reaches 2, we will piggyback on the `migrating_from`
+        // field to force the coordinator to provide us another SFU
+        const sfuJoinFailures = new Map<string, number>();
+        const joinData: JoinCallData = data;
+        maxJoinRetries = Math.max(maxJoinRetries, 1);
         await this.clientEventReporter.withJoinLifecycle(
           this.cid,
           'first-attempt',
           async () => {
             for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
-              // A leave during the backoff below cancels the whole join, not
-              // just the attempt that failed.
+              // A leave during the backoff below cancels the whole join.
               assertNotSuperseded();
               try {
                 this.logger.trace(`Joining call (${attempt})`, this.cid);
@@ -1276,6 +1250,9 @@ export class Call {
         );
       } catch (error) {
         callingX?.endCall(this, 'error');
+        // Ends the failed ringing flow and releases what its setup installed.
+        // Never rejects, so `error` is what the caller sees.
+        await ringingLifecycle?.onJoinFailed(this);
         throw error;
       }
     },
@@ -2540,10 +2517,11 @@ export class Call {
    * Must be called before {@link join} so the RTCPeerConnection can be
    * configured for E2EE.
    *
-   * The manager is kept across {@link leave} so a rejoin of this same instance
-   * stays encrypted: do not dispose it while this call may be joined again.
-   * A disposed manager throws from `encrypt`/`decrypt` rather than silently
-   * publishing nothing, so re-attach a fresh one instead of reusing it.
+   * The application owns the manager's lifetime - the SDK never disposes it, and
+   * closing the peer connections does not release it. Discard the manager
+   * together with this call instance once its flow has ended, and create a fresh
+   * pair for a later flow: a disposed manager throws from `encrypt`/`decrypt`
+   * rather than silently publishing nothing.
    *
    * @param e2ee - Any `E2EEManager`. Use `EncryptionManager.create()` for the
    *         built-in AES-GCM scheme, or pass your own implementation.

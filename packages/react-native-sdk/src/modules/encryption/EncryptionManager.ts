@@ -290,9 +290,9 @@ export class EncryptionManager implements E2EEManager {
    * **The application owns this object's lifetime — the SDK never disposes it.**
    * Nothing releases the native manager when a peer connection closes, and there
    * is no detach API, so an undisposed manager keeps its transforms and its key
-   * material alive for the lifetime of the process. Dispose once the call object
-   * is done with, and attach a fresh manager rather than reusing this one when
-   * re-joining (see `Call.setE2EEManager`).
+   * material alive for the lifetime of the process. Dispose it together with the
+   * call instance whose flow has ended; a later flow gets a fresh call and a
+   * fresh manager (see `Call.setE2EEManager`).
    *
    * In-flight frames are dropped rather than drained.
    *

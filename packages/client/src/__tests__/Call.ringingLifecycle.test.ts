@@ -13,10 +13,10 @@ import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { StreamVideoWriteableStateStore } from '../store';
 
 /**
- * The core's whole part in the React Native ringing lifecycle: hand a ringing
- * join to the RN owner, tell it when the call ends, and stop a join that a
- * `leave()` overtook. Setup, duplicate-trigger policy and release ordering are
- * the RN runner's, and are tested there.
+ * The core's whole part in the React Native ringing lifecycle: await RN's
+ * preparation inside the join, tell RN when a ringing join failed terminally or
+ * the call ended, and stop a join that a `leave()` overtook. What preparation
+ * and release actually do is RN's, and is tested there.
  */
 
 const createCall = (ringing: boolean) => {
@@ -32,19 +32,18 @@ const createCall = (ringing: boolean) => {
 };
 
 const install = (overrides: Record<string, unknown> = {}) => {
-  const runJoin = vi.fn((_call: Call, proceed: () => Promise<void>) =>
-    proceed(),
-  );
+  const beforeJoin = vi.fn(() => Promise.resolve());
+  const onJoinFailed = vi.fn(() => Promise.resolve());
   const onLeave = vi.fn();
   const callingX = { joinCall: vi.fn(), endCall: vi.fn() };
   globalThis.streamRNVideoSDK = {
-    ringingCallLifecycle: { runJoin, onLeave },
+    ringingCallLifecycle: { beforeJoin, onJoinFailed, onLeave },
     callingX,
     // `leave()` reaches this unconditionally; the globals object is all-or-nothing
     callManager: { setup: vi.fn(), start: vi.fn(), stop: vi.fn() },
     ...overrides,
   } as any;
-  return { runJoin, onLeave, callingX };
+  return { beforeJoin, onJoinFailed, onLeave, callingX };
 };
 
 describe('ringing call lifecycle integration', () => {
@@ -57,36 +56,65 @@ describe('ringing call lifecycle integration', () => {
     vi.restoreAllMocks();
   });
 
-  it('routes a ringing join through the React Native owner', async () => {
-    const { runJoin } = install();
+  it('prepares a ringing call before it joins', async () => {
+    const { beforeJoin, callingX } = install();
     const call = createCall(true);
     const doJoin = vi.spyOn(call as any, 'doJoin').mockResolvedValue(undefined);
 
     await call.join();
 
-    expect(runJoin).toHaveBeenCalledTimes(1);
+    expect(beforeJoin).toHaveBeenCalledTimes(1);
+    expect(beforeJoin).toHaveBeenCalledBefore(callingX.joinCall);
     expect(doJoin).toHaveBeenCalledTimes(1);
   });
 
   it('leaves ordinary calls to join themselves', async () => {
-    const { runJoin } = install();
+    const { beforeJoin, onJoinFailed } = install();
     const call = createCall(false);
     vi.spyOn(call as any, 'doJoin').mockResolvedValue(undefined);
 
     await call.join();
 
-    expect(runJoin).not.toHaveBeenCalled();
+    expect(beforeJoin).not.toHaveBeenCalled();
+    expect(onJoinFailed).not.toHaveBeenCalled();
   });
 
-  it('does not join when the owner refuses', async () => {
-    const { runJoin } = install();
-    runJoin.mockRejectedValue(new Error('no key'));
+  it('does not join when preparation fails, and reports the failure', async () => {
+    const { beforeJoin, onJoinFailed } = install();
+    beforeJoin.mockRejectedValue(new Error('no key'));
     const call = createCall(true);
     const doJoin = vi.spyOn(call as any, 'doJoin').mockResolvedValue(undefined);
 
     await expect(call.join()).rejects.toThrow('no key');
 
     expect(doJoin).not.toHaveBeenCalled();
+    expect(onJoinFailed).toHaveBeenCalledWith(call);
+  });
+
+  it('reports a terminal join failure, keeping the original error', async () => {
+    const { onJoinFailed } = install();
+    const call = createCall(true);
+    vi.spyOn(call as any, 'doJoin').mockRejectedValue(new Error('sfu down'));
+
+    await expect(call.join({ maxJoinRetries: 1 })).rejects.toThrow('sfu down');
+
+    expect(onJoinFailed).toHaveBeenCalledWith(call);
+  });
+
+  it('refuses a duplicate join on a live call without tearing it down', async () => {
+    const { beforeJoin, onJoinFailed, onLeave } = install();
+    const call = createCall(true);
+    vi.spyOn(call as any, 'doJoin').mockImplementation(async () => {
+      call.state.setCallingState(CallingState.JOINED);
+    });
+
+    await call.join();
+    await expect(call.join()).rejects.toThrow('Illegal State');
+
+    expect(beforeJoin).toHaveBeenCalledTimes(1);
+    // the guard sits ahead of the failure boundary, so nothing is released
+    expect(onJoinFailed).not.toHaveBeenCalled();
+    expect(onLeave).not.toHaveBeenCalled();
   });
 
   it('tells the owner when a ringing call ends', async () => {
@@ -160,51 +188,36 @@ describe('ringing call lifecycle integration', () => {
     }
   });
 
-  it('registers natively again on an ordinary rejoin of a reused instance', async () => {
-    const { callingX } = install();
-    callingX.joinCall.mockResolvedValue(undefined);
-    const call = createCall(true);
-    vi.spyOn(call as any, 'doJoin').mockResolvedValue(undefined);
-
-    await call.join();
-    await call.leave({ reject: false });
-    callingX.joinCall.mockClear();
-    await call.join({ ring: true });
-
-    // the instance is still LEFT here - `setup()` only resets it afterwards
-    expect(callingX.joinCall).toHaveBeenCalledTimes(1);
-  });
-
-  it('F1: routes a reused LEFT instance through the owner when join says ring', async () => {
-    const { runJoin } = install();
-    const call = createCall(false); // not ringing yet
+  it('prepares an outgoing call that this join makes ringing', async () => {
+    const { beforeJoin } = install();
+    // a fresh instance, not ringing until its first join says so
+    const call = createCall(false);
     vi.spyOn(call as any, 'doJoin').mockResolvedValue(undefined);
 
     await call.join({ ring: true });
 
-    // `options.ring` is what makes this a ringing call; reading `call.ringing`
-    // alone would skip setup entirely
-    expect(runJoin).toHaveBeenCalledTimes(1);
+    // reading `call.ringing` before applying `options.ring` would skip
+    // preparation entirely on this path
+    expect(beforeJoin).toHaveBeenCalledTimes(1);
   });
 
-  it('F2: a leave awaiting its response still stops the delayed join', async () => {
+  it('stops a join that a leave overtook during preparation', async () => {
     let releaseHook: () => void = () => {};
-    const { runJoin } = install();
-    runJoin.mockImplementation(
-      async (_c: Call, proceed: () => Promise<void>) => {
-        await new Promise<void>((resolve) => (releaseHook = resolve));
-        return proceed();
-      },
+    const { beforeJoin } = install();
+    beforeJoin.mockImplementation(
+      () => new Promise<void>((resolve) => (releaseHook = resolve)),
     );
     const call = createCall(true);
     const doJoin = vi.spyOn(call as any, 'doJoin').mockResolvedValue(undefined);
 
     const joining = call.join();
-    await vi.waitFor(() => expect(runJoin).toHaveBeenCalled());
+    await vi.waitFor(() => expect(beforeJoin).toHaveBeenCalled());
     await call.leave({ reject: false });
     releaseHook();
 
-    await expect(joining).rejects.toThrow(/left while the pre-join setup/i);
+    await expect(joining).rejects.toThrow(
+      /left while the join was in progress/i,
+    );
     expect(doJoin).not.toHaveBeenCalled();
     expect(call.state.callingState).toBe(CallingState.LEFT);
   });
