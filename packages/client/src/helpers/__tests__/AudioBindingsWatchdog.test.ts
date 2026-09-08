@@ -9,7 +9,7 @@ import { AudioBindingsWatchdog } from '../AudioBindingsWatchdog';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
-import { CallingState, StreamVideoWriteableStateStore } from '../../store';
+import { CallingState, ClientState } from '../../store';
 import { noopComparator } from '../../sorting';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { TrackType } from '../../gen/video/sfu/models/models';
@@ -28,7 +28,7 @@ describe('AudioBindingsWatchdog', () => {
       type: 'default',
       streamClient,
       clientEventReporter: new ClientEventReporter({ streamClient }),
-      clientStore: new StreamVideoWriteableStateStore(),
+      clientState: new ClientState(),
     });
     call.setSortParticipantsBy(noopComparator());
     watchdog = new AudioBindingsWatchdog(call.state, call.tracer);

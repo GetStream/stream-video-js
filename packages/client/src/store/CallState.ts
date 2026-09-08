@@ -1,11 +1,8 @@
 import {
-  BehaviorSubject,
   combineLatest,
   distinctUntilChanged,
   map,
-  Observable,
   ReplaySubject,
-  shareReplay,
   startWith,
 } from 'rxjs';
 import {
@@ -15,6 +12,7 @@ import {
   setCurrentValue,
   updateValue,
 } from './rxUtils';
+import { duc, shared, subject } from './subjects';
 import { CallingState } from './CallingState';
 import {
   type CallRecordingType,
@@ -80,30 +78,6 @@ type OrphanedTrack = {
   track: MediaStream;
   receiver?: RTCRtpReceiver;
 };
-
-/**
- * Creates an Observable from the given subject by piping it to the
- * `distinctUntilChanged()` operator.
- */
-const duc = <T>(
-  source: BehaviorSubject<T>,
-  comparator?: (a: T, b: T) => boolean,
-): Observable<T> => source.pipe(distinctUntilChanged(comparator));
-
-/**
- * Multicasts the given Observable, replaying the latest computed value to
- * every new subscriber instead of re-running the pipeline for each of them.
- */
-const shared = <T>(source: Observable<T>): Observable<T> =>
-  source.pipe(shareReplay({ bufferSize: 1, refCount: true }));
-
-/** Creates a BehaviorSubject seeded with the given value. */
-function subject<T>(initialValue: T): BehaviorSubject<T>;
-/** Creates a BehaviorSubject which starts out holding `undefined`. */
-function subject<T>(): BehaviorSubject<T | undefined>;
-function subject<T>(initialValue?: T) {
-  return new BehaviorSubject(initialValue);
-}
 
 /**
  * Holds the state of the current call.
