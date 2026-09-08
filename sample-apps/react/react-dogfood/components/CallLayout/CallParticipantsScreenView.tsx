@@ -95,6 +95,8 @@ export const CallParticipantsScreenView = (props: {
         {scrollPosition && scrollPosition !== 'top' && (
           <IconButton
             onClick={scrollUpClickHandler}
+            size="sm"
+            variant="secondary"
             icon="caret-up"
             className="str-video__call-participants-screen-view__button-up"
           />
@@ -118,6 +120,8 @@ export const CallParticipantsScreenView = (props: {
         {scrollPosition && scrollPosition !== 'bottom' && (
           <IconButton
             onClick={scrollDownClickHandler}
+            size="sm"
+            variant="secondary"
             icon="caret-down"
             className="str-video__call-participants-screen-view__button-down"
           />

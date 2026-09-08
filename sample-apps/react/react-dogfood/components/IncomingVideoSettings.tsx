@@ -33,7 +33,7 @@ export const IncomingVideoSettingsButton = () => {
         <IncomingVideoSettingsMenu value={currentSetting} onChange={onChange} />
       }
       menuPlacement="top"
-      disabled
+      aria-disabled
     >
       <Icon icon="quality" />
       {t(`quality/short/${currentSetting}`)}

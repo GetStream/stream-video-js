@@ -26,6 +26,8 @@ export const InvitePopup = ({
           className="rd__invite-popup__close"
           icon="close"
           onClick={close}
+          size="sm"
+          variant="secondary"
         />
       </div>
 

@@ -18,7 +18,7 @@ export const ToggleMenuButton = forwardRef<
       className="rd__documentation-button"
       ref={ref}
       active={props.menuShown}
-      variant="primary"
+      size="sm"
     >
       <Icon icon="caret-down" />
     </CompositeButton>

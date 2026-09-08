@@ -67,7 +67,11 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
           <CompositeButton
             active={isSomeoneScreenSharing || amIScreenSharing}
             caption={caption}
-            variant="primary"
+            variant={
+              isSomeoneScreenSharing || amIScreenSharing
+                ? 'primary'
+                : 'secondary'
+            }
             data-testid={
               isSomeoneScreenSharing
                 ? 'screen-share-stop-button'

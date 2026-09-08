@@ -33,6 +33,7 @@ import {
   RemoteFilePublisher,
   RemoteFilePublisherContext,
 } from './RemoteFilePublisher';
+import { applyDisplayName } from '../helpers/client';
 import { applyQueryConfigParams } from '../lib/queryConfigParams';
 
 const contents = {
@@ -81,6 +82,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
             const name = options.displayName || getRandomName();
             const id = chatClient?.user?.id ?? sanitizeUserId(name);
             const email = chatClient?.user?.email;
+            await applyDisplayName(name);
             await chatClient
               ?.partialUpdateUser({ id, set: { name, email } })
               .catch((err) => console.error(`Failed to update user`, err));

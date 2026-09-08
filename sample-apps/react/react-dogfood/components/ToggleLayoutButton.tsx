@@ -29,11 +29,7 @@ export const ToggleLayoutButton = (props: LayoutSelectorProps) => {
               title={t('Layout')}
               tooltipDisabled={buttonProps.menuShown}
             >
-              <CompositeButton
-                ref={ref}
-                active={buttonProps.menuShown}
-                variant="primary"
-              >
+              <CompositeButton ref={ref} active={buttonProps.menuShown}>
                 <Icon icon={LayoutMap[selectedLayout]?.icon || 'grid'} />
               </CompositeButton>
             </WithTooltip>

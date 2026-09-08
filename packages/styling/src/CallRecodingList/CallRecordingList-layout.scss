@@ -19,8 +19,8 @@
   align-items: center;
   font-size: var(--str-video__font-size-xs);
   border-bottom: 1px solid var(--str-video__base-color2);
-  padding: var(--str-video__spacing-sm) 0;
-  gap: var(--str-video__spacing-sm);
+  padding: var(--str-video__spacing-xs) 0;
+  gap: var(--str-video__spacing-xs);
 
   &:last-of-type {
     border-bottom: none;

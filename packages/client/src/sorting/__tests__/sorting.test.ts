@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { ParticipantSource } from '../../gen/video/sfu/models/models';
+import {
+  ParticipantSource,
+  TrackType,
+} from '../../gen/video/sfu/models/models';
+import { StreamVideoParticipant } from '../../types';
 import {
   combineComparators,
   Comparator,
   conditional,
   dominantSpeaker,
   pinned,
+  publishing,
   publishingAudio,
   publishingVideo,
   screenSharing,
@@ -35,6 +40,22 @@ describe('Sorting', () => {
     );
     const sorted = TestData.participants().sort(comparator);
     expect(sorted.map((p) => p.name)).toEqual(['F', 'D', 'B', 'A', 'E', 'C']);
+  });
+
+  it('publishing', () => {
+    const { AUDIO, VIDEO, SCREEN_SHARE } = TrackType;
+    const p = (publishedTracks: TrackType[]) =>
+      ({ publishedTracks }) as StreamVideoParticipant;
+
+    // publishing anything ranks above publishing nothing
+    expect(publishing(p([AUDIO]), p([]))).toEqual(-1);
+    expect(publishing(p([SCREEN_SHARE]), p([]))).toEqual(-1);
+    expect(publishing(p([]), p([VIDEO]))).toEqual(1);
+
+    // the track type is irrelevant, so device toggles do not change the rank
+    expect(publishing(p([AUDIO, VIDEO]), p([AUDIO]))).toEqual(0);
+    expect(publishing(p([VIDEO]), p([AUDIO]))).toEqual(0);
+    expect(publishing(p([]), p([]))).toEqual(0);
   });
 
   it('conditional comparator', () => {

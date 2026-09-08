@@ -29,9 +29,11 @@ export const IconInviteLinkButton = forwardRef(
     return (
       <IconButton
         {...props}
-        icon={'user-plus'}
+        size="sm"
+        variant="secondary"
         className={clsx('str-video__invite-link-button', className)}
         ref={ref}
+        icon="user-plus"
       />
     );
   },

@@ -5,12 +5,12 @@
 .str-video__embedded-livestream-duration {
   display: flex;
   align-items: center;
-  gap: var(--str-video__spacing-md);
+  gap: var(--str-video__spacing-sm);
 
   &__live-badge,
   &__backstage-badge {
-    padding: var(--str-video__spacing-xs) var(--str-video__spacing-md);
-    border-radius: var(--str-video__spacing-xs);
+    padding: var(--str-video__space-6) var(--str-video__spacing-sm);
+    border-radius: var(--str-video__space-6);
     font-size: 0.875rem;
     font-weight: 600;
   }
@@ -18,7 +18,7 @@
   &__viewers {
     display: flex;
     align-items: center;
-    gap: var(--str-video__spacing-xs);
+    gap: var(--str-video__space-6);
   }
 
   &__eye-icon {
@@ -48,10 +48,10 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  gap: var(--str-video__spacing-sm);
+  gap: var(--str-video__spacing-xs);
   height: 34px;
   min-width: 140px;
-  padding: 0 var(--str-video__spacing-lg);
+  padding: 0 var(--str-video__spacing-md);
   border: none;
   border-radius: var(--str-video__border-radius-xxl);
   font-size: 0.875rem;
@@ -79,7 +79,7 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: var(--str-video__spacing-xl);
+  padding: var(--str-video__spacing-lg);
 
   &__content {
     display: flex;
@@ -97,19 +97,19 @@
   }
 
   &__title {
-    margin: var(--str-video__spacing-xl) 0 var(--str-video__spacing-sm);
+    margin: var(--str-video__spacing-lg) 0 var(--str-video__spacing-xs);
     font-size: 1.25rem;
     font-weight: 600;
     line-height: 1.3;
   }
 
   &__starts-at {
-    margin: var(--str-video__spacing-sm);
+    margin: var(--str-video__spacing-xs);
     font-size: 0.875rem;
   }
 
   &__participant-count {
-    margin: var(--str-video__spacing-md);
+    margin: var(--str-video__spacing-sm);
     font-size: 0.8125rem;
   }
 
@@ -117,18 +117,19 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--str-video__spacing-lg);
-    margin-top: var(--str-video__spacing-xl);
+    gap: var(--str-video__spacing-md);
+    margin-top: var(--str-video__spacing-lg);
 
     .str-video__button {
-      min-width: 180px;
+      inline-size: 100%;
+      min-inline-size: 180px;
     }
   }
 
   &__auto-join {
     display: flex;
     align-items: center;
-    gap: var(--str-video__spacing-sm);
+    gap: var(--str-video__spacing-xs);
     font-size: 0.875rem;
     cursor: pointer;
 
@@ -138,7 +139,7 @@
   }
 
   &__join-error {
-    margin-top: var(--str-video__spacing-md);
+    margin-top: var(--str-video__spacing-sm);
     font-size: var(--str-video__font-size-xs);
     line-height: 1.3;
     text-align: center;

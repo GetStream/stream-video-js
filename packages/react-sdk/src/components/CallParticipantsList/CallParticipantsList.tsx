@@ -19,7 +19,7 @@ import {
 } from '@stream-io/video-client';
 
 import { BlockedUserListing } from './BlockedUserListing';
-import { IconButton, TextButton } from '../Button';
+import { Button, IconButton } from '../Button';
 import { CallParticipantListHeader } from './CallParticipantListHeader';
 import { CallParticipantListing } from './CallParticipantListing';
 import { EmptyParticipantSearchList } from './EmptyParticipantSearchList';
@@ -117,7 +117,14 @@ const CallParticipantListContentHeader = ({
             requiredGrants={[OwnCapability.MUTE_USERS]}
             hasPermissionsOnly
           >
-            <TextButton onClick={muteAll}>{t('Mute all')}</TextButton>
+            <Button
+              appearance="ghost"
+              size="xs"
+              variant="secondary"
+              onClick={muteAll}
+            >
+              {t('Mute all')}
+            </Button>
           </Restricted>
         )}
       </div>
@@ -227,6 +234,15 @@ const BlockedUsersSearchResults = ({
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleButtonRender(props, ref) {
-    return <IconButton enabled={props.menuShown} icon="filter" ref={ref} />;
+    return (
+      <IconButton
+        className="str-video__participant-list__filter-button"
+        active={props.menuShown}
+        size="sm"
+        variant="secondary"
+        ref={ref}
+        icon="filter"
+      />
+    );
   },
 );

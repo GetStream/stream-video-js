@@ -31,6 +31,8 @@ export const CallParticipantListHeader = ({
         )}
       </div>
       <IconButton
+        size="sm"
+        variant="secondary"
         onClick={onClose}
         className="str-video__participant-list-header__close-button"
         icon="close"

@@ -80,8 +80,10 @@ type SidebarContent =
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
-  const { useParticipantCount } = useCallStateHooks();
+  const { useParticipantCount, useIsCallCaptioningInProgress } =
+    useCallStateHooks();
   const participantCount = useParticipantCount();
+  const isCaptioning = useIsCallCaptioningInProgress();
   const {
     current: currentTourStep,
     active: isTourActive,
@@ -195,7 +197,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 close={() => setShowInvitePopup(false)}
               />
             )}
-            {isPronto && <ClosedCaptions />}
+            {isCaptioning && <ClosedCaptions />}
           </div>
 
           <div
@@ -314,7 +316,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
               <WithTooltip title={t('Pop out Picture-in-Picture')}>
                 <CompositeButton
                   active={!!pipWindow}
-                  variant="primary"
+                  variant={pipWindow ? 'primary' : 'secondary'}
                   onClick={pipWindow ? closePipWindow : openPipWindow}
                 >
                   <Icon icon="pip" />
@@ -342,7 +344,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 <WithTooltip title={t('Closed Captions Queue')}>
                   <CompositeButton
                     active={showClosedCaptions}
-                    variant="primary"
                     onClick={() => {
                       setSidebarContent(
                         showClosedCaptions ? null : 'closed-captions',

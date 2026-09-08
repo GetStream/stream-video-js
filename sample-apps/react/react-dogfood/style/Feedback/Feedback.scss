@@ -25,7 +25,7 @@
 .rd__feedback-description {
   color: var(--str-video__base-color2);
   font-size: var(--str-video__font-size-sm);
-  margin: var(--str-video__spacing-lg) 0 var(--str-video__spacing-md) 0;
+  margin: var(--str-video__spacing-md) 0 var(--str-video__spacing-sm) 0;
 }
 
 .rd__feedback-form {
@@ -33,7 +33,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin-top: var(--str-video__spacing-lg);
+  margin-top: var(--str-video__spacing-md);
   width: 100%;
 }
 
@@ -41,8 +41,8 @@
 .rd__feedback-textarea {
   background-color: var(--str-video__base-color4);
   border-radius: var(--str-video__border-radius-md);
-  padding: var(--str-video__spacing-xs) var(--str-video__spacing-md);
-  margin-bottom: var(--str-video__spacing-md);
+  padding: var(--str-video__space-6) var(--str-video__spacing-sm);
+  margin-bottom: var(--str-video__spacing-sm);
   border: 1px solid var(--str-video__base-color3);
   width: 100%;
   color: var(--str-video__text-color1);
@@ -59,8 +59,8 @@
 
 .rd__feedback-footer {
   width: 100%;
-  padding-top: var(--str-video__spacing-lg);
-  padding-bottom: var(--str-video__spacing-lg);
+  padding-top: var(--str-video__spacing-md);
+  padding-bottom: var(--str-video__spacing-md);
 }
 
 .rd__feedback-rating-stars {
@@ -68,7 +68,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--str-video__spacing-lg);
+  margin-bottom: var(--str-video__spacing-md);
 }
 
 .rd__feedback-star {
@@ -95,5 +95,5 @@
 .rd__feedback-actions {
   display: flex;
   justify-content: space-between;
-  gap: var(--str-video__spacing-md);
+  gap: var(--str-video__spacing-sm);
 }

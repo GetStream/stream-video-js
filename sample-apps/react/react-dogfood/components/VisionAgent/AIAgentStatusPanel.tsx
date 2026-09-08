@@ -35,6 +35,8 @@ export const AIAgentStatusPanel = () => {
           className="rd__ai-agent-status__close"
           icon="close"
           onClick={() => setDismissed(true)}
+          size="sm"
+          variant="secondary"
         />
       </div>
       <a

@@ -2,6 +2,28 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.59.0...@stream-io/video-client-2.0.0-beta.0) (2026-09-04)
+
+### Bug Fixes
+
+- **client:** isolate coordinator event listener errors from the dispatch loop ([#2404](https://github.com/GetStream/stream-video-js/issues/2404)) ([4ab49de](https://github.com/GetStream/stream-video-js/commit/4ab49decc4bbc70b0fc35d6b92f2bd18922a105c)), closes [GetStream/stream-chat-js#1850](https://github.com/GetStream/stream-chat-js/issues/1850)
+- **client:** keep passive participants out of the spotlight ([#2405](https://github.com/GetStream/stream-video-js/issues/2405)) ([0713650](https://github.com/GetStream/stream-video-js/commit/0713650fa90caa8a82ce0bee75acf4dbaaad33e9))
+
+## [1.59.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.58.0...@stream-io/video-client-1.59.0) (2026-08-28)
+
+### Features
+
+- **react-sdk:** pre-call testing ([#2370](https://github.com/GetStream/stream-video-js/issues/2370)) ([3f4b62a](https://github.com/GetStream/stream-video-js/commit/3f4b62ab379d9d4203bc64b5d5e3658fba389efd))
+
+### Bug Fixes
+
+- do not end callingx service without call leave ([#2396](https://github.com/GetStream/stream-video-js/issues/2396)) ([15d6abb](https://github.com/GetStream/stream-video-js/commit/15d6abbfa9f4cc2a47c01d8fc8204016a2f8a448))
+- **client:** keep devices disabled when querying calls ([#2382](https://github.com/GetStream/stream-video-js/issues/2382)) ([1c69755](https://github.com/GetStream/stream-video-js/commit/1c6975546dd70baf991410300fbf6de5ddfd9c65))
+- **client:** Prevent concurrent joins ([#2386](https://github.com/GetStream/stream-video-js/issues/2386)) ([92b2cf6](https://github.com/GetStream/stream-video-js/commit/92b2cf62a719ffb98156250eeffa706841c6781c))
+- **client:** refresh live call state on reconnect re-watch ([#2383](https://github.com/GetStream/stream-video-js/issues/2383)) ([d28067e](https://github.com/GetStream/stream-video-js/commit/d28067e543592e9ab8d8219fcaa9250d938dbc70))
+- **client:** use generated call reporting types and remove unused fields ([#2377](https://github.com/GetStream/stream-video-js/issues/2377)) ([2eab662](https://github.com/GetStream/stream-video-js/commit/2eab66293c41c8e1d6467f2536525511186862e2))
+- missing own capabilities for incoming call ([#2388](https://github.com/GetStream/stream-video-js/issues/2388)) ([0a04d34](https://github.com/GetStream/stream-video-js/commit/0a04d34a258d7ab3702348a1f929f87e62531875))
+
 ## [1.58.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.57.0...@stream-io/video-client-1.58.0) (2026-08-18)
 
 ### Features

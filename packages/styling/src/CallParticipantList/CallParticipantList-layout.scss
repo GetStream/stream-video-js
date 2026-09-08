@@ -21,14 +21,14 @@ $scope-name: 'str-video__participant-list';
   }
 
   .str-video__search-input__container {
-    margin-top: var(--str-video__spacing-md);
+    margin-top: var(--str-video__spacing-sm);
   }
 
   .str-video__participant-list__content-header {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-top: var(--str-video__spacing-md);
+    margin-top: var(--str-video__spacing-sm);
     justify-content: flex-end;
 
     .str-video__participant-list__content-header-title {
@@ -37,13 +37,9 @@ $scope-name: 'str-video__participant-list';
       justify-content: flex-end;
     }
 
-    .str-video__call-controls__button {
-      width: 1.75rem;
-      height: 1.75rem;
-      display: flex;
-      padding: unset;
-      align-items: center;
-      justify-content: center;
+    .str-video__participant-list__filter-button {
+      // drives block-size, inline-size and the icon inset together
+      --str-video__button-h: 1.75rem;
 
       .str-video__icon--filter {
         width: 1rem;
@@ -56,7 +52,7 @@ $scope-name: 'str-video__participant-list';
     height: auto;
     flex-grow: 1;
     overflow-y: auto;
-    margin-top: var(--str-video__spacing-xl);
+    margin-top: var(--str-video__spacing-lg);
   }
 
   .str-video__participant-list__footer {
@@ -87,7 +83,7 @@ $scope-name: 'str-video__participant-list';
     display: flex;
     align-items: center;
     width: 100%;
-    padding: var(--str-video__spacing-md);
+    padding: var(--str-video__spacing-sm);
     font-size: var(--str-video__font-size-sm);
   }
 }

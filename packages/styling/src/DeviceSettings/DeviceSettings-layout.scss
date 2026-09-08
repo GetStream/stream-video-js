@@ -1,5 +1,5 @@
 .str-video__device-settings__button {
-  .str-video__call-controls__button--icon-device-settings {
+  .str-video__icon--device-settings {
     width: 1.25rem;
     height: 1.25rem;
   }
@@ -31,7 +31,7 @@
 }
 
 .str-video__device-settings__device-kind {
-  padding: var(--str-video__spacing-lg);
+  padding: var(--str-video__spacing-md);
 
   .str-video__device-settings__device-selector-title {
     font-size: var(--str-video__font-size-sm);
@@ -39,7 +39,7 @@
     line-height: 1.25rem;
 
     padding-bottom: 0.5rem;
-    margin-bottom: var(--str-video__spacing-sm);
+    margin-bottom: var(--str-video__spacing-xs);
   }
 
   .str-video__option,
@@ -48,16 +48,16 @@
     align-items: center;
     border-radius: var(--str-video__border-radius-lg);
     background-color: var(--str-video__button-primary-base);
-    padding: var(--str-video__spacing-sm) var(--str-video__spacing-lg);
+    padding: var(--str-video__spacing-xs) var(--str-video__spacing-md);
 
-    gap: var(--str-video__spacing-sm);
+    gap: var(--str-video__spacing-xs);
 
     font-weight: 600;
     font-size: var(--str-video__font-size-sm);
-    line-height: var(--str-video__spacing-lg);
+    line-height: var(--str-video__spacing-md);
 
     &:not(:first-of-type) {
-      margin-top: var(--str-video__spacing-sm);
+      margin-top: var(--str-video__spacing-xs);
     }
 
     &__icon {
@@ -108,8 +108,8 @@
   width: 100%;
   display: flex;
   align-items: center;
-  gap: var(--str-video__spacing-xs);
-  padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
+  gap: var(--str-video__space-6);
+  padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
 
   .str-video__icon {
     width: var(--str-video__font-size-xxl);
@@ -119,7 +119,7 @@
   .str-video__audio-volume-indicator__bar {
     flex: 1;
     background-color: var(--str-video__base-color1);
-    height: var(--str-video__spacing-xs);
+    height: var(--str-video__space-6);
     border-radius: var(--str-video__border-radius-xs);
   }
 
@@ -169,7 +169,7 @@
   cursor: pointer;
 
   .str-video__device-preview__label {
-    padding: var(--str-video__spacing-xs) 0;
+    padding: var(--str-video__space-6) 0;
     font-size: var(--str-video__font-size-xs);
     text-align: center;
     overflow: hidden;
@@ -194,18 +194,20 @@
 }
 
 .str-video__speaker-test {
-  padding: var(--str-video__spacing-sm) 0;
+  padding: var(--str-video__spacing-xs) 0;
 
   .str-video__speaker-test__button-content {
     display: flex;
     align-items: center;
-    gap: var(--str-video__spacing-sm);
-    padding: 0 var(--str-video__spacing-sm);
+    gap: var(--str-video__spacing-xs);
+    padding: 0 var(--str-video__spacing-xs);
     font-size: var(--str-video__font-size-sm);
     font-weight: 600;
   }
 
-  .str-video__composite-button__button {
-    width: 100% !important;
+  .str-video__composite-button,
+  .str-video__composite-button__group,
+  .str-video__composite-button__action {
+    inline-size: 100%;
   }
 }

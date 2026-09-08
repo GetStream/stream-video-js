@@ -30,7 +30,7 @@ export const useCallingExpWithCallingStateEffect = () => {
 
   const callDisplayName = useMemo(
     () =>
-      callCustomDisplayName ??
+      callCustomDisplayName ||
       getCallDisplayName(callMembers, participants, currentUserId),
     [callMembers, participants, currentUserId, callCustomDisplayName],
   );
@@ -112,12 +112,19 @@ export const useCallingExpWithCallingStateEffect = () => {
       return;
     }
 
-    callingx.updateDisplay(
-      activeCallCid,
-      createdByUserId ?? callDisplayName,
-      callDisplayName,
-      isIncoming,
-    );
+    callingx
+      .updateDisplay(
+        activeCallCid,
+        createdByUserId ?? callDisplayName,
+        callDisplayName,
+        isIncoming,
+      )
+      .catch((error: unknown) => {
+        logger.debug(
+          `useCallingExpWithCallingStateEffect: Error updating display in callingx: ${activeCallCid}`,
+          error,
+        );
+      });
   }, [activeCallCid, createdByUserId, callDisplayName, isIncoming]);
 
   // Sync microphone mute state from app → CallKit

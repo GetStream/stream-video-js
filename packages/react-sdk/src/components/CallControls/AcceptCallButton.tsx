@@ -32,9 +32,10 @@ export const AcceptCallButton = ({
   );
   return (
     <IconButton
+      size="sm"
       disabled={disabled}
       icon="call-accept"
-      variant="success"
+      variant="secondary"
       data-testid="accept-call-button"
       onClick={handleClick}
     />
