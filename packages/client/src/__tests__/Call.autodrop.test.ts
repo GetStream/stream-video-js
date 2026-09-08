@@ -27,6 +27,7 @@ describe('Auto drop ringing calls', () => {
       streamClient,
       clientEventReporter: new ClientEventReporter({ streamClient }),
       clientStore,
+      ringing: true,
     });
 
     clientStore.connectedUserSubject.next(fromPartial({ id: userId }));
@@ -42,6 +43,14 @@ describe('Auto drop ringing calls', () => {
           enabled: false,
           target_resolution: { width: 100, height: 100 },
         },
+      }),
+    );
+    newCall.state['sessionSubject'].next(
+      fromPartial({
+        id: 'session-1',
+        accepted_by: {},
+        rejected_by: {},
+        missed_by: {},
       }),
     );
     newCall.state['callingStateSubject'].next(CallingState.RINGING);
@@ -86,8 +95,8 @@ describe('Auto drop ringing calls', () => {
   });
 
   // the calling state stays RINGING well into teardown, so the watchdogs have
-  // to be cancelled before `leave` awaits anything
-  it('is cancelled synchronously when leave starts', async () => {
+  // to be paused before `leave` awaits anything
+  it('pauses the watchdogs synchronously when leave starts', async () => {
     call['scheduleAutoDrop']();
     call['scheduleRingStatePolling']();
     const timeout = call['ringTimeout'];
@@ -96,10 +105,30 @@ describe('Auto drop ringing calls', () => {
 
     const leaving = call.leave({ reject: false });
 
-    expect(call['ringTimeout']).toBeUndefined();
+    expect(call['ringTimeout']).toBe(timeout);
     expect(call['ringStatePoller']).toBeUndefined();
-    expect(timeout!['stopped']).toBe(true);
+    expect(timeout!['timeoutId']).toBeUndefined();
+    expect(timeout!['stopped']).toBe(false);
     await leaving.catch(() => {});
+    expect(timeout!['stopped']).toBe(true);
+  });
+
+  it('restores both watchdogs when rejecting the ring fails', async () => {
+    call['scheduleAutoDrop']();
+    call['scheduleRingStatePolling']();
+    const timeout = call['ringTimeout'];
+    const deadlineAt = timeout!['deadlineAt'];
+    vi.spyOn(call, 'leave').mockRestore();
+    vi.spyOn(call, 'reject').mockRejectedValueOnce(new Error('transient'));
+
+    await expect(call.leave({ reject: true })).rejects.toThrow('transient');
+
+    expect(call.state.callingState).toBe(CallingState.RINGING);
+    expect(call['ringTimeout']).toBe(timeout);
+    expect(timeout!['timeoutId']).toBeDefined();
+    expect(timeout!['deadlineAt']).toBe(deadlineAt);
+    expect(call['ringStatePoller']).toBeDefined();
+    expect(call['ringStatePoller']!['stopped']).toBe(false);
   });
 
   it('replaces a previously armed timeout', async () => {

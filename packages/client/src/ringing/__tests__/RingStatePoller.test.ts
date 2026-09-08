@@ -160,16 +160,13 @@ describe('RingStatePoller', () => {
     });
   });
 
-  it('drops the call when everyone else missed it', async () => {
+  it('keeps polling when everyone else is marked missed before auto-cancel', async () => {
     startPolling(ringState({ missed_by: { john: '2026-08-24T10:00:35Z' } }));
 
     await vi.advanceTimersByTimeAsync(START_AFTER_MS);
 
-    expect(call.leave).toHaveBeenCalledWith({
-      reject: true,
-      reason: 'timeout',
-      message: 'ring: no one accepted',
-    });
+    expect(call.leave).not.toHaveBeenCalled();
+    expect(poller['stopped']).toBe(false);
   });
 
   it('leaves without rejecting when the call has ended, even if it was accepted', async () => {

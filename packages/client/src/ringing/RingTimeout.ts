@@ -12,6 +12,7 @@ import { videoLoggerSystem } from '../logger';
 export class RingTimeout {
   private readonly call: Call;
   private timeoutId: number | undefined;
+  private deadlineAt: number | undefined;
   private stopped: boolean = false;
 
   constructor(call: Call) {
@@ -23,7 +24,7 @@ export class RingTimeout {
    * Applicable only for ringing calls.
    */
   start = () => {
-    if (this.stopped || this.timeoutId) return;
+    if (this.stopped || this.timeoutId !== undefined) return;
     // ignore if the call is not ringing
     if (this.call.state.callingState !== CallingState.RINGING) return;
 
@@ -37,9 +38,14 @@ export class RingTimeout {
     // 0 means no auto-drop
     if (timeoutMs <= 0) return;
 
+    const now = Date.now();
+    this.deadlineAt ??= now + timeoutMs;
+    const delayMs = Math.max(0, this.deadlineAt - now);
     const timers = getTimers();
     this.timeoutId = timers.setTimeout(() => {
       this.timeoutId = undefined;
+      // A failed timeout-triggered leave can arm a fresh retry window.
+      this.deadlineAt = undefined;
       if (this.stopped) return;
       // the call might have stopped ringing by this point, e.g. it was already
       // accepted and joined
@@ -59,7 +65,16 @@ export class RingTimeout {
             .getLogger('RingTimeout')
             .error('Failed to drop the call', err);
         });
-    }, timeoutMs);
+    }, delayMs);
+  };
+
+  /**
+   * Pauses the timeout while preserving its original deadline.
+   */
+  pause = () => {
+    if (this.stopped || this.timeoutId === undefined) return;
+    getTimers().clearTimeout(this.timeoutId);
+    this.timeoutId = undefined;
   };
 
   /**
@@ -70,5 +85,6 @@ export class RingTimeout {
     this.stopped = true;
     getTimers().clearTimeout(this.timeoutId);
     this.timeoutId = undefined;
+    this.deadlineAt = undefined;
   };
 }

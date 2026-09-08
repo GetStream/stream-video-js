@@ -705,9 +705,10 @@ export class Call {
     }
 
     // before the first await: the calling state stays RINGING well into the
-    // teardown, so an in-flight poll could otherwise reconcile an acceptance
-    // and join the call we are leaving.
-    this.cancelAutoDrop();
+    // teardown, so pause the watchdogs before they can race this leave. Keep
+    // the timeout's deadline so a failed leave can resume it without extending
+    // the configured ring window.
+    this.ringTimeout?.pause();
     this.cancelRingStatePolling();
 
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
@@ -861,6 +862,19 @@ export class Call {
             this.logger.warn('Failed to dispose media engine', err);
           });
       }
+    }).catch((err) => {
+      if (
+        !hasPending(this.joinLeaveConcurrencyTag) &&
+        this.state.callingState === CallingState.RINGING
+      ) {
+        if (this.ringTimeout) {
+          this.ringTimeout.start();
+        } else {
+          this.scheduleAutoDrop();
+        }
+        this.scheduleRingStatePolling();
+      }
+      throw err;
     });
   };
 

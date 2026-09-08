@@ -75,16 +75,6 @@ const reconcileAsCaller = async (
     });
   }
 
-  const missedBy = session?.missed_by ?? {};
-  if (otherMembers.every((userId) => rejectedBy[userId] || missedBy[userId])) {
-    call.logger.info('ring: no one accepted, leaving');
-    return leave(call, {
-      reject: true,
-      reason: 'timeout',
-      message: 'ring: no one accepted',
-    });
-  }
-
   return false;
 };
 

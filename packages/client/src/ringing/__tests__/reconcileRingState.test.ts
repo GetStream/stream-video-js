@@ -131,7 +131,7 @@ describe('reconcileRingState', () => {
   });
 
   describe('missed', () => {
-    it('drops the call once every callee has missed it', async () => {
+    it('keeps ringing when every callee is marked missed before auto-cancel', async () => {
       const call = ringingCall({
         currentUserId: 'm1',
         createdById: 'm1',
@@ -141,15 +141,11 @@ describe('reconcileRingState', () => {
         missed_by: { m2: timestamp(), m3: timestamp() },
       });
 
-      expect(await reconcile(call)).toBe(true);
-      expect(call.leave).toHaveBeenCalledWith({
-        reject: true,
-        reason: 'timeout',
-        message: 'ring: no one accepted',
-      });
+      expect(await reconcile(call)).toBe(false);
+      expect(call.leave).not.toHaveBeenCalled();
     });
 
-    it('drops the call when the callees are split between rejected and missed', async () => {
+    it('keeps ringing when callees are split between rejected and missed', async () => {
       const call = ringingCall({
         currentUserId: 'm1',
         createdById: 'm1',
@@ -160,12 +156,8 @@ describe('reconcileRingState', () => {
         missed_by: { m3: timestamp() },
       });
 
-      expect(await reconcile(call)).toBe(true);
-      expect(call.leave).toHaveBeenCalledWith({
-        reject: true,
-        reason: 'timeout',
-        message: 'ring: no one accepted',
-      });
+      expect(await reconcile(call)).toBe(false);
+      expect(call.leave).not.toHaveBeenCalled();
     });
 
     it('keeps ringing while one callee can still accept', async () => {

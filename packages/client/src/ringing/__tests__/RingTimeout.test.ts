@@ -147,6 +147,22 @@ describe('RingTimeout', () => {
     expect(call.leave).not.toHaveBeenCalled();
   });
 
+  it('resumes from the original deadline after being paused', async () => {
+    call = ringingCall();
+    arm();
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    ringTimeout.pause();
+    await vi.advanceTimersByTimeAsync(5_000);
+    ringTimeout.start();
+
+    await vi.advanceTimersByTimeAsync(14_999);
+    expect(call.leave).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(call.leave).toHaveBeenCalled();
+  });
+
   it('does not arm when the call is not ringing', async () => {
     call = ringingCall();
     call.state['callingStateSubject'].next(CallingState.JOINED);
