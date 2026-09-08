@@ -165,6 +165,11 @@
     mask-image: var(--str-video__icon--speaker-off);
   }
 
+  &--pip {
+    -webkit-mask-image: var(--str-video__icon--pip);
+    mask-image: var(--str-video__icon--pip);
+  }
+
   &--fullscreen {
     -webkit-mask-image: var(--str-video__icon--fullscreen);
     mask-image: var(--str-video__icon--fullscreen);

@@ -76,7 +76,9 @@ export const DeviceAudioPreviewItem = ({
         checked={device.isSelected}
         onChange={(e) => onSelect(e.target.value)}
       />
-      {device.label}
+      <span className="str-video__device-settings__option__label">
+        {device.label}
+      </span>
       <DeviceLevelIndicator deviceId={device.deviceId} />
     </label>
   );

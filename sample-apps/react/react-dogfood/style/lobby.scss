@@ -131,7 +131,7 @@
   }
 
   .rd__lobby-media {
-    gap: var(--str-video__spacing-xs);
+    gap: var(--str-video__spacing-sm);
   }
 
   .rd__lobby-settings {
@@ -243,12 +243,45 @@
 .rd__lobby__camera-button.rd__button,
 .rd__lobby__mic-button.rd__button {
   display: none;
+  inline-size: 194px;
+  max-inline-size: 100%;
+  min-block-size: 40px;
+  gap: var(--str-video__spacing-xs);
   padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
-  font-size: var(--str-video__font-size-xs);
+
+  background-color: transparent;
+  border: var(--str-video__w100) solid var(--str-video__border-core-default);
+  border-radius: var(--str-video__input-radius-select-input);
+  color: var(--str-video__input-text-default);
+
+  font-size: var(--str-video__typography-font-size-sm);
+  font-weight: var(--str-video__typography-font-weight-regular);
+  line-height: var(--str-video__typography-line-height-normal);
+
+  &:hover {
+    background-color: transparent;
+    border-color: var(--str-video__border-utility-hover);
+  }
+
+  &[aria-expanded='true'] {
+    border-color: var(--str-video__border-utility-active);
+  }
+
+  &:focus-visible {
+    outline: var(--str-video__w200) solid
+      var(--str-video__border-utility-focused);
+    outline-offset: calc(var(--str-video__w200) * -1);
+  }
+
+  .str-video__icon {
+    margin-right: 0;
+    background-color: var(--str-video__input-text-icon);
+  }
 }
 .rd__lobby__camera-button__device,
 .rd__lobby__mic-button__device {
-  width: 120px;
+  flex: 1;
+  min-inline-size: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

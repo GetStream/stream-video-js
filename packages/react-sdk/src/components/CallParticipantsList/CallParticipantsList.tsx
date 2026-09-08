@@ -135,7 +135,7 @@ const CallParticipantListContentHeader = ({
           ).map((lt) => (
             <GenericMenuButtonItem
               key={lt}
-              aria-selected={lt === userListType}
+              aria-current={lt === userListType}
               onClick={() => setUserListType(lt)}
             >
               {UserListTypes[lt]}

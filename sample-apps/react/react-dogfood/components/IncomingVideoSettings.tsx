@@ -1,6 +1,8 @@
 import {
   DropDownSelect,
   DropDownSelectOption,
+  GenericMenu,
+  GenericMenuButtonItem,
   Icon,
   IconButton,
   MenuToggle,
@@ -9,7 +11,6 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
-import clsx from 'clsx';
 import { forwardRef, useCallback } from 'react';
 
 const incomingVideoSettings = [
@@ -97,24 +98,18 @@ const IncomingVideoSettingsMenu = (props: {
   const { t } = useI18n();
 
   return (
-    <div className="rd__layout-selector__list">
+    <GenericMenu>
       {incomingVideoSettings.map((value) => (
-        <div key={value} className="rd__layout-selector__item">
-          <button
-            className={clsx('rd__button rd__button--align-left', {
-              'rd__button--primary': value === props.value,
-            })}
-            type="button"
-            data-testid={`incoming-video-resolution-${value}`}
-            onClick={() => props.onChange(value as IncomingVideoSetting)}
-          >
-            <span className="str-video__dropdown-label">
-              {t(`quality/long/${value}`)}
-            </span>
-          </button>
-        </div>
+        <GenericMenuButtonItem
+          key={value}
+          aria-current={value === props.value}
+          data-testid={`incoming-video-resolution-${value}`}
+          onClick={() => props.onChange(value)}
+        >
+          {t(`quality/long/${value}`)}
+        </GenericMenuButtonItem>
       ))}
-    </div>
+    </GenericMenu>
   );
 };
 
