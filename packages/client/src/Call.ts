@@ -39,6 +39,7 @@ import {
   BlockUserResponse,
   CallRingEvent,
   CallSettingsResponse,
+  CallStateResponseFields,
   CollectUserFeedbackRequest,
   CollectUserFeedbackResponse,
   Credentials,
@@ -178,7 +179,11 @@ import {
   SpeakerManager,
 } from './devices';
 import { normalize } from './devices/devicePersistence';
-import { hasPending, withoutConcurrency } from './helpers/concurrency';
+import {
+  hasPending,
+  singleFlight,
+  withoutConcurrency,
+} from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
 import { pushToIfMissing } from './helpers/array';
 import {
@@ -753,7 +758,10 @@ export class Call {
           }
         }
       }
-      globalThis.streamRNVideoSDK?.callingX?.endCall(this);
+      globalThis.streamRNVideoSDK?.callingX?.endCall(
+        this,
+        reason === 'ended' ? 'remote' : undefined,
+      );
 
       this.statsReporter?.stop();
       this.statsReporter = undefined;
@@ -788,6 +796,12 @@ export class Call {
       await this.dynascaleManager?.dispose();
 
       this.state.setCallingState(CallingState.LEFT);
+      // Ringing only, and driven by the call ending rather than by any view's
+      // lifetime. `ringingSubject` is cleared further down, so this reads true
+      // here for a call that was ringing.
+      if (this.ringing) {
+        globalThis.streamRNVideoSDK?.ringingCallLifecycle?.onLeave(this);
+      }
       this.state.setParticipants([]);
       this.state.dispose();
 
@@ -936,8 +950,19 @@ export class Call {
     // const calls = useCalls().filter((c) => c.ringing);
     const calls = this.clientStore.calls.filter((c) => c.cid !== this.cid);
     this.clientStore.setCalls([this, ...calls]);
-    const skipSpeakerApply = isReactNative();
-    await this.applyDeviceConfig(settings, false, skipSpeakerApply);
+    await this.applyDeviceConfig(settings, { publish: false });
+  };
+
+  /**
+   * Applies a backend-provided call state snapshot
+   * (call, members, own capabilities) to this instance.
+   *
+   * @internal an internal method and should not be used outside the SDK.
+   */
+  updateFromCallStateResponse = (response: CallStateResponseFields) => {
+    this.state.updateFromCallResponse(response.call);
+    this.state.setMembers(response.members);
+    this.state.setOwnCapabilities(response.own_capabilities);
   };
 
   /**
@@ -961,9 +986,7 @@ export class Call {
       params,
     );
 
-    this.state.updateFromCallResponse(response.call);
-    this.state.setMembers(response.members);
-    this.state.setOwnCapabilities(response.own_capabilities);
+    this.updateFromCallStateResponse(response);
 
     if (params?.ring) {
       this.ringingSubject.next(true);
@@ -973,13 +996,7 @@ export class Call {
       this.watching = true;
       this.clientStore.registerOrUpdateCall(this);
     }
-    // Skip speaker setup on RN if ringing was requested or the call is already ringing
-    const skipSpeakerApply = isReactNative();
-    await this.applyDeviceConfig(
-      response.call.settings,
-      false,
-      skipSpeakerApply,
-    );
+    await this.applyDeviceConfig(response.call.settings, { publish: false });
 
     return response;
   };
@@ -997,9 +1014,7 @@ export class Call {
       GetOrCreateCallRequest
     >(this.streamClientBasePath, data);
 
-    this.state.updateFromCallResponse(response.call);
-    this.state.setMembers(response.members);
-    this.state.setOwnCapabilities(response.own_capabilities);
+    this.updateFromCallStateResponse(response);
 
     if (data?.ring) {
       this.ringingSubject.next(true);
@@ -1010,13 +1025,7 @@ export class Call {
       this.clientStore.registerOrUpdateCall(this);
     }
 
-    // Skip speaker setup on RN if ringing was requested or the call is already ringing
-    const skipSpeakerApply = isReactNative();
-    await this.applyDeviceConfig(
-      response.call.settings,
-      false,
-      skipSpeakerApply,
-    );
+    await this.applyDeviceConfig(response.call.settings, { publish: false });
 
     return response;
   };
@@ -1103,111 +1112,174 @@ export class Call {
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
-  join = async ({
-    maxJoinRetries = 3,
-    joinResponseTimeout,
-    rpcRequestTimeout,
-    allowOwnTracksLoopback = false,
-    ...data
-  }: JoinCallData & {
-    maxJoinRetries?: number;
-    joinResponseTimeout?: number;
-    rpcRequestTimeout?: number;
-    allowOwnTracksLoopback?: boolean;
-  } = {}): Promise<void> => {
-    const callingState = this.state.callingState;
-
-    if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
-      throw new Error(`Illegal State: call.join() shall be called only once`);
+  /**
+   * Ringing calls are joined by the SDK rather than by app code, so React Native
+   * takes the whole operation: it runs the app's pre-join hook, applies its
+   * duplicate/busy policy, and releases what it installed if the join fails.
+   * Everything else - web, and every ordinary call - goes straight to the
+   * coalesced join below.
+   */
+  join = (
+    options: JoinCallData & {
+      maxJoinRetries?: number;
+      joinResponseTimeout?: number;
+      rpcRequestTimeout?: number;
+      allowOwnTracksLoopback?: boolean;
+    } = {},
+  ): Promise<void> => {
+    const ringingLifecycle = globalThis.streamRNVideoSDK?.ringingCallLifecycle;
+    // `options.ring` counts: a reused instance is `LEFT` and not yet ringing, and
+    // it is this join that makes it a ringing call again.
+    const isRingingJoin = this.ringing || options.ring === true;
+    if (!isRingingJoin || !ringingLifecycle) {
+      return this.coreJoin(options);
     }
-
-    // we need this to be set before the callingx.joinCall() is
-    // called to avoid registering the test call in the CallKit/Telecom
-    this.allowOwnTracksLoopback = allowOwnTracksLoopback;
-
-    if (data?.ring) {
+    // Recorded before the hook runs, not inside the join below: a `leave()` that
+    // lands while the app is still preparing would otherwise see a call that is
+    // not ringing yet and never tell the owner its lifecycle ended.
+    if (options.ring) {
       this.ringingSubject.next(true);
     }
-
-    const callingX = globalThis.streamRNVideoSDK?.callingX;
-    if (callingX) {
-      // for Android/iOS, we need to start the call in the callingx library as soon as possible
-      await callingX.joinCall(this, this.clientStore.calls);
-    }
-
-    await this.setup();
-
-    this.clientEventReporter.registerCall(this.cid, {
-      callType: this.type,
-      callId: this.id,
-      getCallSessionId: () => this.state.session?.id ?? '',
-      getSfuId: () => this.credentials?.server.edge_name ?? '',
+    // Captured before the hook runs, so a `leave()` that lands while the app is
+    // still preparing stops this join instead of resuming into media setup.
+    const generationBeforeSetup = this.leaveGeneration;
+    return ringingLifecycle.runJoin(this, () => {
+      if (this.leaveGeneration !== generationBeforeSetup) {
+        throw new Error('Call was left while the pre-join setup was running');
+      }
+      return this.coreJoin(options);
     });
+  };
 
-    this.joinResponseTimeout = joinResponseTimeout;
-    this.rpcRequestTimeout = rpcRequestTimeout;
-    // we will count the number of join failures per SFU.
-    // once the number of failures reaches 2, we will piggyback on the `migrating_from`
-    // field to force the coordinator to provide us another SFU
-    const sfuJoinFailures = new Map<string, number>();
-    const joinData: JoinCallData = data;
-    maxJoinRetries = Math.max(maxJoinRetries, 1);
-    try {
-      await this.clientEventReporter.withJoinLifecycle(
-        this.cid,
-        'first-attempt',
-        async () => {
-          for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
-            try {
-              this.logger.trace(`Joining call (${attempt})`, this.cid);
-              await this.doJoin(data);
-              delete joinData.migrating_from;
-              delete joinData.migrating_from_list;
-              return;
-            } catch (err) {
-              this.logger.warn(`Failed to join call (${attempt})`, this.cid);
-              if (
-                (err instanceof ErrorFromResponse && err.unrecoverable) ||
-                (err instanceof SfuJoinError && err.unrecoverable)
-              ) {
-                throw err;
-              }
+  private coreJoin = singleFlight(
+    async ({
+      maxJoinRetries = 3,
+      joinResponseTimeout,
+      rpcRequestTimeout,
+      allowOwnTracksLoopback = false,
+      ...data
+    }: JoinCallData & {
+      maxJoinRetries?: number;
+      joinResponseTimeout?: number;
+      rpcRequestTimeout?: number;
+      allowOwnTracksLoopback?: boolean;
+    } = {}): Promise<void> => {
+      const callingState = this.state.callingState;
 
-              const switchSfu =
-                err instanceof SfuJoinError &&
-                SfuJoinError.isJoinErrorCode(err.errorEvent);
+      if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
+        throw new Error(`Illegal State: call.join() shall be called only once`);
+      }
 
-              const sfuId = this.credentials?.server.edge_name;
-              if (sfuId) {
-                const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
-                sfuJoinFailures.set(sfuId, failures);
-                if (switchSfu || failures >= 2) {
-                  joinData.migrating_from = sfuId;
-                  joinData.migrating_from_list = Array.from(
-                    sfuJoinFailures.keys(),
-                  );
-                  if (attempt < maxJoinRetries - 1) {
-                    this.clientEventReporter.startCorrelation(
-                      this.cid,
-                      'first-attempt',
+      // we need this to be set before the callingx.joinCall() is
+      // called to avoid registering the test call in the CallKit/Telecom
+      this.allowOwnTracksLoopback = allowOwnTracksLoopback;
+
+      if (data?.ring) {
+        this.ringingSubject.next(true);
+      }
+
+      const generationAtJoin = this.leaveGeneration;
+      /**
+       * Must live here: `doJoin` captures `leaveGeneration` itself, so from then
+       * on its own staleness checks compare the new value with itself and cannot
+       * see a `leave()` that landed during an earlier await or a retry backoff.
+       * Reuses the existing signal rather than adding another.
+       */
+      const assertNotSuperseded = () => {
+        if (this.leaveGeneration !== generationAtJoin) {
+          throw new Error('Call was left while the join was in progress');
+        }
+      };
+
+      const callingX = globalThis.streamRNVideoSDK?.callingX;
+      if (callingX) {
+        // for Android/iOS, we need to start the call in the callingx library as soon as possible
+        await callingX.joinCall(
+          this,
+          this.clientStore.calls,
+          () => this.leaveGeneration !== generationAtJoin,
+        );
+        assertNotSuperseded();
+      }
+
+      await this.setup();
+      assertNotSuperseded();
+
+      this.clientEventReporter.registerCall(this.cid, {
+        callType: this.type,
+        callId: this.id,
+        getCallSessionId: () => this.state.session?.id ?? '',
+        getSfuId: () => this.credentials?.server.edge_name ?? '',
+      });
+
+      this.joinResponseTimeout = joinResponseTimeout;
+      this.rpcRequestTimeout = rpcRequestTimeout;
+      // we will count the number of join failures per SFU.
+      // once the number of failures reaches 2, we will piggyback on the `migrating_from`
+      // field to force the coordinator to provide us another SFU
+      const sfuJoinFailures = new Map<string, number>();
+      const joinData: JoinCallData = data;
+      maxJoinRetries = Math.max(maxJoinRetries, 1);
+      try {
+        await this.clientEventReporter.withJoinLifecycle(
+          this.cid,
+          'first-attempt',
+          async () => {
+            for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+              // A leave during the backoff below cancels the whole join, not
+              // just the attempt that failed.
+              assertNotSuperseded();
+              try {
+                this.logger.trace(`Joining call (${attempt})`, this.cid);
+                await this.doJoin(data);
+                delete joinData.migrating_from;
+                delete joinData.migrating_from_list;
+                return;
+              } catch (err) {
+                this.logger.warn(`Failed to join call (${attempt})`, this.cid);
+                if (
+                  (err instanceof ErrorFromResponse && err.unrecoverable) ||
+                  (err instanceof SfuJoinError && err.unrecoverable)
+                ) {
+                  throw err;
+                }
+
+                const switchSfu =
+                  err instanceof SfuJoinError &&
+                  SfuJoinError.isJoinErrorCode(err.errorEvent);
+
+                const sfuId = this.credentials?.server.edge_name;
+                if (sfuId) {
+                  const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
+                  sfuJoinFailures.set(sfuId, failures);
+                  if (switchSfu || failures >= 2) {
+                    joinData.migrating_from = sfuId;
+                    joinData.migrating_from_list = Array.from(
+                      sfuJoinFailures.keys(),
                     );
+                    if (attempt < maxJoinRetries - 1) {
+                      this.clientEventReporter.startCorrelation(
+                        this.cid,
+                        'first-attempt',
+                      );
+                    }
                   }
                 }
-              }
 
-              if (attempt === maxJoinRetries - 1) {
-                throw err;
+                if (attempt === maxJoinRetries - 1) {
+                  throw err;
+                }
               }
+              await sleep(retryInterval(attempt));
             }
-            await sleep(retryInterval(attempt));
-          }
-        },
-      );
-    } catch (error) {
-      callingX?.endCall(this, 'error');
-      throw error;
-    }
-  };
+          },
+        );
+      } catch (error) {
+        callingX?.endCall(this, 'error');
+        throw error;
+      }
+    },
+  );
 
   /**
    * Will make a single attempt to watch for call related WebSocket events
@@ -1430,7 +1502,10 @@ export class Call {
       this.state.settings &&
       !supersededByLeave()
     ) {
-      await this.applyDeviceConfig(this.state.settings, true, false);
+      await this.applyDeviceConfig(this.state.settings, {
+        publish: true,
+        skipSpeakerApply: false,
+      });
       this.deviceSettingsAppliedOnce = true;
     }
 
@@ -3372,20 +3447,29 @@ export class Call {
    */
   applyDeviceConfig = async (
     settings: CallSettingsResponse,
-    publish: boolean,
-    skipSpeakerApply: boolean,
+    opts: {
+      publish: boolean;
+      skipSpeakerApply?: boolean;
+      withDisabledDevices?: boolean;
+    },
   ) => {
+    const {
+      publish,
+      // Skip speaker setup on RN until joining (explicitly passed as false during join())
+      skipSpeakerApply = isReactNative(),
+      withDisabledDevices,
+    } = opts;
     if (!skipSpeakerApply) {
-      await this.speaker.apply(settings).catch((err) => {
-        this.logger.warn('Speaker init failed', err);
-      });
+      await this.speaker
+        .apply(settings)
+        .catch((err) => this.logger.warn('Speaker init failed', err));
     }
-    await this.camera.apply(settings.video, publish).catch((err) => {
-      this.logger.warn('Camera init failed', err);
-    });
-    await this.microphone.apply(settings.audio, publish).catch((err) => {
-      this.logger.warn('Mic init failed', err);
-    });
+    await this.camera
+      .apply(settings.video, publish, withDisabledDevices)
+      .catch((err) => this.logger.warn('Camera init failed', err));
+    await this.microphone
+      .apply(settings.audio, publish, withDisabledDevices)
+      .catch((err) => this.logger.warn('Mic init failed', err));
   };
 
   /**

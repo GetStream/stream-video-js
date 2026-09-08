@@ -37,8 +37,9 @@ export * from './modules/call-manager';
 export { StreamVideo } from './providers/StreamVideo';
 export { StreamCall } from './providers/StreamCall';
 // Overriding 'EncryptionManager' from '@stream-io/video-client' with the React
-// Native implementation, which is backed by the native WebRTC transform and
-// delegates to the web one on React Native Web.
+// Native implementation, which is backed by the native WebRTC transform. React
+// Native Web is not supported: `isSupported()` returns false there rather than
+// falling back to the web manager.
 export { EncryptionManager } from './modules/encryption';
 export * from './providers/NoiseCancellation';
 

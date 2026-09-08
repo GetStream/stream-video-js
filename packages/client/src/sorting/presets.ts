@@ -4,6 +4,7 @@ import { ParticipantSource } from '../gen/video/sfu/models/models';
 import {
   dominantSpeaker,
   pinned,
+  publishing,
   publishingAudio,
   publishingVideo,
   reactionType,
@@ -51,6 +52,7 @@ const withVideoIngressSource = withParticipantSource(
 export const defaultSortPreset = combineComparators(
   screenSharing,
   pinned,
+  publishing,
   ifInvisibleBy(
     combineComparators(
       dominantSpeaker,
@@ -69,6 +71,7 @@ export const speakerLayoutSortPreset = combineComparators(
   screenSharing,
   pinned,
   dominantSpeaker,
+  publishing,
   ifInvisibleBy(
     combineComparators(
       speaking,
@@ -102,6 +105,7 @@ export const paginatedLayoutSortPreset = combineComparators(
  * The sorting preset for livestreams and audio rooms.
  */
 export const livestreamOrAudioRoomSortPreset = combineComparators(
+  publishing,
   ifInvisibleOrUnknownBy(
     combineComparators(
       dominantSpeaker,

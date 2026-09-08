@@ -277,7 +277,7 @@ describe('StreamVideoClient.connectUser retries', () => {
 });
 
 describe('StreamVideoClient.watchCalls retries', () => {
-  it('should retry queryCalls up to 3 times after reconnecting', async () => {
+  it('should retry the re-watch request up to 3 times after reconnecting', async () => {
     vi.useFakeTimers();
     const client = new StreamVideoClient(apiKey, {
       browser: true,
@@ -290,8 +290,8 @@ describe('StreamVideoClient.watchCalls retries', () => {
     const call = client.call('default', generateUUIDv4());
     await call.getOrCreate();
 
-    const queryCallsSpy = vi
-      .spyOn(client, 'queryCalls')
+    const doQueryCalls = vi
+      .spyOn(client as any, 'doQueryCalls')
       .mockRejectedValueOnce(new Error('fail 1'))
       .mockRejectedValueOnce(new Error('fail 2'))
       .mockResolvedValue({
@@ -306,7 +306,7 @@ describe('StreamVideoClient.watchCalls retries', () => {
 
     await vi.runAllTimersAsync();
 
-    expect(queryCallsSpy).toHaveBeenCalledTimes(3);
+    expect(doQueryCalls).toHaveBeenCalledTimes(3);
 
     await client.disconnectUser();
 
@@ -327,8 +327,8 @@ describe('StreamVideoClient.watchCalls retries', () => {
     const call = client.call('default', generateUUIDv4());
     await call.getOrCreate();
 
-    const queryCallsSpy = vi
-      .spyOn(client, 'queryCalls')
+    const doQueryCalls = vi
+      .spyOn(client as any, 'doQueryCalls')
       .mockRejectedValueOnce(new Error('fail 1'))
       .mockRejectedValueOnce(new Error('fail 2'))
       .mockRejectedValueOnce(new Error('fail 3'))
@@ -344,7 +344,7 @@ describe('StreamVideoClient.watchCalls retries', () => {
 
     await vi.runAllTimersAsync();
 
-    expect(queryCallsSpy).toHaveBeenCalledTimes(3);
+    expect(doQueryCalls).toHaveBeenCalledTimes(3);
 
     await client.disconnectUser();
     vi.useRealTimers();
@@ -363,10 +363,12 @@ describe('StreamVideoClient.watchCalls retries', () => {
     const call = client.call('default', generateUUIDv4());
     await call.getOrCreate();
 
-    const queryCallsSpy = vi.spyOn(client, 'queryCalls').mockResolvedValue({
-      calls: [],
-      duration: '0ms',
-    });
+    const doQueryCalls = vi
+      .spyOn(client as any, 'doQueryCalls')
+      .mockResolvedValue({
+        calls: [],
+        duration: '0ms',
+      });
 
     client.streamClient.dispatchEvent({
       type: 'connection.changed',
@@ -375,7 +377,7 @@ describe('StreamVideoClient.watchCalls retries', () => {
 
     await vi.runAllTimersAsync();
 
-    expect(queryCallsSpy).toHaveBeenCalledTimes(1);
+    expect(doQueryCalls).toHaveBeenCalledTimes(1);
 
     await client.disconnectUser();
     vi.useRealTimers();

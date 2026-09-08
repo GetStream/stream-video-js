@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   hasPending,
+  singleFlight,
   withCancellation,
   withoutConcurrency,
 } from '../concurrency';
@@ -166,6 +167,79 @@ it('keeps track of pending promises', async () => {
   resolve2();
   await ready2;
   expect(hasPending(tag)).toBeFalsy();
+});
+
+describe('single flight', () => {
+  it('shares an in-flight promise for the wrapped function', async () => {
+    const [run1, resolve1] = mockAsyncFn('promise1');
+    const run = singleFlight(run1);
+
+    const ready1 = run();
+    const ready2 = run();
+
+    expect(ready2).toBe(ready1);
+    expect(log).toMatchObject(['promise1 start']);
+
+    resolve1();
+    await expect(Promise.all([ready1, ready2])).resolves.toEqual([
+      undefined,
+      undefined,
+    ]);
+    expect(log).toMatchObject(['promise1 start', 'promise1 end']);
+  });
+
+  it('allows a new execution after the in-flight promise settles', async () => {
+    const [run1, resolve1] = mockAsyncFn('promise1');
+    const run = singleFlight(run1);
+
+    const ready1 = run();
+    resolve1();
+    await ready1;
+
+    const ready2 = run();
+    expect(ready2).not.toBe(ready1);
+
+    resolve1();
+    await ready2;
+    expect(log).toMatchObject([
+      'promise1 start',
+      'promise1 end',
+      'promise1 start',
+      'promise1 end',
+    ]);
+  });
+
+  it('does not share promises across different wrapped functions', async () => {
+    const [runTom, resolveTom] = mockAsyncFn('tom');
+    const [runJerry, resolveJerry] = mockAsyncFn('jerry');
+    const tom = singleFlight(runTom);
+    const jerry = singleFlight(runJerry);
+
+    const readyTom = tom();
+    const readyJerry = jerry();
+
+    expect(readyJerry).not.toBe(readyTom);
+    expect(log).toMatchObject(['tom start', 'jerry start']);
+
+    resolveTom();
+    resolveJerry();
+    await Promise.all([readyTom, readyJerry]);
+  });
+
+  it('shares the first call arguments while a call is in flight', async () => {
+    const run = singleFlight(async (value: string) => {
+      log.push(`${value} start`);
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      log.push(`${value} end`);
+      return value;
+    });
+
+    await expect(Promise.all([run('first'), run('second')])).resolves.toEqual([
+      'first',
+      'first',
+    ]);
+    expect(log).toMatchObject(['first start', 'first end']);
+  });
 });
 
 describe('cancelation', () => {

@@ -266,8 +266,8 @@ describe('CallState', () => {
           "E",
           "F",
           "A",
-          "C",
           "D",
+          "C",
         ]
       `);
 
@@ -288,8 +288,8 @@ describe('CallState', () => {
           "E",
           "F",
           "A",
-          "C",
           "D",
+          "C",
         ]
       `);
     });

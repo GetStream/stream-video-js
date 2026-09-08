@@ -4,25 +4,36 @@
 
 import '../rtc/__tests__/mocks/webrtc.mocks';
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Call } from '../Call';
 import { StreamClient } from '../coordinator/connection/client';
 import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { StreamVideoWriteableStateStore } from '../store';
+import { promiseWithResolvers } from '../helpers/promise';
 
 describe('Call lifecycle wiring', () => {
   let call: Call;
 
   beforeEach(() => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      headers: { get: () => 'AMS1-P2' },
+    } as Response);
     const streamClient = new StreamClient('abc');
     call = new Call({
       type: 'test',
       id: generateUUIDv4(),
       streamClient,
-      clientEventReporter: new ClientEventReporter({ streamClient }),
+      clientEventReporter: new ClientEventReporter({
+        streamClient,
+        enabled: false,
+      }),
       clientStore: new StreamVideoWriteableStateStore(),
     });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   // Regression guard for the Call-owned helper teardown chain. Each of
@@ -66,5 +77,25 @@ describe('Call lifecycle wiring', () => {
 
     expect(trackSubOrder).toBeLessThan(audioBindingsOrder);
     expect(audioBindingsOrder).toBeLessThan(dynascaleOrder);
+  });
+
+  it('call.join() shares an in-flight join flow', async () => {
+    const joinTask = promiseWithResolvers<void>();
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    const doJoin = vi
+      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .mockReturnValue(joinTask.promise);
+
+    const firstJoin = call.join();
+    const secondJoin = call.join();
+
+    await Promise.resolve();
+    expect(doJoin).toHaveBeenCalledTimes(1);
+
+    joinTask.resolve();
+    await expect(Promise.all([firstJoin, secondJoin])).resolves.toEqual([
+      undefined,
+      undefined,
+    ]);
   });
 });

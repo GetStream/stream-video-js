@@ -9,6 +9,8 @@ import {
 } from 'vitest';
 import { StreamVideoClient } from '../StreamVideoClient';
 import { Call } from '../Call';
+import { CameraManager } from '../devices/CameraManager';
+import { MicrophoneManager } from '../devices/MicrophoneManager';
 import { CallCreatedPayload } from './data';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import type { StreamClient } from '../coordinator/connection/client';
@@ -71,6 +73,37 @@ describe('StreamVideoClient - coordinator API', () => {
     const [call] = result.calls;
     expect(call).toBeInstanceOf(Call);
     expect(call.cid).toBe(CallCreatedPayload.call.cid);
+  });
+
+  it('query calls keeps devices disabled by default', async () => {
+    const response: QueryCallsResponse = {
+      duration: '1ms',
+      calls: [
+        {
+          call: CallCreatedPayload.call,
+          members: CallCreatedPayload.members,
+          own_capabilities: [],
+        },
+      ],
+    };
+    post.mockResolvedValue(response);
+    const applyCamera = vi
+      .spyOn(CameraManager.prototype, 'apply')
+      .mockResolvedValue();
+    const applyMicrophone = vi
+      .spyOn(MicrophoneManager.prototype, 'apply')
+      .mockResolvedValue();
+
+    await client.queryCalls();
+    await client.queryCalls({}, {});
+    await client.queryCalls({}, { withDisabledDevices: false });
+
+    expect(
+      applyCamera.mock.calls.map(([, , forceDisabled]) => forceDisabled),
+    ).toEqual([true, true, false]);
+    expect(
+      applyMicrophone.mock.calls.map(([, , forceDisabled]) => forceDisabled),
+    ).toEqual([true, true, false]);
   });
 
   it('query calls - ongoing', async () => {

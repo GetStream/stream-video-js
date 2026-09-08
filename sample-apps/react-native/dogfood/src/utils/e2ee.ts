@@ -100,18 +100,21 @@ const deriveKeyFromPassphrase = (passphrase: string): ArrayBuffer =>
 /**
  * Whether calls should be created and joined end-to-end encrypted.
  *
- * Device support is part of the answer, not a separate check: a call created
- * with `auto-on` requires E2EE, so creating one on a device that cannot encrypt
- * would produce a call this client is then rejected from joining.
+ * Reports intent only - whether a key is configured. Device capability is a
+ * separate question, {@link isE2EESupported}, so that an unsupported build fails
+ * visibly instead of silently downgrading a call the user asked to encrypt.
  */
-export const isE2EEConfigured = (): boolean => {
-  if (!getE2EEKeyInput()) return false;
-  if (!EncryptionManager.isSupported()) {
-    console.warn('E2EE key is set but E2EE is not supported on this device');
-    return false;
-  }
-  return true;
-};
+export const isE2EEConfigured = (): boolean => Boolean(getE2EEKeyInput());
+
+/**
+ * Whether this device can honour a configured key.
+ *
+ * Deliberately separate from {@link isE2EEConfigured}: a key in the field is the
+ * user asking for privacy, and an old build that cannot encrypt is not a reason to
+ * quietly give them a plaintext call instead. Callers block on this rather than
+ * falling back - see {@link attachE2EEIfConfigured}.
+ */
+export const isE2EESupported = (): boolean => EncryptionManager.isSupported();
 
 /**
  * The `settings_override` to create a call with, or `undefined` when E2EE is off.
@@ -119,9 +122,9 @@ export const isE2EEConfigured = (): boolean => {
  * Spread into the create (or `join({ create: true })`) data. Encryption is frozen
  * when the call is created, so this has to be set there rather than at join time.
  *
- * It answers to the same predicate as {@link attachE2EEIfConfigured} on purpose:
- * creating an `auto-on` call this client then cannot encrypt for would produce a
- * call it is rejected from joining.
+ * Follows intent, not capability. A device that cannot encrypt still creates the
+ * call encrypted and then fails loudly at {@link attachE2EEIfConfigured}, rather
+ * than creating a plain call and joining it in the clear.
  */
 export const getE2EESettingsOverride = () =>
   isE2EEConfigured() ? { encryption: ENCRYPTION_OVERRIDE } : undefined;
@@ -219,6 +222,14 @@ export const attachE2EEIfConfigured = async (call: Call): Promise<void> => {
     console.log('[e2ee] no usable key configured, joining unencrypted');
     return;
   }
+  if (!isE2EESupported()) {
+    // The user asked for an encrypted call and this build cannot provide one.
+    // Failing here stops the join; joining anyway would hand them a call that
+    // looks private and is not.
+    throw new Error(
+      'An encryption key is set, but end-to-end encryption is not supported on this device or build.',
+    );
+  }
   const input = getE2EEKeyInput()!;
 
   const userId = call.currentUserId;
@@ -246,7 +257,10 @@ export const attachE2EEIfConfigured = async (call: Call): Promise<void> => {
     }
     call.setE2EEManager(manager);
   } catch (error) {
+    // Release the half-built manager, then let the caller abort. Resolving here
+    // would tell `Call.join()` that encryption is in place when it is not, and
+    // the join would proceed to publish in the clear.
     manager?.dispose();
-    console.error('Failed to enable E2EE for the call', error);
+    throw error;
   }
 };

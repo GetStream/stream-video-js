@@ -14,6 +14,7 @@ import {
   type EventParams,
 } from './libs/callingx';
 import { Platform } from 'react-native';
+import { onRingNotificationReceived } from './internal/android';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -62,11 +63,10 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
   const events = callingx.getInitialEvents();
   events.forEach((event: EventData) => {
     const { eventName, params } = event;
+    logger.debug(`${eventName} delayed event`);
     if (eventName === 'answerCall') {
-      logger.debug(`answerCall delayed event callId: ${params?.callId}`);
       onAcceptCall(pushConfig)(params as EventParams['answerCall']);
     } else if (eventName === 'endCall') {
-      logger.debug(`endCall delayed event callId: ${params?.callId}`);
       onEndCall(pushConfig)(params as EventParams['endCall']);
     } else if (eventName === 'didActivateAudioSession') {
       onDidActivateAudioSession();
@@ -74,6 +74,10 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
       onDidDeactivateAudioSession();
     } else if (eventName === 'providerReset') {
       onProviderReset(pushConfig)(params as EventParams['providerReset']);
+    } else if (eventName === 'ringCallPushReceived') {
+      onRingNotificationReceived(params).catch((error) => {
+        logger.error(`Error in onRingNotificationReceived: ${error}`);
+      });
     }
   });
 }
@@ -128,7 +132,6 @@ const onAcceptCall =
 
     const callingx = getCallingxLib();
     clearPushWSEventSubscriptions(call_cid);
-
     processCallFromPushInBackground(
       pushConfig,
       call_cid,

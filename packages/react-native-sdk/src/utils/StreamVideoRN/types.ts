@@ -19,6 +19,67 @@ export type KeepAliveAndroidNotificationTexts = {
 export type NonRingingPushEvent =
   'call.live_started' | 'call.notification' | 'call.missed';
 
+/**
+ * Hooks that run around a ringing call's join, wherever that join is triggered.
+ *
+ * A ringing call is joined by the SDK, not by your code: the accept button joins
+ * internally, and an outgoing call joins itself once the callee answers. That
+ * leaves no moment in which app code holds the call and the join has not yet
+ * happened - which is a problem for anything that must be installed first, most
+ * notably `call.setE2EEManager()`, since it throws once a call has peer
+ * connections.
+ *
+ * These hooks are that moment. They run for every ringing path: accepted from the
+ * CallKit/Telecom UI, accepted inside the app, and outgoing.
+ *
+ * Register them with {@link StreamVideoRN.setRingingCallLifecycleHooks} at your app's
+ * entry point, next to `setPushConfig`. A call accepted from a push notification
+ * can be created and joined before any component mounts - the app may be launched
+ * from a killed state - so registering them from inside React is too late.
+ */
+export type RingingCallLifecycleHooks = {
+  /**
+   * Awaited by `Call.join()` for a ringing call, before any peer connection exists.
+   * **Throwing aborts the join** and the call is not entered.
+   *
+   * That is deliberate: joining without whatever this hook installs would, in the
+   * E2EE case, publish unencrypted media on a call the user believes is private.
+   * On the push path there is no UI to reveal it, so the join fails closed instead.
+   *
+   * Keep it fast. On the CallKit accept path it runs inside iOS's accept deadline
+   * (roughly 30s before the app is killed) and anything slower than five seconds is
+   * treated as a failure. Deriving a key locally is fine; fetching one over the
+   * network does not belong here.
+   *
+   * @example
+   * onBeforeCallJoin: async (call) => {
+   *   await attachE2EEIfConfigured(call);
+   * }
+   */
+  onBeforeCallJoin?: (call: Call) => Promise<void>;
+  /**
+   * Called once, when a ringing call is finished with: normally when it leaves, and
+   * also when a join fails after {@link onBeforeCallJoin} has already run -
+   * otherwise whatever that hook installed would never be released. A call that
+   * rings and is then rejected, cancelled or missed never joins, so it was never
+   * set up and there is nothing here to release.
+   *
+   * Use it to free per-call resources the SDK does not own. An E2EE manager is the
+   * motivating case: it has no native detach, closing the peer connections does not
+   * free it, and on the push path the call can end while the app is still in the
+   * background, where no React cleanup ever runs.
+   *
+   * When an {@link onBeforeCallJoin} is also registered, this is only called for a
+   * call that hook actually entered, so it always pairs with a setup that happened.
+   * Registered on its own it has no such pairing to honour and is called for every
+   * ringing call that ends.
+   *
+   * May return a promise; rejections are logged. Nothing is gated on it, so do not
+   * rely on it completing before the OS suspends the app.
+   */
+  onAfterCallLeave?: (call: Call) => void | Promise<void>;
+};
+
 export type StreamVideoConfig = {
   /**
    * The configuration to be used for push notifications.
@@ -164,42 +225,6 @@ export type StreamVideoConfig = {
      * }
      */
     createStreamVideoClient: () => Promise<StreamVideoClient | undefined>;
-    /**
-     * Awaited before a call accepted from a push notification joins.
-     * **Throwing aborts the join** and the call is not entered.
-     *
-     * This is the only window in which per-call setup that must precede the join is
-     * possible on this path: the call is created inside the SDK from the push payload,
-     * so no app code ever holds it. `call.setE2EEManager()` in particular throws once
-     * the call has peer connections.
-     *
-     * Keep it fast. The iOS CallKit accept has a hard deadline and this hook runs
-     * inside it, so anything slower than a few seconds is treated as a failure.
-     *
-     * @example
-     * onBeforeCallJoin: async (call) => {
-     *   await attachE2EEIfConfigured(call);
-     * }
-     */
-    onBeforeCallJoin?: (call: Call) => Promise<void>;
-    /**
-     * Called once, when a call accepted from a push notification is finished with:
-     * normally when it leaves, and also when the join fails after
-     * {@link onBeforeCallJoin} has already run - otherwise whatever that hook
-     * installed would never be released.
-     *
-     * Use it to free per-call resources the SDK does not own. An E2EE manager is the
-     * motivating case: it has no native detach, closing the peer connections does not
-     * free it, and on this path the call can end while the app is still in the
-     * background, so no React cleanup ever runs.
-     *
-     * Only called when {@link onBeforeCallJoin} was reached, so it always pairs with
-     * a setup that actually happened.
-     *
-     * May return a promise; rejections are logged. Nothing is gated on it, so do not
-     * rely on it completing before the OS suspends the app.
-     */
-    onAfterCallLeave?: (call: Call) => void | Promise<void>;
   };
   foregroundService: {
     android: {
@@ -212,8 +237,7 @@ export type StreamVideoConfig = {
        */
       notificationTexts: KeepAliveAndroidNotificationTexts;
       /**
-       * The task to run in the foreground service
-       * The task must resolve a promise once complete
+       * The task to run in the foreground service.
        */
       taskToRun: (call: Call) => Promise<void>;
     };

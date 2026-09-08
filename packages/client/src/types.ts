@@ -458,7 +458,17 @@ type StreamRNVideoSDKEndCallReason =
   | 'unknown';
 
 type StreamRNVideoSDKCallingX = {
-  joinCall: (call: Call, activeCalls: Call[]) => Promise<void>;
+  /**
+   * @param isCancelled - polled after any wait inside the bridge. Registration
+   *   is skipped when it returns true. Supplied by the join attempt itself,
+   *   because the call's own state cannot distinguish a fresh join starting
+   *   from `LEFT` from an abandoned one that reached `LEFT` while waiting.
+   */
+  joinCall: (
+    call: Call,
+    activeCalls: Call[],
+    isCancelled?: () => boolean,
+  ) => Promise<void>;
   endCall: (
     call: Call,
     reason?: StreamRNVideoSDKEndCallReason,
@@ -468,8 +478,33 @@ type StreamRNVideoSDKCallingX = {
   unwireAudioEngineSubscription: () => void;
 };
 
+/**
+ * React Native's owner for a ringing call's join.
+ *
+ * A ringing call is joined by the SDK rather than by app code - the accept
+ * button joins internally, and an outgoing call joins itself once the callee
+ * answers - so there is no point at which the app holds the call and can still
+ * set it up. React Native therefore takes the whole operation: it runs the
+ * app's pre-join hook, decides what a duplicate or retried trigger does, and
+ * releases whatever it installed when the join fails.
+ */
+type StreamRNVideoSDKRingingCallLifecycle = {
+  /**
+   * Runs one ringing join. `proceed` performs the actual join and must not be
+   * called before the app's setup hook has resolved.
+   *
+   * Rejects when setup fails or is refused, which fails the join closed rather
+   * than connecting with nothing installed.
+   */
+  runJoin: (call: Call, proceed: () => Promise<void>) => Promise<void>;
+
+  /** The call has ended; release whatever the pre-join hook installed. */
+  onLeave: (call: Call) => void;
+};
+
 export type StreamRNVideoSDKGlobals = {
   callingX: StreamRNVideoSDKCallingX;
+  ringingCallLifecycle: StreamRNVideoSDKRingingCallLifecycle;
   callManager: {
     /**
      * Sets up the in call manager.

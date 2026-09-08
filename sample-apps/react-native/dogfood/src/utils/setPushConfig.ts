@@ -35,9 +35,13 @@ export function setPushConfig() {
     },
     shouldRejectCallWhenBusy: false,
     createStreamVideoClient,
-    // A call accepted from CallKit/Telecom is created and joined inside the SDK, so
-    // these two hooks are the only place app code can attach and release an E2EE
-    // manager on that path - the app may never even reach React, if it was killed.
+  });
+
+  // Covers every ringing path - accepted from CallKit/Telecom, accepted in-app, and
+  // outgoing. A ringing call is joined by the SDK, not by us, so this is the only
+  // window in which the E2EE manager can be attached; on the push path the app may
+  // never even reach React, if it was killed.
+  StreamVideoRN.setRingingCallLifecycleHooks({
     onBeforeCallJoin: attachE2EEIfConfigured,
     onAfterCallLeave: disposeE2EEManager,
   });

@@ -25,10 +25,7 @@ import { TextInput } from '../../components/TextInput';
 import { KnownUsers } from '../../constants/KnownUsers';
 import { randomId } from '../../modules/helpers/randomId';
 import { useOrientation } from '../../hooks/useOrientation';
-import {
-  attachE2EEIfConfigured,
-  getE2EESettingsOverride,
-} from '../../utils/e2ee';
+import { getE2EESettingsOverride } from '../../utils/e2ee';
 
 const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
@@ -74,11 +71,6 @@ const JoinCallScreen = () => {
           }),
         },
       });
-      // The caller's own join is triggered inside the client when the callee accepts,
-      // so attach now: this is the whole window, and it stays open until then.
-      if (call) {
-        await attachE2EEIfConfigured(call);
-      }
     } catch (error) {
       if (error instanceof Error) {
         Alert.alert('Error calling users', error.message);

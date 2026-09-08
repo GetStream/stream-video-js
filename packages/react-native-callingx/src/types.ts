@@ -203,6 +203,14 @@ export interface ICallingxModule {
 
   registerVoipToken(): void;
 
+  /**
+   * Asks the Android call service to stop. Android-only; resolves as a no-op on iOS.
+   *
+   * This is a *request*, not a command: the service hosts every call, so it stays alive while any
+   * call is registered or in the middle of being registered. Use {@link endCallWithReason} to tear
+   * down an individual call — this method never ends calls, and never dismisses their
+   * notifications.
+   */
   stopService(): Promise<void>;
 
   /**
@@ -370,7 +378,20 @@ export type EventName =
   | 'didPerformSetMutedCallAction'
   | 'didActivateAudioSession'
   | 'didDeactivateAudioSession'
-  | 'providerReset';
+  | 'providerReset'
+  | 'ringCallPushReceived';
+
+export type RingCallPushPayload = {
+  call_cid?: string;
+  sender?: string;
+  type?: string;
+  created_by_id?: string;
+  created_by_display_name?: string;
+  call_display_name?: string;
+  receiver_id?: string;
+  video?: string;
+  version?: string;
+};
 
 export type IOSAudioInterruptionEvent = {
   source: 'callingx';
@@ -410,6 +431,7 @@ export type EventParams = {
   providerReset: {
     callCids: string[];
   };
+  ringCallPushReceived: RingCallPushPayload;
 };
 
 export type VoipEventName =

@@ -50,6 +50,13 @@ export const useE2eeKeyStatus = (): E2EEKeyStatus => {
   );
 
   useEffect(() => {
+    // Failure state belongs to the manager that reported it. A different call or a
+    // fresh manager has no history to recover from, so it can never emit the
+    // `decryption_resumed` that would clear an inherited entry - the warning would
+    // simply stick. Reset before the guard below, so that moving to a call with no
+    // manager at all (or a custom one) clears it too rather than freezing it.
+    setStalledTracks(new Set());
+
     // Only the built-in manager emits these events; a custom E2EEManager
     // implementation satisfies the RTC contract without them.
     const manager = call?.e2eeManager;
@@ -78,7 +85,7 @@ export const useE2eeKeyStatus = (): E2EEKeyStatus => {
     ];
 
     return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
-  }, [call]);
+  }, [call, call?.e2eeManager]);
 
   return useMemo(() => {
     if (stalledTracks.size === 0) return { kind: 'ok' };

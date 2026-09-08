@@ -1,10 +1,7 @@
 import messaging, {
   FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-import {
-  isFirebaseStreamVideoMessage,
-  firebaseDataHandler,
-} from '@stream-io/video-react-native-sdk';
+import { isFirebaseStreamVideoMessage } from '@stream-io/video-react-native-sdk';
 import {
   displayNonRingingNotification,
   ensureNotificationChannel,
@@ -33,7 +30,6 @@ export const setNotificationListeners = () => {
   // Background message handler
   messaging().setBackgroundMessageHandler(async (msg) => {
     if (isFirebaseStreamVideoMessage(msg)) {
-      await firebaseDataHandler(msg.data);
       await handleNonRingingMessage(msg);
     }
   });
@@ -41,7 +37,6 @@ export const setNotificationListeners = () => {
   // Foreground message handler
   messaging().onMessage(async (msg) => {
     if (isFirebaseStreamVideoMessage(msg)) {
-      await firebaseDataHandler(msg.data);
       await handleNonRingingMessage(msg);
     }
   });

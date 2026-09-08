@@ -2,9 +2,9 @@ package io.getstream.rn.callingx
 
 import android.os.Bundle
 
-data class CallEvent(val action: String, val extras: Bundle)
+public data class CallEvent(val action: String, val extras: Bundle)
 
-object CallEventBus {
+public object CallEventBus {
 
     interface Listener {
         fun onCallEvent(event: CallEvent)
@@ -44,18 +44,13 @@ object CallEventBus {
     @JvmStatic
     @Synchronized
     fun drainPendingEvents(): List<CallEvent> {
+        isJsReady = true
         if (pendingEvents.isEmpty()) {
             return emptyList()
         }
         val copy = pendingEvents.toList()
         pendingEvents.clear()
         return copy
-    }
-
-    @JvmStatic
-    @Synchronized
-    fun markJsReady() {
-        isJsReady = true
     }
 }
 

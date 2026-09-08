@@ -7,6 +7,7 @@ import {
 } from '../contexts/AppContext';
 import { appTheme } from '../theme';
 import { TextInput } from './TextInput';
+import { isE2EESupported } from '../utils/e2ee';
 
 /**
  * Debug entry for the end-to-end encryption key.
@@ -34,6 +35,14 @@ export const E2EEKeyInput = () => {
     [setState],
   );
 
+  // A key on a build that cannot encrypt is not "set" in any useful sense - the
+  // join will refuse rather than quietly go out in the clear, so say so here.
+  const status = !draft.trim()
+    ? 'Off'
+    : isE2EESupported()
+      ? 'Key set'
+      : 'Not supported on this device';
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>End-to-end encryption</Text>
@@ -44,7 +53,7 @@ export const E2EEKeyInput = () => {
         autoCorrect={false}
         onChangeText={onChangeText}
       />
-      <Text style={styles.status}>{draft.trim() ? 'Key set' : 'Off'}</Text>
+      <Text style={styles.status}>{status}</Text>
     </View>
   );
 };

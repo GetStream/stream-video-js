@@ -45,6 +45,30 @@ export const withCancellation = createRunner(wrapWithCancellation);
 
 const pendingPromises = new Map<TagKey, PendingPromise>();
 
+/**
+ * Wraps an async function so concurrent calls share the in-flight promise
+ * instead of queueing another execution.
+ *
+ * @param cb Async function to wrap.
+ * @returns Wrapped async function.
+ */
+export function singleFlight<P extends unknown[], T>(
+  cb: (...args: P) => Promise<T>,
+): (...args: P) => Promise<T> {
+  let pending: Promise<T> | undefined;
+  return (...args: P): Promise<T> => {
+    if (pending) return pending;
+
+    const promise = cb(...args).finally(() => {
+      if (pending === promise) {
+        pending = undefined;
+      }
+    });
+    pending = promise;
+    return promise;
+  };
+}
+
 export function hasPending(tag: TagKey) {
   return pendingPromises.has(tag);
 }

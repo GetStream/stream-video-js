@@ -1,6 +1,7 @@
 package io.getstream.rn.callingx
 
 import android.content.Context
+import android.os.Bundle
 import com.google.firebase.messaging.RemoteMessage
 import io.getstream.rn.callingx.utils.LifecycleListener
 import io.getstream.rn.callingx.utils.SettingsStore
@@ -78,6 +79,9 @@ object StreamMessagingHelper {
       debugLog(TAG, "missing call_cid for call.ring, skipping CallService start")
       return
     }
+
+    val extras = Bundle().apply { data.forEach { (key, value) -> putString(key, value) } }
+    CallEventBus.publish(CallEvent(CallingxModuleImpl.CALL_RING_PUSH_ACTION, extras))
 
     if (
         SettingsStore.shouldSkipIncomingPushInForeground(context) &&

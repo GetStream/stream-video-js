@@ -388,8 +388,13 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
    * Applies the audio settings to the microphone.
    * @param settings the audio settings to apply.
    * @param publish whether to publish the stream after applying the settings.
+   * @param forceDisabled whether to keep the mic disabled, regardless of server-side or local preferences.
    */
-  async apply(settings: AudioSettingsResponse, publish: boolean) {
+  async apply(
+    settings: AudioSettingsResponse,
+    publish: boolean,
+    forceDisabled: boolean = false,
+  ) {
     // Wait for any in progress mic operation
     await this.statusChangeSettled();
 
@@ -407,12 +412,15 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       this.devicePersistence.enabled &&
       permissionState === 'granted'
     ) {
-      persistedPreferencesApplied = await this.applyPersistedPreferences(true);
+      persistedPreferencesApplied = await this.applyPersistedPreferences(
+        true,
+        forceDisabled,
+      );
     }
 
     const canPublish = this.call.permissionsContext.canPublish(this.trackType);
     if (shouldApplyDefaults && !persistedPreferencesApplied) {
-      if (canPublish && settings.mic_default_on) {
+      if (!forceDisabled && canPublish && settings.mic_default_on) {
         await this.enable();
       }
     }
