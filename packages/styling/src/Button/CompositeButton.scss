@@ -57,7 +57,7 @@
         2 - var(--str-video__spacing-xxs)
     );
 
-    .str-video__composite-button__action {
+    > .str-video__composite-button__action {
       --str-video__composite-button-badge-cut-x: calc(
         100% - var(--str-video__composite-button-badge-inset)
       );
@@ -66,7 +66,7 @@
       );
     }
 
-    .str-video__composite-button__caret {
+    > .str-video__composite-button__caret {
       --str-video__composite-button-badge-cut-x: calc(
         100% + var(--str-video__w200)
       );
@@ -83,13 +83,13 @@
       border-radius: var(--str-video__button-radius-full);
     }
 
-    .str-video__composite-button__action:focus-visible,
-    .str-video__composite-button__caret:focus-visible {
+    > .str-video__composite-button__action:focus-visible,
+    > .str-video__composite-button__caret:focus-visible {
       outline: none;
     }
 
-    .str-video__composite-button__action,
-    .str-video__composite-button__caret {
+    > .str-video__composite-button__action,
+    > .str-video__composite-button__caret {
       --str-video__composite-button-badge-mask: radial-gradient(
         circle var(--str-video__composite-button-badge-cut) at
           var(--str-video__composite-button-badge-cut-x)
@@ -100,6 +100,8 @@
 
       -webkit-mask-image: var(--str-video__composite-button-badge-mask);
       mask-image: var(--str-video__composite-button-badge-mask);
+
+      mask-clip: no-clip;
     }
   }
 
