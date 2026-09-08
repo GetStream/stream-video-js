@@ -3,6 +3,8 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { Dispatcher } from '../rtc';
 import { StreamClient } from '../coordinator/connection/client';
 import { getTimers } from '../timers';
+import { getSdkInfo, setSdkInfo } from '../helpers/client-details';
+import { SdkType } from '../gen/video/sfu/models/models';
 
 /**
  * Minimal `WebSocket` stub used to drive `StreamSfuClient.close()` while the
@@ -429,5 +431,51 @@ describe('StreamSfuClient.leaveAndClose()', () => {
     await leavePromise;
 
     expect(notifyLeaveSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('StreamSfuClient RPC headers', () => {
+  beforeEach(() => {
+    CapturingWebSocket.instances = [];
+    vi.stubGlobal('WebSocket', CapturingWebSocket);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('identifies the SDK and its version in every RPC request', async () => {
+    const sdkInfo = getSdkInfo();
+    setSdkInfo({
+      type: SdkType.REACT,
+      major: '1',
+      minor: '2',
+      patch: '3',
+    });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response('{}', { headers: { 'content-type': 'application/json' } }),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    try {
+      const sfuClient = buildSfuClient();
+      (
+        sfuClient as unknown as {
+          joinResponseTask: { resolve: (v: unknown) => void };
+        }
+      ).joinResponseTask.resolve({});
+
+      await sfuClient.startNoiseCancellation();
+
+      const [, init] = fetchMock.mock.calls[0];
+      expect(new Headers(init.headers).get('x-stream-client')).toBe(
+        'stream-react@1.2.3',
+      );
+    } finally {
+      setSdkInfo(sdkInfo!);
+    }
   });
 });
