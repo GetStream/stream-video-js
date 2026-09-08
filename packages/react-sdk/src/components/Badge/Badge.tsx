@@ -11,10 +11,14 @@ export type BadgeSize = 'xs' | 'sm' | 'md';
 export type BadgeProps = ComponentPropsWithoutRef<'span'> & {
   variant?: BadgeVariant;
   size?: BadgeSize;
+  icon?: string;
 };
 
 /**
- * A compact circular badge for counts, notifications and error markers.
+ * A compact badge for counts, notifications and error markers.
+ *
+ * Without `icon` it is a pill that grows with its content; with `icon` it is a
+ * circle of the size given by `size`.
  *
  * The badge carries no positioning of its own — whatever it annotates places
  * it. For the call controls that is `CompositeButton`, which anchors it to the
@@ -22,7 +26,7 @@ export type BadgeProps = ComponentPropsWithoutRef<'span'> & {
  */
 export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
   function BadgeRender(
-    { variant = 'default', size = 'sm', className, children, ...rest },
+    { variant = 'default', size = 'sm', icon, className, children, ...rest },
     ref,
   ) {
     return (
@@ -32,33 +36,13 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
           'str-video__badge',
           `str-video__badge--${variant}`,
           `str-video__badge--size-${size}`,
+          icon && 'str-video__badge--icon',
           className,
         )}
         {...rest}
       >
-        {children}
+        {icon ? <Icon icon={icon} /> : children}
       </span>
-    );
-  },
-);
-
-export type ErrorBadgeProps = Omit<BadgeProps, 'variant' | 'children'>;
-
-/**
- * A `Badge` preset to the error variant, carrying the exclamation glyph.
- */
-export const ErrorBadge = forwardRef<HTMLSpanElement, ErrorBadgeProps>(
-  function ErrorBadgeRender({ size = 'sm', className, ...rest }, ref) {
-    return (
-      <Badge
-        ref={ref}
-        variant="error"
-        size={size}
-        className={clsx('str-video__badge--icon', className)}
-        {...rest}
-      >
-        <Icon icon="exclamation-mark-fill" />
-      </Badge>
     );
   },
 );

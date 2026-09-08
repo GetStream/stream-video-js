@@ -10,7 +10,7 @@ import {
   RequestPermissionRequestPermissionsEnum,
   SfuModels,
 } from '@stream-io/video-client';
-import { Badge, ErrorBadge } from '../Badge';
+import { Badge } from '../Badge';
 import { CompositeButton, CompositeButtonProps } from '../Button/';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
@@ -74,9 +74,9 @@ export const ToggleVideoPreviewButton = (
         caption={caption}
         badge={
           isPromptingPermission ? (
-            <Badge variant="error">?</Badge>
+            <Badge variant="error" icon="question-mark-fill" />
           ) : !hasBrowserPermission || isSystemMuted ? (
-            <ErrorBadge />
+            <Badge variant="error" icon="exclamation-mark-fill" />
           ) : undefined
         }
         className={clsx(
@@ -184,12 +184,12 @@ export const ToggleVideoPublishingButton = (
             caption={caption}
             badge={
               isPromptingPermission ? (
-                <Badge variant="error">?</Badge>
+                <Badge variant="error" icon="question-mark-fill" />
               ) : !hasBrowserPermission ||
                 !hasPermission ||
                 !isPublishingVideoAllowed ||
                 isSystemMuted ? (
-                <ErrorBadge />
+                <Badge variant="error" icon="exclamation-mark-fill" />
               ) : undefined
             }
             variant={optionsAwareIsMute ? 'destructive' : 'secondary'}

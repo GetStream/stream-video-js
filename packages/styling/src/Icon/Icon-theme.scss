@@ -140,6 +140,11 @@
     mask-image: var(--str-video__icon--exclamation-mark-fill);
   }
 
+  &--question-mark-fill {
+    -webkit-mask-image: var(--str-video__icon--question-mark-fill);
+    mask-image: var(--str-video__icon--question-mark-fill);
+  }
+
   &--sliders-fill {
     -webkit-mask-image: var(--str-video__icon--sliders-fill);
     mask-image: var(--str-video__icon--sliders-fill);

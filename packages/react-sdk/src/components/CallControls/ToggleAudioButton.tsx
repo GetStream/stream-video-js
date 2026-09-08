@@ -10,7 +10,7 @@ import {
   type UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
-import { Badge, ErrorBadge } from '../Badge';
+import { Badge } from '../Badge';
 import { CompositeButton, CompositeButtonProps } from '../Button';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
@@ -78,9 +78,9 @@ export const ToggleAudioPreviewButton = (
         caption={caption}
         badge={
           isPromptingPermission ? (
-            <Badge variant="error">?</Badge>
+            <Badge variant="error" icon="question-mark-fill" />
           ) : !hasBrowserPermission || isSystemMuted ? (
-            <ErrorBadge />
+            <Badge variant="error" icon="exclamation-mark-fill" />
           ) : undefined
         }
         className={clsx(
@@ -184,9 +184,9 @@ export const ToggleAudioPublishingButton = (
             caption={caption}
             badge={
               isPromptingPermission ? (
-                <Badge variant="error">?</Badge>
+                <Badge variant="error" icon="question-mark-fill" />
               ) : !hasBrowserPermission || !hasPermission || isSystemMuted ? (
-                <ErrorBadge />
+                <Badge variant="error" icon="exclamation-mark-fill" />
               ) : undefined
             }
             variant={optionsAwareIsMute ? 'destructive' : 'secondary'}
