@@ -29,6 +29,7 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
       <button
         ref={ref}
         className="rd__button rd__button--align-left rd__lobby__mic-button"
+        aria-haspopup="menu"
         aria-expanded={props.menuShown}
         title={
           isSystemMuted ? t('Microphone is paused by your system') : undefined
