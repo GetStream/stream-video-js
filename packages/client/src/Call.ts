@@ -297,6 +297,7 @@ export class Call {
   private readonly dispatcher = new Dispatcher();
 
   private clientPublishOptions?: ClientPublishOptions;
+  private transcodeMode = false;
   private currentPublishOptions?: PublishOption[];
   private statsReportingIntervalInMs: number = 2000;
   private statsReporter?: StatsReporter;
@@ -1706,7 +1707,8 @@ export class Call {
   doJoinRequest = async (data?: JoinCallData): Promise<JoinCallResponse> => {
     const location = await this.streamClient.getLocationHint();
     const e2ee = !!this.e2eeManager;
-    const request: JoinCallRequest = { ...data, location, e2ee };
+    const transcode = this.transcodeMode;
+    const request: JoinCallRequest = { ...data, location, e2ee, transcode };
     const joinResponse = await this.streamClient.post<
       JoinCallResponse,
       JoinCallRequest
@@ -2465,6 +2467,34 @@ export class Call {
     }
     this.tracer.trace('updatePublishOptions', options);
     this.clientPublishOptions = { ...this.clientPublishOptions, ...options };
+  };
+
+  /**
+   * Declares the intent to join in the WebRTC broadcaster/transcode mode.
+   *
+   * In this mode the client publishes a single high-quality layer that a
+   * transcoder egress turns into the quality ladder, and the publisher is
+   * hidden from every subscriber that isn't its WebRTC transcoder egress.
+   *
+   * This is only an intent: it is sent with the join request and the backend
+   * decides, from the call's transcoding mode, whether to grant it (a call with
+   * transcoding disabled or always-on overrides it). The granted mode reaches
+   * the SFU as a signed claim in the credentials, not from the client.
+   *
+   * Must be called before {@link join}; changing it afterwards has no effect
+   * until the next join.
+   *
+   * @internal
+   * @param enabled whether the transcode mode should be requested.
+   */
+  setTranscodeMode = (enabled: boolean) => {
+    if (this.state.callingState === CallingState.JOINED) {
+      this.logger.warn(
+        'Setting the transcode mode after joining the call does not have an effect',
+      );
+    }
+    this.tracer.trace('setTranscodeMode', enabled);
+    this.transcodeMode = enabled;
   };
 
   /**
