@@ -1,4 +1,5 @@
 import type { Call } from '../Call';
+import type { JoinSource } from '../reporting';
 import { CallingState } from '../store';
 import type { CallLeaveOptions } from '../types';
 
@@ -11,30 +12,45 @@ import type { CallLeaveOptions } from '../types';
  * poller applies the polled ring state itself.
  *
  * @param call the call to reconcile.
+ * @param joinSource which of the two triggered this run, reported on the
+ * caller's join: `ring-ws` for the event handlers, `ring-poll-api` for the
+ * poller.
  * @returns whether the ring reached a terminal state. A failed join is not
  * terminal: the caller should keep trying while the ring is open.
  */
-export const reconcileRingState = async (call: Call): Promise<boolean> => {
+export const reconcileRingState = async (
+  call: Call,
+  joinSource: JoinSource,
+): Promise<boolean> => {
   if (call.state.callingState !== CallingState.RINGING) return true;
-  return call.isCreatedByMe ? reconcileAsCaller(call) : reconcileAsCallee(call);
+  return call.isCreatedByMe
+    ? reconcileAsCaller(call, joinSource)
+    : reconcileAsCallee(call);
 };
 
-const reconcileAsCaller = async (call: Call): Promise<boolean> => {
+const reconcileAsCaller = async (
+  call: Call,
+  joinSource: JoinSource,
+): Promise<boolean> => {
   const { session, members, endedAt } = call.state;
   const currentUserId = call.currentUserId;
 
   // checked before `accepted_by`: an ended session cannot be joined
   if (endedAt || session?.ended_at) {
     call.logger.info('ring: the call has ended, leaving');
-    globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
-    return leave(call, { reject: false, message: 'ring: call ended' });
+    // `leave` reports the remote end to callingx off `reason: 'ended'`
+    return leave(call, {
+      reject: false,
+      reason: 'ended',
+      message: 'ring: call ended',
+    });
   }
 
   const acceptedBy = session?.accepted_by ?? {};
   if (Object.keys(acceptedBy).some((userId) => userId !== currentUserId)) {
     call.logger.info('ring: the call was accepted, joining');
     try {
-      await call.join();
+      await call.join({ joinSource });
     } catch (err) {
       // `doJoin` restores the ringing state when a join fails, so the ring is
       // still open. Report it unsettled and let the next poll retry.
@@ -79,8 +95,10 @@ const reconcileAsCallee = async (call: Call): Promise<boolean> => {
   const rejectedBy = call.state.session?.rejected_by ?? {};
   if (createdById && rejectedBy[createdById]) {
     call.logger.info('ring: the caller cancelled, leaving');
-    globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
-    return leave(call, { message: 'ring: creator rejected' });
+    return leave(call, {
+      reason: 'ended',
+      message: 'ring: creator rejected',
+    });
   }
   return false;
 };

@@ -73,7 +73,7 @@ export const registerEventHandlers = (call: Call, dispatcher: Dispatcher) => {
  */
 export const registerRingingCallEventHandlers = (call: Call) => {
   const reconcile = () => {
-    reconcileRingState(call).catch((err) => {
+    reconcileRingState(call, 'ring-ws').catch((err) => {
       call.logger.error('Failed to reconcile the ring state', err);
     });
   };

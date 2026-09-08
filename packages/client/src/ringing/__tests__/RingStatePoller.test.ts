@@ -133,6 +133,8 @@ describe('RingStatePoller', () => {
     await vi.advanceTimersByTimeAsync(START_AFTER_MS + 3 * INTERVAL_MS);
 
     expect(call.join).toHaveBeenCalledTimes(1);
+    // pins this as the poller's call site, not the WebSocket handlers'
+    expect(call.join).toHaveBeenCalledWith({ joinSource: 'ring-poll-api' });
     expect(getRingState).toHaveBeenCalledTimes(1);
   });
 
@@ -183,6 +185,7 @@ describe('RingStatePoller', () => {
     expect(call.join).not.toHaveBeenCalled();
     expect(call.leave).toHaveBeenCalledWith({
       reject: false,
+      reason: 'ended',
       message: 'ring: call ended',
     });
   });

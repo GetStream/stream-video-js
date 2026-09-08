@@ -9,6 +9,7 @@ import {
 } from '../../gen/coordinator';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
+import type { JoinSource } from '../../reporting';
 import { ClientEventReporter } from '../../reporting';
 import { settled } from '../../helpers/concurrency';
 
@@ -18,7 +19,7 @@ describe('reconcileRingState', () => {
       const call = ringingCall({ currentUserId: 'm1', createdById: 'm1' });
       setSession(call, { accepted_by: { m1: timestamp() } });
 
-      expect(await reconcileRingState(call)).toBe(false);
+      expect(await reconcile(call)).toBe(false);
       expect(call.join).not.toHaveBeenCalled();
     });
 
@@ -26,8 +27,16 @@ describe('reconcileRingState', () => {
       const call = ringingCall({ currentUserId: 'm1', createdById: 'm1' });
       setSession(call, { accepted_by: { m2: timestamp() } });
 
-      expect(await reconcileRingState(call)).toBe(true);
-      expect(call.join).toHaveBeenCalled();
+      expect(await reconcile(call)).toBe(true);
+      expect(call.join).toHaveBeenCalledWith({ joinSource: 'ring-ws' });
+    });
+
+    it('reports the poller as the source when the poll found the acceptance', async () => {
+      const call = ringingCall({ currentUserId: 'm1', createdById: 'm1' });
+      setSession(call, { accepted_by: { m2: timestamp() } });
+
+      expect(await reconcile(call, 'ring-poll-api')).toBe(true);
+      expect(call.join).toHaveBeenCalledWith({ joinSource: 'ring-poll-api' });
     });
 
     it('is not terminal when the join fails, so a retry can follow', async () => {
@@ -35,7 +44,7 @@ describe('reconcileRingState', () => {
       setSession(call, { accepted_by: { m2: timestamp() } });
       vi.mocked(call.join).mockRejectedValueOnce(new Error('transient'));
 
-      expect(await reconcileRingState(call)).toBe(false);
+      expect(await reconcile(call)).toBe(false);
       expect(call.join).toHaveBeenCalled();
       expect(call.leave).not.toHaveBeenCalled();
     });
@@ -44,7 +53,7 @@ describe('reconcileRingState', () => {
       const call = ringingCall({ currentUserId: 'm2', createdById: 'm0' });
       setSession(call, { accepted_by: { m1: timestamp() } });
 
-      expect(await reconcileRingState(call)).toBe(false);
+      expect(await reconcile(call)).toBe(false);
       expect(call.join).not.toHaveBeenCalled();
     });
   });
@@ -60,7 +69,7 @@ describe('reconcileRingState', () => {
         rejected_by: { m2: timestamp(), m3: timestamp() },
       });
 
-      expect(await reconcileRingState(call)).toBe(true);
+      expect(await reconcile(call)).toBe(true);
       expect(call.leave).toHaveBeenCalledWith({
         reject: true,
         reason: 'cancel',
@@ -77,7 +86,7 @@ describe('reconcileRingState', () => {
       setSession(call, { rejected_by: { m2: timestamp() } });
       vi.mocked(call.leave).mockRejectedValueOnce(new Error('transient'));
 
-      expect(await reconcileRingState(call)).toBe(false);
+      expect(await reconcile(call)).toBe(false);
       expect(call.leave).toHaveBeenCalled();
     });
 
@@ -89,7 +98,7 @@ describe('reconcileRingState', () => {
       });
       setSession(call, { rejected_by: { m2: timestamp() } });
 
-      expect(await reconcileRingState(call)).toBe(false);
+      expect(await reconcile(call)).toBe(false);
       expect(call.leave).not.toHaveBeenCalled();
     });
 
@@ -101,8 +110,9 @@ describe('reconcileRingState', () => {
       });
       setSession(call, { rejected_by: { m0: timestamp() } });
 
-      expect(await reconcileRingState(call)).toBe(true);
+      expect(await reconcile(call)).toBe(true);
       expect(call.leave).toHaveBeenCalledWith({
+        reason: 'ended',
         message: 'ring: creator rejected',
       });
     });
@@ -115,7 +125,7 @@ describe('reconcileRingState', () => {
       });
       setSession(call, { rejected_by: { m2: timestamp() } });
 
-      expect(await reconcileRingState(call)).toBe(false);
+      expect(await reconcile(call)).toBe(false);
       expect(call.leave).not.toHaveBeenCalled();
     });
   });
@@ -131,7 +141,7 @@ describe('reconcileRingState', () => {
         missed_by: { m2: timestamp(), m3: timestamp() },
       });
 
-      expect(await reconcileRingState(call)).toBe(true);
+      expect(await reconcile(call)).toBe(true);
       expect(call.leave).toHaveBeenCalledWith({
         reject: true,
         reason: 'timeout',
@@ -150,7 +160,7 @@ describe('reconcileRingState', () => {
         missed_by: { m3: timestamp() },
       });
 
-      expect(await reconcileRingState(call)).toBe(true);
+      expect(await reconcile(call)).toBe(true);
       expect(call.leave).toHaveBeenCalledWith({
         reject: true,
         reason: 'timeout',
@@ -166,7 +176,7 @@ describe('reconcileRingState', () => {
       });
       setSession(call, { missed_by: { m2: timestamp() } });
 
-      expect(await reconcileRingState(call)).toBe(false);
+      expect(await reconcile(call)).toBe(false);
       expect(call.leave).not.toHaveBeenCalled();
     });
   });
@@ -179,10 +189,11 @@ describe('reconcileRingState', () => {
         ended_at: timestamp(),
       });
 
-      expect(await reconcileRingState(call)).toBe(true);
+      expect(await reconcile(call)).toBe(true);
       expect(call.join).not.toHaveBeenCalled();
       expect(call.leave).toHaveBeenCalledWith({
         reject: false,
+        reason: 'ended',
         message: 'ring: call ended',
       });
     });
@@ -192,9 +203,10 @@ describe('reconcileRingState', () => {
       setSession(call, {});
       call.state.setEndedAt(new Date());
 
-      expect(await reconcileRingState(call)).toBe(true);
+      expect(await reconcile(call)).toBe(true);
       expect(call.leave).toHaveBeenCalledWith({
         reject: false,
+        reason: 'ended',
         message: 'ring: call ended',
       });
     });
@@ -205,7 +217,7 @@ describe('reconcileRingState', () => {
     setSession(call, { accepted_by: { m2: timestamp() } });
     call.state.setCallingState(CallingState.JOINED);
 
-    expect(await reconcileRingState(call)).toBe(true);
+    expect(await reconcile(call)).toBe(true);
     expect(call.join).not.toHaveBeenCalled();
     expect(call.leave).not.toHaveBeenCalled();
   });
@@ -240,7 +252,7 @@ describe('reconcileRingState', () => {
     );
     await settled(call['joinLeaveConcurrencyTag']);
 
-    expect(call.join).toHaveBeenCalled();
+    expect(call.join).toHaveBeenCalledWith({ joinSource: 'ring-ws' });
   });
 
   it('keeps ringing when the call has no members yet', async () => {
@@ -251,10 +263,15 @@ describe('reconcileRingState', () => {
     });
     setSession(call, {});
 
-    expect(await reconcileRingState(call)).toBe(false);
+    expect(await reconcile(call)).toBe(false);
     expect(call.leave).not.toHaveBeenCalled();
   });
 });
+
+// the source only matters for the caller's join, so default it and let the
+// tests that assert on it pass their own
+const reconcile = (call: Call, joinSource: JoinSource = 'ring-ws') =>
+  reconcileRingState(call, joinSource);
 
 const timestamp = () => new Date().toISOString();
 

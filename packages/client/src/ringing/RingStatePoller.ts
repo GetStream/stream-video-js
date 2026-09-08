@@ -128,7 +128,7 @@ export class RingStatePoller {
       const ringState = await this.call.getRingState(this.sessionId);
       if (this.stopped) return;
       this.call.state.updateFromRingState(ringState);
-      if (await reconcileRingState(this.call)) this.stop();
+      if (await reconcileRingState(this.call, 'ring-poll-api')) this.stop();
     } catch (err) {
       // a missing session, or one of another call, will never resolve
       const status = err instanceof ErrorFromResponse ? err.status : undefined;

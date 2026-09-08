@@ -153,7 +153,7 @@ import {
   StatsReporter,
   Tracer,
 } from './stats';
-import type { ClientEventReporter, JoinReason } from './reporting';
+import type { ClientEventReporter, JoinReason, JoinSource } from './reporting';
 import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
 import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
@@ -1131,12 +1131,14 @@ export class Call {
       joinResponseTimeout,
       rpcRequestTimeout,
       allowOwnTracksLoopback = false,
+      joinSource,
       ...data
     }: JoinCallData & {
       maxJoinRetries?: number;
       joinResponseTimeout?: number;
       rpcRequestTimeout?: number;
       allowOwnTracksLoopback?: boolean;
+      joinSource?: JoinSource;
     } = {}): Promise<void> => {
       const callingState = this.state.callingState;
 
@@ -1178,7 +1180,7 @@ export class Call {
       try {
         await this.clientEventReporter.withJoinLifecycle(
           this.cid,
-          'first-attempt',
+          { joinReason: 'first-attempt', joinSource },
           async () => {
             for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
               try {
@@ -2100,8 +2102,10 @@ export class Call {
       this.reconnectReason === ReconnectReason.NETWORK_BACK_ONLINE
         ? 'network-available'
         : 'full-rejoin';
-    await this.clientEventReporter.withJoinLifecycle(this.cid, joinReason, () =>
-      this.doJoin(this.joinCallData),
+    await this.clientEventReporter.withJoinLifecycle(
+      this.cid,
+      { joinReason },
+      () => this.doJoin(this.joinCallData),
     );
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
@@ -2136,7 +2140,7 @@ export class Call {
       const currentSfu = currentSfuClient.edgeName;
       await this.clientEventReporter.withJoinLifecycle(
         this.cid,
-        'migration',
+        { joinReason: 'migration' },
         () =>
           this.doJoin({
             ...this.joinCallData,
