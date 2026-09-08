@@ -7,7 +7,8 @@
       justify-content: space-between;
       gap: var(--str-video__spacing-xs);
       background-color: transparent;
-      border: var(--str-video__w100) solid var(--str-video__border-core-default);
+      box-shadow: inset 0 0 0 var(--str-video__w100)
+        var(--str-video__border-core-default);
       border-radius: var(--str-video__input-radius-select-input);
       padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
       color: var(--str-video__input-text-default);
@@ -17,6 +18,7 @@
         align-items: center;
         gap: var(--str-video__spacing-xs);
         min-inline-size: 0;
+        padding-block: var(--str-video__spacing-xxxs);
 
         font-size: var(--str-video__typography-font-size-sm);
         font-weight: var(--str-video__typography-font-weight-regular);
@@ -33,10 +35,12 @@
       }
 
       &:hover {
-        border-color: var(--str-video__border-utility-hover);
+        box-shadow: inset 0 0 0 var(--str-video__w100)
+          var(--str-video__border-utility-hover);
       }
       &[aria-expanded='true'] {
-        border-color: var(--str-video__border-utility-active);
+        box-shadow: inset 0 0 0 var(--str-video__w100)
+          var(--str-video__border-utility-active);
       }
       &:focus-visible {
         outline: var(--str-video__w200) solid

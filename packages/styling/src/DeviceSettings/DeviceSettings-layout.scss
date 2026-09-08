@@ -134,6 +134,20 @@
           var(--str-video__border-utility-focused);
         outline-offset: var(--str-video__w100);
       }
+
+      &:disabled {
+        border-color: var(--str-video__border-utility-disabled);
+        cursor: default;
+
+        &:checked {
+          background-color: var(--str-video__background-utility-disabled);
+          border-color: var(--str-video__background-utility-disabled);
+
+          &::before {
+            background-color: var(--str-video__text-disabled);
+          }
+        }
+      }
     }
   }
 }
