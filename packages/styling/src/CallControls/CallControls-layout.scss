@@ -45,37 +45,3 @@
     }
   }
 }
-
-.str-video__no-media-permission,
-.str-video__system-muted,
-.str-video__pending-permission {
-  position: absolute;
-  height: 12px;
-  width: 12px;
-  outline: 1px solid var(--str-video__base-color6);
-  border-radius: var(--str-video__border-radius-circle);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  font-size: var(--str-video__font-size-xxs);
-  cursor: pointer;
-  font-weight: 600;
-  top: 0;
-  right: -3px;
-}
-
-.str-video__no-media-permission {
-  background-color: var(--str-video__alert-caution);
-  color: var(--str-video__base-color4);
-}
-
-.str-video__pending-permission {
-  background-color: var(--str-video__button-secondary-active);
-  color: var(--str-video__text-color1);
-}
-
-.str-video__system-muted {
-  background-color: var(--str-video__alert-caution);
-  color: var(--str-video__base-color4);
-}

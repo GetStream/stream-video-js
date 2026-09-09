@@ -10,6 +10,7 @@ import {
   type UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
+import { Badge } from '../Badge';
 import { CompositeButton, CompositeButtonProps } from '../Button';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
@@ -62,11 +63,13 @@ export const ToggleAudioPreviewButton = (
   return (
     <WithTooltip
       title={
-        !hasBrowserPermission
-          ? t('Check your browser audio permissions')
-          : isSystemMuted
-            ? t('Microphone is paused by your system')
-            : (caption ?? t('Mic'))
+        isPromptingPermission
+          ? t('Waiting for permission')
+          : !hasBrowserPermission
+            ? t('Check your browser audio permissions')
+            : isSystemMuted
+              ? t('Microphone is paused by your system')
+              : (caption ?? t('Mic'))
       }
       tooltipDisabled={tooltipDisabled}
     >
@@ -95,27 +98,11 @@ export const ToggleAudioPreviewButton = (
         }}
       >
         <Icon icon={!optionsAwareIsMute ? 'mic' : 'mic-off'} />
-        {!hasBrowserPermission && (
-          <span
-            className="str-video__no-media-permission"
-            title={t('Check your browser audio permissions')}
-            children="!"
-          />
-        )}
-        {isPromptingPermission && (
-          <span
-            className="str-video__pending-permission"
-            title={t('Waiting for permission')}
-            children="?"
-          />
-        )}
-        {isSystemMuted && hasBrowserPermission && (
-          <span
-            className="str-video__system-muted"
-            title={t('Microphone is paused by your system')}
-            children="!"
-          />
-        )}
+        {isPromptingPermission ? (
+          <Badge variant="error" icon="question-mark-fill" />
+        ) : !hasBrowserPermission || isSystemMuted ? (
+          <Badge variant="error" icon="exclamation-mark-fill" />
+        ) : null}
       </CompositeButton>
     </WithTooltip>
   );
@@ -178,13 +165,15 @@ export const ToggleAudioPublishingButton = (
       >
         <WithTooltip
           title={
-            !hasPermission
-              ? t('You have no permission to share your audio')
-              : !hasBrowserPermission
-                ? t('Check your browser mic permissions')
-                : isSystemMuted
-                  ? t('Microphone is paused by your system')
-                  : (caption ?? t('Mic'))
+            isPromptingPermission
+              ? t('Waiting for permission')
+              : !hasPermission
+                ? t('You have no permission to share your audio')
+                : !hasBrowserPermission
+                  ? t('Check your browser mic permissions')
+                  : isSystemMuted
+                    ? t('Microphone is paused by your system')
+                    : (caption ?? t('Mic'))
           }
           tooltipDisabled={tooltipDisabled}
         >
@@ -212,25 +201,11 @@ export const ToggleAudioPublishingButton = (
             }}
           >
             <Icon icon={optionsAwareIsMute ? 'mic-off' : 'mic'} />
-            {(!hasBrowserPermission || !hasPermission) && (
-              <span className="str-video__no-media-permission">!</span>
-            )}
-            {isPromptingPermission && (
-              <span
-                className="str-video__pending-permission"
-                title={t('Waiting for permission')}
-              >
-                ?
-              </span>
-            )}
-            {isSystemMuted && hasBrowserPermission && hasPermission && (
-              <span
-                className="str-video__system-muted"
-                title={t('Microphone is paused by your system')}
-              >
-                !
-              </span>
-            )}
+            {isPromptingPermission ? (
+              <Badge variant="error" icon="question-mark-fill" />
+            ) : !hasBrowserPermission || !hasPermission || isSystemMuted ? (
+              <Badge variant="error" icon="exclamation-mark-fill" />
+            ) : null}
           </CompositeButton>
         </WithTooltip>
       </PermissionNotification>
