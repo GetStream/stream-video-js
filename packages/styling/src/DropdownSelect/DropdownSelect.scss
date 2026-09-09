@@ -23,7 +23,10 @@
         font-size: var(--str-video__typography-font-size-sm);
         font-weight: var(--str-video__typography-font-weight-regular);
         line-height: var(--str-video__typography-line-height-normal);
+      }
 
+      &__text {
+        min-inline-size: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
