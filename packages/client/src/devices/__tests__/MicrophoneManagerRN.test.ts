@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MicrophoneManager } from '../MicrophoneManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
-import { StreamVideoWriteableStateStore } from '../../store';
+import { ClientState } from '../../store';
 import {
   mockAudioDevices,
   mockAudioStream,
@@ -91,7 +91,7 @@ describe('MicrophoneManager React Native', () => {
         id: '',
         type: '',
         streamClient,
-        clientStore: new StreamVideoWriteableStateStore(),
+        clientState: new ClientState(),
         clientEventReporter: new ClientEventReporter({ streamClient }),
       }),
       devicePersistence,
