@@ -472,7 +472,7 @@ describe('StreamSfuClient RPC headers', () => {
 
       const [, init] = fetchMock.mock.calls[0];
       expect(new Headers(init.headers).get('x-stream-client')).toBe(
-        'stream-react@1.2.3',
+        'stream-video-react-v1.2.3',
       );
     } finally {
       setSdkInfo(sdkInfo!);

@@ -40,7 +40,7 @@ import {
 import { withoutConcurrency } from './helpers/concurrency';
 import { getTimers } from './timers';
 import { getSdkInfo } from './helpers/client-details';
-import { getSdkName, getSdkVersion, Tracer, TraceSlice } from './stats';
+import { getStreamClientId, Tracer, TraceSlice } from './stats';
 import { SfuJoinError, SfuTimeoutError } from './errors';
 
 export type StreamSfuClientConstructor = {
@@ -269,13 +269,12 @@ export class StreamSfuClient {
     this.tracer = enableTracing
       ? new Tracer(`${tag}-${this.edgeName}`)
       : undefined;
-    const sdkInfo = getSdkInfo();
     this.rpc = createSignalClient({
       baseUrl: server.url,
       interceptors: [
         withHeaders({
           Authorization: `Bearer ${token}`,
-          'X-Stream-Client': `${getSdkName(sdkInfo)}@${getSdkVersion(sdkInfo)}`,
+          'X-Stream-Client': getStreamClientId(getSdkInfo()),
         }),
         this.tracer && withRequestTracer(this.tracer.trace),
         this.logger.getLogLevel() === 'trace' && withRequestLogger(this.logger),
