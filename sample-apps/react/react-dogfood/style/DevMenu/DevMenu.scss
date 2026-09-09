@@ -21,6 +21,12 @@
     }
   }
 
+  // the codec selectors render a DropDownSelect instead of a button; give it
+  // the same inset so its pill lines up with every other row
+  .str-video__dropdown {
+    margin-inline: var(--str-video__spacing-xxs);
+  }
+
   .rd__button,
   .rd__link--faux-button {
     min-height: 32px;
