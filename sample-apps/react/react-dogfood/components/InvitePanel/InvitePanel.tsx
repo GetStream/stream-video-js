@@ -3,6 +3,17 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Icon, IconButton, useI18n } from '@stream-io/video-react-sdk';
 import { useIsDemoEnvironment } from '../../context/AppEnvironmentContext';
 
+/**
+ * Builds the URL encoded in the invite QR code: the current location with every
+ * query param preserved (`encryption_key`, `environment`, ...) plus `from_qr`.
+ */
+const buildQrCodeUrl = () => {
+  const { origin, pathname, search, hash } = window.location;
+  const params = new URLSearchParams(search);
+  params.set('from_qr', 'true');
+  return `${origin}${pathname}?${params.toString()}${hash}`;
+};
+
 export const InvitePopup = ({
   callId,
   close,
@@ -13,8 +24,7 @@ export const InvitePopup = ({
   const { t } = useI18n();
   const { isCopied, copyInviteLink } = useCopyInviteLink();
 
-  const qrCodeContent = new URL(window.location.toString());
-  qrCodeContent.searchParams.set('from_qr', 'true');
+  const qrCodeContent = buildQrCodeUrl();
 
   return (
     <div className="rd__invite-popup">
@@ -49,16 +59,13 @@ export const InvitePopup = ({
         </div>
         <Icon className="rd__invite-popup__id-button" icon="copy" />
       </div>
-      <div
-        className="rd__invite-popup__qr-container"
-        title={qrCodeContent.toString()}
-      >
+      <div className="rd__invite-popup__qr-container" title={qrCodeContent}>
         <p className="rd__invite-popup__qr-description">
           To test on a mobile device, scan the QR Code below:
         </p>
         <QRCodeSVG
           className="rd__invite-popup__qr-code"
-          value={qrCodeContent.toString()}
+          value={qrCodeContent}
         />
       </div>
     </div>
@@ -90,8 +97,7 @@ export const InvitePanel = () => {
   const isDemoEnvironment = useIsDemoEnvironment();
   const [expanded, setExpanded] = useState(false);
 
-  const qrCodeContent = new URL(window.location.toString());
-  qrCodeContent.searchParams.set('from_qr', 'true');
+  const qrCodeContent = buildQrCodeUrl();
   return (
     <div className="rd__invite">
       <Invite />
@@ -113,13 +119,10 @@ export const InvitePanel = () => {
                 <p className="rd__invite__qr-description">
                   {t('To test on a mobile device, scan the QR Code below:')}
                 </p>
-                <div
-                  className="rd__invite__qr-container"
-                  title={qrCodeContent.toString()}
-                >
+                <div className="rd__invite__qr-container" title={qrCodeContent}>
                   <QRCodeSVG
                     className="rd__invite__qr-code"
-                    value={qrCodeContent.toString()}
+                    value={qrCodeContent}
                   />
                 </div>
               </>
@@ -131,13 +134,10 @@ export const InvitePanel = () => {
             <p className="rd__invite__qr-description">
               {t('To test on a mobile device, scan the QR Code below:')}
             </p>
-            <div
-              className="rd__invite__qr-container"
-              title={qrCodeContent.toString()}
-            >
+            <div className="rd__invite__qr-container" title={qrCodeContent}>
               <QRCodeSVG
                 className="rd__invite__qr-code"
-                value={qrCodeContent.toString()}
+                value={qrCodeContent}
               />
             </div>
           </>
