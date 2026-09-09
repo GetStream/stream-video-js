@@ -10,14 +10,14 @@
   }
 
   &--poor .str-video__connection-quality-indicator__bar--active {
-    background-color: var(--str-video__indicator-poor);
+    background-color: var(--str-video__indicator-connection-quality-poor);
   }
 
   &--good .str-video__connection-quality-indicator__bar--active {
-    background-color: var(--str-video__indicator-fair);
+    background-color: var(--str-video__indicator-connection-quality-fair);
   }
 
   &--excellent .str-video__connection-quality-indicator__bar--active {
-    background-color: var(--str-video__indicator-great);
+    background-color: var(--str-video__indicator-connection-quality-great);
   }
 }

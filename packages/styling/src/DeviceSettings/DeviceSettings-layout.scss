@@ -85,10 +85,6 @@
       cursor: pointer;
     }
 
-    &--selected,
-    &--active {
-      background-color: var(--str-video__background-utility-selected);
-    }
     &--disabled {
       color: var(--str-video__text-disabled);
 
@@ -108,7 +104,7 @@
 
       background-color: var(--str-video__control-radio-button-bg);
       border: var(--str-video__w100) solid
-        var(--str-video__control-radio-button-border);
+        var(--str-video__border-core-on-elevation);
       border-radius: var(--str-video__radius-max);
 
       &::before {
@@ -221,13 +217,13 @@
 
   .str-video__device-level-indicator__bar {
     width: 3px;
-    height: var(--str-video__size-12);
-    border-radius: var(--str-video__radius-xs);
-    background-color: var(--str-video__border-core-default);
+    height: var(--str-video__size-16);
+    border-radius: var(--str-video__radius-max);
+    background-color: var(--str-video__indicator-microphone-level-bar-inactive);
     transition: background-color 0.1s;
 
     &--active {
-      background-color: var(--str-video__accent-primary);
+      background-color: var(--str-video__indicator-microphone-level-bar-active);
     }
   }
 }
@@ -272,7 +268,16 @@
 }
 
 .str-video__speaker-test {
-  padding: var(--str-video__spacing-xs) var(--str-video__spacing-xxs);
+  // the button sits on an elevated menu surface: Figma binds
+  // border/core/on-elevation on it (Core / Web / Mic Selector Menu / Test
+  // Speaker, 28100:111176), not the plain secondary border. overrides the
+  // secondary token because .str-video__button--secondary re-declares
+  // --button-border on the button element itself
+  --str-video__button-secondary-border: var(
+    --str-video__border-core-on-elevation
+  );
+
+  padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
 
   .str-video__speaker-test__button-content {
     display: flex;

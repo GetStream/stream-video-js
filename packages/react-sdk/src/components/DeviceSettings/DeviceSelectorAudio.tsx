@@ -72,12 +72,7 @@ export const DeviceSelectorAudioOutput = ({
       visualType={visualType}
       icon="speaker"
     >
-      {speakerTestVisible && (
-        <>
-          <hr className="str-video__device-settings__separator" />
-          <SpeakerTest audioUrl={speakerTestAudioUrl} />
-        </>
-      )}
+      {speakerTestVisible && <SpeakerTest audioUrl={speakerTestAudioUrl} />}
     </DeviceSelector>
   );
 };
