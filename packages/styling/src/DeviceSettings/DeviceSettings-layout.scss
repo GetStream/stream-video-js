@@ -175,6 +175,11 @@
     var(--str-video__border-core-default);
 }
 
+.str-video__device-settings__device-kind:last-child
+  .str-video__device-settings__separator:last-child {
+  display: none;
+}
+
 .str-video__audio-volume-indicator {
   width: 100%;
   display: flex;

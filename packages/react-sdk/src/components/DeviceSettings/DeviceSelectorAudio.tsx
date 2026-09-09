@@ -33,8 +33,8 @@ export const DeviceSelectorAudioInput = ({
     >
       {volumeIndicatorVisible && (
         <>
-          <hr className="str-video__device-settings__separator" />
           <AudioVolumeIndicator />
+          <hr className="str-video__device-settings__separator" />
         </>
       )}
     </DeviceSelector>
