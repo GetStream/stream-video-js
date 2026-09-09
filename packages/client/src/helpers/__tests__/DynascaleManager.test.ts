@@ -18,7 +18,7 @@ import { DynascaleManager } from '../DynascaleManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
-import { StreamVideoWriteableStateStore } from '../../store';
+import { ClientState } from '../../store';
 import { getCurrentValue } from '../../store/rxUtils';
 import { VisibilityState } from '../../types';
 import { noopComparator } from '../../sorting';
@@ -45,7 +45,7 @@ describe('DynascaleManager', () => {
       type: 'default',
       streamClient,
       clientEventReporter: new ClientEventReporter({ streamClient }),
-      clientStore: new StreamVideoWriteableStateStore(),
+      clientState: new ClientState(),
     });
     call.setSortParticipantsBy(noopComparator());
     dynascaleManager = call.dynascaleManager;

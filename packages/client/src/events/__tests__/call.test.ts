@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
-import { CallingState, StreamVideoWriteableStateStore } from '../../store';
+import { CallingState, ClientState } from '../../store';
 import {
   watchCallAccepted,
   watchCallEnded,
@@ -356,7 +356,7 @@ describe('Call ringing events', () => {
 });
 
 const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
-  const store = new StreamVideoWriteableStateStore();
+  const store = new ClientState();
   store.setConnectedUser({
     id: currentUserId,
     created_at: '',
@@ -371,7 +371,7 @@ const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
   return new Call({
     type: 'development',
     id: '12345',
-    clientStore: store,
+    clientState: store,
     streamClient: client,
     clientEventReporter: new ClientEventReporter({ streamClient: client }),
     ringing: ring,

@@ -5,7 +5,7 @@ import { Call } from '../Call';
 import { StreamClient } from '../coordinator/connection/client';
 import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
-import { CallingState, StreamVideoWriteableStateStore } from '../store';
+import { CallingState, ClientState } from '../store';
 
 describe('Auto drop ringing calls', () => {
   let call: Call;
@@ -14,18 +14,18 @@ describe('Auto drop ringing calls', () => {
   beforeEach(async () => {
     vi.useFakeTimers();
 
-    const clientStore = new StreamVideoWriteableStateStore();
+    const clientState = new ClientState();
     const streamClient = new StreamClient('abc');
     call = new Call({
       type: 'test',
       id: generateUUIDv4(),
       streamClient,
       clientEventReporter: new ClientEventReporter({ streamClient }),
-      clientStore: clientStore,
+      clientState,
     });
 
     // @ts-expect-error mocking only what we need for the test
-    clientStore.connectedUserSubject.next({
+    clientState['connectedUserSubject'].next({
       id: userId,
     });
 

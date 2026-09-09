@@ -61,11 +61,13 @@ export const ToggleVideoPreviewButton = (
   return (
     <WithTooltip
       title={
-        !hasBrowserPermission
-          ? t('Check your browser video permissions')
-          : isSystemMuted
-            ? t('Camera is paused by your system')
-            : (caption ?? t('Video'))
+        isPromptingPermission
+          ? t('Waiting for permission')
+          : !hasBrowserPermission
+            ? t('Check your browser video permissions')
+            : isSystemMuted
+              ? t('Camera is paused by your system')
+              : (caption ?? t('Video'))
       }
       tooltipDisabled={tooltipDisabled}
     >
@@ -165,15 +167,17 @@ export const ToggleVideoPublishingButton = (
       >
         <WithTooltip
           title={
-            !hasPermission
-              ? t('You have no permission to share your video')
-              : !hasBrowserPermission
-                ? t('Check your browser video permissions')
-                : !isPublishingVideoAllowed
-                  ? t('Video publishing is disabled by the system')
-                  : isSystemMuted
-                    ? t('Camera is paused by your system')
-                    : caption || t('Video')
+            isPromptingPermission
+              ? t('Waiting for permission')
+              : !hasPermission
+                ? t('You have no permission to share your video')
+                : !hasBrowserPermission
+                  ? t('Check your browser video permissions')
+                  : !isPublishingVideoAllowed
+                    ? t('Video publishing is disabled by the system')
+                    : isSystemMuted
+                      ? t('Camera is paused by your system')
+                      : caption || t('Video')
           }
           tooltipDisabled={tooltipDisabled}
         >
