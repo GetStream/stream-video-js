@@ -69,8 +69,6 @@
     }
 
     &-option {
-      --str-video__dropdown-option-icon: var(--str-video__text-secondary);
-
       display: flex;
       align-items: center;
       min-height: 32px;
@@ -85,7 +83,7 @@
       line-height: var(--str-video__typography-line-height-normal);
 
       .str-video__icon {
-        background-color: var(--str-video__dropdown-option-icon);
+        background-color: var(--str-video__text-secondary);
       }
 
       &:hover {
