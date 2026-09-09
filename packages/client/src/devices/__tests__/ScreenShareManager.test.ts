@@ -99,7 +99,7 @@ describe('ScreenShareManager', () => {
 
   it('should use call settings to set up constraints', async () => {
     const call = manager['call'];
-    call.state.setCurrentValue(call.state['settingsSubject'], {
+    RxUtils.setCurrentValue(call.state['settingsSubject'], {
       // @ts-expect-error partial data
       screensharing: {
         target_resolution: {

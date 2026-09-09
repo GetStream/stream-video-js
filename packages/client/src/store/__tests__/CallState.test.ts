@@ -47,7 +47,7 @@ describe('CallState', () => {
           getter,
           `A getter for ${observable} is missing. Please define it like this:
           get ${key}() {
-            return this.getCurrentValue(this.${observable});
+            return getCurrentValue(this.${observable});
           }
           `,
         ).toBeDefined();
