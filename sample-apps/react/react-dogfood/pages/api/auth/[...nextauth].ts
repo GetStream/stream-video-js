@@ -1,3 +1,4 @@
+import type { NextApiRequest, NextApiResponse } from 'next';
 import type { NextAuthOptions, Profile } from 'next-auth';
 import NextAuth from 'next-auth';
 import GoogleProvider, { GoogleProfile } from 'next-auth/providers/google';
@@ -50,10 +51,7 @@ export const authOptions: NextAuthOptions = {
             : `https://staging.getstream.io/${basePath}`;
       }
 
-      // original implementation
-      if (url.startsWith('/')) return `${baseUrl}${url}`;
-      else if (new URL(url).origin === baseUrl) return url;
-      return baseUrl;
+      return resolveRedirect(url, baseUrl);
     },
     async jwt({ token, account, profile }) {
       if (account && profile) {
@@ -76,6 +74,52 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
+/**
+ * The `next-auth` default: keep same-origin callbacks, send everything else
+ * back to the deployment root.
+ */
+const resolveRedirect = (url: string, baseUrl: string) => {
+  if (url.startsWith('/')) return `${baseUrl}${url}`;
+  else if (new URL(url).origin === baseUrl) return url;
+  return baseUrl;
+};
+
+const firstHeaderValue = (header: string | string[] | undefined) => {
+  const value = Array.isArray(header) ? header[0] : header;
+  return value?.split(',')[0].trim() || undefined;
+};
+
+/**
+ * Every preview deployment gets its own hostname, but `NEXTAUTH_URL` is a
+ * static project setting pointing at the canonical domain. Deriving the base
+ * URL from the incoming request keeps post-login callbacks on the host the
+ * user is actually browsing instead of bouncing them to that canonical domain.
+ * Google sign-in still needs `NEXTAUTH_URL`, as its `redirect_uri` has to match
+ * a pre-registered one, so previews are limited to the demo account login.
+ */
+const detectPreviewBaseUrl = (req: NextApiRequest) => {
+  if (process.env.VERCEL_ENV !== 'preview') return undefined;
+  const host = firstHeaderValue(
+    req.headers['x-forwarded-host'] ?? req.headers.host,
+  );
+  if (!host) return undefined;
+  const protocol =
+    firstHeaderValue(req.headers['x-forwarded-proto']) ?? 'https';
+  return `${protocol}://${host}${basePath}`;
+};
+
+const authOptionsForRequest = (req: NextApiRequest): NextAuthOptions => {
+  const previewBaseUrl = detectPreviewBaseUrl(req);
+  if (!previewBaseUrl) return authOptions;
+  return {
+    ...authOptions,
+    callbacks: {
+      ...authOptions.callbacks,
+      redirect: async ({ url }) => resolveRedirect(url, previewBaseUrl),
+    },
+  };
+};
+
 const isVerifiedStreamEmployee = (
   provider: string,
   profile: Profile,
@@ -88,4 +132,7 @@ const isVerifiedStreamEmployee = (
   );
 };
 
-export default NextAuth(authOptions);
+const handler = async (req: NextApiRequest, res: NextApiResponse) =>
+  NextAuth(req, res, authOptionsForRequest(req));
+
+export default handler;
