@@ -17,17 +17,6 @@ $scope-name: 'str-video__participant-view';
     outline: var(--str-video__w200) solid var(--str-video__accent-primary);
   }
 
-  .str-video__participant-view__menu-button {
-    transition: opacity 200ms ease-out;
-    opacity: 0.3;
-  }
-
-  &:hover {
-    .str-video__participant-view__menu-button {
-      opacity: 1;
-    }
-  }
-
   & > .str-video__participant-view__menu-button {
     position: absolute;
     top: var(--str-video__space-8);
