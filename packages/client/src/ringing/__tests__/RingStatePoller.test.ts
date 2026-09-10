@@ -160,6 +160,63 @@ describe('RingStatePoller', () => {
     });
   });
 
+  it('keeps the ring deadline across a pause', async () => {
+    startPolling();
+    const deadlineAt = poller['deadlineAt'];
+
+    poller.pause();
+    await vi.advanceTimersByTimeAsync(10_000);
+    poller.resume();
+
+    expect(poller['deadlineAt']).toBe(deadlineAt);
+  });
+
+  it('resumes straight back into polling when it was already past the quiet period', async () => {
+    const getRingState = startPolling();
+
+    await vi.advanceTimersByTimeAsync(START_AFTER_MS);
+    expect(getRingState).toHaveBeenCalledTimes(1);
+
+    poller.pause();
+    await vi.advanceTimersByTimeAsync(INTERVAL_MS);
+    expect(getRingState).toHaveBeenCalledTimes(1);
+
+    // no second quiet period: the next poll lands on the interval
+    poller.resume();
+    expect(getRingState).toHaveBeenCalledTimes(2);
+    await vi.advanceTimersByTimeAsync(INTERVAL_MS);
+    expect(getRingState).toHaveBeenCalledTimes(3);
+  });
+
+  it('stops on the first tick after the ring window, even across a pause', async () => {
+    const getRingState = startPolling();
+
+    await vi.advanceTimersByTimeAsync(START_AFTER_MS);
+    poller.pause();
+    // the pause outlasts the ring window
+    await vi.advanceTimersByTimeAsync(30_000);
+    poller.resume();
+
+    expect(getRingState).toHaveBeenCalledTimes(1);
+    expect(poller['stopped']).toBe(true);
+  });
+
+  it('does not resume a stopped poller', async () => {
+    const getRingState = startPolling();
+    await vi.advanceTimersByTimeAsync(START_AFTER_MS);
+    // paused mid-poll, so resuming would take the interval branch
+    poller.pause();
+    poller.stop();
+
+    poller.resume();
+
+    // no timer left behind on a stopped poller
+    expect(poller['intervalId']).toBeUndefined();
+    expect(poller['idleTimeoutId']).toBeUndefined();
+    await vi.advanceTimersByTimeAsync(START_AFTER_MS + INTERVAL_MS);
+    expect(getRingState).toHaveBeenCalledTimes(1);
+  });
+
   it('keeps polling when everyone else is marked missed before auto-cancel', async () => {
     startPolling(ringState({ missed_by: { john: '2026-08-24T10:00:35Z' } }));
 

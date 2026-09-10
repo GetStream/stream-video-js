@@ -701,11 +701,11 @@ export class Call {
     }
 
     // before the first await: the calling state stays RINGING well into the
-    // teardown, so pause the watchdogs before they can race this leave. Keep
-    // the timeout's deadline so a failed leave can resume it without extending
-    // the configured ring window.
+    // teardown, so pause both watchdogs before they can race this leave. They
+    // keep their deadlines, so a failed leave resumes them without handing the
+    // ring another window.
     this.ringTimeout?.pause();
-    this.cancelRingStatePolling();
+    this.ringStatePoller?.pause();
 
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       const callingState = this.state.callingState;
@@ -863,12 +863,10 @@ export class Call {
         !hasPending(this.joinLeaveConcurrencyTag) &&
         this.state.callingState === CallingState.RINGING
       ) {
-        if (this.ringTimeout) {
-          this.ringTimeout.start();
-        } else {
-          this.scheduleAutoDrop();
-        }
-        this.scheduleRingStatePolling();
+        // resume, never re-arm: a fresh watchdog would restart the ring
+        // window this leave was already most of the way through
+        this.ringTimeout?.start();
+        this.ringStatePoller?.resume();
       }
       throw err;
     });

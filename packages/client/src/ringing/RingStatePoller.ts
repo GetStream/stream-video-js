@@ -33,6 +33,7 @@ export class RingStatePoller {
   private idleTimeoutId: number | undefined;
   private intervalId: number | undefined;
   private stopped: boolean = false;
+  private wasPolling: boolean = false;
   private inFlight: boolean = false;
   private unsubscribe: Array<() => void> = [];
 
@@ -76,6 +77,37 @@ export class RingStatePoller {
     );
 
     this.armIdleWindow();
+  };
+
+  /**
+   * Pauses polling, keeping the captured session, the deadline and the event
+   * subscriptions. Resuming does not extend the ring window.
+   */
+  pause = () => {
+    if (this.stopped) return;
+    this.wasPolling = this.intervalId !== undefined;
+    const timers = getTimers();
+    timers.clearTimeout(this.idleTimeoutId);
+    timers.clearInterval(this.intervalId);
+    this.idleTimeoutId = undefined;
+    this.intervalId = undefined;
+  };
+
+  /**
+   * Resumes a paused poller. Goes straight back to polling if it was already
+   * past the quiet period, so a pause does not buy the ring another one.
+   */
+  resume = () => {
+    if (this.stopped || !this.sessionId) return;
+    if (this.idleTimeoutId !== undefined || this.intervalId !== undefined) {
+      return;
+    }
+    if (!this.wasPolling) {
+      this.armIdleWindow();
+      return;
+    }
+    this.intervalId = getTimers().setInterval(this.runTick, this.intervalMs);
+    this.runTick();
   };
 
   /**

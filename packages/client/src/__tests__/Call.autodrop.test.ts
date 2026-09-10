@@ -103,14 +103,22 @@ describe('Auto drop ringing calls', () => {
     vi.spyOn(call, 'leave').mockRestore();
     vi.spyOn(call, 'reject').mockResolvedValue(fromPartial({}));
 
+    const poller = call['ringStatePoller'];
+
     const leaving = call.leave({ reject: false });
 
+    // paused, not cancelled: both keep the window this leave is ending
     expect(call['ringTimeout']).toBe(timeout);
-    expect(call['ringStatePoller']).toBeUndefined();
+    expect(call['ringStatePoller']).toBe(poller);
     expect(timeout!['timeoutId']).toBeUndefined();
     expect(timeout!['stopped']).toBe(false);
+    expect(poller!['idleTimeoutId']).toBeUndefined();
+    expect(poller!['stopped']).toBe(false);
+
     await leaving.catch(() => {});
+
     expect(timeout!['stopped']).toBe(true);
+    expect(poller!['stopped']).toBe(true);
   });
 
   it('restores both watchdogs when rejecting the ring fails', async () => {
@@ -118,6 +126,8 @@ describe('Auto drop ringing calls', () => {
     call['scheduleRingStatePolling']();
     const timeout = call['ringTimeout'];
     const deadlineAt = timeout!['deadlineAt'];
+    const poller = call['ringStatePoller'];
+    const pollDeadlineAt = poller!['deadlineAt'];
     vi.spyOn(call, 'leave').mockRestore();
     vi.spyOn(call, 'reject').mockRejectedValueOnce(new Error('transient'));
 
@@ -127,8 +137,9 @@ describe('Auto drop ringing calls', () => {
     expect(call['ringTimeout']).toBe(timeout);
     expect(timeout!['timeoutId']).toBeDefined();
     expect(timeout!['deadlineAt']).toBe(deadlineAt);
-    expect(call['ringStatePoller']).toBeDefined();
-    expect(call['ringStatePoller']!['stopped']).toBe(false);
+    expect(call['ringStatePoller']).toBe(poller);
+    expect(poller!['deadlineAt']).toBe(pollDeadlineAt);
+    expect(poller!['stopped']).toBe(false);
   });
 
   it('replaces a previously armed timeout', async () => {
