@@ -1,14 +1,17 @@
 import {
-  CompositeButton,
   DropDownSelect,
   DropDownSelectOption,
+  GenericMenu,
+  GenericMenuButtonItem,
   Icon,
+  IconButton,
+  MenuToggle,
+  type ToggleMenuButtonProps,
   useCall,
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
-import clsx from 'clsx';
-import { useCallback } from 'react';
+import { forwardRef, useCallback } from 'react';
 
 const incomingVideoSettings = [
   'auto',
@@ -22,22 +25,39 @@ const incomingVideoSettings = [
 
 type IncomingVideoSetting = (typeof incomingVideoSettings)[number];
 
+const QualityControlCaret = forwardRef<
+  HTMLButtonElement,
+  ToggleMenuButtonProps
+>(function QualityControlCaretRender({ menuShown }, ref) {
+  const { t } = useI18n();
+  return (
+    <IconButton
+      ref={ref}
+      size="xs"
+      variant="secondary"
+      appearance="ghost"
+      aria-label={t('Incoming video quality')}
+      aria-haspopup="menu"
+      aria-expanded={menuShown}
+      icon={menuShown ? 'caret-down' : 'caret-up'}
+    />
+  );
+});
+
 export const IncomingVideoSettingsButton = () => {
   const { t } = useI18n();
   const { currentSetting, onChange } = useIncomingVideoSettingsSelector();
 
   return (
-    <CompositeButton
-      className="rd__incoming-video-settings__button"
-      Menu={
+    <div className="rd__quality-control">
+      <span className="rd__quality-control__face">
+        <Icon icon="sliders-fill" />
+        {t(`quality/short/${currentSetting}`)}
+      </span>
+      <MenuToggle placement="top" ToggleButton={QualityControlCaret}>
         <IncomingVideoSettingsMenu value={currentSetting} onChange={onChange} />
-      }
-      menuPlacement="top"
-      aria-disabled
-    >
-      <Icon icon="quality" />
-      {t(`quality/short/${currentSetting}`)}
-    </CompositeButton>
+      </MenuToggle>
+    </div>
   );
 };
 
@@ -52,7 +72,7 @@ export const IncomingVideoSettingsDropdown = ({ title }: { title: string }) => {
         {title}
       </div>
       <DropDownSelect
-        icon="quality"
+        icon="sliders-fill"
         defaultSelectedIndex={currentIndex}
         defaultSelectedLabel={t(`quality/long/${currentSetting}`)}
         handleSelect={onChange}
@@ -78,24 +98,18 @@ const IncomingVideoSettingsMenu = (props: {
   const { t } = useI18n();
 
   return (
-    <div className="rd__layout-selector__list">
+    <GenericMenu>
       {incomingVideoSettings.map((value) => (
-        <div key={value} className="rd__layout-selector__item">
-          <button
-            className={clsx('rd__button rd__button--align-left', {
-              'rd__button--primary': value === props.value,
-            })}
-            type="button"
-            data-testid={`incoming-video-resolution-${value}`}
-            onClick={() => props.onChange(value as IncomingVideoSetting)}
-          >
-            <span className="str-video__dropdown-label">
-              {t(`quality/long/${value}`)}
-            </span>
-          </button>
-        </div>
+        <GenericMenuButtonItem
+          key={value}
+          aria-current={value === props.value}
+          data-testid={`incoming-video-resolution-${value}`}
+          onClick={() => props.onChange(value)}
+        >
+          {t(`quality/long/${value}`)}
+        </GenericMenuButtonItem>
       ))}
-    </div>
+    </GenericMenu>
   );
 };
 

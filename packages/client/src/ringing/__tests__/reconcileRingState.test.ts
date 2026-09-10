@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { reconcileRingState } from '../reconcileRingState';
-import { CallingState, StreamVideoWriteableStateStore } from '../../store';
+import { CallingState, ClientState } from '../../store';
 import {
   CallResponse,
   CallSessionResponse,
@@ -305,13 +305,13 @@ const ringingCall = ({
   createdById: string;
   members?: string[];
 }) => {
-  const store = new StreamVideoWriteableStateStore();
+  const store = new ClientState();
   store.setConnectedUser(fromPartial({ id: currentUserId }));
   const streamClient = new StreamClient('api-key');
   const call = new Call({
     type: 'development',
     id: '12345',
-    clientStore: store,
+    clientState: store,
     streamClient,
     clientEventReporter: new ClientEventReporter({ streamClient }),
     ringing: true,

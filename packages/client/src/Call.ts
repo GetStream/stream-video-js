@@ -22,11 +22,7 @@ import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
 } from './events/callEventHandlers';
-import {
-  CallingState,
-  CallState,
-  StreamVideoWriteableStateStore,
-} from './store';
+import { CallingState, CallState, ClientState } from './store';
 import {
   createSafeAsyncSubscription,
   createSubscription,
@@ -307,7 +303,7 @@ export class Call {
   private ringTimeout: RingTimeout | undefined;
   private ringStatePoller: RingStatePoller | undefined;
 
-  private readonly clientStore: StreamVideoWriteableStateStore;
+  private readonly clientState: ClientState;
   public readonly streamClient: StreamClient;
   public readonly clientEventReporter: ClientEventReporter;
   private sfuClient?: StreamSfuClient;
@@ -390,7 +386,7 @@ export class Call {
     members,
     ownCapabilities,
     sortParticipantsBy,
-    clientStore,
+    clientState,
     ringing = false,
     watching = false,
   }: CallConstructor) {
@@ -401,7 +397,7 @@ export class Call {
     this.watching = watching;
     this.streamClient = streamClient;
     this.clientEventReporter = clientEventReporter;
-    this.clientStore = clientStore;
+    this.clientState = clientState;
     this.streamClientBasePath = `/call/${this.type}/${this.id}`;
     this.logger = videoLoggerSystem.getLogger('Call');
 
@@ -560,7 +556,7 @@ export class Call {
 
   private handleRingingCall = () => {
     const callSession = this.state.session;
-    const receiver_id = this.clientStore.connectedUser?.id;
+    const receiver_id = this.clientState.connectedUser?.id;
     const ended_at = callSession?.ended_at;
     const created_by_id = this.state.createdBy?.id;
 
@@ -820,7 +816,7 @@ export class Call {
       this.ringingSubject.next(false);
       this.cancelAutoDrop();
       this.cancelRingStatePolling();
-      this.clientStore.unregisterCall(this);
+      this.clientState.unregisterCall(this);
 
       globalThis.streamRNVideoSDK?.callManager.stop({
         isRingingTypeCall: this.ringing,
@@ -889,7 +885,7 @@ export class Call {
    * Retrieves the current user ID.
    */
   get currentUserId() {
-    return this.clientStore.connectedUser?.id;
+    return this.clientState.connectedUser?.id;
   }
 
   /**
@@ -954,8 +950,8 @@ export class Call {
     this.ringingSubject.next(true);
     // we remove the instance from the calls list to enable the following filter in useCalls hook
     // const calls = useCalls().filter((c) => c.ringing);
-    const calls = this.clientStore.calls.filter((c) => c.cid !== this.cid);
-    this.clientStore.setCalls([this, ...calls]);
+    const calls = this.clientState.calls.filter((c) => c.cid !== this.cid);
+    this.clientState.setCalls([this, ...calls]);
     await this.applyDeviceConfig(settings, { publish: false });
   };
 
@@ -1000,7 +996,7 @@ export class Call {
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
-      this.clientStore.registerOrUpdateCall(this);
+      this.clientState.registerOrUpdateCall(this);
     }
     await this.applyDeviceConfig(response.call.settings, { publish: false });
 
@@ -1028,7 +1024,7 @@ export class Call {
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
-      this.clientStore.registerOrUpdateCall(this);
+      this.clientState.registerOrUpdateCall(this);
     }
 
     await this.applyDeviceConfig(response.call.settings, { publish: false });
@@ -1171,7 +1167,7 @@ export class Call {
       const callingX = globalThis.streamRNVideoSDK?.callingX;
       if (callingX) {
         // for Android/iOS, we need to start the call in the callingx library as soon as possible
-        await callingX.joinCall(this, this.clientStore.calls);
+        await callingX.joinCall(this, this.clientState.calls);
       }
 
       await this.setup();
@@ -1765,7 +1761,7 @@ export class Call {
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
-      this.clientStore.registerOrUpdateCall(this);
+      this.clientState.registerOrUpdateCall(this);
     }
 
     return joinResponse;
@@ -2566,7 +2562,7 @@ export class Call {
   };
 
   /**
-   * Will enhance the reported stats with additional participant-specific information (`callStatsReport$` state [store variable](./StreamVideoClient.md/#readonlystatestore)).
+   * Will enhance the reported stats with additional participant-specific information (the `callStatsReport$` state variable).
    * This is usually helpful when detailed stats for a specific participant are needed.
    *
    * @param sessionId the sessionId to start reporting for.

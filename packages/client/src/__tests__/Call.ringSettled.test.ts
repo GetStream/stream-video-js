@@ -6,7 +6,7 @@ import { Call } from '../Call';
 import { StreamClient } from '../coordinator/connection/client';
 import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
-import { CallingState, StreamVideoWriteableStateStore } from '../store';
+import { CallingState, ClientState } from '../store';
 import { CallSessionResponse } from '../gen/coordinator';
 
 const ME = 'jane';
@@ -18,18 +18,18 @@ describe('Leaving a call settled by the current user', () => {
   let call: Call;
 
   const createCall = async (ringing: boolean) => {
-    const clientStore = new StreamVideoWriteableStateStore();
+    const clientState = new ClientState();
     const streamClient = new StreamClient('abc');
     call = new Call({
       type: 'test',
       id: generateUUIDv4(),
       streamClient,
       clientEventReporter: new ClientEventReporter({ streamClient }),
-      clientStore,
+      clientState,
       ringing,
     });
 
-    clientStore.connectedUserSubject.next(fromPartial({ id: ME }));
+    clientState.setConnectedUser(fromPartial({ id: ME }));
     vi.spyOn(call, 'leave').mockResolvedValue(undefined);
     await call.setup();
     return call;

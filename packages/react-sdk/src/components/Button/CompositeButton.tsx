@@ -8,6 +8,7 @@ import {
   ReactElement,
 } from 'react';
 import { Placement } from '@floating-ui/react';
+import { useI18n } from '@stream-io/video-react-bindings';
 
 import { Button, ButtonAppearance, ButtonSize, ButtonVariant } from './Button';
 import { IconButton } from './IconButton';
@@ -58,6 +59,7 @@ export const CompositeButton = forwardRef<HTMLDivElement, CompositeButtonProps>(
           'str-video__composite-button',
           `str-video__composite-button--${variant}`,
           `str-video__composite-button--size-${size}`,
+          `str-video__composite-button--${appearance ?? 'solid'}`,
           Menu && 'str-video__composite-button--menu',
           className,
         )}
@@ -102,12 +104,16 @@ const CompositeCaret = forwardRef<
   HTMLButtonElement,
   { menuShown: boolean; disabled?: boolean }
 >(function CompositeCaretRender({ menuShown, disabled }, ref) {
+  const { t } = useI18n();
+
   return (
     <IconButton
       className="str-video__composite-button__caret"
       size="xs"
       appearance="ghost"
       disabled={disabled}
+      aria-label={t('Toggle menu')}
+      aria-haspopup="menu"
       aria-expanded={menuShown}
       icon={menuShown ? 'caret-down' : 'caret-up'}
       ref={ref}

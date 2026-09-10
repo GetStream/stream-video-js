@@ -1,11 +1,11 @@
 .str-video__reaction {
   position: absolute;
-  right: 0.875rem;
-  top: 0.875rem;
+  right: var(--str-video__size-14);
+  top: var(--str-video__size-14);
 
   .str-video__reaction__emoji {
     display: flex;
     line-height: 1;
-    font-size: 2.5rem;
+    font-size: var(--str-video__font-size-size-40);
   }
 }

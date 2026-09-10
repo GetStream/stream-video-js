@@ -25,6 +25,10 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+
+    .str-video__device-settings__device-kind {
+      margin-block-end: var(--str-video__spacing-md);
+    }
   }
 
   &__tabmodal-sidebar {

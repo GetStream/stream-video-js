@@ -6,17 +6,65 @@
   text-align: center;
 
   width: 100vw;
-  padding: var(--str-video__spacing-md);
+  padding: var(--str-video__spacing-xxs) var(--str-video__spacing-none);
 
   margin: 0;
   list-style: none;
 
-  gap: var(--str-video__space-6);
+  gap: var(--str-video__spacing-xxxs);
 
   &__item {
     &--divider {
-      border-bottom: 1px solid var(--str-video__base-color3);
-      margin: var(--str-video__spacing-xs) 0;
+      border-bottom: var(--str-video__w100) solid
+        var(--str-video__border-core-default);
+      margin: var(--str-video__spacing-xxs) 0;
+    }
+  }
+
+  // the codec selectors render a DropDownSelect instead of a button; give it
+  // the same inset so its pill lines up with every other row
+  .str-video__dropdown {
+    margin-inline: var(--str-video__spacing-xxs);
+  }
+
+  .rd__button,
+  .rd__link--faux-button {
+    min-height: 32px;
+    border-radius: var(--str-video__radius-md);
+    background-color: transparent;
+    margin-inline: var(--str-video__spacing-xxs);
+    padding-inline: var(--str-video__spacing-xs);
+    border: 0;
+    gap: var(--str-video__spacing-xs);
+
+    .rd__button__icon,
+    .rd__link__icon {
+      margin-right: 0;
+    }
+
+    &:not(:has([class*='__icon']))::before {
+      content: '';
+      flex: none;
+      inline-size: var(--str-video__icon-size-sm);
+    }
+    font-size: var(--str-video__typography-font-size-sm);
+    font-weight: var(--str-video__typography-font-weight-semi-bold);
+
+    &:hover:not(:disabled) {
+      background-color: var(--str-video__background-utility-hover);
+    }
+
+    &:active:not(:disabled) {
+      background-color: var(--str-video__background-utility-pressed);
+    }
+
+    &:disabled {
+      background-color: transparent;
+      color: var(--str-video__text-disabled);
+
+      .rd__button__icon {
+        background-color: var(--str-video__text-disabled);
+      }
     }
   }
 }

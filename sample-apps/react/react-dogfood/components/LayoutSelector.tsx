@@ -1,8 +1,9 @@
 import { useCallback } from 'react';
-import clsx from 'clsx';
 import {
   DropDownSelect,
   DropDownSelectOption,
+  GenericMenu,
+  GenericMenuButtonItem,
   Icon,
   useCallStateHooks,
   useI18n,
@@ -46,28 +47,24 @@ const ListMenu = ({
   const { close } = useMenuContext();
   const { t } = useI18n();
   return (
-    <ul className="rd__layout-selector__list">
+    <GenericMenu>
       {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>)
         .filter((key) => !canScreenshare(key))
         .map((key) => (
-          <li key={key} className="rd__layout-selector__item">
-            <button
-              className={clsx('rd__button rd__button--align-left', {
-                'rd__button--primary': key === selectedLayout,
-              })}
-              onClick={() => {
-                handleSelect(
-                  Object.keys(LayoutMap).findIndex((k) => k === key),
-                );
-                close?.();
-              }}
-            >
-              <Icon className="rd__button__icon" icon={LayoutMap[key].icon} />
-              {t(LayoutMap[key].title)}
-            </button>
-          </li>
+          <GenericMenuButtonItem
+            key={key}
+            type="button"
+            aria-current={key === selectedLayout}
+            onClick={() => {
+              handleSelect(Object.keys(LayoutMap).findIndex((k) => k === key));
+              close?.();
+            }}
+          >
+            <Icon icon={LayoutMap[key].icon} />
+            {t(LayoutMap[key].title)}
+          </GenericMenuButtonItem>
         ))}
-    </ul>
+    </GenericMenu>
   );
 };
 

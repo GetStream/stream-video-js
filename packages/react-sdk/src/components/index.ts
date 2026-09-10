@@ -1,5 +1,6 @@
 export * from './Avatar';
 export * from './BackgroundFilters';
+export * from './Badge';
 export * from './Button';
 export * from './CallControls';
 export * from './CallParticipantsList';

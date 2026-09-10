@@ -6,7 +6,7 @@ import { Call } from '../Call';
 import { StreamClient } from '../coordinator/connection/client';
 import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
-import { StreamVideoWriteableStateStore } from '../store';
+import { ClientState } from '../store';
 import { CallSessionResponse } from '../gen/coordinator';
 
 describe('Call.getRingState', () => {
@@ -19,7 +19,7 @@ describe('Call.getRingState', () => {
       id: callId,
       streamClient,
       clientEventReporter: new ClientEventReporter({ streamClient }),
-      clientStore: new StreamVideoWriteableStateStore(),
+      clientState: new ClientState(),
     });
 
     if (sessionId) {

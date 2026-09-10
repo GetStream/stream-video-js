@@ -9,7 +9,7 @@ import { Call } from '../Call';
 import { StreamClient } from '../coordinator/connection/client';
 import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
-import { StreamVideoWriteableStateStore } from '../store';
+import { ClientState } from '../store';
 import { promiseWithResolvers } from '../helpers/promise';
 
 describe('Call lifecycle wiring', () => {
@@ -28,7 +28,7 @@ describe('Call lifecycle wiring', () => {
         streamClient,
         enabled: false,
       }),
-      clientStore: new StreamVideoWriteableStateStore(),
+      clientState: new ClientState(),
     });
   });
 

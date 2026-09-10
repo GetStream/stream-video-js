@@ -17,7 +17,7 @@ import { checkIfAudioOutputChangeSupported } from '../devices';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
-import { StreamVideoWriteableStateStore } from '../../store';
+import { ClientState } from '../../store';
 import { defaultDeviceId } from '../devicePersistence';
 
 vi.mock('../devices.ts', () => {
@@ -55,7 +55,7 @@ describe('SpeakerManager.test', () => {
         type: '',
         streamClient,
         clientEventReporter: new ClientEventReporter({ streamClient }),
-        clientStore: new StreamVideoWriteableStateStore(),
+        clientState: new ClientState(),
       }),
       devicePersistence,
     );
@@ -162,7 +162,7 @@ describe('SpeakerManager.test', () => {
         type: '',
         streamClient,
         clientEventReporter: new ClientEventReporter({ streamClient }),
-        clientStore: new StreamVideoWriteableStateStore(),
+        clientState: new ClientState(),
       }),
       { enabled: true, storageKey },
     );
@@ -190,7 +190,7 @@ describe('SpeakerManager.test', () => {
           type: '',
           streamClient,
           clientEventReporter: new ClientEventReporter({ streamClient }),
-          clientStore: new StreamVideoWriteableStateStore(),
+          clientState: new ClientState(),
         }),
         { enabled: true, storageKey },
       );

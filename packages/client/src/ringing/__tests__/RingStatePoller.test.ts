@@ -7,7 +7,7 @@ import { RingStatePoller } from '../RingStatePoller';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
 import { generateUUIDv4 } from '../../coordinator/connection/utils';
-import { CallingState, StreamVideoWriteableStateStore } from '../../store';
+import { CallingState, ClientState } from '../../store';
 import {
   ErrorFromResponse,
   type StreamClientOptions,
@@ -37,18 +37,18 @@ describe('RingStatePoller', () => {
   let poller: RingStatePoller;
 
   const createCall = (options?: StreamClientOptions) => {
-    const clientStore = new StreamVideoWriteableStateStore();
+    const clientState = new ClientState();
     const streamClient = new StreamClient('abc', options);
     const newCall = new Call({
       type: 'test',
       id: generateUUIDv4(),
       streamClient,
       clientEventReporter: new ClientEventReporter({ streamClient }),
-      clientStore,
+      clientState,
     });
 
     // @ts-expect-error mocking only what we need for the test
-    clientStore.connectedUserSubject.next({ id: userId });
+    clientState.setConnectedUser({ id: userId });
     // @ts-expect-error mocking only what we need for the test
     newCall.state['createdBySubject'].next({ id: userId });
     // @ts-expect-error mocking only what we need for the test
@@ -334,19 +334,19 @@ describe('Call ring state polling', () => {
   const userId = 'jane';
 
   const createRingingCall = (options?: StreamClientOptions) => {
-    const clientStore = new StreamVideoWriteableStateStore();
+    const clientState = new ClientState();
     const streamClient = new StreamClient('abc', options);
     const call = new Call({
       type: 'test',
       id: generateUUIDv4(),
       streamClient,
       clientEventReporter: new ClientEventReporter({ streamClient }),
-      clientStore,
+      clientState,
       ringing: true,
     });
 
     // @ts-expect-error mocking only what we need for the test
-    clientStore.connectedUserSubject.next({ id: userId });
+    clientState.setConnectedUser({ id: userId });
     // @ts-expect-error mocking only what we need for the test
     call.state['sessionSubject'].next({
       id: SESSION_ID,

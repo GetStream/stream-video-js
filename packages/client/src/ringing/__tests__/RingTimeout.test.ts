@@ -7,7 +7,7 @@ import { RingTimeout } from '../RingTimeout';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
 import { generateUUIDv4 } from '../../coordinator/connection/utils';
-import { CallingState, StreamVideoWriteableStateStore } from '../../store';
+import { CallingState, ClientState } from '../../store';
 import { CallSettingsResponse } from '../../gen/coordinator';
 
 const TIMEOUT_MS = 30_000;
@@ -28,17 +28,17 @@ describe('RingTimeout', () => {
     createdById?: string;
     ring?: Partial<CallSettingsResponse['ring']> | null;
   } = {}) => {
-    const clientStore = new StreamVideoWriteableStateStore();
+    const clientState = new ClientState();
     const streamClient = new StreamClient('abc');
     const newCall = new Call({
       type: 'test',
       id: generateUUIDv4(),
       streamClient,
       clientEventReporter: new ClientEventReporter({ streamClient }),
-      clientStore,
+      clientState,
     });
 
-    clientStore.connectedUserSubject.next(fromPartial({ id: userId }));
+    clientState.setConnectedUser(fromPartial({ id: userId }));
     newCall.state['createdBySubject'].next(fromPartial({ id: createdById }));
     // leaving `settings` unset is how a call built from a push notification
     // looks until `get()` resolves

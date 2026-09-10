@@ -28,6 +28,8 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
       <button
         ref={ref}
         className="rd__button rd__button--align-left rd__lobby__camera-button"
+        aria-haspopup="menu"
+        aria-expanded={props.menuShown}
         title={isSystemMuted ? t('Camera is paused by your system') : undefined}
       >
         <Icon className="rd__button__icon" icon="camera" />
@@ -42,6 +44,7 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
 );
 
 export const ToggleCameraButton = () => {
+  const { t } = useI18n();
   const visualType = isMobile() || Browsers.isSafari() ? 'list' : 'preview';
   return (
     <MenuToggle
@@ -49,7 +52,7 @@ export const ToggleCameraButton = () => {
       ToggleButton={ToggleMenuButton}
       visualType={MenuVisualType.MENU}
     >
-      <DeviceSelectorVideo visualType={visualType} />
+      <DeviceSelectorVideo visualType={visualType} title={t('Camera')} />
     </MenuToggle>
   );
 };
