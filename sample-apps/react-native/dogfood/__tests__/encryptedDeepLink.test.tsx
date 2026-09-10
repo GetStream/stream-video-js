@@ -176,10 +176,9 @@ it.each(['MeetingScreen', 'GuestMeetingScreen'])(
 
 it.each([
   'https://pronto.getstream.io/join/call-123',
-  'https://pronto.getstream.io/join/call-123?encryption_key=',
   'https://getstream.io/video/demos/join/call-123',
   'https://pronto-staging.getstream.io/join/call-123',
-  'https://example.com/join/call-123?encryption_key=ignored',
+  'https://example.com/join/call-123',
 ])('preserves the saved key for an ordinary link: %s', async (url) => {
   await listen();
   renderHook(useClientLinks);
@@ -188,6 +187,27 @@ it.each([
   expect(Alert.alert).not.toHaveBeenCalled();
   expect(deeplinkCallId$.value).toBe('call-123');
 });
+
+it.each([
+  'https://pronto.getstream.io/join/call-123?encryption_key=',
+  'https://pronto.getstream.io/join/call-123?encryption_key',
+  'https://pronto.getstream.io/join/call-123?encryption_key=%20%09%20',
+  'https://example.com/join/call-123?encryption_key=ignored',
+])(
+  'rejects an invalid encrypted link on startup and while running: %s',
+  async (url) => {
+    jest.mocked(Linking.getInitialURL).mockResolvedValue(url);
+    await listen();
+    expect(deeplinkCallId$.value).toBeUndefined();
+    renderHook(useClientLinks);
+    expect(mockSetState).not.toHaveBeenCalled();
+    expect(deeplinkCallId$.value).toBeUndefined();
+
+    openURL(url);
+    expect(mockSetState).not.toHaveBeenCalled();
+    expect(deeplinkCallId$.value).toBeUndefined();
+  },
+);
 
 it('ignores malformed links and removes its listener on unmount', async () => {
   await listen();

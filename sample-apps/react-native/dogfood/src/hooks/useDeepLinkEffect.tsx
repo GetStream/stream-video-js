@@ -42,9 +42,10 @@ export const useDeepLinkEffect = () => {
       )?.[1];
       if (!callId) return;
       const environment = linkEnvironments.get(link.hostname);
-      const encryptionKey = environment
-        ? link.searchParams.get('encryption_key')?.trim()
-        : undefined;
+      const encryptionKey = link.searchParams.get('encryption_key')?.trim();
+      if (encryptionKey !== undefined && (!environment || !encryptionKey)) {
+        return;
+      }
       encryptedDeepLink$.next(
         encryptionKey && environment
           ? { callId, encryptionKey, environment }
