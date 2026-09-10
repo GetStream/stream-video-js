@@ -18,6 +18,7 @@ const EndCallMenu = (props: {
     <div className="str-video__end-call__confirmation">
       <Button
         variant="secondary"
+        appearance="outline"
         className="str-video__end-call__leave"
         data-testid="leave-call-button"
         onClick={onLeave}

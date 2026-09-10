@@ -1,52 +1,68 @@
 .str-video__end-call {
   &__confirmation {
     padding: var(--str-video__spacing-md);
-    gap: var(--str-video__spacing-sm);
+    gap: var(--str-video__spacing-xs);
+    inline-size: 224px;
 
     display: flex;
     flex-direction: column;
   }
-
-  &__leave,
-  &__end {
-    min-inline-size: 196px;
-  }
 }
 
 .str-video__end-recording__confirmation {
-  background-color: var(--str-video__base-color7);
-  border-radius: var(--str-video__border-radius-lg);
-  padding: var(--str-video__spacing-lg);
-  gap: var(--str-video__spacing-md);
+  inline-size: 304px;
+  padding: var(--str-video__spacing-2xl) var(--str-video__spacing-xl)
+    var(--str-video__spacing-xl);
+  gap: var(--str-video__spacing-2xl);
+
   display: flex;
   flex-direction: column;
+  background-color: var(--str-video__background-core-elevation-1);
+  border-radius: var(--str-video__radius-xl);
+  box-shadow: var(--str-video__box-shadow-4);
 }
 
 .str-video__end-recording__header {
   display: flex;
-  flex-direction: row;
-  gap: var(--str-video__spacing-sm);
+  flex-direction: column;
+  align-items: center;
+  gap: var(--str-video__spacing-md);
+  inline-size: 100%;
+
+  .str-video__icon {
+    inline-size: var(--str-video__icon-size-lg);
+    block-size: var(--str-video__icon-size-lg);
+    background-color: var(--str-video__text-tertiary);
+  }
+}
+
+.str-video__end-recording__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--str-video__spacing-xs);
+  inline-size: 100%;
+  text-align: center;
 }
 
 .str-video__end-recording__heading {
-  font-size: var(--str-video__font-size-lg);
-  font-weight: 600;
   margin: 0;
+  color: var(--str-video__text-primary);
+  font-size: var(--str-video__typography-font-size-md);
+  font-weight: var(--str-video__typography-font-weight-semi-bold);
+  line-height: var(--str-video__typography-line-height-normal);
 }
 
 .str-video__end-recording__description {
   margin: 0;
-  color: var(--str-video__text-color2);
-  font-size: var(--str-video__font-size-sm);
+  color: var(--str-video__text-secondary);
+  font-size: var(--str-video__typography-font-size-sm);
+  font-weight: var(--str-video__typography-font-weight-regular);
+  line-height: var(--str-video__typography-line-height-normal);
 }
 
 .str-video__end-recording__actions {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  gap: var(--str-video__spacing-sm);
-
-  .str-video__button {
-    flex: 1;
-  }
+  flex-direction: column;
+  gap: var(--str-video__spacing-xs);
+  inline-size: 100%;
 }

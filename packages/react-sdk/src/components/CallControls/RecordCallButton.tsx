@@ -37,22 +37,24 @@ const RecordEndConfirmation = (props: PropsWithErrorHandler) => {
     <div className="str-video__end-recording__confirmation">
       <div className="str-video__end-recording__header">
         <Icon icon="recording-on" />
-        <h2 className="str-video__end-recording__heading">
-          {t('End recording')}
-        </h2>
+        <div className="str-video__end-recording__text">
+          <h2 className="str-video__end-recording__heading">
+            {t('End recording')}
+          </h2>
+          <p className="str-video__end-recording__description">
+            {t('Are you sure you want end the recording?')}
+          </p>
+        </div>
       </div>
-      <p className="str-video__end-recording__description">
-        {t('Are you sure you want end the recording?')}
-      </p>
       <div className="str-video__end-recording__actions">
-        <Button variant="secondary" appearance="outline" onClick={close}>
-          {t('Cancel')}
-        </Button>
         <Button
           variant="destructive"
           onClick={isAwaitingResponse ? undefined : handleClick}
         >
           {isAwaitingResponse ? <LoadingIndicator /> : t('End recording')}
+        </Button>
+        <Button variant="secondary" appearance="outline" onClick={close}>
+          {t('Cancel')}
         </Button>
       </div>
     </div>

@@ -13,8 +13,14 @@
   }
 
   &--error {
-    --str-video__badge-bg: var(--str-video__badge-bg-error);
-    --str-video__badge-fg: var(--str-video__badge-text-on-accent);
+    --str-video__badge-bg: var(
+      --str-video__control-call-control-error-badge-bg
+    );
+    --str-video__badge-fg: var(
+      --str-video__control-call-control-error-badge-text
+    );
+
+    border: 0;
   }
 
   &--neutral {

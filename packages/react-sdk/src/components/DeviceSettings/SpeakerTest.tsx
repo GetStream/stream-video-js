@@ -62,6 +62,8 @@ export const SpeakerTest = (props: { audioUrl?: string }) => {
       />
       <CompositeButton
         className="str-video__speaker-test__button"
+        appearance="outline"
+        size="sm"
         onClick={handleStartTest}
         type="button"
       >
