@@ -236,8 +236,7 @@ export const attachE2EEIfConfigured = async (call: Call): Promise<void> => {
   if (!userId) {
     // The manager labels the frames it encrypts with the local user, so there is
     // nothing sane to attach before the client has connected one.
-    console.warn('Cannot enable E2EE before the user is connected');
-    return;
+    throw new Error('Cannot enable E2EE before the user is connected');
   }
 
   let manager: EncryptionManager | undefined;
