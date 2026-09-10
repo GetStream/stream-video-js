@@ -79,6 +79,29 @@ describe('Call lifecycle wiring', () => {
     expect(audioBindingsOrder).toBeLessThan(dynascaleOrder);
   });
 
+  // `joinSource` is reporting-only: it must reach the event reporter and never
+  // the coordinator's join request.
+  it('call.join() reports joinSource without putting it on the wire', async () => {
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    const doJoin = vi
+      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .mockResolvedValue(undefined);
+    const withJoinLifecycle = vi.spyOn(
+      call.clientEventReporter,
+      'withJoinLifecycle',
+    );
+
+    await call.join({ joinSource: 'ring-poll-api', ring: true });
+
+    expect(withJoinLifecycle).toHaveBeenCalledWith(
+      call.cid,
+      { joinReason: 'first-attempt', joinSource: 'ring-poll-api' },
+      expect.any(Function),
+    );
+    expect(doJoin).toHaveBeenCalledTimes(1);
+    expect('joinSource' in doJoin.mock.calls[0][0]!).toBe(false);
+  });
+
   it('call.join() shares an in-flight join flow', async () => {
     const joinTask = promiseWithResolvers<void>();
     vi.spyOn(call, 'setup').mockResolvedValue(undefined);

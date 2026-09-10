@@ -72,6 +72,30 @@ const createStreamVideoClient = async () => {
     user,
     token,
     tokenProvider,
-    options: { logLevel: 'warn', rejectCallWhenBusy: false },
+    options: {
+      // keep the push-created client on the same coordinator the UI uses,
+      // otherwise a ring handled from a quit state talks to a different edge
+      baseURL: readPersistedString('coordinatorBaseUrl') || undefined,
+      ringStatePolling: readPersistedString('disableRingStatePolling')
+        ? false
+        : undefined,
+      logLevel: 'warn',
+      rejectCallWhenBusy: false,
+    },
   });
+};
+
+/**
+ * Reads a persisted store value without throwing on an absent or malformed
+ * entry, unlike the credential reads above which require their keys.
+ */
+const readPersistedString = (key: string): string | undefined => {
+  try {
+    const raw = mmkvStorage.getString(key);
+    if (!raw) return undefined;
+    const value = JSON.parse(raw);
+    return value ? String(value) : undefined;
+  } catch {
+    return undefined;
+  }
 };

@@ -39,6 +39,12 @@ const iceEvent = (
 
 describe('ClientEventReporter', () => {
   const cid = 'default:call-1';
+  const callContext: CallReportContext = {
+    callType: 'default',
+    callId: 'call-1',
+    getCallSessionId: () => 'session-1',
+    getSfuId: () => 'sfu-1',
+  };
   let doAxiosRequest: ReturnType<typeof vi.fn>;
   let reporter: ClientEventReporter;
   let connectId: string;
@@ -72,13 +78,7 @@ describe('ClientEventReporter', () => {
     reporter = new ClientEventReporter({ streamClient });
     connectId = reporter.startCoordinatorConnection('user-1');
 
-    const ctx: CallReportContext = {
-      callType: 'default',
-      callId: 'call-1',
-      getCallSessionId: () => 'session-1',
-      getSfuId: () => 'sfu-1',
-    };
-    reporter.registerCall(cid, ctx);
+    reporter.registerCall(cid, callContext);
   });
 
   it('emits an initiated then a completed event on success', async () => {
@@ -115,6 +115,183 @@ describe('ClientEventReporter', () => {
     expect(events).toHaveLength(2);
     expect(events[0]).toMatchObject({ join_reason: 'migration' });
     expect(events[1]).toMatchObject({ join_reason: 'migration' });
+  });
+
+  it('carries the joinSource across the whole join lifecycle', async () => {
+    await reporter.withJoinLifecycle(
+      cid,
+      { joinReason: 'first-attempt', joinSource: 'ring-poll-api' },
+      () => reporter.track(cid, 'CoordinatorJoin', () => Promise.resolve('ok')),
+    );
+    await flush();
+
+    const events = postedEvents().filter((e) => e.stage === 'CoordinatorJoin');
+    expect(events).toHaveLength(2);
+    expect(events[0]).toMatchObject({
+      event_type: 'initiated',
+      join_reason: 'first-attempt',
+      source: 'ring-poll-api',
+    });
+    expect(events[1]).toMatchObject({
+      event_type: 'completed',
+      outcome: 'success',
+      source: 'ring-poll-api',
+    });
+  });
+
+  it('carries the joinSource on a failed join', async () => {
+    await expect(
+      reporter.withJoinLifecycle(
+        cid,
+        { joinReason: 'first-attempt', joinSource: 'ring-ws' },
+        () =>
+          reporter.track(cid, 'CoordinatorJoin', () =>
+            Promise.reject(new Error('boom')),
+          ),
+      ),
+    ).rejects.toThrow('boom');
+    await flush();
+
+    const events = postedEvents().filter((e) => e.stage === 'CoordinatorJoin');
+    expect(events).toHaveLength(2);
+    expect(events[0]).toMatchObject({ source: 'ring-ws' });
+    expect(events[1]).toMatchObject({
+      event_type: 'completed',
+      outcome: 'failure',
+      source: 'ring-ws',
+    });
+  });
+
+  it('omits the source key entirely when the join has none', async () => {
+    await reporter.withJoinLifecycle(cid, { joinReason: 'first-attempt' }, () =>
+      reporter.track(cid, 'CoordinatorJoin', () => Promise.resolve('ok')),
+    );
+    await flush();
+
+    const events = postedEvents().filter((e) => e.stage === 'CoordinatorJoin');
+    expect(events).toHaveLength(2);
+    expect('source' in events[0]).toBe(false);
+    expect('source' in events[1]).toBe(false);
+  });
+
+  // the regression that matters: a reconnect must not inherit the ring source
+  // of the join that came before it
+  it('does not carry a ring source into a later reconnect', async () => {
+    await reporter.withJoinLifecycle(
+      cid,
+      { joinReason: 'first-attempt', joinSource: 'ring-ws' },
+      () => reporter.track(cid, 'CoordinatorJoin', () => Promise.resolve('ok')),
+    );
+    doAxiosRequest.mockClear();
+
+    await reporter.withJoinLifecycle(cid, { joinReason: 'full-rejoin' }, () =>
+      reporter.track(cid, 'CoordinatorJoin', () => Promise.resolve('ok')),
+    );
+    await flush();
+
+    const events = postedEvents().filter((e) => e.stage === 'CoordinatorJoin');
+    expect(events).toHaveLength(2);
+    expect(events[0]).toMatchObject({ join_reason: 'full-rejoin' });
+    expect('source' in events[0]).toBe(false);
+    expect('source' in events[1]).toBe(false);
+  });
+
+  // `Call.join`'s retry loop restores the pre-join state between attempts, so a
+  // reconnect can open its own lifecycle while the join's is still on the
+  // stack. The inner one must not inherit the outer one's source.
+  it('does not leak the joinSource into a nested sourceless lifecycle', async () => {
+    await reporter.withJoinLifecycle(
+      cid,
+      { joinReason: 'first-attempt', joinSource: 'ring-ws' },
+      () =>
+        reporter.withJoinLifecycle(cid, { joinReason: 'full-rejoin' }, () =>
+          reporter.track(cid, 'CoordinatorJoin', () => Promise.resolve('ok')),
+        ),
+    );
+    await flush();
+
+    const events = postedEvents().filter((e) => e.stage === 'CoordinatorJoin');
+    expect(events).toHaveLength(2);
+    expect(events[0]).toMatchObject({ join_reason: 'full-rejoin' });
+    expect('source' in events[0]).toBe(false);
+    expect('source' in events[1]).toBe(false);
+  });
+
+  // a fast reconnect reports CoordinatorJoin without a join lifecycle, so the
+  // source has to be gone by the time the lifecycle ends
+  it('does not carry the joinSource into a join reported outside the lifecycle', async () => {
+    await reporter.withJoinLifecycle(
+      cid,
+      { joinReason: 'first-attempt', joinSource: 'ring-ws' },
+      () => reporter.track(cid, 'CoordinatorJoin', () => Promise.resolve('ok')),
+    );
+    doAxiosRequest.mockClear();
+
+    await reporter.track(cid, 'CoordinatorJoin', () => Promise.resolve('ok'));
+    await flush();
+
+    const events = postedEvents().filter((e) => e.stage === 'CoordinatorJoin');
+    expect(events).toHaveLength(2);
+    expect('source' in events[0]).toBe(false);
+    expect('source' in events[1]).toBe(false);
+  });
+
+  // `Call.join` re-correlates mid-loop when it forces an SFU switch; those
+  // later attempts are still the same ring-caused join
+  it('keeps the joinSource across a mid-lifecycle re-correlation', async () => {
+    await reporter.withJoinLifecycle(
+      cid,
+      { joinReason: 'first-attempt', joinSource: 'ring-ws' },
+      async () => {
+        await expect(
+          reporter.track(cid, 'CoordinatorJoin', () =>
+            Promise.reject(new Error('boom')),
+          ),
+        ).rejects.toThrow('boom');
+        reporter.startCorrelation(cid, 'first-attempt');
+        await reporter.track(cid, 'CoordinatorJoin', () =>
+          Promise.resolve('ok'),
+        );
+      },
+    );
+    await flush();
+
+    const events = postedEvents().filter((e) => e.stage === 'CoordinatorJoin');
+    expect(events).toHaveLength(4);
+    expect(events.every((e) => e.source === 'ring-ws')).toBe(true);
+    expect(events[0].join_attempt_id).not.toBe(events[3].join_attempt_id);
+  });
+
+  it('drops the joinSource when the call is unregistered', async () => {
+    await reporter.withJoinLifecycle(
+      cid,
+      { joinReason: 'first-attempt', joinSource: 'ring-ws' },
+      () => Promise.resolve('ok'),
+    );
+    reporter.unregisterCall(cid);
+    reporter.registerCall(cid, callContext);
+    doAxiosRequest.mockClear();
+
+    reporter.startCorrelation(cid, 'first-attempt');
+    await reporter.track(cid, 'CoordinatorJoin', () => Promise.resolve('ok'));
+    await flush();
+
+    const events = postedEvents().filter((e) => e.stage === 'CoordinatorJoin');
+    expect(events).toHaveLength(2);
+    expect('source' in events[0]).toBe(false);
+  });
+
+  it('reports the source only on CoordinatorJoin', async () => {
+    await reporter.withJoinLifecycle(
+      cid,
+      { joinReason: 'first-attempt', joinSource: 'ring-ws' },
+      () => reporter.track(cid, 'WSJoin', () => Promise.resolve('ok')),
+    );
+    await flush();
+
+    const others = postedEvents().filter((e) => e.stage !== 'CoordinatorJoin');
+    expect(others.length).toBeGreaterThan(0);
+    expect(others.some((e) => 'source' in e)).toBe(false);
   });
 
   it('folds in-stage retries into a single pair', async () => {
