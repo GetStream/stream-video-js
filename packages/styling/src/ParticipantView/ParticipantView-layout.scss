@@ -56,7 +56,7 @@ $scope-name: 'str-video__participant-view';
       font-size: var(--str-video__typography-font-size-xs);
       line-height: var(--str-video__typography-line-height-tight);
       font-weight: var(--str-video__typography-font-weight-regular);
-      color: var(--str-video__text-on-accent);
+      color: var(--str-video__participant-label--color);
 
       .str-video__participant-details__name-text {
         max-inline-size: 160px;
@@ -71,7 +71,7 @@ $scope-name: 'str-video__participant-view';
         height: var(--str-video__icon-size-sm);
         -webkit-mask-size: var(--str-video__icon-size-sm);
         mask-size: var(--str-video__icon-size-sm);
-        background-color: var(--str-video__text-on-accent);
+        background-color: var(--str-video__participant-label--color);
       }
 
       .str-video__participant-details__name--audio-muted {
