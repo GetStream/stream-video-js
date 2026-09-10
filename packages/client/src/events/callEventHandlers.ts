@@ -78,11 +78,12 @@ export const registerRingingCallEventHandlers = (call: Call) => {
     });
   };
 
-  // each event needs its own closure
+  // each event needs its own closure. `call.missed` is deliberately absent:
+  // nothing in the reconciler acts on `missed_by`, so the auto-drop owns the
+  // "nobody answered" case until the server-owned ring timeout lands.
   const eventHandlers = [
     call.on('call.accepted', () => reconcile()),
     call.on('call.rejected', () => reconcile()),
-    call.on('call.missed', () => reconcile()),
   ];
 
   return () => {
