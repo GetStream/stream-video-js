@@ -1,9 +1,10 @@
 @use '../utils';
 
 .str-video__call-recording-list__title {
-  font-weight: 500;
-  font-size: 1rem;
-  line-height: 1.25rem;
+  font-weight: var(--str-video__typography-font-weight-semi-bold);
+  font-size: var(--str-video__typography-font-size-md);
+  line-height: var(--str-video__typography-line-height-normal);
+  color: var(--str-video__text-primary);
 }
 
 .str-video__call-recordings__toggle-button--active {
@@ -33,10 +34,32 @@
   }
 }
 
+.str-video__call-recording-list__listing--empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--str-video__spacing-sm);
+  padding: var(--str-video__spacing-3xl) var(--str-video__spacing-xl);
+}
+
 .str-video__call-recording-list__listing--icon-empty {
+  flex: 0 0 auto;
+  inline-size: var(--str-video__icon-size-lg);
+  block-size: var(--str-video__icon-size-lg);
   @include utils.apply-mask-image(
     var(--str-video__icon--film-roll),
-    var(--str-video__text-color1),
+    var(--str-video__text-tertiary),
     contain
   );
+}
+
+.str-video__call-recording-list__listing--text-empty {
+  margin: 0;
+  max-inline-size: var(--str-video__size-320);
+  text-align: center;
+  font-size: var(--str-video__typography-font-size-sm);
+  line-height: var(--str-video__typography-line-height-normal);
+  font-weight: var(--str-video__typography-font-weight-semi-bold);
+  color: var(--str-video__text-primary);
 }
