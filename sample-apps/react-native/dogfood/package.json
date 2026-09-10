@@ -8,6 +8,8 @@
     "ios-device": "react-native run-ios --device",
     "start": "react-native start --reset-cache",
     "build": "tsc",
+    "test": "jest",
+    "test-ci": "jest --ci --runInBand",
     "setup": "yarn && yarn build:react-native:deps && npx pod-install"
   },
   "dependencies": {
@@ -61,11 +63,18 @@
     "@react-native-community/cli-platform-android": "20.2.0",
     "@react-native-community/cli-platform-ios": "20.2.0",
     "@react-native/babel-preset": "^0.86.2",
+    "@react-native/jest-preset": "0.86.2",
     "@react-native/metro-config": "^0.86.2",
     "@react-native/typescript-config": "^0.86.2",
+    "@testing-library/react-native": "13.3.3",
+    "@types/jest": "^29.5.14",
     "@types/react": "^19.2.18",
+    "@types/react-test-renderer": "^19.1.0",
+    "babel-jest": "^29.7.0",
     "babel-plugin-react-compiler": "^1.0.0",
+    "jest": "^29.7.0",
     "react-dom": "19.2.3",
+    "react-test-renderer": "19.2.3",
     "typescript": "^6.0.3"
   },
   "engines": {

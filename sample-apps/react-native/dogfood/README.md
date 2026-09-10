@@ -1,6 +1,7 @@
 # React Native Video Example
 
 ## Setup the environment for React Native
+
 ​
 First things first, make sure you have set up the development environment for React Native. You can find the official guide [here](https://reactnative.dev/docs/environment-setup).
 
@@ -48,6 +49,22 @@ Optional: If you have trouble running the app with iOS, try to reinstall the iOS
    1. `yarn start` to run the Metro development server
    2. `yarn android` or `yarn ios` to run on Android Emulator or iOS simulator respectively.
    3. Optional: To run on a physical device follow the guide [here](https://reactnative.dev/docs/running-on-device).
+
+## Unit tests
+
+Run these commands from `sample-apps/react-native/dogfood`:
+
+```bash
+yarn test
+yarn test --watch
+yarn test-ci
+yarn build # Type-check the app and tests
+```
+
+Tests live in `__tests__/` and use Jest with `@react-native/jest-preset` and
+React Native Testing Library. Keep native and SDK mocks local to the tests that
+need them. The repository's `yarn test:ci:all` command runs `test-ci` automatically;
+these JavaScript tests do not require a simulator or device.
 
 <!-- ## Running the E2E tests
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@stream-io/video-react-native-sdk';
 import {
@@ -22,6 +22,10 @@ export const E2EEKeyInput = () => {
   const stored = useAppGlobalStoreValue((store) => store.e2eeKeyInput) ?? '';
   const [draft, setDraft] = useState(stored);
   const styles = useStyles();
+
+  useEffect(() => {
+    setDraft(stored);
+  }, [stored]);
 
   // Persisted on every keystroke rather than on blur: tapping "Join Call" does
   // not blur a focused input on iOS, and leaving the screen never fires onBlur,

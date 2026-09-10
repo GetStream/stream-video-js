@@ -21,6 +21,8 @@ All commands should be run from this directory (`sample-apps/react-native/dogfoo
 | Run on iOS device              | `yarn ios-device`                                                          |
 | Run on Android emulator        | `yarn android`                                                             |
 | Type-check                     | `yarn build` (runs `tsc`)                                                  |
+| Unit tests                     | `yarn test` (Jest + React Native Testing Library)                          |
+| Unit tests in CI               | `yarn test-ci` (included in root `yarn test:ci:all`)                       |
 | Reinstall iOS pods             | `cd ios && bundle exec pod install`                                        |
 
 Before running the app, the workspace SDK packages must be built first:
