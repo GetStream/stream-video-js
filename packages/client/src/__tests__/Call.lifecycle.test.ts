@@ -9,7 +9,7 @@ import { Call } from '../Call';
 import { StreamClient } from '../coordinator/connection/client';
 import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
-import { StreamVideoWriteableStateStore } from '../store';
+import { ClientState } from '../store';
 import { promiseWithResolvers } from '../helpers/promise';
 
 describe('Call lifecycle wiring', () => {
@@ -28,7 +28,7 @@ describe('Call lifecycle wiring', () => {
         streamClient,
         enabled: false,
       }),
-      clientStore: new StreamVideoWriteableStateStore(),
+      clientState: new ClientState(),
     });
   });
 
@@ -77,6 +77,29 @@ describe('Call lifecycle wiring', () => {
 
     expect(trackSubOrder).toBeLessThan(audioBindingsOrder);
     expect(audioBindingsOrder).toBeLessThan(dynascaleOrder);
+  });
+
+  // `joinSource` is reporting-only: it must reach the event reporter and never
+  // the coordinator's join request.
+  it('call.join() reports joinSource without putting it on the wire', async () => {
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    const doJoin = vi
+      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .mockResolvedValue(undefined);
+    const withJoinLifecycle = vi.spyOn(
+      call.clientEventReporter,
+      'withJoinLifecycle',
+    );
+
+    await call.join({ joinSource: 'ring-poll-api', ring: true });
+
+    expect(withJoinLifecycle).toHaveBeenCalledWith(
+      call.cid,
+      { joinReason: 'first-attempt', joinSource: 'ring-poll-api' },
+      expect.any(Function),
+    );
+    expect(doJoin).toHaveBeenCalledTimes(1);
+    expect('joinSource' in doJoin.mock.calls[0][0]!).toBe(false);
   });
 
   it('call.join() shares an in-flight join flow', async () => {

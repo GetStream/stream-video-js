@@ -1,14 +1,12 @@
 .str-video__device-settings__button {
-  .str-video__call-controls__button--icon-device-settings {
-    width: 1.25rem;
-    height: 1.25rem;
+  .str-video__icon--device-settings {
+    width: var(--str-video__icon-size-md);
+    height: var(--str-video__icon-size-md);
   }
 }
 
 .str-video__device-settings {
-  padding: 0.625rem;
   z-index: 1;
-  font-family: 'Inter';
 }
 
 .str-video__device-settings__header {
@@ -22,112 +20,188 @@
 .str-video__icon.str-video__device-settings__settings-icon {
   height: 24px;
   width: 24px;
-  color: var(--str-video__base-color1);
+  color: var(--str-video__text-primary);
 }
 
 .str-video__device-settings__close-button {
-  color: var(--str-video__base-color1);
+  color: var(--str-video__text-primary);
   background-color: transparent;
 }
 
+.str-video__menu-container:has(.str-video__device-settings__device-kind) {
+  padding-block: var(--str-video__spacing-xxs);
+}
+
 .str-video__device-settings__device-kind {
-  padding: var(--str-video__spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--str-video__spacing-xxxs);
 
   .str-video__device-settings__device-selector-title {
-    font-size: var(--str-video__font-size-sm);
-    font-weight: bold;
-    line-height: 1.25rem;
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+    margin-inline: var(--str-video__spacing-xxs);
+    padding-inline: var(--str-video__spacing-xs);
 
-    padding-bottom: 0.5rem;
-    margin-bottom: var(--str-video__spacing-sm);
+    color: var(--str-video__text-tertiary);
+    font-size: var(--str-video__typography-font-size-sm);
+    font-weight: var(--str-video__typography-font-weight-semi-bold);
+    line-height: var(--str-video__typography-line-height-normal);
   }
 
   .str-video__option,
   .str-video__device-settings__option {
     display: flex;
     align-items: center;
-    border-radius: var(--str-video__border-radius-lg);
-    background-color: var(--str-video__button-primary-base);
-    padding: var(--str-video__spacing-sm) var(--str-video__spacing-lg);
+    min-height: 32px;
+    border-radius: var(--str-video__radius-md);
+    margin-inline: var(--str-video__spacing-xxs);
+    padding-inline: var(--str-video__spacing-xs);
 
-    gap: var(--str-video__spacing-sm);
+    gap: var(--str-video__spacing-xs);
 
-    font-weight: 600;
-    font-size: var(--str-video__font-size-sm);
-    line-height: var(--str-video__spacing-lg);
+    color: var(--str-video__text-primary);
+    font-weight: var(--str-video__typography-font-weight-semi-bold);
+    font-size: var(--str-video__typography-font-size-sm);
+    line-height: var(--str-video__typography-line-height-normal);
 
-    &:not(:first-of-type) {
-      margin-top: var(--str-video__spacing-sm);
+    &__label {
+      flex: 1 0 0;
+      min-inline-size: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     &__icon {
       &--selected {
-        background-color: var(--str-video__brand-color1);
+        background-color: var(--str-video__accent-primary);
       }
     }
 
     &:hover {
-      background-color: var(--str-video__button-default-hover);
+      background-color: var(--str-video__background-utility-hover);
       cursor: pointer;
     }
 
-    &--selected,
-    &--active {
-      background-color: var(--str-video__button-default-hover);
+    &--disabled {
+      color: var(--str-video__text-disabled);
+
+      &:hover {
+        background-color: transparent;
+        cursor: default;
+      }
     }
 
     input[type='radio'] {
+      appearance: none;
       margin: 0;
-      height: 1rem;
-      width: 1rem;
+      inline-size: var(--str-video__icon-size-sm);
+      block-size: var(--str-video__icon-size-sm);
       display: grid;
       place-content: center;
 
+      background-color: var(--str-video__control-radio-button-bg);
+      border: var(--str-video__w100) solid
+        var(--str-video__border-core-on-elevation);
+      border-radius: var(--str-video__radius-max);
+
       &::before {
         content: '';
-        width: 0.5rem;
-        height: 0.5rem;
+        inline-size: var(--str-video__size-8);
+        block-size: var(--str-video__size-8);
+        border-radius: var(--str-video__radius-max);
+        background-color: var(--str-video__control-radio-button-indicator);
         transform: scale(0);
-      }
-      &:checked::before {
-        transform: scale(1);
       }
 
       &:checked {
-        border-color: var(--str-video__primary-color);
+        background-color: var(--str-video__control-radio-button-bg-selected);
+        border-color: var(--str-video__control-radio-button-bg-selected);
+
+        &::before {
+          transform: scale(1);
+        }
+      }
+
+      &:focus-visible {
+        outline: var(--str-video__w200) solid
+          var(--str-video__border-utility-focused);
+        outline-offset: var(--str-video__w100);
+      }
+
+      &:disabled {
+        border-color: var(--str-video__border-utility-disabled);
+        cursor: default;
+
+        &:checked {
+          background-color: var(--str-video__background-utility-disabled);
+          border-color: var(--str-video__background-utility-disabled);
+
+          &::before {
+            background-color: var(--str-video__text-disabled);
+          }
+        }
       }
     }
+  }
+}
+
+.str-video__device-settings__device-kind:has(
+  .str-video__device-settings__option
+) {
+  inline-size: 296px;
+}
+
+.str-video__device-settings__device-kind:has(.str-video__device-preview) {
+  padding: var(--str-video__spacing-md);
+  gap: var(--str-video__spacing-xs);
+
+  .str-video__device-settings__device-selector-title {
+    margin-inline: 0;
+    padding-inline: 0;
   }
 }
 
 .str-video__device-settings__separator {
-  border-color: var(--str-video__base-color3);
+  margin: var(--str-video__spacing-xxs) 0 3px;
+  border: 0;
+  border-block-start: var(--str-video__w100) solid
+    var(--str-video__border-core-default);
+}
+
+.str-video__device-settings__device-kind:last-child
+  .str-video__device-settings__separator:last-child {
+  display: none;
 }
 
 .str-video__audio-volume-indicator {
-  width: 100%;
   display: flex;
   align-items: center;
+  min-height: 32px;
+  margin-inline: var(--str-video__spacing-xxs);
+  padding-inline: var(--str-video__spacing-xs);
   gap: var(--str-video__spacing-xs);
-  padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
 
   .str-video__icon {
-    width: var(--str-video__font-size-xxl);
-    height: var(--str-video__font-size-xxl);
+    width: var(--str-video__icon-size-sm);
+    height: var(--str-video__icon-size-sm);
+    background-color: var(--str-video__text-secondary);
   }
 
   .str-video__audio-volume-indicator__bar {
     flex: 1;
-    background-color: var(--str-video__base-color1);
-    height: var(--str-video__spacing-xs);
-    border-radius: var(--str-video__border-radius-xs);
+    block-size: var(--str-video__size-8);
+    background-color: var(--str-video__control-progress-bar-track);
+    border-radius: var(--str-video__radius-max);
   }
 
   .str-video__audio-volume-indicator__bar-value {
     width: 100%;
     height: 100%;
-    background: var(--str-video__primary-color);
-    border-radius: var(--str-video__border-radius-xs);
+    background: var(--str-video__control-progress-bar-fill-audio);
+    border-radius: var(--str-video__radius-max);
     transform-origin: left center;
     // resting state; the live level is written inline by AudioVolumeIndicator
     transform: scaleX(0);
@@ -137,19 +211,19 @@
 .str-video__device-level-indicator {
   display: flex;
   align-items: center;
-  gap: 0.125rem;
+  gap: var(--str-video__spacing-xxxs);
   flex-shrink: 0;
   margin-left: auto;
 
   .str-video__device-level-indicator__bar {
-    width: 0.1875rem;
-    height: 0.75rem;
-    border-radius: var(--str-video__border-radius-xs);
-    background-color: var(--str-video__base-color3);
+    width: 3px;
+    height: var(--str-video__size-16);
+    border-radius: var(--str-video__radius-max);
+    background-color: var(--str-video__indicator-microphone-level-bar-inactive);
     transition: background-color 0.1s;
 
     &--active {
-      background-color: var(--str-video__primary-color);
+      background-color: var(--str-video__indicator-microphone-level-bar-active);
     }
   }
 }
@@ -165,12 +239,12 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  max-width: 12rem;
+  max-width: 192px;
   cursor: pointer;
 
   .str-video__device-preview__label {
-    padding: var(--str-video__spacing-xs) 0;
-    font-size: var(--str-video__font-size-xs);
+    padding: var(--str-video__space-6) 0;
+    font-size: var(--str-video__typography-font-size-xs);
     text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -182,30 +256,41 @@
     width: 100%;
     aspect-ratio: 16 / 9;
     object-fit: cover;
-    border-radius: var(--str-video__border-radius-sm);
-    border: 2px solid var(--str-video__base-color3);
-    background-color: var(--str-video__base-color5);
+    border-radius: var(--str-video__radius-sm);
+    border: var(--str-video__w200) solid var(--str-video__border-core-default);
+    background-color: var(--str-video__background-core-elevation-1);
     transform: scaleX(-1);
   }
 
   &--selected .str-video__device-video-preview__video {
-    border-color: var(--str-video__primary-color);
+    border-color: var(--str-video__accent-primary);
   }
 }
 
 .str-video__speaker-test {
-  padding: var(--str-video__spacing-sm) 0;
+  // the button sits on an elevated menu surface: Figma binds
+  // border/core/on-elevation on it (Core / Web / Mic Selector Menu / Test
+  // Speaker, 28100:111176), not the plain secondary border. overrides the
+  // secondary token because .str-video__button--secondary re-declares
+  // --button-border on the button element itself
+  --str-video__button-secondary-border: var(
+    --str-video__border-core-on-elevation
+  );
+
+  padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
 
   .str-video__speaker-test__button-content {
     display: flex;
     align-items: center;
-    gap: var(--str-video__spacing-sm);
-    padding: 0 var(--str-video__spacing-sm);
-    font-size: var(--str-video__font-size-sm);
-    font-weight: 600;
+    gap: var(--str-video__spacing-xs);
+    padding: 0 var(--str-video__spacing-xs);
+    font-size: var(--str-video__typography-font-size-sm);
+    font-weight: var(--str-video__typography-font-weight-semi-bold);
   }
 
-  .str-video__composite-button__button {
-    width: 100% !important;
+  .str-video__composite-button,
+  .str-video__composite-button__group,
+  .str-video__composite-button__action {
+    inline-size: 100%;
   }
 }

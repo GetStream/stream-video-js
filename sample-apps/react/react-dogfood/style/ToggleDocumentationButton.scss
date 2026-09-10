@@ -2,14 +2,11 @@
 
 .rd__documentation-button__menu {
   display: flex;
-  padding: var(--str-video__spacing-lg);
+  padding: var(--str-video__spacing-md);
   flex-direction: column;
   margin: 0;
-  gap: var(--str-video__spacing-md);
-  border-radius: var(--str-video__border-radius-lg);
+  gap: var(--str-video__spacing-sm);
   max-width: 400px;
-
-  background-color: var(--str-video__base-color6);
 }
 
 .rd__call-header__title {
@@ -17,14 +14,6 @@
   .str-video__call-controls__button .str-video__icon--caret-down {
     width: 18px;
     height: 18px;
-  }
-
-  .str-video__composite-button__button-group {
-    width: 18px;
-    height: 18px;
-    padding: 0;
-    display: flex;
-    justify-content: center;
   }
 }
 
@@ -48,5 +37,5 @@
 .rd__documentation-button__actions {
   display: flex;
   justify-content: space-between;
-  gap: var(--str-video__spacing-md);
+  gap: var(--str-video__spacing-sm);
 }

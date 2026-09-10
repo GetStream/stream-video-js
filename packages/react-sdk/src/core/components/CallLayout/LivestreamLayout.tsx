@@ -14,6 +14,7 @@ import {
 import { hasScreenShare, humanize } from '@stream-io/video-client';
 import { ParticipantView, useParticipantViewContext } from '../ParticipantView';
 import { ParticipantsAudio } from '../Audio';
+import { Icon } from '../../../components';
 import {
   usePaginatedLayoutSortPreset,
   useRawRemoteParticipants,
@@ -229,6 +230,7 @@ export const BackstageLayout = (props: BackstageLayoutProps) => {
         )}
         {showEarlyParticipantCount && (
           <span className="str-video__livestream-layout__early-viewers-count">
+            <Icon icon="livestream-viewers" />
             {t('{{ count }} participants joined early', {
               count: humanizeParticipantCount
                 ? humanize(participantCount)
@@ -288,6 +290,7 @@ const ParticipantOverlay = (props: {
             )}
             {showParticipantCount && (
               <span className="str-video__livestream-layout__viewers-count">
+                <Icon icon="livestream-viewers" />
                 {humanizeParticipantCount
                   ? humanize(participantCount)
                   : participantCount}
@@ -318,7 +321,9 @@ const ParticipantOverlay = (props: {
                     'str-video__livestream-layout__mute-button--muted',
                 )}
                 onClick={() => speaker.setVolume(isSpeakerMuted ? 1 : 0)}
-              />
+              >
+                <Icon icon={isSpeakerMuted ? 'speaker-off' : 'speaker'} />
+              </span>
             )}
             {enableFullScreen &&
               participantViewElement &&
@@ -327,7 +332,9 @@ const ParticipantOverlay = (props: {
                 <span
                   className="str-video__livestream-layout__go-fullscreen"
                   onClick={toggleFullScreen}
-                />
+                >
+                  <Icon icon="fullscreen" />
+                </span>
               )}
           </div>
         </div>

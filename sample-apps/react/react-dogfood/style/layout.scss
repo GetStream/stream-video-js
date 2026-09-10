@@ -2,10 +2,10 @@
 
 .rd__layout {
   display: flex;
-  height: calc(100vh - 140px);
-  height: calc(100dvh - 140px);
-  gap: var(--str-video__spacing-md);
-  padding: var(--str-video__spacing-md);
+  height: calc(100vh - 160px);
+  height: calc(100dvh - 160px);
+  gap: var(--str-video__spacing-sm);
+  padding: var(--str-video__spacing-sm);
   position: relative;
 
   .rd__layout__stage-container {
@@ -24,7 +24,7 @@
 .rd__notifications {
   position: absolute;
   bottom: 60px;
-  left: var(--str-video__spacing-lg);
+  left: var(--str-video__spacing-md);
   right: 0;
   z-index: 3;
 }
@@ -50,7 +50,7 @@
 
   .rd__sidebar__container {
     flex-grow: 1;
-    padding: var(--str-video__spacing-lg) 0;
+    padding: var(--str-video__spacing-md) 0;
     background-color: var(--str-video__base-color7);
   }
 
@@ -81,7 +81,7 @@
   flex-direction: column;
   background-color: var(--str-video__base-color7);
   border-radius: var(--str-video__border-radius-md);
-  padding: var(--str-video__spacing-lg);
+  padding: var(--str-video__spacing-md);
   height: 100%;
   width: 100%;
 }
@@ -103,7 +103,7 @@
       max-width: 350px;
       min-width: 350px;
       display: flex;
-      gap: var(--str-video__spacing-md);
+      gap: var(--str-video__spacing-sm);
       height: 100%;
       padding: 0;
     }

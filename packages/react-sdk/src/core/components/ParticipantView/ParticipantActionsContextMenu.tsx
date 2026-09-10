@@ -13,6 +13,7 @@ import { useParticipantViewContext } from './ParticipantViewContext';
 import {
   GenericMenu,
   GenericMenuButtonItem,
+  GenericMenuSeparator,
   useMenuContext,
 } from '../../../components/Menu';
 import { Icon } from '../../../components/Icon';
@@ -150,6 +151,7 @@ export const ParticipantActionsContextMenu = () => {
           {t('Kick')}
         </GenericMenuButtonItem>
       </Restricted>
+      <GenericMenuSeparator />
       <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
         {hasVideoTrack && (
           <GenericMenuButtonItem onClick={muteVideo}>
@@ -179,6 +181,7 @@ export const ParticipantActionsContextMenu = () => {
       {participantViewElement &&
         typeof participantViewElement.requestFullscreen !== 'undefined' && (
           <GenericMenuButtonItem onClick={toggleFullscreenMode}>
+            <Icon icon="fullscreen" />
             {t('{{ direction }} fullscreen', {
               direction: fullscreenModeOn ? t('Leave') : t('Enter'),
             })}
@@ -186,11 +189,13 @@ export const ParticipantActionsContextMenu = () => {
         )}
       {videoElement && document.pictureInPictureEnabled && (
         <GenericMenuButtonItem onClick={togglePictureInPicture}>
+          <Icon icon="pip" />
           {t('{{ direction }} picture-in-picture', {
             direction: isPiP ? t('Leave') : t('Enter'),
           })}
         </GenericMenuButtonItem>
       )}
+      <GenericMenuSeparator />
       <Restricted requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}>
         <GenericMenuButtonItem
           onClick={grantPermission(OwnCapability.SEND_AUDIO)}

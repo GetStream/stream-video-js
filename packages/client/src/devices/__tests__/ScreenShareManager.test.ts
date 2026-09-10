@@ -3,7 +3,7 @@ import { ScreenShareManager } from '../ScreenShareManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
-import { CallingState, StreamVideoWriteableStateStore } from '../../store';
+import { CallingState, ClientState } from '../../store';
 import * as RxUtils from '../../store/rxUtils';
 import { mockCall, mockDeviceIds$, mockScreenShareStream } from './mocks';
 import { getScreenShareStream } from '../devices';
@@ -44,7 +44,7 @@ describe('ScreenShareManager', () => {
         type: '',
         streamClient,
         clientEventReporter: new ClientEventReporter({ streamClient }),
-        clientStore: new StreamVideoWriteableStateStore(),
+        clientState: new ClientState(),
       }),
     );
   });
@@ -99,7 +99,7 @@ describe('ScreenShareManager', () => {
 
   it('should use call settings to set up constraints', async () => {
     const call = manager['call'];
-    call.state.setCurrentValue(call.state['settingsSubject'], {
+    RxUtils.setCurrentValue(call.state['settingsSubject'], {
       // @ts-expect-error partial data
       screensharing: {
         target_resolution: {

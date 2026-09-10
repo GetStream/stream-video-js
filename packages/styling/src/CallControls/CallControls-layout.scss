@@ -1,17 +1,16 @@
 .str-video__call-controls {
   display: flex;
   justify-content: center;
-  gap: 1rem;
-  padding: 1rem 0;
+  gap: var(--str-video__spacing-md);
+  padding: var(--str-video__spacing-md) var(--str-video__spacing-none);
 
   .str-video__reactions-menu {
-    background-color: var(--str-video__base-color6);
     display: flex;
+    align-items: center;
 
-    padding: var(--str-video__spacing-sm);
-    gap: 0.5rem;
-
-    border-radius: var(--str-video__border-radius-lg);
+    padding: var(--str-video__spacing-sm) var(--str-video__spacing-md)
+      var(--str-video__spacing-md);
+    gap: var(--str-video__spacing-xxxs);
 
     &--horizontal {
       flex-direction: row;
@@ -22,70 +21,28 @@
     }
 
     .str-video__reactions-menu__button {
-      font-family:
-        'Twemoji Mozilla',
-        Apple Color Emoji,
-        'Segoe UI Emoji',
-        'Noto Color Emoji',
-        'EmojiOne Color';
-      font-size: 1.2rem;
-      height: 38px;
-      width: 38px;
-      background-color: var(--str-video__button-primary-base);
-      border-radius: var(--str-video__border-radius-circle);
-      border: 1px solid transparent;
+      font-family: system-ui;
+      font-size: var(--str-video__emoji-md);
+      line-height: 1;
+      padding: 0;
+      height: var(--str-video__button-visual-height-md);
+      width: var(--str-video__button-visual-height-md);
+      color: var(--str-video__text-primary);
+      background-color: transparent;
+      border: none;
+      border-radius: var(--str-video__radius-max);
       display: flex;
       align-items: center;
       justify-content: center;
 
-      &:hover {
-        background-color: var(--str-video__button-primary-hover);
+      &:hover:not(:disabled) {
+        background-color: var(--str-video__background-utility-hover);
         cursor: pointer;
       }
-    }
-  }
-}
 
-.str-video__no-media-permission,
-.str-video__system-muted,
-.str-video__pending-permission {
-  position: absolute;
-  height: 12px;
-  width: 12px;
-  outline: 1px solid var(--str-video__base-color6);
-  border-radius: var(--str-video__border-radius-circle);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  font-size: var(--str-video__font-size-xxs);
-  cursor: pointer;
-  font-weight: 600;
-  top: 0;
-  right: -3px;
-}
-
-.str-video__no-media-permission {
-  background-color: var(--str-video__alert-caution);
-  color: var(--str-video__base-color4);
-}
-
-.str-video__pending-permission {
-  background-color: var(--str-video__button-secondary-active);
-  color: var(--str-video__text-color1);
-}
-
-.str-video__system-muted {
-  background-color: var(--str-video__alert-caution);
-  color: var(--str-video__base-color4);
-}
-
-.str-video__composite-button.str-video__device-unavailable {
-  .str-video__composite-button__button-group {
-    background-color: var(--str-video__button-default-disabled);
-
-    &:hover {
-      background-color: var(--str-video__button-default-hover);
+      &:active:not(:disabled) {
+        background-color: var(--str-video__background-utility-pressed);
+      }
     }
   }
 }

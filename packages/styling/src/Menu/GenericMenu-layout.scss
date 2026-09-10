@@ -1,53 +1,80 @@
 .str-video__generic-menu {
   list-style: none;
   margin: unset;
-  padding: var(--str-video__spacing-md);
+  padding: var(--str-video__spacing-xxs) var(--str-video__spacing-none);
 
   display: flex;
   flex-direction: column;
-  gap: var(--str-video__spacing-xs);
+  gap: var(--str-video__spacing-xxxs);
+  min-inline-size: 224px;
 
   .str-video__generic-menu--item {
-    align-items: center;
-
-    gap: 8px;
-
-    font-weight: 600;
-    font-size: var(--str-video__font-size-md);
-
     display: flex;
+    align-items: center;
+    padding-inline: var(--str-video__spacing-xxs);
+
     button {
       all: unset;
+      box-sizing: border-box;
+
       width: 100%;
-      font-size: 13px;
-      border-radius: var(--str-video__border-radius-lg);
-      background-color: var(--str-video__button-primary-base);
-      padding: var(--str-video__spacing-xs) var(--str-video__spacing-lg);
-      gap: 10px;
+      min-height: 32px;
       display: flex;
       align-items: center;
-      position: relative;
+      gap: var(--str-video__spacing-xs);
+      padding-inline: var(--str-video__spacing-xs);
+      border-radius: var(--str-video__radius-md);
 
-      &:hover {
-        background-color: var(--str-video__button-default-hover);
+      color: var(--str-video__text-primary);
+      font-size: var(--str-video__typography-font-size-sm);
+      font-weight: var(--str-video__typography-font-weight-semi-bold);
+      line-height: var(--str-video__typography-line-height-normal);
+
+      .str-video__icon {
+        background-color: var(--str-video__text-secondary);
+      }
+
+      &:hover:not(:disabled) {
+        background-color: var(--str-video__background-utility-hover);
         cursor: pointer;
       }
 
-      &--selected,
-      &--active {
-        background-color: var(--str-video__button-primary-hover);
+      &:active:not(:disabled) {
+        background-color: var(--str-video__background-utility-pressed);
+      }
+
+      &:not(:disabled):focus-visible {
+        outline: var(--str-video__w200) solid
+          var(--str-video__border-utility-focused);
+        outline-offset: calc(var(--str-video__w200) * -1);
+      }
+
+      &:disabled {
+        color: var(--str-video__text-disabled);
+
+        .str-video__icon {
+          background-color: var(--str-video__text-disabled);
+        }
+      }
+
+      &[aria-current='true'],
+      &[aria-selected='true'] {
+        background-color: var(--str-video__background-utility-selected);
       }
     }
-
-    // TODO: remove once "device selector" component becomes reusable
-    button[aria-selected] {
-      padding: 5px 10px 5px 26px;
-    }
-    button[aria-selected='true']::after {
-      content: '●';
-      font-size: 10px;
-      left: 10px;
-      position: absolute;
-    }
   }
+}
+
+.str-video__generic-menu--separator {
+  margin: var(--str-video__spacing-xxs) 0 3px;
+  border-block-start: var(--str-video__w100) solid
+    var(--str-video__border-core-default);
+}
+
+.str-video__generic-menu--separator:first-child,
+.str-video__generic-menu--separator + .str-video__generic-menu--separator,
+.str-video__generic-menu--separator:not(
+  :has(~ .str-video__generic-menu--item)
+) {
+  display: none;
 }

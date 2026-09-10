@@ -13,16 +13,8 @@
     height: 4rem;
   }
 
-  .str-video__screen-share-overlay__button {
-    display: flex;
-    gap: 0.4rem;
-    align-items: center;
-    padding-inline: 1.6rem;
-    padding-block: 0.8rem;
-
-    .str-video__icon {
-      width: 0.7rem;
-      height: 0.7rem;
-    }
+  .str-video__screen-share-overlay__button .str-video__icon {
+    width: 0.7rem;
+    height: 0.7rem;
   }
 }

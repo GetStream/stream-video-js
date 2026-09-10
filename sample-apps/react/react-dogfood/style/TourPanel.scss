@@ -6,8 +6,8 @@
   border-radius: var(--str-video__border-radius-lg);
   background-color: var(--str-video__base-color6);
   box-shadow: 0 0 24px -4px rgba(0, 0, 0, 0.64);
-  padding: var(--str-video__spacing-lg);
-  gap: var(--str-video__spacing-lg);
+  padding: var(--str-video__spacing-md);
+  gap: var(--str-video__spacing-md);
 
   z-index: 10;
   width: max-content;
@@ -73,7 +73,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: var(--str-video__spacing-sm);
+  gap: var(--str-video__spacing-xs);
 
   &--last-step {
     flex-direction: column;
@@ -83,8 +83,8 @@
 .rd__tour__dont-show {
   display: flex;
   width: 100%;
-  gap: var(--str-video__spacing-md);
-  margin-top: var(--str-video__spacing-sm);
+  gap: var(--str-video__spacing-sm);
+  margin-top: var(--str-video__spacing-xs);
   font-size: var(--str-video__font-size-xs);
   align-items: center;
 }
@@ -146,8 +146,8 @@
 .rd__sdk-options {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--str-video__spacing-md);
-  margin-top: var(--str-video__spacing-md);
+  gap: var(--str-video__spacing-sm);
+  margin-top: var(--str-video__spacing-sm);
 }
 
 .rd__sdk-options__option {
@@ -156,9 +156,9 @@
   justify-content: center;
   background-color: #1d2f34;
   color: #00e2a1;
-  padding: var(--str-video__spacing-xs);
+  padding: var(--str-video__space-6);
   border-radius: var(--str-video__border-radius-xs);
-  gap: var(--str-video__spacing-sm);
+  gap: var(--str-video__spacing-xs);
   width: 100%;
   max-width: 130px;
   font-size: var(--str-video__font-size-xs);

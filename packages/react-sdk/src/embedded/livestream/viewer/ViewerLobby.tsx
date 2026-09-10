@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
-import { Icon } from '../../../components';
+import { Button, Icon } from '../../../components';
 import { ViewersCount } from '../../shared';
 import { OwnCapability } from '@stream-io/video-client';
 
@@ -114,9 +114,9 @@ export const ViewerLobby = ({ onJoin }: ViewerLobbyProps) => {
 
         <div className="str-video__embedded-viewer-lobby__actions">
           {canJoin ? (
-            <button className="str-video__button" onClick={onJoin}>
+            <Button size="sm" onClick={onJoin}>
               {t('Join Stream')}
-            </button>
+            </Button>
           ) : (
             <label className="str-video__embedded-viewer-lobby__auto-join">
               <input

@@ -49,7 +49,7 @@ const DeviceSelectorOption = ({
         defaultChecked={defaultChecked}
         disabled={disabled}
       />
-      {label}
+      <span className="str-video__device-settings__option__label">{label}</span>
     </label>
   );
 };

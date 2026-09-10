@@ -8,7 +8,7 @@ import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { PermissionsContext } from '../permissions';
 import { OwnCapability } from '../gen/coordinator';
-import { StreamVideoWriteableStateStore } from '../store';
+import { ClientState } from '../store';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 
@@ -22,7 +22,7 @@ describe('Publishing and Unpublishing tracks', () => {
       id: generateUUIDv4(),
       streamClient,
       clientEventReporter: new ClientEventReporter({ streamClient }),
-      clientStore: new StreamVideoWriteableStateStore(),
+      clientState: new ClientState(),
     });
 
     const ctx = new PermissionsContext();

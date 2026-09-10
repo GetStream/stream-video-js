@@ -115,6 +115,15 @@ const DefaultDisplayName = ({ participant }: DisplayNameProps) => {
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleButtonRender(props, ref) {
-    return <IconButton enabled={props.menuShown} icon="ellipsis" ref={ref} />;
+    return (
+      <IconButton
+        className="str-video__participant-listing-item__menu-button"
+        active={props.menuShown}
+        size="sm"
+        variant="secondary"
+        ref={ref}
+        icon="ellipsis"
+      />
+    );
   },
 );

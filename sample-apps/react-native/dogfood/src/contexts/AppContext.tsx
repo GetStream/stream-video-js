@@ -19,6 +19,8 @@ type AppGlobalStore = {
   devMode?: boolean;
   /** Passphrase or hex keys for end-to-end encryption; empty means E2EE off. */
   e2eeKeyInput: string;
+  coordinatorBaseUrl?: string;
+  disableRingStatePolling?: boolean;
 };
 
 export const {
@@ -40,6 +42,8 @@ export const {
     localIpAddress: '127.0.0.1',
     devMode: false,
     e2eeKeyInput: '',
+    coordinatorBaseUrl: '',
+    disableRingStatePolling: false,
   },
   [
     'apiKey',
@@ -52,5 +56,7 @@ export const {
     'themeMode',
     'devMode',
     'e2eeKeyInput',
+    'coordinatorBaseUrl',
+    'disableRingStatePolling',
   ],
 );

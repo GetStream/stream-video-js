@@ -38,8 +38,8 @@ const createCall = (kind: Kind = 'ring-option') => {
           id: `int-${Math.random().toString(36).slice(2)}`,
           ringing: true,
           streamClient: client.streamClient,
-          clientEventReporter: client.clientEventReporter,
-          clientStore: (client as any).writeableStateStore,
+          clientEventReporter: client['clientEventReporter'],
+          clientState: client.state,
         });
   if (kind === 'outgoing') {
     jest.spyOn(call, 'isCreatedByMe', 'get').mockReturnValue(true);

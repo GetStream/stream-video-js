@@ -1,4 +1,4 @@
-import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { videoLoggerSystem } from '../logger';
 
@@ -39,12 +39,16 @@ const isFunctionPatch = <T>(update: Patch<T>): update is FunctionPatch<T> =>
  *
  * @param observable$ the observable to get the value from.
  */
-export const getCurrentValue = <T>(observable$: Observable<T>) => {
+export const getCurrentValue = <T>(observable$: Observable<T>): T => {
+  if (observable$ instanceof BehaviorSubject) {
+    return (observable$ as BehaviorSubject<T>).getValue();
+  }
+
   let value!: T;
   let err: Error | undefined = undefined;
-  combineLatest([observable$])
+  observable$
     .subscribe({
-      next: ([v]) => {
+      next: (v) => {
         value = v;
       },
       error: (e) => {

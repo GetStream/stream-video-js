@@ -10,7 +10,7 @@ import { CallingState } from '../store';
 import { StreamClient } from '../coordinator/connection/client';
 import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
-import { StreamVideoWriteableStateStore } from '../store';
+import { ClientState } from '../store';
 
 /**
  * The core's whole part in the React Native ringing lifecycle: await RN's
@@ -26,8 +26,11 @@ const createCall = (ringing: boolean) => {
     id: generateUUIDv4(),
     ringing,
     streamClient,
-    clientEventReporter: new ClientEventReporter({ streamClient }),
-    clientStore: new StreamVideoWriteableStateStore(),
+    clientEventReporter: new ClientEventReporter({
+      streamClient,
+      enabled: false,
+    }),
+    clientState: new ClientState(),
   });
 };
 
@@ -49,6 +52,9 @@ const install = (overrides: Record<string, unknown> = {}) => {
 describe('ringing call lifecycle integration', () => {
   beforeEach(() => {
     globalThis.streamRNVideoSDK = undefined;
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      headers: { get: () => 'AMS1-P2' },
+    } as Response);
   });
 
   afterEach(() => {

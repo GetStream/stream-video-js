@@ -1,5 +1,5 @@
 import { useI18n } from '@stream-io/video-react-bindings';
-import { Icon } from '../../../components';
+import { Button, Icon } from '../../../components';
 
 interface JoinErrorProps {
   onJoin: () => void;
@@ -18,10 +18,10 @@ export const JoinError = ({ onJoin }: JoinErrorProps) => {
           "We couldn't connect to the server. Please check your connection and try again.",
         )}
       </p>
-      <button type="button" className="str-video__button" onClick={onJoin}>
+      <Button size="sm" onClick={onJoin}>
         <Icon icon="login" />
         {t('Try again')}
-      </button>
+      </Button>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 PODS:
-  - Callingx (0.11.3):
+  - Callingx (1.0.0-beta.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2548,7 +2548,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stream-io-noise-cancellation-react-native (0.11.0):
+  - stream-io-noise-cancellation-react-native (1.0.0-beta.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2572,7 +2572,7 @@ PODS:
     - stream-react-native-webrtc
     - StreamVideoNoiseCancellation
     - Yoga
-  - stream-io-video-filters-react-native (0.16.0):
+  - stream-io-video-filters-react-native (1.0.0-beta.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2598,7 +2598,7 @@ PODS:
   - stream-react-native-webrtc (145.4.0-alpha.1):
     - React-Core
     - StreamWebRTC (= 145.17.0)
-  - stream-video-react-native (1.45.1):
+  - stream-video-react-native (2.0.0-beta.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3001,7 +3001,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Callingx: 584a90e0f473fb2a8136b07291267d99bece031f
+  Callingx: 46bb3332e292def34ea06d724b8baf7b57485242
   FBLazyVector: 3c3be9a019176b5699455f7f66c5444b78a411c6
   hermes-engine: bea2770719c59875d56e955d6b155b36f4b5a08e
   MMKVCore: 3d16ce9f7d411e135020915fde98a056859a1efa
@@ -3099,10 +3099,10 @@ SPEC CHECKSUMS:
   RNSVG: 394cfd0518613b144c65ffe69045f827b78a7a7c
   RNWorklets: 43af89f696342f91118a2f1f3a879056e2f47331
   stream-chat-react-native: e97f6d3ed0c2828b20610ffc0023ad7f9c90738d
-  stream-io-noise-cancellation-react-native: 2d3908635106b04f39569c7cc7504ec9d534f447
-  stream-io-video-filters-react-native: 2f542b1b19ce0827c1723f2e372cf67fdf9d9adf
+  stream-io-noise-cancellation-react-native: 1c97675f11979a8f144706aa1105eeebc5ca380d
+  stream-io-video-filters-react-native: 7a2c93ed95c7213f44cb8a9a15246f8301d2f67c
   stream-react-native-webrtc: 8347bb401bfe33b52fd0da1a0b66b2b3016aef2f
-  stream-video-react-native: c169d8e5942fa02247f5bd0a667dce96f6979213
+  stream-video-react-native: 177671d5813623f097d311a4d6eb9e59394d693d
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
   StreamWebRTC: 8543c52d49cadcbe051582d0b13de01c8085735f
   Teleport: c56b30b08bd20d10da1efb0f21c6bc50c269ee6a

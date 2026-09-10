@@ -5,7 +5,7 @@ $ai-remove-gradient: linear-gradient(135deg, #ff3858 0%, #7f5af0 100%);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--str-video__spacing-xs);
+  gap: var(--str-video__space-6);
   flex-shrink: 0;
   white-space: nowrap;
   min-width: 9.5rem;
@@ -55,8 +55,8 @@ $ai-remove-gradient: linear-gradient(135deg, #ff3858 0%, #7f5af0 100%);
   z-index: 5;
   display: flex;
   flex-direction: column;
-  gap: var(--str-video__spacing-md);
-  padding: var(--str-video__spacing-md);
+  gap: var(--str-video__spacing-sm);
+  padding: var(--str-video__spacing-sm);
   width: 280px;
   max-width: 90vw;
   background-color: var(--str-video__base-color7);
@@ -67,7 +67,7 @@ $ai-remove-gradient: linear-gradient(135deg, #ff3858 0%, #7f5af0 100%);
   &__row {
     display: flex;
     align-items: center;
-    gap: var(--str-video__spacing-xs);
+    gap: var(--str-video__space-6);
     font-size: var(--str-video__font-size-xs);
   }
 
@@ -104,7 +104,7 @@ $ai-remove-gradient: linear-gradient(135deg, #ff3858 0%, #7f5af0 100%);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: var(--str-video__spacing-xs);
+    gap: var(--str-video__space-6);
     padding: 0.5rem 1rem;
     border-radius: 999px;
     color: #fff;

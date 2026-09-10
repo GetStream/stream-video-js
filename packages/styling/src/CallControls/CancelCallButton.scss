@@ -1,114 +1,68 @@
 .str-video__end-call {
   &__confirmation {
-    padding: var(--str-video__spacing-lg);
-    gap: var(--str-video__spacing-md);
+    padding: var(--str-video__spacing-md);
+    gap: var(--str-video__spacing-xs);
+    inline-size: 224px;
 
     display: flex;
     flex-direction: column;
   }
-
-  &__leave,
-  &__end {
-    min-width: 196px;
-    color: var(--str-video__text-color1);
-    border: 1px solid transparent;
-    padding: calc(var(--str-video__spacing-sm) - 1px)
-      var(--str-video__spacing-lg);
-
-    &-icon {
-      background-color: var(--str-video__text-color1);
-    }
-  }
-
-  &__leave {
-    background-color: var(--str-video__button-tertiary-base);
-
-    &:hover {
-      background-color: var(--str-video__button-tertiary-hover);
-    }
-  }
-
-  &__end {
-    background-color: var(--str-video__button-primary-base);
-    border-color: var(--str-video__button-default-hover);
-
-    &:hover {
-      background-color: var(--str-video__button-tertiary-hover);
-      border-color: transparent;
-    }
-  }
-}
-
-.str-video__end-call.str-video__end-call__leave-icon,
-.str-video__icon.str-video__end-call__end-icon {
-  background-color: var(--str-video__text-color1);
 }
 
 .str-video__end-recording__confirmation {
-  background-color: var(--str-video__base-color7);
-  border-radius: var(--str-video__border-radius-lg);
-  padding: var(--str-video__spacing-xl);
-  gap: var(--str-video__spacing-lg);
+  inline-size: 304px;
+  padding: var(--str-video__spacing-2xl) var(--str-video__spacing-xl)
+    var(--str-video__spacing-xl);
+  gap: var(--str-video__spacing-2xl);
+
   display: flex;
   flex-direction: column;
+  background-color: var(--str-video__background-core-elevation-1);
+  border-radius: var(--str-video__radius-xl);
+  box-shadow: var(--str-video__box-shadow-4);
 }
 
 .str-video__end-recording__header {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  align-items: center;
   gap: var(--str-video__spacing-md);
+  inline-size: 100%;
+
+  .str-video__icon {
+    inline-size: var(--str-video__icon-size-lg);
+    block-size: var(--str-video__icon-size-lg);
+    background-color: var(--str-video__text-tertiary);
+  }
+}
+
+.str-video__end-recording__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--str-video__spacing-xs);
+  inline-size: 100%;
+  text-align: center;
 }
 
 .str-video__end-recording__heading {
-  font-size: var(--str-video__font-size-lg);
-  font-weight: 600;
   margin: 0;
+  color: var(--str-video__text-primary);
+  font-size: var(--str-video__typography-font-size-md);
+  font-weight: var(--str-video__typography-font-weight-semi-bold);
+  line-height: var(--str-video__typography-line-height-normal);
 }
 
 .str-video__end-recording__description {
   margin: 0;
-  color: var(--str-video__text-color2);
-  font-size: var(--str-video__font-size-sm);
+  color: var(--str-video__text-secondary);
+  font-size: var(--str-video__typography-font-size-sm);
+  font-weight: var(--str-video__typography-font-weight-regular);
+  line-height: var(--str-video__typography-line-height-normal);
 }
 
 .str-video__end-recording__actions {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  gap: var(--str-video__spacing-md);
-
-  .str-video__composite-button {
-    width: 100%;
-    gap: var(--str-video__spacing-md);
-
-    &:first-of-type {
-      background-color: transparent;
-
-      .str-video__composite-button__button-group {
-        background-color: transparent;
-        border: 1px solid var(--str-video__base-color2);
-        width: 100%;
-        justify-content: center;
-
-        &:hover {
-          background-color: var(--str-video__button-default-hover);
-        }
-      }
-    }
-    .str-video__composite-button__button-group {
-      background-color: var(--str-video__button-tertiary-base);
-      width: 100%;
-      justify-content: center;
-
-      .str-video__text-button {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      }
-
-      &:hover {
-        background-color: var(--str-video__button-tertiary-hover);
-      }
-    }
-  }
+  flex-direction: column;
+  gap: var(--str-video__spacing-xs);
+  inline-size: 100%;
 }

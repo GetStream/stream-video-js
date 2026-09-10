@@ -1,10 +1,18 @@
 .str-video__tooltip {
   display: flex;
   justify-content: center;
-  padding: var(--str-video__spacing-sm);
+  gap: var(--str-video__spacing-xs);
+  padding-block: var(--str-video__spacing-xxs);
+  padding-inline: var(--str-video__spacing-xs);
+  border-radius: var(--str-video__radius-md);
+
+  font-size: var(--str-video__typography-font-size-xs);
+  font-weight: var(--str-video__typography-font-weight-semi-bold);
+  line-height: var(--str-video__typography-line-height-tight);
+
   z-index: 4;
-  max-width: 250px;
-  width: max-content;
+  inline-size: max-content;
+  max-inline-size: 250px;
   white-space: initial;
   overflow-wrap: break-word;
 }

@@ -2,7 +2,7 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
-## [1.59.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.59.0...@stream-io/video-client-1.59.1) (2026-09-04)
+## [2.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.59.0...@stream-io/video-client-2.0.0-beta.0) (2026-09-04)
 
 ### Bug Fixes
 

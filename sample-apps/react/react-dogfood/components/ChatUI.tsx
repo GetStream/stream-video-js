@@ -92,6 +92,8 @@ export const ChatUI = ({
               <IconButton
                 className="rd__chat-header__icon"
                 onClick={onClose}
+                size="sm"
+                variant="secondary"
                 icon="close"
               />
             </div>

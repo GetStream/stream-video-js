@@ -74,3 +74,10 @@ The following are the steps to run the E2E tests:
 - Install [stream-video-buddy](https://github.com/GetStream/stream-video-buddy) CLI tool.
 - Launch the simulator and install the test app by following the instructions above.
 - Start the test flow by running `yarn test-e2e:ios or yarn test-e2e:android` from the root of this project(`/sample-apps/react-native/dogfood`) to run the tests for iOS and Android, respectively. This will run the tests on a device of your choice. -->
+
+## Version lines
+
+This app tracks the SDK major it is built against. The v2 line on `main` is
+versioned `5.x.y`; the v1 line on `release-v1` stays on `4.x.y`. Keeping the
+majors disjoint stops the two branches computing the same release tag, since
+both version this app from the same tag namespace.
