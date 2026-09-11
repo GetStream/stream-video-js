@@ -1,6 +1,7 @@
 import { forwardRef, MouseEventHandler, useCallback } from 'react';
 import { OwnCapability } from '@stream-io/video-client';
-import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
+import { Restricted, useCall } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
 
@@ -24,7 +25,7 @@ const EndCallMenu = (props: {
         onClick={onLeave}
       >
         <Icon icon="logout" />
-        {t('Leave call')}
+        {t('callControls.cancelCallButton.leaveCall.title', 'Leave call')}
       </Button>
       <Restricted requiredGrants={[OwnCapability.END_CALL]}>
         <Button
@@ -34,7 +35,10 @@ const EndCallMenu = (props: {
           onClick={onEnd}
         >
           <Icon icon="call-end" />
-          {t('End call for all')}
+          {t(
+            'callControls.cancelCallButton.endCallForAll.label',
+            'End call for all',
+          )}
         </Button>
       </Restricted>
     </div>
@@ -47,7 +51,10 @@ const CancelCallToggleMenuButton = forwardRef<
 >(function CancelCallToggleMenuButtonRender({ menuShown }, ref) {
   const { t } = useI18n();
   return (
-    <WithTooltip title={t('Leave call')} tooltipDisabled={menuShown}>
+    <WithTooltip
+      title={t('callControls.cancelCallButton.leaveCall.title', 'Leave call')}
+      tooltipDisabled={menuShown}
+    >
       <IconButton
         icon={menuShown ? 'close' : 'call-end'}
         variant="destructive"
@@ -141,7 +148,10 @@ export const CancelCallButton = ({
       disabled={disabled}
       icon="call-end"
       variant="destructive"
-      title={caption ?? t('Leave call')}
+      title={
+        caption ??
+        t('callControls.cancelCallButton.leaveCall.title', 'Leave call')
+      }
       data-testid="cancel-call-button"
       onClick={handleClick}
     />

@@ -1,6 +1,5 @@
 import {
   CallRecording,
-  useI18n,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { useRouter } from 'next/router';
@@ -11,6 +10,7 @@ import {
   useEffect,
   useState,
 } from 'react';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 type CallRecordingSearchFormProps = {
   setLoading: (loading: boolean) => void;
@@ -24,7 +24,7 @@ export const CallRecordingSearchForm = ({
 }: CallRecordingSearchFormProps) => {
   const router = useRouter();
   const videoClient = useStreamVideoClient();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   const [enabled, setEnabled] = useState(false);
   const [callIdInput, setCallIdInput] = useState<HTMLInputElement | null>(null);
@@ -116,7 +116,10 @@ export const CallRecordingSearchForm = ({
               className="rd__input rd__input--underlined rd__call-recording-search-input"
               type="text"
               onChange={handleChange}
-              placeholder={t('Call Type')}
+              placeholder={t(
+                'recordings.searchForm.callType.placeholder',
+                'Call Type',
+              )}
               defaultValue="default"
             />
           </div>
@@ -126,7 +129,7 @@ export const CallRecordingSearchForm = ({
             type="text"
             onChange={handleChange}
             ref={setCallIdInput}
-            placeholder={t('Call ID')}
+            placeholder={t('common.callId.placeholder', 'Call ID')}
           />
         </div>
         <button
@@ -134,7 +137,7 @@ export const CallRecordingSearchForm = ({
           className="rd__button rd__button--primary"
           type="submit"
         >
-          {t('Search')}
+          {t('recordings.searchForm.search.label', 'Search')}
         </button>
       </form>
     </div>

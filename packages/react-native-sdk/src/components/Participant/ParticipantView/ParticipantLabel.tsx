@@ -15,10 +15,10 @@ import {
 } from '../../../icons';
 import {
   useCall,
-  useI18n,
   useIsAudioConnecting,
   useIsVideoConnecting,
 } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { type ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../../constants';
@@ -62,7 +62,9 @@ export const ParticipantLabel = ({
   const { t } = useI18n();
   const participantName = name ?? userId;
 
-  const participantLabel = isLocalParticipant ? t('You') : participantName;
+  const participantLabel = isLocalParticipant
+    ? t('common.you.label', 'You')
+    : participantName;
   const isAudioMuted = !hasAudio(participant);
   const isVideoMuted = !hasVideo(participant);
   const isTrackPaused = trackType && hasPausedTrack(participant, trackType);
@@ -71,10 +73,17 @@ export const ParticipantLabel = ({
 
   if (trackType === 'screenShareTrack') {
     const screenShareText = isLocalParticipant
-      ? t('You are sharing your screen')
-      : t('{{ userName }} is sharing their screen', {
-          userName: participantName,
-        });
+      ? t(
+          'participantView.screenShare.byYou.text',
+          'You are sharing your screen',
+        )
+      : t(
+          'participantView.screenShare.byUser.text',
+          '{{ userName }} is sharing their screen',
+          {
+            userName: participantName,
+          },
+        );
     return (
       <View
         style={[

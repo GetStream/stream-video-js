@@ -1,4 +1,4 @@
-import { useI18n } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import React from 'react';
 import {
   TextBasedIndicator,
@@ -14,7 +14,7 @@ export const CallLeftIndicator = (props: CallLeftIndicatorProps) => {
   const { t } = useI18n();
   return (
     <TextBasedIndicator
-      text={t('You have left the call')}
+      text={t('ringingCall.leftCall.title', 'You have left the call')}
       onBackPress={props.onBackPress}
     />
   );

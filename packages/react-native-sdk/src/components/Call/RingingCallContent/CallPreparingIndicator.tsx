@@ -1,4 +1,4 @@
-import { useI18n } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import React from 'react';
 import {
   TextBasedIndicator,
@@ -14,7 +14,7 @@ export const CallPreparingIndicator = (props: CallPreparingIndicatorProps) => {
   const { t } = useI18n();
   return (
     <TextBasedIndicator
-      text={t('Preparing call')}
+      text={t('ringingCall.preparing.title', 'Preparing call')}
       onBackPress={props.onBackPress}
     />
   );

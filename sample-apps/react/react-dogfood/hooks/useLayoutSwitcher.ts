@@ -13,18 +13,23 @@ import {
 } from '../components/CallLayout';
 import { DebugParticipantViewUI } from '../components/Debug/DebugParticipantViewUI';
 
+/**
+ * The layouts offered by the layout switcher.
+ *
+ * The human-readable name is deliberately absent: it used to live here as `title`, which
+ * `LayoutSelector` then fed straight into `t()` — a translation key built from a runtime value.
+ * The names are now literal `t()` calls in `layoutLabel()` next to that component.
+ */
 export const LayoutMap = {
   LegacyGrid: {
     Component: CallParticipantsView,
     props: {
       ParticipantViewUI: DebugParticipantViewUI,
     },
-    title: 'Default',
     icon: 'grid',
   },
   PaginatedGrid: {
     Component: PaginatedGridLayout,
-    title: 'Grid',
     icon: 'layout',
     props: {
       groupSize: 16,
@@ -33,7 +38,6 @@ export const LayoutMap = {
   },
   SpeakerBottom: {
     Component: SpeakerLayout,
-    title: 'Speaker [top]',
     icon: 'layout-speaker-top',
     props: {
       enableDragToScroll: true,
@@ -44,7 +48,6 @@ export const LayoutMap = {
   },
   SpeakerTop: {
     Component: SpeakerLayout,
-    title: 'Speaker [bottom]',
     icon: 'layout-speaker-bottom',
     props: {
       enableDragToScroll: true,
@@ -55,7 +58,6 @@ export const LayoutMap = {
   },
   SpeakerRight: {
     Component: SpeakerLayout,
-    title: 'Speaker [left]',
     icon: 'layout-speaker-left',
     props: {
       enableDragToScroll: true,
@@ -66,7 +68,6 @@ export const LayoutMap = {
   },
   SpeakerLeft: {
     Component: SpeakerLayout,
-    title: 'Speaker [right]',
     icon: 'layout-speaker-right',
     props: {
       enableDragToScroll: true,
@@ -78,7 +79,6 @@ export const LayoutMap = {
   LegacySpeaker: {
     Component: CallParticipantsScreenView,
     icon: 'layout',
-    title: 'Sidebar',
     props: {
       ParticipantViewUI: DebugParticipantViewUI,
     },
@@ -86,14 +86,12 @@ export const LayoutMap = {
   SpeakerOneOnOne: {
     Component: SpeakerOneOnOne,
     icon: 'layout-speaker-one-on-one',
-    title: 'Speaker 1:1',
     props: {
       ParticipantViewUI: DebugParticipantViewUI,
     },
   },
   LivestreamLayout: {
     Component: LivestreamLayout,
-    title: 'Livestream',
     icon: 'layout-speaker-live-stream',
     props: {},
   },

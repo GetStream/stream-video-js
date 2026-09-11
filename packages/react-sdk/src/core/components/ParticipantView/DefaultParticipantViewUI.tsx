@@ -10,10 +10,10 @@ import {
 import {
   useCall,
   useCallStateHooks,
-  useI18n,
   useIsAudioConnecting,
   useIsVideoConnecting,
 } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import clsx from 'clsx';
 
 import {
@@ -67,7 +67,7 @@ const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
         size="sm"
         variant="secondary"
         ref={ref}
-        title={t('More options')}
+        title={t('participantView.moreOptions.title', 'More options')}
         icon="ellipsis"
       />
     );
@@ -88,14 +88,18 @@ export const DefaultScreenShareOverlay = () => {
     <div className="str-video__screen-share-overlay">
       <Icon icon="screen-share-off" />
       <span className="str-video__screen-share-overlay__title">
-        {t('You are presenting your screen')}
+        {t(
+          'common.presentingYourScreen.text',
+          'You are presenting your screen',
+        )}
       </span>
       <Button
         variant="destructive"
         onClick={stopScreenShare}
         className="str-video__screen-share-overlay__button"
       >
-        <Icon icon="close" /> {t('Stop Screen Sharing')}
+        <Icon icon="close" />{' '}
+        {t('participantView.stopScreenSharing.label', 'Stop Screen Sharing')}
       </Button>
     </div>
   );
@@ -121,10 +125,16 @@ export const DefaultAudioBlockedNotification = () => {
         <Icon icon="speaker" />
         <span className="str-video__audio-blocked-notification__text">
           <span className="str-video__audio-blocked-notification__title">
-            {t('Audio is blocked by your system')}
+            {t(
+              'participantView.audioBlocked.title',
+              'Audio is blocked by your system',
+            )}
           </span>
           <span className="str-video__audio-blocked-notification__subtitle">
-            {t('Click or tap to play audio')}
+            {t(
+              'participantView.audioBlocked.description',
+              'Click or tap to play audio',
+            )}
           </span>
         </span>
       </span>
@@ -213,7 +223,10 @@ export const ParticipantDetails = ({
           {indicatorsVisible && isAudioConnecting && (
             <LoadingIndicator
               className="str-video__participant-details__name--audio-connecting"
-              tooltip={t('Audio is connecting...')}
+              tooltip={t(
+                'participantView.audioConnecting.title',
+                'Audio is connecting...',
+              )}
             />
           )}
           {indicatorsVisible && !hasAudioTrack && (
@@ -222,7 +235,10 @@ export const ParticipantDetails = ({
           {indicatorsVisible && isVideoConnecting && (
             <LoadingIndicator
               className="str-video__participant-details__name--video-connecting"
-              tooltip={t('Video is connecting...')}
+              tooltip={t(
+                'participantView.videoConnecting.title',
+                'Video is connecting...',
+              )}
             />
           )}
           {indicatorsVisible && !hasVideoTrack && (
@@ -230,13 +246,20 @@ export const ParticipantDetails = ({
           )}
           {indicatorsVisible && isTrackPaused && (
             <span
-              title={t('Video paused due to insufficient bandwidth')}
+              title={t(
+                'participantView.videoPausedInsufficientBandwidth.title',
+                'Video paused due to insufficient bandwidth',
+              )}
               className="str-video__participant-details__name--track-paused"
             />
           )}
           {indicatorsVisible && pin && (
             <span
-              title={canUnpin ? t('Unpin') : t('Pinned')}
+              title={
+                canUnpin
+                  ? t('participantView.unpin.label', 'Unpin')
+                  : t('participantList.pinned.title', 'Pinned')
+              }
               onClick={canUnpin ? () => call?.unpin(sessionId) : undefined}
               className="str-video__participant-details__name--pinned"
             />
@@ -250,7 +273,10 @@ export const ParticipantDetails = ({
             isLocalParticipant &&
             connectionQuality === SfuModels.ConnectionQuality.POOR
           }
-          message={t('Poor connection quality')}
+          message={t(
+            'participantView.connectionQuality.poor.text',
+            'Poor connection quality. Please check your internet connection.',
+          )}
         >
           {connectionQuality && (
             <ConnectionQualityIndicator quality={connectionQuality} />

@@ -7,13 +7,13 @@ import {
   TranscriptionSettingsResponseClosedCaptionModeEnum,
   useCall,
   useCallStateHooks,
-  useI18n,
   WithTooltip,
 } from '@stream-io/video-react-sdk';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 export const ToggleClosedCaptionsButton = () => {
   const call = useCall();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const { useCallSettings, useIsCallCaptioningInProgress, useHasPermissions } =
     useCallStateHooks();
   const settings = useCallSettings();
@@ -28,7 +28,9 @@ export const ToggleClosedCaptionsButton = () => {
   if (!isClosedCaptionsEnabled || (!canStart && !canStop)) return null;
 
   return (
-    <WithTooltip title={t('Toggle closed captions')}>
+    <WithTooltip
+      title={t('closedCaptions.toggle.title', 'Toggle closed captions')}
+    >
       <CompositeButton
         active={isCaptioned}
         disabled={!canToggle}
@@ -64,7 +66,7 @@ export const ClosedCaptions = () => {
 
 export const ClosedCaptionsSidebar = () => {
   const call = useCall();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const [queue, addToQueue] = useState<CallClosedCaption[]>([]);
   useEffect(() => {
     if (!call) return;
@@ -74,7 +76,7 @@ export const ClosedCaptionsSidebar = () => {
   }, [call]);
   return (
     <div className="rd__closed-captions-sidebar">
-      <h3>{t('Closed Captions')}</h3>
+      <h3>{t('common.closedCaptions.label', 'Closed Captions')}</h3>
       <div className="rd__closed-captions-sidebar__container">
         <ClosedCaptionList queue={queue} />
       </div>

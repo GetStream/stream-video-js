@@ -17,7 +17,7 @@ import {
 import { appTheme } from '../../theme';
 import { Button } from '../../components/Button';
 import { TextInput } from '../../components/TextInput';
-import { useI18n } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 import { KnownUsers } from '../../constants/KnownUsers';
 import { useOrientation } from '../../hooks/useOrientation';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,7 +32,7 @@ const ENABLE_PRONTO_SWITCH = __DEV__;
 
 const LoginScreen = () => {
   const [localUserId, setLocalUserId] = useState('');
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const orientation = useOrientation();
   const [tapCount, setTapCount] = useState(0);
   const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -110,16 +110,19 @@ const LoginScreen = () => {
             />
           </TouchableWithoutFeedback>
           <View>
-            <Text style={styles.title}>{t('Stream Video Calling')}</Text>
+            <Text style={styles.title}>
+              {t('login.appName.title', 'Stream Video Calling')}
+            </Text>
             <Text style={styles.subTitle}>
               {t(
+                'login.tagline.description',
                 'Build reliable video calling, audio rooms, and live streaming with our easy-to-use SDKs and global edge network',
               )}
             </Text>
           </View>
           <View style={styles.textBoxContainer}>
             <TextInput
-              placeholder={t('Enter your name')}
+              placeholder={t('login.userName.label', 'Enter your name')}
               onChangeText={(text) => {
                 setLocalUserId(text);
               }}
@@ -127,7 +130,7 @@ const LoginScreen = () => {
               autoCorrect={false}
             />
             <Button
-              title={t('Login')}
+              title={t('login.submit.label', 'Login')}
               disabled={!localUserId}
               onPress={loginHandler}
               buttonStyle={{

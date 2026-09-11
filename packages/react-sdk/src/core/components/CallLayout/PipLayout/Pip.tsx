@@ -1,4 +1,5 @@
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../../i18n';
 import { useEffect, useState } from 'react';
 
 import { hasScreenShare } from '@stream-io/video-client';
@@ -86,7 +87,10 @@ export const Pip = (props: PipLayoutProps) => {
           <div className="str-video__pip-screen-share-local">
             <Icon icon="screen-share-off" />
             <span className="str-video__pip-screen-share-local__title">
-              {t('You are presenting your screen')}
+              {t(
+                'common.presentingYourScreen.text',
+                'You are presenting your screen',
+              )}
             </span>
           </div>
         ) : (

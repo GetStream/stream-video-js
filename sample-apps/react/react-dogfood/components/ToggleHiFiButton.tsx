@@ -3,13 +3,13 @@ import {
   Icon,
   SfuModels,
   useCallStateHooks,
-  useI18n,
   WithTooltip,
 } from '@stream-io/video-react-sdk';
 import { useCallback } from 'react';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 export const ToggleHiFiButton = () => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const { useMicrophoneState, useCallSettings } = useCallStateHooks();
 
   const settings = useCallSettings();
@@ -35,7 +35,11 @@ export const ToggleHiFiButton = () => {
 
   return (
     <WithTooltip
-      title={t(isHiFiEnabled ? 'Disable Hi-Fi Audio' : 'Enable Hi-Fi Audio')}
+      title={
+        isHiFiEnabled
+          ? t('callControls.hiFiButton.disable.title', 'Disable Hi-Fi Audio')
+          : t('callControls.hiFiButton.enable.title', 'Enable Hi-Fi Audio')
+      }
     >
       <CompositeButton
         active={isHiFiEnabled}
