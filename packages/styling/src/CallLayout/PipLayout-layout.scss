@@ -4,21 +4,21 @@
   flex-wrap: wrap;
   overflow: hidden;
   justify-content: center;
-  gap: 1rem;
-  padding-inline: 1rem;
+  gap: var(--str-video__spacing-md);
+  padding-inline: var(--str-video__spacing-md);
   height: 100%;
 }
 
 .str-video__pip-screen-share-local {
   display: flex;
   gap: var(--str-video__spacing-xs);
-  border-radius: var(--str-video__border-radius-sm);
+  border-radius: var(--str-video__radius-lg);
   padding: var(--str-video__spacing-sm);
-  font-size: var(--str-video__font-size-sm);
+  font-size: var(--str-video__typography-font-size-sm);
 
   .str-video__icon {
-    width: 1rem;
-    height: 1rem;
+    width: var(--str-video__icon-size-sm);
+    height: var(--str-video__icon-size-sm);
   }
 }
 
@@ -52,8 +52,8 @@
   }
 
   .str-video__icon {
-    width: 1rem;
-    height: 1rem;
+    width: var(--str-video__icon-size-sm);
+    height: var(--str-video__icon-size-sm);
   }
 
   &--left {
@@ -108,31 +108,37 @@
     }
   }
 
-  @include pip-avatar-size(32px, var(--str-video__font-size-sm));
+  @include pip-avatar-size(
+    var(--str-video__size-32),
+    var(--str-video__typography-font-size-sm)
+  );
 
   &.str-video__pip-layout__grid--single {
     --pip-cols: 1;
-    @include pip-avatar-size(80px, var(--str-video__font-size-xxl));
+    @include pip-avatar-size(
+      var(--str-video__size-80),
+      var(--str-video__typography-font-size-2xl)
+    );
   }
 
   &.str-video__pip-layout__grid--small {
     --pip-cols: 2;
-    @include pip-avatar-size(60px, var(--str-video__font-size-xl));
+    @include pip-avatar-size(60px, var(--str-video__typography-font-size-xl));
   }
 
   &.str-video__pip-layout__grid--medium {
     --pip-cols: 3;
-    @include pip-avatar-size(45px, var(--str-video__font-size-md));
+    @include pip-avatar-size(45px, var(--str-video__typography-font-size-md));
   }
 
   &.str-video__pip-layout__grid--large {
     --pip-cols: 4;
-    @include pip-avatar-size(35px, var(--str-video__font-size-sm));
+    @include pip-avatar-size(35px, var(--str-video__typography-font-size-sm));
   }
 
   &.str-video__pip-layout__grid--overflow {
     --pip-cols: 5;
     overflow-y: auto;
-    @include pip-avatar-size(25px, var(--str-video__font-size-xs));
+    @include pip-avatar-size(25px, var(--str-video__typography-font-size-xs));
   }
 }
