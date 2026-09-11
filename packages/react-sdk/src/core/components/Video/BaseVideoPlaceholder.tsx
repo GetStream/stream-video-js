@@ -1,6 +1,6 @@
 import { ComponentProps, RefAttributes, forwardRef } from 'react';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
-import { Avatar } from '../../../components';
+import { Avatar } from '../../../components/Avatar';
 
 export type BaseVideoPlaceholderProps = {
   participant: StreamVideoParticipant;
