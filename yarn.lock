@@ -6835,9 +6835,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/i18n@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@stream-io/i18n@npm:1.0.1"
+"@stream-io/i18n@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "@stream-io/i18n@npm:1.0.2"
   dependencies:
     "@stream-io/state-store": "npm:^1.1.6"
     dayjs: "npm:^1.11.23"
@@ -6848,7 +6848,7 @@ __metadata:
   peerDependenciesMeta:
     react:
       optional: true
-  checksum: 10/84e967f482055887279bb4c7719e189940c4809973c894f79ddb759d1f6a6abe36cc3a0f6fd8e4dd58599cf01ade037aef43b9a7c096b34207025d6187e96dfb
+  checksum: 10/b8484418648d72c20196a9290cabc01772d4f71ed8c615df79e64d0852b2e6ecba6b1a80ded539e38e1de13abcd29f814f5e209e1f780189e764b6707fb5b442
   languageName: node
   linkType: hard
 
@@ -7346,7 +7346,7 @@ __metadata:
     "@react-native/babel-preset": "npm:0.86.2"
     "@react-native/jest-preset": "npm:0.86.2"
     "@react-native/metro-config": "npm:0.86.2"
-    "@stream-io/i18n": "npm:^1.0.1"
+    "@stream-io/i18n": "npm:^1.0.2"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
     "@stream-io/react-native-webrtc": "npm:145.3.1"
@@ -7423,7 +7423,7 @@ __metadata:
     "@rollup/plugin-replace": "npm:^6.0.3"
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@stream-io/audio-filters-web": "workspace:^"
-    "@stream-io/i18n": "npm:^1.0.1"
+    "@stream-io/i18n": "npm:^1.0.2"
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/video-client": "workspace:*"
     "@stream-io/video-filters-web": "workspace:*"
