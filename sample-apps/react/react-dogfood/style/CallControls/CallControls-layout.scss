@@ -45,11 +45,9 @@
 @include breakpoints.respond-above(sm) {
   .str-video__call-controls {
     justify-content: space-between;
-    background-color: var(--str-video__base-color7);
 
     gap: 0.5rem;
 
-    background-color: var(--str-video__base-color7);
     border-radius: var(--str-video__border-radius-xxl);
 
     .str-video__call-controls--group {
@@ -141,7 +139,7 @@
     top: -3px;
     right: -3px;
     background: var(--str-video__brand-color3);
-    color: var(--str-video__base-color4);
+    color: var(--str-video__text-on-inverse);
     padding: 5px;
     height: 16px;
     width: 16px;
