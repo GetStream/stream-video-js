@@ -18,6 +18,7 @@ import { MeetingStackParamList } from '../../../types';
 import { appTheme } from '../../theme';
 import { TextInput } from '../../components/TextInput';
 import { Button } from '../../components/Button';
+import { E2EEKeyInput } from '../../components/E2EEKeyInput';
 import { deeplinkCallId$ } from '../../hooks/useDeepLinkEffect';
 import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
 import { useOrientation } from '../../hooks/useOrientation';
@@ -123,6 +124,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           title={t('Start a New Call')}
           buttonStyle={styles.startNewCallButton}
         />
+        <E2EEKeyInput />
       </View>
     </KeyboardAvoidingView>
   );

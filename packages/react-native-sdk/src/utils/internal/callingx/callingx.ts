@@ -110,7 +110,11 @@ export async function registerOutgoingCall(call: Call) {
  * 2. Displays the incoming call in the callingx library
  * 3. Optionally for non-ringing calls also when ongoing calls are enabled.
  */
-export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
+export async function joinCallingxCall(
+  call: Call,
+  activeCalls: Call[],
+  isCancelled?: () => boolean,
+) {
   if (
     !CallingxModule ||
     !CallingxModule.isSetup ||
@@ -146,12 +150,25 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
         logger.error(`failed to leave active call ${activeCall.cid}`, e);
       });
     }
+    // Leaving the other calls above can take arbitrarily long, and this join may
+    // have been cancelled meanwhile. Registering now would create a native call
+    // nobody owns. The caller decides, not the call's state: a `Call` reused for
+    // a fresh ring is still `LEFT` here, because `setup()` runs after this.
+    if (isCancelled?.()) {
+      logger.debug(
+        `joinCallingxCall: skipping registration for ${call.cid}: join cancelled while waiting for other calls`,
+      );
+      return;
+    }
     logger.debug(
       `joinCallingxCall: Joining call ${call.cid} isIncoming: ${isIncomingCall} isOutgoing: ${isOutcomingCall}`,
     );
     const callArgs = getCallingxCallArgs(call);
     if (isIncomingCall) {
       await CallingxModule.displayIncomingCall(...callArgs);
+      // never answer a call that was hung up while the OS was displaying it -
+      // the cleanup below ends the registration instead
+      if (isCancelled?.()) return;
       await CallingxModule.answerIncomingCall(call.cid);
     } else {
       await CallingxModule.startCall(...callArgs);
@@ -161,6 +178,19 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
       `startCallingxCall: Error starting call in callingx: ${call.cid} isIncoming: ${isIncomingCall} isOutgoing: ${isOutcomingCall}`,
       error,
     );
+  } finally {
+    // The registration above can outlive the join that asked for it: `leave()`
+    // may land while native is still bringing the call up, and by the time the
+    // caller aborts, the call exists natively with nobody to end it. Ringing
+    // calls have a lifecycle owner that would clean up; ordinary ones do not.
+    // Nothing was registered when the check above already skipped it, and
+    // `endCallingxCall` no-ops for an untracked cid, so this is safe either way.
+    if (isCancelled?.()) {
+      logger.debug(
+        `joinCallingxCall: ending ${call.cid}: join was cancelled while registering`,
+      );
+      await endCallingxCall(call, 'canceled');
+    }
   }
 }
 
