@@ -10,11 +10,8 @@ import {
   Text,
 } from 'react-native';
 import { appTheme } from '../../theme';
-import {
-  Call,
-  useI18n,
-  useStreamVideoClient,
-} from '@stream-io/video-react-native-sdk';
+import { Call, useStreamVideoClient } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 import CreateRoomModal from './CreateRoomModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -31,7 +28,7 @@ const RoomList = (props: Props) => {
   const [calls, setCalls] = useState<Call[]>([]);
   const [loadingCalls, setLoadingCalls] = useState(true);
   const [loadingError, setLoadingError] = useState<Error>();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   // state for the pull to refresh
   const [refreshing, setRefreshing] = React.useState(false);
   // holds the cursor to the next page of calls
@@ -141,7 +138,10 @@ const RoomList = (props: Props) => {
     return loadingCalls ? (
       <ActivityIndicator size={'small'} style={styles.activityIndicator} />
     ) : (
-      <Button onPress={queryLiveCalls} title={t('Load more')} />
+      <Button
+        onPress={queryLiveCalls}
+        title={t('roomList.loadMore.label', 'Load more')}
+      />
     );
   }, [loadingCalls, queryLiveCalls, t]);
 

@@ -29,7 +29,7 @@ export * from './contexts';
 export * from './hooks';
 export * from './theme';
 export * from './utils';
-export * from './translations';
+export * from './i18n';
 export * from './modules/call-manager';
 
 // Overriding 'StreamVideo' and 'StreamCall' from '@stream-io/video-react-bindings'

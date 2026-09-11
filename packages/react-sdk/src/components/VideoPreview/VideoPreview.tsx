@@ -1,7 +1,8 @@
 import { ComponentType, useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { createSoundDetector } from '@stream-io/video-client';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 import { BaseVideo } from '../../core/components/Video';
 import { LoadingIndicator } from '../LoadingIndicator';
 
@@ -9,7 +10,7 @@ const DefaultDisabledVideoPreview = () => {
   const { t } = useI18n();
   return (
     <div className="str_video__video-preview__disabled-video-preview">
-      {t('Video is disabled')}
+      {t('common.videoDisabled.text', 'Video is disabled')}
     </div>
   );
 };
@@ -18,7 +19,7 @@ const DefaultNoCameraPreview = () => {
   const { t } = useI18n();
   return (
     <div className="str_video__video-preview__no-camera-preview">
-      {t('No camera found')}
+      {t('common.noCameraFound.text', 'No camera found')}
     </div>
   );
 };

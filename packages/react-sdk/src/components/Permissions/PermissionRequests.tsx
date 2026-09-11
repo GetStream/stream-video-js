@@ -12,12 +12,8 @@ import {
   PermissionRequestEvent,
   UserResponse,
 } from '@stream-io/video-client';
-import {
-  TranslatorFunction,
-  useCall,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { StreamTFunction, useI18n } from '../../i18n';
 import clsx from 'clsx';
 
 import { useFloatingUIPreset } from '../../hooks';
@@ -147,21 +143,21 @@ export const PermissionRequestList = forwardRef<
                   type="button"
                   onClick={handleUpdatePermission(request, 'grant')}
                 >
-                  {t('Allow')}
+                  {t('common.allow.label', 'Allow')}
                 </Button>
                 <Button
                   className="str-video__permission-request__button--reject"
                   type="button"
                   onClick={handleUpdatePermission(request, 'revoke')}
                 >
-                  {t('Revoke')}
+                  {t('common.revoke.label', 'Revoke')}
                 </Button>
                 <Button
                   className="str-video__permission-request__button--reject"
                   type="button"
                   onClick={handleUpdatePermission(request, 'dismiss')}
                 >
-                  {t('Dismiss')}
+                  {t('common.dismiss.label', 'Dismiss')}
                 </Button>
               </div>
             ))}
@@ -187,23 +183,39 @@ const Button = (
 const messageForPermission = (
   userName: string,
   permission: string,
-  t: TranslatorFunction,
+  t: StreamTFunction,
 ) => {
   switch (permission) {
     case OwnCapability.SEND_AUDIO:
-      return t('{{ userName }} is requesting to speak', { userName });
+      return t(
+        'permissions.requestingToSpeak.text',
+        '{{ userName }} is requesting to speak',
+        { userName },
+      );
     case OwnCapability.SEND_VIDEO:
-      return t('{{ userName }} is requesting to share their camera', {
-        userName,
-      });
+      return t(
+        'permissions.requestingCamera.text',
+        '{{ userName }} is requesting to share their camera',
+        {
+          userName,
+        },
+      );
     case OwnCapability.SCREENSHARE:
-      return t('{{ userName }} is requesting to present their screen', {
-        userName,
-      });
+      return t(
+        'permissions.requestingScreenShare.text',
+        '{{ userName }} is requesting to present their screen',
+        {
+          userName,
+        },
+      );
     default:
-      return t('{{ userName }} is requesting permission: {{ permission }}', {
-        userName,
-        permission,
-      });
+      return t(
+        'permissions.requestingPermission.text',
+        '{{ userName }} is requesting permission: {{ permission }}',
+        {
+          userName,
+          permission,
+        },
+      );
   }
 };

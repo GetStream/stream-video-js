@@ -1,4 +1,4 @@
-import { useI18n } from '@stream-io/video-react-bindings';
+import { useI18n } from '../i18n';
 import { useMemo } from 'react';
 
 export interface DeviceListItem {
@@ -43,7 +43,7 @@ export function useDeviceList(
     if (selectedDeviceInfo === null || selectedIndex === null) {
       const defaultDevice = {
         deviceId: 'default',
-        label: t('Default'),
+        label: t('common.default.label', 'Default'),
         isSelected: true,
       };
 

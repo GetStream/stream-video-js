@@ -8,7 +8,6 @@ import {
   useCall,
   useCallStateHooks,
   useConnectedUser,
-  useI18n,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
@@ -40,6 +39,7 @@ import { useLobbyE2EE } from '../context/LobbyE2EEContext';
 import { isCallEncrypted } from '../lib/e2ee';
 import { getRandomName } from '../lib/names';
 import { ToggleNoiseCancellationButton } from './ToggleNoiseCancellationButton';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 export type UserMode = 'regular' | 'guest' | 'anon';
 
@@ -85,7 +85,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
     '';
   const custom = useCallCustomData();
 
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const edges = useEdges();
 
   const skipLobby =
@@ -138,6 +138,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                     <h1 className="rd__lobby-heading">{custom.name}</h1>
                     <p className="rd__lobby-heading__description">
                       {t(
+                        'lobby.setUpYourCallEdgeNetwork.title',
                         'Set up your call before joining, while our Edge Network is selecting the best server for your call...',
                       )}
                     </p>
@@ -145,10 +146,14 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                 ) : (
                   <>
                     <h1 className="rd__lobby-heading">
-                      {t('Set up your call before joining')}
+                      {t(
+                        'lobby.setUpYourCall.title',
+                        'Set up your call before joining',
+                      )}
                     </h1>
                     <p className="rd__lobby-heading__description">
                       {t(
+                        'lobby.edgeNetworkSelecting.text',
                         'while our Edge Network is selecting the best server for your call...',
                       )}
                     </p>
@@ -214,7 +219,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                   src={`${
                     process.env.NEXT_PUBLIC_BASE_PATH || ''
                   }/lock-person.svg`}
-                  alt={t('Stream logo')}
+                  alt={t('common.streamLogo.ariaLabel', 'Stream logo')}
                   priority={false}
                   width={36}
                   height={24}
@@ -230,7 +235,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
 
             <div className="rd__display-name">
               <div className="rd__display-name-label">
-                {t('Choose display name')}
+                {t('lobby.chooseDisplayName.title', 'Choose display name')}
               </div>
               <input
                 className="rd__display-name-input rd__input"
@@ -271,13 +276,18 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                   data-testid="join-call-button"
                   title={
                     needsEncryptionKey
-                      ? t('Enter the shared encryption key to join')
+                      ? t(
+                          'lobby.enterEncryptionKey.text',
+                          'Enter the shared encryption key to join',
+                        )
                       : undefined
                   }
                   onClick={() => onJoin(displayName)}
                 >
                   <Icon className="rd__button__icon" icon="login" />
-                  {hasOtherParticipants ? t('Join') : t('Start call')}
+                  {hasOtherParticipants
+                    ? t('lobby.join.label', 'Join')
+                    : t('lobby.startCall.label', 'Start call')}
                 </button>
               )}
             </div>

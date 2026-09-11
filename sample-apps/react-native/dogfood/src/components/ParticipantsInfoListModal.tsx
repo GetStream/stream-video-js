@@ -10,9 +10,9 @@ import {
   useCall,
   useCallStateHooks,
   useConnectedUser,
-  useI18n,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../hooks/useAppI18n';
 import {
   Alert,
   FlatList,
@@ -61,7 +61,7 @@ export const ParticipantsInfoListModal = ({
   const { theme } = useTheme();
   const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const [selectedParticipant, setSelectedParticipant] = useState<
     StreamVideoParticipant | undefined
   >(undefined);
@@ -134,9 +134,11 @@ export const ParticipantsInfoListModal = ({
             <View style={styles.header}>
               <View style={styles.leftHeaderElement} />
               <Text style={styles.headerText}>
-                {t('Participants ({{ numberOfParticipants }})', {
-                  numberOfParticipants: participants.length,
-                })}
+                {t(
+                  'participantsInfo.header.title',
+                  'Participants ({{ numberOfParticipants }})',
+                  { numberOfParticipants: participants.length },
+                )}
               </Text>
               <Pressable
                 onPress={onCloseCallParticipantsVisible}
@@ -152,14 +154,18 @@ export const ParticipantsInfoListModal = ({
             <FlatList data={participants} renderItem={renderItem} />
             <View style={styles.buttonGroup}>
               <Pressable style={styles.inviteButton} onPress={inviteHandler}>
-                <Text style={styles.buttonText}>{t('Invite')}</Text>
+                <Text style={styles.buttonText}>
+                  {t('participantsInfo.invite.label', 'Invite')}
+                </Text>
               </Pressable>
               <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
                 <Pressable
                   style={styles.button}
                   onPress={muteAllParticipantsHandler}
                 >
-                  <Text style={styles.buttonText}>{t('Mute All')}</Text>
+                  <Text style={styles.buttonText}>
+                    {t('participantsInfo.muteAll.label', 'Mute All')}
+                  </Text>
                 </Pressable>
               </Restricted>
             </View>

@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { useI18n } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 
 import { CallStats } from '../CallStats';
 import { CompositeButton } from '../Button/';
@@ -28,7 +28,10 @@ const ToggleMenuButton = forwardRef<
       ref={ref}
       active={menuShown}
       caption={caption}
-      title={caption || t('Statistics')}
+      title={
+        caption ||
+        t('callControls.callStatsButton.statistics.title', 'Statistics')
+      }
       data-testid="stats-button"
     >
       <Icon icon="stats" />

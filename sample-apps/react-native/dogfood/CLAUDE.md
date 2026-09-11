@@ -155,7 +155,18 @@ Both use `useChatClient` hook for client lifecycle and `useUnreadCount` for badg
 
 ### Translations
 
-`src/translations/en.json` contains 72 English strings with `{{ placeholder }}` templating. Merged with SDK translations in `src/translations/index.ts` — app strings override SDK defaults.
+Every `t()` call site passes a dotted key plus its English copy inline —
+`t('joinMeeting.join.label', 'Join Call')` — so the app ships no dictionary and `<StreamVideo>`
+takes no `translations` prop. Add a non-English locale by registering a dictionary on the same
+`Streami18n` instance.
+
+`useI18n().t` is typed to the SDK's key catalog (`packages/react-native-sdk/src/i18n/keys.ts`), so
+an app-owned key will not compile through it. Components that render app copy use
+`src/hooks/useAppI18n.ts` instead, which widens `t` — the single, greppable place where that check
+is given up. A component that renders only SDK copy (e.g. `common.you.label`) keeps `useI18n`.
+Keys are `namespace.thing.modality` with the modality leaf one of
+`.label` / `.ariaLabel` / `.title` / `.description` / `.text`, and the first argument must always be
+a literal so the key stays visible to the type checker and to catalog tooling.
 
 ### Metro configuration
 

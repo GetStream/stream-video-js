@@ -227,7 +227,9 @@ const CustomParticipantActionsContextMenu = () => {
         disabled={pin && !pin.isLocalPin}
       >
         <Icon icon="pin" />
-        {pin ? t('Unpin') : t('Pin')}
+        {pin
+          ? t('participantView.unpin.label', 'Unpin')
+          : t('participantView.actionsMenu.pin.label', 'Pin')}
       </GenericMenuButtonItem>
       <Restricted requiredGrants={[OwnCapability.PIN_FOR_EVERYONE]}>
         <GenericMenuButtonItem
@@ -235,70 +237,94 @@ const CustomParticipantActionsContextMenu = () => {
           disabled={pin && !pin.isLocalPin}
         >
           <Icon icon="pin" />
-          {t('Pin for everyone')}
+          {t(
+            'participantView.actionsMenu.pinForEveryone.label',
+            'Pin for everyone',
+          )}
         </GenericMenuButtonItem>
         <GenericMenuButtonItem
           onClick={unpinForEveryone}
           disabled={!pin || pin.isLocalPin}
         >
           <Icon icon="pin" />
-          {t('Unpin for everyone')}
+          {t(
+            'participantView.actionsMenu.unpinForEveryone.label',
+            'Unpin for everyone',
+          )}
         </GenericMenuButtonItem>
       </Restricted>
       <Restricted requiredGrants={[OwnCapability.BLOCK_USERS]}>
         <GenericMenuButtonItem onClick={blockUser}>
           <Icon icon="not-allowed" />
-          {t('Block')}
+          {t('participantView.actionsMenu.block.label', 'Block')}
         </GenericMenuButtonItem>
       </Restricted>
       <Restricted requiredGrants={[OwnCapability.KICK_USER]}>
         <GenericMenuButtonItem onClick={kickUser}>
           <Icon icon="kick-user" />
-          {t('Kick')}
+          {t('participantView.actionsMenu.kick.label', 'Kick')}
         </GenericMenuButtonItem>
       </Restricted>
       <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
         {hasVideoTrack && (
           <GenericMenuButtonItem onClick={muteVideo}>
             <Icon icon="camera-off-outline" />
-            {t('Turn off video')}
+            {t(
+              'participantView.actionsMenu.turnOffVideo.label',
+              'Turn off video',
+            )}
           </GenericMenuButtonItem>
         )}
         {hasScreenShareTrack && (
           <GenericMenuButtonItem onClick={muteScreenShare}>
             <Icon icon="screen-share-off" />
-            {t('Turn off screen share')}
+            {t(
+              'participantView.actionsMenu.turnOffScreenShare.label',
+              'Turn off screen share',
+            )}
           </GenericMenuButtonItem>
         )}
         {hasAudioTrack && (
           <GenericMenuButtonItem onClick={muteAudio}>
             <Icon icon="no-audio" />
-            {t('Mute audio')}
+            {t('participantView.actionsMenu.muteAudio.label', 'Mute audio')}
           </GenericMenuButtonItem>
         )}
         {hasScreenShareAudioTrack && (
           <GenericMenuButtonItem onClick={muteScreenShareAudio}>
             <Icon icon="no-audio" />
-            {t('Mute screen share audio')}
+            {t(
+              'participantView.actionsMenu.muteScreenShareAudio.label',
+              'Mute screen share audio',
+            )}
           </GenericMenuButtonItem>
         )}
       </Restricted>
       {participantViewElement &&
         typeof participantViewElement.requestFullscreen !== 'undefined' && (
           <GenericMenuButtonItem onClick={toggleFullscreenMode}>
-            {t('{{ direction }} fullscreen', {
-              direction: fullscreenModeOn ? t('Leave') : t('Enter'),
-            })}
+            {fullscreenModeOn
+              ? t(
+                  'participantView.actionsMenu.leaveFullscreen.label',
+                  'Leave fullscreen',
+                )
+              : t(
+                  'participantView.actionsMenu.enterFullscreen.label',
+                  'Enter fullscreen',
+                )}
           </GenericMenuButtonItem>
         )}
       {videoElement && document.pictureInPictureEnabled && (
         <GenericMenuButtonItem onClick={togglePictureInPicture}>
-          {t('{{ direction }} picture-in-picture', {
-            direction:
-              pictureInPictureElement === videoElement
-                ? t('Leave')
-                : t('Enter'),
-          })}
+          {pictureInPictureElement === videoElement
+            ? t(
+                'participantView.actionsMenu.leavePip.label',
+                'Leave picture-in-picture',
+              )
+            : t(
+                'participantView.actionsMenu.enterPip.label',
+                'Enter picture-in-picture',
+              )}
         </GenericMenuButtonItem>
       )}
     </GenericMenu>

@@ -8,7 +8,7 @@ import {
   ReactElement,
 } from 'react';
 import { Placement } from '@floating-ui/react';
-import { useI18n } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 
 import { Button, ButtonAppearance, ButtonSize, ButtonVariant } from './Button';
 import { IconButton } from './IconButton';
@@ -112,7 +112,7 @@ const CompositeCaret = forwardRef<
       size="xs"
       appearance="ghost"
       disabled={disabled}
-      aria-label={t('Toggle menu')}
+      aria-label={t('common.toggleMenu.ariaLabel', 'Toggle menu')}
       aria-haspopup="menu"
       aria-expanded={menuShown}
       icon={menuShown ? 'caret-down' : 'caret-up'}

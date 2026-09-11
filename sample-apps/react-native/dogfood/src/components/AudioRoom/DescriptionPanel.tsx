@@ -1,4 +1,5 @@
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-native-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -7,18 +8,23 @@ export const DescriptionPanel = ({ onClose }: { onClose: () => void }) => {
   const custom = useCallCustomData();
   const session = useCallSession();
   const participantsCount = session?.participants?.length ?? 0;
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{custom?.title ?? `<${t('Title')}>`}</Text>
+      <Text style={styles.title}>
+        {custom?.title ?? `<${t('audioRoomDescription.title.label', 'Title')}>`}
+      </Text>
       <Text style={styles.subtitle}>
-        {custom?.description ?? `<${t('Description')}>`}
+        {custom?.description ??
+          `<${t('audioRoomDescription.description.label', 'Description')}>`}
       </Text>
       <Text style={styles.participantsCount}>
-        {t('{{ numberOfParticipants }} participant(s) are in the call.', {
-          numberOfParticipants: participantsCount,
-        })}
+        {t(
+          'audioRoomDescription.participantCount.text',
+          '{{ numberOfParticipants }} participant(s) are in the call.',
+          { numberOfParticipants: participantsCount },
+        )}
       </Text>
       <Pressable
         onPress={onClose}

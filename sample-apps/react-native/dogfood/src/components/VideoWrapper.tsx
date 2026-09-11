@@ -10,7 +10,6 @@ import {
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/createToken';
-import translations from '../translations';
 import { useCustomTheme } from '../theme';
 import axios, { AxiosResponseTransformer } from 'axios';
 import { Alert } from 'react-native';
@@ -130,11 +129,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   }
 
   return (
-    <StreamVideo
-      client={videoClient}
-      style={customTheme}
-      translationsOverrides={translations}
-    >
+    <StreamVideo client={videoClient} style={customTheme}>
       <NonRingingPushTokenRegistration />
       {children}
     </StreamVideo>
