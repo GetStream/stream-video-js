@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.60.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.59.1...@stream-io/video-client-1.60.0) (2026-09-11)
+
+### Features
+
+- **client:** identify the SDK and version on SFU RPCs ([#2425](https://github.com/GetStream/stream-video-js/issues/2425)) ([107ff39](https://github.com/GetStream/stream-video-js/commit/107ff390c706beca4417d4ef5e2c7ec9bbbc321d))
+- **client:** poll ring state to reconcile a dropped ring outcome ([#2393](https://github.com/GetStream/stream-video-js/issues/2393)) ([4605ac1](https://github.com/GetStream/stream-video-js/commit/4605ac1daf603382b7d3a6267e4852ac9fbfc0eb)), closes [#2422](https://github.com/GetStream/stream-video-js/issues/2422)
+
 ## [1.59.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.59.0...@stream-io/video-client-1.59.1) (2026-09-04)
 
 ### Bug Fixes
