@@ -3,29 +3,40 @@ import {
   DeviceDisconnectedEvent,
   Notification,
   useCall,
-  useI18n,
 } from '@stream-io/video-react-sdk';
+import { useAppI18n } from '../hooks/useAppI18n';
+import type { LooseTranslateFunction } from '@stream-io/video-react-sdk';
 
 const getDeviceDisconnectedMessage = (
   kinds: Set<MediaDeviceKind>,
-  t: (key: string) => string,
+  t: LooseTranslateFunction,
 ) => {
   const hasAudio = kinds.has('audioinput');
   const hasVideo = kinds.has('videoinput');
 
   if (hasAudio && hasVideo) {
     return t(
+      'notification.deviceDisconnected.micAndCamera.text',
       'Your microphone and camera were disconnected. Please check your setup.',
     );
   }
   if (hasAudio) {
-    return t('Your microphone was disconnected. Please check your setup.');
+    return t(
+      'notification.deviceDisconnected.microphone.text',
+      'Your microphone was disconnected. Please check your setup.',
+    );
   }
   if (hasVideo) {
-    return t('Your camera was disconnected. Please check your setup.');
+    return t(
+      'notification.deviceDisconnected.camera.text',
+      'Your camera was disconnected. Please check your setup.',
+    );
   }
 
-  return t('Your device was disconnected. Please check your setup.');
+  return t(
+    'notification.deviceDisconnected.device.text',
+    'Your device was disconnected. Please check your setup.',
+  );
 };
 
 export type DeviceDisconnectedNotificationProps = {
@@ -39,7 +50,7 @@ export const DeviceDisconnectedNotification = ({
   className,
 }: PropsWithChildren<DeviceDisconnectedNotificationProps>) => {
   const call = useCall();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const [disconnectedDevices, setDisconnectedDevices] = useState(
     () => new Set<MediaDeviceKind>(),
   );

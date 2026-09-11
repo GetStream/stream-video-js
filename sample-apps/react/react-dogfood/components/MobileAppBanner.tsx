@@ -1,4 +1,25 @@
-import { Icon, useI18n } from '@stream-io/video-react-sdk';
+import { Icon } from '@stream-io/video-react-sdk';
+import { useAppI18n } from '../hooks/useAppI18n';
+import type { LooseTranslateFunction } from '@stream-io/video-react-sdk';
+
+type NativeApp = 'android' | 'ios' | 'reactNative' | 'flutter';
+
+/**
+ * The store-link labels used to live on the link objects and reach `t()` as a runtime value. A
+ * `switch` over the closed set of apps puts each key back next to its English.
+ */
+const nativeAppLabel = (t: LooseTranslateFunction, app: NativeApp) => {
+  switch (app) {
+    case 'android':
+      return t('mobileBanner.tryAndroid.label', 'Try Android');
+    case 'ios':
+      return t('mobileBanner.tryIos.label', 'Try iOS');
+    case 'reactNative':
+      return t('mobileBanner.tryReactNative.label', 'Try React Native');
+    case 'flutter':
+      return t('mobileBanner.tryFlutter.label', 'Flutter');
+  }
+};
 
 export const MobileAppBanner = (props: {
   callId: string;
@@ -6,40 +27,40 @@ export const MobileAppBanner = (props: {
   onDismiss?: () => void;
 }) => {
   const { callId, platform, onDismiss } = props;
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const platformLinks: Record<
     'android' | 'ios',
-    { label: string; url: string; active: boolean }[]
+    { app: NativeApp; url: string; active: boolean }[]
   > = {
     android: [
       {
-        label: 'Try Android',
+        app: 'android',
         url: `https://play.google.com/store/apps/details?id=io.getstream.video.android&referrer=${encodeURIComponent(
           `call_id=${callId}`,
         )}`,
         active: true,
       },
       {
-        label: 'Try React Native',
+        app: 'reactNative',
         url: `https://play.google.com/store/apps/details?id=io.getstream.rnvideosample&referrer=${encodeURIComponent(
           `call_id=${callId}`,
         )}`,
         active: true,
       },
-      { label: 'Flutter', url: '#', active: false },
+      { app: 'flutter', url: '#', active: false },
     ],
     ios: [
       {
-        label: 'Try iOS',
+        app: 'ios',
         url: 'https://apps.apple.com/us/app/stream-video-calls/id1644313060',
         active: true,
       },
       {
-        label: 'Try React Native',
+        app: 'reactNative',
         url: 'https://apps.apple.com/us/app/stream-video-calls-rn/id6443437501',
         active: true,
       },
-      // { label: 'Flutter', url: '#', active: false },
+      // { app: 'flutter', url: '#', active: false },
     ],
   };
 
@@ -50,9 +71,12 @@ export const MobileAppBanner = (props: {
         alt="logo"
         src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/home.png`}
       />
-      <h2 className="rd__try-native__title">{t('Try Native Demo!')}</h2>
+      <h2 className="rd__try-native__title">
+        {t('mobileBanner.tryNativeDemo.title', 'Try Native Demo!')}
+      </h2>
       <p className="rd__try-native__info-text">
         {t(
+          'mobileBanner.tryNativeDemo.description',
           'We see you are using a mobile device. Why don’t you give it a try on one of our native mobile apps:',
         )}
       </p>
@@ -60,21 +84,21 @@ export const MobileAppBanner = (props: {
         .filter((app) => app.active)
         .map((link) => (
           <a
-            key={link.label}
+            key={link.app}
             className="rd__button rd__button--primary"
             href={link.url}
             target="_blank"
             rel="noreferrer"
           >
             <Icon className="rd__button__icon" icon="login" />
-            {t(link.label)}
+            {nativeAppLabel(t, link.app)}
           </a>
         ))}
       <button
         className="rd__try-native__use-browser rd__button rd__button--secondary"
         onClick={onDismiss}
       >
-        {t('Continue With Browser')}
+        {t('mobileBanner.continueWithBrowser.label', 'Continue With Browser')}
       </button>
     </div>
   );

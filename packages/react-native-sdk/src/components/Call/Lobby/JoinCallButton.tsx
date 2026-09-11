@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { type LobbyProps } from './Lobby';
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { videoLoggerSystem } from '@stream-io/video-client';
 
@@ -64,7 +65,9 @@ export const JoinCallButton = ({
           joinCallButton.label,
         ]}
       >
-        {isLoading ? t('Joining...') : t('Join')}
+        {isLoading
+          ? t('common.joining.text', 'Joining...')
+          : t('common.join.label', 'Join')}
       </Text>
     </Pressable>
   );

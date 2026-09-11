@@ -6,8 +6,8 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
-  useI18n,
 } from '@stream-io/video-react-sdk';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 export const ToggleMenuButton = forwardRef<
   HTMLDivElement,
@@ -26,7 +26,7 @@ export const ToggleMenuButton = forwardRef<
 });
 
 export const ToggleDocumentationButton = () => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   return (
     <MenuToggle
       placement="bottom-start"
@@ -36,11 +36,13 @@ export const ToggleDocumentationButton = () => {
       <div className="rd__documentation-button__menu">
         <h2 className="rd__documentation-button__heading">
           {t(
+            'documentation.tagline.text',
             'Faster and more reliable video calls, livestreams and audio rooms.',
           )}
         </h2>
         <p className="rd__documentation-button__description">
           {t(
+            'documentation.pitch.text',
             'Excellent developer experience and docs enable you to build in-app video calling in days. Scale to millions of users and thousands of call participants.',
           )}
         </p>
@@ -52,7 +54,7 @@ export const ToggleDocumentationButton = () => {
             rel="noreferrer"
           >
             <Icon className="rd__button__icon" icon="folder" />
-            {t('Documentation')}
+            {t('common.documentation.label', 'Documentation')}
           </a>
 
           <a
@@ -62,7 +64,7 @@ export const ToggleDocumentationButton = () => {
             rel="noreferrer"
           >
             <Icon className="rd__button__icon" icon="support-agent" />
-            {t('Contact an expert')}
+            {t('common.contactAnExpert.label', 'Contact an expert')}
           </a>
         </div>
       </div>

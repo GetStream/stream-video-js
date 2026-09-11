@@ -1,11 +1,8 @@
 import { useCallback, useState } from 'react';
 import clsx from 'clsx';
 import { OwnCapability } from '@stream-io/video-client';
-import {
-  Restricted,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-bindings';
+import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { useLayout } from '../../hooks';
 import {
   CallParticipantsList,
@@ -72,7 +69,9 @@ export const HostLayout = ({
             : 'str-video__embedded-livestream-duration__backstage-badge'
         }
       >
-        {isLive ? t('Live') : t('Backstage')}
+        {isLive
+          ? t('common.live.label', 'Live')
+          : t('livestreamHost.backstage.text', 'Backstage')}
       </span>
       <ViewersCount count={participantCount} />
       {isLive && elapsed && (
@@ -129,11 +128,11 @@ export const HostLayout = ({
                   <>
                     <DeviceSelectorAudioOutput
                       visualType="list"
-                      title={t('Speaker')}
+                      title={t('common.speaker.label', 'Speaker')}
                     />
                     <DeviceSelectorAudioInput
                       visualType="list"
-                      title={t('Microphone')}
+                      title={t('common.microphone.label', 'Microphone')}
                     />
                   </>
                 }
@@ -164,25 +163,29 @@ export const HostLayout = ({
           {isBackstageEnabled && (
             <Restricted requiredGrants={[OwnCapability.UPDATE_CALL]}>
               {isLive ? (
-                <WithTooltip title={t('End Stream')}>
+                <WithTooltip
+                  title={t('livestreamHost.endStream.title', 'End Stream')}
+                >
                   <button
                     type="button"
                     className="str-video__embedded-end-stream-button"
                     onClick={onStopLive}
                   >
                     <Icon icon="call-end" />
-                    <span>{t('Stop Live')}</span>
+                    <span>{t('livestreamHost.endLive.label', 'End Live')}</span>
                   </button>
                 </WithTooltip>
               ) : (
-                <WithTooltip title={t('Start Stream')}>
+                <WithTooltip
+                  title={t('livestreamHost.startStream.title', 'Start Stream')}
+                >
                   <button
                     type="button"
                     className="str-video__embedded-go-live-button"
                     onClick={onGoLive}
                   >
                     <Icon icon="streaming" />
-                    <span>{t('Go Live')}</span>
+                    <span>{t('livestreamHost.goLive.label', 'Go Live')}</span>
                   </button>
                 </WithTooltip>
               )}
@@ -193,10 +196,10 @@ export const HostLayout = ({
           </div>
         </div>
         <div className="str-video__call-controls--group str-video__call-controls--sidebar">
-          <WithTooltip title={t('Participants')}>
+          <WithTooltip title={t('common.participants.label', 'Participants')}>
             <CompositeButton
               active={showParticipants}
-              aria-label={t('Participants')}
+              aria-label={t('common.participants.label', 'Participants')}
               aria-pressed={showParticipants}
               onClick={handleToggleParticipants}
             >

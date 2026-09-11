@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { useI18n } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import {
   BaseVideoPlaceholder,
   type BaseVideoPlaceholderProps,
@@ -14,7 +14,7 @@ export const DefaultVideoPlaceholder = forwardRef<
   const { t } = useI18n();
   return (
     <BaseVideoPlaceholder ref={ref} {...props}>
-      {t('Video is disabled')}
+      {t('common.videoDisabled.text', 'Video is disabled')}
     </BaseVideoPlaceholder>
   );
 });

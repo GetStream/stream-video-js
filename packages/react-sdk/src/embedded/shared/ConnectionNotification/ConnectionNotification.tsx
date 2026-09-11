@@ -1,5 +1,6 @@
 import { CallingState } from '@stream-io/video-client';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { LoadingIndicator, Notification } from '../../../components';
 
 export const ConnectionNotification = () => {
@@ -24,8 +25,14 @@ export const ConnectionNotification = () => {
           placement="bottom"
           message={
             isOffline
-              ? t('You are offline. Check your internet connection.')
-              : t('Failed to restore connection. Please try again.')
+              ? t(
+                  'connectionNotification.offline.text',
+                  'You are offline. Check your internet connection.',
+                )
+              : t(
+                  'connectionNotification.failedToRestore.text',
+                  'Failed to restore connection. Please try again.',
+                )
           }
         />
       </div>
@@ -43,10 +50,13 @@ export const ConnectionNotification = () => {
             <LoadingIndicator
               text={
                 isMigrating
-                  ? t('Migrating...')
+                  ? t('connectionNotification.migrating.text', 'Migrating...')
                   : isJoining
-                    ? t('Joining')
-                    : t('Reconnecting...')
+                    ? t('connectionNotification.joining.text', 'Joining')
+                    : t(
+                        'connectionNotification.reconnecting.text',
+                        'Reconnecting...',
+                      )
               }
             />
           }

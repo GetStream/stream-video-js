@@ -15,10 +15,10 @@ import {
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import {
   MemberRequest,
-  useI18n,
   useStreamVideoClient,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 import { appTheme } from '../../theme';
 import { Button } from '../../components/Button';
 import { TextInput } from '../../components/TextInput';
@@ -36,7 +36,7 @@ const JoinCallScreen = () => {
   const devMode = useAppGlobalStoreValue((store) => store.devMode);
   const [ringingUsers, setRingingUsers] = useState<string[]>([]);
   const videoClient = useStreamVideoClient();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const orientation = useOrientation();
   const styles = useStyles();
   const [isLoading, setIsLoading] = useState(false);
@@ -124,7 +124,9 @@ const JoinCallScreen = () => {
         showsVerticalScrollIndicator={true}
       >
         <View style={styles.topContainer}>
-          <Text style={styles.headerText}>{t('Select Participants')}</Text>
+          <Text style={styles.headerText}>
+            {t('joinCall.selectParticipants.title', 'Select Participants')}
+          </Text>
           {KnownUsers.filter((user) => user.id !== userId).map((user) => {
             return (
               <Pressable
@@ -148,11 +150,14 @@ const JoinCallScreen = () => {
           })}
         </View>
         <View style={styles.bottomContainer}>
-          <Text style={styles.orText}>{t('OR')}</Text>
+          <Text style={styles.orText}>{t('joinCall.or.label', 'OR')}</Text>
           <TextInput
             autoCapitalize="none"
             autoCorrect={false}
-            placeholder={t('Enter comma separated User ids')}
+            placeholder={t(
+              'joinCall.userIds.label',
+              'Enter comma separated User ids',
+            )}
             value={ringingUserIdsText}
             onChangeText={(value) => {
               setRingingUserIdsText(value);
@@ -160,7 +165,11 @@ const JoinCallScreen = () => {
             style={styles.textInputStyle}
           />
           <Button
-            title={isLoading ? t('Calling...') : t('Start a New Call')}
+            title={
+              isLoading
+                ? t('joinCall.calling.label', 'Calling...')
+                : t('joinCall.startNewCall.label', 'Start a New Call')
+            }
             disabled={startCallDisabled}
             onPress={startCallHandler}
           />

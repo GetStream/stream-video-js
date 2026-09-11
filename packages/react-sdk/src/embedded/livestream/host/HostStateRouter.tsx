@@ -1,10 +1,7 @@
 import { useCallback, useState } from 'react';
 import { CallingState } from '@stream-io/video-client';
-import {
-  useCall,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 
 import { HostLayout } from './HostLayout';
 import { LoadingIndicator } from '../../../components';
@@ -73,10 +70,17 @@ export const HostStateRouter = () => {
         onJoin={handleJoin}
         title={
           isBackstageEnabled
-            ? t('Prepare your livestream')
-            : t('Ready to go live')
+            ? t(
+                'livestreamHost.prepareLivestream.title',
+                'Prepare your livestream',
+              )
+            : t('livestreamHost.readyToGoLive.title', 'Ready to go live')
         }
-        joinLabel={isBackstageEnabled ? t('Enter Backstage') : t('Go Live')}
+        joinLabel={
+          isBackstageEnabled
+            ? t('livestreamHost.enterBackstage.label', 'Enter Backstage')
+            : t('livestreamHost.goLive.label', 'Go Live')
+        }
       />
     );
   }

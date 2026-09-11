@@ -1,4 +1,4 @@
-import { useI18n } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { Icon } from '../../../components';
 
 export const ThankYouScreen = () => {
@@ -9,10 +9,13 @@ export const ThankYouScreen = () => {
         <Icon icon="checkmark" />
       </div>
       <h2 className="str-video__embedded-call-feedback__title">
-        {t('Thank you!')}
+        {t('callFeedback.thankYouScreen.thankYou.title', 'Thank you!')}
       </h2>
       <p className="str-video__embedded-call-feedback__subtitle">
-        {t('Your feedback helps improve call quality.')}
+        {t(
+          'callFeedback.thankYouScreen.feedbackHelpsImprove.text',
+          'Your feedback helps improve call quality.',
+        )}
       </p>
     </div>
   );

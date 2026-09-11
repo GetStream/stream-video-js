@@ -1,4 +1,4 @@
-import { Icon, LoadingIndicator, useI18n } from '@stream-io/video-react-sdk';
+import { Icon, LoadingIndicator } from '@stream-io/video-react-sdk';
 import { type GetServerSidePropsContext } from 'next';
 import { getServerSession } from 'next-auth';
 import { signIn } from 'next-auth/react';
@@ -12,6 +12,7 @@ import { getRandomName } from '../../lib/names';
 
 import { authOptions } from '../api/auth/[...nextauth]';
 import clsx from 'clsx';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 type ProntoProvider = {
   id: string;
@@ -26,7 +27,7 @@ export default function SignIn({
   providers: ProntoProviders;
   randomName: string;
 }) {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const params = useSearchParams();
   const callbackUrl =
     params.get('callbackUrl') || process.env.NEXT_PUBLIC_BASE_PATH || '/';
@@ -63,9 +64,9 @@ export default function SignIn({
           alt="Sign in"
         />
         <h1 className="rd__auth-heading">
-          {t('Stream')}
-          <span>{t('[Video Calling]')}</span>
-          {isDemoEnvironment && t('Demo')}
+          {t('common.brand.stream.text', 'Stream')}
+          <span>{t('common.brand.videoCalling.text', '[Video Calling]')}</span>
+          {isDemoEnvironment && t('common.brand.demo.text', 'Demo')}
         </h1>
         <ul className="rd__auth-list">
           {Object.values(providers || {}).map((provider) => {
@@ -100,7 +101,13 @@ export default function SignIn({
                     className="rd__button__icon rd__auth-provider__icon"
                     icon="provider-google"
                   />
-                  <span>{t(`Sign in with ${provider.name}`)}</span>
+                  <span>
+                    {t(
+                      'auth.signIn.withProvider.label',
+                      'Sign in with {{ provider }}',
+                      { provider: provider.name },
+                    )}
+                  </span>
                 </button>
               </li>
             );

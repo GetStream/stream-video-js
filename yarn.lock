@@ -6010,20 +6010,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-json@npm:^6.1.0":
-  version: 6.1.0
-  resolution: "@rollup/plugin-json@npm:6.1.0"
-  dependencies:
-    "@rollup/pluginutils": "npm:^5.1.0"
-  peerDependencies:
-    rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
-  peerDependenciesMeta:
-    rollup:
-      optional: true
-  checksum: 10/cc018d20c80242a2b8b44fae61a968049cf31bb8406218187cc7cda35747616594e79452dd65722e7da6dd825b392e90d4599d43cd4461a02fefa2865945164e
-  languageName: node
-  linkType: hard
-
 "@rollup/plugin-replace@npm:^6.0.3":
   version: 6.0.3
   resolution: "@rollup/plugin-replace@npm:6.0.3"
@@ -6849,6 +6835,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@stream-io/i18n@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "@stream-io/i18n@npm:1.0.2"
+  dependencies:
+    "@stream-io/state-store": "npm:^1.1.6"
+    dayjs: "npm:^1.11.23"
+    i18next: "npm:^26.4.2"
+    use-sync-external-store: "npm:^1.7.0"
+  peerDependencies:
+    react: ^17 || ^18 || ^19
+  peerDependenciesMeta:
+    react:
+      optional: true
+  checksum: 10/b8484418648d72c20196a9290cabc01772d4f71ed8c615df79e64d0852b2e6ecba6b1a80ded539e38e1de13abcd29f814f5e209e1f780189e764b6707fb5b442
+  languageName: node
+  linkType: hard
+
 "@stream-io/livestream-app@workspace:sample-apps/react/livestream-app":
   version: 0.0.0-use.local
   resolution: "@stream-io/livestream-app@workspace:sample-apps/react/livestream-app"
@@ -6970,6 +6973,21 @@ __metadata:
   peerDependencies:
     react-native: ">=0.73.0"
   checksum: 10/be8ad331e1e7943ac674c5f8804f717dd81869221ab4a109980f4f19744ca43479a8b783aa3790d4f042a581e7d807a9fd2ca775646a5b7983865d4db49da7fc
+  languageName: node
+  linkType: hard
+
+"@stream-io/state-store@npm:^1.1.6":
+  version: 1.1.6
+  resolution: "@stream-io/state-store@npm:1.1.6"
+  peerDependencies:
+    react: ^17 || ^18 || ^19
+    use-sync-external-store: ^1.5.0
+  peerDependenciesMeta:
+    react:
+      optional: true
+    use-sync-external-store:
+      optional: true
+  checksum: 10/18f5324f10994bc39ddd89d752c46e62195ce3bbe98c56c10ca6d02d6d97911a0d012061727258a29565dfe185d206dee93a38b06e5126e09de5196cace2dbec
   languageName: node
   linkType: hard
 
@@ -7157,7 +7175,6 @@ __metadata:
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/video-client": "workspace:*"
     "@types/react": "npm:~19.2.18"
-    i18next: "npm:^25.10.10"
     react: "npm:19.2.8"
     rimraf: "npm:^6.1.3"
     rollup: "npm:^4.62.4"
@@ -7329,6 +7346,7 @@ __metadata:
     "@react-native/babel-preset": "npm:0.86.2"
     "@react-native/jest-preset": "npm:0.86.2"
     "@react-native/metro-config": "npm:0.86.2"
+    "@stream-io/i18n": "npm:^1.0.2"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
     "@stream-io/react-native-webrtc": "npm:145.3.1"
@@ -7402,10 +7420,10 @@ __metadata:
   resolution: "@stream-io/video-react-sdk@workspace:packages/react-sdk"
   dependencies:
     "@floating-ui/react": "npm:^0.27.20"
-    "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-replace": "npm:^6.0.3"
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@stream-io/audio-filters-web": "workspace:^"
+    "@stream-io/i18n": "npm:^1.0.2"
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/video-client": "workspace:*"
     "@stream-io/video-filters-web": "workspace:*"
@@ -7422,6 +7440,7 @@ __metadata:
     rimraf: "npm:^6.1.3"
     rollup: "npm:^4.62.4"
     typescript: "npm:^6.0.3"
+    vitest: "npm:^4.1.10"
   peerDependencies:
     react: ^17 || ^18 || ^19
     react-dom: ^17 || ^18 || ^19
@@ -10460,6 +10479,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dayjs@npm:^1.11.23":
+  version: 1.11.23
+  resolution: "dayjs@npm:1.11.23"
+  checksum: 10/61d29544ca1553369f75541b5abf9c1bb6a978991498923a2d5721c9df3eca513b2c15ff5534de6930dc553de5d6f2b8f8047149f3528df906b21f51df637463
+  languageName: node
+  linkType: hard
+
 "debug@npm:2.6.9, debug@npm:^2.6.9":
   version: 2.6.9
   resolution: "debug@npm:2.6.9"
@@ -13336,6 +13362,18 @@ __metadata:
     typescript:
       optional: true
   checksum: 10/ee4f6ba360902a2f0550cfeef234c9e68a67487b575d204e89bdf2f2db647934aa3900a39c64174b9201a8979e455d0bf8f56b57934c34fc8f9aa3b430cb152d
+  languageName: node
+  linkType: hard
+
+"i18next@npm:^26.4.2":
+  version: 26.4.2
+  resolution: "i18next@npm:26.4.2"
+  peerDependencies:
+    typescript: ^5 || ^6 || ^7
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10/7cf060a81682a63d0900c584b03a25557da88afcefebca613ca24c2a1af1322cdf606ba3dffa2d3900b3cf0fa6c3a945d89a0e50517d1b76ac5acb070ac76173
   languageName: node
   linkType: hard
 
@@ -21649,6 +21687,15 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
   checksum: 10/b40ad2847ba220695bff2d4ba4f4d60391c0fb4fb012faa7a4c18eb38b69181936f5edc55a522c4d20a788d1a879b73c3810952c9d0fd128d01cb3f22042c09e
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.7.0":
+  version: 1.7.0
+  resolution: "use-sync-external-store@npm:1.7.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/cc102e193d079dda118846627f97ac8d34059ae7e1112188ed6330bd42a6b31c209cbb39923d4d663ddc42e5969913015778397131fcd3249909756c88ba9906
   languageName: node
   linkType: hard
 

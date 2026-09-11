@@ -7,11 +7,11 @@ import {
   useCalls,
   useCallStateHooks,
   useConnectedUser,
-  useI18n,
 } from '@stream-io/video-react-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
 import { beep } from '../../lib/beeper';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 export function RingingCallNotification() {
   const calls = useCalls();
@@ -29,7 +29,7 @@ export function RingingCallNotification() {
 }
 
 function RingingCallUI() {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const router = useRouter();
   const call = useCall();
   const { useCallMembers, useCallSession } = useCallStateHooks();
@@ -97,14 +97,20 @@ function RingingCallUI() {
         message={
           <div className="rd__dialer-ringing-call-notification">
             <div className="rd__dialer-ringing-call-notification-text">
-              {t('{{ userName }} is ringing you', {
-                userName: call.state.createdBy?.name ?? 'Anonymous',
-              })}
+              {t(
+                'ringing.incoming.userIsRinging.text',
+                '{{ userName }} is ringing you',
+                {
+                  userName: call.state.createdBy?.name ?? 'Anonymous',
+                },
+              )}
               {otherMembers.length > 0 ? (
                 <>
                   {' '}
-                  {t('Other call members', {
+                  {t('ringing.incoming.otherMembers.text', {
                     count: otherMembers.length,
+                    defaultValue_one: 'and {{ count }} other',
+                    defaultValue_other: 'and {{ count }} others',
                   })}
                 </>
               ) : null}

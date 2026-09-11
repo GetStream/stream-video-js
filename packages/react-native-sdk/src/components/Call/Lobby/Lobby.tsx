@@ -3,8 +3,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import {
   useCallStateHooks,
   useConnectedUser,
-  useI18n,
 } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { Avatar } from '../../utility/Avatar';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
 import { LobbyControls as DefaultLobbyControls } from '../CallControls/LobbyControls';
@@ -82,10 +82,13 @@ export const Lobby = ({
       {connectedUser && (
         <>
           <Text style={[styles.heading, typefaces.heading5, lobby.heading]}>
-            {t('Before joining')}
+            {t('lobby.beforeJoining.title', 'Before joining')}
           </Text>
           <Text style={[styles.subHeading, lobby.subHeading]}>
-            {t('Setup your audio and video')}
+            {t(
+              'lobby.setupAudioVideo.description',
+              'Setup your audio and video',
+            )}
           </Text>
           {isVideoEnabledInCall && (
             <View

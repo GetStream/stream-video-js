@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Notification, useI18n } from '@stream-io/video-react-sdk';
+import { Notification } from '@stream-io/video-react-sdk';
 import { useE2eeKeyStatus } from '../hooks/useE2eeKeyStatus';
 import { useLobbyE2EE } from '../context/LobbyE2EEContext';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 /**
  * Surfaces a shared-key mismatch on an encrypted call.
@@ -18,7 +19,7 @@ import { useLobbyE2EE } from '../context/LobbyE2EEContext';
 export const E2EEKeyNotification = () => {
   const status = useE2eeKeyStatus();
   const e2ee = useLobbyE2EE();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const [dismissed, setDismissed] = useState(false);
   const [draftKey, setDraftKey] = useState('');
 
@@ -36,6 +37,7 @@ export const E2EEKeyNotification = () => {
     status.kind === 'local-key-mismatch' ? (
       <span className="rd__e2ee-key-notification">
         {t(
+          'encryption.keyNotification.wrongKey.text',
           "Nobody's audio or video can be decrypted. Your meeting key is most likely wrong.",
         )}
         {e2ee && (
@@ -52,18 +54,24 @@ export const E2EEKeyNotification = () => {
             <input
               type="text"
               value={draftKey}
-              placeholder={t('Meeting key')}
-              aria-label={t('Meeting key')}
+              placeholder={t(
+                'encryption.keyNotification.meetingKey.label',
+                'Meeting key',
+              )}
+              aria-label={t(
+                'encryption.keyNotification.meetingKey.label',
+                'Meeting key',
+              )}
               onChange={(event) => setDraftKey(event.target.value)}
             />
             <button type="submit" disabled={!draftKey.trim()}>
-              {t('Apply')}
+              {t('common.apply.label', 'Apply')}
             </button>
           </form>
         )}
       </span>
     ) : (
-      `${t('Cannot decrypt participants:')} ${status.names.join(', ')}`
+      `${t('encryption.keyNotification.cannotDecryptParticipants.text', 'Cannot decrypt participants:')} ${status.names.join(', ')}`
     );
 
   return (

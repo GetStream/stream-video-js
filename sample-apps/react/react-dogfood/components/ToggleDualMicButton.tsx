@@ -17,11 +17,11 @@ export const ToggleDualMicButton = () => {
             <>
               <DeviceSelectorAudioInput
                 visualType="list"
-                title={t('Microphone')}
+                title={t('common.microphone.label', 'Microphone')}
               />
               <DeviceSelectorAudioOutput
                 visualType="list"
-                title={t('Speaker')}
+                title={t('common.speaker.label', 'Speaker')}
               />
             </>
           }

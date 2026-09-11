@@ -15,7 +15,6 @@ import {
   Icon,
   StreamVideo,
   StreamVideoClient,
-  useI18n,
 } from '@stream-io/video-react-sdk';
 
 import { DefaultAppHeader } from '../components/DefaultAppHeader';
@@ -33,6 +32,7 @@ import {
 import { meetingId } from '../lib/idGenerators';
 import { appTranslations as translations } from '../translations';
 import { RingingCallNotification } from '../components/Ringing/RingingCallNotification';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 export default function Home({
   apiKey,
@@ -40,7 +40,7 @@ export default function Home({
   userToken,
 }: ServerSideCredentialsProps) {
   const {
-    settings: { language, fallbackLanguage },
+    settings: { language },
   } = useSettings();
   const [client, setClient] = useState<StreamVideoClient>();
   const environment = useAppEnvironment();
@@ -72,9 +72,8 @@ export default function Home({
   return (
     <StreamVideo
       client={client}
-      translationsOverrides={translations}
+      translations={translations}
       language={language}
-      fallbackLanguage={fallbackLanguage}
     >
       <HomeContent />
     </StreamVideo>
@@ -82,7 +81,7 @@ export default function Home({
 }
 
 const HomeContent = () => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const router = useRouter();
   const ref = useRef<HTMLInputElement | null>(null);
 
@@ -118,17 +117,23 @@ const HomeContent = () => {
           <img
             className="rd__home-image"
             src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/home.png`}
-            alt={t('Home')}
+            alt={t('home.logo.ariaLabel', 'Home')}
           />
           <h1 className="rd__home-heading">
-            {t('Stream')}
-            <span>{t('[Video Calling]')}</span>
-            {isDemoEnvironment && t('Demo')}
+            {t('common.brand.stream.text', 'Stream')}
+            <span>
+              {t('common.brand.videoCalling.text', '[Video Calling]')}
+            </span>
+            {isDemoEnvironment && t('common.brand.demo.text', 'Demo')}
           </h1>
           <p className="rd__home-description">
             {isRestricted
-              ? t('Join a call by providing its Call ID')
+              ? t(
+                  'home.joinCall.description',
+                  'Join a call by providing its Call ID',
+                )
               : t(
+                  'home.startOrJoinCall.description',
                   'Start a new call or join an existing one by providing its Call ID',
                 )}
           </p>
@@ -139,7 +144,7 @@ const HomeContent = () => {
               ref={ref}
               onChange={handleChange}
               onKeyUp={handleKeyUp}
-              placeholder={t('Call ID')}
+              placeholder={t('common.callId.placeholder', 'Call ID')}
             />
             <button
               className={clsx(
@@ -151,7 +156,7 @@ const HomeContent = () => {
               onClick={onJoin}
             >
               <Icon className="rd__button__icon" icon="login" />
-              {t('Join call')}
+              {t('home.joinCall.label', 'Join call')}
             </button>
           </div>
           {!isRestricted && (
@@ -165,7 +170,7 @@ const HomeContent = () => {
                 data-testid="create-and-join-meeting-button"
               >
                 <Icon className="rd__link__icon" icon="camera-add" />
-                {t('Start new call')}
+                {t('home.startNewCall.label', 'Start new call')}
               </Link>
               <div className="rd__home-button-group">
                 <Link
@@ -174,7 +179,10 @@ const HomeContent = () => {
                   data-testid="create-and-join-restricted-meeting-button"
                 >
                   <Icon className="rd__link__icon" icon="camera-add" />
-                  {t('Start new restricted call')}
+                  {t(
+                    'home.startNewRestrictedCall.label',
+                    'Start new restricted call',
+                  )}
                 </Link>
                 <Link
                   href={`/ring`}

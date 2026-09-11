@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { CallRecordingSearchForm } from './CallRecordingSearchForm';
 import { ServerSideCredentialsProps } from '../../lib/getServerSideCredentialsProps';
 import { useSettings } from '../../context/SettingsContext';
+import { appTranslations } from '../../translations';
 import { DefaultAppHeader } from '../DefaultAppHeader';
 import { getClient } from '../../helpers/client';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
@@ -19,7 +20,7 @@ export const CallRecordingsPage = ({
   userToken,
 }: ServerSideCredentialsProps) => {
   const {
-    settings: { language, fallbackLanguage },
+    settings: { language },
   } = useSettings();
   const [recordings, setRecordings] = useState<CallRecording[] | undefined>();
   const [error, setError] = useState<Error | undefined>();
@@ -49,7 +50,7 @@ export const CallRecordingsPage = ({
     <StreamVideo
       client={videoClient}
       language={language}
-      fallbackLanguage={fallbackLanguage}
+      translations={appTranslations}
     >
       <DefaultAppHeader />
       <div className="rd__call-recordings-page">

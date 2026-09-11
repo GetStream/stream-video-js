@@ -54,11 +54,18 @@ yarn start:react:dogfood
 
 ## Testing
 
-The react-sdk package has minimal tests (only a few unit tests in `src/utilities/filter.test.ts` and `src/core/components/CallLayout/partcipantFilter.test.ts`). Tests use Vitest.
+Tests use Vitest, configured in `vite.config.mts` with the `node` environment — nothing here
+needs a DOM, and that keeps jsdom out of the devDependencies. Any colocated `*.test.ts(x)`
+under `src/` is picked up.
 
-- Run tests: `yarn test` (from client package or root)
-- Tests are primarily in the `@stream-io/video-client` package
-- Most testing happens via integration testing in sample apps
+- Run tests: `yarn test` (watch) or `yarn test-ci` (single run) from this package
+- `test-ci` is what the root `yarn test:ci:all` dispatches on, so these run in CI
+- Coverage is deliberately thin: `src/utilities/` (filter, string normalization),
+  `src/core/components/CallLayout/` (participant filtering) and `src/i18n/`
+- `src/i18n/__tests__/catalogRenders.test.ts` renders every key in the generated catalog and
+  asserts none surfaces as its own dotted path — the one failure mode the codegen cannot catch
+  statically
+- Most behavioural testing still happens in `@stream-io/video-client` and via the sample apps
 
 ## Package Structure
 
@@ -70,7 +77,7 @@ packages/react-sdk/
 │   │   ├── components/    # Core components (StreamVideo, StreamCall, ParticipantView, etc.)
 │   │   └── hooks/         # Core hooks (useCallStateHooks, etc.)
 │   ├── hooks/             # Additional hooks (device management, scroll, permissions)
-│   ├── translations/      # i18n translations
+│   ├── i18n/              # translation runtime binding + generated key catalog
 │   ├── utilities/         # Utility functions
 │   └── wrappers/          # Component wrappers (LivestreamPlayer)
 ├── dist/                  # Build output (do not edit)
@@ -182,8 +189,10 @@ All components rely on React Context provided by entry point components:
 
 **How it works:**
 
-- `StreamVideo` is a thin wrapper around `StreamVideoProvider` from bindings
-  - Adds translation overrides from `src/translations/en.json`
+- `StreamVideo` composes `StreamVideoProvider` (client context, from bindings) with this package's
+  own `TranslationProvider`
+  - Mounts the translation context here rather than in bindings, because the key catalog is
+    generated from _this_ package's `t()` call sites and so lives downstream of bindings
   - Makes client available to all children via context
 - `StreamCall` is literally a re-export of `StreamCallProvider` from bindings
   - Makes call instance available to all children via context
@@ -440,20 +449,76 @@ Components use the `Restricted` wrapper to conditionally render based on permiss
 
 #### 13. Internationalization (i18n)
 
-Translations are provided via i18next integration in bindings:
+**The runtime is `@stream-io/i18n`**, shared with the React Native SDK and with Stream Chat — one
+`Streami18n`, one set of formatters, one date layer. This package owns only what is genuinely its
+own: the generated key catalog, `runtimeDefaults.ts`, and the React context binding.
+`src/i18n/Streami18n.ts` is a thin subclass binding the catalog type parameters.
+
+It is a **regular dependency, not a peer**: an integrator never imports `@stream-io/i18n`, they
+import `Streami18n` from this package. Do not add `i18next` or `dayjs` as direct dependencies —
+`Streami18n` calls `i18next.createInstance()`, so duplicate copies are harmless, but `dayjs` locale
+registration _is_ global and must dedupe on core's range.
+
+**English only, and there is no checked-in `en.json`.** The catalog has exactly one source: the
+inline `defaultValue` at each `t()` call site. A committed JSON locale was a second copy of the same
+strings that needed an extract pass and a sync pass to stay honest. `yarn i18n:export` writes one on
+demand for a translator or TMS.
+
+**Keys are stable dotted identifiers with the English copy inline:**
 
 ```tsx
-// StreamVideo passes translations to provider
-<StreamVideoProvider translationsOverrides={translations} {...props} />;
-
-// In components
-const { t } = useI18n(); // From bindings
-return <span>{t('Mute')}</span>;
+const { t } = useI18n();
+t('participantList.muteAll.label', 'Mute all'); // prose
+t(
+  'permissions.requestingToSpeak.text',
+  '{{ userName }} is requesting to speak',
+  { userName },
+);
+t('livestream.backstage.participantsJoinedEarly.text', {
+  // plural: `count` is required and must be a number
+  count: participantCount,
+  formattedCount,
+  defaultValue_one: '{{ formattedCount }} participant joined early',
+  defaultValue_other: '{{ formattedCount }} participants joined early',
+});
 ```
 
-**Translation files:** `src/translations/en.json` (only English included in SDK)
+The inline default is what makes a partial custom dictionary safe — an unsupplied key still renders
+English, never a raw dotted path — and it keeps the copy visible at the call site.
 
-Users can override translations by passing `translationsOverrides` prop to `StreamVideo`.
+- **Namespaces follow the source tree** (`callControls.*`, `participantView.*`, `callStats.*`), so
+  keys are predictable from the component. Genuinely shared copy lives in `common.*`. Modality is
+  the leaf: `.label`, `.ariaLabel`, `.placeholder`, `.title`, `.description`, `.text`.
+- **Keys shared with the React Native SDK use identical strings** (`common.live.label`,
+  `participantView.screenShare.stop.label`), so a customer shipping both platforms writes one
+  dictionary.
+- **`keySeparator: false` must stay.** Keys are flat strings that happen to contain dots; several
+  contain `...` in their copy, which `keySeparator: '.'` would mis-resolve.
+- **Typed keys:** `src/i18n/keys.ts` (generated, type-only) declares `TranslationCatalog`.
+  `src/i18n/types.ts` derives `TranslationKey`, `TranslationDictionary` (strict),
+  `LooseTranslationDictionary` and `StreamTFunction`, which is what `useI18n().t` is typed as — a
+  typo is a compile error. `BundledKey` must never become `string`; that collapses the prose
+  overload and silently disables all key checking.
+- **`runtimeDefaults.ts` is empty**, and should stay that way. The two lookup tables that used to
+  resolve a key from a runtime value (`CallingState`, the call-stats verdict) are `switch`
+  statements of literal `t()` calls, which is what makes them translatable at all.
+- **`yarn build-translations`** parses the `t()` call sites via `@stream-io/i18n/codegen` and
+  regenerates `keys.ts`. It hard-fails on: a key used with two different inline copies; a key with
+  no inline default and no `runtimeDefaults` entry (it would render as the raw dotted key); a key
+  present in both; a bad plural shape; and a key that is a dotted prefix of another.
+- **`yarn validate-translations`** regenerates and fails on any diff — the CI drift gate.
+
+**Adding a translatable string:** call `t('namespace.component.thing.label', 'English copy')`, then
+run `yarn build-translations`.
+
+Integrators override copy or add a language on the `Streami18n` instance; partial dictionaries are
+safe:
+
+```tsx
+const i18n = new Streami18n({ language: 'de' });
+i18n.registerTranslation('de', { 'common.cancel.label': 'Abbrechen' });
+<StreamVideo client={client} i18nInstance={i18n} />;
+```
 
 #### 14. Video Placeholder Pattern
 
@@ -1013,7 +1078,8 @@ When adding public APIs:
 
 - `rollup.config.mjs` - Build configuration
 - `index.ts` - Package entry point
-- `src/translations/en.json` - English translations
+- `src/i18n/keys.ts` - generated key catalog (type-only)
+- `src/i18n/TranslationContext.tsx` - `useI18n` and the translation provider
 - `package.json` - Dependencies and scripts
 
 ## Quick Code Navigation Tips
