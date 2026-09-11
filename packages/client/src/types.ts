@@ -532,5 +532,8 @@ declare global {
 /**
  * The options to pass to {@link Call.join} method.
  */
-export type JoinCallData = Omit<JoinCallRequest, 'location' | 'e2ee'>;
+export type JoinCallData = Omit<
+  JoinCallRequest,
+  'location' | 'e2ee' | 'transcode'
+>;
 export { AxiosError };
