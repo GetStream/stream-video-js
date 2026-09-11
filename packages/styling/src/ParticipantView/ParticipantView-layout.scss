@@ -17,7 +17,7 @@ $scope-name: 'str-video__participant-view';
     outline: var(--str-video__w200) solid var(--str-video__accent-primary);
   }
 
-  & > .str-video__participant-view__menu-button {
+  .str-video__participant-view__menu-button {
     position: absolute;
     top: var(--str-video__space-8);
     left: var(--str-video__space-8);
@@ -39,7 +39,7 @@ $scope-name: 'str-video__participant-view';
     .str-video__participant-details__name {
       display: flex;
       align-items: center;
-      gap: var(--str-video__spacing-xs);
+      gap: var(--str-video__spacing-xxs);
       padding: var(--str-video__space-4) var(--str-video__space-4)
         var(--str-video__space-4) var(--str-video__space-12);
       font-size: var(--str-video__typography-font-size-xs);
@@ -52,6 +52,10 @@ $scope-name: 'str-video__participant-view';
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+
+        &:not(:last-child) {
+          margin-inline-end: var(--str-video__spacing-xxs);
+        }
       }
 
       @mixin icon {
