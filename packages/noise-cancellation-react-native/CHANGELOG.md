@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.11.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.11.0...@stream-io/noise-cancellation-react-native-0.11.1) (2026-09-11)
+
+### Bug Fixes
+
+- **android:** skip explicit Kotlin plugin when AGP registers the kotlin extension ([#2417](https://github.com/GetStream/stream-video-js/issues/2417)) ([6d7ae7f](https://github.com/GetStream/stream-video-js/commit/6d7ae7f15f33dafab5a017597462cba29547187f)), closes [RevenueCat/react-native-purchases#1934](https://github.com/RevenueCat/react-native-purchases/issues/1934)
+
 ## [0.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.10.0...@stream-io/noise-cancellation-react-native-0.11.0) (2026-08-18)
 
 ### Features
