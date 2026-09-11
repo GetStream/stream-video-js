@@ -54,11 +54,18 @@ yarn start:react:dogfood
 
 ## Testing
 
-The react-sdk package has minimal tests (only a few unit tests in `src/utilities/filter.test.ts` and `src/core/components/CallLayout/partcipantFilter.test.ts`). Tests use Vitest.
+Tests use Vitest, configured in `vite.config.mts` with the `node` environment — nothing here
+needs a DOM, and that keeps jsdom out of the devDependencies. Any colocated `*.test.ts(x)`
+under `src/` is picked up.
 
-- Run tests: `yarn test` (from client package or root)
-- Tests are primarily in the `@stream-io/video-client` package
-- Most testing happens via integration testing in sample apps
+- Run tests: `yarn test` (watch) or `yarn test-ci` (single run) from this package
+- `test-ci` is what the root `yarn test:ci:all` dispatches on, so these run in CI
+- Coverage is deliberately thin: `src/utilities/` (filter, string normalization),
+  `src/core/components/CallLayout/` (participant filtering) and `src/i18n/`
+- `src/i18n/__tests__/catalogRenders.test.ts` renders every key in the generated catalog and
+  asserts none surfaces as its own dotted path — the one failure mode the codegen cannot catch
+  statically
+- Most behavioural testing still happens in `@stream-io/video-client` and via the sample apps
 
 ## Package Structure
 
