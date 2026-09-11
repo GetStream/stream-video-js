@@ -55,7 +55,7 @@
   ],
   "dependencies": {
     "@floating-ui/react": "^0.27.20",
-    "@stream-io/i18n": "^1.0.0",
+    "@stream-io/i18n": "^1.0.1",
     "@stream-io/video-client": "workspace:*",
     "@stream-io/video-filters-web": "workspace:*",
     "@stream-io/video-react-bindings": "workspace:*",

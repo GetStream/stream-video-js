@@ -55,7 +55,7 @@
     "!**/.*"
   ],
   "dependencies": {
-    "@stream-io/i18n": "^1.0.0",
+    "@stream-io/i18n": "^1.0.1",
     "@stream-io/video-client": "workspace:*",
     "@stream-io/video-react-bindings": "workspace:*",
     "intl-pluralrules": "2.0.1",
