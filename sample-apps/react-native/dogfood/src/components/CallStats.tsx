@@ -375,86 +375,86 @@ const calculateSubscribeAudioBitrate = (
 
 const useStyles = () => {
   const {
-    theme: { colors, variants },
+    theme: { primitives, semantics },
   } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          backgroundColor: colors.sheetSecondary,
-          borderRadius: variants.borderRadiusSizes.md,
-          padding: variants.spacingSizes.sm,
+          backgroundColor: semantics.backgroundCoreApp,
+          borderRadius: primitives.radiusMd,
+          padding: primitives.spacingSm,
           maxWidth: 500,
         },
         titleContainer: {
-          marginBottom: variants.spacingSizes.sm,
-          marginLeft: variants.spacingSizes.sm,
+          marginBottom: primitives.spacingSm,
+          marginLeft: primitives.spacingSm,
         },
         title: {
-          fontSize: 20,
-          fontWeight: 'bold',
-          color: colors.textPrimary,
+          fontSize: primitives.typographyFontSizeLg,
+          fontWeight: primitives.typographyFontWeightBold,
+          color: semantics.textPrimary,
         },
         infoContainer: {
           flexDirection: 'row',
           alignItems: 'center',
-          marginBottom: variants.spacingSizes.sm,
+          marginBottom: primitives.spacingSm,
         },
         logo: {
           height: 50,
           width: 50,
           borderRadius: 50,
           alignSelf: 'center',
-          marginLeft: variants.spacingSizes.xs,
+          marginLeft: primitives.spacingXs,
         },
         textContainer: {
           flexDirection: 'column',
-          marginLeft: variants.spacingSizes.md,
+          marginLeft: primitives.spacingMd,
         },
         topText: {
-          fontSize: 16,
-          fontWeight: 'bold',
-          color: colors.textPrimary,
+          fontSize: primitives.typographyFontSizeMd,
+          fontWeight: primitives.typographyFontWeightBold,
+          color: semantics.textPrimary,
         },
         bottomText: {
-          fontSize: 14,
-          color: colors.textSecondary,
+          fontSize: primitives.typographyFontSizeMd,
+          color: semantics.textSecondary,
         },
         row: {
           flexDirection: 'row',
           justifyContent: 'space-between',
-          marginBottom: variants.spacingSizes.sm,
+          marginBottom: primitives.spacingSm,
         },
         card: {
           width: '48%',
-          padding: variants.spacingSizes.sm,
-          borderRadius: variants.borderRadiusSizes.md,
-          backgroundColor: colors.sheetPrimary,
+          padding: primitives.spacingSm,
+          borderRadius: primitives.radiusMd,
+          backgroundColor: semantics.backgroundCoreApp,
           alignItems: 'center',
         },
         label: {
-          color: colors.textSecondary,
-          fontSize: 14,
-          marginBottom: variants.spacingSizes.xs,
+          color: semantics.textSecondary,
+          fontSize: primitives.typographyFontSizeMd,
+          marginBottom: primitives.spacingXs,
           textAlign: 'center',
         },
         value: {
-          color: colors.textPrimary,
-          fontSize: 16,
-          fontWeight: 'bold',
+          color: semantics.textPrimary,
+          fontSize: primitives.typographyFontSizeLg,
+          fontWeight: primitives.typographyFontWeightBold,
           textAlign: 'center',
         },
         tag: {
-          paddingVertical: variants.spacingSizes.xs,
-          paddingHorizontal: variants.spacingSizes.md,
-          borderRadius: variants.borderRadiusSizes.sm,
+          paddingVertical: primitives.spacingXs,
+          paddingHorizontal: primitives.spacingMd,
+          borderRadius: primitives.radiusSm,
           alignItems: 'center',
           justifyContent: 'center',
-          marginVertical: variants.spacingSizes.xs,
+          marginVertical: primitives.spacingXs,
         },
         text: {
-          fontSize: 14,
-          fontWeight: 600,
+          fontSize: primitives.typographyFontSizeMd,
+          fontWeight: primitives.typographyFontWeightSemiBold,
         },
         good: {
           backgroundColor: '#1B393A',
@@ -466,6 +466,6 @@ const useStyles = () => {
           backgroundColor: '#442C31',
         },
       }),
-    [variants, colors],
+    [primitives, semantics],
   );
 };

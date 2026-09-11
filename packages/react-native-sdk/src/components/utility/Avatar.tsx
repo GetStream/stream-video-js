@@ -1,31 +1,37 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, ImageStyle, StyleSheet, Text, View } from 'react-native';
 import React from 'react';
-import type { StreamVideoParticipant } from '@stream-io/video-client';
 import { getInitialsOfName } from '../../utils';
 import { ComponentTestIds, ImageTestIds } from '../../constants/TestIds';
-import { useTheme } from '../../contexts/ThemeContext';
-import { type Theme } from '../../theme/theme';
+import { DeepPartial, useTheme } from '../../contexts/ThemeContext';
+import { AvatarSize, type Theme } from '../../theme/theme';
+
+export type AvatarUser =
+  | { id: string; name?: string; image?: string }
+  | { userId: string; name?: string; image?: string };
 
 /**
- * Props to be passed for the Avatar component.
+ * Reads the identifier off whichever of the two accepted shapes was passed.
  */
-export interface AvatarProps {
-  /**
-   * The participant of which the avatar will be rendered
-   */
-  participant: StreamVideoParticipant;
+const getUserId = (user: AvatarUser | undefined) => {
+  if (!user) {
+    return undefined;
+  }
+  return 'id' in user ? user.id : user.userId;
+};
+
+type AvatarBaseProps = {
   /**
    * The size of the avatar
    * @defaultValue
-   * The default value is `100`
+   * The default value is `2xl`
    */
-  size?: number;
+  size?: AvatarSize;
   /**
    * Custom style to be merged with the avatar.
    * @example
    * ```
    * <Avatar
-   *  participant={participant}
+   *  user={user}
    *  style={{
    *   container: {
    *    backgroundColor: 'red',
@@ -39,39 +45,40 @@ export interface AvatarProps {
    *   }}
    * />
    */
-  style?: Theme['avatar'];
-}
+  style?: DeepPartial<Theme['avatar']>;
+};
+
+/**
+ * Props to be passed for the Avatar component.
+ */
+export type AvatarProps = AvatarBaseProps & {
+  /**
+   * The user or participant of which the avatar will be rendered.
+   */
+  user?: AvatarUser;
+};
 
 /**
  * Shows either user's image or initials based on the user state and existence of
  * their image.
  */
-export const Avatar = (props: AvatarProps) => {
+export const Avatar = ({ user, size = '2xl', style }: AvatarProps) => {
   const {
-    participant: { userId, image, name },
-    size = 100,
-    style: styleProp,
-  } = props;
-  const {
-    theme: { avatar, colors, typefaces },
+    theme: { avatar },
   } = useTheme();
-  const userDetails = name || userId;
+  const id = getUserId(user);
+  const imageUrl = user?.image;
+  const userDetails = user?.name || id;
   const userLabel = userDetails ? getInitialsOfName(userDetails) : '?';
 
-  const imageUrl = image;
   return (
     <View
       testID={ComponentTestIds.PARTICIPANT_AVATAR}
       style={[
         styles.container,
-        {
-          borderRadius: size / 2,
-          height: size,
-          width: size,
-        },
-        { backgroundColor: colors.primary },
-        avatar.container,
-        styleProp?.container,
+        avatar.container.base,
+        avatar.container[size],
+        style?.container?.base,
       ]}
     >
       {imageUrl ? (
@@ -80,17 +87,14 @@ export const Avatar = (props: AvatarProps) => {
           source={{
             uri: imageUrl,
           }}
-          style={[styles.image, avatar.image, styleProp?.image]}
+          style={[
+            avatar.container.base as ImageStyle,
+            avatar.container[size] as ImageStyle,
+          ]}
         />
       ) : (
         <Text
-          style={[
-            styles.text,
-            { fontSize: size / 2, color: colors.textPrimary },
-            typefaces.heading6,
-            avatar.text,
-            styleProp?.text,
-          ]}
+          style={[styles.text, avatar.text.base, avatar.text[size]]}
           numberOfLines={1}
         >
           {userLabel}

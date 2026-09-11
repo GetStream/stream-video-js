@@ -6,7 +6,7 @@ import {
 } from '../../contexts/AppContext';
 import { View } from 'react-native';
 import { defaultTheme } from '@stream-io/video-react-native-sdk';
-import { Button } from '../../components/Button';
+import { Button } from '@stream-io/video-react-native-sdk/src/components';
 
 const appEnvironments: AppEnvironment[] = [
   'pronto',
@@ -47,7 +47,8 @@ export default function EnvSwitcherButton() {
         </Pressable>
       </Modal>
       <Button
-        title={'Switch Environment'}
+        style={{ alignSelf: 'flex-end' }}
+        text={'Switch Environment'}
         onPress={() => {
           setModalVisible(true);
         }}
@@ -81,13 +82,7 @@ const SwitcherButton = ({
   return (
     <>
       <Button
-        title={label}
-        buttonStyle={[
-          styles.modalButton,
-          isSelected
-            ? styles.selectedModalButton
-            : styles.unselectedModalButton,
-        ]}
+        text={label}
         onPress={() => {
           onPress();
           closeModal();
@@ -102,7 +97,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: defaultTheme.colors.sheetOverlay,
+    backgroundColor: defaultTheme.semantics.backgroundCoreScrim,
   },
   row: {
     flexDirection: 'row',
@@ -110,9 +105,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalView: {
-    backgroundColor: defaultTheme.colors.sheetTertiary,
+    backgroundColor: defaultTheme.semantics.backgroundCoreElevation2,
     borderRadius: 20,
-    padding: defaultTheme.variants.spacingSizes.md,
+    padding: 8,
+    gap: 8,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -123,18 +119,18 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalButton: {
-    margin: defaultTheme.variants.spacingSizes.sm,
+    margin: 8,
   },
   selectedModalButton: {
     borderWidth: 4,
-    borderColor: defaultTheme.colors.iconPrimary,
+    borderColor: '#eff0f1',
   },
   unselectedModalButton: {
     borderWidth: 4,
     borderColor: 'transparent',
   },
   modalHeaderText: {
-    color: defaultTheme.colors.textPrimary,
+    color: '#eff0f1',
     fontSize: 24,
     fontWeight: 'bold',
     alignSelf: 'center',

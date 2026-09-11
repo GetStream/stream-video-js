@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { type ViewerLivestreamTopViewProps } from '../LivestreamTopView/ViewerLivestreamTopView';
@@ -68,7 +68,6 @@ export const ViewerLivestream = ({
   onLeaveStreamHandler,
   joinBehavior,
 }: ViewerLivestreamProps) => {
-  const styles = useStyles();
   const call = useCall();
   const {
     theme: { viewerLivestream },
@@ -198,7 +197,8 @@ const useCanJoinEarly = () => {
   const { useCallStartsAt, useCallSettings } = useCallStateHooks();
   const startsAt = useCallStartsAt();
   const settings = useCallSettings();
-  const joinAheadTimeSeconds = settings?.backstage.join_ahead_time_seconds;
+  const joinAheadTimeSeconds =
+    settings?.backstage?.join_ahead_time_seconds ?? 0;
   const [canJoinEarly, setCanJoinEarly] = useState(() =>
     checkCanJoinEarly(startsAt, joinAheadTimeSeconds),
   );
@@ -226,20 +226,8 @@ const checkCanJoinEarly = (
   return Date.now() >= +startsAt - (joinAheadTimeSeconds ?? 0) * 1000;
 };
 
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          flex: 1,
-          paddingBottom: theme.variants.insets.bottom,
-          paddingLeft: theme.variants.insets.left,
-          paddingRight: theme.variants.insets.right,
-          paddingTop: theme.variants.insets.top,
-          backgroundColor: theme.colors.sheetPrimary,
-        },
-      }),
-    [theme],
-  );
-};
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

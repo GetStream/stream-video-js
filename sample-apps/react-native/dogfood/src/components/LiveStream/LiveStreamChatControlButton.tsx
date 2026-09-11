@@ -1,8 +1,7 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
-import { appTheme } from '../../theme';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { LiveStreamChat } from '../../assets/LiveStreamChat';
-import { StyleSheet } from 'react-native';
+import { useTheme } from '@stream-io/video-react-native-sdk';
 
 type LiveStreamChatControlButtonProps = {
   onPress: () => void;
@@ -11,18 +10,21 @@ type LiveStreamChatControlButtonProps = {
 export const LiveStreamChatControlButton = ({
   onPress,
 }: LiveStreamChatControlButtonProps) => {
+  const {
+    theme: { semantics },
+  } = useTheme();
   return (
     <Pressable
       onPress={onPress}
       style={[
         styles.container,
         {
-          backgroundColor: appTheme.colors.dark_gray,
+          backgroundColor: semantics.backgroundCoreApp,
         },
       ]}
     >
       <View style={[styles.icon]}>
-        <LiveStreamChat color={appTheme.colors.static_white} />
+        <LiveStreamChat color={semantics.textPrimary} />
       </View>
     </Pressable>
   );

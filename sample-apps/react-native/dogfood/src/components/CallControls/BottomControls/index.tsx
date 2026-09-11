@@ -17,7 +17,7 @@ export type BottomControlsProps = Pick<
   CallContentProps,
   'supportedReactions'
 > & {
-  onChatOpenHandler: (() => void) | null;
+  onChatOpenHandler?: () => void;
   onParticipantInfoPress: () => void;
   toggleCallRecording: () => Promise<void>;
   isAwaitingResponse: boolean;
@@ -71,15 +71,17 @@ export const BottomControls = ({
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { primitives },
+  } = useTheme();
 
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          paddingTop: theme.variants.spacingSizes.sm,
-          paddingBottom: theme.variants.spacingSizes.md,
-          paddingHorizontal: theme.variants.spacingSizes.md,
+          paddingTop: primitives.spacingSm,
+          paddingBottom: primitives.spacingMd,
+          paddingHorizontal: primitives.spacingMd,
           flexDirection: 'row',
           justifyContent: 'flex-start',
         },
@@ -87,15 +89,15 @@ const useStyles = () => {
           flex: 2.5,
           flexDirection: 'row',
           alignItems: 'flex-start',
-          gap: theme.variants.spacingSizes.xs,
+          gap: primitives.spacingXs,
         },
         right: {
           flex: 1,
           flexDirection: 'row',
           justifyContent: 'flex-end',
-          gap: theme.variants.spacingSizes.xs,
+          gap: primitives.spacingXs,
         },
       }),
-    [theme],
+    [primitives],
   );
 };

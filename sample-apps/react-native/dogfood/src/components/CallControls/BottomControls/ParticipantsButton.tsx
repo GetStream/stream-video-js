@@ -3,9 +3,8 @@ import {
   CallControlsButton,
   CallingState,
   useCallStateHooks,
-  useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
+import { ControlButtonIcon } from '@stream-io/video-react-native-sdk/src/icons';
 import { BadgeCountIndicator } from './BadgeCountIndicator';
 import Participants from '../../../assets/Participants';
 
@@ -33,10 +32,6 @@ export const ParticipantsButton = ({
   onParticipantInfoPress,
   participantCount,
 }: ParticipantsButtonProps) => {
-  const {
-    theme: { colors, chatButton, defaults },
-  } = useTheme();
-
   const { useCallMembers, useCallCallingState } = useCallStateHooks();
   const members = useCallMembers();
   const callingState = useCallCallingState();
@@ -55,11 +50,9 @@ export const ParticipantsButton = ({
 
   // TODO: PBE-5873 [Demo App] On click implement showing the Participant List
   return (
-    <CallControlsButton onPress={onParticipantInfoPress} style={chatButton}>
+    <CallControlsButton onPress={onParticipantInfoPress}>
       <BadgeCountIndicator count={count} />
-      <IconWrapper>
-        <Participants color={colors.iconPrimary} size={defaults.iconSize} />
-      </IconWrapper>
+      <ControlButtonIcon icon={Participants} />
     </CallControlsButton>
   );
 };

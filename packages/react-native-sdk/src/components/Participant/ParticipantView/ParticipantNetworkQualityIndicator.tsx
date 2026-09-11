@@ -18,20 +18,33 @@ const useConnectionQualitySignalColors = (
   participant: ParticipantViewProps['participant'],
 ) => {
   const {
-    theme: { colors },
+    theme: { semantics },
   } = useTheme();
   const { connectionQuality } = participant;
   if (!connectionQuality) {
     return null;
   }
 
+  //TODO: update tokens
   switch (connectionQuality) {
     case SfuModels.ConnectionQuality.EXCELLENT:
-      return [colors.iconSuccess, colors.iconSuccess, colors.iconSuccess];
+      return [
+        semantics.accentSuccess,
+        semantics.accentSuccess,
+        semantics.accentSuccess,
+      ];
     case SfuModels.ConnectionQuality.GOOD:
-      return [colors.iconSuccess, colors.iconSuccess, colors.iconPrimary];
+      return [
+        semantics.accentWarning,
+        semantics.accentWarning,
+        semantics.textOnAccent,
+      ];
     case SfuModels.ConnectionQuality.POOR:
-      return [colors.iconWarning, colors.iconPrimary, colors.iconPrimary];
+      return [
+        semantics.accentError,
+        semantics.textOnAccent,
+        semantics.textOnAccent,
+      ];
     default:
       return null;
   }
@@ -41,11 +54,7 @@ export const ParticipantNetworkQualityIndicator = ({
   participant,
 }: ParticipantNetworkQualityIndicatorProps) => {
   const {
-    theme: {
-      colors,
-      variants: { iconSizes },
-      participantNetworkQualityIndicator,
-    },
+    theme: { participantNetworkQualityIndicator },
   } = useTheme();
   const connectionQualityColors = useConnectionQualitySignalColors(participant);
 
@@ -54,39 +63,31 @@ export const ParticipantNetworkQualityIndicator = ({
   }
   return (
     <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.sheetOverlay,
-          height: iconSizes.lg,
-          width: iconSizes.lg,
-        },
-        participantNetworkQualityIndicator.container,
-      ]}
+      style={[styles.container, participantNetworkQualityIndicator.container]}
     >
-      <Svg viewBox="0 0 34 34" fill={'none'}>
+      <Svg width={24} height={24} viewBox="0 0 24 24" fill={'none'}>
         <Path
-          d="M 9.97559 22.3379 L 9.97559 19.616"
-          stroke={connectionQualityColors[0]}
-          strokeWidth={3}
+          d="M12 16L12 11"
+          strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
+          stroke={connectionQualityColors[0]}
           fill={connectionQualityColors[0]}
         />
         <Path
-          d="M 16.7808 22.3379 L 16.7808 15.5331"
-          stroke={connectionQualityColors[1]}
-          strokeWidth={3}
+          d="M7 16L7 14"
+          strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
+          stroke={connectionQualityColors[1]}
           fill={connectionQualityColors[1]}
         />
         <Path
-          d="M 23.5854 22.3379 L 23.5854 11.4502"
-          stroke={connectionQualityColors[2]}
-          strokeWidth={3}
+          d="M17 16L17 8"
+          strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
+          stroke={connectionQualityColors[2]}
           fill={connectionQualityColors[2]}
         />
       </Svg>
@@ -97,7 +98,7 @@ export const ParticipantNetworkQualityIndicator = ({
 const styles = StyleSheet.create({
   container: {
     zIndex: Z_INDEX.IN_FRONT,
-    alignSelf: 'flex-end',
-    borderTopLeftRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

@@ -18,9 +18,7 @@ export const SubtitleContainer = ({
   controlsContainerHeight: number;
 }) => {
   const {
-    theme: {
-      variants: { insets },
-    },
+    theme: { insets },
   } = useTheme();
 
   return (

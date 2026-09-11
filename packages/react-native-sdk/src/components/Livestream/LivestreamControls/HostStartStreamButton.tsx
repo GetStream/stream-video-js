@@ -4,16 +4,11 @@ import {
   useI18n,
 } from '@stream-io/video-react-bindings';
 import React, { useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { EndBroadcastIcon, StartStreamIcon } from '../../../icons';
 import { SfuModels, videoLoggerSystem } from '@stream-io/video-client';
+import { Button } from '../../utility/Button';
 
 /**
  * Props for the HostStartStreamButton component.
@@ -52,12 +47,7 @@ export const HostStartStreamButton = ({
   const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
     useCallStateHooks();
   const {
-    theme: {
-      colors,
-      variants: { iconSizes },
-      typefaces,
-      hostStartStreamButton,
-    },
+    theme: { components, semantics },
   } = useTheme();
 
   const call = useCall();
@@ -107,67 +97,46 @@ export const HostStartStreamButton = ({
     }
   };
 
+  const onPress = async () => {
+    if (liveOrBroadcasting) {
+      await onEndStreamButtonPress();
+    } else {
+      await onStartStreamButtonPress();
+    }
+  };
+
+  const renderIcon = () => {
+    if (isAwaitingResponse) {
+      return <ActivityIndicator />;
+    }
+    if (liveOrBroadcasting) {
+      return (
+        <EndBroadcastIcon
+          color={semantics.textOnAccent}
+          size={components.iconSizeMd}
+        />
+      );
+    }
+    return (
+      <StartStreamIcon
+        color={semantics.textOnAccent}
+        size={components.iconSizeMd}
+      />
+    );
+  };
+
+  const text = isAwaitingResponse
+    ? t('Loading...')
+    : liveOrBroadcasting
+      ? t('Stop Livestream')
+      : t('Start Livestream');
+
   return (
-    <Pressable
+    <Button
+      text={text}
       disabled={isAwaitingResponse}
-      style={[
-        styles.container,
-        {
-          backgroundColor: isAwaitingResponse
-            ? colors.sheetTertiary
-            : liveOrBroadcasting
-              ? colors.buttonWarning
-              : colors.buttonPrimary,
-        },
-        hostStartStreamButton.container,
-      ]}
-      onPress={
-        liveOrBroadcasting ? onEndStreamButtonPress : onStartStreamButtonPress
-      }
-    >
-      <View
-        style={[
-          styles.icon,
-          { height: iconSizes.xs, width: iconSizes.xs },
-          hostStartStreamButton.icon,
-        ]}
-      >
-        {isAwaitingResponse ? (
-          <ActivityIndicator />
-        ) : liveOrBroadcasting ? (
-          <EndBroadcastIcon />
-        ) : (
-          <StartStreamIcon />
-        )}
-      </View>
-      <Text
-        style={[
-          styles.text,
-          typefaces.subtitleBold,
-          { color: colors.textPrimary },
-          hostStartStreamButton.text,
-        ]}
-      >
-        {isAwaitingResponse
-          ? t('Loading...')
-          : liveOrBroadcasting
-            ? t('Stop Livestream')
-            : t('Start Livestream')}
-      </Text>
-    </Pressable>
+      leftAccessory={renderIcon}
+      onPress={onPress}
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    borderRadius: 4,
-  },
-  icon: {},
-  text: {
-    marginLeft: 8,
-    includeFontPadding: false,
-  },
-});

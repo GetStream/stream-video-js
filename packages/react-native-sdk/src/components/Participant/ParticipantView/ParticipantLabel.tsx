@@ -1,30 +1,15 @@
-import React, { useMemo } from 'react';
+import React from 'react';
+import { ScreenShare } from '../../../icons';
 import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  ActivityIndicator,
-} from 'react-native';
-import {
-  BadNetwork,
-  MicOff,
-  PinVertical,
-  ScreenShareIndicator,
-  VideoSlash,
-} from '../../../icons';
-import {
-  useCall,
   useI18n,
   useIsAudioConnecting,
   useIsVideoConnecting,
 } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { type ParticipantViewProps } from './ParticipantView';
-import { Z_INDEX } from '../../../constants';
 import { hasAudio, hasPausedTrack, hasVideo } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
-import SpeechIndicator from './SpeechIndicator';
+import { StatusLabel } from '../../utility/StatusLabel';
 
 /**
  * Props for the ParticipantLabel component.
@@ -36,36 +21,25 @@ export type ParticipantLabelProps = Pick<
 
 /**
  * This component is used to display the participant label that contains the participant name, video/audio mute/unmute status.
+ *
+ * It reads the statuses off the participant's tracks and hands them to
+ * {@link StatusLabel}, which does the rendering.
  */
 export const ParticipantLabel = ({
   participant,
   trackType,
 }: ParticipantLabelProps) => {
   const {
-    theme: {
-      colors,
-      typefaces,
-      variants: { iconSizes },
-      participantLabel: {
-        container,
-        userNameLabel,
-        audioMutedIconContainer,
-        videoMutedIconContainer,
-        pinIconContainer,
-        screenShareIconContainer,
-      },
-    },
+    theme: { components, semantics },
   } = useTheme();
-  const styles = useStyles();
-  const { name, userId, pin, sessionId, isLocalParticipant } = participant;
-  const call = useCall();
+  const { name, userId, pin, isLocalParticipant, isDominantSpeaker } =
+    participant;
   const { t } = useI18n();
   const participantName = name ?? userId;
 
-  const participantLabel = isLocalParticipant ? t('You') : participantName;
   const isAudioMuted = !hasAudio(participant);
   const isVideoMuted = !hasVideo(participant);
-  const isTrackPaused = trackType && hasPausedTrack(participant, trackType);
+  const isTrackPaused = !!trackType && hasPausedTrack(participant, trackType);
   const isAudioConnecting = useIsAudioConnecting(participant);
   const isVideoConnecting = useIsVideoConnecting(participant);
 
@@ -75,150 +49,31 @@ export const ParticipantLabel = ({
       : t('{{ userName }} is sharing their screen', {
           userName: participantName,
         });
+
     return (
-      <View
-        style={[
-          styles.container,
-          { backgroundColor: colors.sheetOverlay },
-          container,
-        ]}
+      <StatusLabel
         testID={ComponentTestIds.PARTICIPANT_SCREEN_SHARING}
-      >
-        <View
-          style={[
-            styles.screenShareIconContainer,
-            { height: iconSizes.md, width: iconSizes.md },
-            screenShareIconContainer,
-          ]}
-        >
-          <ScreenShareIndicator color={colors.iconPrimary} />
-        </View>
-        <Text
-          style={[
-            styles.userNameLabel,
-            { color: colors.textPrimary },
-            typefaces.caption,
-            userNameLabel,
-          ]}
-          numberOfLines={1}
-        >
-          {screenShareText}
-        </Text>
-      </View>
+        label={screenShareText}
+        leadingIcon={
+          <ScreenShare
+            color={semantics.textOnAccent}
+            size={components.iconSizeSm}
+          />
+        }
+        showSpeechIndicator={false}
+      />
     );
   }
 
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: colors.sheetOverlay },
-        container,
-      ]}
-    >
-      <View style={styles.wrapper}>
-        {(isAudioConnecting || isVideoConnecting) && (
-          <ActivityIndicator
-            size="small"
-            color={colors.iconPrimary}
-            style={styles.connectingIndicator}
-          />
-        )}
-        <Text style={[styles.userNameLabel, userNameLabel]} numberOfLines={1}>
-          {participantLabel}
-        </Text>
-        {isAudioMuted && (
-          <View
-            style={[styles.audioMutedIconContainer, audioMutedIconContainer]}
-          >
-            <MicOff color={colors.iconPrimary} size={iconSizes.sm} />
-          </View>
-        )}
-        {isVideoMuted && (
-          <View
-            style={[styles.videoMutedIconContainer, videoMutedIconContainer]}
-          >
-            <VideoSlash color={colors.iconPrimary} size={iconSizes.sm} />
-          </View>
-        )}
-        {isTrackPaused && (
-          <View
-            style={[styles.trackPausedIconContainer, videoMutedIconContainer]}
-          >
-            <BadNetwork color={colors.iconPrimary} size={iconSizes.sm} />
-          </View>
-        )}
-        {pin && (
-          <Pressable
-            style={[styles.pinIconContainer, pinIconContainer]}
-            onPress={pin.isLocalPin ? () => call?.unpin(sessionId) : undefined}
-          >
-            <PinVertical color={colors.iconPrimary} size={iconSizes.sm} />
-          </Pressable>
-        )}
-        <View style={styles.indicatorWrapper}>
-          <SpeechIndicator
-            isSpeaking={!isAudioMuted && participant.isDominantSpeaker}
-          />
-        </View>
-      </View>
-    </View>
-  );
-};
-
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        indicatorWrapper: {
-          marginLeft: theme.variants.spacingSizes.sm,
-        },
-        wrapper: {
-          flexDirection: 'row',
-        },
-        container: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          padding: theme.variants.spacingSizes.sm,
-          maxHeight: 30,
-          borderTopRightRadius: 5,
-          marginBottom: -2,
-          flexShrink: 1,
-          zIndex: Z_INDEX.IN_FRONT,
-        },
-        userNameLabel: {
-          flexShrink: 1,
-          marginTop: 3,
-          fontSize: 13,
-          fontWeight: '400',
-          color: theme.colors.textPrimary,
-        },
-        connectingIndicator: {
-          marginRight: theme.variants.spacingSizes.sm,
-          justifyContent: 'center',
-        },
-        screenShareIconContainer: {
-          marginRight: theme.variants.spacingSizes.sm,
-          justifyContent: 'center',
-        },
-        audioMutedIconContainer: {
-          marginLeft: theme.variants.spacingSizes.xs,
-          justifyContent: 'center',
-        },
-        videoMutedIconContainer: {
-          marginLeft: theme.variants.spacingSizes.xs,
-          justifyContent: 'center',
-        },
-        trackPausedIconContainer: {
-          marginLeft: theme.variants.spacingSizes.xs,
-          justifyContent: 'center',
-        },
-        pinIconContainer: {
-          marginLeft: theme.variants.spacingSizes.xs,
-          justifyContent: 'center',
-        },
-      }),
-    [theme],
+    <StatusLabel
+      label={isLocalParticipant ? t('You') : participantName}
+      isConnecting={isAudioConnecting || isVideoConnecting}
+      isAudioMuted={isAudioMuted}
+      isVideoMuted={isVideoMuted}
+      isTrackPaused={isTrackPaused}
+      isPinned={!!pin}
+      isSpeaking={!isAudioMuted && isDominantSpeaker}
+    />
   );
 };

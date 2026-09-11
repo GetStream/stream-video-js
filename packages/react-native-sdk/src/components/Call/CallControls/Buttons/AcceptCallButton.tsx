@@ -1,9 +1,9 @@
-import { useCall } from '@stream-io/video-react-bindings';
 import React, { useState } from 'react';
-import { CallControlsButton } from './CallControlsButton';
-import { IconWrapper, Phone } from '../../../icons';
-import { useTheme } from '../../../contexts/ThemeContext';
+import { useCall } from '@stream-io/video-react-bindings';
 import { videoLoggerSystem } from '@stream-io/video-client';
+import { useTheme } from '../../../../contexts/ThemeContext';
+import { IconWrapper, Phone } from '../../../../icons';
+import { CallControlsButton } from '..';
 
 /**
  * The props for the Accept Call button.
@@ -19,6 +19,10 @@ type AcceptCallButtonProps = {
    * Note: If the `onPressHandler` is passed this handler will not be executed.
    */
   onAcceptCallHandler?: (err?: Error) => void;
+  /**
+   * Whether the button is disabled.
+   */
+  disabled?: boolean;
 };
 
 /**
@@ -29,14 +33,11 @@ type AcceptCallButtonProps = {
 export const AcceptCallButton = ({
   onPressHandler,
   onAcceptCallHandler,
+  disabled = false,
 }: AcceptCallButtonProps) => {
   const call = useCall();
   const {
-    theme: {
-      colors,
-      variants: { buttonSizes, iconSizes },
-      acceptCallButton,
-    },
+    theme: { acceptCallButton, semantics, components },
   } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -62,13 +63,15 @@ export const AcceptCallButton = ({
   return (
     <CallControlsButton
       onPress={acceptCallHandler}
-      color={colors.buttonSuccess}
-      size={buttonSizes.md}
+      color={semantics.controlAcceptCallButtonBg}
+      disabled={isLoading || disabled}
       style={acceptCallButton}
-      disabled={isLoading}
     >
       <IconWrapper>
-        <Phone color={colors.iconPrimary} size={iconSizes.lg} />
+        <Phone
+          color={semantics.controlAcceptCallButtonText}
+          size={components.iconSizeLg}
+        />
       </IconWrapper>
     </CallControlsButton>
   );

@@ -2,53 +2,27 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CallContent,
   NoiseCancellationProvider,
-  StreamTheme,
   useCall,
-  useIsInPiPMode,
   useModeration,
   useTheme,
   useToggleCallRecording,
   BackgroundFiltersProvider,
 } from '@stream-io/video-react-native-sdk';
-import {
-  ActivityIndicator,
-  Alert,
-  StatusBar,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, StatusBar, StyleSheet } from 'react-native';
 import { ParticipantsInfoListModal } from './ParticipantsInfoListModal';
 import { BottomControls } from './CallControls/BottomControls';
+import { MoreActionsDrawer } from './CallControls/MoreActionsButton/MoreActionsDrawer';
 import { useOrientation } from '../hooks/useOrientation';
-import { Z_INDEX } from '../constants';
-import { TopControls } from './CallControls/TopControls';
 import { useLayout } from '../contexts/LayoutContext';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import DeviceInfo from 'react-native-device-info';
 import Toast from 'react-native-toast-message';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type ActiveCallProps = {
   onHangupCallHandler?: () => void;
+  onChatOpenHandler?: () => void;
   onCallEnded: () => void;
-  onChatOpenHandler: (() => void) | null;
-};
-
-// Since we are adding CustomTopControls, we need to override the callContent container paddingTop to 0
-const CustomCallContentThemeOverride = ({
-  children,
-}: React.PropsWithChildren<{}>) => {
-  const { theme } = useTheme();
-  const customTheme = {
-    ...theme,
-    callContent: {
-      ...theme.callContent,
-      container: {
-        ...theme.callContent.container,
-        paddingTop: 0,
-      },
-    },
-  };
-  return <StreamTheme theme={customTheme}>{children}</StreamTheme>;
 };
 
 export const ActiveCall = ({
@@ -60,9 +34,8 @@ export const ActiveCall = ({
     useState<boolean>(false);
   const call = useCall();
   const styles = useStyles();
-  const { selectedLayout } = useLayout();
+  const { selectedLayout, onLayoutSelection } = useLayout();
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
-  const isInPiPMode = useIsInPiPMode();
   const currentOrientation = useOrientation();
   const isTablet = DeviceInfo.isTablet();
   const isLandscape = !isTablet && currentOrientation === 'landscape';
@@ -119,15 +92,14 @@ export const ActiveCall = ({
     isCallRecordingInProgress,
   ]);
 
-  const CustomTopControls = useCallback(() => {
-    return (
-      <TopControls
-        isAwaitingResponse={isAwaitingResponse}
-        isCallRecordingInProgress={isCallRecordingInProgress}
-        onHangupCallHandler={onHangupCallHandler}
-      />
-    );
-  }, [isAwaitingResponse, isCallRecordingInProgress, onHangupCallHandler]);
+  // the SDK renders the call controls, so it reports their height for the
+  // more-actions drawer to sit on top of
+  const [controlsHeight, setControlsHeight] = useState(0);
+  const [isMoreActionsVisible, setIsMoreActionsVisible] = useState(false);
+
+  const onLayoutToggleHandler = (newLayout: 'grid' | 'spotlight') => {
+    onLayoutSelection(newLayout);
+  };
 
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
@@ -136,75 +108,51 @@ export const ActiveCall = ({
   return (
     <BackgroundFiltersProvider>
       <NoiseCancellationProvider>
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
           <StatusBar
             barStyle={themeMode === 'light' ? 'dark-content' : 'light-content'}
           />
-          {!isInPiPMode && <CustomTopControls />}
-          <CustomCallContentThemeOverride>
-            <CallContent
-              iOSPiPIncludeLocalParticipantVideo
-              onHangupCallHandler={onHangupCallHandler}
-              CallControls={CustomBottomControls}
-              landscape={isLandscape}
-              layout={selectedLayout}
-            />
-          </CustomCallContentThemeOverride>
+          {/* {!isInPiPMode && <CustomTopControls />} */}
+          <CallContent
+            iOSPiPIncludeLocalParticipantVideo
+            // CallControls={CustomBottomControls}
+            landscape={isLandscape}
+            layout={selectedLayout}
+            onControlsHeightChange={setControlsHeight}
+            onMorePress={() => setIsMoreActionsVisible((visible) => !visible)}
+            onUsersPress={onOpenCallParticipantsInfo}
+            onMessageBubblesPress={onChatOpenHandler}
+            onHangupPressHandler={onHangupCallHandler}
+            onLayoutToggleHandler={onLayoutToggleHandler}
+          />
+          <MoreActionsDrawer
+            isVisible={isMoreActionsVisible}
+            onClose={() => setIsMoreActionsVisible(false)}
+            controlsContainerHeight={controlsHeight}
+          />
           <ParticipantsInfoListModal
             isCallParticipantsInfoVisible={isCallParticipantsVisible}
             setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
           />
-        </View>
+        </SafeAreaView>
       </NoiseCancellationProvider>
     </BackgroundFiltersProvider>
   );
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
           flex: 1,
-          paddingTop: theme.variants.insets.top,
-          backgroundColor: theme.colors.sheetPrimary,
+          backgroundColor: semantics.backgroundCoreApp,
         },
         callContent: { flex: 1 },
-        topUnsafeArea: {
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: theme.variants.insets.top,
-          backgroundColor: theme.colors.sheetPrimary,
-          zIndex: Z_INDEX.IN_FRONT,
-        },
-        bottomUnsafeArea: {
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: theme.variants.insets.bottom,
-          backgroundColor: theme.colors.sheetPrimary,
-        },
-        leftUnsafeArea: {
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          left: 0,
-          width: theme.variants.insets.left,
-          backgroundColor: theme.colors.sheetPrimary,
-        },
-        rightUnsafeArea: {
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          right: 0,
-          width: theme.variants.insets.right,
-          backgroundColor: theme.colors.sheetPrimary,
-        },
       }),
-    [theme],
+    [semantics],
   );
 };

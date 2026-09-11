@@ -33,7 +33,9 @@ type VideoFiltersProps = {
 };
 
 export const VideoFilters = ({ onSelectFilter }: VideoFiltersProps) => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics, components },
+  } = useTheme();
   const { applyGrayScaleFilter, disableCustomFilter, currentCustomFilter } =
     useCustomVideoFilters();
   const {
@@ -70,6 +72,9 @@ export const VideoFilters = ({ onSelectFilter }: VideoFiltersProps) => {
   };
 
   const isGrayScaleSelected = currentCustomFilter === 'GrayScale';
+  const filterButtonStyle = {
+    backgroundColor: semantics.backgroundCoreSurfaceDefault,
+  };
 
   return (
     <View style={styles.container}>
@@ -79,48 +84,42 @@ export const VideoFilters = ({ onSelectFilter }: VideoFiltersProps) => {
         style={styles.scrollView}
       >
         <TouchableOpacity
-          style={[
-            styles.filterButton,
-            { backgroundColor: theme.colors.buttonSecondary },
-          ]}
+          style={[styles.filterButton, filterButtonStyle]}
           onPress={handleClearFilter}
         >
-          <Text style={[styles.clearText, { color: theme.colors.textPrimary }]}>
+          <Text style={[styles.clearText, { color: semantics.textPrimary }]}>
             ✕
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[
             styles.filterButton,
-            { backgroundColor: theme.colors.buttonSecondary },
+            filterButtonStyle,
             isGrayScaleSelected && styles.selectedButton,
           ]}
           onPress={handleGrayScaleFilter}
         >
           <LightDark
-            color={theme.colors.iconPrimary}
-            size={theme.variants.roundButtonSizes.sm}
+            color={semantics.textPrimary}
+            size={components.iconSizeSm}
           />
         </TouchableOpacity>
         <TouchableOpacity
           style={[
             styles.filterButton,
-            { backgroundColor: theme.colors.buttonSecondary },
+            filterButtonStyle,
             currentBackgroundFilter?.blur === 'medium' && styles.selectedButton,
           ]}
           onPress={() => handleBlurFilter('medium')}
         >
-          <Blur
-            color={theme.colors.iconPrimary}
-            size={theme.variants.roundButtonSizes.sm}
-          />
+          <Blur color={semantics.textPrimary} size={components.iconSizeSm} />
         </TouchableOpacity>
         {images.map((img, index) => (
           <TouchableOpacity
             key={index}
             style={[
               styles.filterButton,
-              { backgroundColor: theme.colors.buttonSecondary },
+              filterButtonStyle,
               currentBackgroundFilter?.image === img && styles.selectedButton,
             ]}
             onPress={() => handleImageFilter(img)}

@@ -25,23 +25,24 @@ export const TextInput = React.forwardRef<
 TextInput.displayName = 'TextInput';
 
 const useStyles = () => {
-  const appTheme = useTheme().theme;
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         input: {
-          paddingLeft: appTheme.variants.spacingSizes.lg,
-          marginVertical: appTheme.variants.spacingSizes.md,
+          paddingLeft: primitives.spacingLg,
           height: INPUT_HEIGHT,
-          backgroundColor: appTheme.colors.sheetSecondary,
+          backgroundColor: semantics.backgroundCoreApp,
           borderRadius: 8,
-          borderColor: appTheme.colors.buttonDisabled,
+          borderColor: semantics.backgroundUtilityDisabled,
           borderWidth: 1,
-          color: appTheme.colors.textPrimary,
-          fontSize: 17,
+          color: semantics.textPrimary,
+          fontSize: primitives.typographyFontSizeMd,
           flex: 1,
         },
       }),
-    [appTheme],
+    [primitives, semantics],
   );
 };

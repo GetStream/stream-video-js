@@ -1,9 +1,6 @@
 import React from 'react';
-import {
-  CallControlsButton,
-  useTheme,
-} from '@stream-io/video-react-native-sdk';
-import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
+import { CallControlsButton } from '@stream-io/video-react-native-sdk';
+import { ControlButtonIcon } from '@stream-io/video-react-native-sdk/src/icons';
 import { BadgeCountIndicator } from './BadgeCountIndicator';
 import Chat from '../../../assets/Chat';
 import { useUnreadCount } from '../../../hooks/useUnreadCount';
@@ -25,16 +22,11 @@ export type ChatButtonProps = {
  * This call also display the unread count indicator/badge is there messages that are unread.
  */
 export const ChatButton = ({ onPressHandler }: ChatButtonProps) => {
-  const {
-    theme: { colors, chatButton, variants },
-  } = useTheme();
   const unreadCountIndicator = useUnreadCount();
   return (
-    <CallControlsButton onPress={onPressHandler} style={chatButton}>
+    <CallControlsButton onPress={onPressHandler}>
       <BadgeCountIndicator count={unreadCountIndicator} />
-      <IconWrapper>
-        <Chat color={colors.iconPrimary} size={variants.iconSizes.md} />
-      </IconWrapper>
+      <ControlButtonIcon icon={Chat} />
     </CallControlsButton>
   );
 };

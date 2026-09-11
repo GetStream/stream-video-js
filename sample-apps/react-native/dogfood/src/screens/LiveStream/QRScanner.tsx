@@ -1,6 +1,6 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useI18n } from '@stream-io/video-react-native-sdk';
+import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LiveStreamParamList } from '../../../types';
 import {
@@ -9,7 +9,6 @@ import {
   useCameraPermission,
   useCodeScanner,
 } from 'react-native-vision-camera';
-import { appTheme } from '../../theme';
 
 type QRScannerScreenProps = NativeStackScreenProps<
   LiveStreamParamList,
@@ -22,6 +21,7 @@ export const QRScanner = ({ navigation, route }: QRScannerScreenProps) => {
   const [hasScanned, setHasScanned] = useState(false);
   const { hasPermission, requestPermission } = useCameraPermission();
   const device = useCameraDevice('back');
+  const styles = useStyles();
 
   const codeScanner = useCodeScanner({
     codeTypes: ['qr'],
@@ -109,55 +109,64 @@ export const QRScanner = ({ navigation, route }: QRScannerScreenProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: appTheme.colors.static_grey,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  camera: {
-    flex: 1,
-    width: '100%',
-  },
-  text: {
-    color: appTheme.colors.static_white,
-    fontSize: 16,
-    marginBottom: 20,
-  },
-  scanText: {
-    color: appTheme.colors.static_white,
-    fontSize: 16,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    padding: 16,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  button: {
-    backgroundColor: appTheme.colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: appTheme.colors.static_white,
-    fontWeight: '500',
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeButton: {
-    position: 'absolute',
-    bottom: 50,
-    backgroundColor: appTheme.colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-});
+const useStyles = () => {
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: semantics.backgroundCoreApp,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        camera: {
+          flex: 1,
+          width: '100%',
+        },
+        text: {
+          color: semantics.textPrimary,
+          fontSize: 16,
+          marginBottom: 20,
+        },
+        scanText: {
+          color: semantics.textPrimary,
+          fontSize: 16,
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          padding: 16,
+          borderRadius: 8,
+          overflow: 'hidden',
+        },
+        button: {
+          backgroundColor: semantics.accentPrimary,
+          paddingVertical: 12,
+          paddingHorizontal: 24,
+          borderRadius: 8,
+        },
+        buttonText: {
+          color: semantics.textPrimary,
+          fontWeight: '500',
+        },
+        overlay: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        closeButton: {
+          position: 'absolute',
+          bottom: 50,
+          backgroundColor: semantics.accentPrimary,
+          paddingVertical: 12,
+          paddingHorizontal: 24,
+          borderRadius: 8,
+        },
+      }),
+    [semantics],
+  );
+};

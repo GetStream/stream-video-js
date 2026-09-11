@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -14,15 +14,14 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
-import { appTheme } from '../../theme';
-import { Button } from '../../components/Button';
 import { TextInput } from '../../components/TextInput';
-import { useI18n } from '@stream-io/video-react-native-sdk';
+import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
 import { KnownUsers } from '../../constants/KnownUsers';
 import { useOrientation } from '../../hooks/useOrientation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import EnvSwitcherButton from './EnvSwitcherButton';
 import { Alert } from 'react-native';
+import { Button } from '@stream-io/video-react-native-sdk/src/components';
 
 const generateValidUserId = (userId: string) => {
   return userId.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace('@getstream_io', '');
@@ -33,6 +32,7 @@ const ENABLE_PRONTO_SWITCH = __DEV__;
 const LoginScreen = () => {
   const [localUserId, setLocalUserId] = useState('');
   const { t } = useI18n();
+  const styles = useStyles();
   const orientation = useOrientation();
   const [tapCount, setTapCount] = useState(0);
   const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -96,10 +96,10 @@ const LoginScreen = () => {
       >
         {(ENABLE_PRONTO_SWITCH || devMode) && (
           <View style={styles.header}>
+            <EnvSwitcherButton />
             <Text
               style={styles.envText}
             >{`Current: ${appEnvironment}${useLocalSfu ? ' (local)' : ''}`}</Text>
-            <EnvSwitcherButton />
           </View>
         )}
         <View style={styles.topContainer}>
@@ -127,15 +127,9 @@ const LoginScreen = () => {
               autoCorrect={false}
             />
             <Button
-              title={t('Login')}
+              text={t('Login')}
               disabled={!localUserId}
               onPress={loginHandler}
-              buttonStyle={{
-                ...styles.textBoxButton,
-                backgroundColor: localUserId
-                  ? appTheme.colors.primary
-                  : appTheme.colors.disabled,
-              }}
             />
           </View>
           {useLocalSfu && (
@@ -157,12 +151,11 @@ const LoginScreen = () => {
                 autoCorrect={false}
               />
               <Button
-                title={'Update Local Ip'}
+                text={'Update Local Ip'}
                 onPress={() => {
                   // will make onEndEditing to trigger
                   sfuIpInputRef.current!.blur();
                 }}
-                buttonStyle={styles.textBoxButton}
               />
             </View>
           )}
@@ -172,70 +165,78 @@ const LoginScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: appTheme.colors.static_grey,
-  },
-  keyboardContainer: {
-    margin: appTheme.spacing.lg,
-    flex: 1,
-    justifyContent: 'space-evenly',
-  },
-  topContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  header: {
-    flexDirection: 'row',
-    alignSelf: 'flex-end',
-    justifyContent: 'center',
-  },
-  envText: {
-    color: appTheme.colors.static_white,
-    fontSize: 16,
-    marginRight: 8,
-    alignSelf: 'center',
-  },
-  logo: {
-    height: 100,
-    width: 100,
-    borderRadius: 20,
-    alignSelf: 'center',
-  },
-  title: {
-    fontSize: 30,
-    color: appTheme.colors.static_white,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginTop: appTheme.spacing.lg,
-  },
-  subTitle: {
-    color: appTheme.colors.light_gray,
-    fontSize: 16,
-    textAlign: 'center',
-    margin: appTheme.spacing.xl,
-  },
-  bottomContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  textBoxContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  textBoxButton: {
-    marginLeft: appTheme.spacing.lg,
-  },
-  orText: {
-    fontSize: 17,
-    color: appTheme.colors.static_white,
-    fontWeight: '500',
-    marginVertical: appTheme.spacing.lg,
-  },
-});
+const useStyles = () => {
+  const {
+    theme: { semantics, primitives },
+  } = useTheme();
+  return useMemo(() => {
+    return StyleSheet.create({
+      container: {
+        flex: 1,
+        backgroundColor: semantics.backgroundCoreApp,
+      },
+      keyboardContainer: {
+        flex: 1,
+        margin: primitives.spacingLg,
+        justifyContent: 'space-evenly',
+      },
+      topContainer: {
+        flex: 1,
+        justifyContent: 'center',
+      },
+      header: {
+        flexDirection: 'column',
+        justifyContent: 'flex-end',
+        alignItems: 'flex-end',
+        gap: primitives.spacingXs,
+      },
+      envText: {
+        color: semantics.textPrimary,
+        fontSize: primitives.typographyFontSizeSm,
+        marginRight: primitives.spacingXs,
+      },
+      logo: {
+        height: 100,
+        width: 100,
+        borderRadius: 20,
+        alignSelf: 'center',
+      },
+      title: {
+        fontSize: 30,
+        color: semantics.textPrimary,
+        fontWeight: '500',
+        textAlign: 'center',
+        marginTop: primitives.spacingLg,
+      },
+      subTitle: {
+        color: semantics.textSecondary,
+        fontSize: 16,
+        textAlign: 'center',
+        margin: primitives.spacingXl,
+      },
+      bottomContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      textBoxContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: primitives.spacingXs,
+      },
+      textBoxButton: {
+        marginLeft: primitives.spacingLg,
+      },
+      orText: {
+        fontSize: 17,
+        color: semantics.textPrimary,
+        fontWeight: '500',
+        marginVertical: primitives.spacingLg,
+      },
+    });
+  }, [semantics, primitives]);
+};
 
 export default LoginScreen;

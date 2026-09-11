@@ -13,7 +13,6 @@ import { StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TestRecordingStackParamList } from '../../../types';
 import { randomId } from '../../modules/helpers/randomId';
-import { appTheme } from '../../theme';
 import {
   LoopbackPanel,
   RecordingControls,
@@ -144,23 +143,25 @@ const TestRecordingContent = ({
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { primitives, semantics, insets },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
           flex: 1,
-          paddingHorizontal: appTheme.spacing.md,
-          paddingTop: appTheme.spacing.md,
-          paddingBottom: appTheme.spacing.md + theme.variants.insets.bottom,
-          gap: appTheme.spacing.md,
-          backgroundColor: theme.colors.sheetPrimary,
+          paddingHorizontal: primitives.spacingMd,
+          paddingTop: primitives.spacingMd,
+          paddingBottom: primitives.spacingMd + insets.bottom,
+          gap: primitives.spacingMd,
+          backgroundColor: semantics.backgroundCoreApp,
         },
         error: {
-          color: appTheme.colors.error,
-          marginBottom: appTheme.spacing.md,
+          color: semantics.textPrimary,
+          marginBottom: primitives.spacingMd,
         },
       }),
-    [theme],
+    [primitives, semantics, insets],
   );
 };

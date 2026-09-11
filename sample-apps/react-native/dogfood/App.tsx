@@ -32,16 +32,12 @@ import { setPushConfig } from './src/utils/setPushConfig';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Appearance, LogBox, Platform } from 'react-native';
+import { Appearance, LogBox, Platform, StatusBar } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
-import {
-  defaultTheme,
-  StreamTheme,
-  useCalls,
-} from '@stream-io/video-react-native-sdk';
+import { StreamTheme, useCalls } from '@stream-io/video-react-native-sdk';
 import Toast from 'react-native-toast-message';
-import { appTheme } from './src/theme';
 import { TestRecording } from './src/navigators/TestRecording';
+import { tokens } from '@stream-io/video-react-native-sdk/src/theme/tokens';
 
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
@@ -65,13 +61,19 @@ const StackNavigator = () => {
   const setState = useAppGlobalStoreSetState();
   const { bottom } = useSafeAreaInsets();
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
-  const color =
-    themeMode === 'light'
-      ? appTheme.colors.static_white
-      : defaultTheme.colors.sheetPrimary;
+
+  const style = React.useMemo(() => {
+    if (themeMode === 'light') {
+      return tokens.light;
+    }
+    return tokens.dark;
+  }, [themeMode]);
 
   useEffect(() => {
     Appearance.setColorScheme(themeMode);
+    StatusBar.setBarStyle(
+      themeMode === 'light' ? 'light-content' : 'dark-content',
+    );
   }, [themeMode]);
 
   useDeepLinkEffect();
@@ -166,19 +168,20 @@ const StackNavigator = () => {
   const containerStyle = {
     flex: 1,
     paddingBottom: Platform.OS === 'android' ? bottom : 0,
-    backgroundColor: color,
   };
 
   return (
-    <GestureHandlerRootView style={containerStyle}>
-      <VideoWrapper>
-        <RingingWatcher />
-        <ChatWrapper>
-          <Stack.Navigator>{mode}</Stack.Navigator>
-          <Toast />
-        </ChatWrapper>
-      </VideoWrapper>
-    </GestureHandlerRootView>
+    <StreamTheme style={style}>
+      <GestureHandlerRootView style={containerStyle}>
+        <VideoWrapper>
+          <RingingWatcher />
+          <ChatWrapper>
+            <Stack.Navigator>{mode}</Stack.Navigator>
+            <Toast />
+          </ChatWrapper>
+        </VideoWrapper>
+      </GestureHandlerRootView>
+    </StreamTheme>
   );
 };
 

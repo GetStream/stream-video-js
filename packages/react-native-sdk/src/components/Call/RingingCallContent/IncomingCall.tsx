@@ -1,10 +1,6 @@
 import React from 'react';
-import { Image, StyleSheet, Text, View, type ViewStyle } from 'react-native';
-import {
-  useCallStateHooks,
-  useConnectedUser,
-  useI18n,
-} from '@stream-io/video-react-bindings';
+import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { useI18n } from '@stream-io/video-react-bindings';
 import { UserInfo } from './UserInfo';
 import {
   IncomingCallControls as DefaultIncomingCallControls,
@@ -25,6 +21,8 @@ export type IncomingCallProps = IncomingCallControlsProps & {
    * This will apply the landscape mode styles to the component.
    */
   landscape?: boolean;
+
+  isConnecting?: boolean;
 };
 
 /**
@@ -36,10 +34,11 @@ export const IncomingCall = ({
   onRejectCallHandler,
   IncomingCallControls = DefaultIncomingCallControls,
   landscape,
+  isConnecting = false,
 }: IncomingCallProps) => {
   const { t } = useI18n();
   const {
-    theme: { colors, incomingCall, typefaces, variants },
+    theme: { incomingCall, insets },
   } = useTheme();
 
   const landscapeContentStyles: ViewStyle = {
@@ -47,118 +46,56 @@ export const IncomingCall = ({
   };
 
   const insetStyles: ViewStyle = {
-    paddingTop: variants.insets.top,
-    paddingBottom: variants.insets.bottom,
-    paddingLeft: variants.insets.left,
-    paddingRight: variants.insets.right,
+    paddingTop: insets.top,
+    paddingBottom: insets.bottom,
+    paddingLeft: insets.left,
+    paddingRight: insets.right,
   };
 
   return (
-    <Background>
-      <View
-        style={[
-          styles.content,
-          landscapeContentStyles,
-          insetStyles,
-          incomingCall.content,
-        ]}
-      >
-        <View style={[styles.topContainer, incomingCall.topContainer]}>
-          <UserInfo />
-          <Text
-            style={[
-              styles.incomingCallText,
-              { color: colors.textPrimary },
-              typefaces.heading6,
-              incomingCall.incomingCallText,
-            ]}
-          >
-            {t('Incoming Call...')}
-          </Text>
-        </View>
-        <View style={[styles.bottomContainer, incomingCall.bottomContainer]}>
-          <View
-            style={[
-              styles.incomingCallControls,
-              incomingCall.incomingCallControls,
-            ]}
-          >
-            {IncomingCallControls && (
-              <IncomingCallControls
-                onAcceptCallHandler={onAcceptCallHandler}
-                onRejectCallHandler={onRejectCallHandler}
-              />
-            )}
-          </View>
-        </View>
-      </View>
-    </Background>
-  );
-};
-
-const Background: React.FunctionComponent<{
-  children: React.ReactNode;
-}> = ({ children }) => {
-  const {
-    theme: { colors, incomingCall },
-  } = useTheme();
-  const connectedUser = useConnectedUser();
-  const { useCallMembers } = useCallStateHooks();
-  const members = useCallMembers();
-
-  // take the first N members to show their avatars
-  const avatarsToShow = (members || [])
-    .filter(({ user }) => user.id !== connectedUser?.id)
-    .map(({ user }) => user.image)
-    .filter((image): image is string => !!image);
-
-  if (avatarsToShow.length) {
-    return (
-      <View
-        style={[
-          styles.background,
-          { backgroundColor: colors.sheetTertiary },
-          incomingCall.background,
-        ]}
-      >
-        <Image
-          source={{
-            uri: avatarsToShow[0],
-          }}
-          resizeMode="cover"
-          style={StyleSheet.absoluteFill}
-        />
-        {children}
-      </View>
-    );
-  }
-  return (
     <View
       style={[
-        styles.background,
-        { backgroundColor: colors.sheetTertiary },
-        incomingCall.background,
+        styles.content,
+        landscapeContentStyles,
+        insetStyles,
+        incomingCall.content,
       ]}
     >
-      {children}
+      <View style={[styles.topContainer, incomingCall.topContainer]}>
+        <UserInfo />
+        <Text style={[styles.incomingCallText, incomingCall.incomingCallText]}>
+          {isConnecting ? t('Connecting...') : t('Incoming Call...')}
+        </Text>
+      </View>
+      <View style={[styles.bottomContainer, incomingCall.bottomContainer]}>
+        {IncomingCallControls && (
+          <IncomingCallControls
+            disabled={isConnecting}
+            onAcceptCallHandler={onAcceptCallHandler}
+            onRejectCallHandler={onRejectCallHandler}
+          />
+        )}
+      </View>
     </View>
   );
 };
 
 export const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-  },
   content: {
     flex: 1,
+    alignItems: 'stretch',
   },
-  topContainer: { flex: 1, justifyContent: 'center' },
+  topContainer: {
+    flex: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   incomingCallText: {
-    marginTop: 8,
     textAlign: 'center',
   },
-  bottomContainer: { flex: 1, justifyContent: 'center' },
-  incomingCallControls: {
+  bottomContainer: {
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
   },
 });

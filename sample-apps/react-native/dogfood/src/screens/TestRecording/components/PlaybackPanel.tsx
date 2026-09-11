@@ -1,7 +1,7 @@
+import { useTheme } from '@stream-io/video-react-native-sdk';
 import React, { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Video, { VideoRef } from 'react-native-video';
-import { appTheme } from '../../../theme';
 
 export const PlaybackPanel = ({ uri }: { uri: string }) => {
   const styles = useStyles();
@@ -24,7 +24,7 @@ export const PlaybackPanel = ({ uri }: { uri: string }) => {
         <Video
           ref={videoRef}
           source={{ uri }}
-          style={StyleSheet.absoluteFill}
+          style={[StyleSheet.absoluteFill]}
           paused={paused}
           resizeMode="cover"
           repeat={false}
@@ -45,17 +45,20 @@ export const PlaybackPanel = ({ uri }: { uri: string }) => {
 };
 
 const useStyles = () => {
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         panelContainer: {
           flex: 1,
-          gap: appTheme.spacing.md,
+          gap: primitives.spacingMd,
         },
         videoPanel: {
           flex: 1,
-          borderRadius: 8,
-          backgroundColor: appTheme.colors.dark_gray,
+          borderRadius: primitives.radiusLg,
+          backgroundColor: semantics.backgroundCoreApp,
           overflow: 'hidden',
           justifyContent: 'center',
           alignItems: 'center',
@@ -65,12 +68,12 @@ const useStyles = () => {
           bottom: 0,
           left: 0,
           right: 0,
-          backgroundColor: appTheme.colors.static_overlay,
-          paddingHorizontal: appTheme.spacing.sm,
-          paddingVertical: appTheme.spacing.xs,
+          backgroundColor: semantics.backgroundCoreApp,
+          paddingHorizontal: primitives.spacingSm,
+          paddingVertical: primitives.spacingXs,
         },
         videoPanelLabel: {
-          color: appTheme.colors.static_white,
+          color: semantics.textPrimary,
           fontSize: 12,
         },
         playOverlay: {
@@ -82,16 +85,16 @@ const useStyles = () => {
           width: 64,
           height: 64,
           borderRadius: 32,
-          backgroundColor: 'rgba(0, 0, 0, 0.55)',
+          backgroundColor: semantics.backgroundCoreScrim,
           justifyContent: 'center',
           alignItems: 'center',
         },
         playButtonGlyph: {
-          color: appTheme.colors.static_white,
-          fontSize: 24,
+          color: semantics.textOnAccent,
+          fontSize: 32,
           marginLeft: 2,
         },
       }),
-    [],
+    [primitives, semantics],
   );
 };

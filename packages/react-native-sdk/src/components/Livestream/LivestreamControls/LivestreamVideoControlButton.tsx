@@ -1,8 +1,7 @@
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
-import { useTheme } from '../../../contexts';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { IconWrapper, Video, VideoSlash } from '../../../icons';
+import { Video, VideoSlash, ControlButtonIcon } from '../../../icons';
+import { CallControlsButton } from '../../Call/CallControls/Buttons/CallControlsButton';
 
 /**
  * The LivestreamVideoControlButton controls the video stream publish/unpublish while in the livestream for the host.
@@ -12,13 +11,6 @@ export const LivestreamVideoControlButton = () => {
   const { optimisticIsMute, camera } = useCameraState();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
-  const {
-    theme: {
-      colors,
-      variants: { iconSizes, buttonSizes },
-      livestreamVideoControlButton,
-    },
-  } = useTheme();
 
   const onPress = async () => {
     await camera.toggle();
@@ -29,46 +21,11 @@ export const LivestreamVideoControlButton = () => {
   }
 
   return (
-    <Pressable
-      onPress={onPress}
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.buttonSecondary,
-          height: buttonSizes.xs,
-          width: buttonSizes.xs,
-        },
-        livestreamVideoControlButton.container,
-      ]}
-    >
-      <View
-        style={[
-          styles.icon,
-          {
-            height: iconSizes.sm,
-            width: iconSizes.sm,
-          },
-          livestreamVideoControlButton.icon,
-        ]}
-      >
-        <IconWrapper>
-          {!optimisticIsMute ? (
-            <Video color={colors.iconPrimary} size={iconSizes.md} />
-          ) : (
-            <VideoSlash color={colors.iconPrimary} size={iconSizes.md} />
-          )}
-        </IconWrapper>
-      </View>
-    </Pressable>
+    <CallControlsButton onPress={onPress}>
+      <ControlButtonIcon
+        icon={optimisticIsMute ? VideoSlash : Video}
+        disabled={optimisticIsMute}
+      />
+    </CallControlsButton>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 4,
-    borderRadius: 4,
-  },
-  icon: {},
-});

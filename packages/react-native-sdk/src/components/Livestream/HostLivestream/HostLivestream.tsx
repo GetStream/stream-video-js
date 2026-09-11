@@ -75,7 +75,7 @@ export const HostLivestream = ({
 }: HostLivestreamProps) => {
   const styles = useStyles();
   const {
-    theme: { colors, hostLivestream },
+    theme: { hostLivestream },
   } = useTheme();
 
   const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
@@ -110,13 +110,7 @@ export const HostLivestream = ({
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: colors.sheetTertiary },
-        hostLivestream.container,
-      ]}
-    >
+    <View style={[styles.container, hostLivestream.container]}>
       {HostLivestreamTopView && (
         <View
           style={styles.topViewContainer}
@@ -165,23 +159,13 @@ export const HostLivestream = ({
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
           flex: 1,
-          paddingBottom: theme.variants.insets.bottom,
-          paddingLeft: theme.variants.insets.left,
-          paddingRight: theme.variants.insets.right,
-          paddingTop: theme.variants.insets.top,
-          backgroundColor: theme.colors.sheetPrimary,
         },
         topViewContainer: {
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
           zIndex: Z_INDEX.IN_FRONT,
         },
         controlsViewContainer: {
@@ -192,6 +176,6 @@ const useStyles = () => {
           zIndex: Z_INDEX.IN_FRONT,
         },
       }),
-    [theme],
+    [],
   );
 };

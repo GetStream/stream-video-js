@@ -40,7 +40,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   const { participant, setSelectedParticipant } = props;
   const call = useCall();
   const {
-    theme: { colors },
+    theme: { semantics, primitives },
   } = useTheme();
   const styles = useStyles();
   const { t } = useI18n();
@@ -109,7 +109,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
 
   const muteUserVideoOption = participantPublishesVideo
     ? {
-        icon: <VideoSlash color={colors.iconPrimary} />,
+        icon: <VideoSlash color={semantics.textPrimary} />,
         title: 'Mute Video',
         onPressHandler: muteUserVideo,
       }
@@ -117,7 +117,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
 
   const muteUserAudioOption = participantPublishesAudio
     ? {
-        icon: <MicOff color={colors.iconPrimary} />,
+        icon: <MicOff color={semantics.textPrimary} />,
         title: 'Mute Audio',
         onPressHandler: muteUserAudio,
       }
@@ -131,37 +131,37 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
     userHasUpdateCallPermissionsCapability
       ? [
           {
-            icon: <VideoDisabled color={colors.iconPrimary} />,
+            icon: <VideoDisabled color={semantics.textPrimary} />,
             title: 'Disable Video',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SEND_VIDEO),
           },
           {
-            icon: <MicOff color={colors.iconPrimary} />,
+            icon: <MicOff color={semantics.textPrimary} />,
             title: 'Disable Audio',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SEND_AUDIO),
           },
           {
-            icon: <Mic color={colors.iconPrimary} />,
+            icon: <Mic color={semantics.textPrimary} />,
             title: 'Allow Audio',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SEND_AUDIO),
           },
           {
-            icon: <Video color={colors.iconPrimary} />,
+            icon: <Video color={semantics.textPrimary} />,
             title: 'Allow Video',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SEND_VIDEO),
           },
           {
-            icon: <ScreenShare color={colors.iconPrimary} />,
+            icon: <ScreenShare color={semantics.textPrimary} />,
             title: 'Allow Screen Sharing',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SCREENSHARE),
           },
           {
-            icon: <Cross color={colors.iconPrimary} />,
+            icon: <Cross color={semantics.textPrimary} />,
             title: 'Disable Screen Sharing',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SCREENSHARE),
@@ -173,7 +173,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
     userHasBlockUserCapability
       ? [
           {
-            icon: <Cross color={colors.iconPrimary} />,
+            icon: <Cross color={semantics.textPrimary} />,
             title: 'Block',
             onPressHandler: blockUser,
           },
@@ -183,7 +183,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   const isLocalPinningAllowed = !participant.pin || participant.pin.isLocalPin;
   const pinParticipant: CallParticipantOptionType | null = isLocalPinningAllowed
     ? {
-        icon: <Pin color={colors.iconPrimary} />,
+        icon: <Pin color={semantics.textPrimary} />,
         title: participant.pin ? 'Unpin' : 'Pin',
         onPressHandler: toggleParticipantPinnedAt,
       }
@@ -202,7 +202,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
       <View style={styles.modalContainer}>
         <View style={styles.participantInfo}>
           <View style={styles.userInfo}>
-            <Avatar size={50} participant={participant} />
+            <Avatar size={'xl'} user={participant} />
             <Text style={styles.name}>
               {generateParticipantTitle(participant.userId) +
                 (showYouLabel ? ` ${t('You')}` : '')}
@@ -212,7 +212,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
             style={styles.closePressable}
             onPress={onCloseParticipantOptions}
           >
-            <Cross color={colors.iconPrimary} style={styles.crossIcon} />
+            <Cross color={semantics.textPrimary} style={styles.crossIcon} />
           </Pressable>
         </View>
         {options.map((option, index) => {
@@ -244,7 +244,9 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
@@ -253,7 +255,7 @@ const useStyles = () => {
           flex: 1,
         },
         modalContainer: {
-          backgroundColor: theme.colors.sheetPrimary,
+          backgroundColor: semantics.backgroundCoreApp,
           borderRadius: 15,
           marginHorizontal: 32,
         },
@@ -271,7 +273,7 @@ const useStyles = () => {
           marginLeft: 8,
           fontSize: 16,
           fontWeight: '500',
-          color: theme.colors.iconPrimary,
+          color: semantics.textPrimary,
         },
         option: {
           paddingHorizontal: 24,
@@ -285,12 +287,12 @@ const useStyles = () => {
         },
         title: {
           marginLeft: 16,
-          color: theme.colors.iconPrimary,
+          color: semantics.textPrimary,
           fontSize: 16,
           fontWeight: '400',
         },
         borderBottom: {
-          borderBottomColor: theme.colors.sheetTertiary,
+          borderBottomColor: semantics.backgroundCoreElevation2,
           borderBottomWidth: 1,
         },
         crossIcon: {
@@ -300,9 +302,9 @@ const useStyles = () => {
         closePressable: {
           padding: 8,
           borderRadius: 15,
-          backgroundColor: theme.colors.buttonSecondary,
+          backgroundColor: semantics.buttonSecondaryBg,
         },
       }),
-    [theme],
+    [semantics],
   );
 };

@@ -1,10 +1,9 @@
 import React, { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Share from 'react-native-share';
-import { useTheme } from '@stream-io/video-react-native-sdk';
+import { Button, useTheme } from '@stream-io/video-react-native-sdk';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TestRecordingStackParamList } from '../../../types';
-import { appTheme } from '../../theme';
 import { useAppGlobalStoreSetState } from '../../contexts/AppContext';
 import { PlaybackPanel } from './components';
 
@@ -38,84 +37,42 @@ export const TestRecordingResultsScreen = ({ navigation, route }: Props) => {
     <View style={styles.container}>
       <PlaybackPanel uri={uri} />
       <View style={styles.actionsRow}>
-        <Pressable
-          onPress={handleShare}
-          style={({ pressed }) => [
-            styles.primaryButton,
-            pressed && styles.buttonPressed,
-          ]}
-        >
-          <Text style={styles.buttonText}>Share</Text>
-        </Pressable>
-        <Pressable
+        <Button style={styles.button} onPress={handleShare} text={'Share'} />
+        <Button
+          style={styles.button}
           onPress={handleRecordAgain}
-          style={({ pressed }) => [
-            styles.primaryButton,
-            pressed && styles.buttonPressed,
-          ]}
-        >
-          <Text style={styles.buttonText}>Record again</Text>
-        </Pressable>
+          text={'Record again'}
+        />
       </View>
-      <Pressable
-        onPress={handleDone}
-        style={({ pressed }) => [
-          styles.secondaryButton,
-          pressed && styles.buttonPressed,
-        ]}
-      >
-        <Text style={styles.secondaryButtonText}>Done</Text>
-      </Pressable>
+      <Button onPress={handleDone} text={'Done'} type={'secondary'} />
     </View>
   );
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { primitives, semantics, insets },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
           flex: 1,
-          paddingHorizontal: appTheme.spacing.md,
-          paddingTop: appTheme.spacing.md,
-          paddingBottom: appTheme.spacing.md + theme.variants.insets.bottom,
-          gap: appTheme.spacing.md,
-          backgroundColor: theme.colors.sheetPrimary,
+          paddingHorizontal: primitives.spacingMd,
+          paddingTop: primitives.spacingMd,
+          paddingBottom: primitives.spacingMd + insets.bottom,
+          gap: primitives.spacingMd,
+          backgroundColor: semantics.backgroundCoreApp,
         },
         actionsRow: {
           flexDirection: 'row',
-          gap: appTheme.spacing.sm,
+          justifyContent: 'space-evenly',
+          gap: primitives.spacingSm,
         },
-        primaryButton: {
+        button: {
           flex: 1,
-          backgroundColor: appTheme.colors.primary,
-          borderRadius: 8,
-          paddingVertical: appTheme.spacing.lg,
-          justifyContent: 'center',
-          alignItems: 'center',
-        },
-        secondaryButton: {
-          backgroundColor: 'transparent',
-          borderRadius: 8,
-          paddingVertical: appTheme.spacing.md,
-          justifyContent: 'center',
-          alignItems: 'center',
-        },
-        secondaryButtonText: {
-          color: theme.colors.textSecondary,
-          fontWeight: '500',
-          fontSize: 14,
-        },
-        buttonPressed: {
-          opacity: 0.8,
-        },
-        buttonText: {
-          color: appTheme.colors.static_white,
-          fontWeight: '600',
-          fontSize: 14,
         },
       }),
-    [theme],
+    [primitives, semantics, insets],
   );
 };

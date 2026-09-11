@@ -71,7 +71,9 @@ export const SpeechIndicator = ({ isSpeaking }: SpeechIndicatorProps) => {
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics, primitives, foundations },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
@@ -79,24 +81,24 @@ const useStyles = () => {
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
-          height: theme.variants.roundButtonSizes.sm,
-          width: theme.variants.roundButtonSizes.sm,
-          borderRadius: 5,
           gap: 1,
-          backgroundColor: theme.colors.sheetOverlay,
+          height: foundations.layout.size24,
+          width: foundations.layout.size24,
+          borderRadius: primitives.radiusMd,
+          backgroundColor: semantics.backgroundCoreOverlayDarkStrong,
           padding: 5,
         },
         smallBar: {
           height: '30%', // Smaller default height when animation is not running
         },
         bar: {
-          width: 3,
+          width: 2,
           height: '100%',
-          backgroundColor: theme.colors.iconSecondary,
+          backgroundColor: semantics.accentPrimary,
           borderRadius: 2,
         },
       }),
-    [theme],
+    [foundations, primitives, semantics],
   );
 };
 

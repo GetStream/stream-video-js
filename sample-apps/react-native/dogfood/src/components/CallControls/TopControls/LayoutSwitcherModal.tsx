@@ -29,12 +29,14 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
   onClose,
   anchorPosition,
 }) => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics, components, insets },
+  } = useTheme();
   const styles = useStyles();
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const { selectedLayout, onLayoutSelection } = useLayout();
-  const topInset = theme.variants.insets.top;
-  const leftInset = theme.variants.insets.left;
+  const topInset = insets.top;
+  const leftInset = insets.left;
 
   useEffect(() => {
     if (isVisible && anchorPosition) {
@@ -86,8 +88,8 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
             onPress={() => onPressHandler('grid')}
           >
             <Grid
-              size={theme.variants.iconSizes.md}
-              color={theme.colors.iconPrimary}
+              size={components.iconSizeMd}
+              color={semantics.accentPrimary}
             />
             <Text style={styles.buttonText}>Grid</Text>
           </TouchableOpacity>
@@ -99,8 +101,8 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
             onPress={() => onPressHandler('spotlight')}
           >
             <SpotLight
-              size={theme.variants.iconSizes.md}
-              color={theme.colors.iconPrimary}
+              size={components.iconSizeMd}
+              color={semantics.accentPrimary}
             />
             <Text style={styles.buttonText}>Spotlight</Text>
           </TouchableOpacity>
@@ -111,7 +113,9 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
 
   return useMemo(
     () =>
@@ -122,34 +126,34 @@ const useStyles = () => {
         modal: {
           position: 'absolute',
           width: 212,
-          backgroundColor: theme.colors.sheetSecondary,
-          borderRadius: theme.variants.borderRadiusSizes.md,
-          padding: theme.variants.spacingSizes.md,
-          gap: theme.variants.spacingSizes.sm,
+          backgroundColor: semantics.backgroundCoreApp,
+          borderRadius: primitives.radiusMd,
+          padding: primitives.spacingMd,
+          gap: primitives.spacingSm,
         },
         button: {
-          backgroundColor: theme.colors.buttonSecondary,
-          borderRadius: theme.variants.borderRadiusSizes.lg,
+          backgroundColor: semantics.backgroundCoreApp,
+          borderRadius: primitives.radiusLg,
           borderWidth: 1,
-          borderColor: theme.colors.sheetTertiary,
+          borderColor: semantics.backgroundUtilityDisabled,
           flexDirection: 'row',
           justifyContent: 'flex-start',
           alignItems: 'center',
-          paddingHorizontal: theme.variants.spacingSizes.md,
-          paddingVertical: theme.variants.spacingSizes.sm,
+          paddingHorizontal: primitives.spacingMd,
+          paddingVertical: primitives.spacingSm,
         },
         selectedButton: {
-          backgroundColor: theme.colors.buttonPrimary,
+          backgroundColor: semantics.accentPrimary,
         },
         buttonText: {
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           textAlign: 'center',
           fontWeight: '600',
           marginTop: 2,
-          marginLeft: theme.variants.spacingSizes.xs,
+          marginLeft: primitives.spacingXs,
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };
 

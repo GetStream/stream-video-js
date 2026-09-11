@@ -4,13 +4,12 @@ import Svg, { Path } from 'react-native-svg';
 
 type IconProps = {
   color: ColorValue;
-  width: number;
-  height: number;
+  size: number;
 };
 
-export const Maximize = ({ color, width, height }: IconProps) => {
+export const Maximize = ({ color, size }: IconProps) => {
   return (
-    <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
         d="M8 3V5H4V9H2V3H8Z"
         fill={color}

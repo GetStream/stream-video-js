@@ -28,15 +28,15 @@ export const RecordCallButton = ({
   isCallRecordingInProgress,
 }: RecordCallButtonProps) => {
   const {
-    theme: { colors, recordCallButton, variants },
+    theme: { components, semantics },
   } = useTheme();
 
   const [isStopRecordingModalOpen, setIsStopRecordingModalOpen] =
     useState(false);
 
   const buttonColor = isCallRecordingInProgress
-    ? colors.buttonWarning
-    : colors.buttonSecondary;
+    ? semantics.accentWarning
+    : semantics.accentPrimary;
 
   const onPress = async () => {
     if (onPressHandler) {
@@ -74,18 +74,15 @@ export const RecordCallButton = ({
 
   return (
     <CallControlsButton
-      size={variants.roundButtonSizes.lg}
       onPress={onPress}
       color={buttonColor}
-      style={recordCallButton}
       disabled={isAwaitingResponse}
-      disabledColor={colors.buttonDisabled}
     >
       {endRecording}
       <IconWrapper>
         <RecordCall
-          color={colors.iconPrimary}
-          size={variants.roundButtonSizes.sm}
+          color={semantics.accentPrimary}
+          size={components.iconSizeSm}
         />
       </IconWrapper>
     </CallControlsButton>

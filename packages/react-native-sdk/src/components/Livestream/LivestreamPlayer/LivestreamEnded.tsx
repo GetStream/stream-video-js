@@ -125,42 +125,44 @@ export const CallEndedView = () => {
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
           flex: 1,
-          backgroundColor: theme.colors.sheetPrimary,
+          backgroundColor: semantics.backgroundCoreApp,
           justifyContent: 'center',
           alignItems: 'center',
-          padding: theme.variants.spacingSizes.md,
+          padding: primitives.spacingMd,
         },
         title: {
-          fontSize: theme.variants.fontSizes.lg,
-          marginBottom: theme.variants.spacingSizes.md,
-          color: theme.colors.textPrimary,
-          fontWeight: 'bold',
+          fontSize: primitives.typographyFontSizeLg,
+          marginBottom: primitives.spacingMd,
+          color: semantics.textPrimary,
+          fontWeight: primitives.typographyFontWeightBold,
         },
         subtitle: {
-          fontSize: theme.variants.fontSizes.md,
-          marginBottom: theme.variants.spacingSizes.md,
-          color: theme.colors.textPrimary,
-          fontWeight: 'bold',
+          fontSize: primitives.typographyFontSizeMd,
+          marginBottom: primitives.spacingMd,
+          color: semantics.textPrimary,
+          fontWeight: primitives.typographyFontWeightBold,
         },
         recordingButton: {
-          padding: theme.variants.spacingSizes.sm,
+          padding: primitives.spacingSm,
           width: '100%',
         },
         recordingText: {
-          color: theme.colors.textSecondary,
-          fontSize: theme.variants.fontSizes.md,
+          color: semantics.textSecondary,
+          fontSize: primitives.typographyFontSizeMd,
         },
         recordingsContainer: {
           width: '100%',
           alignItems: 'center',
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };

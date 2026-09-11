@@ -1,9 +1,9 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { humanize } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { Eye } from '../../../icons';
+import { Users } from '../../../icons';
 
 /**
  * Props for the FollowerCount component.
@@ -24,9 +24,8 @@ export type FollowerCountProps = {
 export const FollowerCount = ({
   humanizeParticipantCount = true,
 }: FollowerCountProps) => {
-  const styles = useStyles();
   const {
-    theme: { followerCount },
+    theme: { followerCount, components, semantics },
   } = useTheme();
 
   const { useParticipantCount } = useCallStateHooks();
@@ -34,10 +33,8 @@ export const FollowerCount = ({
 
   return (
     <View style={[styles.container, followerCount.container]}>
-      <View style={[styles.icon, followerCount.icon]}>
-        <Eye />
-      </View>
-      <Text style={[styles.label, followerCount.label]}>
+      <Users color={semantics.textPrimary} size={components.iconSizeMd} />
+      <Text style={followerCount.label}>
         {humanizeParticipantCount
           ? humanize(totalParticipants)
           : totalParticipants}
@@ -46,35 +43,10 @@ export const FollowerCount = ({
   );
 };
 
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          paddingHorizontal: theme.variants.spacingSizes.sm,
-          paddingVertical: 4,
-          borderTopRightRadius: 4,
-          borderBottomRightRadius: 4,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: theme.colors.sheetTertiary,
-        },
-        icon: {
-          height: theme.variants.iconSizes.sm,
-          width: theme.variants.iconSizes.sm,
-        },
-        label: {
-          fontSize: theme.variants.fontSizes.md,
-          fontWeight: '600',
-          flexShrink: 1,
-          textAlign: 'center',
-          includeFontPadding: false,
-          marginLeft: theme.variants.spacingSizes.xs,
-          color: theme.colors.textPrimary,
-        },
-      }),
-    [theme],
-  );
-};
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

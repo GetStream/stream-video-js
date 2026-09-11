@@ -1,15 +1,13 @@
 import React, { useRef } from 'react';
 import { Platform } from 'react-native';
 import { ScreenCapturePickerView } from '@stream-io/react-native-webrtc';
-import { ScreenShare } from '../../../icons/ScreenShare';
-import { StopScreenShare } from '../../../icons/StopScreenShare';
-import { CallControlsButton } from './CallControlsButton';
-import { useTheme } from '../../../contexts/ThemeContext';
+import { ScreenShare, ControlButtonIcon } from '../../../../icons';
+import { useTheme } from '../../../../contexts/ThemeContext';
 import {
   useScreenShareButton,
   type ScreenShareOptions,
-} from '../../../hooks/useScreenShareButton';
-import { IconWrapper } from '../../../icons';
+} from '../../../../hooks/useScreenShareButton';
+import { CallControlsButton } from '..';
 
 /**
  * The props for the Screen Share button in the Call Controls.
@@ -41,7 +39,7 @@ export const ScreenShareToggleButton = ({
   screenShareOptions,
 }: ScreenShareToggleButtonProps) => {
   const {
-    theme: { colors, screenShareToggleButton, variants },
+    theme: { semantics },
   } = useTheme();
 
   const screenCapturePickerViewiOSRef = useRef(null);
@@ -59,27 +57,12 @@ export const ScreenShareToggleButton = ({
   return (
     <CallControlsButton
       onPress={onPress}
-      color={
-        hasPublishedScreenShare ? colors.buttonWarning : colors.buttonSecondary
-      }
-      style={{
-        container: screenShareToggleButton.container,
-        svgContainer: screenShareToggleButton.svgContainer,
-      }}
+      color={hasPublishedScreenShare ? semantics.buttonPrimaryBg : undefined}
     >
-      <IconWrapper>
-        {hasPublishedScreenShare ? (
-          <StopScreenShare
-            size={variants.iconSizes.md}
-            color={colors.iconPrimary}
-          />
-        ) : (
-          <ScreenShare
-            size={variants.iconSizes.md}
-            color={colors.iconPrimary}
-          />
-        )}
-      </IconWrapper>
+      <ControlButtonIcon
+        icon={ScreenShare}
+        turnedOn={!hasPublishedScreenShare}
+      />
       {Platform.OS === 'ios' && (
         <ScreenCapturePickerView ref={screenCapturePickerViewiOSRef} />
       )}

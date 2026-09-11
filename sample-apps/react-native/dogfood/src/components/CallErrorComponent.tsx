@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Button } from './Button';
-import { appTheme } from '../theme';
-import { useI18n } from '@stream-io/video-react-native-sdk';
+import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
 
 type Props = {
   title: string;
@@ -18,6 +17,7 @@ export const CallErrorComponent = ({
   backToLobbyHandler,
 }: Props) => {
   const { t } = useI18n();
+  const styles = useStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.errorHeading}>{title}</Text>
@@ -32,29 +32,38 @@ export const CallErrorComponent = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: appTheme.colors.static_grey,
-    padding: appTheme.spacing.lg,
-  },
-  wrapper: {
-    flex: 1,
-    backgroundColor: appTheme.colors.static_grey,
-  },
-  errorHeading: {
-    fontSize: 30,
-    color: appTheme.colors.static_white,
-    textAlign: 'center',
-  },
-  errorText: {
-    fontSize: 15,
-    color: appTheme.colors.error,
-    textAlign: 'center',
-    marginVertical: appTheme.spacing.md,
-  },
-  backToLobbyButton: {
-    marginTop: appTheme.spacing.lg,
-  },
-});
+const useStyles = () => {
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          justifyContent: 'center',
+          backgroundColor: semantics.backgroundCoreApp,
+          padding: primitives.spacingMd,
+        },
+        wrapper: {
+          flex: 1,
+          backgroundColor: semantics.backgroundCoreApp,
+        },
+        errorHeading: {
+          fontSize: 30,
+          color: semantics.textPrimary,
+          textAlign: 'center',
+        },
+        errorText: {
+          fontSize: 15,
+          color: semantics.textPrimary,
+          textAlign: 'center',
+          marginVertical: primitives.spacingMd,
+        },
+        backToLobbyButton: {
+          marginTop: primitives.spacingLg,
+        },
+      }),
+    [primitives, semantics],
+  );
+};

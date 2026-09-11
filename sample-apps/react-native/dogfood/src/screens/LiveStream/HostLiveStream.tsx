@@ -4,6 +4,7 @@ import {
   StreamCall,
   useConnectedUser,
   useStreamVideoClient,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
 import React, {
   useCallback,
@@ -14,7 +15,7 @@ import React, {
 } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LiveStreamParamList } from '../../../types';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native';
 import { HostLivestreamMediaControls } from '../../components/LiveStream/HostLivestreamMediaControls';
 import BottomSheetChatWrapper, {
   BottomSheetWrapperMethods,
@@ -38,6 +39,9 @@ export const HostLiveStreamScreen = ({
     params: { callId },
   } = route;
   const connectedUser = useConnectedUser();
+  const {
+    theme: { semantics },
+  } = useTheme();
 
   const call = useMemo<Call | undefined>(() => {
     if (!videoClient) {
@@ -105,14 +109,16 @@ export const HostLiveStreamScreen = ({
         onBottomSheetOpen={onBottomSheetOpen}
         ref={bottomSheetWrapperRef}
       >
-        <HostLivestream
-          HostLivestreamTopView={headerFooterHidden ? null : undefined}
-          LivestreamMediaControls={CustomHostLivestreamMediaControls}
-          onEndStreamHandler={() => {
-            call.leave();
-            navigation.goBack();
-          }}
-        />
+        <View style={{ flex: 1, backgroundColor: semantics.backgroundCoreApp }}>
+          <HostLivestream
+            HostLivestreamTopView={headerFooterHidden ? null : undefined}
+            // LivestreamMediaControls={CustomHostLivestreamMediaControls}
+            onEndStreamHandler={() => {
+              call.leave();
+              navigation.goBack();
+            }}
+          />
+        </View>
       </BottomSheetChatWrapper>
     </StreamCall>
   );

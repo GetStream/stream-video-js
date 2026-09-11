@@ -19,12 +19,11 @@ import {
   useStreamVideoClient,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { appTheme } from '../../theme';
-import { Button } from '../../components/Button';
 import { TextInput } from '../../components/TextInput';
 import { KnownUsers } from '../../constants/KnownUsers';
 import { randomId } from '../../modules/helpers/randomId';
 import { useOrientation } from '../../hooks/useOrientation';
+import { Button } from '@stream-io/video-react-native-sdk/src/components/utility/Button';
 
 const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
@@ -132,22 +131,30 @@ const JoinCallScreen = () => {
           })}
         </View>
         <View style={styles.bottomContainer}>
-          <Text style={styles.orText}>{t('OR')}</Text>
-          <TextInput
-            autoCapitalize="none"
-            autoCorrect={false}
-            placeholder={t('Enter comma separated User ids')}
-            value={ringingUserIdsText}
-            onChangeText={(value) => {
-              setRingingUserIdsText(value);
-            }}
-            style={styles.textInputStyle}
-          />
-          <Button
-            title={isLoading ? t('Calling...') : t('Start a New Call')}
-            disabled={startCallDisabled}
-            onPress={startCallHandler}
-          />
+          <View style={styles.orContainer}>
+            <View style={styles.orSeparator} />
+            <Text style={styles.orText}>{t('OR')}</Text>
+            <View style={styles.orSeparator} />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder={t('Enter comma separated User ids')}
+              value={ringingUserIdsText}
+              onChangeText={(value) => {
+                setRingingUserIdsText(value);
+              }}
+              style={styles.textInputStyle}
+            />
+            <Button
+              text={isLoading ? t('Calling...') : t('Start a New Call')}
+              disabled={startCallDisabled}
+              onPress={startCallHandler}
+              size="large"
+            />
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -155,24 +162,25 @@ const JoinCallScreen = () => {
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics, primitives },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
           flex: 1,
-          backgroundColor: theme.colors.sheetPrimary,
+          backgroundColor: semantics.backgroundCoreApp,
         },
         scrollContent: {
           flexGrow: 1,
-          paddingHorizontal: appTheme.spacing.lg,
+          paddingHorizontal: primitives.spacingMd,
         },
         topContainer: {
-          paddingTop: appTheme.spacing.lg,
-          paddingHorizontal: appTheme.spacing.lg,
+          padding: primitives.spacingMd,
         },
         participant: {
-          paddingVertical: appTheme.spacing.sm,
+          paddingVertical: primitives.spacingSm,
           borderBottomColor: 'gray',
           borderBottomWidth: 1,
           display: 'flex',
@@ -180,41 +188,54 @@ const useStyles = () => {
           alignItems: 'center',
         },
         selectedParticipant: {
-          color: appTheme.colors.primary,
+          color: semantics.buttonPrimaryBg,
           fontWeight: 'bold',
         },
         headerText: {
           fontSize: 16,
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           fontWeight: 'bold',
-          marginBottom: appTheme.spacing.lg,
+          marginBottom: primitives.spacingLg,
         },
         avatar: {
           height: 40,
           width: 40,
           borderRadius: 20,
         },
+        inputContainer: {
+          gap: primitives.spacingSm,
+        },
         text: {
-          color: theme.colors.textPrimary,
-          marginLeft: appTheme.spacing.md,
+          color: semantics.textPrimary,
+          marginLeft: primitives.spacingMd,
           fontSize: 16,
           fontWeight: '500',
         },
         bottomContainer: {
-          paddingVertical: appTheme.spacing.lg,
-        },
-        orText: {
-          fontSize: 17,
-          color: theme.colors.textPrimary,
-          fontWeight: '500',
-          marginVertical: appTheme.spacing.lg,
-          textAlign: 'center',
+          paddingVertical: primitives.spacingLg,
+          gap: primitives.spacingXl,
         },
         textInputStyle: {
           flex: 0,
         },
+        orContainer: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: primitives.spacingSm,
+        },
+        orSeparator: {
+          flex: 1,
+          height: 1,
+          backgroundColor: semantics.backgroundUtilityDisabled,
+        },
+        orText: {
+          color: semantics.textDisabled,
+          fontSize: primitives.typographyFontSizeXs,
+          fontWeight: primitives.typographyFontWeightSemiBold,
+        },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };
 export default JoinCallScreen;

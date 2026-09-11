@@ -16,12 +16,7 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
   const call = useCall();
   const { t } = useI18n();
   const {
-    theme: {
-      colors,
-      typefaces,
-      variants: { iconSizes },
-      screenshareOverlay,
-    },
+    theme: { screenshareOverlay, components, semantics },
   } = useTheme();
 
   const onStopScreenshareHandler = async () => {
@@ -30,21 +25,8 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: colors.sheetTertiary },
-        screenshareOverlay.container,
-      ]}
-    >
-      <Text
-        style={[
-          styles.text,
-          typefaces.subtitleBold,
-          { color: colors.textPrimary },
-          screenshareOverlay.text,
-        ]}
-      >
+    <View style={[styles.container, screenshareOverlay.container]}>
+      <Text style={screenshareOverlay.text}>
         {t('You are sharing your screen with everyone')}
       </Text>
       <Pressable
@@ -52,30 +34,20 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
         style={({ pressed }) => {
           return [
             styles.button,
+            screenshareOverlay.button,
             {
-              backgroundColor: colors.sheetSecondary,
               opacity: pressed ? 0.2 : 1,
             },
-            screenshareOverlay.button,
           ];
         }}
       >
-        <View
-          style={[
-            styles.buttonIcon,
-            { height: iconSizes.xs, width: iconSizes.xs },
-            screenshareOverlay.buttonIcon,
-          ]}
-        >
-          <StopScreenShare size={iconSizes.xs} color={colors.iconPrimary} />
+        <View style={screenshareOverlay.buttonIcon}>
+          <StopScreenShare
+            size={components.iconSizeMd}
+            color={semantics.accentNeutral}
+          />
         </View>
-        <Text
-          style={[
-            styles.buttonText,
-            { color: colors.textPrimary },
-            screenshareOverlay.buttonText,
-          ]}
-        >
+        <Text style={screenshareOverlay.buttonText}>
           {t('Stop Screen Sharing')}
         </Text>
       </Pressable>
@@ -89,18 +61,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  text: {},
   button: {
-    marginTop: 16,
-    padding: 8,
-    borderRadius: 8,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  buttonIcon: {},
-  buttonText: {
-    marginLeft: 8,
-    includeFontPadding: false,
   },
 });

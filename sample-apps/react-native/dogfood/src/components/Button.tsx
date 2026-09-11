@@ -42,28 +42,29 @@ export const Button = ({
 };
 
 const useStyles = () => {
-  const { theme: appTheme } = useTheme();
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
 
   return useMemo(
     () =>
       StyleSheet.create({
         button: {
-          backgroundColor: appTheme.colors.buttonPrimary,
+          backgroundColor: semantics.accentPrimary,
           justifyContent: 'center',
           borderRadius: 8,
           height: BUTTON_HEIGHT,
-          paddingHorizontal: appTheme.variants.spacingSizes.md,
+          paddingHorizontal: primitives.spacingMd,
         },
         buttonText: {
-          color: appTheme.colors.iconPrimary,
-          fontWeight: appTheme.typefaces.heading6.fontWeight,
+          color: semantics.accentNeutral,
           textAlign: 'center',
-          fontSize: 17,
+          fontSize: primitives.typographyFontSizeMd,
         },
         disabledButtonStyle: {
-          backgroundColor: appTheme.colors.disabled,
+          backgroundColor: semantics.backgroundUtilityDisabled,
         },
       }),
-    [appTheme],
+    [primitives, semantics],
   );
 };

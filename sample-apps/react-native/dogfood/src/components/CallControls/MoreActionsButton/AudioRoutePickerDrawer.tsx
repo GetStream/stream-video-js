@@ -54,9 +54,7 @@ export const AudioRoutePickerDrawer: React.FC<AudioRoutePickerDrawerProps> = ({
   const drawerHeight = screenHeight * 0.8;
   const styles = useStyles();
   const {
-    theme: {
-      variants: { insets },
-    },
+    theme: { insets },
   } = useTheme();
 
   const audioDeviceStatus = useAudioDeviceStatus();
@@ -186,7 +184,7 @@ export const AudioRoutePickerDrawer: React.FC<AudioRoutePickerDrawerProps> = ({
 
 const useStyles = () => {
   const {
-    theme: { colors, variants },
+    theme: { primitives, semantics },
   } = useTheme();
   return useMemo(
     () =>
@@ -195,9 +193,9 @@ const useStyles = () => {
           flexDirection: 'row',
           alignItems: 'center',
           borderBottomWidth: 1,
-          borderColor: colors.sheetTertiary,
-          padding: variants.spacingSizes.md,
-          marginBottom: variants.spacingSizes.xs,
+          borderColor: semantics.backgroundUtilityDisabled,
+          padding: primitives.spacingMd,
+          marginBottom: primitives.spacingXs,
         },
         routeIcon: {
           width: 24,
@@ -206,7 +204,7 @@ const useStyles = () => {
         },
         selectedIcon: {
           marginLeft: 'auto', // Push checkmark to the right
-          color: colors.iconSuccess,
+          color: semantics.accentSuccess,
           fontSize: 20,
           fontWeight: 'bold',
         },
@@ -219,43 +217,43 @@ const useStyles = () => {
           justifyContent: 'flex-end',
         },
         container: {
-          backgroundColor: colors.sheetPrimary,
-          borderTopLeftRadius: variants.borderRadiusSizes.lg,
-          borderTopRightRadius: variants.borderRadiusSizes.lg,
-          padding: variants.spacingSizes.md,
+          backgroundColor: semantics.backgroundCoreApp,
+          borderTopLeftRadius: primitives.radiusLg,
+          borderTopRightRadius: primitives.radiusLg,
+          padding: primitives.spacingMd,
           maxHeight: '80%',
           maxWidth: 500,
         },
         dragIndicator: {
           width: '100%',
-          height: variants.spacingSizes.xs,
+          height: primitives.spacingXs,
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: variants.spacingSizes.md,
+          marginBottom: primitives.spacingMd,
         },
         dragIndicatorBar: {
           width: 36,
           height: 5,
-          backgroundColor: colors.buttonSecondary,
+          backgroundColor: semantics.backgroundUtilityDisabled,
           borderRadius: 2,
         },
         option: {
           flexDirection: 'row',
           alignItems: 'center',
           borderWidth: 1,
-          borderColor: colors.sheetTertiary,
-          borderRadius: variants.borderRadiusSizes.lg,
-          paddingHorizontal: variants.spacingSizes.md,
-          height: variants.roundButtonSizes.lg,
-          backgroundColor: colors.buttonSecondary,
-          marginBottom: variants.spacingSizes.xs,
+          borderColor: semantics.backgroundUtilityDisabled,
+          borderRadius: primitives.radiusLg,
+          paddingHorizontal: primitives.spacingMd,
+          height: primitives.spacingLg,
+          backgroundColor: semantics.backgroundCoreApp,
+          marginBottom: primitives.spacingXs,
         },
         label: {
-          fontSize: variants.fontSizes.lg,
-          color: colors.iconPrimary,
+          fontSize: primitives.typographyFontSizeLg,
+          color: semantics.accentPrimary,
           fontWeight: '600',
         },
       }),
-    [variants, colors],
+    [primitives, semantics],
   );
 };

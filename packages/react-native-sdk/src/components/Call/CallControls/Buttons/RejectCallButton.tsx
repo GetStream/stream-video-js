@@ -1,9 +1,9 @@
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import React, { useState } from 'react';
-import { CallControlsButton } from './CallControlsButton';
-import { IconWrapper, PhoneDown } from '../../../icons';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
-import { useTheme } from '../../../contexts/ThemeContext';
+import { CallControlsButton } from '..';
+import { IconWrapper, PhoneDown } from '../../../../icons';
+import { useTheme } from '../../../../contexts/ThemeContext';
 
 /**
  * The props for the Reject Call button.
@@ -34,6 +34,10 @@ type RejectCallButtonProps = {
     - `timeout` - when the **caller** or **callee** rejects the call after `auto_cancel_timeout_ms` or `incoming_call_timeout_ms` accordingly.
    */
   rejectReason?: string;
+  /**
+   * Whether the button is disabled.
+   */
+  disabled?: boolean;
 };
 
 /**
@@ -44,18 +48,14 @@ type RejectCallButtonProps = {
 export const RejectCallButton = ({
   onPressHandler,
   onRejectCallHandler,
-  size,
   rejectReason,
+  disabled = false,
 }: RejectCallButtonProps) => {
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const {
-    theme: {
-      colors,
-      rejectCallButton,
-      variants: { buttonSizes, iconSizes },
-    },
+    theme: { rejectCallButton, semantics, components },
   } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -83,15 +83,15 @@ export const RejectCallButton = ({
   return (
     <CallControlsButton
       onPress={rejectCallHandler}
-      color={colors.buttonWarning}
-      size={size ?? buttonSizes.md}
-      // TODO: check what to do about this random style prop
-      // svgContainerStyle={theme.icon.lg}
+      color={semantics.buttonDestructiveBg}
+      disabled={isLoading || disabled}
       style={rejectCallButton}
-      disabled={isLoading}
     >
       <IconWrapper>
-        <PhoneDown color={colors.iconPrimary} size={iconSizes.lg} />
+        <PhoneDown
+          color={semantics.buttonDestructiveTextOnAccent}
+          size={components.iconSizeLg}
+        />
       </IconWrapper>
     </CallControlsButton>
   );

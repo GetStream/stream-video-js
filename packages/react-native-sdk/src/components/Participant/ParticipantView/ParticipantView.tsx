@@ -1,4 +1,4 @@
-import React, { type ComponentType, useMemo } from 'react';
+import React, { type ComponentType } from 'react';
 import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import {
   type StreamVideoParticipant,
@@ -26,6 +26,7 @@ import {
 } from './VideoRenderer';
 import { useTheme } from '../../../contexts/ThemeContext';
 import type { CallContentProps } from '../../Call';
+import { Z_INDEX } from '../../../constants';
 
 export type ParticipantViewComponentProps = {
   /**
@@ -117,32 +118,37 @@ export const ParticipantView = React.memo(
     supportedReactions,
   }: ParticipantViewProps) => {
     const {
-      theme: { colors, participantView },
+      theme: { participantView },
     } = useTheme();
     const { isSpeaking, userId } = participant;
-    const styles = useStyles();
     const isScreenSharing = trackType === 'screenShareTrack';
     const applySpeakerStyle = isSpeaking && !isScreenSharing;
-    const speakerStyle = applySpeakerStyle && [
-      { borderColor: colors.buttonPrimary },
-      participantView.highlightedContainer,
-    ];
+
+    const speakerStyle =
+      applySpeakerStyle && participantView.highlightedContainer;
 
     return (
       <View
-        style={[styles.container, style, speakerStyle]}
+        style={[
+          styles.container,
+          participantView.container,
+          speakerStyle,
+          style,
+        ]}
         testID={
           isSpeaking
             ? `participant-${userId}-is-speaking`
             : `participant-${userId}-is-not-speaking`
         }
       >
-        {ParticipantReaction && (
-          <ParticipantReaction
-            participant={participant}
-            supportedReactions={supportedReactions}
-          />
-        )}
+        <View style={[styles.headerContainer, participantView.headerContainer]}>
+          {ParticipantReaction && (
+            <ParticipantReaction
+              participant={participant}
+              supportedReactions={supportedReactions}
+            />
+          )}
+        </View>
         {VideoRenderer && (
           <VideoRenderer
             isVisible={isVisible}
@@ -175,25 +181,25 @@ export const ParticipantView = React.memo(
 
 ParticipantView.displayName = 'ParticipantView';
 
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          overflow: 'hidden',
-          justifyContent: 'flex-end',
-          borderRadius: theme.variants.borderRadiusSizes.md,
-          borderWidth: 2,
-          borderColor: 'transparent',
-        },
-        footerContainer: {
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        },
-        networkIndicatorOnly: { justifyContent: 'flex-end' },
-      }),
-    [theme],
-  );
-};
+const styles = StyleSheet.create({
+  container: {
+    overflow: 'hidden',
+    justifyContent: 'space-between',
+  },
+  headerContainer: {
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    zIndex: Z_INDEX.IN_FRONT,
+  },
+  footerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    zIndex: Z_INDEX.IN_FRONT,
+  },
+  networkIndicatorOnly: {
+    justifyContent: 'flex-end',
+  },
+});

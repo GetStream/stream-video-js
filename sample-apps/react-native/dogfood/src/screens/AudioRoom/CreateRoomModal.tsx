@@ -3,8 +3,9 @@ import {
   GetOrCreateCallRequest,
   useI18n,
   useStreamVideoClient,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -13,10 +14,7 @@ import {
   Button,
   TextInput,
 } from 'react-native';
-// import { TextInput } from '../../components/TextInput';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
-// import { Button } from '../../components/Button';
-import { appTheme } from '../../theme';
 
 const generateRoomId = () => Math.random().toString(36).substring(2, 12);
 const generateRoomPayload = ({
@@ -49,6 +47,7 @@ type Props = {
 export default function CreateRoomModal(props: Props) {
   const client = useStreamVideoClient();
   const { t } = useI18n();
+  const styles = useStyles();
 
   const [title, setTitle] = useState<string>();
   const [description, setDescription] = useState<string>();
@@ -108,45 +107,52 @@ export default function CreateRoomModal(props: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  centeredView: {
-    flex: 1,
-    // justifyContent: 'center',
-    // alignItems: 'center',
-    paddingTop: 100,
-    backgroundColor: 'rgba(0,0,0,0.8)',
-  },
-  modalView: {
-    marginHorizontal: 16,
-    backgroundColor: 'white',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  container: {
-    padding: appTheme.spacing.lg,
-    backgroundColor: 'white',
-  },
-  textInputTitle: {
-    flex: 0,
-    padding: 4,
-    color: 'black',
-    backgroundColor: '#d6d6d6',
-    height: 40,
-  },
-  textInputDescription: {
-    marginVertical: 8,
-    padding: 4,
-    color: 'black',
-    backgroundColor: '#d6d6d6',
-    height: 60,
-  },
-});
+const useStyles = () => {
+  const {
+    theme: { primitives },
+  } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        centeredView: {
+          flex: 1,
+          paddingTop: 100,
+          backgroundColor: 'rgba(0,0,0,0.8)',
+        },
+        modalView: {
+          marginHorizontal: 16,
+          backgroundColor: 'white',
+          borderRadius: 8,
+          paddingHorizontal: 8,
+          paddingVertical: 16,
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.25,
+          shadowRadius: 4,
+          elevation: 5,
+        },
+        container: {
+          padding: primitives.spacingLg,
+          backgroundColor: 'white',
+        },
+        textInputTitle: {
+          flex: 0,
+          padding: 4,
+          color: 'black',
+          backgroundColor: '#d6d6d6',
+          height: 40,
+        },
+        textInputDescription: {
+          marginVertical: 8,
+          padding: 4,
+          color: 'black',
+          backgroundColor: '#d6d6d6',
+          height: 60,
+        },
+      }),
+    [primitives],
+  );
+};

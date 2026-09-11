@@ -3,12 +3,10 @@ import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { UserInfo } from './UserInfo';
 import { Z_INDEX } from '../../../constants';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
-import { MediaStream, RTCView } from '@stream-io/react-native-webrtc';
 import { useTheme } from '../../../contexts/ThemeContext';
-import {
-  OutgoingCallControls as DefaultOutgoingCallControls,
-  type OutgoingCallControlsProps,
-} from '../CallControls';
+import { CallControls, type OutgoingCallControlsProps } from '../CallControls';
+import { CallAppBar } from '../CallControls/CallAppBar';
+import { LobbyCameraPreview } from '../Lobby';
 
 /**
  * Props for the OutgoingCall Component.
@@ -31,23 +29,20 @@ export type OutgoingCallProps = OutgoingCallControlsProps & {
  */
 export const OutgoingCall = ({
   onHangupCallHandler,
-  OutgoingCallControls = DefaultOutgoingCallControls,
   landscape,
 }: OutgoingCallProps) => {
   const {
-    theme: { colors, typefaces, outgoingCall, variants },
+    theme: { outgoingCall, insets },
   } = useTheme();
   const { t } = useI18n();
 
-  const landscapeContentStyles: ViewStyle = {
-    flexDirection: landscape ? 'row' : 'column',
-  };
+  void landscape;
 
   const insetStyles: ViewStyle = {
-    paddingTop: variants.insets.top,
-    paddingBottom: variants.insets.bottom,
-    paddingLeft: variants.insets.left,
-    paddingRight: variants.insets.right,
+    paddingTop: insets.top,
+    paddingBottom: insets.bottom,
+    paddingLeft: insets.left,
+    paddingRight: insets.right,
   };
 
   return (
@@ -57,44 +52,17 @@ export const OutgoingCall = ({
           StyleSheet.absoluteFill,
           styles.container,
           outgoingCall.container,
+          insetStyles,
         ]}
       >
-        <View
-          style={[
-            styles.content,
-            landscapeContentStyles,
-            insetStyles,
-            outgoingCall.content,
-          ]}
-        >
-          <View style={[styles.topContainer, outgoingCall.topContainer]}>
-            <UserInfo />
-            <Text
-              style={[
-                styles.callingText,
-                { color: colors.textPrimary },
-                typefaces.heading6,
-                outgoingCall.callingText,
-              ]}
-            >
-              {t('Calling...')}
-            </Text>
-          </View>
-          <View style={[styles.bottomContainer, outgoingCall.bottomContainer]}>
-            <View
-              style={[
-                styles.outgoingCallControls,
-                outgoingCall.outgoingCallControls,
-              ]}
-            >
-              {OutgoingCallControls && (
-                <OutgoingCallControls
-                  onHangupCallHandler={onHangupCallHandler}
-                />
-              )}
-            </View>
-          </View>
+        <CallAppBar onHangupCallHandler={onHangupCallHandler} />
+        <View style={[styles.content, outgoingCall.content]}>
+          <UserInfo color="accent" />
+          <Text style={[styles.callingText, outgoingCall.callingText]}>
+            {t('Calling...')}
+          </Text>
         </View>
+        <CallControls />
       </View>
 
       <Background />
@@ -104,39 +72,20 @@ export const OutgoingCall = ({
 
 const Background = () => {
   const {
-    theme: { colors, outgoingCall },
+    theme: { outgoingCall },
   } = useTheme();
   const { useCameraState } = useCallStateHooks();
-  const { isMute, camera } = useCameraState();
-  const localVideoStream = camera.state.mediaStream as unknown as
-    MediaStream | undefined;
+  const { optimisticIsMute } = useCameraState();
 
-  if (isMute || !localVideoStream) {
-    return (
-      <View
-        style={[
-          styles.background,
-          { backgroundColor: colors.sheetSecondary },
-          outgoingCall.background,
-        ]}
-      />
-    );
+  const wantsCamera = !optimisticIsMute;
+
+  if (!wantsCamera) {
+    return <View style={[styles.background, outgoingCall.background]} />;
   }
+
   return (
-    <View
-      style={[
-        styles.background,
-        { backgroundColor: colors.sheetSecondary },
-        outgoingCall.background,
-      ]}
-    >
-      <RTCView
-        streamURL={localVideoStream.toURL()}
-        zOrder={Z_INDEX.IN_BACK}
-        style={StyleSheet.absoluteFill}
-        mirror
-        objectFit="cover"
-      />
+    <View style={[styles.background, outgoingCall.background]}>
+      <LobbyCameraPreview style={StyleSheet.absoluteFill} objectFit="cover" />
     </View>
   );
 };
@@ -148,15 +97,14 @@ const styles = StyleSheet.create({
   container: {
     zIndex: Z_INDEX.IN_MIDDLE,
   },
-  topContainer: { flex: 1, justifyContent: 'center' },
   content: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   callingText: {
-    marginTop: 16,
     textAlign: 'center',
   },
-  bottomContainer: { flex: 1, alignSelf: 'center', justifyContent: 'center' },
   outgoingCallControls: {
     justifyContent: 'center',
   },
