@@ -168,6 +168,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                   <div className="rd__lobby-video-preview">
                     {settings?.video.enabled ? (
                       <VideoPreview
+                        speakingIndicatorVisible
                         DisabledVideoPreview={
                           hasBrowserMediaPermission
                             ? DisabledVideoPreview

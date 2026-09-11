@@ -11,7 +11,7 @@ button.rd__button,
   line-height: var(--str-video__spacing-md);
   font-weight: 500;
   border: 1px solid transparent;
-  color: var(--str-video__text-color1);
+  color: var(--str-video__text-primary);
   background: none;
 
   &:hover {
@@ -21,7 +21,7 @@ button.rd__button,
 
   &__icon {
     margin-right: var(--str-video__space-6);
-    background-color: var(--str-video__text-color1);
+    background-color: var(--str-video__text-primary);
   }
 
   &:disabled {

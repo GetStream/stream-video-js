@@ -76,8 +76,8 @@
       aspect-ratio: auto;
     }
 
-    .str-video__video-placeholder__avatar,
-    .str-video__video-placeholder__initials-fallback {
+    .str-video__avatar,
+    .str-video__avatar--initials-fallback {
       width: var(--rd-pip-avatar-size);
       height: var(--rd-pip-avatar-size);
       font-size: var(--rd-pip-avatar-font-size);

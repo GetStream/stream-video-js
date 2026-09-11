@@ -1,16 +1,32 @@
-@mixin default-avatar-dimensions {
-  width: 2rem;
-  height: 2rem;
+$avatar-sizes: (
+  'xs': var(--str-video__size-20),
+  'sm': var(--str-video__size-24),
+  'md': var(--str-video__size-32),
+  'lg': var(--str-video__size-40),
+  'xl': var(--str-video__size-48),
+  '2xl': var(--str-video__size-80),
+  '3xl': 104px,
+);
+
+.str-video__avatar,
+.str-video__avatar--initials-fallback {
+  width: var(--str-video__size-32);
+  height: var(--str-video__size-32);
 }
 
 .str-video__avatar {
-  @include default-avatar-dimensions;
   object-fit: cover;
 }
 
 .str-video__avatar--initials-fallback {
-  @include default-avatar-dimensions;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+@each $name, $box in $avatar-sizes {
+  .str-video__avatar--size-#{$name} {
+    width: $box;
+    height: $box;
+  }
 }

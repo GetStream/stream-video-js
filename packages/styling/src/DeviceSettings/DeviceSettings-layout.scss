@@ -217,7 +217,7 @@
 
   .str-video__device-level-indicator__bar {
     width: 3px;
-    height: var(--str-video__size-16);
+    height: var(--str-video__size-12);
     border-radius: var(--str-video__radius-max);
     background-color: var(--str-video__indicator-microphone-level-bar-inactive);
     transition: background-color 0.1s;

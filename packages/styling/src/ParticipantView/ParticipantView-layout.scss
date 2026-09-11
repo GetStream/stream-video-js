@@ -11,59 +11,60 @@ $scope-name: 'str-video__participant-view';
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--str-video__border-radius-sm);
+  border-radius: var(--str-video__radius-2xl);
 
   &--speaking {
-    outline: 2px solid var(--str-video__primary-color);
+    outline: var(--str-video__w200) solid var(--str-video__accent-primary);
   }
 
   .str-video__participant-view__menu-button {
-    transition: opacity 200ms ease-out;
-    opacity: 0.3;
-    color: var(--str-video__text-color1);
-  }
-
-  &:hover {
-    .str-video__participant-view__menu-button {
-      opacity: 1;
-    }
-  }
-
-  & > .str-video__participant-view__menu-button {
     position: absolute;
-    top: 0.875rem;
-    left: 0.875rem;
-    --str-video__button-h: calc(var(--str-video__icon-size-sm) + 0.6rem);
+    top: var(--str-video__space-8);
+    left: var(--str-video__space-8);
   }
 
   .str-video__participant-details {
     position: absolute;
-    left: 0;
-    bottom: 0;
+    inset: auto auto var(--str-video__space-8) var(--str-video__space-8);
+    min-block-size: var(--str-video__size-32);
+    max-inline-size: 256px;
     display: flex;
     align-items: center;
     gap: var(--str-video__spacing-xs);
-    border-radius: 0 var(--str-video__border-radius-xs) 0
-      var(--str-video__border-radius-sm);
-    background-color: var(--str-video__background-color4);
+    border-radius: var(--str-video__radius-lg);
+    background-color: var(--str-video__background-core-overlay-dark-strong);
+    -webkit-backdrop-filter: blur(12.5px);
+    backdrop-filter: blur(12.5px);
 
     .str-video__participant-details__name {
       display: flex;
       align-items: center;
-      gap: var(--str-video__spacing-xs);
-      padding: 4px 6px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: var(--str-video__font-size-sm);
+      gap: var(--str-video__spacing-xxs);
+      padding: var(--str-video__space-4) var(--str-video__space-4)
+        var(--str-video__space-4) var(--str-video__space-12);
+      font-size: var(--str-video__typography-font-size-xs);
+      line-height: var(--str-video__typography-line-height-tight);
+      font-weight: var(--str-video__typography-font-weight-regular);
+      color: var(--str-video__participant-label--color);
+
+      .str-video__participant-details__name-text {
+        max-inline-size: 160px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &:not(:last-child) {
+          margin-inline-end: var(--str-video__spacing-xxs);
+        }
+      }
 
       @mixin icon {
-        $icon-size: 1rem;
-        width: $icon-size;
-        height: $icon-size;
-        -webkit-mask-size: $icon-size;
-        mask-size: $icon-size;
-        background-color: var(--str-video__text-color1);
+        flex-shrink: 0;
+        width: var(--str-video__icon-size-sm);
+        height: var(--str-video__icon-size-sm);
+        -webkit-mask-size: var(--str-video__icon-size-sm);
+        mask-size: var(--str-video__icon-size-sm);
+        background-color: var(--str-video__participant-label--color);
       }
 
       .str-video__participant-details__name--audio-muted {
@@ -74,9 +75,9 @@ $scope-name: 'str-video__participant-view';
 
       .str-video__participant-details__name--audio-connecting {
         .str-video__loading-indicator__icon {
-          width: 1rem;
-          height: 1rem;
-          border-width: 2px;
+          width: var(--str-video__icon-size-sm);
+          height: var(--str-video__icon-size-sm);
+          border-width: var(--str-video__size-2);
         }
       }
 
@@ -88,17 +89,13 @@ $scope-name: 'str-video__participant-view';
 
       .str-video__participant-details__name--track-paused {
         @include icon();
-        mask-image: var(--str-video__icon--low-bandwidth);
-        -webkit-mask-image: var(--str-video__icon--low-bandwidth);
+        mask-image: var(--str-video__icon--low-bandwidth-fill);
+        -webkit-mask-image: var(--str-video__icon--low-bandwidth-fill);
       }
 
       .str-video__participant-details__name--pinned {
         cursor: pointer;
         @include icon();
-        width: 0.8rem;
-        height: 1rem;
-        -webkit-mask-size: 0.8rem;
-        mask-size: 0.8rem;
         -webkit-mask-repeat: no-repeat;
         mask-repeat: no-repeat;
         -webkit-mask-position: center;
@@ -110,11 +107,6 @@ $scope-name: 'str-video__participant-view';
   }
 
   .str-video__connection-quality-indicator {
-    // Figma places this as the last item of the bottom Participant Tile
-    // Toolbar, inset 8px from the right and 8px from the bar's top edge
-    // (Toolbar Type=Bottom is 48 tall, the indicator 32x32 at x=600 y=8).
-    // Until the toolbar itself is built out, match that inset rather than
-    // sitting hard in the tile's corner.
     position: absolute;
     inset: auto var(--str-video__space-8) var(--str-video__space-8) auto;
 
@@ -149,16 +141,22 @@ $scope-name: 'str-video__participant-view';
 
 .str-video__speech-indicator {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  gap: 1px;
-  height: 16px;
+  gap: 3px;
+  flex-shrink: 0;
+  inline-size: var(--str-video__size-24);
+  block-size: var(--str-video__size-24);
+  padding: 7px;
+  border-radius: var(--str-video__radius-md);
+  background-color: var(--str-video__background-core-overlay-dark-strong);
 
   .str-video__speech-indicator__bar {
-    width: 3px;
+    flex-shrink: 0;
+    width: 2px;
     height: 20%;
-    background-color: var(--str-video__primary-color);
-    border-radius: 2px;
+    background-color: var(--str-video__indicator-sound-indicator-speaking);
+    border-radius: var(--str-video__radius-max);
     animation-duration: 0.4s;
     animation-iteration-count: 1;
     animation-name: speech-indicator-silence;
@@ -167,7 +165,7 @@ $scope-name: 'str-video__participant-view';
 
   &.str-video__speech-indicator--dominant {
     .str-video__speech-indicator__bar {
-      background-color: var(--str-video__primary-color);
+      background-color: var(--str-video__indicator-sound-indicator-speaking);
     }
   }
 
