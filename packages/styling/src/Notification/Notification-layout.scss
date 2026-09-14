@@ -1,28 +1,29 @@
 .str-video__notification {
   min-height: var(--str-video__size-48);
   max-width: var(--str-video__size-480);
-  padding: var(--str-video__spacing-xs);
   display: flex;
   align-items: center;
   gap: var(--str-video__spacing-xs);
 
-  .str-video__notification__icon {
-    display: inline-block;
-    width: var(--str-video__icon-size-sm);
-    height: var(--str-video__icon-size-sm);
+  padding-block: var(--str-video__spacing-sm);
+  padding-inline: var(--str-video__spacing-md);
+
+  &--success,
+  &--error,
+  &--loading {
+    padding-inline-start: var(--str-video__spacing-sm);
+  }
+
+  &--dismissible {
+    padding-inline-end: var(--str-video__spacing-xs);
   }
 
   .str-video__notification__message {
     flex: 1;
   }
 
-  .str-video__loading-indicator {
-    flex-direction: row;
-    align-items: center;
-    gap: var(--str-video__spacing-xs);
-  }
-
   .str-video__notification__close {
+    margin-inline-start: var(--str-video__spacing-xxs);
     display: inline-block;
     width: var(--str-video__icon-size-sm);
     height: var(--str-video__icon-size-sm);

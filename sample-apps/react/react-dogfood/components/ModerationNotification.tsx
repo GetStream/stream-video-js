@@ -34,6 +34,11 @@ export const ModerationNotification =
     }, [call]);
 
     return (
-      <Notification message={message} isVisible={isVisible} placement="top" />
+      <Notification
+        state="error"
+        message={message}
+        isVisible={isVisible}
+        placement="top"
+      />
     );
   };

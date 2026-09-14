@@ -37,6 +37,7 @@ export const MicCaptureErrorNotification = ({
   return (
     <Notification
       message={message}
+      state="error"
       isVisible={isVisible}
       placement={placement}
       close={() => setIsVisible(false)}
