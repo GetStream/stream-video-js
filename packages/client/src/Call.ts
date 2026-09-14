@@ -1180,6 +1180,10 @@ export class Call {
       }
 
       await this.setup();
+      if (supersededByLeave()) {
+        this.logger.debug('Join superseded by leave; not registering');
+        return;
+      }
 
       this.clientEventReporter.registerCall(this.cid, {
         callType: this.type,

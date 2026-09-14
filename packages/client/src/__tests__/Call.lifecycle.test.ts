@@ -269,6 +269,7 @@ describe('Call lifecycle wiring', () => {
   it('call.join() never attempts when leave() lands during setup()', async () => {
     const setupTask = promiseWithResolvers<void>();
     vi.spyOn(call, 'setup').mockReturnValue(setupTask.promise);
+    const registerCall = vi.spyOn(call.clientEventReporter, 'registerCall');
     const doJoin = vi
       .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
       .mockResolvedValue(undefined);
@@ -278,6 +279,7 @@ describe('Call lifecycle wiring', () => {
     setupTask.resolve();
 
     await expect(joinTask).resolves.toBeUndefined();
+    expect(registerCall).not.toHaveBeenCalled();
     expect(doJoin).not.toHaveBeenCalled();
     expect(call.state.callingState).toBe(CallingState.LEFT);
   });
