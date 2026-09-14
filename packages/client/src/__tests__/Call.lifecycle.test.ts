@@ -352,6 +352,69 @@ describe('Call lifecycle wiring', () => {
     },
   );
 
+  it.each([
+    'stats flush',
+    'subscriber disposal',
+    'publisher disposal',
+  ] as const)(
+    'call.join() does not recreate peers after leave() during %s',
+    async (phase) => {
+      const pending = promiseWithResolvers<void>();
+      vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+      call['credentials'] = fromPartial({ ice_servers: [] });
+      call['lastStatsOptions'] = fromPartial({ reporting_interval_ms: 0 });
+      call['sfuClient'] = fromPartial({
+        isHealthy: true,
+        sessionId: 'test-session',
+        leaveAndClose: vi.fn().mockResolvedValue(undefined),
+      });
+      const flush = vi.fn().mockResolvedValue(undefined);
+      const disposeSubscriber = vi.fn().mockResolvedValue(undefined);
+      const disposePublisher = vi.fn().mockResolvedValue(undefined);
+      call['sfuStatsReporter'] = fromPartial({ flush, stop: vi.fn() });
+      call['subscriber'] = fromPartial({ dispose: disposeSubscriber });
+      call['publisher'] = fromPartial({ dispose: disposePublisher });
+      const pause = {
+        'stats flush': flush,
+        'subscriber disposal': disposeSubscriber,
+        'publisher disposal': disposePublisher,
+      }[phase];
+      // Only pause initialization; leave's own cleanup must remain able to finish.
+      pause.mockReturnValueOnce(pending.promise);
+      const createSubscriber = vi
+        .spyOn(rtc, 'Subscriber')
+        .mockImplementation(function () {
+          return fromPartial<rtc.Subscriber>({
+            dispose: vi.fn().mockResolvedValue(undefined),
+          });
+        });
+      const createPublisher = vi
+        .spyOn(rtc, 'Publisher')
+        .mockImplementation(function () {
+          return fromPartial<rtc.Publisher>({
+            dispose: vi.fn().mockResolvedValue(undefined),
+          });
+        });
+      const logInfo = vi.spyOn(call['logger'], 'info');
+
+      const joinTask = call.join();
+      await vi.waitFor(() => expect(pause).toHaveBeenCalledTimes(1));
+      const subscriberCount = createSubscriber.mock.calls.length;
+      const publisherCount = createPublisher.mock.calls.length;
+      await call.leave();
+      pending.resolve();
+
+      await expect(joinTask).resolves.toBeUndefined();
+      expect(createSubscriber).toHaveBeenCalledTimes(subscriberCount);
+      expect(createPublisher).toHaveBeenCalledTimes(publisherCount);
+      expect(call['subscriber']).toBeUndefined();
+      expect(call['publisher']).toBeUndefined();
+      expect(call['sfuStatsReporter']).toBeUndefined();
+      expect(call.state.callingState).toBe(CallingState.LEFT);
+      expect(logInfo).not.toHaveBeenCalledWith(`Joined call ${call.cid}`);
+    },
+  );
+
   // Controls: without a leave, the retry loop must behave exactly as before.
   it('call.join() still retries a recoverable failure', async () => {
     sleepControl.onSleep = () => Promise.resolve();

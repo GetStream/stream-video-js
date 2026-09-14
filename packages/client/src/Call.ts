@@ -1439,8 +1439,8 @@ export class Call {
       }
     }
 
-    // If the user left while this join was in flight, bail before re-setting JOINED and before
-    // peer-connection setup below (both run synchronously after this, so one check covers them).
+    // If the user left while this join was in flight, bail before re-setting JOINED
+    // or starting peer-connection setup below.
     if (supersededByLeave()) {
       this.logger.debug('Join superseded by leave; aborting join flow');
       return;
@@ -1469,6 +1469,10 @@ export class Call {
         closePreviousInstances: !performingMigration,
         unifiedSessionId: this.unifiedSessionId,
       });
+    }
+    if (supersededByLeave()) {
+      this.logger.debug('Join superseded by leave; not completing join flow');
+      return;
     }
 
     // make sure we only track connection timing if we are not calling this method as part of a reconnection flow
@@ -1655,6 +1659,7 @@ export class Call {
     closePreviousInstances: boolean;
     unifiedSessionId: string;
   }) => {
+    const joinLeaveGeneration = this.leaveGeneration;
     const {
       sfuClient,
       connectionConfig,
@@ -1671,10 +1676,12 @@ export class Call {
     // Flush the previous reporter's final sample while its peer connections are
     // still alive, before we dispose them below. Awaits only the sampling step.
     await this.sfuStatsReporter?.flush();
+    if (this.leaveGeneration !== joinLeaveGeneration) return;
     this.sfuStatsReporter?.stop();
     this.sfuStatsReporter = undefined;
     if (closePreviousInstances && this.subscriber) {
       await this.subscriber.dispose();
+      if (this.leaveGeneration !== joinLeaveGeneration) return;
       this.state.removeAllOrphanedTracks();
     }
     const basePeerConnectionOptions: BasePeerConnectionOpts = {
@@ -1721,6 +1728,7 @@ export class Call {
     if (!isAnonymous) {
       if (closePreviousInstances && this.publisher) {
         await this.publisher.dispose();
+        if (this.leaveGeneration !== joinLeaveGeneration) return;
       }
       this.publisher = new Publisher(
         basePeerConnectionOptions,
