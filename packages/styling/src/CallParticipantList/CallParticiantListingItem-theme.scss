@@ -2,14 +2,17 @@
 
 .str-video__participant-listing-item {
   .str-video__participant-listing-item__display-name {
-    font-size: 13px;
+    font-size: var(--str-video__typography-font-size-sm);
+    line-height: var(--str-video__typography-line-height-normal);
+    font-weight: var(--str-video__typography-font-weight-regular);
+    color: var(--str-video__text-primary);
   }
 
   .str-video__participant-listing-item__media-indicator-group {
     .str-video__participant-listing-item__icon-mic {
       @include utils.apply-mask-image(
         var(--str-video__icon--mic),
-        var(--str-video__text-color1),
+        var(--str-video__text-primary),
         contain
       );
     }
@@ -17,7 +20,7 @@
     .str-video__participant-listing-item__icon-mic-off {
       @include utils.apply-mask-image(
         var(--str-video__icon--mic-off),
-        var(--str-video__danger-color),
+        var(--str-video__accent-error),
         contain
       );
     }
@@ -25,7 +28,7 @@
     .str-video__participant-listing-item__icon-camera {
       @include utils.apply-mask-image(
         var(--str-video__icon--camera),
-        var(--str-video__text-color1),
+        var(--str-video__text-primary),
         contain
       );
     }
@@ -33,7 +36,7 @@
     .str-video__participant-listing-item__icon-camera-off {
       @include utils.apply-mask-image(
         var(--str-video__icon--camera-off),
-        var(--str-video__danger-color),
+        var(--str-video__accent-error),
         contain
       );
     }
@@ -41,7 +44,7 @@
     .str-video__participant-listing-item__icon-pinned {
       @include utils.apply-mask-image(
         var(--str-video__icon--pin),
-        var(--str-video__text-color1),
+        var(--str-video__text-primary),
         contain
       );
     }

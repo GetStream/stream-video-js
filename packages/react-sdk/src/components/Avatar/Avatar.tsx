@@ -75,6 +75,8 @@ export const AvatarFallback = ({
   size = 'md',
   showOutline,
 }: AvatarFallbackProps) => {
+  const isCompact = size === 'xs' || size === 'sm';
+
   return (
     <div
       className={clsx(
@@ -86,7 +88,7 @@ export const AvatarFallback = ({
     >
       <div>
         {names[0]?.[0]}
-        {names[1]?.[0]}
+        {!isCompact && names[1]?.[0]}
       </div>
     </div>
   );
