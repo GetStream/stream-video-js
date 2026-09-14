@@ -292,11 +292,21 @@ describe('Call lifecycle wiring', () => {
     async (phase) => {
       const pending = promiseWithResolvers<void>();
       vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+      vi.spyOn(call.streamClient, 'getLocationHint').mockResolvedValue('AMS');
+      vi.spyOn(call.streamClient, '_hasConnectionID').mockReturnValue(true);
+      const updateState = vi.spyOn(call.state, 'updateFromCallResponse');
+      const accept = vi
+        .spyOn(call, 'accept')
+        .mockResolvedValue({ duration: '0ms' });
+      const registerCall = vi.spyOn(call.clientState, 'registerOrUpdateCall');
       const request = vi
-        .spyOn(call, 'doJoinRequest')
+        .spyOn(call.streamClient, 'post')
         .mockImplementation(async () => {
           if (phase === 'coordinator request') await pending.promise;
           return fromPartial<Awaited<ReturnType<Call['doJoinRequest']>>>({
+            call: { egress: {}, custom: {}, created_by: { id: 'other-user' } },
+            members: [],
+            own_capabilities: [],
             stats_options: { enable_rtc_stats: false },
           });
         });
@@ -317,7 +327,7 @@ describe('Call lifecycle wiring', () => {
           });
         });
 
-      const joinTask = call.join();
+      const joinTask = call.join({ ring: true });
       await vi.waitFor(() =>
         expect(
           phase === 'coordinator request' ? request : genericSdp,
@@ -328,10 +338,16 @@ describe('Call lifecycle wiring', () => {
       pending.resolve();
 
       await expect(joinTask).resolves.toBeUndefined();
-      if (phase === 'coordinator request')
+      if (phase === 'coordinator request') {
         expect(createSfu).not.toHaveBeenCalled();
+        expect(updateState).not.toHaveBeenCalled();
+        expect(accept).not.toHaveBeenCalled();
+        expect(registerCall).not.toHaveBeenCalled();
+      }
       expect(joinSfu).not.toHaveBeenCalled();
       expect(call['sfuClient']).toBeUndefined();
+      expect(call.clientState.calls).not.toContain(call);
+      expect(call.ringing).toBe(false);
       expect(call.state.callingState).toBe(CallingState.LEFT);
     },
   );

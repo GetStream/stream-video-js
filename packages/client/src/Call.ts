@@ -1766,6 +1766,7 @@ export class Call {
    * @param data the join call data.
    */
   doJoinRequest = async (data?: JoinCallData): Promise<JoinCallResponse> => {
+    const joinLeaveGeneration = this.leaveGeneration;
     const location = await this.streamClient.getLocationHint();
     const e2ee = !!this.e2eeManager;
     const request: JoinCallRequest = { ...data, location, e2ee };
@@ -1773,6 +1774,13 @@ export class Call {
       JoinCallResponse,
       JoinCallRequest
     >(`${this.streamClientBasePath}/join`, request);
+
+    if (this.leaveGeneration !== joinLeaveGeneration) {
+      this.logger.debug(
+        'Join superseded by leave; not applying coordinator response',
+      );
+      return joinResponse;
+    }
 
     this.state.updateFromCallResponse(joinResponse.call);
     this.state.setMembers(joinResponse.members);
