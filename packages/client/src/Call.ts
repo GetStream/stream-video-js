@@ -1154,6 +1154,13 @@ export class Call {
         throw new Error(`Illegal State: call.join() shall be called only once`);
       }
 
+      // snapshot before the first await: a leave() landing at any point from
+      // here on supersedes this join, and the retry loop must bail out instead
+      // of resurrecting a call that leave() already tore down.
+      const joinLeaveGeneration = this.leaveGeneration;
+      const supersededByLeave = () =>
+        this.leaveGeneration !== joinLeaveGeneration;
+
       // we need this to be set before the callingx.joinCall() is
       // called to avoid registering the test call in the CallKit/Telecom
       this.allowOwnTracksLoopback = allowOwnTracksLoopback;
@@ -1191,6 +1198,10 @@ export class Call {
           { joinReason: 'first-attempt', joinSource },
           async () => {
             for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+              if (supersededByLeave()) {
+                this.logger.debug('Join superseded by leave; not attempting');
+                return;
+              }
               try {
                 this.logger.trace(`Joining call (${attempt})`, this.cid);
                 await this.doJoin(data);
@@ -1198,6 +1209,10 @@ export class Call {
                 delete joinData.migrating_from_list;
                 return;
               } catch (err) {
+                if (supersededByLeave()) {
+                  this.logger.debug('Join superseded by leave; not retrying');
+                  return;
+                }
                 this.logger.warn(`Failed to join call (${attempt})`, this.cid);
                 if (
                   (err instanceof ErrorFromResponse && err.unrecoverable) ||

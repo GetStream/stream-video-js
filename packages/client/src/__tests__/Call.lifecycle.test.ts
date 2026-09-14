@@ -12,6 +12,42 @@ import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { CallingState, ClientState } from '../store';
 import { promiseWithResolvers } from '../helpers/promise';
 
+// A controlled stand-in for the retry backoff. Unless a test installs a hook,
+// the real `sleep` is used, so the rest of the suite is unaffected.
+const sleepControl: { onSleep?: (ms: number) => Promise<unknown> } = {};
+vi.mock('../coordinator/connection/utils', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('../coordinator/connection/utils')>();
+  return {
+    ...actual,
+    sleep: (ms: number) =>
+      sleepControl.onSleep ? sleepControl.onSleep(ms) : actual.sleep(ms),
+  };
+});
+
+type CallingXStub = {
+  joinCall: ReturnType<typeof vi.fn>;
+  endCall: ReturnType<typeof vi.fn>;
+  wireAudioEngineSubscription: ReturnType<typeof vi.fn>;
+};
+
+// the React Native globals that `join()`/`leave()` reach for when the SDK runs
+// on a device. Installed only by the tests that assert on callingX behavior.
+const installCallingX = (
+  joinCall: CallingXStub['joinCall'] = vi.fn().mockResolvedValue(undefined),
+): CallingXStub => {
+  const callingX: CallingXStub = {
+    joinCall,
+    endCall: vi.fn(),
+    wireAudioEngineSubscription: vi.fn(),
+  };
+  (globalThis as Record<string, any>).streamRNVideoSDK = {
+    callingX,
+    callManager: { stop: vi.fn() },
+  };
+  return callingX;
+};
+
 describe('Call lifecycle wiring', () => {
   let call: Call;
 
@@ -34,6 +70,8 @@ describe('Call lifecycle wiring', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    delete sleepControl.onSleep;
+    delete (globalThis as Record<string, any>).streamRNVideoSDK;
   });
 
   // Regression guard for the Call-owned helper teardown chain. Each of
@@ -157,5 +195,123 @@ describe('Call lifecycle wiring', () => {
 
     expect(doJoin).toHaveBeenCalledTimes(1);
     expect(call.state.callingState).toBe(CallingState.LEFT);
+  });
+
+  // maxJoinRetries: 1 means the failed attempt is also the last one, so the
+  // failure would normally be rethrown and reported as an error-ended call.
+  // A leave that superseded the join must not produce either.
+  it('call.join() swallows a superseded final-attempt failure', async () => {
+    const callingX = installCallingX();
+    const attempt = promiseWithResolvers<void>();
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    const doJoin = vi
+      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .mockImplementation(async () => {
+        await attempt.promise;
+        throw new Error('join response timeout');
+      });
+
+    const joinTask = call.join({ maxJoinRetries: 1 });
+    await vi.waitFor(() => expect(doJoin).toHaveBeenCalledTimes(1));
+
+    await call.leave();
+    attempt.resolve();
+
+    await expect(joinTask).resolves.toBeUndefined();
+    expect(doJoin).toHaveBeenCalledTimes(1);
+    expect(call.state.callingState).toBe(CallingState.LEFT);
+    expect(callingX.endCall).not.toHaveBeenCalledWith(call, 'error');
+  });
+
+  it('call.join() stops retrying when leave() lands during the backoff', async () => {
+    const backoff = promiseWithResolvers<void>();
+    sleepControl.onSleep = () => backoff.promise;
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    const doJoin = vi
+      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .mockRejectedValue(new Error('transient failure'));
+
+    const joinTask = call.join({ maxJoinRetries: 3 });
+    await vi.waitFor(() => expect(doJoin).toHaveBeenCalledTimes(1));
+
+    // the user leaves while the retry loop waits out its backoff
+    await call.leave();
+    backoff.resolve();
+
+    await expect(joinTask).resolves.toBeUndefined();
+    expect(doJoin).toHaveBeenCalledTimes(1);
+    expect(call.state.callingState).toBe(CallingState.LEFT);
+  });
+
+  it('call.join() never attempts when leave() lands during callingX.joinCall', async () => {
+    const joinCall = promiseWithResolvers<void>();
+    installCallingX(vi.fn().mockReturnValue(joinCall.promise));
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    const doJoin = vi
+      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .mockResolvedValue(undefined);
+
+    const joinTask = call.join();
+    await call.leave();
+    joinCall.resolve();
+
+    await expect(joinTask).resolves.toBeUndefined();
+    expect(doJoin).not.toHaveBeenCalled();
+    expect(call.state.callingState).toBe(CallingState.LEFT);
+  });
+
+  it('call.join() never attempts when leave() lands during setup()', async () => {
+    const setupTask = promiseWithResolvers<void>();
+    vi.spyOn(call, 'setup').mockReturnValue(setupTask.promise);
+    const doJoin = vi
+      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .mockResolvedValue(undefined);
+
+    const joinTask = call.join();
+    await call.leave();
+    setupTask.resolve();
+
+    await expect(joinTask).resolves.toBeUndefined();
+    expect(doJoin).not.toHaveBeenCalled();
+    expect(call.state.callingState).toBe(CallingState.LEFT);
+  });
+
+  // Controls: without a leave, the retry loop must behave exactly as before.
+  it('call.join() still retries a recoverable failure', async () => {
+    sleepControl.onSleep = () => Promise.resolve();
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    const doJoin = vi
+      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .mockRejectedValueOnce(new Error('transient failure'))
+      .mockResolvedValue(undefined);
+
+    await expect(call.join({ maxJoinRetries: 3 })).resolves.toBeUndefined();
+    expect(doJoin).toHaveBeenCalledTimes(2);
+  });
+
+  it('call.join() rejects and ends the call once retries are exhausted', async () => {
+    const callingX = installCallingX();
+    sleepControl.onSleep = () => Promise.resolve();
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    const doJoin = vi
+      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .mockRejectedValue(new Error('transient failure'));
+
+    await expect(call.join({ maxJoinRetries: 2 })).rejects.toThrow(
+      'transient failure',
+    );
+    expect(doJoin).toHaveBeenCalledTimes(2);
+    expect(callingX.endCall).toHaveBeenCalledWith(call, 'error');
+  });
+
+  it('call.join() is still allowed after a completed leave()', async () => {
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    const doJoin = vi
+      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .mockResolvedValue(undefined);
+
+    await call.leave();
+    await expect(call.join()).resolves.toBeUndefined();
+    expect(doJoin).toHaveBeenCalledTimes(1);
   });
 });
