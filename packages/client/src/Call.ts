@@ -1320,7 +1320,7 @@ export class Call {
           'CoordinatorJoin',
           () => this.doJoinRequest(data),
         );
-        if (supersededByLeave()) {
+        if (!joinResponse || supersededByLeave()) {
           this.logger.debug(
             'Join superseded by leave; not creating SFU client',
           );
@@ -1782,10 +1782,19 @@ export class Call {
    *
    * @internal
    * @param data the join call data.
+   * @returns The coordinator response, or undefined if leave superseded the request before it was sent.
    */
-  doJoinRequest = async (data?: JoinCallData): Promise<JoinCallResponse> => {
+  doJoinRequest = async (
+    data?: JoinCallData,
+  ): Promise<JoinCallResponse | undefined> => {
     const joinLeaveGeneration = this.leaveGeneration;
     const location = await this.streamClient.getLocationHint();
+    if (this.leaveGeneration !== joinLeaveGeneration) {
+      this.logger.debug(
+        'Join superseded by leave; not sending coordinator request',
+      );
+      return;
+    }
     const e2ee = !!this.e2eeManager;
     const request: JoinCallRequest = { ...data, location, e2ee };
     const joinResponse = await this.streamClient.post<

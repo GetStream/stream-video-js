@@ -11,6 +11,7 @@ import * as sfu from '../StreamSfuClient';
 import * as rtc from '../rtc';
 import { StreamClient } from '../coordinator/connection/client';
 import { ClientEventReporter } from '../reporting';
+import type { JoinCallResponse } from '../gen/coordinator';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { CallingState, ClientState } from '../store';
 import { promiseWithResolvers } from '../helpers/promise';
@@ -289,6 +290,7 @@ describe('Call lifecycle wiring', () => {
 
   it.each([
     'media factory',
+    'location hint',
     'coordinator request',
     'acceptance',
     'generic SDP',
@@ -304,7 +306,12 @@ describe('Call lifecycle wiring', () => {
         return fromPartial<rtc.CallMediaEngine>({});
       });
     }
-    vi.spyOn(call.streamClient, 'getLocationHint').mockResolvedValue('AMS');
+    const locationHint = vi
+      .spyOn(call.streamClient, 'getLocationHint')
+      .mockImplementation(async () => {
+        if (phase === 'location hint') await pending.promise;
+        return 'AMS';
+      });
     vi.spyOn(call.streamClient, '_hasConnectionID').mockReturnValue(true);
     const updateState = vi.spyOn(call.state, 'updateFromCallResponse');
     const accept = vi.spyOn(call, 'accept').mockImplementation(async () => {
@@ -316,7 +323,7 @@ describe('Call lifecycle wiring', () => {
       .spyOn(call.streamClient, 'post')
       .mockImplementation(async () => {
         if (phase === 'coordinator request') await pending.promise;
-        return fromPartial<Awaited<ReturnType<Call['doJoinRequest']>>>({
+        return fromPartial<JoinCallResponse>({
           call: { egress: {}, custom: {}, created_by: { id: 'other-user' } },
           members: [],
           own_capabilities: [],
@@ -353,6 +360,7 @@ describe('Call lifecycle wiring', () => {
     const joinTask = call.join({ ring: true });
     const pausedOperation = {
       'media factory': mediaFactory,
+      'location hint': locationHint,
       'coordinator request': request,
       acceptance: accept,
       'generic SDP': genericSdp,
@@ -368,9 +376,15 @@ describe('Call lifecycle wiring', () => {
     await expect(joinTask).resolves.toBeUndefined();
     if (phase === 'media factory') {
       expect(callingX!.wireAudioEngineSubscription).not.toHaveBeenCalled();
+    }
+    if (phase === 'media factory' || phase === 'location hint') {
       expect(request).not.toHaveBeenCalled();
     }
-    if (phase === 'coordinator request' || phase === 'media factory') {
+    if (
+      phase === 'coordinator request' ||
+      phase === 'media factory' ||
+      phase === 'location hint'
+    ) {
       expect(createSfu).not.toHaveBeenCalled();
       expect(updateState).not.toHaveBeenCalled();
       expect(accept).not.toHaveBeenCalled();
