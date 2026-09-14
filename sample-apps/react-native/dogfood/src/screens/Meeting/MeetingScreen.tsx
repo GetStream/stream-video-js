@@ -7,6 +7,7 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList } from '../../../types';
 import { MeetingUI } from '../../components/MeetingUI';
+import { getE2EESettingsOverride } from '../../utils/e2ee';
 
 type Props = NativeStackScreenProps<MeetingStackParamList, 'MeetingScreen'>;
 
@@ -29,7 +30,12 @@ export const MeetingScreen = (props: Props) => {
   useEffect(() => {
     const getOrCreateCall = async () => {
       try {
-        await call?.getOrCreate();
+        // A call's encryption setting is fixed at creation, and the backend
+        // rejects an E2EE join against a call that was not created for it.
+        const settings_override = getE2EESettingsOverride();
+        await call?.getOrCreate(
+          settings_override ? { data: { settings_override } } : undefined,
+        );
       } catch (error) {
         console.error('Failed to get or create call', error);
       }
