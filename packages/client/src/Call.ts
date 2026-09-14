@@ -1316,6 +1316,12 @@ export class Call {
           'CoordinatorJoin',
           () => this.doJoinRequest(data),
         );
+        if (supersededByLeave()) {
+          this.logger.debug(
+            'Join superseded by leave; not creating SFU client',
+          );
+          return;
+        }
         this.credentials = joinResponse.credentials;
         statsOptions = joinResponse.stats_options;
         this.lastStatsOptions = statsOptions;
@@ -1374,6 +1380,10 @@ export class Call {
         getGenericSdp('recvonly', dangerouslyForceCodec, subscriberFmtpLine),
         getGenericSdp('sendonly', dangerouslyForceCodec, fmtpLine),
       ]);
+      if (supersededByLeave()) {
+        this.logger.debug('Join superseded by leave; not joining SFU');
+        return;
+      }
       const isReconnecting =
         this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED;
       const reconnectDetails = isReconnecting

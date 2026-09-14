@@ -5,7 +5,10 @@
 import '../rtc/__tests__/mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { Call } from '../Call';
+import * as sfu from '../StreamSfuClient';
+import * as rtc from '../rtc';
 import { StreamClient } from '../coordinator/connection/client';
 import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
@@ -283,6 +286,55 @@ describe('Call lifecycle wiring', () => {
     expect(doJoin).not.toHaveBeenCalled();
     expect(call.state.callingState).toBe(CallingState.LEFT);
   });
+
+  it.each(['coordinator request', 'generic SDP'] as const)(
+    'call.join() stops after leave() during %s',
+    async (phase) => {
+      const pending = promiseWithResolvers<void>();
+      vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+      const request = vi
+        .spyOn(call, 'doJoinRequest')
+        .mockImplementation(async () => {
+          if (phase === 'coordinator request') await pending.promise;
+          return fromPartial<Awaited<ReturnType<Call['doJoinRequest']>>>({
+            stats_options: { enable_rtc_stats: false },
+          });
+        });
+      const genericSdp = vi
+        .spyOn(rtc, 'getGenericSdp')
+        .mockImplementation(async () => {
+          if (phase === 'generic SDP') await pending.promise;
+          return 'sdp';
+        });
+      const joinSfu = vi.fn().mockResolvedValue({});
+      const createSfu = vi
+        .spyOn(sfu, 'StreamSfuClient')
+        .mockImplementation(function () {
+          return fromPartial<sfu.StreamSfuClient>({
+            sessionId: 'test-session',
+            join: joinSfu,
+            leaveAndClose: vi.fn().mockResolvedValue(undefined),
+          });
+        });
+
+      const joinTask = call.join();
+      await vi.waitFor(() =>
+        expect(
+          phase === 'coordinator request' ? request : genericSdp,
+        ).toHaveBeenCalled(),
+      );
+      expect(call.state.callingState).toBe(CallingState.JOINING);
+      await call.leave();
+      pending.resolve();
+
+      await expect(joinTask).resolves.toBeUndefined();
+      if (phase === 'coordinator request')
+        expect(createSfu).not.toHaveBeenCalled();
+      expect(joinSfu).not.toHaveBeenCalled();
+      expect(call['sfuClient']).toBeUndefined();
+      expect(call.state.callingState).toBe(CallingState.LEFT);
+    },
+  );
 
   // Controls: without a leave, the retry loop must behave exactly as before.
   it('call.join() still retries a recoverable failure', async () => {
