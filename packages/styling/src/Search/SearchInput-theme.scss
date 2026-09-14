@@ -25,9 +25,6 @@
 .str-video__search-input__container {
   @include utils.component-layer-overrides('search-input__container');
 
-  // Hover 26330:39253 - the overlay layers over the default edge rather than
-  // replacing it. border-utility-hover is a translucent wash, so on its own it
-  // renders lighter than the rest state and the edge appears to fade on hover.
   &:hover {
     box-shadow:
       inset 0 0 0 var(--str-video__w100) var(--str-video__border-utility-hover),

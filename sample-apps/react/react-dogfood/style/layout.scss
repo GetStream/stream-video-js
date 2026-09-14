@@ -33,8 +33,6 @@
   z-index: 1;
 }
 
-// Figma: Video / Web / Participants Drawer 26071:66205 and Chat Drawer
-// 24212:74996 both bind radius/3xl for the drawer shell.
 .rd__sidebar {
   position: absolute;
   border-radius: var(--str-video__radius-3xl);
@@ -50,9 +48,6 @@
     width: 100%;
   }
 
-  // paints the panel background, so it needs the shell radius too - without it
-  // its square corners fill out to .rd__sidebar's clip and mask the radius of
-  // whatever panel sits inside
   .rd__sidebar__container {
     flex-grow: 1;
     padding: var(--str-video__spacing-md) 0;

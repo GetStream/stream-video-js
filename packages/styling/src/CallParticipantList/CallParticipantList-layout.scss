@@ -10,13 +10,7 @@ $scope-name: 'str-video__participant-list';
     gap: var(--str-video__spacing-sm);
 
     .str-video__participant-list-header__title {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      column-gap: var(--str-video__spacing-xs);
-      row-gap: 0;
       flex: 1;
-      min-inline-size: 0;
 
       font-size: var(--str-video__typography-font-size-md);
       line-height: var(--str-video__typography-line-height-normal);
