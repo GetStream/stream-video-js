@@ -287,70 +287,105 @@ describe('Call lifecycle wiring', () => {
     expect(call.state.callingState).toBe(CallingState.LEFT);
   });
 
-  it.each(['coordinator request', 'generic SDP'] as const)(
-    'call.join() stops after leave() during %s',
-    async (phase) => {
-      const pending = promiseWithResolvers<void>();
-      vi.spyOn(call, 'setup').mockResolvedValue(undefined);
-      vi.spyOn(call.streamClient, 'getLocationHint').mockResolvedValue('AMS');
-      vi.spyOn(call.streamClient, '_hasConnectionID').mockReturnValue(true);
-      const updateState = vi.spyOn(call.state, 'updateFromCallResponse');
-      const accept = vi
-        .spyOn(call, 'accept')
-        .mockResolvedValue({ duration: '0ms' });
-      const registerCall = vi.spyOn(call.clientState, 'registerOrUpdateCall');
-      const request = vi
-        .spyOn(call.streamClient, 'post')
-        .mockImplementation(async () => {
-          if (phase === 'coordinator request') await pending.promise;
-          return fromPartial<Awaited<ReturnType<Call['doJoinRequest']>>>({
-            call: { egress: {}, custom: {}, created_by: { id: 'other-user' } },
-            members: [],
-            own_capabilities: [],
-            stats_options: { enable_rtc_stats: false },
-          });
+  it.each([
+    'media factory',
+    'coordinator request',
+    'acceptance',
+    'generic SDP',
+    'SFU join',
+  ] as const)('call.join() stops after leave() during %s', async (phase) => {
+    const pending = promiseWithResolvers<void>();
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    const mediaFactory = vi.spyOn(call, 'ensureMediaFactory');
+    const callingX = phase === 'media factory' ? installCallingX() : undefined;
+    if (phase === 'media factory') {
+      mediaFactory.mockImplementation(async () => {
+        await pending.promise;
+        return fromPartial<rtc.CallMediaEngine>({});
+      });
+    }
+    vi.spyOn(call.streamClient, 'getLocationHint').mockResolvedValue('AMS');
+    vi.spyOn(call.streamClient, '_hasConnectionID').mockReturnValue(true);
+    const updateState = vi.spyOn(call.state, 'updateFromCallResponse');
+    const accept = vi.spyOn(call, 'accept').mockImplementation(async () => {
+      if (phase === 'acceptance') await pending.promise;
+      return { duration: '0ms' };
+    });
+    const registerCall = vi.spyOn(call.clientState, 'registerOrUpdateCall');
+    const request = vi
+      .spyOn(call.streamClient, 'post')
+      .mockImplementation(async () => {
+        if (phase === 'coordinator request') await pending.promise;
+        return fromPartial<Awaited<ReturnType<Call['doJoinRequest']>>>({
+          call: { egress: {}, custom: {}, created_by: { id: 'other-user' } },
+          members: [],
+          own_capabilities: [],
+          stats_options: { enable_rtc_stats: false },
         });
-      const genericSdp = vi
-        .spyOn(rtc, 'getGenericSdp')
-        .mockImplementation(async () => {
-          if (phase === 'generic SDP') await pending.promise;
-          return 'sdp';
+      });
+    const genericSdp = vi
+      .spyOn(rtc, 'getGenericSdp')
+      .mockImplementation(async () => {
+        if (phase === 'generic SDP') await pending.promise;
+        return 'sdp';
+      });
+    const updateSfuState = vi
+      .spyOn(call.state, 'updateFromSfuCallState')
+      .mockImplementation(() => {});
+    const joinSfu = vi.fn().mockImplementation(async () => {
+      if (phase === 'SFU join') await pending.promise;
+      return {
+        callState: {},
+        publishOptions: [],
+        fastReconnectDeadlineSeconds: 123,
+      };
+    });
+    const createSfu = vi
+      .spyOn(sfu, 'StreamSfuClient')
+      .mockImplementation(function () {
+        return fromPartial<sfu.StreamSfuClient>({
+          sessionId: 'test-session',
+          join: joinSfu,
+          leaveAndClose: vi.fn().mockResolvedValue(undefined),
         });
-      const joinSfu = vi.fn().mockResolvedValue({});
-      const createSfu = vi
-        .spyOn(sfu, 'StreamSfuClient')
-        .mockImplementation(function () {
-          return fromPartial<sfu.StreamSfuClient>({
-            sessionId: 'test-session',
-            join: joinSfu,
-            leaveAndClose: vi.fn().mockResolvedValue(undefined),
-          });
-        });
+      });
 
-      const joinTask = call.join({ ring: true });
-      await vi.waitFor(() =>
-        expect(
-          phase === 'coordinator request' ? request : genericSdp,
-        ).toHaveBeenCalled(),
-      );
-      expect(call.state.callingState).toBe(CallingState.JOINING);
-      await call.leave();
-      pending.resolve();
+    const joinTask = call.join({ ring: true });
+    const pausedOperation = {
+      'media factory': mediaFactory,
+      'coordinator request': request,
+      acceptance: accept,
+      'generic SDP': genericSdp,
+      'SFU join': joinSfu,
+    }[phase];
+    await vi.waitFor(() => expect(pausedOperation).toHaveBeenCalled());
+    expect(call.state.callingState).toBe(CallingState.JOINING);
+    await call.leave();
+    const publishOptions = call['currentPublishOptions'];
+    const reconnectDeadline = call['fastReconnectDeadlineSeconds'];
+    pending.resolve();
 
-      await expect(joinTask).resolves.toBeUndefined();
-      if (phase === 'coordinator request') {
-        expect(createSfu).not.toHaveBeenCalled();
-        expect(updateState).not.toHaveBeenCalled();
-        expect(accept).not.toHaveBeenCalled();
-        expect(registerCall).not.toHaveBeenCalled();
-      }
-      expect(joinSfu).not.toHaveBeenCalled();
-      expect(call['sfuClient']).toBeUndefined();
-      expect(call.clientState.calls).not.toContain(call);
-      expect(call.ringing).toBe(false);
-      expect(call.state.callingState).toBe(CallingState.LEFT);
-    },
-  );
+    await expect(joinTask).resolves.toBeUndefined();
+    if (phase === 'media factory') {
+      expect(callingX!.wireAudioEngineSubscription).not.toHaveBeenCalled();
+      expect(request).not.toHaveBeenCalled();
+    }
+    if (phase === 'coordinator request' || phase === 'media factory') {
+      expect(createSfu).not.toHaveBeenCalled();
+      expect(updateState).not.toHaveBeenCalled();
+      expect(accept).not.toHaveBeenCalled();
+      expect(registerCall).not.toHaveBeenCalled();
+    }
+    if (phase === 'acceptance') expect(registerCall).not.toHaveBeenCalled();
+    expect(joinSfu).toHaveBeenCalledTimes(phase === 'SFU join' ? 1 : 0);
+    expect(updateSfuState).not.toHaveBeenCalled();
+    expect(call['currentPublishOptions']).toBe(publishOptions);
+    expect(call['fastReconnectDeadlineSeconds']).toBe(reconnectDeadline);
+    expect(call['sfuClient']).toBeUndefined();
+    expect(call.clientState.calls).not.toContain(call);
+    expect(call.ringing).toBe(false);
+    expect(call.state.callingState).toBe(CallingState.LEFT);
+  });
 
   it.each([
     'stats flush',

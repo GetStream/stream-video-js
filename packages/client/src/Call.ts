@@ -1289,6 +1289,10 @@ export class Call {
     // globals resolve to the call's factory. Idempotent across
     // reconnect/migration attempts.
     await this.ensureMediaFactory();
+    if (supersededByLeave()) {
+      this.logger.debug('Join superseded by leave; not wiring media');
+      return;
+    }
 
     const callingX = globalThis.streamRNVideoSDK?.callingX;
     if (callingX) {
@@ -1417,6 +1421,12 @@ export class Call {
               source: ParticipantSource.WEBRTC_UNSPECIFIED,
             }),
           );
+        if (supersededByLeave()) {
+          this.logger.debug(
+            'Join superseded by leave; not applying SFU response',
+          );
+          return;
+        }
 
         this.currentPublishOptions = publishOptions;
         this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
@@ -1804,6 +1814,7 @@ export class Call {
     if (!isReconnecting && this.ringing && !this.isCreatedByMe) {
       // signals other users that I have accepted the incoming call.
       await this.accept();
+      if (this.leaveGeneration !== joinLeaveGeneration) return joinResponse;
     }
 
     if (this.streamClient._hasConnectionID()) {
