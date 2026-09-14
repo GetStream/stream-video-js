@@ -9,7 +9,7 @@ import { Call } from '../Call';
 import { StreamClient } from '../coordinator/connection/client';
 import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
-import { ClientState } from '../store';
+import { CallingState, ClientState } from '../store';
 import { promiseWithResolvers } from '../helpers/promise';
 
 describe('Call lifecycle wiring', () => {
@@ -120,5 +120,42 @@ describe('Call lifecycle wiring', () => {
       undefined,
       undefined,
     ]);
+  });
+
+  // Regression guard for the join-retry / leave race.
+  //
+  // `supersededByLeave` is snapshotted *inside* `doJoin` (Call.ts), so every
+  // retry re-reads an already-incremented `leaveGeneration` and concludes that
+  // no leave happened. A leave that lands while an attempt is in flight
+  // therefore does not stop the retry loop, and the next attempt performs a
+  // full join — coordinator request, SFU socket, peer connections — on a call
+  // the user has already left, after `leaveCallHooks` tore down its event
+  // wiring. The retry loop needs a generation check of its own, at `join()`
+  // scope rather than per-attempt.
+  it('call.join() stops retrying once leave() has superseded the join', async () => {
+    const firstAttempt = promiseWithResolvers<void>();
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    const doJoin = vi
+      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .mockImplementationOnce(async () => {
+        // first attempt hangs (e.g. awaiting a JoinResponse), then times out
+        await firstAttempt.promise;
+        throw new Error('join response timeout');
+      })
+      .mockResolvedValue(undefined);
+
+    const joinTask = call.join({ maxJoinRetries: 3 });
+    await vi.waitFor(() => expect(doJoin).toHaveBeenCalledTimes(1));
+
+    // the user leaves while the first attempt is still in flight
+    await call.leave();
+    expect(call.state.callingState).toBe(CallingState.LEFT);
+
+    // ...only now does the first attempt fail
+    firstAttempt.resolve();
+    await joinTask;
+
+    expect(doJoin).toHaveBeenCalledTimes(1);
+    expect(call.state.callingState).toBe(CallingState.LEFT);
   });
 });
