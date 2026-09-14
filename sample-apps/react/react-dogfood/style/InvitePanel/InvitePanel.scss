@@ -5,8 +5,10 @@
   &__qr {
     margin-top: var(--str-video__spacing-md);
     &-header {
-      font-size: var(--str-video__font-size-md);
-      font-weight: 500;
+      font-size: var(--str-video__typography-font-size-sm);
+      line-height: var(--str-video__typography-line-height-normal);
+      font-weight: var(--str-video__typography-font-weight-semi-bold);
+      color: var(--str-video__text-primary);
 
       &--accordion {
         display: flex;
@@ -21,13 +23,15 @@
     }
 
     &-description {
-      font-size: var(--str-video__font-size-xs);
-      color: var(--str-video__text-color2);
+      font-size: var(--str-video__typography-font-size-xs);
+      line-height: var(--str-video__typography-line-height-tight);
+      font-weight: var(--str-video__typography-font-weight-regular);
+      color: var(--str-video__text-secondary);
     }
 
     &-chevron {
-      width: 1rem;
-      height: 1rem;
+      inline-size: var(--str-video__icon-size-sm);
+      block-size: var(--str-video__icon-size-sm);
     }
 
     &-container {
@@ -35,16 +39,16 @@
       justify-content: center;
       align-items: center;
       margin-top: var(--str-video__spacing-md);
-      border-radius: var(--str-video__border-radius-md);
-      background-color: var(--str-video__background-core-app);
+      border-radius: var(--str-video__radius-lg);
+      background-color: var(--str-video__background-core-surface-default);
       width: 100%;
     }
 
     &-code {
       margin: var(--str-video__spacing-sm) 0;
       padding: 0 var(--str-video__spacing-sm);
-      border-radius: var(--str-video__border-radius-md);
-      background-color: white;
+      border-radius: var(--str-video__radius-xl);
+      background-color: var(--str-video__base-white);
       width: 100px;
       height: 100px;
     }
@@ -53,13 +57,17 @@
   &__copy {
     margin-top: var(--str-video__spacing-md);
     &-header {
-      font-size: var(--str-video__font-size-md);
-      font-weight: 500;
+      font-size: var(--str-video__typography-font-size-sm);
+      line-height: var(--str-video__typography-line-height-normal);
+      font-weight: var(--str-video__typography-font-weight-semi-bold);
+      color: var(--str-video__text-primary);
     }
 
     &-description {
-      font-size: var(--str-video__font-size-xs);
-      color: var(--str-video__text-color2);
+      font-size: var(--str-video__typography-font-size-xs);
+      line-height: var(--str-video__typography-line-height-tight);
+      font-weight: var(--str-video__typography-font-weight-regular);
+      color: var(--str-video__text-secondary);
     }
 
     &-button {

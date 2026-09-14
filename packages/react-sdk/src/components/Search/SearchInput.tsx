@@ -42,16 +42,15 @@ export const SearchInput = ({
         'str-video__search-input__container--active': isActive,
       })}
     >
+      <span className="str-video__search-input__icon" />
       <input placeholder="Search" {...rest} ref={setInputElement} />
-      {isActive ? (
+      {isActive && (
         <button
           className="str-video__search-input__clear-btn"
           onClick={exitSearch}
         >
           <span className="str-video__search-input__icon--active" />
         </button>
-      ) : (
-        <span className="str-video__search-input__icon" />
       )}
     </div>
   );
