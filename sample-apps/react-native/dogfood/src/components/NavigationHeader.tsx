@@ -1,9 +1,9 @@
 import {
   StreamVideoRN,
-  useI18n,
   useStreamVideoClient,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../hooks/useAppI18n';
 import React, { useMemo } from 'react';
 import { Alert, StyleSheet, Text } from 'react-native';
 import {
@@ -19,7 +19,7 @@ import { ButtonTestIds } from '../constants/TestIds';
 
 export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   const videoClient = useStreamVideoClient();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const styles = useStyles();
   const userName = useAppGlobalStoreValue((store) => store.userName);
   const environment = useAppGlobalStoreValue((store) => store.appEnvironment);
@@ -31,7 +31,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
       'Are you sure you want to sign out?',
       [
         {
-          text: t('Cancel'),
+          text: t('navigationHeader.logout.cancel.label', 'Cancel'),
           onPress: () => {},
           style: 'cancel',
         },
@@ -73,7 +73,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
       {!showChooseModeButton ? (
         <Button
           onPress={logoutHandler}
-          title={t('Logout')}
+          title={t('navigationHeader.logout.label', 'Logout')}
           testID={ButtonTestIds.LOG_OUT}
         />
       ) : (
@@ -81,7 +81,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
           onPress={() => {
             appStoreSetState({ appMode: 'None' });
           }}
-          title={t('Choose Mode')}
+          title={t('navigationHeader.chooseMode.label', 'Choose Mode')}
           titleStyle={styles.buttonText}
           testID={ButtonTestIds.CHOOSE_MODE}
         />

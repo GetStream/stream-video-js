@@ -10,8 +10,8 @@ import {
   Restricted,
   useCall,
   useCallStateHooks,
-  useI18n,
 } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 import {
   name,
   OwnCapability,
@@ -123,7 +123,7 @@ const CallParticipantListContentHeader = ({
               variant="secondary"
               onClick={muteAll}
             >
-              {t('Mute all')}
+              {t('participantList.muteAll.label', 'Mute all')}
             </Button>
           </Restricted>
         )}

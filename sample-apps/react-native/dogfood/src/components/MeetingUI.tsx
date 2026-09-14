@@ -5,8 +5,8 @@ import {
   CallingState,
   useCall,
   useCallStateHooks,
-  useI18n,
 } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../hooks/useAppI18n';
 import { MeetingStackParamList, ScreenTypes } from '../../types';
 import { LobbyViewComponent } from './LobbyViewComponent';
 import { ActiveCall } from './ActiveCall';
@@ -71,7 +71,7 @@ const MeetingUIFlow = ({ callId, navigation, route }: Props) => {
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const appStoreSetState = useAppGlobalStoreSetState();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
@@ -227,7 +227,10 @@ const MeetingUIFlow = ({ callId, navigation, route }: Props) => {
   if (show === 'error-join' || show === 'error-leave') {
     return (
       <CallErrorComponent
-        title={t('Error Joining/Leaving Call')}
+        title={t(
+          'meetingUI.joinLeaveError.title',
+          'Error Joining/Leaving Call',
+        )}
         message={errorMessage}
         // Only for a failed leave, where the call may well still be live. A
         // failed join has ended its call, and its lobby would only offer to
@@ -252,7 +255,10 @@ const MeetingUIFlow = ({ callId, navigation, route }: Props) => {
   } else if (!call) {
     return (
       <CallErrorComponent
-        title={t('Lost Active Call Connection')}
+        title={t(
+          'meetingUI.connectionLost.title',
+          'Lost Active Call Connection',
+        )}
         message={errorMessage}
         backToLobbyHandler={backToLobbyHandler}
         returnToHomeHandler={returnToHomeHandler}

@@ -7,7 +7,6 @@ import {
   LoadingIndicator,
   Notification,
   useCallStateHooks,
-  useI18n,
   WithTooltip,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
@@ -21,6 +20,7 @@ import {
   useIsDemoEnvironment,
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 const LatencyIndicator = () => {
   const { useCallStatsReport } = useCallStateHooks();
@@ -73,14 +73,16 @@ const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
 };
 
 const RecordingIndicator = () => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   return (
-    <div className="rd__header__recording-indicator">{t('Recording...')}</div>
+    <div className="rd__header__recording-indicator">
+      {t('activeCall.header.recording.text', 'Recording...')}
+    </div>
   );
 };
 
 const E2EEBadge = () => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const isPronto = useIsProntoEnvironment();
   const { useE2eeEnabled } = useCallStateHooks();
   const e2eeEnabled = useE2eeEnabled();
@@ -89,14 +91,22 @@ const E2EEBadge = () => {
   // overflow the header on mobile). The description lives in the tooltip.
   if (!isPronto || !e2eeEnabled) return null;
   return (
-    <WithTooltip title={t('This call is end-to-end encrypted.')}>
+    <WithTooltip
+      title={t(
+        'activeCall.header.encrypted.description',
+        'This call is end-to-end encrypted.',
+      )}
+    >
       <div
         className="rd__call-header__e2ee-badge"
-        aria-label={t('End-to-end encrypted')}
+        aria-label={t(
+          'activeCall.header.encrypted.ariaLabel',
+          'End-to-end encrypted',
+        )}
       >
         <LockIcon className="rd__call-header__e2ee-badge-icon" />
         <span className="rd__call-header__e2ee-badge-label">
-          {t('Encrypted')}
+          {t('activeCall.header.encrypted.label', 'Encrypted')}
         </span>
       </div>
     </WithTooltip>
@@ -140,7 +150,7 @@ export const ActiveCallHeader = ({
   const isReconnecting = callingState === CallingState.RECONNECTING;
   const hasFailedToRecover = callingState === CallingState.RECONNECTING_FAILED;
 
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   const isDemo = useIsDemoEnvironment();
 
@@ -149,7 +159,14 @@ export const ActiveCallHeader = ({
       <div className="rd__call-header rd__call-header--active">
         <div className="rd__call-header__title">
           <CallHeaderTitle
-            title={isDemo ? t('Stream Video Calling') : undefined}
+            title={
+              isDemo
+                ? t(
+                    'activeCall.header.streamVideoCalling.title',
+                    'Stream Video Calling',
+                  )
+                : undefined
+            }
           />
 
           <ToggleDocumentationButton />

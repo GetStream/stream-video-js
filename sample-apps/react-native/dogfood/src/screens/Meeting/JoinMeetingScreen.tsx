@@ -20,7 +20,8 @@ import { TextInput } from '../../components/TextInput';
 import { Button } from '../../components/Button';
 import { E2EEKeyInput } from '../../components/E2EEKeyInput';
 import { deeplinkCallId$ } from '../../hooks/useDeepLinkEffect';
-import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
+import { useTheme } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 import { useOrientation } from '../../hooks/useOrientation';
 
 type JoinMeetingScreenProps = NativeStackScreenProps<
@@ -36,7 +37,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const setState = useAppGlobalStoreSetState();
   const callId = useAppGlobalStoreValue((store) => store.callId) || '';
   const { theme } = useTheme();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const orientation = useOrientation();
   const styles = useStyles();
 
@@ -85,10 +86,15 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
         <Image source={{ uri: userImageUrl }} style={styles.logo} />
         <View>
           <Text style={styles.title}>
-            {t('Hello, {{ userName }}', { userName: userName || userId })}
+            {t('joinMeeting.greeting.title', 'Hello, {{ userName }}', {
+              userName: userName || userId,
+            })}
           </Text>
           <Text style={styles.subTitle}>
-            {t('Start or join a meeting by entering the call ID.')}
+            {t(
+              'joinMeeting.enterCallId.description',
+              'Start or join a meeting by entering the call ID.',
+            )}
           </Text>
         </View>
       </View>
@@ -96,7 +102,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
       <View style={styles.bottomContainer}>
         <View style={styles.createCall}>
           <TextInput
-            placeholder={t('Type your Call ID')}
+            placeholder={t('joinMeeting.callId.label', 'Type your Call ID')}
             value={callId}
             autoCapitalize="none"
             autoCorrect={false}
@@ -106,7 +112,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           />
           <Button
             onPress={joinCallHandler}
-            title={t('Join Call')}
+            title={t('joinMeeting.join.label', 'Join Call')}
             disabled={!isValidCall}
             buttonStyle={{
               ...styles.joinCallButton,
@@ -121,7 +127,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
             const randomCallID = randomId();
             startNewCallHandler(randomCallID);
           }}
-          title={t('Start a New Call')}
+          title={t('joinMeeting.startNewCall.label', 'Start a New Call')}
           buttonStyle={styles.startNewCallButton}
         />
         <E2EEKeyInput />

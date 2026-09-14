@@ -74,7 +74,7 @@
   padding: 0 5px;
   border-radius: var(--str-video__border-radius-circle);
   background: var(--str-video__brand-color3);
-  color: var(--str-video__base-color4);
+  color: var(--str-video__text-on-inverse);
   font-size: 10px;
   font-weight: 600;
   line-height: 1;
@@ -118,7 +118,7 @@
 .rd-chat__new-message-notification__sender {
   font-size: var(--str-video__font-size-sm);
   font-weight: 600;
-  color: var(--str-video__text-color1);
+  color: var(--str-video__text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

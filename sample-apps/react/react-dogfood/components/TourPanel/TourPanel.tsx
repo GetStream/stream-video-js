@@ -3,16 +3,15 @@ import clsx from 'clsx';
 import { offset, OffsetOptions, Placement } from '@floating-ui/react';
 import { computePosition } from '@floating-ui/dom';
 
-import { useI18n } from '@stream-io/video-react-sdk';
-
 import { useTourContext } from '../../context/TourContext';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 export type Props = {
   highlightClass: string;
 };
 
 export const TourPanel = ({ highlightClass }: Props) => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   const tourPanel = useRef<HTMLDivElement>(null);
   const [previousElement, setPreviousElement] = useState<Element>();
@@ -126,7 +125,9 @@ export const TourPanel = ({ highlightClass }: Props) => {
           })}
           onClick={closeTour}
         >
-          {current === total ? t('Finish intro') : t('Skip intro')}
+          {current === total
+            ? t('tour.finishIntro.label', 'Finish intro')
+            : t('tour.skipIntro.label', 'Skip intro')}
         </button>
 
         {current === total && (
@@ -140,7 +141,7 @@ export const TourPanel = ({ highlightClass }: Props) => {
         )}
         {current !== total && (
           <button className="rd__button rd__button--primary" onClick={next}>
-            {t('Next')}
+            {t('common.next.label', 'Next')}
           </button>
         )}
       </div>

@@ -26,7 +26,7 @@ import appTranslations from '../../translations';
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
   const {
-    settings: { language, fallbackLanguage, segmentationModel },
+    settings: { language, segmentationModel },
   } = useSettings();
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
@@ -129,8 +129,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     <StreamVideo
       client={client}
       language={language}
-      fallbackLanguage={fallbackLanguage}
-      translationsOverrides={appTranslations}
+      translations={appTranslations}
     >
       <LobbyE2EEContext.Provider value={e2eeControls}>
         <CallScope

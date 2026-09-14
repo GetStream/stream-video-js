@@ -3,7 +3,6 @@ import {
   JoinCallButton,
   Lobby,
   useCallStateHooks,
-  useI18n,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import React, { useCallback } from 'react';
@@ -28,7 +27,7 @@ export const LobbyViewComponent = ({
   route,
   onJoinCallHandler,
 }: LobbyViewComponentType) => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const orientation = useOrientation();
   const { theme } = useTheme();
   const { useCallSettings } = useCallStateHooks();
@@ -61,7 +60,10 @@ export const LobbyViewComponent = ({
             }}
           >
             <Text style={styles.anonymousButtonText}>
-              {t('Join with your Stream Account')}
+              {t(
+                'lobbyView.joinWithAccount.label',
+                'Join with your Stream Account',
+              )}
             </Text>
           </Pressable>
         )}

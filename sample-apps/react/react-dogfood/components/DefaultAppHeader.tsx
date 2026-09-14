@@ -1,11 +1,12 @@
 import clsx from 'clsx';
 import { HomeButton, UserInfo } from './LobbyHeader';
 
-import { Icon, useI18n } from '@stream-io/video-react-sdk';
+import { Icon } from '@stream-io/video-react-sdk';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 export const DefaultAppHeader = (props: { transparent?: boolean }) => {
   const { transparent } = props;
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   return (
     <div
       className={clsx(
@@ -25,7 +26,7 @@ export const DefaultAppHeader = (props: { transparent?: boolean }) => {
           rel="noreferrer"
         >
           <Icon className="rd__button__icon" icon="mediation" />
-          {t('Tutorials')}
+          {t('common.tutorials.label', 'Tutorials')}
         </a>
         <a
           className="rd__button rd__button--align-left"
@@ -34,7 +35,7 @@ export const DefaultAppHeader = (props: { transparent?: boolean }) => {
           rel="noreferrer"
         >
           <Icon className="rd__button__icon" icon="folder" />
-          {t('Documentation')}
+          {t('common.documentation.label', 'Documentation')}
         </a>
       </div>
     </div>

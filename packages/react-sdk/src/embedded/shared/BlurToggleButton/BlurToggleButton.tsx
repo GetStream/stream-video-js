@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import clsx from 'clsx';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import {
   DeviceSelectorVideo,
   Icon,
@@ -40,8 +41,14 @@ export const BlurToggleButton = () => {
   ]);
 
   const getLabel = () => {
-    if (isLoading) return t('Applying...');
-    return isBlurred ? t('Disable blur') : t('Blur background');
+    if (isLoading)
+      return t('callControls.blurToggleButton.applying.label', 'Applying...');
+    return isBlurred
+      ? t('callControls.blurToggleButton.disableBlur.label', 'Disable blur')
+      : t(
+          'callControls.blurToggleButton.blurBackground.label',
+          'Blur background',
+        );
   };
 
   if (!isSupported) return null;

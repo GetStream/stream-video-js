@@ -1,9 +1,9 @@
 import {
   Restricted,
   useCallStateHooks,
-  useI18n,
   UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 import clsx from 'clsx';
 import {
   OwnCapability,
@@ -62,12 +62,19 @@ export const ToggleVideoPreviewButton = (
     <WithTooltip
       title={
         isPromptingPermission
-          ? t('Waiting for permission')
+          ? t('common.waitingForPermission.title', 'Waiting for permission')
           : !hasBrowserPermission
-            ? t('Check your browser video permissions')
+            ? t(
+                'callControls.toggleVideoButton.checkBrowserVideoPermissions.title',
+                'Check your browser video permissions',
+              )
             : isSystemMuted
-              ? t('Camera is paused by your system')
-              : (caption ?? t('Video'))
+              ? t(
+                  'callControls.toggleVideoButton.cameraPausedBySystem.title',
+                  'Camera is paused by your system',
+                )
+              : (caption ??
+                t('callControls.toggleVideoButton.video.title', 'Video'))
       }
       tooltipDisabled={tooltipDisabled}
     >
@@ -159,25 +166,45 @@ export const ToggleVideoPublishingButton = (
       <PermissionNotification
         permission={OwnCapability.SEND_VIDEO}
         isAwaitingApproval={isAwaitingPermission}
-        messageApproved={t('You can now share your video.')}
+        messageApproved={t(
+          'callControls.toggleVideoButton.permissionGranted.text',
+          'You can now share your video.',
+        )}
         messageAwaitingApproval={t(
+          'callControls.toggleVideoButton.awaitingApproval.text',
           'Awaiting for an approval to share your video.',
         )}
-        messageRevoked={t('You can no longer share your video.')}
+        messageRevoked={t(
+          'callControls.toggleVideoButton.permissionRevoked.text',
+          'You can no longer share your video.',
+        )}
       >
         <WithTooltip
           title={
             isPromptingPermission
-              ? t('Waiting for permission')
+              ? t('common.waitingForPermission.title', 'Waiting for permission')
               : !hasPermission
-                ? t('You have no permission to share your video')
+                ? t(
+                    'callControls.toggleVideoButton.noPermissionToShareVideo.title',
+                    'You have no permission to share your video',
+                  )
                 : !hasBrowserPermission
-                  ? t('Check your browser video permissions')
+                  ? t(
+                      'callControls.toggleVideoButton.checkBrowserVideoPermissions.title',
+                      'Check your browser video permissions',
+                    )
                   : !isPublishingVideoAllowed
-                    ? t('Video publishing is disabled by the system')
+                    ? t(
+                        'callControls.toggleVideoButton.videoPublishingDisabled.title',
+                        'Video publishing is disabled by the system',
+                      )
                     : isSystemMuted
-                      ? t('Camera is paused by your system')
-                      : caption || t('Video')
+                      ? t(
+                          'callControls.toggleVideoButton.cameraPausedBySystem.title',
+                          'Camera is paused by your system',
+                        )
+                      : caption ||
+                        t('callControls.toggleVideoButton.video.title', 'Video')
           }
           tooltipDisabled={tooltipDisabled}
         >

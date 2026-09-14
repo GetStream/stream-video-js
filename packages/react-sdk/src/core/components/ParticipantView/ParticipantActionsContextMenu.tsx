@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
+import { Restricted, useCall } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import {
   hasAudio,
   hasScreenShare,
@@ -121,7 +122,9 @@ export const ParticipantActionsContextMenu = () => {
         disabled={pin && !pin.isLocalPin}
       >
         <Icon icon="pin" />
-        {pin ? t('Unpin') : t('Pin')}
+        {pin
+          ? t('participantView.unpin.label', 'Unpin')
+          : t('participantView.actionsMenu.pin.label', 'Pin')}
       </GenericMenuButtonItem>
       <Restricted requiredGrants={[OwnCapability.PIN_FOR_EVERYONE]}>
         <GenericMenuButtonItem
@@ -129,26 +132,32 @@ export const ParticipantActionsContextMenu = () => {
           disabled={pin && !pin.isLocalPin}
         >
           <Icon icon="pin" />
-          {t('Pin for everyone')}
+          {t(
+            'participantView.actionsMenu.pinForEveryone.label',
+            'Pin for everyone',
+          )}
         </GenericMenuButtonItem>
         <GenericMenuButtonItem
           onClick={unpinForEveryone}
           disabled={!pin || pin.isLocalPin}
         >
           <Icon icon="pin" />
-          {t('Unpin for everyone')}
+          {t(
+            'participantView.actionsMenu.unpinForEveryone.label',
+            'Unpin for everyone',
+          )}
         </GenericMenuButtonItem>
       </Restricted>
       <Restricted requiredGrants={[OwnCapability.BLOCK_USERS]}>
         <GenericMenuButtonItem onClick={blockUser}>
           <Icon icon="not-allowed" />
-          {t('Block')}
+          {t('participantView.actionsMenu.block.label', 'Block')}
         </GenericMenuButtonItem>
       </Restricted>
       <Restricted requiredGrants={[OwnCapability.KICK_USER]}>
         <GenericMenuButtonItem onClick={kickUser}>
           <Icon icon="kick-user" />
-          {t('Kick')}
+          {t('participantView.actionsMenu.kick.label', 'Kick')}
         </GenericMenuButtonItem>
       </Restricted>
       <GenericMenuSeparator />
@@ -156,25 +165,34 @@ export const ParticipantActionsContextMenu = () => {
         {hasVideoTrack && (
           <GenericMenuButtonItem onClick={muteVideo}>
             <Icon icon="camera-off-outline" />
-            {t('Turn off video')}
+            {t(
+              'participantView.actionsMenu.turnOffVideo.label',
+              'Turn off video',
+            )}
           </GenericMenuButtonItem>
         )}
         {hasScreenShareTrack && (
           <GenericMenuButtonItem onClick={muteScreenShare}>
             <Icon icon="screen-share-off" />
-            {t('Turn off screen share')}
+            {t(
+              'participantView.actionsMenu.turnOffScreenShare.label',
+              'Turn off screen share',
+            )}
           </GenericMenuButtonItem>
         )}
         {hasAudioTrack && (
           <GenericMenuButtonItem onClick={muteAudio}>
             <Icon icon="no-audio" />
-            {t('Mute audio')}
+            {t('participantView.actionsMenu.muteAudio.label', 'Mute audio')}
           </GenericMenuButtonItem>
         )}
         {hasScreenShareAudioTrack && (
           <GenericMenuButtonItem onClick={muteScreenShareAudio}>
             <Icon icon="no-audio" />
-            {t('Mute screen share audio')}
+            {t(
+              'participantView.actionsMenu.muteScreenShareAudio.label',
+              'Mute screen share audio',
+            )}
           </GenericMenuButtonItem>
         )}
       </Restricted>
@@ -182,17 +200,29 @@ export const ParticipantActionsContextMenu = () => {
         typeof participantViewElement.requestFullscreen !== 'undefined' && (
           <GenericMenuButtonItem onClick={toggleFullscreenMode}>
             <Icon icon="fullscreen" />
-            {t('{{ direction }} fullscreen', {
-              direction: fullscreenModeOn ? t('Leave') : t('Enter'),
-            })}
+            {fullscreenModeOn
+              ? t(
+                  'participantView.actionsMenu.leaveFullscreen.label',
+                  'Leave fullscreen',
+                )
+              : t(
+                  'participantView.actionsMenu.enterFullscreen.label',
+                  'Enter fullscreen',
+                )}
           </GenericMenuButtonItem>
         )}
       {videoElement && document.pictureInPictureEnabled && (
         <GenericMenuButtonItem onClick={togglePictureInPicture}>
           <Icon icon="pip" />
-          {t('{{ direction }} picture-in-picture', {
-            direction: isPiP ? t('Leave') : t('Enter'),
-          })}
+          {isPiP
+            ? t(
+                'participantView.actionsMenu.leavePip.label',
+                'Leave picture-in-picture',
+              )
+            : t(
+                'participantView.actionsMenu.enterPip.label',
+                'Enter picture-in-picture',
+              )}
         </GenericMenuButtonItem>
       )}
       <GenericMenuSeparator />
@@ -200,33 +230,39 @@ export const ParticipantActionsContextMenu = () => {
         <GenericMenuButtonItem
           onClick={grantPermission(OwnCapability.SEND_AUDIO)}
         >
-          {t('Allow audio')}
+          {t('participantView.actionsMenu.allowAudio.label', 'Allow audio')}
         </GenericMenuButtonItem>
         <GenericMenuButtonItem
           onClick={grantPermission(OwnCapability.SEND_VIDEO)}
         >
-          {t('Allow video')}
+          {t('participantView.actionsMenu.allowVideo.label', 'Allow video')}
         </GenericMenuButtonItem>
         <GenericMenuButtonItem
           onClick={grantPermission(OwnCapability.SCREENSHARE)}
         >
-          {t('Allow screen sharing')}
+          {t(
+            'participantView.actionsMenu.allowScreenSharing.label',
+            'Allow screen sharing',
+          )}
         </GenericMenuButtonItem>
 
         <GenericMenuButtonItem
           onClick={revokePermission(OwnCapability.SEND_AUDIO)}
         >
-          {t('Disable audio')}
+          {t('participantView.actionsMenu.disableAudio.label', 'Disable audio')}
         </GenericMenuButtonItem>
         <GenericMenuButtonItem
           onClick={revokePermission(OwnCapability.SEND_VIDEO)}
         >
-          {t('Disable video')}
+          {t('participantView.actionsMenu.disableVideo.label', 'Disable video')}
         </GenericMenuButtonItem>
         <GenericMenuButtonItem
           onClick={revokePermission(OwnCapability.SCREENSHARE)}
         >
-          {t('Disable screen sharing')}
+          {t(
+            'participantView.actionsMenu.disableScreenSharing.label',
+            'Disable screen sharing',
+          )}
         </GenericMenuButtonItem>
       </Restricted>
     </GenericMenu>

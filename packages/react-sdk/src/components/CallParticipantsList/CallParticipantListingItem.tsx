@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { ComponentProps, ComponentType, forwardRef, memo } from 'react';
-import { useConnectedUser, useI18n } from '@stream-io/video-react-bindings';
+import { useConnectedUser } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 import {
   hasAudio,
   hasVideo,
@@ -37,7 +38,11 @@ export const CallParticipantListingItem = memo(
         <DisplayName participant={participant} />
         <div className="str-video__participant-listing-item__media-indicator-group">
           <MediaIndicator
-            title={isAudioOn ? t('Microphone on') : t('Microphone off')}
+            title={
+              isAudioOn
+                ? t('participantList.microphoneOn.title', 'Microphone on')
+                : t('participantList.microphoneOff.title', 'Microphone off')
+            }
             className={clsx(
               'str-video__participant-listing-item__icon',
               `str-video__participant-listing-item__icon-${
@@ -46,7 +51,11 @@ export const CallParticipantListingItem = memo(
             )}
           />
           <MediaIndicator
-            title={isVideoOn ? t('Camera on') : t('Camera off')}
+            title={
+              isVideoOn
+                ? t('participantList.cameraOn.title', 'Camera on')
+                : t('participantList.cameraOff.title', 'Camera off')
+            }
             className={clsx(
               'str-video__participant-listing-item__icon',
               `str-video__participant-listing-item__icon-${
@@ -56,7 +65,7 @@ export const CallParticipantListingItem = memo(
           />
           {isPinnedOn && (
             <MediaIndicator
-              title={t('Pinned')}
+              title={t('participantList.pinned.title', 'Pinned')}
               className={clsx(
                 'str-video__participant-listing-item__icon',
                 'str-video__participant-listing-item__icon-pinned',
@@ -92,11 +101,18 @@ const DefaultDisplayName = ({ participant }: DisplayNameProps) => {
   const connectedUser = useConnectedUser();
   const { t } = useI18n();
 
-  const meFlag = participant.userId === connectedUser?.id ? t('Me') : '';
-  const nameOrId = participant.name || participant.userId || t('Unknown');
+  const meFlag =
+    participant.userId === connectedUser?.id
+      ? t('participantList.me.text', 'Me')
+      : '';
+  const nameOrId =
+    participant.name ||
+    participant.userId ||
+    t('participantList.unknown.text', 'Unknown');
   let displayName;
   if (!participant.name) {
-    displayName = meFlag || nameOrId || t('Unknown');
+    displayName =
+      meFlag || nameOrId || t('participantList.unknown.text', 'Unknown');
   } else if (meFlag) {
     displayName = `${nameOrId} (${meFlag})`;
   } else {

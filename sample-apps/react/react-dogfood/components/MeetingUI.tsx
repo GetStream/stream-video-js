@@ -5,7 +5,6 @@ import {
   noopComparator,
   useCall,
   useCallStateHooks,
-  useI18n,
   useModeration,
 } from '@stream-io/video-react-sdk';
 import Gleap from 'gleap';
@@ -35,15 +34,21 @@ import {
 } from './RemoteFilePublisher';
 import { applyDisplayName } from '../helpers/client';
 import { applyQueryConfigParams } from '../lib/queryConfigParams';
+import { useAppI18n } from '../hooks/useAppI18n';
+import type { LooseTranslateFunction } from '@stream-io/video-react-sdk';
 
-const contents = {
-  'error-join': {
-    heading: 'Failed to join the call',
-  },
-  'error-leave': {
-    heading: 'Error when disconnecting',
-  },
-};
+/**
+ * The two error headings, previously a `contents` lookup whose value was fed straight to `t()`.
+ * Literal calls put the key next to its English; the join failure reuses the SDK's own key rather
+ * than minting a duplicate.
+ */
+const errorHeading = (
+  t: LooseTranslateFunction,
+  show: 'error-join' | 'error-leave',
+) =>
+  show === 'error-join'
+    ? t('joinError.failedToJoin.title', 'Failed to join the call')
+    : t('meeting.error.disconnect.title', 'Error when disconnecting');
 
 type MeetingUIProps = {
   chatClient?: StreamChat | null;
@@ -57,7 +62,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const [lastError, setLastError] = useState<Error>();
   const router = useRouter();
   const call = useCall();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
   useModeration();
@@ -170,7 +175,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   if (show === 'error-join' || show === 'error-leave') {
     childrenToRender = (
       <ErrorPage
-        heading={t(contents[show].heading)}
+        heading={errorHeading(t, show)}
         error={lastError}
         onClickHome={() => router.push(`/`)}
         onClickLobby={() => setShow('lobby')}
@@ -196,7 +201,10 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   } else if (!call) {
     childrenToRender = (
       <ErrorPage
-        heading={t('Lost active call connection')}
+        heading={t(
+          'meeting.error.lostConnection.title',
+          'Lost active call connection',
+        )}
         onClickHome={() => router.push(`/`)}
         onClickLobby={() => setShow('lobby')}
       />
@@ -230,7 +238,7 @@ const ErrorPage = ({
   onClickLobby,
   error,
 }: ErrorPageProps) => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   return (
     <div className="rd__error">
       <div className="rd__error__container">
@@ -241,7 +249,12 @@ const ErrorPage = ({
               <pre>{error.stack}</pre>
             </div>
           )}
-          <p>{t('(see the console for more info)')}</p>
+          <p>
+            {t(
+              'meeting.error.seeConsole.text',
+              '(see the console for more info)',
+            )}
+          </p>
         </div>
 
         <div className="rd__error__actions">
@@ -250,7 +263,7 @@ const ErrorPage = ({
             className="rd__button rd__button--primary"
             onClick={onClickHome}
           >
-            {t('Return home')}
+            {t('meeting.error.returnHome.label', 'Return home')}
           </button>
 
           <button
@@ -258,7 +271,7 @@ const ErrorPage = ({
             className="rd__button rd__button--secondary"
             onClick={onClickLobby}
           >
-            {t('Back to lobby')}
+            {t('meeting.error.backToLobby.label', 'Back to lobby')}
           </button>
 
           <button
@@ -268,7 +281,7 @@ const ErrorPage = ({
               Gleap.startFeedbackFlow('bugreporting');
             }}
           >
-            {t('Report an issue')}
+            {t('meeting.error.reportIssue.label', 'Report an issue')}
           </button>
         </div>
       </div>

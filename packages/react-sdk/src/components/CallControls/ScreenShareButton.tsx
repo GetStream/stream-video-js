@@ -5,9 +5,9 @@ import {
 import {
   Restricted,
   useCallStateHooks,
-  useI18n,
   UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 import { CompositeButton } from '../Button/';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
@@ -59,11 +59,28 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
       <PermissionNotification
         permission={OwnCapability.SCREENSHARE}
         isAwaitingApproval={isAwaitingPermission}
-        messageApproved={t('You can now share your screen.')}
-        messageAwaitingApproval={t('Awaiting for an approval to share screen.')}
-        messageRevoked={t('You can no longer share your screen.')}
+        messageApproved={t(
+          'callControls.screenShareButton.permissionGranted.text',
+          'You can now share your screen.',
+        )}
+        messageAwaitingApproval={t(
+          'callControls.screenShareButton.awaitingApproval.text',
+          'Awaiting for an approval to share screen.',
+        )}
+        messageRevoked={t(
+          'callControls.screenShareButton.permissionRevoked.text',
+          'You can no longer share your screen.',
+        )}
       >
-        <WithTooltip title={caption ?? t('Share screen')}>
+        <WithTooltip
+          title={
+            caption ??
+            t(
+              'callControls.screenShareButton.shareScreen.title',
+              'Share screen',
+            )
+          }
+        >
           <CompositeButton
             active={isSomeoneScreenSharing || amIScreenSharing}
             caption={caption}

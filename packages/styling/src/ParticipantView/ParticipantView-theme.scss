@@ -1,3 +1,8 @@
+/* The text and icon color inside the participant label */
+.str-video {
+  --str-video__participant-label--color: var(--str-video__text-on-accent);
+}
+
 .str-video__connection-quality-indicator {
   background-color: var(--str-video__background-core-overlay-dark-strong);
 

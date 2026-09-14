@@ -27,7 +27,6 @@
   ],
   "dependencies": {
     "@stream-io/video-client": "workspace:*",
-    "i18next": "^25.10.10",
     "rxjs": "~7.8.2"
   },
   "peerDependencies": {

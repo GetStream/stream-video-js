@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useI18n } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LiveStreamParamList } from '../../../types';
 import {
@@ -17,7 +17,7 @@ type QRScannerScreenProps = NativeStackScreenProps<
 >;
 
 export const QRScanner = ({ navigation, route }: QRScannerScreenProps) => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const { onScan } = route.params;
   const [hasScanned, setHasScanned] = useState(false);
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -67,12 +67,19 @@ export const QRScanner = ({ navigation, route }: QRScannerScreenProps) => {
   if (!hasPermission) {
     return (
       <View style={styles.container}>
-        <Text style={styles.text}>{t('Camera permission is required')}</Text>
+        <Text style={styles.text}>
+          {t(
+            'qrScanner.permissionRequired.text',
+            'Camera permission is required',
+          )}
+        </Text>
         <TouchableOpacity
           style={styles.button}
           onPress={requestCameraPermission}
         >
-          <Text style={styles.buttonText}>{t('Grant Permission')}</Text>
+          <Text style={styles.buttonText}>
+            {t('qrScanner.grantPermission.label', 'Grant Permission')}
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -81,7 +88,9 @@ export const QRScanner = ({ navigation, route }: QRScannerScreenProps) => {
   if (!device) {
     return (
       <View style={styles.container}>
-        <Text style={styles.text}>{t('No camera device available')}</Text>
+        <Text style={styles.text}>
+          {t('qrScanner.noDevice.text', 'No camera device available')}
+        </Text>
       </View>
     );
   }
@@ -96,13 +105,18 @@ export const QRScanner = ({ navigation, route }: QRScannerScreenProps) => {
       />
       <View style={styles.overlay}>
         <Text style={styles.scanText}>
-          {t('Scan a QR code to get the call ID')}
+          {t(
+            'qrScanner.instructions.text',
+            'Scan a QR code to get the call ID',
+          )}
         </Text>
         <TouchableOpacity
           style={styles.closeButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.buttonText}>{t('Cancel')}</Text>
+          <Text style={styles.buttonText}>
+            {t('qrScanner.cancel.label', 'Cancel')}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

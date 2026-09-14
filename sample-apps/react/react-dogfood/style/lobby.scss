@@ -53,10 +53,12 @@
 
     .rd__lobby-video-preview,
     .str-video__video-preview-container {
-      height: 320px;
       width: 100%;
-      border-radius: var(--str-video__border-radius-md);
-      border-color: transparent;
+      height: auto;
+      aspect-ratio: 16 / 9;
+      border-radius: var(--str-video__radius-2xl);
+      border-width: var(--str-video__w100);
+      border-color: var(--str-video__border-core-default);
     }
 
     .rd__display-name {
@@ -227,8 +229,9 @@
       width: 600px;
       .rd__lobby-video-preview,
       .str-video__video-preview-container {
-        height: 320px;
         width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
       }
     }
 
@@ -459,7 +462,7 @@ a.mapboxgl-ctrl-logo {
     cursor: pointer;
 
     &:hover {
-      color: var(--str-video__text-color1);
+      color: var(--str-video__text-primary);
       background-color: rgba(255, 255, 255, 0.06);
     }
 
@@ -489,7 +492,7 @@ a.mapboxgl-ctrl-logo {
     border-radius: var(--str-video__border-radius-md);
     border: 1px solid var(--str-video__base-color5);
     background-color: var(--str-video__base-color6);
-    color: var(--str-video__text-color1);
+    color: var(--str-video__text-primary);
     white-space: nowrap;
     cursor: pointer;
 

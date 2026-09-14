@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import { type LobbyProps } from './Lobby';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { Lock } from '../../../icons/Lock';
 
 /**
@@ -31,15 +32,17 @@ export const LobbyFooter = ({
 
   const participantsText = useMemo(() => {
     if (!numberOfParticipants) {
-      return t('Currently there are no other participants in the call.');
+      return t(
+        'lobby.footer.noOtherParticipants.text',
+        'Currently there are no other participants in the call.',
+      );
     }
-    if (numberOfParticipants === 1) {
-      return t('There is {{numberOfParticipants}} more person in the call.', {
-        numberOfParticipants,
-      });
-    }
-    return t('There are {{numberOfParticipants}} more people in the call.', {
-      numberOfParticipants,
+    // i18next picks the singular/plural form for the active language via
+    // Intl.PluralRules, so no `=== 1` branch is needed here.
+    return t('lobby.footer.otherParticipants.text', {
+      count: numberOfParticipants,
+      defaultValue_one: 'There is {{ count }} more person in the call.',
+      defaultValue_other: 'There are {{ count }} more people in the call.',
     });
   }, [numberOfParticipants, t]);
 
@@ -56,7 +59,9 @@ export const LobbyFooter = ({
             lobby.infoText,
           ]}
         >
-          {t('You are about to join a call.') + ' ' + participantsText}
+          {t('lobby.footer.aboutToJoin.text', 'You are about to join a call.') +
+            ' ' +
+            participantsText}
         </Text>
       </View>
       {JoinCallButton && (

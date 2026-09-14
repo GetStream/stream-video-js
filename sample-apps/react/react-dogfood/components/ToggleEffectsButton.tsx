@@ -6,25 +6,28 @@ import {
   ToggleMenuButtonProps,
   WithTooltip,
   useBackgroundFilters,
-  useI18n,
 } from '@stream-io/video-react-sdk';
 import { forwardRef } from 'react';
 import { useLayoutSwitcher } from '../hooks';
 import { SettingsTabModalMenu } from './Settings/SettingsTabModal';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 const ToggleEffectsMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
 >(function ToggleEffectsMenuButtonRender(props, ref) {
   const { isSupported: effectsSupported } = useBackgroundFilters();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   return (
     <WithTooltip
-      title={t(
+      title={
         effectsSupported
-          ? 'Video effects'
-          : 'Video effects are not supported on this device',
-      )}
+          ? t('videoEffects.toggle.title', 'Video effects')
+          : t(
+              'videoEffects.toggle.unsupported.title',
+              'Video effects are not supported on this device',
+            )
+      }
     >
       <CompositeButton
         ref={ref}

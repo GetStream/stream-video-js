@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useCall, useI18n, useTheme } from '@stream-io/video-react-native-sdk';
+import { useCall, useTheme } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 import { StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
@@ -19,7 +20,7 @@ export const GuestModeScreen = ({
   const call = useCall();
   const [callId, setCallId] = useState<string>(route.params.callId);
   const [username, setUsername] = useState<string>('Guest');
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const styles = useStyles();
 
   useEffect(() => {
@@ -50,16 +51,16 @@ export const GuestModeScreen = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('Guest Mode')}</Text>
+      <Text style={styles.title}>{t('guestMode.title', 'Guest Mode')}</Text>
       <View>
         <TextInput
-          placeholder={t('Meeting Id')}
+          placeholder={t('guestMode.callId.label', 'Meeting Id')}
           value={callId}
           onChangeText={(value) => setCallId(value)}
           style={styles.textInputStyle}
         />
         <TextInput
-          placeholder={t('Your name')}
+          placeholder={t('guestMode.userName.label', 'Your name')}
           value={username}
           onChangeText={(value) => setUsername(value)}
           style={styles.textInputStyle}
@@ -69,12 +70,12 @@ export const GuestModeScreen = ({
         <Button
           disabled={!isValidCallId}
           onPress={joinAsGuestHandler}
-          title={t('Join As Guest')}
+          title={t('guestMode.joinAsGuest.label', 'Join As Guest')}
         />
         <Button
           disabled={!isValidCallId}
           onPress={joinAnonymously}
-          title={t('Continue Anonymously')}
+          title={t('guestMode.joinAnonymously.label', 'Continue Anonymously')}
           buttonStyle={styles.anonymousButton}
         />
       </View>

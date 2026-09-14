@@ -3,9 +3,9 @@ import { forwardRef } from 'react';
 import { OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
-  useI18n,
   useToggleCallRecording,
 } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 import { Button, CompositeButton } from '../Button/';
 import { Icon } from '../Icon';
 import {
@@ -39,10 +39,16 @@ const RecordEndConfirmation = (props: PropsWithErrorHandler) => {
         <Icon icon="recording-on" />
         <div className="str-video__end-recording__text">
           <h2 className="str-video__end-recording__heading">
-            {t('End recording')}
+            {t(
+              'callControls.recordCallButton.endRecording.title',
+              'End recording',
+            )}
           </h2>
           <p className="str-video__end-recording__description">
-            {t('Are you sure you want end the recording?')}
+            {t(
+              'callControls.recordCallButton.confirmEndRecording.description',
+              'Are you sure you want end the recording?',
+            )}
           </p>
         </div>
       </div>
@@ -51,10 +57,17 @@ const RecordEndConfirmation = (props: PropsWithErrorHandler) => {
           variant="destructive"
           onClick={isAwaitingResponse ? undefined : handleClick}
         >
-          {isAwaitingResponse ? <LoadingIndicator /> : t('End recording')}
+          {isAwaitingResponse ? (
+            <LoadingIndicator />
+          ) : (
+            t(
+              'callControls.recordCallButton.endRecording.title',
+              'End recording',
+            )
+          )}
         </Button>
         <Button variant="secondary" appearance="outline" onClick={close}>
-          {t('Cancel')}
+          {t('common.cancel.label', 'Cancel')}
         </Button>
       </div>
     </div>
@@ -106,8 +119,12 @@ export const RecordCallConfirmationButton = (
   }
 
   const title = isAwaitingResponse
-    ? t('Waiting for recording to start...')
-    : (caption ?? t('Record call'));
+    ? t(
+        'callControls.recordCallButton.waitingRecordingStart.title',
+        'Waiting for recording to start...',
+      )
+    : (caption ??
+      t('callControls.recordCallButton.recordCall.title', 'Record call'));
 
   return (
     <Restricted
@@ -143,12 +160,20 @@ export const RecordCallButton = (props: RecordCallButtonProps) => {
 
   const handleClick = createCallControlHandler(props, toggleCallRecording);
 
-  let title = caption ?? t('Record call');
+  let title =
+    caption ??
+    t('callControls.recordCallButton.recordCall.title', 'Record call');
 
   if (isAwaitingResponse) {
     title = isCallRecordingInProgress
-      ? t('Waiting for recording to stop...')
-      : t('Waiting for recording to start...');
+      ? t(
+          'callControls.recordCallButton.waitingRecordingStop.title',
+          'Waiting for recording to stop...',
+        )
+      : t(
+          'callControls.recordCallButton.waitingRecordingStart.title',
+          'Waiting for recording to start...',
+        );
   }
 
   return (

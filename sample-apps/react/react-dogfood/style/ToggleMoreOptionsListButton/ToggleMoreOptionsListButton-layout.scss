@@ -22,7 +22,7 @@
   display: flex;
   align-items: center;
   background-color: transparent;
-  color: var(--str-video__text-color1);
+  color: var(--str-video__text-primary);
 }
 
 @include breakpoints.respond-above(sm) {

@@ -1,12 +1,13 @@
 import { ComponentProps, ForwardedRef, forwardRef } from 'react';
-import { IconButton, useI18n } from '@stream-io/video-react-sdk';
+import { IconButton } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 export const InviteLinkButton = forwardRef(function InviteLinkButtonRender(
   { className, ...props }: ComponentProps<'button'>,
   ref: ForwardedRef<HTMLButtonElement>,
 ) {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   return (
     <button
       {...props}
@@ -15,7 +16,7 @@ export const InviteLinkButton = forwardRef(function InviteLinkButtonRender(
     >
       <div className="str-video__invite-participant-icon" />
       <div className="str-video__invite-link-button__text">
-        {t('Invite Link')}
+        {t('invite.inviteLink.label', 'Invite Link')}
       </div>
     </button>
   );

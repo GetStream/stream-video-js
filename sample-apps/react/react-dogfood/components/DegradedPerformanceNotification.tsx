@@ -1,10 +1,7 @@
 import { PropsWithChildren, useMemo } from 'react';
 import { Placement } from '@floating-ui/react';
-import {
-  Notification,
-  useBackgroundFilters,
-  useI18n,
-} from '@stream-io/video-react-sdk';
+import { Notification, useBackgroundFilters } from '@stream-io/video-react-sdk';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 export type DegradedPerformanceNotificationProps = {
   text?: string;
@@ -20,7 +17,7 @@ export const DegradedPerformanceNotification = ({
 }: PropsWithChildren<DegradedPerformanceNotificationProps>) => {
   const { performance } = useBackgroundFilters();
 
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   const message = useMemo(() => {
     if (text) {
@@ -33,17 +30,20 @@ export const DegradedPerformanceNotification = ({
 
     if (hasFrameDrop && hasCpuThrottling) {
       return t(
+        'notification.degradedPerformance.cpuOverloaded.text',
         'Background filters are reducing frame rate and overloading the CPU. Disable filters for optimal performance.',
       );
     }
 
     if (hasFrameDrop) {
       return t(
+        'notification.degradedPerformance.frameRateReduced.text',
         'Background filters are reducing frame rate. Consider disabling filters for optimal performance.',
       );
     }
 
     return t(
+      'notification.degradedPerformance.degraded.text',
       'Background filters performance is degraded. Consider disabling filters for optimal performance.',
     );
   }, [text, performance?.reason, t]);

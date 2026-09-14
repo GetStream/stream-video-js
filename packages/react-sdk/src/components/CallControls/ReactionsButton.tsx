@@ -2,7 +2,8 @@ import { forwardRef } from 'react';
 import clsx from 'clsx';
 
 import { OwnCapability, StreamReaction } from '@stream-io/video-client';
-import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
+import { Restricted, useCall } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 
 import {
   MenuToggle,
@@ -69,7 +70,10 @@ const ToggleReactionsMenuButton = forwardRef<
 >(function ToggleReactionsMenuButtonRender({ menuShown }, ref) {
   const { t } = useI18n();
   return (
-    <WithTooltip title={t('Reactions')} tooltipDisabled={menuShown}>
+    <WithTooltip
+      title={t('callControls.reactionsButton.reactions.title', 'Reactions')}
+      tooltipDisabled={menuShown}
+    >
       <CompositeButton ref={ref} active={menuShown}>
         <Icon icon="reactions" />
       </CompositeButton>

@@ -4,9 +4,9 @@ import {
   Notification,
   useCall,
   useCallStateHooks,
-  useI18n,
 } from '@stream-io/video-react-sdk';
 import { useEffect, useRef } from 'react';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 export interface DialingCallNotificationProps {
   onJoin: () => void;
@@ -17,7 +17,7 @@ export function DialingCallNotification(props: {
   onJoin: () => void;
   onLeave: () => void;
 }) {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const call = useCall();
   const { useCallCallingState, useCallMembers } = useCallStateHooks();
   const callingState = useCallCallingState();
@@ -55,7 +55,11 @@ export function DialingCallNotification(props: {
         message={
           <div className="rd__dialer-ringing-call-notification">
             <div className="rd__dialer-ringing-call-notification-text">
-              {t('Ringing {{ count }} members', { count: otherMembers.length })}
+              {t('ringing.dialing.ringingMembers.text', {
+                count: otherMembers.length,
+                defaultValue_one: 'Ringing {{ count }} member',
+                defaultValue_other: 'Ringing {{ count }} members',
+              })}
             </div>
             <CancelCallButton onClick={handleReject} />
           </div>

@@ -39,13 +39,13 @@
 
 .rd__feedback-input,
 .rd__feedback-textarea {
-  background-color: var(--str-video__base-color4);
+  background-color: var(--str-video__background-core-app);
   border-radius: var(--str-video__border-radius-md);
   padding: var(--str-video__space-6) var(--str-video__spacing-sm);
   margin-bottom: var(--str-video__spacing-sm);
   border: 1px solid var(--str-video__base-color3);
   width: 100%;
-  color: var(--str-video__text-color1);
+  color: var(--str-video__text-primary);
 
   &:focus,
   &:focus-visible {

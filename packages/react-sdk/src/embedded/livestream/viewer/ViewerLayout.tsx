@@ -1,11 +1,8 @@
 import { useCallback, useState } from 'react';
 import clsx from 'clsx';
 import { OwnCapability } from '@stream-io/video-client';
-import {
-  Restricted,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-bindings';
+import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { useCallDuration, useLayout, useWakeLock } from '../../hooks';
 import {
   CallParticipantsList,
@@ -51,7 +48,7 @@ export const ViewerLayout = () => {
       <div className="str-video__embedded-call-header">
         <div className="str-video__embedded-livestream-duration">
           <span className="str-video__embedded-livestream-duration__live-badge">
-            {t('Live')}
+            {t('common.live.label', 'Live')}
           </span>
           <ViewersCount count={participantCount} />
           {elapsed && (
@@ -90,7 +87,7 @@ export const ViewerLayout = () => {
           <div className="str-video__embedded-desktop">
             <div className="str-video__embedded-livestream-duration">
               <span className="str-video__embedded-livestream-duration__live-badge">
-                {t('Live')}
+                {t('common.live.label', 'Live')}
               </span>
               <ViewersCount count={participantCount} />
               {elapsed && (
@@ -112,11 +109,11 @@ export const ViewerLayout = () => {
                   <>
                     <DeviceSelectorAudioOutput
                       visualType="list"
-                      title={t('Speaker')}
+                      title={t('common.speaker.label', 'Speaker')}
                     />
                     <DeviceSelectorAudioInput
                       visualType="list"
-                      title={t('Microphone')}
+                      title={t('common.microphone.label', 'Microphone')}
                     />
                   </>
                 }
@@ -143,10 +140,10 @@ export const ViewerLayout = () => {
           </div>
         </div>
         <div className="str-video__call-controls--group str-video__call-controls--sidebar">
-          <WithTooltip title={t('Participants')}>
+          <WithTooltip title={t('common.participants.label', 'Participants')}>
             <CompositeButton
               active={showParticipants}
-              aria-label={t('Participants')}
+              aria-label={t('common.participants.label', 'Participants')}
               aria-pressed={showParticipants}
               onClick={handleToggleParticipants}
             >

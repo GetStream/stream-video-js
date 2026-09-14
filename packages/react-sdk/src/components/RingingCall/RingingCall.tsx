@@ -3,22 +3,48 @@ import {
   useCall,
   useCallStateHooks,
   useConnectedUser,
-  useI18n,
 } from '@stream-io/video-react-bindings';
+import { StreamTFunction, useI18n } from '../../i18n';
 import { Avatar } from '../Avatar';
 import { RingingCallControls } from './RingingCallControls';
 
-const CALLING_STATE_TO_LABEL: Record<CallingState, string> = {
-  [CallingState.JOINING]: 'Joining',
-  [CallingState.RINGING]: 'Ringing',
-  [CallingState.MIGRATING]: 'Migrating',
-  [CallingState.RECONNECTING]: 'Re-connecting',
-  [CallingState.RECONNECTING_FAILED]: 'Failed',
-  [CallingState.OFFLINE]: 'No internet connection',
-  [CallingState.IDLE]: '',
-  [CallingState.UNKNOWN]: '',
-  [CallingState.JOINED]: 'Joined',
-  [CallingState.LEFT]: 'Left call',
+/**
+ * The label rendered for the current calling state.
+ *
+ * A `switch` of literal `t()` calls rather than a `Record<CallingState, string>` fed into a `t()`
+ * lookup on a runtime value: the literal keys are statically extractable, which is what makes
+ * `Migrating`, `Failed`, `Joined` and `Left call` translatable - none had a catalog entry before.
+ * `IDLE` and `UNKNOWN` render nothing and get no key.
+ */
+const getCallingStateLabel = (
+  callingState: CallingState,
+  t: StreamTFunction,
+): string | undefined => {
+  switch (callingState) {
+    case CallingState.JOINING:
+      return t('ringingCall.callingState.joining.text', 'Joining');
+    case CallingState.RINGING:
+      return t('ringingCall.callingState.ringing.text', 'Ringing');
+    case CallingState.MIGRATING:
+      return t('ringingCall.callingState.migrating.text', 'Migrating');
+    case CallingState.RECONNECTING:
+      return t('ringingCall.callingState.reconnecting.text', 'Re-connecting');
+    case CallingState.RECONNECTING_FAILED:
+      return t('ringingCall.callingState.reconnectingFailed.text', 'Failed');
+    case CallingState.OFFLINE:
+      return t(
+        'ringingCall.callingState.offline.text',
+        'No internet connection',
+      );
+    case CallingState.JOINED:
+      return t('ringingCall.callingState.joined.text', 'Joined');
+    case CallingState.LEFT:
+      return t('ringingCall.callingState.left.text', 'Left call');
+    case CallingState.IDLE:
+    case CallingState.UNKNOWN:
+    default:
+      return undefined;
+  }
 };
 
 export type RingingCallProps = {
@@ -63,7 +89,7 @@ export const RingingCall = (props: RingingCallProps) => {
     }
   }
 
-  const callingStateLabel = CALLING_STATE_TO_LABEL[callingState];
+  const callingStateLabel = getCallingStateLabel(callingState, t);
 
   return (
     <div className="str-video__call-panel str-video__call-panel--ringing">
@@ -82,7 +108,7 @@ export const RingingCall = (props: RingingCallProps) => {
 
       {callingStateLabel && (
         <div className="str-video__call-panel__calling-state-label">
-          {t(callingStateLabel)}
+          {callingStateLabel}
         </div>
       )}
 

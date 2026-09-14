@@ -2,7 +2,8 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { StopScreenShare } from '../../icons';
 import { useTheme } from '../../contexts';
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 
 /**
  * Props for the ScreenShareOverlay component
@@ -45,7 +46,10 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
           screenshareOverlay.text,
         ]}
       >
-        {t('You are sharing your screen with everyone')}
+        {t(
+          'screenShare.sharingWithEveryone.text',
+          'You are sharing your screen with everyone',
+        )}
       </Text>
       <Pressable
         onPress={onStopScreenshareHandler}
@@ -76,7 +80,7 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
             screenshareOverlay.buttonText,
           ]}
         >
-          {t('Stop Screen Sharing')}
+          {t('participantView.screenShare.stop.label', 'Stop Screen Sharing')}
         </Text>
       </Pressable>
     </View>

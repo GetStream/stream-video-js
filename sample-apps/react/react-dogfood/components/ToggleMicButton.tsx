@@ -32,13 +32,18 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
         aria-haspopup="menu"
         aria-expanded={props.menuShown}
         title={
-          isSystemMuted ? t('Microphone is paused by your system') : undefined
+          isSystemMuted
+            ? t(
+                'callControls.toggleAudioButton.microphonePausedBySystem.title',
+                'Microphone is paused by your system',
+              )
+            : undefined
         }
       >
         <Icon className="rd__button__icon" icon="mic" />
         <p className="rd__lobby__mic-button__device">
           {microphones?.find((mic) => mic.deviceId === selectedMic)?.label ||
-            t('Default')}
+            t('common.default.label', 'Default')}
         </p>
         <Icon icon={props.menuShown ? 'chevron-down' : 'chevron-up'} />
       </button>
@@ -59,9 +64,12 @@ export const ToggleMicButton = () => {
     >
       <DeviceSelectorAudioInput
         visualType={inputVisualType}
-        title={t('Microphone')}
+        title={t('common.microphone.label', 'Microphone')}
       />
-      <DeviceSelectorAudioOutput visualType="list" title={t('Speaker')} />
+      <DeviceSelectorAudioOutput
+        visualType="list"
+        title={t('common.speaker.label', 'Speaker')}
+      />
     </MenuToggle>
   );
 };

@@ -13,12 +13,13 @@ import {
 } from '../contexts/AppContext';
 import { appTheme } from '../theme';
 import { Button } from '../components/Button';
-import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
+import { useTheme } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../hooks/useAppI18n';
 import { useOrientation } from '../hooks/useOrientation';
 
 export const ChooseAppModeScreen = () => {
   const setState = useAppGlobalStoreSetState();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const orientation = useOrientation();
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
   const styles = useStyles();
@@ -54,29 +55,36 @@ export const ChooseAppModeScreen = () => {
       <View style={styles.topContainer}>
         <Image source={require('../assets/Logo.png')} style={styles.logo} />
         <View>
-          <Text style={styles.title}>{t('Stream DogFood App')}</Text>
-          <Text style={styles.subTitle}>{t('Choose the Mode')}</Text>
+          <Text style={styles.title}>
+            {t('chooseAppMode.appName.title', 'Stream DogFood App')}
+          </Text>
+          <Text style={styles.subTitle}>
+            {t('chooseAppMode.chooseMode.description', 'Choose the Mode')}
+          </Text>
         </View>
       </View>
       <View style={styles.bottomContainer}>
-        <Button title={t('Meeting')} onPress={onMeetingSelect} />
         <Button
-          title={t('Call')}
+          title={t('chooseAppMode.meeting.label', 'Meeting')}
+          onPress={onMeetingSelect}
+        />
+        <Button
+          title={t('chooseAppMode.call.label', 'Call')}
           onPress={onRingingSelect}
           buttonStyle={styles.callButton}
         />
         <Button
-          title={t('Audio Rooms')}
+          title={t('chooseAppMode.audioRooms.label', 'Audio Rooms')}
           onPress={onAudioRoomSelect}
           buttonStyle={styles.callButton}
         />
         <Button
-          title={t('Livestreaming')}
+          title={t('chooseAppMode.livestreaming.label', 'Livestreaming')}
           onPress={onLiveStreamSelect}
           buttonStyle={styles.callButton}
         />
         <Button
-          title={t('Test Recording')}
+          title={t('chooseAppMode.testRecording.label', 'Test Recording')}
           onPress={onTestRecordingSelect}
           buttonStyle={styles.callButton}
         />

@@ -1,12 +1,8 @@
 import { FormEvent, useCallback, useState } from 'react';
 import clsx from 'clsx';
-import {
-  Icon,
-  useCall,
-  useI18n,
-  useMenuContext,
-} from '@stream-io/video-react-sdk';
+import { Icon, useCall, useMenuContext } from '@stream-io/video-react-sdk';
 import { getCookie } from '../../helpers/getCookie';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 export type Props = {
   className?: string;
@@ -25,7 +21,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [errorMessage, setError] = useState<string | null>(null);
   const call = useCall();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -83,14 +79,17 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
         <img
           className="rd__feedback-image"
           src={`${basePath}/feedback.png`}
-          alt={t('Feedback')}
+          alt={t('feedback.feedback.label', 'Feedback')}
         />
 
         <h2 className="rd__feedback-heading">
-          {t('Thanks for your feedback!')}
+          {t('feedback.thankYou.title', 'Thanks for your feedback!')}
         </h2>
         <p className="rd__feedback-description">
-          {t('We’ll use it to help better your call experience 😀')}
+          {t(
+            'feedback.thankYou.description',
+            'We’ll use it to help better your call experience 😀',
+          )}
         </p>
 
         <div className="rd__feedback-footer">
@@ -100,7 +99,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
               type="button"
               disabled={isSubmitting}
             >
-              {t('Learn More')}
+              {t('common.learnMore.label', 'Learn More')}
             </button>
 
             <button
@@ -114,7 +113,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
                 })
               }
             >
-              {t('Close')}
+              {t('common.close.label', 'Close')}
             </button>
           </div>
         </div>
@@ -127,10 +126,12 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
       <img
         className="rd__feedback-image"
         src={`${basePath}/feedback.png`}
-        alt={t('Feedback')}
+        alt={t('feedback.feedback.label', 'Feedback')}
       />
       <h4 className="rd__feedback-heading">
-        {inMeeting ? t('How was your call?') : t('You left the call.')}
+        {inMeeting
+          ? t('feedback.form.howWasYourCall.title', 'How was your call?')
+          : t('feedback.form.youLeftTheCall.title', 'You left the call.')}
       </h4>
       <p
         className={clsx(
@@ -139,8 +140,18 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
         )}
       >
         {errorMessage && errorMessage}
-        {inMeeting && !errorMessage && t('How is your calling experience?')}
-        {!inMeeting && !errorMessage && t('How was your calling experience?')}
+        {inMeeting &&
+          !errorMessage &&
+          t(
+            'feedback.form.howIsYourExperience.description',
+            'How is your calling experience?',
+          )}
+        {!inMeeting &&
+          !errorMessage &&
+          t(
+            'feedback.form.howWasYourExperience.description',
+            'How was your calling experience?',
+          )}
       </p>
       <form className="rd__feedback-form" onSubmit={handleSubmit}>
         <div className="rd__feedback-rating-stars">
@@ -168,14 +179,14 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
         <input
           type="email"
           value={email}
-          placeholder={t('Email')}
+          placeholder={t('feedback.form.email.placeholder', 'Email')}
           id="feedback_input"
           className="rd__feedback-input"
           onChange={(e) => setEmail(e.target.value)}
         />
         <textarea
           value={message}
-          placeholder={t('Message')}
+          placeholder={t('feedback.form.message.placeholder', 'Message')}
           id="feedback_message"
           className="rd__feedback-textarea"
           onChange={(e) => setMessage(e.target.value)}
@@ -188,7 +199,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
                 disabled={isSubmitting}
                 onClick={close}
               >
-                {t('Cancel')}
+                {t('common.cancel.label', 'Cancel')}
               </button>
             ) : (
               <button
@@ -198,7 +209,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
                   window.location.assign('https://getstream.io/video/#contact');
                 }}
               >
-                {t('Contact an expert')}
+                {t('common.contactAnExpert.label', 'Contact an expert')}
               </button>
             )}
             <button
@@ -206,7 +217,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
               type="submit"
               disabled={rating.current === 0 || isSubmitting}
             >
-              {t('Submit')}
+              {t('common.submit.label', 'Submit')}
             </button>
           </div>
         </div>

@@ -1,8 +1,8 @@
 import {
   useCallStateHooks,
   useConnectedUser,
-  useI18n,
 } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { Avatar } from '../../../components';
 
 export const DisabledVideoPreview = () => {
@@ -22,6 +22,7 @@ export const DisabledVideoPreview = () => {
         <Avatar imageSrc={user?.image} name={user?.name || user?.id} />
       ) : (
         t(
+          'lobby.videoPreviewFallbacks.grantBrowserPermission.text',
           'Please grant your browser permission to access your camera and microphone.',
         )
       )}
@@ -41,6 +42,7 @@ export const NoCameraPreview = () => {
     return (
       <div className="str-video__embedded-lobby__no-permission">
         {t(
+          'lobby.videoPreviewFallbacks.grantBrowserPermission.text',
           'Please grant your browser permission to access your camera and microphone.',
         )}
       </div>
@@ -49,7 +51,7 @@ export const NoCameraPreview = () => {
 
   return (
     <div className="str-video__video-preview__no-camera-preview">
-      {t('No camera found')}
+      {t('common.noCameraFound.text', 'No camera found')}
     </div>
   );
 };

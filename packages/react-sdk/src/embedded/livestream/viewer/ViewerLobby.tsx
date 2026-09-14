@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { Button, Icon } from '../../../components';
 import { ViewersCount } from '../../shared';
 import { OwnCapability } from '@stream-io/video-client';
@@ -80,15 +81,22 @@ export const ViewerLobby = ({ onJoin }: ViewerLobbyProps) => {
     if (!startsAt) return null;
 
     if (startsAtPassed) {
-      return t('Livestream starts soon');
+      return t(
+        'livestream.backstage.startsSoon.text',
+        'Livestream starts soon',
+      );
     }
 
-    return t('Livestream starts at {{ time }}', {
-      time: startsAt.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-    });
+    return t(
+      'livestream.backstage.startsAt.text',
+      'Livestream starts at {{ time }}',
+      {
+        time: startsAt.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      },
+    );
   };
 
   return (
@@ -100,8 +108,11 @@ export const ViewerLobby = ({ onJoin }: ViewerLobbyProps) => {
 
         <h2 className="str-video__embedded-viewer-lobby__title">
           {canJoin
-            ? t('Stream is ready!')
-            : t('Waiting for the livestream to start')}
+            ? t('livestreamViewer.lobby.streamReady.title', 'Stream is ready!')
+            : t(
+                'livestreamViewer.lobby.waitingForStart.title',
+                'Waiting for the livestream to start',
+              )}
         </h2>
 
         {!canJoin && getStartsAtMessage() && (
@@ -115,7 +126,7 @@ export const ViewerLobby = ({ onJoin }: ViewerLobbyProps) => {
         <div className="str-video__embedded-viewer-lobby__actions">
           {canJoin ? (
             <Button size="sm" onClick={onJoin}>
-              {t('Join Stream')}
+              {t('livestreamViewer.lobby.joinStream.label', 'Join Stream')}
             </Button>
           ) : (
             <label className="str-video__embedded-viewer-lobby__auto-join">
@@ -124,7 +135,12 @@ export const ViewerLobby = ({ onJoin }: ViewerLobbyProps) => {
                 checked={autoJoin}
                 onChange={(e) => setAutoJoin(e.target.checked)}
               />
-              <span>{t('Join automatically when stream starts')}</span>
+              <span>
+                {t(
+                  'livestreamViewer.lobby.joinAutomatically.text',
+                  'Join automatically when stream starts',
+                )}
+              </span>
             </label>
           )}
         </div>

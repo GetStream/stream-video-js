@@ -10,13 +10,14 @@ import {
   WithComponents,
 } from 'stream-chat-react';
 
-import { Icon, IconButton, useI18n } from '@stream-io/video-react-sdk';
+import { Icon, IconButton } from '@stream-io/video-react-sdk';
 
 import { CHANNEL_TYPE } from '.';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 const NoMessages = () => {
   const { messages } = useChannelStateContext();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   if (messages?.length === 0) {
     return (
@@ -38,9 +39,14 @@ const NoMessages = () => {
           </g>
         </svg>
 
-        <p className="rd__chat__no-messages__title">{t('Start chatting!')}</p>
+        <p className="rd__chat__no-messages__title">
+          {t('chat.empty.startChatting.title', 'Start chatting!')}
+        </p>
         <p className="rd__chat__no-messages__description">
-          {t('Let’s get this chat started, why not send the first message?')}
+          {t(
+            'chat.empty.startChatting.description',
+            'Let’s get this chat started, why not send the first message?',
+          )}
         </p>
       </div>
     );
@@ -66,7 +72,7 @@ export const ChatUI = ({
   channelId: string;
 }) => {
   const { client, setActiveChannel } = useChatContext();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   const router = useRouter();
   useEffect(() => {
@@ -88,7 +94,9 @@ export const ChatUI = ({
         <Window>
           <div className="rd__chat-wrapper">
             <div className="rd__chat-header">
-              <h2 className="rd__chat-header__title">{t('Chat')}</h2>
+              <h2 className="rd__chat-header__title">
+                {t('chat.panel.title', 'Chat')}
+              </h2>
               <IconButton
                 className="rd__chat-header__icon"
                 onClick={onClose}
@@ -102,7 +110,12 @@ export const ChatUI = ({
           <MessageComposer
             focus
             maxRows={5}
-            additionalTextareaProps={{ placeholder: t('Send a message') }}
+            additionalTextareaProps={{
+              placeholder: t(
+                'chat.composer.sendMessage.placeholder',
+                'Send a message',
+              ),
+            }}
           />
         </Window>
       </Channel>

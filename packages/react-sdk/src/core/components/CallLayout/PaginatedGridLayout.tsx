@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 import clsx from 'clsx';
 
@@ -188,7 +189,10 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
             size="sm"
             variant="secondary"
             icon="caret-left"
-            aria-label={t('Previous page')}
+            aria-label={t(
+              'callLayout.paginatedGridLayout.previousPage.ariaLabel',
+              'Previous page',
+            )}
             disabled={page === 0}
             onClick={() =>
               setPage((currentPage) => Math.max(0, currentPage - 1))
@@ -210,7 +214,10 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
             variant="secondary"
             disabled={page === pageCount - 1}
             icon="caret-right"
-            aria-label={t('Next page')}
+            aria-label={t(
+              'callLayout.paginatedGridLayout.nextPage.ariaLabel',
+              'Next page',
+            )}
             onClick={() =>
               setPage((currentPage) => Math.min(pageCount - 1, currentPage + 1))
             }

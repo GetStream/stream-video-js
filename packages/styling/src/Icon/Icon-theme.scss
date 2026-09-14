@@ -16,6 +16,11 @@
     mask-image: var(--str-video__icon--network-quality);
   }
 
+  &--low-bandwidth-fill {
+    -webkit-mask-image: var(--str-video__icon--low-bandwidth-fill);
+    mask-image: var(--str-video__icon--low-bandwidth-fill);
+  }
+
   &--recording-on {
     -webkit-mask-image: var(--str-video__icon--recording-on);
     mask-image: var(--str-video__icon--recording-on);

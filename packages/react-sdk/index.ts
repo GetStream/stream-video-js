@@ -7,7 +7,7 @@ export * from './src/core';
 
 export * from './src/components';
 export * from './src/wrappers';
-export * from './src/translations';
+export * from './src/i18n';
 export {
   useHorizontalScrollPosition,
   useVerticalScrollPosition,

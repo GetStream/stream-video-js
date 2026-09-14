@@ -1,5 +1,5 @@
 import { CallRecording } from '@stream-io/video-client';
-import { useI18n } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 import { IconButton } from '../Button';
 
 export type CallRecordingListHeaderProps = {
@@ -17,14 +17,16 @@ export const CallRecordingListHeader = ({
   return (
     <div className="str-video__call-recording-list__header">
       <div className="str-video__call-recording-list__title">
-        <span>{t('Call Recordings')}</span>
+        <span>
+          {t('callRecordingList.callRecordings.title', 'Call Recordings')}
+        </span>
         {callRecordings.length ? <span>({callRecordings.length})</span> : null}
       </div>
       {onRefresh && (
         <IconButton
           size="sm"
           variant="secondary"
-          title={t('Refresh')}
+          title={t('callRecordingList.refresh.title', 'Refresh')}
           onClick={onRefresh}
           icon="refresh"
         />

@@ -3,8 +3,8 @@ import { Image, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import {
   useCallStateHooks,
   useConnectedUser,
-  useI18n,
 } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { UserInfo } from './UserInfo';
 import {
   IncomingCallControls as DefaultIncomingCallControls,
@@ -73,7 +73,7 @@ export const IncomingCall = ({
               incomingCall.incomingCallText,
             ]}
           >
-            {t('Incoming Call...')}
+            {t('ringingCall.incoming.title', 'Incoming Call...')}
           </Text>
         </View>
         <View style={[styles.bottomContainer, incomingCall.bottomContainer]}>

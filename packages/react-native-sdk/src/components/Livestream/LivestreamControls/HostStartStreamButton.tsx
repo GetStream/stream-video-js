@@ -1,8 +1,5 @@
-import {
-  useCall,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -149,10 +146,10 @@ export const HostStartStreamButton = ({
         ]}
       >
         {isAwaitingResponse
-          ? t('Loading...')
+          ? t('common.loading.text', 'Loading...')
           : liveOrBroadcasting
-            ? t('Stop Livestream')
-            : t('Start Livestream')}
+            ? t('livestreamControls.stop.label', 'Stop Livestream')
+            : t('livestreamControls.start.label', 'Start Livestream')}
       </Text>
     </Pressable>
   );

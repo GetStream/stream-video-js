@@ -205,7 +205,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
             <Avatar size={50} participant={participant} />
             <Text style={styles.name}>
               {generateParticipantTitle(participant.userId) +
-                (showYouLabel ? ` ${t('You')}` : '')}
+                (showYouLabel ? ` ${t('common.you.label', 'You')}` : '')}
             </Text>
           </View>
           <Pressable
