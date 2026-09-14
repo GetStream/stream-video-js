@@ -1173,6 +1173,10 @@ export class Call {
       if (callingX) {
         // for Android/iOS, we need to start the call in the callingx library as soon as possible
         await callingX.joinCall(this, this.clientState.calls);
+        if (supersededByLeave()) {
+          this.logger.debug('Join superseded by leave; not setting up');
+          return;
+        }
       }
 
       await this.setup();

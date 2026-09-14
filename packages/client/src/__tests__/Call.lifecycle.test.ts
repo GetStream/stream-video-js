@@ -243,21 +243,27 @@ describe('Call lifecycle wiring', () => {
     expect(call.state.callingState).toBe(CallingState.LEFT);
   });
 
-  it('call.join() never attempts when leave() lands during callingX.joinCall', async () => {
+  // `setup()` is deliberately left unmocked here: it re-registers effects and
+  // device managers and resets the calling state to IDLE, so a superseded join
+  // that resumes into it would silently resurrect a call the user has left.
+  it('call.join() never attempts or sets up when leave() lands during callingX.joinCall', async () => {
     const joinCall = promiseWithResolvers<void>();
-    installCallingX(vi.fn().mockReturnValue(joinCall.promise));
-    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    const callingX = installCallingX(vi.fn().mockReturnValue(joinCall.promise));
+    const setup = vi.spyOn(call, 'setup');
     const doJoin = vi
       .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
       .mockResolvedValue(undefined);
 
     const joinTask = call.join();
     await call.leave();
+    expect(call.state.callingState).toBe(CallingState.LEFT);
     joinCall.resolve();
 
     await expect(joinTask).resolves.toBeUndefined();
+    expect(setup).not.toHaveBeenCalled();
     expect(doJoin).not.toHaveBeenCalled();
     expect(call.state.callingState).toBe(CallingState.LEFT);
+    expect(callingX.endCall).not.toHaveBeenCalledWith(call, 'error');
   });
 
   it('call.join() never attempts when leave() lands during setup()', async () => {
