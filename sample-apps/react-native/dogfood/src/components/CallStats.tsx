@@ -206,21 +206,21 @@ const StatsTag = (props: { children: ReactNode; status: Status }) => {
   const { children, status } = props;
   const styles = useStyles();
   const {
-    theme: { colors },
+    theme: { semantics },
   } = useTheme();
   let color;
   switch (status) {
     case Status.GOOD:
-      color = colors.iconSuccess;
+      color = semantics.accentSuccess;
       break;
     case Status.OK:
       color = '#ffd646';
       break;
     case Status.BAD:
-      color = colors.warning;
+      color = semantics.accentWarning;
       break;
     default:
-      color = colors.iconSuccess;
+      color = semantics.accentSuccess;
   }
   return (
     <View

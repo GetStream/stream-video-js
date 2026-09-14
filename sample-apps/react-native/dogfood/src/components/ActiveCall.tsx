@@ -8,16 +8,16 @@ import {
   useToggleCallRecording,
   BackgroundFiltersProvider,
 } from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, Alert, StatusBar, StyleSheet } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import { ParticipantsInfoListModal } from './ParticipantsInfoListModal';
 import { BottomControls } from './CallControls/BottomControls';
 import { MoreActionsDrawer } from './CallControls/MoreActionsButton/MoreActionsDrawer';
 import { useOrientation } from '../hooks/useOrientation';
 import { useLayout } from '../contexts/LayoutContext';
-import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import DeviceInfo from 'react-native-device-info';
 import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SubtitleContainer } from './CallControls/BottomControls/SubtitleContainer';
 
 type ActiveCallProps = {
   onHangupCallHandler?: () => void;
@@ -35,7 +35,6 @@ export const ActiveCall = ({
   const call = useCall();
   const styles = useStyles();
   const { selectedLayout, onLayoutSelection } = useLayout();
-  const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
   const currentOrientation = useOrientation();
   const isTablet = DeviceInfo.isTablet();
   const isLandscape = !isTablet && currentOrientation === 'landscape';
@@ -109,9 +108,6 @@ export const ActiveCall = ({
     <BackgroundFiltersProvider>
       <NoiseCancellationProvider>
         <SafeAreaView style={styles.container}>
-          <StatusBar
-            barStyle={themeMode === 'light' ? 'dark-content' : 'light-content'}
-          />
           {/* {!isInPiPMode && <CustomTopControls />} */}
           <CallContent
             iOSPiPIncludeLocalParticipantVideo
@@ -134,6 +130,9 @@ export const ActiveCall = ({
             isCallParticipantsInfoVisible={isCallParticipantsVisible}
             setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
           />
+          {!!controlsHeight && (
+            <SubtitleContainer controlsContainerHeight={controlsHeight} />
+          )}
         </SafeAreaView>
       </NoiseCancellationProvider>
     </BackgroundFiltersProvider>
@@ -151,7 +150,9 @@ const useStyles = () => {
           flex: 1,
           backgroundColor: semantics.backgroundCoreApp,
         },
-        callContent: { flex: 1 },
+        callContent: {
+          flex: 1,
+        },
       }),
     [semantics],
   );

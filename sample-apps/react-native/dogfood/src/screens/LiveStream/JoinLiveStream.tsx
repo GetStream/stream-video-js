@@ -29,7 +29,9 @@ export const JoinLiveStream = ({
   route,
 }: JoinLiveStreamScreenProps) => {
   const styles = useStyles();
-  const { theme } = useTheme();
+  const {
+    theme: { semantics },
+  } = useTheme();
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const userId = useAppGlobalStoreValue((store) => store.userId);
   const userName = useAppGlobalStoreValue((store) => store.userName);
@@ -110,7 +112,7 @@ export const JoinLiveStream = ({
                 <QRCode
                   width={20}
                   height={20}
-                  fill={theme.colors.textPrimary.toString()}
+                  fill={semantics.textPrimary.toString()}
                 />
               </TouchableOpacity>
             )}

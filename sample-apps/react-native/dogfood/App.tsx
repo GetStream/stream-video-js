@@ -12,10 +12,7 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from './src/contexts/AppContext';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   navigationRef,
   StaticNavigationService,
@@ -59,7 +56,6 @@ const StackNavigator = () => {
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const userName = useAppGlobalStoreValue((store) => store.userName);
   const setState = useAppGlobalStoreSetState();
-  const { bottom } = useSafeAreaInsets();
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
 
   const style = React.useMemo(() => {
@@ -165,14 +161,9 @@ const StackNavigator = () => {
     );
   }
 
-  const containerStyle = {
-    flex: 1,
-    paddingBottom: Platform.OS === 'android' ? bottom : 0,
-  };
-
   return (
     <StreamTheme style={style}>
-      <GestureHandlerRootView style={containerStyle}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
         <VideoWrapper>
           <RingingWatcher />
           <ChatWrapper>

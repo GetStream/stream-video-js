@@ -265,6 +265,7 @@ const useStyles = () => {
       StyleSheet.create({
         backDropBackground: {
           zIndex: Z_INDEX.IN_BACK,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
         },
         content: {
           zIndex: Z_INDEX.IN_FRONT,

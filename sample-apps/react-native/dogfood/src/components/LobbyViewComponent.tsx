@@ -9,7 +9,6 @@ import React, { useCallback, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MeetingStackParamList } from '../../types';
 import { useOrientation } from '../hooks/useOrientation';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationHeader } from './NavigationHeader';
 
 type LobbyViewComponentType = NativeStackScreenProps<

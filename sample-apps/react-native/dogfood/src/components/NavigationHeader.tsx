@@ -7,14 +7,7 @@ import {
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import React, { useMemo } from 'react';
-import {
-  Alert,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  ViewStyle,
-} from 'react-native';
+import { Alert, Pressable, StyleSheet, Text } from 'react-native';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
@@ -26,10 +19,7 @@ import { ButtonTestIds } from '../constants/TestIds';
 import Close from '../assets/Close';
 import { Leave } from '../assets/Leave';
 
-export const NavigationHeader = ({
-  route,
-  navigation,
-}: NativeStackHeaderProps) => {
+export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   const videoClient = useStreamVideoClient();
   const user = useConnectedUser();
   const { t } = useI18n();
@@ -79,7 +69,7 @@ export const NavigationHeader = ({
       route.name === 'TestRecordingScreen');
 
   return (
-    <SafeAreaView style={[styles.header, styles.shadow]} edges={['top']}>
+    <SafeAreaView style={styles.header} edges={['top']}>
       {user && <Avatar user={user} size="lg" />}
       <Text style={styles.userNameText}>{userName}</Text>
 
@@ -121,12 +111,6 @@ const useStyles = () => {
           gap: primitives.spacingXs,
           backgroundColor: semantics.backgroundCoreElevation2,
         },
-        shadow: Platform.select({
-          ios: {},
-          android: {
-            elevation: 2,
-          },
-        }) as ViewStyle,
         avatar: {
           height: AVATAR_SIZE,
           width: AVATAR_SIZE,

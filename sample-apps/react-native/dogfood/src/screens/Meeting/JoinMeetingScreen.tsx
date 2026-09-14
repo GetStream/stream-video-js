@@ -20,7 +20,6 @@ import { deeplinkCallId$ } from '../../hooks/useDeepLinkEffect';
 import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
 import { useOrientation } from '../../hooks/useOrientation';
 import { Button } from '@stream-io/video-react-native-sdk/src/components/utility/Button';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const StreamLogo = require('../../assets/images/stream_placeholder.png');
 
@@ -75,7 +74,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const isValidCall = isValidCallId(callId);
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+      behavior={'position'}
       style={[{ flex: 1 }, landscapeStyles]}
       contentContainerStyle={{ flex: 1 }}
     >

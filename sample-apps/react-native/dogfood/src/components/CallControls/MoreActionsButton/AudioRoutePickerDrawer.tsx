@@ -53,16 +53,13 @@ export const AudioRoutePickerDrawer: React.FC<AudioRoutePickerDrawerProps> = ({
   const screenHeight = useWindowDimensions().height;
   const drawerHeight = screenHeight * 0.8;
   const styles = useStyles();
-  const {
-    theme: { insets },
-  } = useTheme();
 
   const audioDeviceStatus = useAudioDeviceStatus();
   const audioRoutes = audioDeviceStatus?.devices ?? [];
   const selectedDeviceId = audioDeviceStatus?.selectedDeviceId;
 
   // negative offset is needed so the drawer component start above the bottom controls
-  const offset = -bottomControlsHeight - insets.bottom;
+  const offset = -bottomControlsHeight;
 
   const translateY = useRef<any>(
     new Animated.Value(drawerHeight + offset),
@@ -201,6 +198,7 @@ const useStyles = () => {
           width: 24,
           height: 24,
           marginHorizontal: 8,
+          tintColor: semantics.textPrimary,
         },
         selectedIcon: {
           marginLeft: 'auto', // Push checkmark to the right
@@ -250,7 +248,7 @@ const useStyles = () => {
         },
         label: {
           fontSize: primitives.typographyFontSizeLg,
-          color: semantics.accentPrimary,
+          color: semantics.textPrimary,
           fontWeight: '600',
         },
       }),

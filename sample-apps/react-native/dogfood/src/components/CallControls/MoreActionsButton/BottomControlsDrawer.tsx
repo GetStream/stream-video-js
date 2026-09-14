@@ -49,7 +49,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
   bottomControlsHeight,
 }) => {
   const {
-    theme: { semantics, insets, components },
+    theme: { semantics, components },
   } = useTheme();
   const screenHeight = Dimensions.get('window').height;
   const drawerHeight = screenHeight * 0.8;
@@ -57,8 +57,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
   const call = useCall();
 
   // negative offset to position the drawer component above the bottom controls
-  const callContentPaddingBottom = insets.bottom;
-  const offset = -bottomControlsHeight - callContentPaddingBottom;
+  const offset = -bottomControlsHeight;
 
   const translateY = useRef<any>(
     new Animated.Value(drawerHeight + offset),
@@ -218,7 +217,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
     >
       <TouchableWithoutFeedback onPress={onClose}>
         <SafeAreaProvider>
-          <SafeAreaView style={styles.overlay} edges={[]}>
+          <SafeAreaView style={styles.overlay}>
             <Animated.View
               style={[styles.container, { transform: [{ translateY }] }]}
             >

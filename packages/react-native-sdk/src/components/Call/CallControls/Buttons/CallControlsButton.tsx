@@ -134,9 +134,6 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'center',
-
-    // For android
-    elevation: 6,
   },
   badge: {
     position: 'absolute',

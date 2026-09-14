@@ -74,7 +74,6 @@ const useStyles = () => {
   const {
     theme: { primitives },
   } = useTheme();
-
   return useMemo(
     () =>
       StyleSheet.create({
