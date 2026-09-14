@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useCall, useI18n, useTheme } from '@stream-io/video-react-native-sdk';
+import { useCall, useTheme } from '@stream-io/video-react-native-sdk';
 import { useE2eeKeyStatus } from '../hooks/useE2eeKeyStatus';
+import { useAppI18n } from '../hooks/useAppI18n';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
@@ -25,7 +26,7 @@ import { TextInput } from './TextInput';
 export const E2EEKeyNotification = () => {
   const status = useE2eeKeyStatus();
   const call = useCall();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const setState = useAppGlobalStoreSetState();
   const storedKey = useAppGlobalStoreValue((store) => store.e2eeKeyInput) ?? '';
   const [dismissed, setDismissed] = useState(false);
@@ -58,14 +59,21 @@ export const E2EEKeyNotification = () => {
         <Text style={styles.message}>
           {status.kind === 'local-key-mismatch'
             ? t(
+                'e2eeKeyNotification.localKeyMismatch.text',
                 "Nobody's audio or video can be decrypted. Your meeting key is most likely wrong.",
               )
-            : `${t('Cannot decrypt participants:')} ${status.names.join(', ')}`}
+            : `${t(
+                'e2eeKeyNotification.undecryptableParticipants.text',
+                'Cannot decrypt participants:',
+              )} ${status.names.join(', ')}`}
         </Text>
         <Pressable
           onPress={() => setDismissed(true)}
           hitSlop={12}
-          accessibilityLabel={t('Dismiss')}
+          accessibilityLabel={t(
+            'e2eeKeyNotification.dismiss.ariaLabel',
+            'Dismiss',
+          )}
         >
           <Text style={styles.dismiss}>✕</Text>
         </Pressable>
@@ -73,7 +81,11 @@ export const E2EEKeyNotification = () => {
       {status.kind === 'local-key-mismatch' && (
         <View style={styles.form}>
           <TextInput
-            placeholder={storedKey ? t('New meeting key') : t('Meeting key')}
+            placeholder={
+              storedKey
+                ? t('e2eeKeyNotification.newKey.label', 'New meeting key')
+                : t('e2eeKeyNotification.key.label', 'Meeting key')
+            }
             value={draftKey}
             autoCapitalize="none"
             autoCorrect={false}
@@ -86,7 +98,9 @@ export const E2EEKeyNotification = () => {
             disabled={!draftKey.trim()}
             style={[styles.apply, !draftKey.trim() && styles.applyDisabled]}
           >
-            <Text style={styles.applyText}>{t('Apply')}</Text>
+            <Text style={styles.applyText}>
+              {t('e2eeKeyNotification.apply.label', 'Apply')}
+            </Text>
           </Pressable>
         </View>
       )}

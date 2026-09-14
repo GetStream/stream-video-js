@@ -10,6 +10,7 @@ import { Pressable, StyleSheet, View, Text } from 'react-native';
 import { MeetingStackParamList } from '../../types';
 import { appTheme } from '../theme';
 import { useOrientation } from '../hooks/useOrientation';
+import { useAppI18n } from '../hooks/useAppI18n';
 import { isCallEncrypted, isE2EEConfigured } from '../utils/e2ee';
 import { LockIcon } from './LockIcon';
 
@@ -46,6 +47,7 @@ export const LobbyViewComponent = ({
             <LockIcon color={theme.colors.iconWarning} size={14} />
             <Text style={styles.encryptionNoticeText}>
               {t(
+                'lobbyView.encryptionKeyRequired.text',
                 'This call is end-to-end encrypted. Set a meeting key before joining.',
               )}
             </Text>
