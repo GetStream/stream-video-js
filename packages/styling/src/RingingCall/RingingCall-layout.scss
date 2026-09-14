@@ -5,8 +5,9 @@
   justify-content: space-around;
   width: 400px;
   height: 300px;
-  padding: 1rem 1rem 0.5rem;
-  gap: 1rem;
+  padding: var(--str-video__spacing-md) var(--str-video__spacing-md)
+    var(--str-video__spacing-xs);
+  gap: var(--str-video__spacing-md);
 }
 
 .str-video__call-panel--ringing {
@@ -21,23 +22,23 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 2rem;
+      padding: var(--str-video__spacing-2xl);
 
       .str-video__avatar {
-        width: 80px;
-        height: 80px;
+        width: var(--str-video__size-80);
+        height: var(--str-video__size-80);
       }
 
       .str-video__member_details {
         position: absolute;
         bottom: 10%;
-        padding: 0.125rem 0.375rem;
+        padding: var(--str-video__space-2) var(--str-video__space-6);
       }
     }
   }
 
   .str-video__pending-call-controls {
     display: flex;
-    gap: 0.675rem;
+    gap: var(--str-video__spacing-sm);
   }
 }

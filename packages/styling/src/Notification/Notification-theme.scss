@@ -1,19 +1,27 @@
 @use '../utils';
 
 .str-video__notification {
-  background-color: var(--str-video__background-color1);
-  border-radius: var(--str-video__border-radius-xs);
+  background-color: var(--str-video__background-core-inverse);
+  color: var(--str-video__text-on-inverse);
+  border-radius: var(--str-video__radius-3xl);
+  box-shadow: var(--str-video__box-shadow-3);
   z-index: 100;
 
   .str-video__notification__icon {
     @include utils.apply-mask-image(
-      var(--str-video__icon--info-icon),
-      var(--str-video__text-color1),
-      1.5rem
+      var(--str-video__icon--exclamation-circle-fill),
+      var(--str-video__text-on-inverse),
+      var(--str-video__icon-size-sm)
     );
   }
 
   .str-video__notification__message {
-    font-size: 0.75rem;
+    font-size: var(--str-video__typography-font-size-sm);
+    line-height: var(--str-video__typography-line-height-normal);
+  }
+
+  > .str-video__icon,
+  .str-video__loading-indicator__icon {
+    background-color: var(--str-video__text-on-inverse);
   }
 }

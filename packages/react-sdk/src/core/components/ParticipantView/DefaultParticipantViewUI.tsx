@@ -273,7 +273,7 @@ export const ParticipantDetails = ({
         <Notification
           isVisible={
             isLocalParticipant &&
-            connectionQuality === SfuModels.ConnectionQuality.POOR
+            connectionQuality !== SfuModels.ConnectionQuality.POOR
           }
           message={t(
             'participantView.connectionQuality.poor.text',
