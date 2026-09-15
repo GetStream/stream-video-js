@@ -1438,6 +1438,10 @@ export class Call {
           );
         }
       } catch (error) {
+        if (supersededByLeave()) {
+          this.logger.debug('Join superseded by leave; ignoring SFU failure');
+          return;
+        }
         this.logger.warn('Join SFU request failed', error);
         sfuClient.close(
           StreamSfuClient.JOIN_FAILED,

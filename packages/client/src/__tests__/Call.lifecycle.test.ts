@@ -295,11 +295,15 @@ describe('Call lifecycle wiring', () => {
     'acceptance',
     'generic SDP',
     'SFU join',
+    'SFU rejection',
   ] as const)('call.join() stops after leave() during %s', async (phase) => {
     const pending = promiseWithResolvers<void>();
     vi.spyOn(call, 'setup').mockResolvedValue(undefined);
     const mediaFactory = vi.spyOn(call, 'ensureMediaFactory');
-    const callingX = phase === 'media factory' ? installCallingX() : undefined;
+    const callingX =
+      phase === 'media factory' || phase === 'SFU rejection'
+        ? installCallingX()
+        : undefined;
     if (phase === 'media factory') {
       mediaFactory.mockImplementation(async () => {
         await pending.promise;
@@ -340,24 +344,28 @@ describe('Call lifecycle wiring', () => {
       .spyOn(call.state, 'updateFromSfuCallState')
       .mockImplementation(() => {});
     const joinSfu = vi.fn().mockImplementation(async () => {
-      if (phase === 'SFU join') await pending.promise;
+      if (phase === 'SFU join' || phase === 'SFU rejection')
+        await pending.promise;
+      if (phase === 'SFU rejection') throw new Error('SFU join failed');
       return {
         callState: {},
         publishOptions: [],
         fastReconnectDeadlineSeconds: 123,
       };
     });
+    const closeSfu = vi.fn();
     const createSfu = vi
       .spyOn(sfu, 'StreamSfuClient')
       .mockImplementation(function () {
         return fromPartial<sfu.StreamSfuClient>({
           sessionId: 'test-session',
           join: joinSfu,
+          close: closeSfu,
           leaveAndClose: vi.fn().mockResolvedValue(undefined),
         });
       });
 
-    const joinTask = call.join({ ring: true });
+    const joinTask = call.join({ ring: true, maxJoinRetries: 1 });
     const pausedOperation = {
       'media factory': mediaFactory,
       'location hint': locationHint,
@@ -365,6 +373,7 @@ describe('Call lifecycle wiring', () => {
       acceptance: accept,
       'generic SDP': genericSdp,
       'SFU join': joinSfu,
+      'SFU rejection': joinSfu,
     }[phase];
     await vi.waitFor(() => expect(pausedOperation).toHaveBeenCalled());
     expect(call.state.callingState).toBe(CallingState.JOINING);
@@ -391,7 +400,9 @@ describe('Call lifecycle wiring', () => {
       expect(registerCall).not.toHaveBeenCalled();
     }
     if (phase === 'acceptance') expect(registerCall).not.toHaveBeenCalled();
-    expect(joinSfu).toHaveBeenCalledTimes(phase === 'SFU join' ? 1 : 0);
+    expect(joinSfu).toHaveBeenCalledTimes(
+      phase === 'SFU join' || phase === 'SFU rejection' ? 1 : 0,
+    );
     expect(updateSfuState).not.toHaveBeenCalled();
     expect(call['currentPublishOptions']).toBe(publishOptions);
     expect(call['fastReconnectDeadlineSeconds']).toBe(reconnectDeadline);
@@ -399,6 +410,10 @@ describe('Call lifecycle wiring', () => {
     expect(call.clientState.calls).not.toContain(call);
     expect(call.ringing).toBe(false);
     expect(call.state.callingState).toBe(CallingState.LEFT);
+    if (phase === 'SFU rejection') {
+      expect(closeSfu).not.toHaveBeenCalled();
+      expect(callingX!.endCall).not.toHaveBeenCalledWith(call, 'error');
+    }
   });
 
   it.each([
