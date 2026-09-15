@@ -445,26 +445,31 @@ describe('Call lifecycle wiring', () => {
     },
   );
 
-  it.each(['reconnect failure', 'failure refresh'] as const)(
+  it.each(['reconnect failure', 'failure refresh', 'backoff'] as const)(
     'preserves LEFT when leave happens during %s',
     async (phase) => {
       const pending = promiseWithResolvers<void>();
+      const backoff = vi.fn(() => pending.promise);
+      if (phase === 'backoff') sleepControl.onSleep = backoff;
       const reconnect = vi
         .spyOn(internalCall, 'reconnectFast')
         .mockImplementation(async () => {
           if (phase === 'reconnect failure') await pending.promise;
-          throw new ErrorFromResponse(fromPartial({ unrecoverable: true }));
+          throw new ErrorFromResponse(
+            fromPartial({ unrecoverable: phase !== 'backoff' }),
+          );
         });
       const get = vi.spyOn(call, 'get').mockImplementation(async () => {
         await pending.promise;
         return fromPartial<GetCallResponse>({});
       });
       const task = call['reconnect'](WebsocketReconnectStrategy.FAST, 'test');
-      await vi.waitFor(() =>
-        expect(
-          phase === 'reconnect failure' ? reconnect : get,
-        ).toHaveBeenCalled(),
-      );
+      const paused = {
+        'reconnect failure': reconnect,
+        'failure refresh': get,
+        backoff,
+      }[phase];
+      await vi.waitFor(() => expect(paused).toHaveBeenCalled());
       await call.leave();
       pending.resolve();
       await task;
@@ -472,6 +477,10 @@ describe('Call lifecycle wiring', () => {
       expect(call.state.callingState).toBe(CallingState.LEFT);
       expect(call.clientState.calls).not.toContain(call);
       expect(get).toHaveBeenCalledTimes(phase === 'failure refresh' ? 1 : 0);
+      expect(reconnect).toHaveBeenCalledOnce();
+      expect(call['reconnectStrategy']).toBe(
+        WebsocketReconnectStrategy.UNSPECIFIED,
+      );
     },
   );
 

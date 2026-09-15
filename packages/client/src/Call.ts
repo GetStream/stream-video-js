@@ -2130,6 +2130,7 @@ export class Call {
 
           // exponential backoff with jitter, capped at 5 s
           await sleep(retryInterval(attempt));
+          if (supersededByLeave()) return;
 
           const wasMigrating =
             this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE;
