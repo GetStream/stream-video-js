@@ -29,7 +29,7 @@ import { setPushConfig } from './src/utils/setPushConfig';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Appearance, LogBox, Platform, StatusBar } from 'react-native';
+import { Appearance, LogBox, StatusBar } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
 import {
   resolveTheme,
@@ -69,7 +69,7 @@ const StackNavigator = () => {
   useEffect(() => {
     Appearance.setColorScheme(themeMode);
     StatusBar.setBarStyle(
-      themeMode === 'light' ? 'light-content' : 'dark-content',
+      themeMode === 'light' ? 'dark-content' : 'light-content',
     );
   }, [themeMode]);
 
