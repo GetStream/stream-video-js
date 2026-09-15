@@ -59,9 +59,7 @@
     "@stream-io/video-client": "workspace:*",
     "@stream-io/video-filters-web": "workspace:*",
     "@stream-io/video-react-bindings": "workspace:*",
-    "chart.js": "^4.5.1",
-    "clsx": "^2.1.1",
-    "react-chartjs-2": "^5.3.1"
+    "clsx": "^2.1.1"
   },
   "peerDependencies": {
     "react": "^17 || ^18 || ^19",
