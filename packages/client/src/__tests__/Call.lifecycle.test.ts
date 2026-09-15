@@ -33,9 +33,9 @@ vi.mock('../coordinator/connection/utils', async (importOriginal) => {
 
 // the React Native globals that `join()`/`leave()` reach for when the SDK runs
 // on a device. Installed only by the tests that assert on callingX behavior.
-const installCallingX = (joinCall = vi.fn().mockResolvedValue(undefined)) => {
+const installCallingX = () => {
   const callingX = {
-    joinCall,
+    joinCall: vi.fn().mockResolvedValue(undefined),
     endCall: vi.fn(),
     wireAudioEngineSubscription: vi.fn(),
   };
@@ -45,6 +45,11 @@ const installCallingX = (joinCall = vi.fn().mockResolvedValue(undefined)) => {
   };
   return callingX;
 };
+
+const makePeer = () => ({
+  detachEventHandlers: vi.fn(),
+  dispose: vi.fn().mockResolvedValue(undefined),
+});
 
 describe('Call lifecycle wiring', () => {
   let call: Call;
@@ -79,6 +84,11 @@ describe('Call lifecycle wiring', () => {
     delete sleepControl.onSleep;
     delete (globalThis as Record<string, any>).streamRNVideoSDK;
   });
+
+  const mockJoin = () => {
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    return vi.spyOn(internalCall, 'doJoin').mockResolvedValue(undefined);
+  };
 
   // Regression guard for the Call-owned helper teardown chain. Each of
   // these helpers holds a resource (timer, listener, AudioContext) that
@@ -126,10 +136,7 @@ describe('Call lifecycle wiring', () => {
   // `joinSource` is reporting-only: it must reach the event reporter and never
   // the coordinator's join request.
   it('call.join() reports joinSource without putting it on the wire', async () => {
-    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
-    const doJoin = vi
-      .spyOn(internalCall, 'doJoin')
-      .mockResolvedValue(undefined);
+    const doJoin = mockJoin();
     const withJoinLifecycle = vi.spyOn(
       call.clientEventReporter,
       'withJoinLifecycle',
@@ -148,10 +155,7 @@ describe('Call lifecycle wiring', () => {
 
   it('call.join() shares an in-flight join flow', async () => {
     const joinTask = promiseWithResolvers<void>();
-    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
-    const doJoin = vi
-      .spyOn(internalCall, 'doJoin')
-      .mockReturnValue(joinTask.promise);
+    const doJoin = mockJoin().mockReturnValue(joinTask.promise);
 
     const firstJoin = call.join();
     const secondJoin = call.join();
@@ -172,14 +176,10 @@ describe('Call lifecycle wiring', () => {
     async (maxJoinRetries) => {
       const callingX = installCallingX();
       const pending = promiseWithResolvers<void>();
-      vi.spyOn(call, 'setup').mockResolvedValue(undefined);
-      const doJoin = vi
-        .spyOn(internalCall, 'doJoin')
-        .mockImplementationOnce(async () => {
-          await pending.promise;
-          throw new Error('join response timeout');
-        })
-        .mockResolvedValue(undefined);
+      const doJoin = mockJoin().mockImplementationOnce(async () => {
+        await pending.promise;
+        throw new Error('join response timeout');
+      });
 
       const task = call.join({ maxJoinRetries });
       await vi.waitFor(() => expect(doJoin).toHaveBeenCalledTimes(1));
@@ -197,10 +197,7 @@ describe('Call lifecycle wiring', () => {
   it('call.join() stops retrying when leave() lands during the backoff', async () => {
     const backoff = promiseWithResolvers<void>();
     sleepControl.onSleep = () => backoff.promise;
-    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
-    const doJoin = vi
-      .spyOn(internalCall, 'doJoin')
-      .mockRejectedValue(new Error('transient failure'));
+    const doJoin = mockJoin().mockRejectedValue(new Error('transient failure'));
 
     const joinTask = call.join({ maxJoinRetries: 3 });
     await vi.waitFor(() => expect(doJoin).toHaveBeenCalledTimes(1));
@@ -254,6 +251,19 @@ describe('Call lifecycle wiring', () => {
     'SFU rejection',
   ] as const)('call.join() stops after leave() during %s', async (phase) => {
     const pending = promiseWithResolvers<void>();
+    const stage =
+      phase === 'coordinator rejection'
+        ? 'coordinator request'
+        : phase === 'SFU rejection'
+          ? 'SFU join'
+          : phase;
+    const responseAt = async <T>(step: typeof stage, response: T) => {
+      if (stage === step) {
+        await pending.promise;
+        if (phase.endsWith('rejection')) throw new Error('Join failed');
+      }
+      return response;
+    };
     vi.spyOn(call, 'setup').mockResolvedValue(undefined);
     const mediaFactory = vi.spyOn(call, 'ensureMediaFactory');
     const callingX =
@@ -261,59 +271,43 @@ describe('Call lifecycle wiring', () => {
         ? installCallingX()
         : undefined;
     if (phase === 'media factory') {
-      mediaFactory.mockImplementation(async () => {
-        await pending.promise;
-        return fromPartial<rtc.CallMediaEngine>({});
-      });
+      mediaFactory.mockImplementation(() =>
+        responseAt('media factory', fromPartial<rtc.CallMediaEngine>({})),
+      );
     }
     const locationHint = vi
       .spyOn(call.streamClient, 'getLocationHint')
-      .mockImplementation(async () => {
-        if (phase === 'location hint') await pending.promise;
-        return 'AMS';
-      });
+      .mockImplementation(() => responseAt('location hint', 'AMS'));
     vi.spyOn(call.streamClient, '_hasConnectionID').mockReturnValue(true);
     const updateState = vi.spyOn(call.state, 'updateFromCallResponse');
-    const accept = vi.spyOn(call, 'accept').mockImplementation(async () => {
-      if (phase === 'acceptance') await pending.promise;
-      return { duration: '0ms' };
-    });
+    const accept = vi
+      .spyOn(call, 'accept')
+      .mockImplementation(() => responseAt('acceptance', { duration: '0ms' }));
     const registerCall = vi.spyOn(call.clientState, 'registerOrUpdateCall');
-    const request = vi
-      .spyOn(call.streamClient, 'post')
-      .mockImplementation(async () => {
-        if (
-          phase === 'coordinator request' ||
-          phase === 'coordinator rejection'
-        )
-          await pending.promise;
-        if (phase === 'coordinator rejection') throw new Error('Join failed');
-        return fromPartial<JoinCallResponse>({
+    const request = vi.spyOn(call.streamClient, 'post').mockImplementation(() =>
+      responseAt(
+        'coordinator request',
+        fromPartial<JoinCallResponse>({
           call: { egress: {}, custom: {}, created_by: { id: 'other-user' } },
           members: [],
           own_capabilities: [],
           stats_options: { enable_rtc_stats: false },
-        });
-      });
+        }),
+      ),
+    );
     const genericSdp = vi
       .spyOn(rtc, 'getGenericSdp')
-      .mockImplementation(async () => {
-        if (phase === 'generic SDP') await pending.promise;
-        return 'sdp';
-      });
+      .mockImplementation(() => responseAt('generic SDP', 'sdp'));
     const updateSfuState = vi
       .spyOn(call.state, 'updateFromSfuCallState')
       .mockImplementation(() => {});
-    const joinSfu = vi.fn().mockImplementation(async () => {
-      if (phase === 'SFU join' || phase === 'SFU rejection')
-        await pending.promise;
-      if (phase === 'SFU rejection') throw new Error('SFU join failed');
-      return {
+    const joinSfu = vi.fn(() =>
+      responseAt('SFU join', {
         callState: {},
         publishOptions: [],
         fastReconnectDeadlineSeconds: 123,
-      };
-    });
+      }),
+    );
     const closeSfu = vi.fn();
     const createSfu = vi
       .spyOn(sfu, 'StreamSfuClient')
@@ -331,12 +325,10 @@ describe('Call lifecycle wiring', () => {
       'media factory': mediaFactory,
       'location hint': locationHint,
       'coordinator request': request,
-      'coordinator rejection': request,
       acceptance: accept,
       'generic SDP': genericSdp,
       'SFU join': joinSfu,
-      'SFU rejection': joinSfu,
-    }[phase];
+    }[stage];
     await vi.waitFor(() => expect(pausedOperation).toHaveBeenCalled());
     expect(call.state.callingState).toBe(CallingState.JOINING);
     await call.leave();
@@ -404,14 +396,8 @@ describe('Call lifecycle wiring', () => {
         leaveAndClose: vi.fn().mockResolvedValue(undefined),
         close: vi.fn(),
       });
-      const oldSubscriber = fromPartial<rtc.Subscriber>({
-        detachEventHandlers: vi.fn(),
-        dispose: vi.fn().mockResolvedValue(undefined),
-      });
-      const oldPublisher = fromPartial<rtc.Publisher>({
-        detachEventHandlers: vi.fn(),
-        dispose: vi.fn().mockResolvedValue(undefined),
-      });
+      const oldSubscriber = fromPartial<rtc.Subscriber>(makePeer());
+      const oldPublisher = fromPartial<rtc.Publisher>(makePeer());
       call['sfuClient'] = oldSfu;
       call['subscriber'] = oldSubscriber;
       call['publisher'] = oldPublisher;
@@ -548,16 +534,12 @@ describe('Call lifecycle wiring', () => {
       const createSubscriber = vi
         .spyOn(rtc, 'Subscriber')
         .mockImplementation(function () {
-          return fromPartial<rtc.Subscriber>({
-            dispose: vi.fn().mockResolvedValue(undefined),
-          });
+          return fromPartial<rtc.Subscriber>(makePeer());
         });
       const createPublisher = vi
         .spyOn(rtc, 'Publisher')
         .mockImplementation(function () {
-          return fromPartial<rtc.Publisher>({
-            dispose: vi.fn().mockResolvedValue(undefined),
-          });
+          return fromPartial<rtc.Publisher>(makePeer());
         });
       const logInfo = vi.spyOn(call['logger'], 'info');
 
@@ -582,9 +564,7 @@ describe('Call lifecycle wiring', () => {
   // Controls: without a leave, the retry loop must behave exactly as before.
   it('call.join() still retries a recoverable failure', async () => {
     sleepControl.onSleep = () => Promise.resolve();
-    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
-    const doJoin = vi
-      .spyOn(internalCall, 'doJoin')
+    const doJoin = mockJoin()
       .mockRejectedValueOnce(new Error('transient failure'))
       .mockResolvedValue(undefined);
 
@@ -595,10 +575,7 @@ describe('Call lifecycle wiring', () => {
   it('call.join() rejects and ends the call once retries are exhausted', async () => {
     const callingX = installCallingX();
     sleepControl.onSleep = () => Promise.resolve();
-    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
-    const doJoin = vi
-      .spyOn(internalCall, 'doJoin')
-      .mockRejectedValue(new Error('transient failure'));
+    const doJoin = mockJoin().mockRejectedValue(new Error('transient failure'));
 
     await expect(call.join({ maxJoinRetries: 2 })).rejects.toThrow(
       'transient failure',
@@ -608,10 +585,7 @@ describe('Call lifecycle wiring', () => {
   });
 
   it('call.join() is still allowed after a completed leave()', async () => {
-    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
-    const doJoin = vi
-      .spyOn(internalCall, 'doJoin')
-      .mockResolvedValue(undefined);
+    const doJoin = mockJoin();
 
     await call.leave();
     await expect(call.join()).resolves.toBeUndefined();
