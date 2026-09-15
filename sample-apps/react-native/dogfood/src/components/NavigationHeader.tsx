@@ -109,7 +109,7 @@ const useStyles = () => {
           justifyContent: 'space-between',
           padding: primitives.spacingSm,
           gap: primitives.spacingXs,
-          backgroundColor: semantics.backgroundCoreElevation2,
+          backgroundColor: semantics.backgroundCoreApp,
         },
         avatar: {
           height: AVATAR_SIZE,

@@ -31,10 +31,13 @@ import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Appearance, LogBox, Platform, StatusBar } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
-import { StreamTheme, useCalls } from '@stream-io/video-react-native-sdk';
+import {
+  resolveTheme,
+  StreamTheme,
+  useCalls,
+} from '@stream-io/video-react-native-sdk';
 import Toast from 'react-native-toast-message';
 import { TestRecording } from './src/navigators/TestRecording';
-import { tokens } from '@stream-io/video-react-native-sdk/src/theme/tokens';
 
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
@@ -58,12 +61,10 @@ const StackNavigator = () => {
   const setState = useAppGlobalStoreSetState();
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
 
-  const style = React.useMemo(() => {
-    if (themeMode === 'light') {
-      return tokens.light;
-    }
-    return tokens.dark;
-  }, [themeMode]);
+  const style = React.useMemo(
+    () => resolveTheme(themeMode === 'dark'),
+    [themeMode],
+  );
 
   useEffect(() => {
     Appearance.setColorScheme(themeMode);
@@ -155,7 +156,7 @@ const StackNavigator = () => {
 
   if (!(userId && userImageUrl && userName)) {
     return (
-      <StreamTheme>
+      <StreamTheme style={style}>
         <LoginScreen />
       </StreamTheme>
     );
