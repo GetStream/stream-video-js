@@ -1,17 +1,16 @@
 .str-video__embedded-call-duration {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--str-video__spacing-xxs);
+  padding: var(--str-video__spacing-xxs) var(--str-video__spacing-xs);
+  border-radius: var(--str-video__radius-3xl);
   white-space: nowrap;
 
-  &__icon {
-    width: 16px;
-    height: 16px;
-  }
-
   &__time {
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--str-video__typography-font-size-sm);
+    font-weight: var(--str-video__typography-font-weight-semi-bold);
+    line-height: var(--str-video__typography-line-height-normal);
     font-variant-numeric: tabular-nums;
   }
 }

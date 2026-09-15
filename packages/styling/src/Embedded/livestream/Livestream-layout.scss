@@ -11,8 +11,8 @@
   &__backstage-badge {
     padding: var(--str-video__space-6) var(--str-video__spacing-sm);
     border-radius: var(--str-video__space-6);
-    font-size: 0.875rem;
-    font-weight: 600;
+    font-size: var(--str-video__typography-font-size-sm);
+    font-weight: var(--str-video__typography-font-weight-semi-bold);
   }
 
   &__viewers {
@@ -23,8 +23,6 @@
 
   &__eye-icon {
     display: inline-block;
-    width: 1.125rem;
-    height: 1.125rem;
     -webkit-mask-image: var(--str-video__icon--eye);
     mask-image: var(--str-video__icon--eye);
     -webkit-mask-size: contain;
@@ -34,30 +32,18 @@
   }
 
   &__count {
-    font-size: 0.875rem;
+    font-size: var(--str-video__typography-font-size-sm);
   }
 
   &__elapsed {
-    font-size: 0.875rem;
+    font-size: var(--str-video__typography-font-size-sm);
   }
 }
 
 .str-video__embedded-go-live-button,
 .str-video__embedded-end-stream-button {
-  display: inline-flex;
   flex: none;
-  align-items: center;
-  justify-content: center;
-  gap: var(--str-video__spacing-xs);
-  height: 34px;
-  min-width: 140px;
-  padding: 0 var(--str-video__spacing-md);
-  border: none;
-  border-radius: var(--str-video__border-radius-xxl);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s ease;
+  min-inline-size: 140px;
 }
 
 .str-video__embedded-go-live-button {
@@ -69,8 +55,8 @@
 
 .str-video__embedded-end-stream-button {
   .str-video__icon {
-    width: 20px;
-    height: 20px;
+    inline-size: var(--str-video__icon-size-md);
+    block-size: var(--str-video__icon-size-md);
   }
 }
 
@@ -98,19 +84,19 @@
 
   &__title {
     margin: var(--str-video__spacing-lg) 0 var(--str-video__spacing-xs);
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: var(--str-video__typography-font-size-xl);
+    font-weight: var(--str-video__typography-font-weight-semi-bold);
     line-height: 1.3;
   }
 
   &__starts-at {
     margin: var(--str-video__spacing-xs);
-    font-size: 0.875rem;
+    font-size: var(--str-video__typography-font-size-sm);
   }
 
   &__participant-count {
     margin: var(--str-video__spacing-sm);
-    font-size: 0.8125rem;
+    font-size: var(--str-video__typography-font-size-xs);
   }
 
   &__actions {
@@ -130,7 +116,7 @@
     display: flex;
     align-items: center;
     gap: var(--str-video__spacing-xs);
-    font-size: 0.875rem;
+    font-size: var(--str-video__typography-font-size-sm);
     cursor: pointer;
 
     input[type='checkbox'] {
@@ -140,10 +126,10 @@
 
   &__join-error {
     margin-top: var(--str-video__spacing-sm);
-    font-size: var(--str-video__font-size-xs);
+    font-size: var(--str-video__typography-font-size-xs);
     line-height: 1.3;
     text-align: center;
-    font-weight: 500;
+    font-weight: var(--str-video__typography-font-weight-medium);
     min-height: 1.3em;
 
     &[data-visible='false'] {

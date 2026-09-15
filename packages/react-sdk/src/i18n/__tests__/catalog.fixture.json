@@ -98,7 +98,6 @@
   "livestreamViewer.lobby.streamReady.title": "Stream is ready!",
   "livestreamViewer.lobby.waitingForStart.title": "Waiting for the livestream to start",
   "lobby.deviceControls.permissionNeeded.label": "Permission needed",
-  "lobby.displayName.label": "Display name",
   "lobby.join.label": "Join",
   "lobby.setUpYourCall.title": "Set up your call before joining",
   "lobby.videoPreviewFallbacks.grantBrowserPermission.text": "Please grant your browser permission to access your camera and microphone.",
