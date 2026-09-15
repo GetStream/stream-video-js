@@ -4,10 +4,7 @@ import {
   DurationBadge as DefaultDurationBadge,
   type DurationBadgeProps,
 } from './DurationBadge';
-import {
-  LiveIndicator as DefaultLiveIndicator,
-  type LiveIndicatorProps,
-} from './LiveIndicator';
+import { type LiveIndicatorProps } from './LiveIndicator';
 import {
   FollowerCount as DefaultFollowerCount,
   type FollowerCountProps,
@@ -39,26 +36,22 @@ export type ViewerLivestreamTopViewProps = {
  */
 export const ViewerLivestreamTopView = ({
   DurationBadge = DefaultDurationBadge,
-  LiveIndicator = DefaultLiveIndicator,
+  // LiveIndicator = DefaultLiveIndicator,
   FollowerCount = DefaultFollowerCount,
   onLayout,
 }: ViewerLivestreamTopViewProps) => {
   const {
-    theme: { colors, viewerLivestreamTopView },
+    theme: { viewerLivestreamTopView },
   } = useTheme();
 
   return (
     <View
-      style={[
-        styles.container,
-        { backgroundColor: colors.sheetOverlay },
-        viewerLivestreamTopView.container,
-      ]}
+      style={[styles.container, viewerLivestreamTopView.container]}
       onLayout={onLayout}
     >
       <View style={[styles.leftElement, viewerLivestreamTopView.leftElement]}>
         <View style={[styles.liveInfo, viewerLivestreamTopView.liveInfo]}>
-          {LiveIndicator && <LiveIndicator />}
+          {/* {LiveIndicator && <LiveIndicator />} */}
           {FollowerCount && <FollowerCount />}
         </View>
       </View>
@@ -80,10 +73,6 @@ const styles = StyleSheet.create({
     top: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    borderBottomEndRadius: 8,
-    borderBottomStartRadius: 8,
     zIndex: Z_INDEX.IN_FRONT,
   },
   liveInfo: {

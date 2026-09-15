@@ -1,13 +1,12 @@
-import { Restricted } from '@stream-io/video-react-bindings';
 import React, { useState } from 'react';
-import { CallControlsButton } from './CallControlsButton';
-import { OwnCapability } from '@stream-io/video-client';
-import { ButtonTestIds } from '../../../constants/TestIds';
-import { IconWrapper, Reaction } from '../../../icons';
-import { ReactionsPicker } from './internal/ReactionsPicker';
 import { type LayoutChangeEvent, type LayoutRectangle } from 'react-native';
-import { useTheme } from '../../../contexts/ThemeContext';
-import { type StreamReactionType } from '../CallContent';
+import { Restricted } from '@stream-io/video-react-bindings';
+import { OwnCapability } from '@stream-io/video-client';
+import { ButtonTestIds } from '../../../../constants/TestIds';
+import { Reaction, ControlButtonIcon } from '../../../../icons';
+import { ReactionsPicker } from '../internal/ReactionsPicker';
+import { type StreamReactionType } from '../../CallContent';
+import { CallControlsButton } from '..';
 
 /**
  * Props for the Reaction button
@@ -35,9 +34,6 @@ export const ReactionsButton = ({
     useState<boolean>(false);
   const [reactionsButtonLayoutRectangle, setReactionsButtonLayoutRectangle] =
     useState<LayoutRectangle>();
-  const {
-    theme: { colors },
-  } = useTheme();
   // This is for the reaction picker
   const onReactionsButtonLayout = (event: LayoutChangeEvent) => {
     const layout = event.nativeEvent.layout;
@@ -63,6 +59,10 @@ export const ReactionsButton = ({
     setShowReactionsPicker(true);
   };
 
+  const onRequestedClose = () => {
+    setShowReactionsPicker(false);
+  };
+
   return (
     <>
       <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
@@ -71,18 +71,14 @@ export const ReactionsButton = ({
           onPress={reactionsButtonHandler}
           onLayout={onReactionsButtonLayout}
         >
-          <IconWrapper>
-            <Reaction color={colors.iconPrimary} />
-          </IconWrapper>
+          <ControlButtonIcon icon={Reaction} />
         </CallControlsButton>
       </Restricted>
       {showReactionsPicker && (
         <ReactionsPicker
           supportedReactions={supportedReactions}
           reactionsButtonLayoutRectangle={reactionsButtonLayoutRectangle}
-          onRequestedClose={() => {
-            setShowReactionsPicker(false);
-          }}
+          onRequestedClose={onRequestedClose}
         />
       )}
     </>

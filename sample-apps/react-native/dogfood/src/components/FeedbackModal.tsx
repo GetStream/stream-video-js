@@ -26,7 +26,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
 }) => {
   const styles = useStyles();
   const {
-    theme: { colors, variants },
+    theme: { semantics, components },
   } = useTheme();
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
 
@@ -49,8 +49,8 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
               <TouchableOpacity onPress={onClose} style={[styles.closeButton]}>
                 <IconWrapper>
                   <Close
-                    color={colors.iconPrimary}
-                    size={variants.roundButtonSizes.sm}
+                    color={semantics.accentNeutral}
+                    size={components.iconSizeMd}
                   />
                 </IconWrapper>
               </TouchableOpacity>
@@ -77,8 +77,8 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
                   <Star
                     color={
                       selectedRating && selectedRating >= rating
-                        ? colors.iconSuccess
-                        : colors.iconPrimary
+                        ? semantics.accentSuccess
+                        : semantics.accentNeutral
                     }
                     size={68}
                   />
@@ -102,7 +102,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
 
 const useStyles = () => {
   const {
-    theme: { colors, variants },
+    theme: { primitives, semantics },
   } = useTheme();
   return useMemo(
     () =>
@@ -114,23 +114,23 @@ const useStyles = () => {
         },
         modal: {
           width: '90%',
-          backgroundColor: colors.sheetSecondary,
-          borderRadius: variants.borderRadiusSizes.lg,
+          backgroundColor: semantics.backgroundCoreApp,
+          borderRadius: primitives.radiusLg,
           alignItems: 'center',
-          paddingHorizontal: variants.spacingSizes.md,
-          paddingVertical: variants.spacingSizes.md,
+          paddingHorizontal: primitives.spacingMd,
+          paddingVertical: primitives.spacingMd,
           maxWidth: FEEDBACK_MODAL_MAX_WIDTH,
         },
         top: {
           flex: 1,
-          marginBottom: variants.spacingSizes.lg,
+          marginBottom: primitives.spacingLg,
           flexDirection: 'row',
         },
         closeButton: {
-          backgroundColor: colors.buttonSecondary,
-          borderRadius: variants.borderRadiusSizes.xl,
-          width: variants.roundButtonSizes.md,
-          height: variants.roundButtonSizes.md,
+          backgroundColor: semantics.backgroundCoreApp,
+          borderRadius: primitives.radiusXl,
+          width: primitives.spacingMd,
+          height: primitives.spacingMd,
         },
         topRight: {
           flex: 1,
@@ -140,7 +140,7 @@ const useStyles = () => {
         logo: {
           width: 190,
           height: 134,
-          marginBottom: variants.spacingSizes.md,
+          marginBottom: primitives.spacingMd,
           alignSelf: 'center',
         },
         textContainer: {
@@ -148,31 +148,31 @@ const useStyles = () => {
           textAlign: 'center',
         },
         title: {
-          fontSize: 28,
-          marginBottom: variants.spacingSizes.sm,
+          fontSize: primitives.typographyFontSizeXl,
+          marginBottom: primitives.spacingSm,
           textAlign: 'center',
-          color: colors.textPrimary,
-          fontWeight: '600',
+          color: semantics.textPrimary,
+          fontWeight: primitives.typographyFontWeightSemiBold,
         },
         subtitle: {
-          fontSize: 13,
+          fontSize: primitives.typographyFontSizeMd,
           textAlign: 'center',
-          color: colors.textSecondary,
-          marginBottom: variants.spacingSizes.xl,
-          fontWeight: '600',
+          color: semantics.textSecondary,
+          marginBottom: primitives.spacingXl,
+          fontWeight: primitives.typographyFontWeightSemiBold,
         },
         ratingContainer: {
           flexDirection: 'row',
           justifyContent: 'center',
-          marginTop: variants.spacingSizes.md,
+          marginTop: primitives.spacingMd,
         },
         ratingButton: {
-          paddingVertical: variants.spacingSizes.md,
+          paddingVertical: primitives.spacingMd,
         },
         bottom: {
           display: 'flex',
           flexDirection: 'row',
-          marginTop: variants.spacingSizes.xl,
+          marginTop: primitives.spacingXl,
         },
         left: {
           flex: 1,
@@ -185,12 +185,12 @@ const useStyles = () => {
           justifyContent: 'flex-end',
         },
         text: {
-          color: colors.textSecondary,
-          fontSize: 13,
-          fontWeight: '500',
+          color: semantics.textSecondary,
+          fontSize: primitives.typographyFontSizeMd,
+          fontWeight: primitives.typographyFontWeightSemiBold,
         },
       }),
-    [variants, colors],
+    [primitives, semantics],
   );
 };
 

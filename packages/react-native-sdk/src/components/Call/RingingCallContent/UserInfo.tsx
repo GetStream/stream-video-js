@@ -1,18 +1,13 @@
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
-import { generateCallTitle } from '../../../utils';
+import { StyleSheet, Text, View } from 'react-native';
 import {
   useCallStateHooks,
   useConnectedUser,
 } from '@stream-io/video-react-bindings';
 import { type UserResponse } from '@stream-io/video-client';
+import { generateCallTitle } from '../../../utils';
 import { useTheme } from '../../../contexts/ThemeContext';
-
-enum AvatarModes {
-  small = 'sm',
-  medium = 'md',
-  large = 'lg',
-}
+import { AvatarGroup } from '../../utility/AvatarGroup';
 
 export type UserInfoType = {
   /**
@@ -20,33 +15,37 @@ export type UserInfoType = {
    * @default false.
    */
   includeSelf?: boolean;
-
   /**
    * The maximum number of members to show.
    * @default 3.
    */
   totalMembersToShow?: number;
+  /**
+   * The color of the name text.
+   * @default 'primary'.
+   */
+  color?: 'primary' | 'accent';
 };
 
 export const UserInfo = ({
   includeSelf = false,
-  totalMembersToShow = 3,
+  totalMembersToShow = 5,
+  color = 'primary',
 }: UserInfoType) => {
   const {
-    theme: {
-      colors,
-      typefaces,
-      variants: { avatarSizes },
-      userInfo,
-    },
+    theme: { userInfo },
   } = useTheme();
   const connectedUser = useConnectedUser();
   const { useCallMembers } = useCallStateHooks();
   const members = useCallMembers();
 
   // take the first N members to show their avatars
-  const membersToShow: UserResponse[] = (members || [])
-    .filter((user) => user.user_id !== connectedUser?.id || includeSelf)
+  const visibleMembers = (members || []).filter(
+    (user) => user.user_id !== connectedUser?.id || includeSelf,
+  );
+
+  // take the first N members to show their avatars
+  const membersToShow: UserResponse[] = visibleMembers
     .slice(0, totalMembersToShow)
     .map(({ user }) => user);
 
@@ -62,56 +61,15 @@ export const UserInfo = ({
     }
   }
 
-  const memberUserIds = membersToShow.map(
-    (memberToShow) => memberToShow.name ?? memberToShow.id,
-  );
-
-  const callTitle = generateCallTitle(memberUserIds, totalMembersToShow);
-
-  const avatarSizeModes: { [key: number]: AvatarModes } = {
-    1: AvatarModes.large,
-    2: AvatarModes.medium,
-    3: AvatarModes.small,
-  };
-
-  const mode = avatarSizeModes[memberUserIds.length] || AvatarModes.small;
-
-  const avatarStyles = {
-    height: avatarSizes[mode],
-    width: avatarSizes[mode],
-    borderRadius: avatarSizes[mode] / 2,
-    marginVertical: 4,
-  };
-
-  const fontStyleByMembersCount =
-    memberUserIds.length > 1 ? typefaces.heading5 : typefaces.heading4;
+  const memberUserIds = visibleMembers.map(({ user }) => user.name ?? user.id);
+  const callTitle = generateCallTitle(memberUserIds);
 
   return (
     <View style={[styles.container, userInfo.container]}>
-      <View style={[styles.avatarGroup, userInfo.avatarGroup]}>
-        {membersToShow.map((memberToShow) => {
-          if (!memberToShow.image) {
-            return null;
-          }
-          return (
-            <Image
-              key={memberToShow.id}
-              style={[avatarStyles]}
-              // FIXME: use real avatar from coordinator this is temporary
-              source={{
-                uri: memberToShow.image,
-              }}
-            />
-          );
-        })}
-      </View>
+      <AvatarGroup users={membersToShow} size="3xl" />
       <Text
-        style={[
-          styles.name,
-          fontStyleByMembersCount,
-          { color: colors.textPrimary },
-          userInfo.name,
-        ]}
+        style={[styles.name, userInfo.name, userInfo.nameVariants[color]]}
+        numberOfLines={2}
       >
         {callTitle}
       </Text>
@@ -121,19 +79,13 @@ export const UserInfo = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 64,
-    display: 'flex',
+    alignSelf: 'stretch',
     flexDirection: 'column',
-    justifyContent: 'space-between',
-  },
-  avatarGroup: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   name: {
+    alignSelf: 'stretch',
     textAlign: 'center',
-    marginTop: 16,
   },
 });

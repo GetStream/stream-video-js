@@ -40,7 +40,7 @@ export const LivestreamLayout = ({
   const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
   const call = useCall();
   const {
-    theme: { colors, livestreamLayout },
+    theme: { livestreamLayout },
   } = useTheme();
   const participants = useParticipants();
   const [currentSpeaker] = participants;
@@ -57,12 +57,7 @@ export const LivestreamLayout = ({
 
   return (
     <View
-      style={[
-        styles.container,
-        landScapeStyles,
-        { backgroundColor: colors.sheetPrimary },
-        livestreamLayout.container,
-      ]}
+      style={[styles.container, landScapeStyles, livestreamLayout.container]}
     >
       {VideoRenderer &&
         hasOngoingScreenShare &&
@@ -82,5 +77,6 @@ export const LivestreamLayout = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    overflow: 'hidden',
   },
 });

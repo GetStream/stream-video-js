@@ -95,7 +95,9 @@ export const CallParticipantsList = ({
   landscape,
   mirror,
 }: CallParticipantsListProps) => {
-  const styles = useStyles();
+  const {
+    theme: { callParticipantsList },
+  } = useTheme();
   const [containerLayout, setContainerLayout] = useState({
     width: 0,
     height: 0,
@@ -192,23 +194,30 @@ export const CallParticipantsList = ({
     participantsLength: participants.length,
     numberOfColumns,
     horizontal,
-    margin: styles.participant.margin,
+    margin: Number(callParticipantsList.participant.margin ?? 0),
   });
 
   const itemContainerStyle = useMemo<StyleProp<ViewStyle>>(() => {
     const style = {
       width: itemWidth,
       height: itemHeight,
-      margin: styles.participant.margin,
+      ...callParticipantsList.participant,
     };
     if (horizontal) {
-      return [styles.participantWrapperHorizontal, style];
+      return [callParticipantsList.participantWrapperHorizontal, style];
     }
     if (landscape) {
-      return [styles.landScapeStyle, style];
+      return [style];
     }
     return style;
-  }, [itemWidth, itemHeight, horizontal, landscape, styles]);
+  }, [
+    itemWidth,
+    itemHeight,
+    horizontal,
+    landscape,
+    callParticipantsList.participant,
+    callParticipantsList.participantWrapperHorizontal,
+  ]);
 
   const participantProps = useMemo<ParticipantViewComponentProps>(
     () => ({
@@ -269,7 +278,7 @@ export const CallParticipantsList = ({
             ParticipantView && (
               <ParticipantView
                 participant={participant}
-                style={styles.flexed}
+                style={[styles.flexed, callParticipantsList.participantNoGrid]}
                 trackType="videoTrack"
                 key={keyExtractor(participant, index)}
                 supportedReactions={supportedReactions}
@@ -285,6 +294,7 @@ export const CallParticipantsList = ({
 
   return (
     <FlatList
+      contentContainerStyle={callParticipantsList.container}
       onLayout={onLayout}
       key={!horizontal ? numberOfColumns : undefined} // setting numColumns as key is a strict requirement of react-native to support changing numColumns on the fly
       data={participants}
@@ -301,27 +311,11 @@ export const CallParticipantsList = ({
   );
 };
 
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        flexed: { flex: 1 },
-        participantWrapperHorizontal: {
-          // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
-          marginHorizontal: theme.variants.spacingSizes.sm,
-          borderRadius: theme.variants.borderRadiusSizes.sm,
-        },
-        landScapeStyle: {
-          borderRadius: theme.variants.borderRadiusSizes.sm,
-        },
-        participant: {
-          margin: theme.variants.spacingSizes.xs,
-        },
-      }),
-    [theme],
-  );
-};
+const styles = StyleSheet.create({
+  flexed: {
+    flex: 1,
+  },
+});
 
 /**
  * This function calculates the size of the participant view based on the size of the container (the phone's screen size) and the number of participants.
@@ -359,13 +353,13 @@ function calculateParticipantViewSize({
     }
   }
 
-  let itemWidth = containerWidth / numberOfColumns;
+  let itemWidth = (containerWidth - margin * 2) / numberOfColumns;
   if (horizontal) {
     // in horizontal mode we apply margin of 8 to the participant view and that should be subtracted from the width
-    itemWidth = itemWidth - 8 * 2;
+    itemWidth = itemWidth - margin * 2;
   }
 
-  itemHeight = itemHeight - margin;
-  itemWidth = itemWidth - margin;
+  itemHeight = itemHeight - margin * 2;
+  itemWidth = itemWidth - margin * 2;
   return { itemHeight, itemWidth };
 }

@@ -135,7 +135,7 @@ const formatBitrate = (
 
 const useStyles = () => {
   const {
-    theme: { colors, variants },
+    theme: { primitives, semantics },
   } = useTheme();
   return useMemo(
     () =>
@@ -143,31 +143,31 @@ const useStyles = () => {
         container: {
           flexDirection: 'column',
           alignItems: 'stretch',
-          gap: variants.spacingSizes.xs,
+          gap: primitives.spacingXs,
         },
         row: {
           flexDirection: 'row',
           alignItems: 'stretch',
-          gap: variants.spacingSizes.xs,
+          gap: primitives.spacingXs,
         },
         chip: {
           flex: 1,
-          backgroundColor: colors.sheetSecondary,
-          paddingVertical: variants.spacingSizes.xs,
-          paddingHorizontal: variants.spacingSizes.sm,
-          borderRadius: variants.borderRadiusSizes.sm,
+          backgroundColor: semantics.backgroundCoreApp,
+          paddingVertical: primitives.spacingXs,
+          paddingHorizontal: primitives.spacingSm,
+          borderRadius: primitives.radiusSm,
           minWidth: 90,
         },
         chipLabel: {
-          color: colors.textSecondary,
+          color: semantics.textSecondary,
           fontSize: 10,
         },
         chipValue: {
-          color: colors.textPrimary,
+          color: semantics.textPrimary,
           fontSize: 13,
           fontWeight: '600',
         },
       }),
-    [colors, variants],
+    [primitives, semantics],
   );
 };

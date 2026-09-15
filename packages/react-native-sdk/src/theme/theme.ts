@@ -1,156 +1,151 @@
-import {
-  type ColorValue,
-  type ImageStyle,
-  type TextStyle,
-  type ViewStyle,
-} from 'react-native';
-import { colors } from './colors';
-import {
-  type ColorScheme,
-  type DimensionType,
-  type FontStyle,
-  type FontTypes,
-  type Insets,
-} from './types';
+import { type ColorValue, type TextStyle, type ViewStyle } from 'react-native';
+import { type Insets } from './types';
+import { tokens } from './tokens';
+import { IStreamTokens } from './tokens/StreamTokens.types';
+import { DeepPartial } from '../contexts';
+
+export type BaseButtonSizes = 'small' | 'medium' | 'large';
+export type BaseButtonVariants =
+  'primary' | 'secondary' | 'destructive' | 'disabled';
+type ButtonVariantStyle = {
+  container: ViewStyle;
+  text: TextStyle;
+};
+
+type BaseButtonStyle = {
+  container: ViewStyle;
+  content: ViewStyle;
+  accessory: ViewStyle;
+} & {
+  [key in BaseButtonVariants]: ButtonVariantStyle;
+} & {
+  [key in BaseButtonSizes]: ViewStyle;
+};
+
+export type AvatarSize = '3xl' | '2xl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs';
+type AvatarStyle = {
+  container: {
+    base: ViewStyle;
+  } & { [key in AvatarSize]: ViewStyle };
+  text: {
+    base: TextStyle;
+  } & { [key in AvatarSize]: TextStyle };
+};
+
+export type AvatarGroupSize = '3xl' | '2xl' | 'xl' | 'lg';
+export type AvatarGroupPosition =
+  | 'top-left'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-right'
+  | 'center-top'
+  | 'center-bottom';
+export type AvatarGroupStyle = {
+  container: { [key in AvatarGroupSize]: ViewStyle };
+  item: { [key in AvatarGroupSize]: ViewStyle };
+  text: {
+    base: TextStyle;
+  } & { [key in AvatarGroupSize]: TextStyle };
+} & {
+  [key in AvatarGroupPosition]: ViewStyle;
+};
+
+type CallControlsButtonStyle = {
+  container: ViewStyle;
+  badge: ViewStyle;
+};
 
 export type Theme = {
-  variants: {
-    buttonSizes: DimensionType;
-    roundButtonSizes: DimensionType;
-    iconSizes: DimensionType;
-    avatarSizes: DimensionType;
-    fontSizes: DimensionType;
-    spacingSizes: DimensionType;
-    borderRadiusSizes: DimensionType;
-    insets: Insets;
-  };
-  typefaces: Record<FontTypes, FontStyle>;
-  defaults: {
-    color: ColorValue;
-    backgroundColor: ColorValue;
-    margin: number;
-    padding: number;
-    fontSize: number;
-    iconSize: number;
-    fontWeight: TextStyle['fontWeight'];
-    borderRadius: ViewStyle['borderRadius'];
-    borderColor: ColorValue;
-    borderWidth: ViewStyle['borderWidth'];
-  };
-  colors: ColorScheme;
-  avatar: {
-    container: ViewStyle;
-    image: ImageStyle;
-    text: TextStyle;
-  };
-  callContent: {
-    container: ViewStyle;
-    callParticipantsContainer: ViewStyle;
+  foundations: Required<IStreamTokens['foundations']>;
+  components: Required<IStreamTokens['components']>;
+  semantics: Required<IStreamTokens['semantics']>;
+  primitives: Required<IStreamTokens['primitives']>;
+
+  avatar: AvatarStyle;
+  avatarGroup: AvatarGroupStyle;
+  button: BaseButtonStyle;
+
+  lobby: {
+    container?: ViewStyle;
     topContainer: ViewStyle;
+    icon: { color: ColorValue };
+    headerText: TextStyle;
+    videoContainer: ViewStyle;
+    bottomContainer: ViewStyle;
+    statusContainer: ViewStyle;
+    avatarContainer?: ViewStyle;
   };
-  callControls: {
+
+  callAppBar: {
     container: ViewStyle;
   };
   callControlsButton: {
     container: ViewStyle;
-    svgContainer: ViewStyle;
+    badge: ViewStyle;
   };
-  acceptCallButton: {
+  acceptCallButton?: Partial<CallControlsButtonStyle>;
+  hangupCallButton?: Partial<CallControlsButtonStyle>;
+  rejectCallButton?: Partial<CallControlsButtonStyle>;
+  screenShareToggleButton?: Partial<CallControlsButtonStyle>;
+  toggleAudioPreviewButton?: Partial<CallControlsButtonStyle>;
+  toggleAudioPublishingButton?: Partial<CallControlsButtonStyle>;
+  toggleCameraFaceButton?: Partial<CallControlsButtonStyle>;
+  toggleVideoPreviewButton?: Partial<CallControlsButtonStyle>;
+  toggleVideoPublishingButton?: Partial<CallControlsButtonStyle>;
+
+  callDurationIndicator: {
     container: ViewStyle;
-    svgContainer: ViewStyle;
+    text: TextStyle;
+    textHighlight: TextStyle;
   };
-  hangupCallButton: {
+  callContent?: Partial<{
     container: ViewStyle;
-    svgContainer: ViewStyle;
-  };
-  rejectCallButton: {
-    container: ViewStyle;
-    svgContainer: ViewStyle;
-  };
-  screenShareToggleButton: {
-    container: ViewStyle;
-    svgContainer: ViewStyle;
-  };
-  toggleAudioPreviewButton: {
-    container: ViewStyle;
-    svgContainer: ViewStyle;
-  };
-  toggleAudioPublishingButton: {
-    container: ViewStyle;
-    svgContainer: ViewStyle;
-  };
-  toggleCameraFaceButton: {
-    container: ViewStyle;
-    svgContainer: ViewStyle;
-  };
-  toggleVideoPreviewButton: {
-    container: ViewStyle;
-    svgContainer: ViewStyle;
-  };
-  toggleVideoPublishingButton: {
-    container: ViewStyle;
-    svgContainer: ViewStyle;
-  };
-  joinCallButton: {
-    container: ViewStyle;
-    label: TextStyle;
-  };
+    callParticipantsContainer: ViewStyle;
+    topContainer: ViewStyle;
+  }>;
+  callControls: Partial<{ container: ViewStyle }>;
+
   floatingParticipantsView: {
     container: ViewStyle;
     participantViewContainer: ViewStyle;
     videoFallback: ViewStyle;
   };
-  chatButton: {
+  callParticipantsList: {
     container: ViewStyle;
-    svgContainer: ViewStyle;
+    participantWrapperHorizontal: ViewStyle;
+    participant: ViewStyle;
+    participantNoGrid: ViewStyle;
   };
-  callParticipantsGrid: {
+  callParticipantsGrid?: {
     container: ViewStyle;
   };
-  callParticipantsSpotlight: {
+  callParticipantsSpotlight: Partial<{
     container: ViewStyle;
     fullScreenSpotlightContainer: ViewStyle;
     callParticipantsListContainer: ViewStyle;
     spotlightContainer: ViewStyle;
-  };
-  lobby: {
-    container: ViewStyle;
-    topContainer: ViewStyle;
-    heading: TextStyle;
-    subHeading: TextStyle;
-    videoContainer: ViewStyle;
-    bottomContainer: ViewStyle;
-    infoContainer: ViewStyle;
-    infoText: TextStyle;
-    participantStatusContainer: ViewStyle;
-    avatarContainer: ViewStyle;
-    userNameLabel: TextStyle;
-    audioMutedIconContainer: ViewStyle;
-  };
+  }>;
+
   participantLabel: {
     container: ViewStyle;
     userNameLabel: TextStyle;
-    audioMutedIconContainer: ViewStyle;
-    videoMutedIconContainer: ViewStyle;
-    pinIconContainer: ViewStyle;
-    screenShareIconContainer: ViewStyle;
+    iconContainer: ViewStyle;
   };
   participantNetworkQualityIndicator: {
     container: ViewStyle;
   };
   participantReaction: {
     container: ViewStyle;
-    reaction: ViewStyle;
+    reaction: TextStyle;
   };
   participantVideoFallback: {
     container: ViewStyle;
     label: TextStyle;
-    avatarContainer: ViewStyle;
-    avatarText: TextStyle;
-    avatarImage: ImageStyle;
+    avatar: DeepPartial<AvatarStyle>;
   };
   participantView: {
     container: ViewStyle;
+    headerContainer: ViewStyle;
     footerContainer: ViewStyle;
     highlightedContainer: ViewStyle;
   };
@@ -158,33 +153,33 @@ export type Theme = {
     container: ViewStyle;
     videoStream: ViewStyle;
   };
-  ringingCallContent: {
+  ringingCallContent?: {
     container: ViewStyle;
   };
   incomingCall: {
-    background: ViewStyle;
     content: ViewStyle;
     topContainer: ViewStyle;
     incomingCallText: TextStyle;
-    incomingCallControls: ViewStyle;
     bottomContainer: ViewStyle;
     buttonGroup: ViewStyle;
+    button: ViewStyle;
+    buttonText: TextStyle;
   };
   outgoingCall: {
-    container: ViewStyle;
+    container?: ViewStyle;
     background: ViewStyle;
     content: ViewStyle;
-    topContainer: ViewStyle;
     callingText: TextStyle;
-    outgoingCallControls: ViewStyle;
-    bottomContainer: ViewStyle;
     buttonGroup: ViewStyle;
     deviceControlButtons: ViewStyle;
   };
   userInfo: {
     container: ViewStyle;
-    avatarGroup: ViewStyle;
     name: TextStyle;
+    nameVariants: {
+      primary: TextStyle;
+      accent: TextStyle;
+    };
   };
   reactionsPicker: {
     reactionsPopup: ViewStyle;
@@ -195,12 +190,6 @@ export type Theme = {
   lobbyControls: {
     container: ViewStyle;
   };
-  participantInfoBadge: {
-    container: ViewStyle;
-    participantCountContainer: ViewStyle;
-    participantsIconContainer: ViewStyle;
-    participantsCountText: TextStyle;
-  };
   hostLivestream: {
     container: ViewStyle;
   };
@@ -226,12 +215,6 @@ export type Theme = {
   };
   followerCount: {
     container: ViewStyle;
-    icon: ViewStyle;
-    label: TextStyle;
-  };
-  durationBadge: {
-    container: ViewStyle;
-    icon: ViewStyle;
     label: TextStyle;
   };
   liveIndicator: {
@@ -248,30 +231,8 @@ export type Theme = {
     leftElement: ViewStyle;
     rightElement: ViewStyle;
   };
-  hostStartStreamButton: {
-    container: ViewStyle;
-    icon: ViewStyle;
-    text: TextStyle;
-  };
-  viewerLeaveStreamButton: {
-    container: ViewStyle;
-    icon: ViewStyle;
-    text: TextStyle;
-  };
   livestreamMediaControls: {
     container: ViewStyle;
-  };
-  livestreamAudioControlButton: {
-    container: ViewStyle;
-    icon: ViewStyle;
-  };
-  livestreamVideoControlButton: {
-    container: ViewStyle;
-    icon: ViewStyle;
-  };
-  livestreamScreenShareToggleButton: {
-    container: ViewStyle;
-    icon: ViewStyle;
   };
   screenshareOverlay: {
     container: ViewStyle;
@@ -281,349 +242,681 @@ export type Theme = {
     buttonText: TextStyle;
   };
 
+  insets: Insets;
   // Index signature for additional dynamic properties
   [component: string]: any;
 };
 
-export const defaultTheme: Theme = {
-  variants: {
-    roundButtonSizes: {
-      xs: 16,
-      sm: 24,
-      md: 36,
-      lg: 44,
-      xl: 56,
+export const resolveTheme = (isDark: boolean): Theme => {
+  const theme = isDark ? tokens.dark : tokens.light;
+  return {
+    foundations: theme.foundations,
+    semantics: theme.semantics,
+    components: theme.components,
+    primitives: theme.primitives,
+
+    //Call controls
+    callAppBar: {
+      container: {
+        padding: theme.primitives.spacingSm,
+        gap: theme.primitives.spacingXs,
+      },
     },
-    borderRadiusSizes: {
-      xs: 4,
-      sm: 8,
-      md: 16,
-      lg: 24,
-      xl: 32,
+    callControls: {
+      container: {
+        padding: theme.primitives.spacingSm,
+        gap: theme.primitives.spacingXs,
+      },
     },
-    buttonSizes: {
-      xs: 40,
-      sm: 50,
-      md: 60,
-      lg: 70,
-      xl: 80,
+    callControlsButton: {
+      container: {
+        width: theme.foundations.layout.size40,
+        height: theme.foundations.layout.size40,
+        margin: theme.foundations.spacing.space4,
+        borderRadius: theme.components.buttonRadiusFull,
+      },
+      badge: {
+        width: theme.foundations.layout.size20,
+        height: theme.foundations.layout.size20,
+        backgroundColor: theme.semantics.badgeBgError,
+        borderRadius: theme.foundations.radius.radius12,
+        borderColor: theme.semantics.badgeBorder,
+        borderWidth: theme.foundations.stroke.w200,
+      },
     },
-    iconSizes: {
-      xs: 15,
-      sm: 20,
-      md: 25,
-      lg: 30,
-      xl: 35,
+
+    //Ringing call content
+    incomingCall: {
+      content: {
+        backgroundColor: theme.semantics.backgroundCoreApp,
+      },
+      topContainer: {
+        gap: theme.primitives.spacingXs,
+      },
+      incomingCallText: {
+        marginTop: theme.foundations.spacing.space16,
+        fontSize: theme.primitives.typographyFontSizeMd,
+        fontWeight: theme.primitives.typographyFontWeightRegular,
+        color: theme.semantics.textSecondary,
+      },
+      bottomContainer: {},
+      buttonGroup: {
+        gap: theme.foundations.spacing.space80,
+      },
+      button: {
+        gap: theme.foundations.spacing.space12,
+        alignItems: 'center',
+      },
+      buttonText: {
+        fontSize: theme.primitives.typographyFontSizeSm,
+        fontWeight: theme.primitives.typographyFontWeightSemiBold,
+        color: theme.semantics.textSecondary,
+      },
     },
-    avatarSizes: {
-      xs: 50,
-      sm: 90,
-      md: 100,
-      lg: 160,
-      xl: 180,
+    outgoingCall: {
+      container: {
+        backgroundColor: theme.semantics.backgroundCoreScrim,
+      },
+      background: {
+        backgroundColor: theme.semantics.backgroundCoreApp,
+      },
+      content: {
+        gap: theme.primitives.spacingXs,
+      },
+      callingText: {
+        fontSize: theme.primitives.typographyFontSizeMd,
+        fontWeight: theme.primitives.typographyFontWeightRegular,
+        color: theme.semantics.textOnAccent,
+      },
+      buttonGroup: {},
+      deviceControlButtons: {},
     },
-    spacingSizes: {
-      xs: 4,
-      sm: 8,
-      md: 16,
-      lg: 24,
-      xl: 32,
+    acceptCallButton: {
+      container: {
+        width: theme.foundations.layout.size64,
+        height: theme.foundations.layout.size64,
+        margin: theme.foundations.spacing.space0,
+        borderRadius: theme.components.buttonRadiusFull,
+      },
     },
-    fontSizes: {
-      xs: 8,
-      sm: 12,
-      md: 16,
-      lg: 20,
-      xl: 24,
+    rejectCallButton: {
+      container: {
+        width: theme.foundations.layout.size64,
+        height: theme.foundations.layout.size64,
+        margin: theme.foundations.spacing.space0,
+        borderRadius: theme.components.buttonRadiusFull,
+      },
     },
+
+    //Lobby
+    lobby: {
+      bottomContainer: {
+        paddingTop: theme.foundations.spacing.space32,
+      },
+      topContainer: {
+        gap: theme.foundations.spacing.space24,
+        paddingBottom: theme.foundations.spacing.space32,
+      },
+      icon: {
+        color: theme.semantics.accentPrimary,
+      },
+      headerText: {
+        fontSize: theme.primitives.typographyFontSizeXl,
+        fontWeight: theme.primitives.typographyFontWeightSemiBold,
+        color: theme.semantics.textPrimary,
+      },
+      videoContainer: {
+        borderRadius: theme.primitives.radius2xl,
+        backgroundColor: theme.semantics.backgroundCoreSurfaceSubtle,
+        borderColor: theme.semantics.borderCoreDefault,
+        borderWidth: theme.foundations.stroke.w100,
+      },
+      statusContainer: {
+        padding: theme.primitives.spacingXs,
+        gap: theme.primitives.spacingXxs,
+      },
+    },
+    lobbyControls: {
+      container: {
+        paddingTop: theme.foundations.spacing.space12,
+      },
+    },
+
+    //Participant components
+    participantView: {
+      container: {
+        borderRadius: theme.primitives.radius2xl,
+      },
+      headerContainer: {
+        padding: theme.primitives.spacingXs,
+        gap: theme.primitives.spacingXxs,
+      },
+      footerContainer: {
+        padding: theme.primitives.spacingXs,
+        gap: theme.primitives.spacingXxs,
+      },
+      highlightedContainer: {
+        borderColor: theme.semantics.accentPrimary,
+      },
+    },
+    participantLabel: {
+      container: {
+        height: theme.foundations.layout.size32,
+        backgroundColor: theme.semantics.backgroundCoreOverlayDarkStrong,
+        paddingVertical: theme.primitives.spacingXxs,
+        paddingLeft: theme.primitives.spacingSm,
+        paddingRight: theme.primitives.spacingXxs,
+        maxHeight: theme.foundations.layout.size32,
+        borderRadius: theme.primitives.radiusLg,
+        gap: theme.foundations.spacing.space8,
+      },
+      userNameLabel: {
+        fontSize: theme.primitives.typographyFontSizeSm,
+        fontWeight: theme.primitives.typographyFontWeightRegular,
+        color: theme.semantics.textOnAccent,
+      },
+      iconContainer: {
+        gap: theme.primitives.spacingXxs,
+      },
+    },
+    participantNetworkQualityIndicator: {
+      container: {
+        width: theme.foundations.layout.size32,
+        height: theme.foundations.layout.size32,
+        borderRadius: theme.foundations.radius.radiusFull,
+        backgroundColor: theme.semantics.backgroundCoreOverlayDarkStrong,
+      },
+    },
+    participantVideoFallback: {
+      container: {
+        borderRadius: theme.primitives.radius2xl,
+        backgroundColor: theme.semantics.backgroundCoreSurfaceSubtle,
+        borderWidth: theme.foundations.stroke.w100,
+        borderColor: theme.semantics.borderCoreDefault,
+      },
+      label: {},
+      avatar: {
+        container: {
+          base: {
+            width: theme.foundations.layout.size80,
+            height: theme.foundations.layout.size80,
+            borderRadius: theme.foundations.radius.radiusFull,
+          },
+        },
+      },
+    },
+    floatingParticipantsView: {
+      container: {},
+      participantViewContainer: {},
+      videoFallback: {
+        backgroundColor: theme.semantics.backgroundCoreSurfaceDefault,
+      },
+    },
+
+    //Layout components
+    callParticipantsList: {
+      container: {
+        paddingHorizontal: theme.primitives.spacingXxs,
+      },
+      participantWrapperHorizontal: {
+        marginHorizontal: theme.primitives.spacingXxs,
+      },
+      participant: {
+        margin: theme.primitives.spacingXxs,
+      },
+      participantNoGrid: {
+        marginHorizontal: theme.primitives.spacingXxs,
+      },
+    },
+    callParticipantsSpotlight: {
+      spotlightContainer: {
+        borderRadius: theme.primitives.radius2xl,
+        marginHorizontal: theme.primitives.spacingXs,
+      },
+      fullScreenSpotlightContainer: {
+        marginHorizontal: theme.primitives.spacingXxs,
+      },
+      callParticipantsListContainer: {
+        marginTop: theme.primitives.spacingXxs,
+      },
+    },
+
+    //Livestream components
+    livestreamLayout: {
+      container: {
+        borderRadius: theme.primitives.radius2xl,
+        marginHorizontal: theme.primitives.spacingXxs,
+      },
+    },
+    viewerLivestreamTopView: {
+      container: {
+        padding: theme.primitives.spacingSm,
+        gap: theme.primitives.spacingXs,
+      },
+      leftElement: {},
+      centerElement: {},
+      rightElement: {},
+      liveInfo: {},
+    },
+    followerCount: {
+      container: {
+        minWidth: theme.foundations.layout.size32,
+        paddingVertical: theme.foundations.spacing.space6,
+        paddingHorizontal: theme.primitives.spacingXs,
+        gap: theme.primitives.spacingXs,
+        borderRadius: theme.foundations.radius.radiusFull,
+        backgroundColor: theme.semantics.backgroundCoreSurfaceDefault,
+      },
+      label: {
+        fontWeight: theme.primitives.typographyFontWeightSemiBold,
+        fontSize: theme.primitives.typographyFontSizeMd,
+        color: theme.semantics.textPrimary,
+      },
+    },
+    liveIndicator: {
+      container: {},
+      label: {},
+    },
+    livestreamMediaControls: {
+      container: {},
+    },
+
+    //Livestream host
+    hostLivestream: {
+      container: {},
+    },
+    hostLivestreamTopView: {
+      container: {
+        padding: theme.primitives.spacingSm,
+        gap: theme.primitives.spacingXs,
+      },
+      leftElement: {},
+      rightElement: {},
+      centerElement: {},
+      liveInfo: {},
+    },
+    hostLivestreamControls: {
+      container: {
+        padding: theme.primitives.spacingSm,
+        gap: theme.primitives.spacingXs,
+      },
+      leftElement: {},
+      rightElement: {},
+    },
+
+    //Livestream viewer
+    viewerLivestream: {
+      container: {},
+    },
+    viewerLivestreamControls: {
+      container: {
+        padding: theme.primitives.spacingSm,
+        gap: theme.primitives.spacingXs,
+      },
+      leftElement: {
+        gap: theme.primitives.spacingXs,
+      },
+      rightElement: {},
+    },
+    livestreamViewerLobby: {
+      container: {
+        backgroundColor: theme.semantics.backgroundCoreApp,
+        padding: theme.primitives.spacingLg,
+      },
+      text: {
+        fontSize: theme.primitives.typographyFontSizeMd,
+        fontWeight: theme.primitives.typographyFontWeightSemiBold,
+        color: theme.semantics.textPrimary,
+      },
+      countdownText: {
+        fontSize: theme.primitives.typographyFontSizeMd,
+        fontWeight: theme.primitives.typographyFontWeightSemiBold,
+        color: theme.semantics.textPrimary,
+      },
+      participantsText: {
+        fontSize: theme.primitives.typographyFontSizeMd,
+      },
+    },
+
+    //Others
+    avatar: {
+      container: {
+        base: {
+          backgroundColor: theme.semantics.avatarBgDefault,
+          borderRadius: theme.foundations.radius.radiusFull,
+        },
+        '3xl': {
+          width: 104,
+          height: 104,
+        },
+        '2xl': {
+          width: theme.foundations.layout.size80,
+          height: theme.foundations.layout.size80,
+        },
+        xl: {
+          width: theme.foundations.layout.size48,
+          height: theme.foundations.layout.size48,
+        },
+        lg: {
+          width: theme.foundations.layout.size40,
+          height: theme.foundations.layout.size40,
+        },
+        md: {
+          width: theme.foundations.layout.size32,
+          height: theme.foundations.layout.size32,
+        },
+        sm: {
+          width: theme.foundations.layout.size24,
+          height: theme.foundations.layout.size24,
+        },
+        xs: {
+          width: theme.foundations.layout.size20,
+          height: theme.foundations.layout.size20,
+        },
+      },
+      text: {
+        base: {
+          color: theme.semantics.avatarTextDefault,
+          fontWeight: theme.primitives.typographyFontWeightSemiBold,
+        },
+        '3xl': {
+          fontSize: theme.primitives.typographyFontSizeXl,
+        },
+        '2xl': {
+          fontSize: theme.primitives.typographyFontSizeXl,
+        },
+        xl: {
+          fontSize: theme.primitives.typographyFontSizeLg,
+        },
+        lg: {
+          fontSize: theme.primitives.typographyFontSizeMd,
+        },
+        md: {
+          fontSize: theme.primitives.typographyFontSizeSm,
+        },
+        sm: {
+          fontSize: theme.primitives.typographyFontSizeSm,
+        },
+        xs: {
+          fontSize: theme.primitives.typographyFontSizeXs,
+        },
+      },
+    },
+    avatarGroup: {
+      container: {
+        '3xl': {
+          width: 104,
+          height: 104,
+        },
+        '2xl': {
+          width: theme.foundations.layout.size80,
+          height: theme.foundations.layout.size80,
+        },
+        xl: {
+          width: theme.foundations.layout.size48,
+          height: theme.foundations.layout.size48,
+        },
+        lg: {
+          width: theme.foundations.layout.size40,
+          height: theme.foundations.layout.size40,
+        },
+      },
+      item: {
+        '3xl': {
+          width:
+            theme.foundations.layout.size64 + theme.foundations.stroke.w200,
+          height:
+            theme.foundations.layout.size64 + theme.foundations.stroke.w200,
+        },
+        '2xl': {
+          width:
+            theme.foundations.layout.size48 + theme.foundations.stroke.w200,
+          height:
+            theme.foundations.layout.size48 + theme.foundations.stroke.w200,
+        },
+        xl: {
+          width:
+            theme.foundations.layout.size32 + theme.foundations.stroke.w200,
+          height:
+            theme.foundations.layout.size32 + theme.foundations.stroke.w200,
+        },
+        lg: {
+          width:
+            theme.foundations.layout.size24 + theme.foundations.stroke.w200,
+          height:
+            theme.foundations.layout.size24 + theme.foundations.stroke.w200,
+        },
+      },
+      'top-left': {
+        position: 'absolute',
+        borderColor: theme.semantics.borderCoreOnInverse,
+        borderWidth: theme.foundations.stroke.w200,
+        left: -0.5 * theme.foundations.stroke.w200,
+        top: -0.5 * theme.foundations.stroke.w200,
+      },
+      'top-right': {
+        position: 'absolute',
+        borderColor: theme.semantics.borderCoreOnInverse,
+        borderWidth: theme.foundations.stroke.w200,
+        right: -0.5 * theme.foundations.stroke.w200,
+        top: -0.5 * theme.foundations.stroke.w200,
+      },
+      'bottom-left': {
+        position: 'absolute',
+        borderColor: theme.semantics.borderCoreOnInverse,
+        borderWidth: theme.foundations.stroke.w200,
+        left: -0.5 * theme.foundations.stroke.w200,
+        bottom: -0.5 * theme.foundations.stroke.w200,
+      },
+      'bottom-right': {
+        position: 'absolute',
+        borderColor: theme.semantics.borderCoreOnInverse,
+        borderWidth: theme.foundations.stroke.w200,
+        right: -0.5 * theme.foundations.stroke.w200,
+        bottom: -0.5 * theme.foundations.stroke.w200,
+      },
+      'center-top': {
+        position: 'absolute',
+        borderColor: theme.semantics.borderCoreOnInverse,
+        borderWidth: theme.foundations.stroke.w200,
+        left: '20%',
+        top: -0.5 * theme.foundations.stroke.w200,
+      },
+      'center-bottom': {
+        position: 'absolute',
+        borderColor: theme.semantics.borderCoreOnInverse,
+        borderWidth: theme.foundations.stroke.w200,
+        left: '20%',
+        bottom: -0.5 * theme.foundations.stroke.w200,
+      },
+      text: {
+        base: {
+          fontWeight: theme.primitives.typographyFontWeightBold,
+          color: theme.semantics.badgeText,
+        },
+        '3xl': {
+          fontSize: theme.primitives.typographyFontSizeLg,
+        },
+        '2xl': {
+          fontSize: theme.primitives.typographyFontSizeSm,
+        },
+        xl: {
+          fontSize: theme.primitives.typographyFontSizeSm,
+        },
+        lg: {
+          fontSize: theme.primitives.typographyFontSizeXxs,
+        },
+      },
+    },
+    button: {
+      container: {
+        borderRadius: theme.components.buttonRadiusFull,
+      },
+      small: {
+        height: theme.foundations.layout.size32,
+        paddingHorizontal: theme.components.buttonPaddingXWithLabelSm,
+        minWidth: theme.foundations.layout.size32,
+      },
+      medium: {
+        height: theme.foundations.layout.size40,
+        borderRadius: theme.components.buttonRadiusFull,
+        paddingHorizontal: theme.components.buttonPaddingXWithLabelMd,
+        minWidth: theme.foundations.layout.size40,
+      },
+      large: {
+        height: theme.foundations.layout.size48,
+        borderRadius: theme.components.buttonRadiusFull,
+        paddingHorizontal: theme.components.buttonPaddingXWithLabelLg,
+        minWidth: theme.foundations.layout.size48,
+      },
+      primary: {
+        container: {
+          backgroundColor: theme.semantics.buttonPrimaryBg,
+        },
+        text: {
+          fontSize: theme.primitives.typographyFontSizeMd,
+          fontWeight: theme.primitives.typographyFontWeightSemiBold,
+          color: theme.semantics.buttonPrimaryTextOnAccent,
+        },
+      },
+      secondary: {
+        container: {
+          backgroundColor: theme.semantics.buttonSecondaryBg,
+        },
+        text: {
+          fontSize: theme.primitives.typographyFontSizeMd,
+          fontWeight: theme.primitives.typographyFontWeightSemiBold,
+          color: theme.semantics.buttonSecondaryTextOnAccent,
+        },
+      },
+      destructive: {
+        container: {
+          backgroundColor: theme.semantics.buttonDestructiveBg,
+        },
+        text: {
+          fontSize: theme.primitives.typographyFontSizeMd,
+          fontWeight: theme.primitives.typographyFontWeightSemiBold,
+          color: theme.semantics.buttonDestructiveTextOnAccent,
+        },
+      },
+      disabled: {
+        container: {
+          backgroundColor: theme.semantics.backgroundUtilityDisabled,
+        },
+        text: {
+          color: theme.semantics.textDisabled,
+        },
+      },
+      content: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: theme.foundations.spacing.space8,
+      },
+      accessory: {
+        width: 20,
+        height: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+    },
+    participantReaction: {
+      container: {
+        width: theme.foundations.layout.size64,
+        height: theme.foundations.layout.size64,
+        padding: theme.primitives.spacingXs,
+      },
+      reaction: {
+        fontSize: theme.components.emojiXl,
+        fontWeight: theme.primitives.typographyFontWeightSemiBold,
+      },
+    },
+    reactionsPicker: {
+      reactionsPopup: {
+        paddingTop: theme.primitives.spacingXs,
+      },
+      reactionsButtonDimmer: {
+        backgroundColor: theme.semantics.backgroundCoreScrim,
+        borderRadius: theme.foundations.radius.radiusFull,
+      },
+      reactionItem: {
+        backgroundColor: theme.semantics.backgroundCoreSurfaceDefault,
+        marginBottom: theme.primitives.spacingXs,
+      },
+      reactionText: {
+        fontSize: theme.primitives.typographyFontSizeMd,
+      },
+    },
+    callDurationIndicator: {
+      container: {
+        paddingVertical: theme.foundations.spacing.space6,
+        paddingHorizontal: theme.primitives.spacingXs,
+        gap: theme.primitives.spacingXs,
+        borderRadius: theme.foundations.radius.radiusFull,
+        backgroundColor: theme.semantics.backgroundCoreSurfaceDefault,
+      },
+      text: {
+        fontSize: theme.primitives.typographyFontSizeMd,
+        fontWeight: theme.primitives.typographyFontWeightSemiBold,
+        color: theme.semantics.textPrimary,
+      },
+      textHighlight: {
+        color: theme.semantics.textTertiary,
+      },
+    },
+    videoRenderer: {
+      container: {
+        borderRadius: theme.primitives.radius2xl,
+      },
+      videoStream: {},
+    },
+    userInfo: {
+      container: {
+        gap: theme.primitives.spacingMd,
+        paddingHorizontal: theme.primitives.spacingXl,
+      },
+      name: {
+        fontSize: theme.primitives.typographyFontSizeXl,
+        fontWeight: theme.primitives.typographyFontWeightSemiBold,
+      },
+      nameVariants: {
+        primary: {
+          color: theme.semantics.textPrimary,
+        },
+        accent: {
+          color: theme.semantics.textOnAccent,
+        },
+      },
+    },
+    screenshareOverlay: {
+      container: {
+        gap: theme.primitives.spacingMd,
+      },
+      text: {
+        fontSize: theme.primitives.typographyFontSizeMd,
+        fontWeight: theme.primitives.typographyFontWeightSemiBold,
+        color: theme.semantics.textPrimary,
+      },
+      button: {
+        padding: theme.primitives.spacingSm,
+        gap: theme.primitives.spacingXs,
+      },
+      buttonIcon: {},
+      buttonText: {
+        fontSize: theme.primitives.typographyFontSizeMd,
+        fontWeight: theme.primitives.typographyFontWeightSemiBold,
+        color: theme.semantics.textPrimary,
+      },
+    },
+
+    //legacy
     insets: {
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
+      top: theme.foundations.spacing.space0,
+      right: theme.foundations.spacing.space0,
+      bottom: theme.foundations.spacing.space0,
+      left: theme.foundations.spacing.space0,
     },
-  },
-  typefaces: {
-    heading4: {
-      fontSize: 34,
-      fontWeight: '400',
-    },
-    heading5: {
-      fontSize: 24,
-      fontWeight: '400',
-    },
-    heading6: {
-      fontSize: 20,
-      fontWeight: '500',
-    },
-    subtitle: {
-      fontSize: 16,
-      fontWeight: '400',
-    },
-    subtitleBold: {
-      fontSize: 16,
-      fontWeight: '500',
-    },
-    bodyBold: {
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    caption: {
-      fontSize: 10,
-      fontWeight: '400',
-    },
-  },
-  defaults: {
-    color: colors.primary,
-    backgroundColor: colors.sheetPrimary,
-    margin: 10,
-    padding: 10,
-    fontSize: 16,
-    fontWeight: '500',
-    borderRadius: 32,
-    iconSize: 28,
-    borderColor: colors.buttonPrimary,
-    borderWidth: 1,
-  },
-  colors: colors,
-  avatar: {
-    container: {},
-    image: {},
-    text: {},
-  },
-  acceptCallButton: {
-    container: {},
-    svgContainer: {},
-  },
-  callContent: {
-    container: {},
-    callParticipantsContainer: {},
-    topContainer: {},
-  },
-  callControls: {
-    container: {},
-  },
-  callControlsButton: {
-    container: {},
-    svgContainer: {},
-  },
-  joinCallButton: {
-    container: {},
-    label: {},
-  },
-  chatButton: {
-    container: {},
-    svgContainer: {},
-  },
-  hangupCallButton: {
-    container: {},
-    svgContainer: {},
-  },
-  rejectCallButton: {
-    container: {},
-    svgContainer: {},
-  },
-  screenShareToggleButton: {
-    container: {},
-    svgContainer: {},
-  },
-  toggleAudioPreviewButton: {
-    container: {},
-    svgContainer: {},
-  },
-  toggleAudioPublishingButton: {
-    container: {},
-    svgContainer: {},
-  },
-  toggleCameraFaceButton: {
-    container: {},
-    svgContainer: {},
-  },
-  toggleVideoPreviewButton: {
-    container: {},
-    svgContainer: {},
-  },
-  toggleVideoPublishingButton: {
-    container: {},
-    svgContainer: {},
-  },
-  callParticipantsGrid: {
-    container: {},
-  },
-  callParticipantsSpotlight: {
-    container: {},
-    fullScreenSpotlightContainer: {},
-    callParticipantsListContainer: {},
-    spotlightContainer: {},
-  },
-  lobby: {
-    container: {},
-    topContainer: {},
-    heading: {},
-    subHeading: {},
-    bottomContainer: {},
-    videoContainer: {},
-    infoContainer: {},
-    infoText: {},
-    participantStatusContainer: {},
-    avatarContainer: {},
-    userNameLabel: {},
-    audioMutedIconContainer: {},
-  },
-  floatingParticipantsView: {
-    container: {},
-    participantViewContainer: {},
-    videoFallback: {},
-  },
-  participantLabel: {
-    container: {},
-    userNameLabel: {},
-    audioMutedIconContainer: {},
-    videoMutedIconContainer: {},
-    pinIconContainer: {},
-    screenShareIconContainer: {},
-  },
-  participantNetworkQualityIndicator: {
-    container: {},
-  },
-  participantReaction: {
-    container: {},
-    reaction: {},
-  },
-  participantVideoFallback: {
-    container: {},
-    label: {},
-    avatarContainer: {},
-    avatarText: {},
-    avatarImage: {},
-  },
-  participantView: {
-    container: {},
-    footerContainer: {},
-    highlightedContainer: {},
-  },
-  reactionsPicker: {
-    reactionsPopup: {},
-    reactionsButtonDimmer: {},
-    reactionItem: {},
-    reactionText: {},
-  },
-  videoRenderer: {
-    container: {},
-    videoStream: {},
-  },
-  incomingCall: {
-    background: {},
-    content: {},
-    topContainer: {},
-    incomingCallText: {},
-    incomingCallControls: {},
-    bottomContainer: {},
-    buttonGroup: {},
-  },
-  outgoingCall: {
-    container: {},
-    background: {},
-    content: {},
-    topContainer: {},
-    callingText: {},
-    outgoingCallControls: {},
-    bottomContainer: {},
-    buttonGroup: {},
-    deviceControlButtons: {},
-  },
-  ringingCallContent: { container: {} },
-  userInfo: {
-    container: {},
-    avatarGroup: {},
-    name: {},
-  },
-  lobbyControls: {
-    container: {},
-  },
-  participantInfoBadge: {
-    container: {},
-    participantCountContainer: {},
-    participantsIconContainer: {},
-    participantsCountText: {},
-  },
-  hostLivestream: {
-    container: {},
-  },
-  hostLivestreamTopView: {
-    container: {},
-    leftElement: {},
-    rightElement: {},
-    centerElement: {},
-    liveInfo: {},
-  },
-  viewerLivestream: {
-    container: {},
-  },
-  livestreamLayout: {
-    container: {},
-  },
-  viewerLivestreamTopView: {
-    container: {},
-    leftElement: {},
-    centerElement: {},
-    rightElement: {},
-    liveInfo: {},
-  },
-  followerCount: {
-    container: {},
-    icon: {},
-    label: {},
-  },
-  durationBadge: {
-    container: {},
-    icon: {},
-    label: {},
-  },
-  liveIndicator: {
-    container: {},
-    label: {},
-  },
-  hostLivestreamControls: {
-    container: {},
-    leftElement: {},
-    rightElement: {},
-  },
-  viewerLivestreamControls: {
-    container: {},
-    leftElement: {},
-    rightElement: {},
-  },
-  hostStartStreamButton: {
-    container: {},
-    icon: {},
-    text: {},
-  },
-  viewerLeaveStreamButton: {
-    container: {},
-    icon: {},
-    text: {},
-  },
-  livestreamMediaControls: {
-    container: {},
-  },
-  livestreamAudioControlButton: {
-    container: {},
-    icon: {},
-  },
-  livestreamVideoControlButton: {
-    container: {},
-    icon: {},
-  },
-  livestreamScreenShareToggleButton: {
-    container: {},
-    icon: {},
-  },
-  screenshareOverlay: {
-    container: {},
-    text: {},
-    button: {},
-    buttonIcon: {},
-    buttonText: {},
-  },
+  };
 };
+
+export const defaultTheme = resolveTheme(false);

@@ -48,18 +48,14 @@ export const HostLivestreamTopView = ({
     useCallStateHooks();
   const isCallLive = useIsCallLive();
   const isBroadcasting = useIsCallHLSBroadcastingInProgress();
-
   const liveOrBroadcasting = isCallLive || isBroadcasting;
   const {
-    theme: { colors, hostLivestreamTopView },
+    theme: { hostLivestreamTopView },
   } = useTheme();
+
   return (
     <View
-      style={[
-        styles.container,
-        { backgroundColor: colors.sheetOverlay },
-        hostLivestreamTopView.container,
-      ]}
+      style={[styles.container, hostLivestreamTopView.container]}
       onLayout={onLayout}
     >
       <View style={[styles.leftElement, hostLivestreamTopView.leftElement]}>
@@ -70,7 +66,8 @@ export const HostLivestreamTopView = ({
       />
       <View style={[styles.rightElement, hostLivestreamTopView.rightElement]}>
         <View style={[styles.liveInfo, hostLivestreamTopView.liveInfo]}>
-          {liveOrBroadcasting && LiveIndicator && <LiveIndicator />}
+          {liveOrBroadcasting && LiveIndicator && null}{' '}
+          {/* TODO: UPDATE LiveIndicator */}
           {FollowerCount && <FollowerCount />}
         </View>
       </View>
@@ -80,14 +77,8 @@ export const HostLivestreamTopView = ({
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    top: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    borderBottomEndRadius: 8,
-    borderBottomStartRadius: 8,
     zIndex: Z_INDEX.IN_FRONT,
   },
   liveInfo: {

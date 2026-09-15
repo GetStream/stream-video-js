@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Animated,
   Easing,
@@ -13,8 +13,8 @@ import {
 } from '@stream-io/video-client';
 import { ComponentTestIds } from '../../../../constants/TestIds';
 import { useTheme } from '../../../../contexts/ThemeContext';
-import type { ReactionsButtonProps } from '../ReactionsButton';
 import { defaultEmojiReactions } from '../../../../constants';
+import { ReactionsButtonProps } from '..';
 
 type ReactionPickerProps = Pick<ReactionsButtonProps, 'supportedReactions'> & {
   reactionsButtonLayoutRectangle?: LayoutRectangle;
@@ -27,18 +27,17 @@ export const ReactionsPicker = ({
   onRequestedClose,
 }: ReactionPickerProps) => {
   const {
-    theme: { colors, reactionsPicker, variants },
+    theme: { reactionsPicker, primitives },
   } = useTheme();
-  const styles = useStyles();
   const call = useCall();
   const size = reactionsButtonLayoutRectangle?.width ?? 0;
   const reactionItemSize = size * 0.8;
 
   const popupHeight =
     // the top padding
-    variants.spacingSizes.xs +
+    primitives.spacingXs +
     // take margins into account
-    variants.spacingSizes.xs * supportedReactions.length +
+    primitives.spacingXs * supportedReactions.length +
     // the size of the reaction icon items (same size as reactions button * amount of reactions)
     reactionItemSize * supportedReactions.length;
 
@@ -104,9 +103,6 @@ export const ReactionsPicker = ({
         style={[
           styles.reactionsPopup,
           reactionsPopupStyle,
-          {
-            backgroundColor: colors.sheetSecondary,
-          },
           reactionsPicker.reactionsPopup,
         ]}
         onPress={() => {
@@ -120,7 +116,6 @@ export const ReactionsPicker = ({
             style={[
               styles.reactionItem,
               reactionItemStyle,
-              { backgroundColor: colors.buttonSecondary },
               reactionsPicker.reactionItem,
             ]}
             onPress={() => {
@@ -133,7 +128,6 @@ export const ReactionsPicker = ({
           >
             <Animated.Text
               style={[
-                styles.reactionText,
                 {
                   transform: [
                     {
@@ -156,9 +150,6 @@ export const ReactionsPicker = ({
       <Pressable
         style={[
           reactionsButtonDimmerStyle,
-          {
-            backgroundColor: colors.sheetSecondary,
-          },
           reactionsPicker.reactionsButtonDimmer,
         ]}
         onPress={() => onClose()}
@@ -167,29 +158,17 @@ export const ReactionsPicker = ({
   );
 };
 
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        reactionsPopup: {
-          position: 'absolute',
-          alignItems: 'center',
-          paddingTop: theme.variants.spacingSizes.xs,
-        },
-        reactionsButtonDimmer: {
-          position: 'absolute',
-          opacity: 0.5,
-        },
-        reactionItem: {
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: theme.variants.spacingSizes.xs,
-        },
-        reactionText: {
-          fontSize: 18.5,
-        },
-      }),
-    [theme],
-  );
-};
+const styles = StyleSheet.create({
+  reactionsPopup: {
+    position: 'absolute',
+    alignItems: 'center',
+  },
+  reactionsButtonDimmer: {
+    position: 'absolute',
+    opacity: 0.5,
+  },
+  reactionItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

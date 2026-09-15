@@ -1,11 +1,10 @@
 import React from 'react';
-import { CallControlsButton } from './CallControlsButton';
-import { PhoneDown } from '../../../icons';
-import { ButtonTestIds } from '../../../constants/TestIds';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
-import { useTheme } from '../../../contexts/ThemeContext';
-import { IconWrapper } from '../../../icons/IconWrapper';
+import { ButtonTestIds } from '../../../../constants/TestIds';
+import { useTheme } from '../../../../contexts/ThemeContext';
+import { PhoneDown, IconWrapper } from '../../../../icons';
+import { CallControlsButton } from '..';
 
 /**
  * The props for the Hang up call button in the Call Controls.
@@ -34,7 +33,6 @@ export type HangUpCallButtonProps = {
  * Mostly calls call.leave() internally.
  */
 export const HangUpCallButton = ({
-  size,
   onPressHandler,
   onHangupCallHandler,
 }: HangUpCallButtonProps) => {
@@ -42,7 +40,7 @@ export const HangUpCallButton = ({
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const {
-    theme: { colors, hangupCallButton, variants },
+    theme: { hangupCallButton, components, semantics },
   } = useTheme();
 
   const onPress = async () => {
@@ -66,13 +64,15 @@ export const HangUpCallButton = ({
   return (
     <CallControlsButton
       onPress={onPress}
-      color={colors.buttonWarning}
-      style={hangupCallButton}
-      size={size}
+      color={semantics.buttonDestructiveBg}
       testID={ButtonTestIds.HANG_UP_CALL}
+      style={hangupCallButton}
     >
       <IconWrapper>
-        <PhoneDown color={colors.iconPrimary} size={variants.iconSizes.md} />
+        <PhoneDown
+          color={semantics.buttonDestructiveTextOnAccent}
+          size={components.iconSizeMd}
+        />
       </IconWrapper>
     </CallControlsButton>
   );

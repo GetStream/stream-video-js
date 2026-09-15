@@ -1,9 +1,8 @@
-import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
-import { useTheme } from '../../../contexts';
-import { PhoneDown } from '../../../icons';
+import React, { useState } from 'react';
 import { useCall } from '@stream-io/video-react-bindings';
 import { videoLoggerSystem } from '@stream-io/video-client';
+import { PhoneDown, ControlButtonIcon } from '../../../icons';
+import { CallControlsButton } from '../../Call/CallControls/Buttons/CallControlsButton';
 
 /**
  * Props for the ViewerLeaveStreamButton component.
@@ -24,14 +23,6 @@ export const ViewerLeaveStreamButton = ({
 }: ViewerLeaveStreamButtonProps) => {
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   const call = useCall();
-  const styles = useStyles();
-  const {
-    theme: {
-      colors,
-      variants: { iconSizes },
-      viewerLeaveStreamButton,
-    },
-  } = useTheme();
 
   const onLeaveStreamButtonPress = async () => {
     if (onLeaveStreamHandler) {
@@ -49,36 +40,11 @@ export const ViewerLeaveStreamButton = ({
   };
 
   return (
-    <Pressable
-      style={viewerLeaveStreamButton.container}
+    <CallControlsButton
       onPress={onLeaveStreamButtonPress}
+      disabled={isAwaitingResponse}
     >
-      <View style={[styles.icon, viewerLeaveStreamButton.icon]}>
-        {isAwaitingResponse ? (
-          <ActivityIndicator />
-        ) : (
-          <PhoneDown color={colors.iconPrimary} size={iconSizes.sm} />
-        )}
-      </View>
-    </Pressable>
-  );
-};
-
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        icon: {
-          backgroundColor: theme.colors.buttonSecondary,
-          height: theme.variants.buttonSizes.xs,
-          width: theme.variants.buttonSizes.xs,
-          justifyContent: 'center',
-          alignItems: 'center',
-          borderRadius: theme.variants.borderRadiusSizes.sm,
-          zIndex: 2,
-        },
-      }),
-    [theme],
+      <ControlButtonIcon icon={PhoneDown} disabled={isAwaitingResponse} />
+    </CallControlsButton>
   );
 };

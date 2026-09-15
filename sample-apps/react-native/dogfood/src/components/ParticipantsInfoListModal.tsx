@@ -58,7 +58,9 @@ export const ParticipantsInfoListModal = ({
   setIsCallParticipantsInfoVisible,
 }: ParticipantsInfoListProps) => {
   const styles = useStyles();
-  const { theme } = useTheme();
+  const {
+    theme: { semantics },
+  } = useTheme();
   const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const { t } = useAppI18n();
@@ -145,10 +147,7 @@ export const ParticipantsInfoListModal = ({
                 style={styles.closePressable}
                 testID={ButtonTestIds.EXIT_PARTICIPANTS_INFO}
               >
-                <Cross
-                  color={theme.colors.iconPrimary}
-                  style={styles.crossIcon}
-                />
+                <Cross color={semantics.textPrimary} style={styles.crossIcon} />
               </Pressable>
             </View>
             <FlatList data={participants} renderItem={renderItem} />
@@ -203,7 +202,7 @@ type ParticipantInfoType = {
 
 const ParticipantInfoItem = (props: ParticipantInfoType) => {
   const {
-    theme: { colors },
+    theme: { semantics },
   } = useTheme();
   const styles = useStyles();
   const { participant, setSelectedParticipant } = props;
@@ -227,7 +226,7 @@ const ParticipantInfoItem = (props: ParticipantInfoType) => {
   return (
     <Pressable style={styles.participant} onPress={optionsOpenHandler}>
       <View style={styles.participantInfo}>
-        <Avatar size={50} participant={participant} />
+        <Avatar size={'xl'} user={participant} />
 
         <Text style={styles.name} numberOfLines={1}>
           {(participant.name || generateParticipantTitle(participant.userId)) +
@@ -240,22 +239,22 @@ const ParticipantInfoItem = (props: ParticipantInfoType) => {
           <View
             style={[styles.svgContainerStyle, styles.screenShareIconContainer]}
           >
-            <ScreenShare color={colors.iconSuccess} />
+            <ScreenShare color={semantics.textPrimary} />
           </View>
         )}
         {isAudioMuted && (
           <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
-            <MicOff color={colors.iconWarning} />
+            <MicOff color={semantics.textPrimary} />
           </View>
         )}
         {isVideoMuted && (
           <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
-            <VideoSlash color={colors.iconWarning} />
+            <VideoSlash color={semantics.textPrimary} />
           </View>
         )}
         {!participantIsLocalParticipant && (
           <View style={[styles.svgContainerStyle, styles.genericIconContainer]}>
-            <ArrowRight color={colors.iconPrimary} />
+            <ArrowRight color={semantics.textPrimary} />
           </View>
         )}
       </View>
@@ -264,16 +263,19 @@ const ParticipantInfoItem = (props: ParticipantInfoType) => {
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         backDropBackground: {
           zIndex: Z_INDEX.IN_BACK,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
         },
         content: {
           zIndex: Z_INDEX.IN_FRONT,
-          backgroundColor: theme.colors.sheetPrimary,
+          backgroundColor: semantics.backgroundCoreApp,
           borderRadius: 15,
           marginHorizontal: 16,
           marginTop: 65,
@@ -291,13 +293,13 @@ const useStyles = () => {
         headerText: {
           fontSize: 16,
           fontWeight: '600',
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
         },
         closePressable: {
           padding: 8,
           borderRadius: 15,
           marginRight: 16,
-          backgroundColor: theme.colors.buttonSecondary,
+          backgroundColor: semantics.buttonSecondaryBg,
         },
         buttonGroup: {
           flexDirection: 'row',
@@ -322,19 +324,19 @@ const useStyles = () => {
           borderRadius: 24,
           padding: 8,
           marginHorizontal: 8,
-          borderColor: theme.colors.buttonSecondary,
+          borderColor: semantics.buttonSecondaryBg,
           borderWidth: 2,
         },
         inviteButton: {
           flex: 1,
-          backgroundColor: theme.colors.buttonPrimary,
+          backgroundColor: semantics.buttonPrimaryBg,
           borderRadius: 24,
           padding: 8,
           marginHorizontal: 8,
         },
         buttonText: {
           textAlign: 'center',
-          color: theme.colors.iconPrimary,
+          color: semantics.textPrimary,
           fontSize: 16,
           fontWeight: '500',
         },
@@ -344,7 +346,7 @@ const useStyles = () => {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderBottomColor: theme.colors.sheetTertiary,
+          borderBottomColor: semantics.backgroundCoreElevation2,
           borderBottomWidth: 1,
         },
         participantInfo: {
@@ -354,7 +356,7 @@ const useStyles = () => {
         },
         name: {
           marginLeft: 8,
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           flexShrink: 1,
           fontSize: 16,
           fontWeight: '500',
@@ -370,6 +372,6 @@ const useStyles = () => {
           justifyContent: 'center',
         },
       }),
-    [theme],
+    [semantics],
   );
 };

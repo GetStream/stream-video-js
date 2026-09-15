@@ -4,7 +4,6 @@ import { useAppI18n } from '../../hooks/useAppI18n';
 import { StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
-import { appTheme } from '../../theme';
 import { Button } from '../../components/Button';
 import { TextInput } from '../../components/TextInput';
 
@@ -84,15 +83,17 @@ export const GuestModeScreen = ({
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          padding: appTheme.spacing.lg,
+          padding: primitives.spacingLg,
           flex: 1,
           justifyContent: 'space-evenly',
-          backgroundColor: theme.colors.sheetTertiary,
+          backgroundColor: semantics.backgroundCoreApp,
         },
         textInputStyle: {
           flex: 0,
@@ -100,14 +101,14 @@ const useStyles = () => {
         title: {
           fontSize: 34,
           fontWeight: '400',
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           textAlign: 'center',
         },
         anonymousButton: {
-          marginTop: appTheme.spacing.lg,
-          backgroundColor: theme.colors.sheetTertiary,
+          marginTop: primitives.spacingLg,
+          backgroundColor: semantics.backgroundCoreApp,
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };

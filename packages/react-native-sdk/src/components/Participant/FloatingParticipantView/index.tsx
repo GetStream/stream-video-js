@@ -70,12 +70,7 @@ const floatingAlignmentMap: Record<
 
 const DefaultLocalParticipantViewVideoFallback = () => {
   const {
-    theme: {
-      colors,
-      floatingParticipantsView,
-      variants: { iconSizes },
-      defaults,
-    },
+    theme: { floatingParticipantsView, components, semantics },
   } = useTheme();
 
   return (
@@ -83,12 +78,16 @@ const DefaultLocalParticipantViewVideoFallback = () => {
       style={[
         StyleSheet.absoluteFill,
         styles.videoFallback,
-        { backgroundColor: colors.sheetSecondary },
         floatingParticipantsView.videoFallback,
       ]}
     >
-      <View style={{ height: iconSizes.md, width: iconSizes.md }}>
-        <VideoSlash color={colors.iconPrimary} size={defaults.iconSize} />
+      <View
+        style={{ height: components.iconSizeMd, width: components.iconSizeMd }}
+      >
+        <VideoSlash
+          color={semantics.textPrimary}
+          size={components.iconSizeMd}
+        />
       </View>
     </View>
   );
@@ -114,11 +113,7 @@ export const FloatingParticipantView = ({
   mirror,
 }: FloatingParticipantViewProps) => {
   const {
-    theme: {
-      colors,
-      floatingParticipantsView,
-      variants: { spacingSizes },
-    },
+    theme: { floatingParticipantsView, primitives },
   } = useTheme();
 
   const [containerDimensions, setContainerDimensions] = React.useState<{
@@ -191,11 +186,10 @@ export const FloatingParticipantView = ({
                   {
                     width: floatingVideoDimensions.width,
                     height: floatingVideoDimensions.height,
-                    borderRadius: floatingVideoDimensions.width * 0.1,
-                    marginHorizontal: spacingSizes.md,
+                    marginHorizontal: primitives.spacingMd,
                   },
                   participantViewStyle,
-                  { shadowColor: colors.sheetPrimary },
+                  primitives.darkElevation1,
                   floatingParticipantsView.participantViewContainer,
                 ]}
                 // video z order must be one above the one used in grid view
