@@ -1,5 +1,5 @@
 .str-video__icon {
-  background-color: var(--str-video__icon-default);
+  background-color: var(--str-video__text-on-accent);
 
   &--reactions {
     -webkit-mask-image: var(--str-video__icon--reactions);
@@ -44,12 +44,7 @@
   &--loading {
     -webkit-mask-image: var(--str-video__icon--loading);
     mask-image: var(--str-video__icon--loading);
-
-    transform: rotate(360deg);
-    transition-duration: 1s;
-    transition-delay: now;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
+    animation: rotation 1s linear infinite;
   }
 
   &--logout {
@@ -143,6 +138,16 @@
   &--exclamation-mark-fill {
     -webkit-mask-image: var(--str-video__icon--exclamation-mark-fill);
     mask-image: var(--str-video__icon--exclamation-mark-fill);
+  }
+
+  &--exclamation-circle-fill {
+    -webkit-mask-image: var(--str-video__icon--exclamation-circle-fill);
+    mask-image: var(--str-video__icon--exclamation-circle-fill);
+  }
+
+  &--checkmark {
+    -webkit-mask-image: var(--str-video__icon--checkmark);
+    mask-image: var(--str-video__icon--checkmark);
   }
 
   &--question-mark-fill {

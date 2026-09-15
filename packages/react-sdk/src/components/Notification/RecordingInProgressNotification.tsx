@@ -31,7 +31,6 @@ export const RecordingInProgressNotification = ({
   return (
     <Notification
       message={message}
-      iconClassName="str-video__icon str-video__icon--recording-on"
       isVisible={isVisible}
       placement="top-start"
       close={() => setVisible(false)}
