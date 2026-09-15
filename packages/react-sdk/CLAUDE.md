@@ -142,7 +142,6 @@ The SDK follows a strict layered architecture where responsibilities are cleanly
 - `CallControls` - Control buttons (mute, camera, screen share, etc.)
 - `CallParticipantsList` - List of participants with metadata
 - `DeviceSettings` - Device selection UI (camera, microphone, speaker)
-- `CallStats` - Display call quality statistics
 - `BackgroundFilters` - Video background effects UI
 - `NoiseCancellation` - Noise cancellation controls
 - And many more in `src/components/`
@@ -618,7 +617,7 @@ Audio is simpler than video (no visibility concerns):
 - CSS copied from `@stream-io/video-styling` during build
 - TypeScript compilation for type definitions
 - Source maps included
-- Special handling for lazy-loaded chunks (e.g., `CallStatsLatencyChart`) applies
+- Special handling for lazy-loaded chunks (e.g., `BackgroundFilters`) applies
   to the CommonJS builds; the ESM build has no chunks, every module is its own file
 
 ## Dependencies
@@ -1065,7 +1064,6 @@ When adding public APIs:
 - `src/components/DeviceSettings/DeviceSelector.tsx` - Device selection UI
 - `src/components/BackgroundFilters/BackgroundFilters.tsx` - Video filters
 - `src/components/CallParticipantsList/` - Participant list UI
-- `src/components/CallStats/` - Call quality statistics display
 
 ### Key External Files (in bindings package)
 

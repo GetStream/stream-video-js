@@ -40,11 +40,11 @@ const CallStatsLatencyChart = (props: {
 
   const options = useMemo(() => getLineOptions(max), [max]);
   return (
-    <div className="str-video__call-stats-line-chart-container">
+    <div className="rd__call-stats__latency-chart-container">
       <Line
         options={options}
         data={data}
-        className="str-video__call-stats__latencychart"
+        className="rd__call-stats__latency-chart"
       />
     </div>
   );
