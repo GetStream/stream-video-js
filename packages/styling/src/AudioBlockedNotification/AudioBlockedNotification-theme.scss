@@ -1,11 +1,6 @@
 .str-video__audio-blocked-notification {
   background: var(--str-video__background-core-overlay-dark);
   border-radius: inherit;
-  transition: background-color 0.15s ease;
-
-  &:hover {
-    background: var(--str-video__background-core-scrim);
-  }
 
   .str-video__audio-blocked-notification__message {
     background-color: var(--str-video__background-core-overlay-dark-strong);
