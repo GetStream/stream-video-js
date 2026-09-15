@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.11.1...@stream-io/react-native-callingx-1.0.0-beta.0) (2026-09-04)
+
+## [0.11.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.11.0...@stream-io/react-native-callingx-0.11.1) (2026-09-04)
+
+### Bug Fixes
+
+- **callingx:** don't tear down concurrent calls on stop service ([#2394](https://github.com/GetStream/stream-video-js/issues/2394)) ([d6e9deb](https://github.com/GetStream/stream-video-js/commit/d6e9debbe98ae91cc349f010eb92f76b35a3f932))
+
 ## [0.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.10.0...@stream-io/react-native-callingx-0.11.0) (2026-08-28)
 
 ### Features

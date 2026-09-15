@@ -1,0 +1,13 @@
+.str-video {
+  --str-video__box-shadow-1: var(--str-video__light-elevation-1);
+  --str-video__box-shadow-2: var(--str-video__light-elevation-2);
+  --str-video__box-shadow-3: var(--str-video__light-elevation-3);
+  --str-video__box-shadow-4: var(--str-video__light-elevation-4);
+}
+
+.str-video__theme-dark {
+  --str-video__box-shadow-1: var(--str-video__dark-elevation-1);
+  --str-video__box-shadow-2: var(--str-video__dark-elevation-2);
+  --str-video__box-shadow-3: var(--str-video__dark-elevation-3);
+  --str-video__box-shadow-4: var(--str-video__dark-elevation-4);
+}

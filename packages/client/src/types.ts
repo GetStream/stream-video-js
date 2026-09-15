@@ -22,7 +22,7 @@ import type {
   User,
 } from './coordinator/connection/types';
 import type { Comparator } from './sorting';
-import type { StreamVideoWriteableStateStore } from './store';
+import type { ClientState } from './store';
 import { AxiosError } from 'axios';
 import type { Call } from './Call';
 
@@ -357,9 +357,9 @@ export type CallConstructor = {
   sortParticipantsBy?: Comparator<StreamVideoParticipant>;
 
   /**
-   * The state store of the client
+   * The state of the client.
    */
-  clientStore: StreamVideoWriteableStateStore;
+  clientState: ClientState;
 };
 
 type StreamVideoClientBaseOptions = {

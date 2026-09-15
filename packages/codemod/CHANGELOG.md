@@ -2,6 +2,8 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-codemod-0.1.0...@stream-io/video-codemod-1.0.0-beta.0) (2026-09-04)
+
 ## [0.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-codemod-0.0.2...@stream-io/video-codemod-0.1.0) (2026-08-07)
 
 ### Features

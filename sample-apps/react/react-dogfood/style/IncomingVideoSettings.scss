@@ -1,11 +1,23 @@
-.rd__incoming-video-settings__button {
-  .str-video__composite-button__button-group {
-    .str-video__composite-button__button {
-      width: 80px;
-      height: 20px;
-      gap: 6px;
-      white-space: nowrap;
-      justify-content: flex-start;
-    }
+.rd__quality-control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--str-video__spacing-xs);
+
+  block-size: var(--str-video__button-visual-height-md);
+  padding-inline: var(--str-video__spacing-sm) var(--str-video__spacing-xs);
+  border-radius: var(--str-video__button-radius-full);
+
+  background-color: var(--str-video__button-secondary-bg);
+  color: var(--str-video__button-secondary-text-on-accent);
+
+  &__face {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--str-video__spacing-xs);
+    font-size: var(--str-video__typography-font-size-sm);
+    font-weight: var(--str-video__typography-font-weight-semi-bold);
+    line-height: var(--str-video__typography-line-height-normal);
+    white-space: nowrap;
   }
 }

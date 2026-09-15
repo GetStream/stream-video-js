@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   Text,
   View,
@@ -17,7 +16,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
 import { TextInput } from '../../components/TextInput';
 import { deeplinkCallId$ } from '../../hooks/useDeepLinkEffect';
-import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
+import { useTheme } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 import { useOrientation } from '../../hooks/useOrientation';
 import { Button } from '@stream-io/video-react-native-sdk/src/components/utility/Button';
 
@@ -35,7 +35,7 @@ const isValidCallId = (callId: string) => callId && callId.match(callIdRegex);
 const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const setState = useAppGlobalStoreSetState();
   const callId = useAppGlobalStoreValue((store) => store.callId) || '';
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const orientation = useOrientation();
   const styles = useStyles();
 
@@ -85,6 +85,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
             <Text style={styles.title}>{t('Stream Video Calling')}</Text>
             <Text style={styles.subTitle}>
               {t(
+                'joinMeeting.enterCallId.description',
                 'Start a new call, join a meeting by entering the call ID or by scanning a QR code.',
               )}
             </Text>
@@ -94,7 +95,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
         <View style={styles.bottomContainer}>
           <View style={styles.createCall}>
             <TextInput
-              placeholder={t('Enter Call ID')}
+              placeholder={t('joinMeeting.callId.label', 'Enter Call ID')}
               value={callId}
               autoCapitalize="none"
               autoCorrect={false}
@@ -104,7 +105,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
             />
             <Button
               onPress={joinCallHandler}
-              text={t('Join Call')}
+              text={t('joinMeeting.join.label', 'Join Call')}
               size="large"
               disabled={!isValidCall}
             />
@@ -121,7 +122,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
               const randomCallID = randomId();
               startNewCallHandler(randomCallID);
             }}
-            text={t('Start New Call')}
+            text={t('joinMeeting.startNewCall.label', 'Start a New Call')}
             size="large"
           />
         </View>

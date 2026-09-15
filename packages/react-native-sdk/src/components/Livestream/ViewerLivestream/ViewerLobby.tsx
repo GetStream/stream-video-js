@@ -1,8 +1,5 @@
-import {
-  useCall,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -104,10 +101,19 @@ export const ViewerLobby = ({ isLive }: LobbyProps) => {
     <View style={[styles.container, livestreamViewerLobby.container]}>
       <Text style={[styles.text, livestreamViewerLobby.text]}>
         {isLive
-          ? t('Livestream is still in progress')
+          ? t(
+              'livestreamViewer.stillInProgress.text',
+              'Livestream is still in progress',
+            )
           : startsAt
-            ? t('Livestream will start in:')
-            : t('Livestream will start soon')}
+            ? t(
+                'livestreamViewer.willStartIn.text',
+                'Livestream will start in:',
+              )
+            : t(
+                'livestreamViewer.willStartSoon.text',
+                'Livestream will start soon',
+              )}
       </Text>
       {startsAt && !isLive && (
         <Text
@@ -124,12 +130,19 @@ export const ViewerLobby = ({ isLive }: LobbyProps) => {
               livestreamViewerLobby.participantsText,
             ]}
           >
-            {`${participants.length} ${t('participants have joined early')}`}
+            {t('livestreamViewer.earlyParticipants.text', {
+              count: participants.length,
+              defaultValue_one: '{{ count }} participant has joined early',
+              defaultValue_other: '{{ count }} participants have joined early',
+            })}
           </Text>
         </>
       )}
       {isLive && (
-        <Button title={t('Join Livestream')} onPress={() => call?.join()} />
+        <Button
+          title={t('livestreamViewer.join.label', 'Join Livestream')}
+          onPress={() => call?.join()}
+        />
       )}
     </View>
   );

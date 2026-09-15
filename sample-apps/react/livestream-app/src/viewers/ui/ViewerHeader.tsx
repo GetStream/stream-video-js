@@ -87,9 +87,15 @@ const SettingsButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function SettingsButtonRender({ menuShown }, ref) {
     return (
       <IconButton
-        className={clsx('str-video__device-settings__button', {
-          'str-video__device-settings__button--active': menuShown,
-        })}
+        size="sm"
+        variant="secondary"
+        className={clsx(
+          'str-video__call-controls__button',
+          'str-video__device-settings__button',
+          {
+            'str-video__device-settings__button--active': menuShown,
+          },
+        )}
         title="Select quality"
         icon="device-settings"
         ref={ref}

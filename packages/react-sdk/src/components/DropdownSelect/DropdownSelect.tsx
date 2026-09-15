@@ -133,7 +133,9 @@ const Select = (props: {
           {icon && (
             <Icon className="str-video__dropdown-selected__icon" icon={icon} />
           )}
-          {selectedLabel}
+          <span className="str-video__dropdown-selected__text">
+            {selectedLabel}
+          </span>
         </label>
         <Icon
           className="str-video__dropdown-selected__chevron"

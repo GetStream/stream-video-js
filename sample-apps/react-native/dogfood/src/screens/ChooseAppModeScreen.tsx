@@ -1,13 +1,14 @@
 import React, { useMemo } from 'react';
 import { Image, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { useAppGlobalStoreSetState } from '../contexts/AppContext';
-import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
+import { useTheme } from '@stream-io/video-react-native-sdk';
 import { useOrientation } from '../hooks/useOrientation';
 import { Button } from '@stream-io/video-react-native-sdk/src/components/utility/Button';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 export const ChooseAppModeScreen = () => {
   const setState = useAppGlobalStoreSetState();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const orientation = useOrientation();
   const styles = useStyles();
   const onMeetingSelect = () => {
@@ -39,25 +40,37 @@ export const ChooseAppModeScreen = () => {
       <View style={styles.topContainer}>
         <Image source={require('../assets/Logo.png')} style={styles.logo} />
         <View>
-          <Text style={styles.title}>{t('Stream DogFood App')}</Text>
-          <Text style={styles.subTitle}>{t('Choose the Mode')}</Text>
+          <Text style={styles.title}>
+            {t('chooseAppMode.appName.title', 'Stream DogFood App')}
+          </Text>
+          <Text style={styles.subTitle}>
+            {t('chooseAppMode.chooseMode.description', 'Choose the Mode')}
+          </Text>
         </View>
       </View>
       <View style={styles.bottomContainer}>
-        <Button text={t('Meeting')} size="large" onPress={onMeetingSelect} />
-        <Button text={t('Call')} size="large" onPress={onRingingSelect} />
         <Button
-          text={t('Audio Rooms')}
+          text={t('chooseAppMode.meeting.label', 'Meeting')}
+          size="large"
+          onPress={onMeetingSelect}
+        />
+        <Button
+          text={t('chooseAppMode.call.label', 'Call')}
+          size="large"
+          onPress={onRingingSelect}
+        />
+        <Button
+          text={t('chooseAppMode.audioRooms.label', 'Audio Rooms')}
           size="large"
           onPress={onAudioRoomSelect}
         />
         <Button
-          text={t('Livestreaming')}
+          text={t('chooseAppMode.livestreaming.label', 'Livestreaming')}
           size="large"
           onPress={onLiveStreamSelect}
         />
         <Button
-          text={t('Test Recording')}
+          text={t('chooseAppMode.testRecording.label', 'Test Recording')}
           size="large"
           onPress={onTestRecordingSelect}
         />

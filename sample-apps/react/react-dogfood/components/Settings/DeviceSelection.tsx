@@ -1,22 +1,39 @@
 import {
   DropDownSelect,
   DropDownSelectOption,
-  useI18n,
 } from '@stream-io/video-react-sdk';
 import { DeviceSelectionPreference } from '../../hooks/useDeviceSelectionPreference';
 import { useSettings } from '../../context/SettingsContext';
+import { useAppI18n } from '../../hooks/useAppI18n';
+import type { LooseTranslateFunction } from '@stream-io/video-react-sdk';
 
 const deviceSelectionOptions: DeviceSelectionPreference[] = [
   'system',
   'recent',
 ];
 
+/**
+ * Was keyed by interpolating the preference into a slash-path — a third naming convention nothing
+ * else used. A `switch` over the two-member union keeps the English at the call site.
+ */
+const deviceSelectionLabel = (
+  t: LooseTranslateFunction,
+  preference: DeviceSelectionPreference,
+) => {
+  switch (preference) {
+    case 'system':
+      return t('settings.deviceSelection.system.label', 'Use system default');
+    case 'recent':
+      return t('settings.deviceSelection.recent.label', 'Most recently used');
+  }
+};
+
 export const DeviceSelectionSettingsDropdown = ({
   title,
 }: {
   title: string;
 }) => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const {
     settings: {
       deviceSelectionPreference: currentSetting,
@@ -37,14 +54,14 @@ export const DeviceSelectionSettingsDropdown = ({
       </div>
       <DropDownSelect
         defaultSelectedIndex={currentIndex}
-        defaultSelectedLabel={t(`device-selection/${currentSetting}`)}
+        defaultSelectedLabel={deviceSelectionLabel(t, currentSetting)}
         handleSelect={handleChange}
       >
         {deviceSelectionOptions.map((value) => {
           return (
             <DropDownSelectOption
               key={value}
-              label={t(`device-selection/${value}`)}
+              label={deviceSelectionLabel(t, value)}
               selected={value === currentSetting}
             />
           );

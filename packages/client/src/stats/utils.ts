@@ -51,3 +51,18 @@ export const getSdkName = (sdk: Sdk | undefined) => {
 export const getSdkVersion = (sdk: Sdk | undefined) => {
   return sdk ? `${sdk.major}.${sdk.minor}.${sdk.patch}` : '0.0.0-development';
 };
+
+/**
+ * Returns the identifier the SFU receives in the `X-Stream-Client` header,
+ * e.g. `stream-video-react-v1.43.1`. Matches the format the coordinator
+ * already gets through the client's user agent.
+ */
+export const getStreamClientId = (sdk: Sdk | undefined) => {
+  const sdkPlatforms: Partial<Record<SdkType, string>> = {
+    [SdkType.REACT]: 'react',
+    [SdkType.REACT_NATIVE]: 'react-native',
+  };
+
+  const platform = (sdk && sdkPlatforms[sdk.type]) || 'js';
+  return `stream-video-${platform}-v${getSdkVersion(sdk)}`;
+};

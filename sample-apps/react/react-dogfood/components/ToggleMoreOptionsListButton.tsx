@@ -8,20 +8,20 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
-  useI18n,
 } from '@stream-io/video-react-sdk';
 
 import { Feedback } from './Feedback/Feedback';
 import { DevMenu } from './DevMenu';
 import { useIsProntoEnvironment } from '../context/AppEnvironmentContext';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 const ToggleFeedbackButton = forwardRef<HTMLButtonElement>(
   function ToggleFeedbackButtonRender(_, ref) {
-    const { t } = useI18n();
+    const { t } = useAppI18n();
     return (
       <button ref={ref} className="rd__button rd__more-button">
         <Icon className="rd__button__icon" icon={'feedback'} />
-        <span> {t('Feedback')}</span>
+        <span> {t('feedback.feedback.label', 'Feedback')}</span>
       </button>
     );
   },
@@ -29,11 +29,11 @@ const ToggleFeedbackButton = forwardRef<HTMLButtonElement>(
 
 const ToggleDevMenuButton = forwardRef<HTMLButtonElement>(
   function ToggleDevMenuButtonRender(_, ref) {
-    const { t } = useI18n();
+    const { t } = useAppI18n();
     return (
       <button ref={ref} className="rd__button rd__more-button">
         <Icon className="rd__button__icon" icon={'developer'} />
-        <span> {t('Developer menu')}</span>
+        <span> {t('debug.developerMenu.label', 'Developer menu')}</span>
       </button>
     );
   },
@@ -74,7 +74,7 @@ export const ToggleMenuButton = forwardRef<
   ToggleMenuButtonProps
 >(function ToggleMenuButtonRender(props, ref) {
   return (
-    <CompositeButton ref={ref} active={props.menuShown} variant="primary">
+    <CompositeButton ref={ref} active={props.menuShown}>
       <Icon icon="more" />
     </CompositeButton>
   );

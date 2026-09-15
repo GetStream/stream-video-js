@@ -1,4 +1,5 @@
-import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
+import { useTheme } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 import React, { useMemo } from 'react';
 import { Image, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -14,7 +15,7 @@ type LiveStreamScreenProps = NativeStackScreenProps<
 export const LiveStreamChooseScreen = ({
   navigation,
 }: LiveStreamScreenProps) => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const orientation = useOrientation();
   const styles = useStyles();
 
@@ -35,13 +36,23 @@ export const LiveStreamChooseScreen = ({
       <View style={styles.topContainer}>
         <Image source={require('../../assets/Logo.png')} style={styles.logo} />
         <View>
-          <Text style={styles.title}>{t('Stream Livestream App')}</Text>
-          <Text style={styles.subTitle}>{t('Choose the Mode')}</Text>
+          <Text style={styles.title}>
+            {t('livestreamChoose.appName.title', 'Stream Livestream App')}
+          </Text>
+          <Text style={styles.subTitle}>
+            {t('livestreamChoose.chooseMode.description', 'Choose the Mode')}
+          </Text>
         </View>
       </View>
       <View style={styles.bottomContainer}>
-        <Button text={t('Hosts')} onPress={onHostViewSelect} />
-        <Button text={t('Viewers')} onPress={onViewerViewSelect} />
+        <Button
+          text={t('livestreamChoose.hosts.label', 'Hosts')}
+          onPress={onHostViewSelect}
+        />
+        <Button
+          text={t('livestreamChoose.viewers.label', 'Viewers')}
+          onPress={onViewerViewSelect}
+        />
       </View>
     </View>
   );

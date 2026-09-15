@@ -2,7 +2,6 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   JoinCallButton,
   Lobby,
-  useI18n,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import React, { useCallback, useMemo } from 'react';
@@ -10,6 +9,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MeetingStackParamList } from '../../types';
 import { useOrientation } from '../hooks/useOrientation';
 import { NavigationHeader } from './NavigationHeader';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 type LobbyViewComponentType = NativeStackScreenProps<
   MeetingStackParamList,
@@ -26,7 +26,7 @@ export const LobbyViewComponent = ({
   route,
   onJoinCallHandler,
 }: LobbyViewComponentType) => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const orientation = useOrientation();
   const styles = useStyles();
 
@@ -42,7 +42,10 @@ export const LobbyViewComponent = ({
             }}
           >
             <Text style={styles.anonymousButtonText}>
-              {t('Join with your Stream Account')}
+              {t(
+                'lobbyView.joinWithAccount.label',
+                'Join with your Stream Account',
+              )}
             </Text>
           </Pressable>
         )}

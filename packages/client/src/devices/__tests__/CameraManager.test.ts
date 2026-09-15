@@ -1,7 +1,7 @@
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
-import { CallingState, StreamVideoWriteableStateStore } from '../../store';
+import { CallingState, ClientState } from '../../store';
 
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
@@ -89,7 +89,7 @@ describe('CameraManager', () => {
       type: '',
       streamClient,
       clientEventReporter: new ClientEventReporter({ streamClient }),
-      clientStore: new StreamVideoWriteableStateStore(),
+      clientState: new ClientState(),
     });
     manager = new CameraManager(call, devicePersistence);
   });

@@ -1,0 +1,719 @@
+{
+  "$comment": "Old English-sentence key (v1.x / 2.0.0-beta.0) -> namespaced key (2.0). Hand-reviewed; nothing regenerates it. An unmapped key fails SILENTLY: it never matches, so the override stops applying and English renders with no error. `split` means one old key became several whole sentences; `added` lists keys that had no v1 equivalent because they were resolved from a runtime value and were never translatable.",
+  "react": {
+    "count": 169,
+    "newlyTranslatable": 11,
+    "keys": {
+      "Allow audio": {
+        "key": "participantView.actionsMenu.allowAudio.label"
+      },
+      "Allow screen sharing": {
+        "key": "participantView.actionsMenu.allowScreenSharing.label"
+      },
+      "Allow video": {
+        "key": "participantView.actionsMenu.allowVideo.label"
+      },
+      "Allow": {
+        "key": "common.allow.label"
+      },
+      "Anonymous": {
+        "key": "participantList.anonymousCount.text",
+        "note": "Called as t('Anonymous', { count }) at CallParticipantListHeader.tsx:29, but the catalog entry has no _one/_other forms, so i18next selects a plural key that does not exist. The copy does not vary with number. Edit the call site to drop the magic `count` variable and pass `{ anonymousCount }` instead; the new copy is ', and ({{ anonymousCount }}) anonymous' with no plural forms."
+      },
+      "Applying...": {
+        "key": "callControls.blurToggleButton.applying.label"
+      },
+      "Are you sure you want end the recording?": {
+        "key": "callControls.recordCallButton.confirmEndRecording.description"
+      },
+      "Audio Performance": {
+        "key": "callStats.audioPerformance.title"
+      },
+      "Audio bitrate (publish)": {
+        "key": "callStats.audioBitratePublish.label"
+      },
+      "Audio bitrate (receive)": {
+        "key": "callStats.audioBitrateReceive.label"
+      },
+      "Audio codec": {
+        "key": "callStats.audioCodec.label"
+      },
+      "Audio is blocked by your system": {
+        "key": "participantView.audioBlocked.title"
+      },
+      "Audio is connecting...": {
+        "key": "participantView.audioConnecting.title"
+      },
+      "Audio jitter (publish)": {
+        "key": "callStats.audioJitterPublish.label"
+      },
+      "Audio jitter (receive)": {
+        "key": "callStats.audioJitterReceive.label"
+      },
+      "Awaiting for an approval to share screen.": {
+        "key": "callControls.screenShareButton.awaitingApproval.text"
+      },
+      "Awaiting for an approval to share your video.": {
+        "key": "callControls.toggleVideoButton.awaitingApproval.text"
+      },
+      "Awaiting for an approval to speak.": {
+        "key": "callControls.toggleAudioButton.awaitingApproval.text"
+      },
+      "Backstage": {
+        "key": "livestreamHost.backstage.text"
+      },
+      "Block": {
+        "key": "participantView.actionsMenu.block.label"
+      },
+      "Blur background": {
+        "key": "callControls.blurToggleButton.blurBackground.label"
+      },
+      "Call Latency": {
+        "key": "callStats.callLatency.title"
+      },
+      "Call Recordings": {
+        "key": "callRecordingList.callRecordings.title"
+      },
+      "Call ended": {
+        "key": "callFeedback.callEndedScreen.callEnded.title"
+      },
+      "Camera is paused by your system": {
+        "key": "callControls.toggleVideoButton.cameraPausedBySystem.title"
+      },
+      "Camera off": {
+        "key": "participantList.cameraOff.title"
+      },
+      "Camera on": {
+        "key": "participantList.cameraOn.title"
+      },
+      "Cancel": {
+        "key": "common.cancel.label"
+      },
+      "Check your browser audio permissions": {
+        "key": "callControls.toggleAudioButton.checkBrowserAudioPermissions.title"
+      },
+      "Check your browser mic permissions": {
+        "key": "callControls.toggleAudioButton.checkBrowserMicPermissions.title"
+      },
+      "Check your browser video permissions": {
+        "key": "callControls.toggleVideoButton.checkBrowserVideoPermissions.title"
+      },
+      "Click or tap to play audio": {
+        "key": "participantView.audioBlocked.description"
+      },
+      "Default": {
+        "key": "common.default.label"
+      },
+      "Disable audio": {
+        "key": "participantView.actionsMenu.disableAudio.label"
+      },
+      "Disable blur": {
+        "key": "callControls.blurToggleButton.disableBlur.label"
+      },
+      "Disable screen sharing": {
+        "key": "participantView.actionsMenu.disableScreenSharing.label"
+      },
+      "Disable video": {
+        "key": "participantView.actionsMenu.disableVideo.label"
+      },
+      "Dismiss": {
+        "key": "common.dismiss.label"
+      },
+      "Display name": {
+        "key": "lobby.displayName.label"
+      },
+      "End Stream": {
+        "key": "livestreamHost.endStream.title"
+      },
+      "End call for all": {
+        "key": "callControls.cancelCallButton.endCallForAll.label"
+      },
+      "End recording": {
+        "key": "callControls.recordCallButton.endRecording.title"
+      },
+      "Enter Backstage": {
+        "key": "livestreamHost.enterBackstage.label"
+      },
+      "Enter": {
+        "note": "Sentence fragment used only to fill the {{ direction }} slot at ParticipantActionsContextMenu.tsx:185-196. Absorbed into participantView.actionsMenu.enterFullscreen.label and participantView.actionsMenu.enterPip.label; delete this key with no direct replacement."
+      },
+      "Failed to join the call": {
+        "key": "joinError.failedToJoin.title"
+      },
+      "Failed to restore connection. Please try again.": {
+        "key": "connectionNotification.failedToRestore.text"
+      },
+      "Feedback message": {
+        "key": "callFeedback.ratingScreen.feedbackMessage.ariaLabel"
+      },
+      "Go Live": {
+        "key": "livestreamHost.goLive.label"
+      },
+      "Help us improve": {
+        "key": "callFeedback.callEndedScreen.helpUsImprove.text"
+      },
+      "How was your call quality?": {
+        "key": "callFeedback.starRating.howWasCallQuality.text"
+      },
+      "Join Stream": {
+        "key": "livestreamViewer.lobby.joinStream.label"
+      },
+      "Join automatically when stream starts": {
+        "key": "livestreamViewer.lobby.joinAutomatically.text"
+      },
+      "Join": {
+        "key": "lobby.join.label"
+      },
+      "Joining": {
+        "key": "connectionNotification.joining.text"
+      },
+      "Kick": {
+        "key": "participantView.actionsMenu.kick.label"
+      },
+      "Latency": {
+        "key": "callStats.latency.label"
+      },
+      "Leave call": {
+        "key": "callControls.cancelCallButton.leaveCall.title"
+      },
+      "Leave feedback": {
+        "key": "callFeedback.callEndedScreen.leaveFeedback.label"
+      },
+      "Leave": {
+        "note": "Sentence fragment used only to fill the {{ direction }} slot at ParticipantActionsContextMenu.tsx:185-196. Absorbed into participantView.actionsMenu.leaveFullscreen.label and participantView.actionsMenu.leavePip.label; delete this key with no direct replacement."
+      },
+      "Left by mistake?": {
+        "key": "callFeedback.callEndedScreen.leftByMistake.text"
+      },
+      "Live": {
+        "key": "common.live.label"
+      },
+      "Livestream starts at {{ time }}": {
+        "key": "livestream.backstage.startsAt.text",
+        "note": "Not promoted: domain copy belongs in the livestream namespace, not common.*."
+      },
+      "Livestream starts soon": {
+        "key": "livestream.backstage.startsSoon.text",
+        "note": "Not promoted: a livestream sentence in common.* is a namespace leak. Both sites (LivestreamLayout backstage, ViewerLobby) are livestream surfaces."
+      },
+      "Me": {
+        "key": "participantList.me.text"
+      },
+      "Mic": {
+        "key": "callControls.toggleAudioButton.mic.title"
+      },
+      "Microphone is paused by your system": {
+        "key": "callControls.toggleAudioButton.microphonePausedBySystem.title"
+      },
+      "Microphone off": {
+        "key": "participantList.microphoneOff.title"
+      },
+      "Microphone on": {
+        "key": "participantList.microphoneOn.title"
+      },
+      "Microphone": {
+        "key": "common.microphone.label",
+        "note": "Promoted per design decision. Every site is a DeviceSelector `title` prop, so `.title` would describe the sites more precisely; kept `.label` because the design fixed the key and the noun is reusable as a plain label."
+      },
+      "Migrating...": {
+        "key": "connectionNotification.migrating.text"
+      },
+      "More options": {
+        "key": "participantView.moreOptions.title"
+      },
+      "Mute all": {
+        "key": "participantList.muteAll.label"
+      },
+      "Mute audio": {
+        "key": "participantView.actionsMenu.muteAudio.label"
+      },
+      "Mute screen share audio": {
+        "key": "participantView.actionsMenu.muteScreenShareAudio.label"
+      },
+      "Next page": {
+        "key": "callLayout.paginatedGridLayout.nextPage.ariaLabel"
+      },
+      "No camera found": {
+        "key": "common.noCameraFound.text"
+      },
+      "No participants found": {
+        "key": "participantList.noParticipantsFound.text"
+      },
+      "Participants": {
+        "key": "common.participants.label"
+      },
+      "Permission needed": {
+        "key": "lobby.deviceControls.permissionNeeded.label"
+      },
+      "Pin for everyone": {
+        "key": "participantView.actionsMenu.pinForEveryone.label"
+      },
+      "Pin": {
+        "key": "participantView.actionsMenu.pin.label"
+      },
+      "Pinned": {
+        "key": "participantList.pinned.title",
+        "note": "Not promoted. Both sites turn out to be state-badge tooltips (CallParticipantListingItem.tsx:59 list row, DefaultParticipantViewUI.tsx:239 tile indicator) - neither is a menu action, so the \"split into two keys\" condition did not hold. Kept as the single non-promoted key the generator produced."
+      },
+      "Please grant your browser permission to access your camera and microphone.": {
+        "key": "lobby.videoPreviewFallbacks.grantBrowserPermission.text"
+      },
+      "Poor connection quality": {
+        "key": "participantView.connectionQuality.poor.text"
+      },
+      "Prepare your livestream": {
+        "key": "livestreamHost.prepareLivestream.title"
+      },
+      "Previous page": {
+        "key": "callLayout.paginatedGridLayout.previousPage.ariaLabel"
+      },
+      "Publish bitrate": {
+        "key": "callStats.publishBitrate.label"
+      },
+      "Publish jitter": {
+        "key": "callStats.publishJitter.label"
+      },
+      "Publish quality drop reason": {
+        "key": "callStats.publishQualityDropReason.label"
+      },
+      "Publish resolution": {
+        "key": "callStats.publishResolution.label"
+      },
+      "Rate {{ count }} star": {
+        "key": "callFeedback.starRating.rateStars.ariaLabel",
+        "plural": {
+          "one": "Rate {{ count }} star",
+          "other": "Rate {{ count }} stars"
+        }
+      },
+      "Reactions": {
+        "key": "callControls.reactionsButton.reactions.title"
+      },
+      "Ready to go live": {
+        "key": "livestreamHost.readyToGoLive.title"
+      },
+      "Receive jitter": {
+        "key": "callStats.receiveJitter.label"
+      },
+      "Receive quality drop reason": {
+        "key": "callStats.receiveQualityDropReason.label"
+      },
+      "Receiving bitrate": {
+        "key": "callStats.receivingBitrate.label"
+      },
+      "Receiving resolution": {
+        "key": "callStats.receivingResolution.label"
+      },
+      "Reconnecting...": {
+        "key": "connectionNotification.reconnecting.text"
+      },
+      "Record call": {
+        "key": "callControls.recordCallButton.recordCall.title"
+      },
+      "Recording in progress...": {
+        "key": "notification.recordingInProgress.text"
+      },
+      "Refresh": {
+        "key": "callRecordingList.refresh.title"
+      },
+      "Region": {
+        "key": "callStats.region.label"
+      },
+      "Rejoin call": {
+        "key": "callFeedback.callEndedScreen.rejoinCall.label"
+      },
+      "Review the key audio data points below to assess audio performance": {
+        "key": "callStats.audioPerformance.description"
+      },
+      "Review the key data points below to assess call performance": {
+        "key": "callStats.videoPerformance.description"
+      },
+      "Revoke": {
+        "key": "common.revoke.label"
+      },
+      "Scroll participants down": {
+        "key": "callLayout.speakerLayout.scrollParticipantsDown.ariaLabel"
+      },
+      "Scroll participants left": {
+        "key": "callLayout.speakerLayout.scrollParticipantsLeft.ariaLabel"
+      },
+      "Scroll participants right": {
+        "key": "callLayout.speakerLayout.scrollParticipantsRight.ariaLabel"
+      },
+      "Scroll participants up": {
+        "key": "callLayout.speakerLayout.scrollParticipantsUp.ariaLabel"
+      },
+      "Select Speakers": {
+        "key": "deviceSettings.selectSpeakers.title"
+      },
+      "Select a Camera": {
+        "key": "deviceSettings.selectCamera.title"
+      },
+      "Select a Mic": {
+        "key": "deviceSettings.selectMic.title"
+      },
+      "Set up your call before joining": {
+        "key": "lobby.setUpYourCall.title"
+      },
+      "Share screen": {
+        "key": "callControls.screenShareButton.shareScreen.title"
+      },
+      "Share your feedback": {
+        "key": "callFeedback.ratingScreen.shareYourFeedback.title"
+      },
+      "Speaker": {
+        "key": "common.speaker.label",
+        "note": "Promoted per design decision. Same `title`-prop caveat as common.microphone.label."
+      },
+      "Speakers": {
+        "key": "callControls.toggleAudioOutputButton.speakers.title"
+      },
+      "Start Stream": {
+        "key": "livestreamHost.startStream.title"
+      },
+      "Statistics": {
+        "key": "callControls.callStatsButton.statistics.title"
+      },
+      "Stop Live": {
+        "key": "livestreamHost.endLive.label"
+      },
+      "Stop Screen Sharing": {
+        "key": "participantView.stopScreenSharing.label"
+      },
+      "Stop test": {
+        "key": "deviceSettings.speakerTest.stopTest.label"
+      },
+      "Stream is ready!": {
+        "key": "livestreamViewer.lobby.streamReady.title"
+      },
+      "Submit feedback": {
+        "key": "callFeedback.ratingScreen.submitFeedback.label"
+      },
+      "Tell us about your experience...": {
+        "key": "callFeedback.ratingScreen.tellUsAboutExperience.placeholder"
+      },
+      "Test speaker": {
+        "key": "deviceSettings.speakerTest.testSpeaker.label"
+      },
+      "Thank you!": {
+        "key": "callFeedback.thankYouScreen.thankYou.title"
+      },
+      "Toggle device menu": {
+        "key": "deviceSettings.toggleDeviceMenu.title"
+      },
+      "Toggle menu": {
+        "key": "common.toggleMenu.ariaLabel"
+      },
+      "Try again": {
+        "key": "common.tryAgain.label"
+      },
+      "Turn off screen share": {
+        "key": "participantView.actionsMenu.turnOffScreenShare.label"
+      },
+      "Turn off video": {
+        "key": "participantView.actionsMenu.turnOffVideo.label"
+      },
+      "Unknown": {
+        "key": "participantList.unknown.text"
+      },
+      "Unpin for everyone": {
+        "key": "participantView.actionsMenu.unpinForEveryone.label"
+      },
+      "Unpin": {
+        "key": "participantView.unpin.label",
+        "note": "Two sites, two contexts: a menu-item label (ParticipantActionsContextMenu.tsx:124) and the pinned-indicator tooltip (DefaultParticipantViewUI.tsx:239). Same action word in both, so one key at the namespace level rather than under actionsMenu."
+      },
+      "Very high latency values may reduce call quality, cause lag, and make the call less enjoyable.": {
+        "key": "callStats.callLatency.description"
+      },
+      "Video is connecting...": {
+        "key": "participantView.videoConnecting.title"
+      },
+      "Video is disabled": {
+        "key": "common.videoDisabled.text"
+      },
+      "Video is playing in a popup": {
+        "key": "videoPlaceholder.videoPlayingInPopup.text"
+      },
+      "Video paused due to insufficient bandwidth": {
+        "key": "participantView.videoPausedInsufficientBandwidth.title"
+      },
+      "Video performance": {
+        "key": "callStats.videoPerformance.title"
+      },
+      "Video publishing is disabled by the system": {
+        "key": "callControls.toggleVideoButton.videoPublishingDisabled.title"
+      },
+      "Video": {
+        "key": "callControls.toggleVideoButton.video.title"
+      },
+      "Waiting for permission": {
+        "key": "common.waitingForPermission.title",
+        "note": "Promoted per design decision. Both current sites are in the callControls namespace (ToggleAudioButton, ToggleVideoButton), so it does not strictly meet the two-different-namespaces bar; promoted because the string is generic and apps reuse it."
+      },
+      "Waiting for recording to start...": {
+        "key": "callControls.recordCallButton.waitingRecordingStart.title"
+      },
+      "Waiting for recording to stop...": {
+        "key": "callControls.recordCallButton.waitingRecordingStop.title"
+      },
+      "Waiting for the livestream to start": {
+        "key": "livestreamViewer.lobby.waitingForStart.title"
+      },
+      "We couldn't connect to the server. Please check your connection and try again.": {
+        "key": "joinError.couldNotConnect.text"
+      },
+      "You are muted. Unmute to speak.": {
+        "key": "notification.speakingWhileMuted.text"
+      },
+      "You are offline. Check your internet connection.": {
+        "key": "connectionNotification.offline.text"
+      },
+      "You are presenting your screen": {
+        "key": "common.presentingYourScreen.text"
+      },
+      "You can no longer share your screen.": {
+        "key": "callControls.screenShareButton.permissionRevoked.text"
+      },
+      "You can no longer share your video.": {
+        "key": "callControls.toggleVideoButton.permissionRevoked.text"
+      },
+      "You can no longer speak.": {
+        "key": "callControls.toggleAudioButton.permissionRevoked.text"
+      },
+      "You can now share your screen.": {
+        "key": "callControls.screenShareButton.permissionGranted.text"
+      },
+      "You can now share your video.": {
+        "key": "callControls.toggleVideoButton.permissionGranted.text"
+      },
+      "You can now speak.": {
+        "key": "callControls.toggleAudioButton.permissionGranted.text"
+      },
+      "You have no permission to share your audio": {
+        "key": "callControls.toggleAudioButton.noPermissionToShareAudio.title"
+      },
+      "You have no permission to share your video": {
+        "key": "callControls.toggleVideoButton.noPermissionToShareVideo.title"
+      },
+      "Your feedback helps improve call quality.": {
+        "key": "callFeedback.thankYouScreen.feedbackHelpsImprove.text"
+      },
+      "Your microphone is not capturing audio. Please check your setup.": {
+        "key": "notification.micCaptureError.text"
+      },
+      "{{ count }} participants joined early": {
+        "key": "livestream.backstage.participantsJoinedEarly.text",
+        "plural": {
+          "one": "{{ formattedCount }} participant joined early",
+          "other": "{{ formattedCount }} participants joined early"
+        },
+        "note": "At LivestreamLayout.tsx:234 `count` is passed through humanize() when humanizeParticipantCount is set, so it can be a string like \"1.2K\" and i18next cannot run plural selection on it. Edit the call site to pass both variables: `count` stays the raw number (used for plural selection only) and a new `formattedCount` carries the display string (humanized or not). Copy becomes _one: '{{ formattedCount }} participant joined early', _other: '{{ formattedCount }} participants joined early'."
+      },
+      "{{ direction }} fullscreen": {
+        "split": [
+          "participantView.actionsMenu.enterFullscreen.label",
+          "participantView.actionsMenu.leaveFullscreen.label"
+        ],
+        "note": "Sentence composed from two lookups at ParticipantActionsContextMenu.tsx:185-196: t('{{ direction }} fullscreen', { direction: fullscreenModeOn ? t('Leave') : t('Enter') }). Replace with a direct ternary over the two whole-sentence keys in `split`: fullscreenModeOn ? t('participantView.actionsMenu.leaveFullscreen.label') : t('participantView.actionsMenu.enterFullscreen.label'). Delete this key."
+      },
+      "{{ direction }} picture-in-picture": {
+        "split": [
+          "participantView.actionsMenu.enterPip.label",
+          "participantView.actionsMenu.leavePip.label"
+        ],
+        "note": "Sentence composed from two lookups at ParticipantActionsContextMenu.tsx:185-196: t('{{ direction }} picture-in-picture', { direction: isPiP ? t('Leave') : t('Enter') }). Replace with a direct ternary over the two whole-sentence keys in `split`: isPiP ? t('participantView.actionsMenu.leavePip.label') : t('participantView.actionsMenu.enterPip.label'). Delete this key."
+      },
+      "{{ userName }} is requesting permission: {{ permission }}": {
+        "key": "permissions.requestingPermission.text"
+      },
+      "{{ userName }} is requesting to present their screen": {
+        "key": "permissions.requestingScreenShare.text"
+      },
+      "{{ userName }} is requesting to share their camera": {
+        "key": "permissions.requestingCamera.text"
+      },
+      "{{ userName }} is requesting to speak": {
+        "key": "permissions.requestingToSpeak.text"
+      }
+    },
+    "added": [
+      {
+        "key": "ringingCall.callingState.joining.text",
+        "copy": "Joining"
+      },
+      {
+        "key": "ringingCall.callingState.ringing.text",
+        "copy": "Ringing"
+      },
+      {
+        "key": "ringingCall.callingState.migrating.text",
+        "copy": "Migrating",
+        "note": "No entry in packages/react-sdk/src/translations/en.json today, so this label is currently untranslatable - converting the dynamic lookup to a literal t() call fixes that."
+      },
+      {
+        "key": "ringingCall.callingState.reconnecting.text",
+        "copy": "Re-connecting"
+      },
+      {
+        "key": "ringingCall.callingState.reconnectingFailed.text",
+        "copy": "Failed",
+        "note": "No entry in packages/react-sdk/src/translations/en.json today, so this label is currently untranslatable - converting the dynamic lookup to a literal t() call fixes that."
+      },
+      {
+        "key": "ringingCall.callingState.offline.text",
+        "copy": "No internet connection"
+      },
+      {
+        "key": "ringingCall.callingState.joined.text",
+        "copy": "Joined",
+        "note": "No entry in packages/react-sdk/src/translations/en.json today, so this label is currently untranslatable - converting the dynamic lookup to a literal t() call fixes that."
+      },
+      {
+        "key": "ringingCall.callingState.left.text",
+        "copy": "Left call",
+        "note": "No entry in packages/react-sdk/src/translations/en.json today, so this label is currently untranslatable - converting the dynamic lookup to a literal t() call fixes that."
+      },
+      {
+        "key": "callStats.status.good.label",
+        "copy": "Good",
+        "note": "No entry in packages/react-sdk/src/translations/en.json today, so this label is currently untranslatable - converting the dynamic lookup to a literal t() call fixes that."
+      },
+      {
+        "key": "callStats.status.ok.label",
+        "copy": "Ok",
+        "note": "No entry in packages/react-sdk/src/translations/en.json today, so this label is currently untranslatable - converting the dynamic lookup to a literal t() call fixes that."
+      },
+      {
+        "key": "callStats.status.bad.label",
+        "copy": "Bad",
+        "note": "No entry in packages/react-sdk/src/translations/en.json today, so this label is currently untranslatable - converting the dynamic lookup to a literal t() call fixes that."
+      }
+    ]
+  },
+  "reactNative": {
+    "count": 28,
+    "newlyTranslatable": 0,
+    "keys": {
+      "Before joining": {
+        "key": "lobby.beforeJoining.title",
+        "note": "Screen heading: <Text style={[styles.heading, typefaces.heading5, lobby.heading]}>."
+      },
+      "Calling...": {
+        "key": "ringingCall.outgoing.title",
+        "note": "typefaces.heading6 status headline of the outgoing-call screen; mirrors ringingCall.incoming.title."
+      },
+      "Currently there are no other participants in the call.": {
+        "key": "lobby.footer.noOtherParticipants.text",
+        "note": "Zero branch of the LobbyFooter participants sentence. Deliberately NOT a plural form of lobby.footer.otherParticipants.text - it is a different sentence."
+      },
+      "Incoming Call...": {
+        "key": "ringingCall.incoming.title",
+        "note": "typefaces.heading6 status headline of the incoming-call screen."
+      },
+      "Join Livestream": {
+        "key": "livestreamViewer.join.label",
+        "note": "<Button title={t(...)} /> - the React Native Button `title` prop is the button LABEL, not a heading. The draft's `.title` was a false positive from the generator's attribute-name modality table."
+      },
+      "Join": {
+        "key": "common.join.label",
+        "note": "Cross-platform key shared with the react-sdk."
+      },
+      "Joining...": {
+        "key": "common.joining.text",
+        "note": "Cross-platform key shared with the react-sdk. Rendered here as the JoinCallButton pressed-state label, but the mandated `.text` modality is kept so both platforms resolve one key."
+      },
+      "Live": {
+        "key": "common.live.label",
+        "note": "Cross-platform key shared with the react-sdk."
+      },
+      "Livestream is still in progress": {
+        "key": "livestreamViewer.stillInProgress.text"
+      },
+      "Livestream will start in:": {
+        "key": "livestreamViewer.willStartIn.text",
+        "note": "Trailing colon verified against the source: ViewerLobby.tsx:107-109 renders the countdown in a separate <Text> immediately below, so the colon introduces it and belongs in the copy."
+      },
+      "Livestream will start soon": {
+        "key": "livestreamViewer.willStartSoon.text"
+      },
+      "Loading...": {
+        "key": "common.loading.text",
+        "note": "Cross-platform key shared with the react-sdk. Rendered here as the awaiting-response label of HostStartStreamButton; the mandated `.text` modality is kept so both platforms resolve one key."
+      },
+      "Preparing call": {
+        "key": "ringingCall.preparing.title",
+        "note": "Rendered through TextBasedIndicator as the sole 24px typefaces.heading6 line of a full-screen view."
+      },
+      "Setup your audio and video": {
+        "key": "lobby.setupAudioVideo.description",
+        "note": "styles.subHeading / lobby.subHeading, rendered directly under lobby.beforeJoining.title - the description slot of the lobby screen rather than free body copy."
+      },
+      "Start Livestream": {
+        "key": "livestreamControls.start.label",
+        "note": "<Text> inside the HostStartStreamButton <Pressable>."
+      },
+      "Stop Livestream": {
+        "key": "livestreamControls.stop.label",
+        "note": "<Text> inside the HostStartStreamButton <Pressable>."
+      },
+      "Stop Screen Sharing": {
+        "key": "participantView.screenShare.stop.label",
+        "note": "Cross-platform key shared with the react-sdk; deliberately lifted out of this file's resolved `screenShare` namespace so both platforms ship one key. <Text> inside a <Pressable>."
+      },
+      "The livestream has ended.": {
+        "key": "livestreamPlayer.ended.title",
+        "note": "styles.title of the LivestreamEnded screen."
+      },
+      "There are {{numberOfParticipants}} more people in the call.": {
+        "key": "lobby.footer.otherParticipants.text",
+        "plural": {
+          "one": "There is {{ count }} more person in the call.",
+          "other": "There are {{ count }} more people in the call."
+        },
+        "note": "LobbyFooter.tsx:32-44 picks between two separate translation keys in JS: if (numberOfParticipants === 1) return t('There is {{numberOfParticipants}} more person in the call.', { numberOfParticipants }); return t('There are {{numberOfParticipants}} more people in the call.', { numberOfParticipants }). Replace lines 36-43 with a single call t('lobby.footer.otherParticipants.text', { count: numberOfParticipants }) and let i18next select the plural form. The interpolation variable is renamed numberOfParticipants -> count and normalised to the spaced {{ count }} form used by the web SDK. Register the key as the plural pair lobby.footer.otherParticipants.text_one / _other from this row's `plural` block. Both old catalog keys ('There is ...' and 'There are ...') are removed. The !numberOfParticipants zero branch at line 34 is untouched and keeps its own key, lobby.footer.noOtherParticipants.text."
+      },
+      "There is {{numberOfParticipants}} more person in the call.": {
+        "mergedInto": "lobby.footer.otherParticipants.text",
+        "note": "Absorbed as the _one plural form of lobby.footer.otherParticipants.text. This old key emits no key of its own, so newKey is null and the collision / prefix guard sees no duplicate. See the restructure note on 'There are {{numberOfParticipants}} more people in the call.' for the single source edit that removes both call sites."
+      },
+      "Watch recordings:": {
+        "key": "livestreamPlayer.ended.watchRecordings.title",
+        "note": "Trailing colon verified against the source: rendered as styles.subtitle immediately above the <FlatList> of recordings it introduces, and only when showRecordings is true. The colon belongs in the copy."
+      },
+      "You are about to join a call.": {
+        "key": "lobby.footer.aboutToJoin.text",
+        "note": "LobbyFooter.tsx:59 renders t('You are about to join a call.') + ' ' + participantsText - two independently translated sentences joined by a space in a fixed order. Not blocking (both halves are whole sentences), but a follow-up could make it one key with a participants slot."
+      },
+      "You are sharing your screen with everyone": {
+        "key": "screenShare.sharingWithEveryone.text",
+        "note": "RN-only wording (the web SDK says 'You are presenting your screen'), so it stays in the RN-local screenShare namespace."
+      },
+      "You are sharing your screen": {
+        "key": "participantView.screenShare.byYou.text",
+        "note": "RN-only wording (the web SDK says 'You are presenting your screen'), so it is NOT folded onto a web key. Pairs with participantView.screenShare.byUser.text."
+      },
+      "You have left the call": {
+        "key": "ringingCall.leftCall.title",
+        "note": "Rendered through TextBasedIndicator as the sole 24px typefaces.heading6 line of a full-screen view."
+      },
+      "You": {
+        "key": "common.you.label",
+        "note": "Cross-platform key shared with the react-sdk."
+      },
+      "participants have joined early": {
+        "key": "livestreamViewer.earlyParticipants.text",
+        "plural": {
+          "one": "{{ count }} participant has joined early",
+          "other": "{{ count }} participants have joined early"
+        },
+        "note": "ViewerLobby.tsx:113 renders the template literal {`${participants.length} ${t('participants have joined early')}`} - the count is concatenated outside t(), so the word order is hard-coded and the sentence cannot be localised. Replace the template literal with {t('livestreamViewer.earlyParticipants.text', { count: participants.length })} and register the key as the plural pair livestreamViewer.earlyParticipants.text_one / _other from this row's `plural` block. The count moves inside the translation as {{ count }}; the old bare key 'participants have joined early' is removed."
+      },
+      "{{ userName }} is sharing their screen": {
+        "key": "participantView.screenShare.byUser.text",
+        "note": "Pairs with participantView.screenShare.byYou.text."
+      }
+    },
+    "added": []
+  }
+}

@@ -102,7 +102,7 @@ Generated files are placed in `src/gen/coordinator/` and should not be manually 
    - Entry point for the SDK
    - Handles authentication and connection to the Coordinator API
    - Manages Call instances
-   - Provides reactive state store for global client state
+   - Provides `client.state` (`ClientState`) for global client state
    - Singleton pattern with instance tracking
 
 2. **Call** (`src/Call.ts`)
@@ -141,8 +141,8 @@ Uses RxJS for reactive state management:
   - Participants, tracks, permissions, recording status, etc.
   - Uses BehaviorSubject for each state property
   - Provides derived observables (e.g., `remoteParticipants$`, `localParticipant$`)
-- **StreamVideoWriteableStateStore** (`stateStore.ts`): Global client state
-  - Manages calls, ringing calls, active call
+- **ClientState** (`ClientState.ts`): Global client state, exposed as `client.state`
+  - Connected user and the list of calls this client created or tracks
 - **CallingState** (`CallingState.ts`): Enum for call lifecycle states
 
 React and React Native SDKs consume these observables to trigger UI updates.
@@ -389,7 +389,7 @@ src/
 │   └── helpers/               # SDP manipulation, track helpers
 ├── store/                     # State management
 │   ├── CallState.ts
-│   └── stateStore.ts
+│   └── ClientState.ts
 ├── events/                    # Event handlers
 ├── devices/                   # Device management
 ├── stats/                     # Call statistics and reporting

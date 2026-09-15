@@ -70,6 +70,13 @@ class CallNotificationManager(
         val lastSnapshot: NotificationSnapshot? = null,
         val activeWhen: Long? = null,
         val hasBecameActive: Boolean = false,
+        val postedNotification: Notification? = null,
+    )
+
+    data class PromotionTarget(
+      val callId: String,
+      val notificationId: Int,
+      val notification: Notification,
     )
 
     // Per-call state, all guarded by [lock]
@@ -120,10 +127,37 @@ class CallNotificationManager(
         if (!notificationsState.containsKey(callId)) {
             notificationsState[callId] = CallNotificationState()
         }
-        if (foregroundCallId == null) {
-            foregroundCallId = callId
-        }
         return@synchronized getNotificationId(callId)
+    }
+
+    /**
+     * Must be called from the code that actually performed a successful `startForeground()`.
+     */
+    fun commitAnchor(callId: String, notification: Notification) = synchronized(lock) {
+        if (foregroundCallId != callId) {
+            debugLog(TAG, "[notifications] commitAnchor: foreground anchor is now $callId")
+        }
+        foregroundCallId = callId
+        recordPostedLocked(callId, notification)
+    }
+
+    fun clearAnchor() = synchronized(lock) {
+        if (foregroundCallId != null) {
+            debugLog(TAG, "[notifications] clearAnchor: foreground anchor cleared")
+        }
+        foregroundCallId = null
+    }
+
+    private fun recordPostedLocked(
+            callId: String,
+            notification: Notification,
+            snapshot: NotificationSnapshot? = null
+    ) {
+        val current = notificationsState[callId] ?: CallNotificationState()
+        notificationsState[callId] = current.copy(
+                postedNotification = notification,
+                lastSnapshot = snapshot ?: current.lastSnapshot
+        )
     }
 
     /**
@@ -133,13 +167,7 @@ class CallNotificationManager(
      */
     fun setOptimisticState(callId: String, state: OptimisticState) = synchronized(lock) {
         // Be resilient to races where we receive optimistic actions before a notification state entry exists.
-        val current =
-            notificationsState[callId]
-                ?: CallNotificationState().also {
-                    if (foregroundCallId == null) {
-                        foregroundCallId = callId
-                    }
-                }
+        val current = notificationsState[callId] ?: CallNotificationState()
         notificationsState[callId] = if (state != OptimisticState.NONE) {
             current.copy(optimisticState = state, lastSnapshot = null)
         } else {
@@ -176,6 +204,7 @@ class CallNotificationManager(
                         .setSmallIcon(R.drawable.ic_round_call_24)
                         .setCategory(NotificationCompat.CATEGORY_CALL)
                         .setPriority(NotificationCompat.PRIORITY_MAX)
+                        .setOnlyAlertOnce(true)
                         .setOngoing(optimisticState != OptimisticState.REJECTING)
 
         builder.setStyle(callStyle)
@@ -235,17 +264,23 @@ class CallNotificationManager(
         // Record the snapshot only once the post succeeds, so a rejected notification stays
         // retryable instead of being skipped as "no state change".
         if (notifySafely(notificationId, notification)) {
-            notificationsState[callId] =
-                notificationsState[callId]?.copy(lastSnapshot = newSnapshot)
-                    ?: CallNotificationState(lastSnapshot = newSnapshot)
+            recordPostedLocked(callId, notification, newSnapshot)
             debugLog(TAG, "[notifications] updateCallNotification[$callId]: Notification posted (id=$notificationId)")
         }
     }
 
     fun postNotification(callId: String, notification: Notification) = synchronized(lock) {
         val notificationId = getOrCreateNotificationId(callId)
-        notifySafely(notificationId, notification)
+        if (notifySafely(notificationId, notification)) {
+          recordPostedLocked(callId, notification)
+        }
     }
+
+    fun isNotificationPosted(callId: String): Boolean =
+            synchronized(lock) { notificationsState[callId]?.postedNotification != null }
+
+    fun lastPostedNotification(callId: String): Notification? =
+            synchronized(lock) { notificationsState[callId]?.postedNotification }
 
     /**
      * Posts a notification without letting a platform rejection take down the app.
@@ -272,10 +307,39 @@ class CallNotificationManager(
     }
 
     /**
-     * Returns a new foreground notification ID if the caller needs to call startForeground()
-     * to re-promote the service, or null if no action is needed.
+     * Returns the oldest tracked call with a posted notification, skipping [excluding] (the call
+     * giving up the anchor). Order is by age, not call state: Telecom allows only one ringing call
+     * and the JS SDK leaves other calls before registering a new one, so a ringing call is never
+     * picked over an active one. The notification is returned so the caller need not rebuild it.
      */
-    fun cancelNotification(callId: String): Int? = synchronized(lock) {
+    fun nextAnchorCandidate(excluding: String): PromotionTarget? = synchronized(lock) {
+        val next =
+                notificationsState.entries.firstOrNull {
+                    it.key != excluding && it.value.postedNotification != null
+                }
+        if (next == null) {
+            debugLog(
+                    TAG,
+                    "[notifications] nextAnchorCandidate: nothing posted to re-anchor to (excluding $excluding)"
+            )
+            return@synchronized null
+        }
+
+        val postedNotification = next.value.postedNotification ?: return@synchronized null
+        val nextNotificationId = getNotificationId(next.key)
+        debugLog(TAG, "[notifications] nextAnchorCandidate: ${next.key} (id=$nextNotificationId)")
+        return@synchronized PromotionTarget(
+                next.key,
+                nextNotificationId,
+                postedNotification
+        )
+    }
+
+    /**
+     * Cancels the notification for [callId] and drops its state. Call this *after* the anchor has
+     * moved (re-promotion) or been given up (demotion).
+     */
+    fun cancelNotification(callId: String) = synchronized(lock) {
         debugLog(TAG, "[notifications] cancelNotification[$callId]")
         val state = notificationsState.remove(callId)
         val notificationId = getNotificationId(callId)
@@ -283,15 +347,10 @@ class CallNotificationManager(
         if (state != null) {
             debugLog(TAG, "[notifications] cancelNotification[$callId]: Cancelled (id=$notificationId)")
         }
-
         if (foregroundCallId == callId) {
-            foregroundCallId = notificationsState.keys.firstOrNull()
-            // Return the new foreground notification ID so the service can re-promote
-            if (foregroundCallId != null) {
-                return@synchronized getNotificationId(foregroundCallId!!)
-            }
+            debugLog(TAG, "[notifications] cancelNotification[$callId]: was the anchor, clearing")
+            foregroundCallId = null
         }
-        return@synchronized null
     }
 
     fun getForegroundCallId(): String? = synchronized(lock) { foregroundCallId }
@@ -343,7 +402,7 @@ class CallNotificationManager(
         notificationsState[callId] = current.copy(optimisticState = OptimisticState.NONE, lastSnapshot = null)
     }
 
-    // when skipIncomingPushInForeground is true, we use the ongoing channel 
+    // when skipIncomingPushInForeground is true, we use the ongoing channel
     // for the notification to avoid notification overlapping app ui, just for UX purposes
     private fun shouldShowAsIncoming(
             call: Call.Registered,

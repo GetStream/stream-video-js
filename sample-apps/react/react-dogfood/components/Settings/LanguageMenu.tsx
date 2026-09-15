@@ -3,17 +3,21 @@ import { useCallback } from 'react';
 import {
   DropDownSelect,
   DropDownSelectOption,
-  TranslationLanguage,
 } from '@stream-io/video-react-sdk';
 
-const LANGUAGES: Record<TranslationLanguage, string> = {
+/**
+ * The languages this app ships dictionaries for. Keyed by plain `string`: the SDK no longer
+ * exports a union of language codes, because the shared runtime accepts any code an integrator
+ * registers a dictionary for.
+ */
+const LANGUAGES: Record<string, string> = {
   de: 'German',
   en: 'English',
   es: 'Spanish',
 };
 
 export type LanguageMenuProps = {
-  language?: TranslationLanguage;
+  language?: string;
   setLanguage: (lng: string) => void;
 };
 

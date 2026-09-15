@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { useTheme } from '../../../contexts';
 import { ListRecordingsResponse } from '@stream-io/video-client';
 import {
@@ -106,11 +107,18 @@ export const CallEndedView = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('The livestream has ended.')}</Text>
+      <Text style={styles.title}>
+        {t('livestreamPlayer.ended.title', 'The livestream has ended.')}
+      </Text>
 
       {showRecordings && (
         <>
-          <Text style={styles.subtitle}>{t('Watch recordings:')}</Text>
+          <Text style={styles.subtitle}>
+            {t(
+              'livestreamPlayer.ended.watchRecordings.title',
+              'Watch recordings:',
+            )}
+          </Text>
           <View style={styles.recordingsContainer}>
             <FlatList
               data={recordingsResponse.recordings}

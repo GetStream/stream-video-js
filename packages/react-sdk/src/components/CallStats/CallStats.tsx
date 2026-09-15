@@ -5,7 +5,8 @@ import {
   CallStatsReport,
   SfuModels,
 } from '@stream-io/video-client';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { StreamTFunction, useI18n } from '../../i18n';
 import { useFloating, useHover, useInteractions } from '@floating-ui/react';
 import { Icon } from '../Icon';
 
@@ -124,10 +125,11 @@ export const CallStats = (props: CallStatsProps) => {
                 className="str-video__call-stats__icon"
                 icon="call-latency"
               />
-              {t('Call Latency')}
+              {t('callStats.callLatency.title', 'Call Latency')}
             </h3>
             <p className="str-video__call-stats__description">
               {t(
+                'callStats.callLatency.description',
                 'Very high latency values may reduce call quality, cause lag, and make the call less enjoyable.',
               )}
             </p>
@@ -145,22 +147,28 @@ export const CallStats = (props: CallStatsProps) => {
                 className="str-video__call-stats__icon"
                 icon="network-quality"
               />
-              {t('Video performance')}
+              {t('callStats.videoPerformance.title', 'Video performance')}
             </h3>
             <p className="str-video__call-stats__description">
-              {t('Review the key data points below to assess call performance')}
+              {t(
+                'callStats.videoPerformance.description',
+                'Review the key data points below to assess call performance',
+              )}
             </p>
           </div>
 
           <div className="str-video__call-stats__card-container">
-            <StatCard label={t('Region')} value={callStatsReport.datacenter} />
             <StatCard
-              label={t('Latency')}
+              label={t('callStats.region.label', 'Region')}
+              value={callStatsReport.datacenter}
+            />
+            <StatCard
+              label={t('callStats.latency.label', 'Latency')}
               value={`${callStatsReport.publisherStats.averageRoundTripTimeInMs} ms.`}
               comparison={latencyComparison}
             />
             <StatCard
-              label={t('Receive jitter')}
+              label={t('callStats.receiveJitter.label', 'Receive jitter')}
               value={`${callStatsReport.subscriberStats.averageJitterInMs} ms.`}
               comparison={{
                 ...videoJitterComparison,
@@ -168,7 +176,7 @@ export const CallStats = (props: CallStatsProps) => {
               }}
             />
             <StatCard
-              label={t('Publish jitter')}
+              label={t('callStats.publishJitter.label', 'Publish jitter')}
               value={`${callStatsReport.publisherStats.averageJitterInMs} ms.`}
               comparison={{
                 ...videoJitterComparison,
@@ -176,32 +184,48 @@ export const CallStats = (props: CallStatsProps) => {
               }}
             />
             <StatCard
-              label={`${t('Publish resolution')}${showCodecInfo ? formatCodec(callStatsReport) : ''}`}
+              label={`${t('callStats.publishResolution.label', 'Publish resolution')}${showCodecInfo ? formatCodec(callStatsReport) : ''}`}
               value={toFrameSize(callStatsReport.publisherStats)}
             />
             <StatCard
-              label={t('Publish quality drop reason')}
+              label={t(
+                'callStats.publishQualityDropReason.label',
+                'Publish quality drop reason',
+              )}
               value={callStatsReport.publisherStats.qualityLimitationReasons}
             />
             <StatCard
-              label={t('Receiving resolution')}
+              label={t(
+                'callStats.receivingResolution.label',
+                'Receiving resolution',
+              )}
               value={toFrameSize(callStatsReport.subscriberStats)}
             />
             <StatCard
-              label={t('Receive quality drop reason')}
+              label={t(
+                'callStats.receiveQualityDropReason.label',
+                'Receive quality drop reason',
+              )}
               value={callStatsReport.subscriberStats.qualityLimitationReasons}
             />
-            <StatCard label={t('Publish bitrate')} value={publishBitrate} />
-            <StatCard label={t('Receiving bitrate')} value={subscribeBitrate} />
+            <StatCard
+              label={t('callStats.publishBitrate.label', 'Publish bitrate')}
+              value={publishBitrate}
+            />
+            <StatCard
+              label={t('callStats.receivingBitrate.label', 'Receiving bitrate')}
+              value={subscribeBitrate}
+            />
           </div>
 
           <div className="str-video__call-stats__header">
             <h3 className="str-video__call-stats__heading">
               <Icon className="str-video__call-stats__icon" icon="mic" />
-              {t('Audio Performance')}
+              {t('callStats.audioPerformance.title', 'Audio Performance')}
             </h3>
             <p className="str-video__call-stats__description">
               {t(
+                'callStats.audioPerformance.description',
                 'Review the key audio data points below to assess audio performance',
               )}
             </p>
@@ -209,24 +233,33 @@ export const CallStats = (props: CallStatsProps) => {
 
           <div className="str-video__call-stats__card-container">
             <StatCard
-              label={t('Latency')}
+              label={t('callStats.latency.label', 'Latency')}
               value={`${callStatsReport.publisherAudioStats.averageRoundTripTimeInMs} ms.`}
               comparison={latencyComparison}
             />
             <StatCard
-              label={t('Audio codec')}
+              label={t('callStats.audioCodec.label', 'Audio codec')}
               value={formatAudioCodec(callStatsReport)}
             />
             <StatCard
-              label={t('Audio bitrate (publish)')}
+              label={t(
+                'callStats.audioBitratePublish.label',
+                'Audio bitrate (publish)',
+              )}
               value={publishAudioBitrate}
             />
             <StatCard
-              label={t('Audio bitrate (receive)')}
+              label={t(
+                'callStats.audioBitrateReceive.label',
+                'Audio bitrate (receive)',
+              )}
               value={subscribeAudioBitrate}
             />
             <StatCard
-              label={t('Audio jitter (publish)')}
+              label={t(
+                'callStats.audioJitterPublish.label',
+                'Audio jitter (publish)',
+              )}
               value={`${callStatsReport.publisherAudioStats.averageJitterInMs} ms.`}
               comparison={{
                 ...audioJitterComparison,
@@ -234,7 +267,10 @@ export const CallStats = (props: CallStatsProps) => {
               }}
             />
             <StatCard
-              label={t('Audio jitter (receive)')}
+              label={t(
+                'callStats.audioJitterReceive.label',
+                'Audio jitter (receive)',
+              )}
               value={`${callStatsReport.subscriberAudioStats.averageJitterInMs} ms.`}
               comparison={{
                 ...audioJitterComparison,
@@ -319,9 +355,27 @@ export const StatCard = (props: {
         </div>
         <div className="str-video__call-stats__card-value">{value}</div>
       </div>
-      {status && <StatsTag status={status}>{t(status)}</StatsTag>}
+      {status && <StatsTag status={status}>{statusLabel(status, t)}</StatsTag>}
     </div>
   );
+};
+
+/**
+ * The label rendered for a stat's status.
+ *
+ * A `switch` of literal `t()` calls rather than the runtime-valued `t()` lookup this used to be:
+ * the literal keys are statically extractable, which is what makes these three translatable - none
+ * of them had a catalog entry before.
+ */
+const statusLabel = (status: Status, t: StreamTFunction): string => {
+  switch (status) {
+    case Status.GOOD:
+      return t('callStats.status.good.label', 'Good');
+    case Status.OK:
+      return t('callStats.status.ok.label', 'Ok');
+    case Status.BAD:
+      return t('callStats.status.bad.label', 'Bad');
+  }
 };
 
 const toStatus = (config: {

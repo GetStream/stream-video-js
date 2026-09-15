@@ -2,8 +2,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: var(--str-video__spacing-lg);
   flex-grow: 1;
-  padding: var(--str-video__spacing-lg);
+  padding: var(--str-video__spacing-md);
 }
 
 .rd__dialer-form {
@@ -14,8 +15,8 @@
 .rd__dialer-ringee {
   display: flex;
   align-items: center;
-  gap: var(--str-video__spacing-xs);
-  margin-bottom: var(--str-video__spacing-sm);
+  gap: var(--str-video__space-6);
+  margin-bottom: var(--str-video__spacing-xs);
 
   .rd__input {
     flex-grow: 1;
@@ -45,9 +46,60 @@
 .rd__dialer-ringing-call-notification {
   display: flex;
   align-items: center;
-  gap: var(--str-video__spacing-sm);
+  gap: var(--str-video__spacing-xs);
 }
 
 .rd__dialer-ringing-call-notification-text {
-  margin-right: var(--str-video__spacing-md);
+  margin-right: var(--str-video__spacing-sm);
+}
+
+.rd__dialer-debug {
+  overflow-y: auto;
+  width: 340px;
+  max-height: 70vh;
+  padding: var(--str-video__spacing-md);
+  border-radius: var(--str-video__border-radius-sm);
+  background-color: var(--str-video__background-color2);
+  color: var(--str-video__text-color1);
+  font-size: 0.75rem;
+}
+
+.rd__dialer-debug-title {
+  margin: 0 0 var(--str-video__spacing-sm);
+  font-size: 0.875rem;
+}
+
+.rd__dialer-debug-empty {
+  margin: 0 0 var(--str-video__spacing-sm);
+  color: var(--str-video__text-color2);
+}
+
+.rd__dialer-debug-error {
+  margin: var(--str-video__spacing-sm) 0 0;
+  color: var(--str-video__alert-caution);
+}
+
+.rd__dialer-debug-list {
+  margin: 0 0 var(--str-video__spacing-md);
+}
+
+.rd__dialer-debug-row {
+  display: flex;
+  gap: var(--str-video__spacing-xs);
+
+  dt {
+    flex: 0 0 6.5rem;
+    color: var(--str-video__text-color2);
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.rd__dialer-debug-json {
+  overflow-x: auto;
+  margin: var(--str-video__spacing-xs) 0 0;
+  font-size: 0.6875rem;
 }

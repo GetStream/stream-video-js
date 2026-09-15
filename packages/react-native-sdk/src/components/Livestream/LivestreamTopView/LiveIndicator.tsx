@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
-import { useI18n } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 
 /**
  * Props for the LiveIndicator component.
@@ -20,7 +20,9 @@ export const LiveIndicator = ({}: LiveIndicatorProps) => {
   const { t } = useI18n();
   return (
     <View style={[styles.container, liveIndicator.container]}>
-      <Text style={[styles.label, liveIndicator.label]}>{t('Live')}</Text>
+      <Text style={[styles.label, liveIndicator.label]}>
+        {t('common.live.label', 'Live')}
+      </Text>
     </View>
   );
 };

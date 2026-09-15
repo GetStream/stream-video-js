@@ -1,8 +1,8 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useI18n } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts';
 import { Back } from '../../../icons';
+import { useI18n } from '../../../i18n';
 
 export type CallLeftIndicatorProps = {
   onBackPress?: () => void;
@@ -28,7 +28,9 @@ export const CallLeftIndicator = (props: CallLeftIndicatorProps) => {
         </View>
       )}
       <View style={styles.textContainer}>
-        <Text style={styles.text}>{t('You have left the call')}</Text>
+        <Text style={styles.text}>
+          {t('ringingCall.leftCall.title', 'You have left the call')}
+        </Text>
       </View>
     </View>
   );

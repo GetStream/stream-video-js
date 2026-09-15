@@ -1,7 +1,6 @@
 import {
   Call,
   GetOrCreateCallRequest,
-  useI18n,
   useStreamVideoClient,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
@@ -15,6 +14,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 const generateRoomId = () => Math.random().toString(36).substring(2, 12);
 const generateRoomPayload = ({
@@ -46,7 +46,7 @@ type Props = {
 
 export default function CreateRoomModal(props: Props) {
   const client = useStreamVideoClient();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const styles = useStyles();
 
   const [title, setTitle] = useState<string>();
@@ -80,7 +80,10 @@ export default function CreateRoomModal(props: Props) {
       <Pressable style={styles.centeredView} onPress={props.onClose}>
         <View style={styles.modalView}>
           <TextInput
-            placeholder={t('Type the title of the room')}
+            placeholder={t(
+              'createRoom.title.label',
+              'Type the title of the room',
+            )}
             value={title}
             style={styles.textInputTitle}
             autoCorrect={false}
@@ -90,7 +93,10 @@ export default function CreateRoomModal(props: Props) {
             onChangeText={setTitle}
           />
           <TextInput
-            placeholder={t('Type the description of the room')}
+            placeholder={t(
+              'createRoom.description.label',
+              'Type the description of the room',
+            )}
             value={description}
             multiline={true}
             autoCorrect={false}
@@ -100,7 +106,10 @@ export default function CreateRoomModal(props: Props) {
             style={styles.textInputDescription}
             onChangeText={setDescription}
           />
-          <Button onPress={createRoom} title={t('Create')} />
+          <Button
+            onPress={createRoom}
+            title={t('createRoom.submit.label', 'Create')}
+          />
         </View>
       </Pressable>
     </Modal>

@@ -3,9 +3,9 @@ import clsx from 'clsx';
 import {
   useCall,
   useCallStateHooks,
-  useI18n,
   WithTooltip,
 } from '@stream-io/video-react-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 const VISION_AGENTS_API_BASE = 'https://api.demo.visionagents.ai';
 
@@ -35,7 +35,7 @@ export const AskAIAgentButton = ({
   onSessionCleared: () => void;
 }) => {
   const call = useCall();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const [isInviting, setIsInviting] = useState(false);
@@ -110,12 +110,12 @@ export const AskAIAgentButton = ({
   };
 
   const label = isInviting
-    ? t('Inviting…')
+    ? t('visionAgent.inviting.label', 'Inviting…')
     : isRemoving
-      ? t('Removing…')
+      ? t('visionAgent.removing.label', 'Removing…')
       : isAgentInCall
-        ? t('Remove Agent')
-        : t('Ask AI Agent');
+        ? t('visionAgent.removeAgent.label', 'Remove Agent')
+        : t('visionAgent.askAgent.label', 'Ask AI Agent');
 
   return (
     <WithTooltip title={label}>

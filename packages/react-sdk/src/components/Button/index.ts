@@ -1,3 +1,3 @@
-export * from './CompositeButton';
+export * from './Button';
 export * from './IconButton';
-export * from './TextButton';
+export * from './CompositeButton';

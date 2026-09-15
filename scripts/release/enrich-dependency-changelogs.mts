@@ -37,6 +37,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import process from 'node:process';
+import semver from 'semver';
 
 import {
   DEP_LINE_RE,
@@ -94,15 +95,15 @@ export function resolveOldDepVersion(
   return null;
 }
 
-// Compare two semver strings by their numeric core (prerelease ignored).
+// Compare two semver strings, prerelease included. Comparing only the numeric
+// core would make every 2.0.0-beta.* equal, so collectUpstreamRange would find
+// nothing and prerelease changelogs would silently lose all upstream detail.
+// Unparseable versions compare equal, keeping the caller's tolerant behaviour.
 function compareVersions(a: string, b: string): number {
-  const pa = a.split('-')[0].split('.').map(Number);
-  const pb = b.split('-')[0].split('.').map(Number);
-  for (let i = 0; i < 3; i += 1) {
-    const diff = (pa[i] || 0) - (pb[i] || 0);
-    if (diff !== 0) return diff;
-  }
-  return 0;
+  const parsedA = semver.parse(a);
+  const parsedB = semver.parse(b);
+  if (!parsedA || !parsedB) return 0;
+  return semver.compare(parsedA, parsedB);
 }
 
 // Upstream entries in the half-open range (oldVersion, newVersion], newest first.

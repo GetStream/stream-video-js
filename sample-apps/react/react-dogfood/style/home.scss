@@ -7,7 +7,7 @@
   align-items: center;
   width: 100%;
   height: 100%;
-  padding: var(--str-video__spacing-lg);
+  padding: var(--str-video__spacing-md);
 
   &-content {
     display: flex;
@@ -39,16 +39,16 @@
   &-join {
     display: flex;
     align-items: center;
-    margin-top: var(--str-video__spacing-lg);
+    margin-top: var(--str-video__spacing-md);
     width: 100%;
   }
 
   &-input {
-    margin-right: var(--str-video__spacing-sm);
+    margin-right: var(--str-video__spacing-xs);
   }
 
   &-qr {
-    margin-top: var(--str-video__spacing-lg);
+    margin-top: var(--str-video__spacing-md);
   }
 
   .rd__button__join {
@@ -58,13 +58,13 @@
   .rd__link,
   .rd_button {
     width: 100%;
-    margin-top: var(--str-video__spacing-md);
+    margin-top: var(--str-video__spacing-sm);
   }
 
   &-button-group {
     display: flex;
     align-items: center;
-    gap: var(--str-video__spacing-md);
+    gap: var(--str-video__spacing-sm);
     width: 100%;
   }
 

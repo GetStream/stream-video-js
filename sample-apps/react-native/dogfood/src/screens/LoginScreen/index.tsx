@@ -15,13 +15,14 @@ import {
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { TextInput } from '../../components/TextInput';
-import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
+import { useTheme } from '@stream-io/video-react-native-sdk';
 import { KnownUsers } from '../../constants/KnownUsers';
 import { useOrientation } from '../../hooks/useOrientation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import EnvSwitcherButton from './EnvSwitcherButton';
 import { Alert } from 'react-native';
 import { Button } from '@stream-io/video-react-native-sdk/src/components';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 const generateValidUserId = (userId: string) => {
   return userId.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace('@getstream_io', '');
@@ -31,7 +32,7 @@ const ENABLE_PRONTO_SWITCH = __DEV__;
 
 const LoginScreen = () => {
   const [localUserId, setLocalUserId] = useState('');
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const styles = useStyles();
   const orientation = useOrientation();
   const [tapCount, setTapCount] = useState(0);
@@ -110,16 +111,19 @@ const LoginScreen = () => {
             />
           </TouchableWithoutFeedback>
           <View>
-            <Text style={styles.title}>{t('Stream Video Calling')}</Text>
+            <Text style={styles.title}>
+              {t('login.appName.title', 'Stream Video Calling')}
+            </Text>
             <Text style={styles.subTitle}>
               {t(
+                'login.tagline.description',
                 'Build reliable video calling, audio rooms, and live streaming with our easy-to-use SDKs and global edge network',
               )}
             </Text>
           </View>
           <View style={styles.textBoxContainer}>
             <TextInput
-              placeholder={t('Enter your name')}
+              placeholder={t('login.userName.label', 'Enter your name')}
               onChangeText={(text) => {
                 setLocalUserId(text);
               }}
@@ -127,7 +131,7 @@ const LoginScreen = () => {
               autoCorrect={false}
             />
             <Button
-              text={t('Login')}
+              text={t('login.submit.label', 'Login')}
               disabled={!localUserId}
               onPress={loginHandler}
             />

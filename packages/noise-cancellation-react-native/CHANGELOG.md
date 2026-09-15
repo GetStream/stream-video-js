@@ -2,6 +2,8 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.11.0...@stream-io/noise-cancellation-react-native-1.0.0-beta.0) (2026-09-04)
+
 ## [0.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.10.0...@stream-io/noise-cancellation-react-native-0.11.0) (2026-08-18)
 
 ### Features

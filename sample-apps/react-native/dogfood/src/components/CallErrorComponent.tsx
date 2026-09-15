@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Button } from './Button';
-import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
+import { useTheme } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 type Props = {
   title: string;
@@ -16,15 +17,18 @@ export const CallErrorComponent = ({
   returnToHomeHandler,
   backToLobbyHandler,
 }: Props) => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const styles = useStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.errorHeading}>{title}</Text>
       <Text style={styles.errorText}>{message}</Text>
-      <Button title={t('Return to Home')} onPress={returnToHomeHandler} />
       <Button
-        title={t('Back to Lobby')}
+        title={t('callError.returnToHome.label', 'Return to Home')}
+        onPress={returnToHomeHandler}
+      />
+      <Button
+        title={t('callError.backToLobby.label', 'Back to Lobby')}
         onPress={backToLobbyHandler}
         buttonStyle={styles.backToLobbyButton}
       />

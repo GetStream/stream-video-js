@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { type LobbyProps } from './Lobby';
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
 import { videoLoggerSystem } from '@stream-io/video-client';
 import { Button } from '../../utility/Button';
+import { useI18n } from '../../../i18n';
 
 /**
  * Props for the Join Call Button in the Lobby component.
@@ -46,7 +47,11 @@ export const JoinCallButton = ({
       onPress={onPress}
       size="large"
       disabled={isLoading}
-      text={isLoading ? t('Joining...') : t('Join')}
+      text={
+        isLoading
+          ? t('common.joining.text', 'Joining...')
+          : t('common.join.label', 'Join')
+      }
     />
   );
 };

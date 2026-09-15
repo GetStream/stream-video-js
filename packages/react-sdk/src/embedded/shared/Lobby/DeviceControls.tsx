@@ -1,4 +1,5 @@
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import {
   ToggleAudioPreviewButton,
   ToggleVideoPreviewButton,
@@ -37,7 +38,13 @@ export const DeviceControls = ({ isVideoEnabled }: DeviceControlsProps) => {
         {hasMicPermission ? (
           <ToggleMicButton />
         ) : (
-          <DisabledDeviceButton icon="mic" label={t('Permission needed')} />
+          <DisabledDeviceButton
+            icon="mic"
+            label={t(
+              'lobby.deviceControls.permissionNeeded.label',
+              'Permission needed',
+            )}
+          />
         )}
         {isVideoEnabled &&
           (hasCameraPermission ? (
@@ -45,7 +52,10 @@ export const DeviceControls = ({ isVideoEnabled }: DeviceControlsProps) => {
           ) : (
             <DisabledDeviceButton
               icon="camera"
-              label={t('Permission needed')}
+              label={t(
+                'lobby.deviceControls.permissionNeeded.label',
+                'Permission needed',
+              )}
             />
           ))}
       </div>

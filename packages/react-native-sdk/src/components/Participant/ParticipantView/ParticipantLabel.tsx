@@ -1,10 +1,10 @@
 import React from 'react';
 import { ScreenShare } from '../../../icons';
 import {
-  useI18n,
   useIsAudioConnecting,
   useIsVideoConnecting,
 } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { type ParticipantViewProps } from './ParticipantView';
 import { hasAudio, hasPausedTrack, hasVideo } from '@stream-io/video-client';
@@ -37,6 +37,9 @@ export const ParticipantLabel = ({
   const { t } = useI18n();
   const participantName = name ?? userId;
 
+  const participantLabel = isLocalParticipant
+    ? t('common.you.label', 'You')
+    : participantName;
   const isAudioMuted = !hasAudio(participant);
   const isVideoMuted = !hasVideo(participant);
   const isTrackPaused = !!trackType && hasPausedTrack(participant, trackType);
@@ -45,11 +48,17 @@ export const ParticipantLabel = ({
 
   if (trackType === 'screenShareTrack') {
     const screenShareText = isLocalParticipant
-      ? t('You are sharing your screen')
-      : t('{{ userName }} is sharing their screen', {
-          userName: participantName,
-        });
-
+      ? t(
+          'participantView.screenShare.byYou.text',
+          'You are sharing your screen',
+        )
+      : t(
+          'participantView.screenShare.byUser.text',
+          '{{ userName }} is sharing their screen',
+          {
+            userName: participantName,
+          },
+        );
     return (
       <StatusLabel
         testID={ComponentTestIds.PARTICIPANT_SCREEN_SHARING}
@@ -67,7 +76,7 @@ export const ParticipantLabel = ({
 
   return (
     <StatusLabel
-      label={isLocalParticipant ? t('You') : participantName}
+      label={participantLabel}
       isConnecting={isAudioConnecting || isVideoConnecting}
       isAudioMuted={isAudioMuted}
       isVideoMuted={isVideoMuted}

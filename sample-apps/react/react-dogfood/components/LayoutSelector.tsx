@@ -1,14 +1,47 @@
 import { useCallback } from 'react';
-import clsx from 'clsx';
 import {
   DropDownSelect,
   DropDownSelectOption,
+  GenericMenu,
+  GenericMenuButtonItem,
   Icon,
   useCallStateHooks,
-  useI18n,
   useMenuContext,
 } from '@stream-io/video-react-sdk';
 import { LayoutMap } from '../hooks';
+import { useAppI18n } from '../hooks/useAppI18n';
+import type { LooseTranslateFunction } from '@stream-io/video-react-sdk';
+
+/**
+ * The layout names, previously held as `title` on each `LayoutMap` entry and passed to `t()` as a
+ * runtime value. A `switch` over the closed union of layout ids puts the English back at the call
+ * site; the compiler flags a layout added to `LayoutMap` without a name here.
+ */
+const layoutLabel = (
+  t: LooseTranslateFunction,
+  layout: keyof typeof LayoutMap,
+): string => {
+  switch (layout) {
+    case 'LegacyGrid':
+      return t('common.default.label', 'Default');
+    case 'PaginatedGrid':
+      return t('layout.grid.label', 'Grid');
+    case 'SpeakerBottom':
+      return t('layout.speakerTop.label', 'Speaker [top]');
+    case 'SpeakerTop':
+      return t('layout.speakerBottom.label', 'Speaker [bottom]');
+    case 'SpeakerRight':
+      return t('layout.speakerLeft.label', 'Speaker [left]');
+    case 'SpeakerLeft':
+      return t('layout.speakerRight.label', 'Speaker [right]');
+    case 'LegacySpeaker':
+      return t('layout.sidebar.label', 'Sidebar');
+    case 'SpeakerOneOnOne':
+      return t('layout.speakerOneOnOne.label', 'Speaker 1:1');
+    case 'LivestreamLayout':
+      return t('layout.livestream.label', 'Livestream');
+  }
+};
 
 export enum LayoutSelectorType {
   LIST = 'list',
@@ -44,30 +77,26 @@ const ListMenu = ({
   canScreenshare: (key: string) => boolean;
 }) => {
   const { close } = useMenuContext();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   return (
-    <ul className="rd__layout-selector__list">
+    <GenericMenu>
       {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>)
         .filter((key) => !canScreenshare(key))
         .map((key) => (
-          <li key={key} className="rd__layout-selector__item">
-            <button
-              className={clsx('rd__button rd__button--align-left', {
-                'rd__button--primary': key === selectedLayout,
-              })}
-              onClick={() => {
-                handleSelect(
-                  Object.keys(LayoutMap).findIndex((k) => k === key),
-                );
-                close?.();
-              }}
-            >
-              <Icon className="rd__button__icon" icon={LayoutMap[key].icon} />
-              {t(LayoutMap[key].title)}
-            </button>
-          </li>
+          <GenericMenuButtonItem
+            key={key}
+            type="button"
+            aria-current={key === selectedLayout}
+            onClick={() => {
+              handleSelect(Object.keys(LayoutMap).findIndex((k) => k === key));
+              close?.();
+            }}
+          >
+            <Icon icon={LayoutMap[key].icon} />
+            {layoutLabel(t, key)}
+          </GenericMenuButtonItem>
         ))}
-    </ul>
+    </GenericMenu>
   );
 };
 
@@ -79,14 +108,14 @@ const DropdownMenu = ({
   handleSelect: (index: number) => void;
   canScreenshare: (key: string) => boolean;
 }) => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   return (
     <DropDownSelect
       icon={LayoutMap[selectedLayout].icon || 'grid'}
       defaultSelectedIndex={Object.keys(LayoutMap).findIndex(
         (k) => k === selectedLayout,
       )}
-      defaultSelectedLabel={t(LayoutMap[selectedLayout].title)}
+      defaultSelectedLabel={layoutLabel(t, selectedLayout)}
       handleSelect={handleSelect}
     >
       {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>)
@@ -95,7 +124,7 @@ const DropdownMenu = ({
           <DropDownSelectOption
             key={key}
             selected={key === selectedLayout}
-            label={t(LayoutMap[key].title)}
+            label={layoutLabel(t, key)}
             icon={LayoutMap[key].icon}
           />
         ))}

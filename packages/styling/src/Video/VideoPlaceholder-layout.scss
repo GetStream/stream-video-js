@@ -5,18 +5,4 @@
   display: flex;
   align-items: center;
   justify-content: center;
-
-  .str-video__video-placeholder__avatar {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-  }
-
-  .str-video__video-placeholder__initials-fallback {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100px;
-    height: 100px;
-  }
 }

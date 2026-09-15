@@ -1,10 +1,6 @@
 import { Call } from './Call';
 import { StreamClient } from './coordinator/connection/client';
-import {
-  CallingState,
-  StreamVideoReadOnlyStateStore,
-  StreamVideoWriteableStateStore,
-} from './store';
+import { CallingState, ClientState } from './store';
 import type {
   CallCreatedEvent,
   CallRingEvent,
@@ -48,19 +44,14 @@ import { ClientEventReporter } from './reporting';
  */
 export class StreamVideoClient {
   /**
-   * A reactive store that exposes all the state variables reactively.
+   * The reactive state of this client.
    * You can subscribe to changes of the different state variables.
-   * Our library is built in a way that all state changes are exposed in this store,
-   * o all UI changes in your application should be handled by subscribing to these variables.
-   *
-   * @deprecated use the `client.state` getter.
    */
-  readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
+  readonly state = new ClientState();
   readonly logger: ScopedLogger;
 
-  protected readonly writeableStateStore: StreamVideoWriteableStateStore;
-  streamClient: StreamClient;
-  readonly clientEventReporter: ClientEventReporter;
+  readonly streamClient: StreamClient;
+  private readonly clientEventReporter: ClientEventReporter;
 
   private effectsRegistered = false;
   private eventHandlersToUnregister: Array<() => void> = [];
@@ -102,11 +93,6 @@ export class StreamVideoClient {
       streamClient: this.streamClient,
       enabled: clientOptions?.clientEventsReportingEnabled ?? true,
     });
-
-    this.writeableStateStore = new StreamVideoWriteableStateStore();
-    this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
-      this.writeableStateStore,
-    );
 
     if (typeof apiKeyOrArgs !== 'string' && apiKeyOrArgs.user) {
       const user = apiKeyOrArgs.user;
@@ -158,13 +144,6 @@ export class StreamVideoClient {
     StreamVideoClient._instances.set(instanceKey, this);
   };
 
-  /**
-   * Return the reactive state store, use this if you want to be notified about changes to the client state
-   */
-  get state() {
-    return this.readOnlyStateStore;
-  }
-
   private registerEffects = () => {
     if (this.effectsRegistered) return;
 
@@ -174,7 +153,7 @@ export class StreamVideoClient {
       this.on('connection.changed', (event) => {
         if (!event.online) return;
 
-        const callsToReWatch = this.writeableStateStore.calls
+        const callsToReWatch = this.state.calls
           .filter((call) => call.watching)
           .map((call) => call.cid);
         if (callsToReWatch.length <= 0) return;
@@ -197,7 +176,7 @@ export class StreamVideoClient {
       const concurrencyTag = getCallInitConcurrencyTag(e.call_cid);
       await withoutConcurrency(concurrencyTag, async () => {
         const ringing = e.type === 'call.ring';
-        let call = this.writeableStateStore.findCall(e.call.type, e.call.id);
+        let call = this.state.findCall(e.call.type, e.call.id);
         if (call) {
           if (ringing) {
             if (this.shouldRejectCall(call.cid)) {
@@ -224,7 +203,7 @@ export class StreamVideoClient {
           type: e.call.type,
           id: e.call.id,
           members: e.members,
-          clientStore: this.writeableStateStore,
+          clientState: this.state,
           ringing,
         });
 
@@ -239,7 +218,7 @@ export class StreamVideoClient {
           }
         } else {
           call.state.updateFromCallResponse(e.call);
-          this.writeableStateStore.registerCall(call);
+          this.state.registerCall(call);
           this.logger.info(`New call created and registered: ${call.cid}`);
         }
       });
@@ -278,10 +257,7 @@ export class StreamVideoClient {
         });
 
         for (const c of response.calls) {
-          const call = this.writeableStateStore.findCall(
-            c.call.type,
-            c.call.id,
-          );
+          const call = this.state.findCall(c.call.type, c.call.id);
 
           if (call) {
             call.updateFromCallStateResponse(c);
@@ -310,8 +286,6 @@ export class StreamVideoClient {
 
   /**
    * Connects the given user to the client.
-   * Only one user can connect at a time, if you want to change users, call `disconnectUser` before connecting a new user.
-   * If the connection is successful, the connected user [state variable](#readonlystatestore) will be updated accordingly.
    *
    * @param user the user to connect.
    * @param tokenOrProvider a token or a function that returns a token.
@@ -369,7 +343,7 @@ export class StreamVideoClient {
 
     // connectUserResponse will be void if connectUser called twice for the same user
     if (connectUserResponse?.me) {
-      this.writeableStateStore.setConnectedUser(connectUserResponse.me);
+      this.state.setConnectedUser(connectUserResponse.me);
     }
 
     this.registerEffects();
@@ -378,18 +352,35 @@ export class StreamVideoClient {
   };
 
   /**
+   * Leaves every call this client still tracks. Runs while the coordinator
+   * connection is alive, so that the leave requests each call sends reach the
+   * backend.
+   */
+  private leaveAllCalls = async () => {
+    for (const call of this.state.calls) {
+      if (call.state.callingState === CallingState.LEFT) continue;
+
+      this.logger.info(`User disconnected, leaving call: ${call.cid}`);
+      await call
+        .leave({ message: 'client.disconnectUser() called' })
+        .catch((err) => {
+          this.logger.error(`Error leaving call: ${call.cid}`, err);
+        });
+    }
+  };
+
+  /**
    * Disconnects the currently connected user from the client.
-   *
-   * If the connection is successfully disconnected, the connected user [state variable](#readonlystatestore) will be updated accordingly
+   * Leaves every call the user is still in, and updates `client.state`accordingly.
    *
    * @param timeout Max number of ms, to wait for close event of websocket, before forcefully assuming successful disconnection.
-   *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   disconnectUser = async (timeout?: number) => {
     await withoutConcurrency(this.connectionConcurrencyTag, async () => {
       const { user, key } = this.streamClient;
       if (!user) return;
 
+      await this.leaveAllCalls();
       await this.streamClient.disconnectUser(timeout);
 
       if (user.id) {
@@ -398,14 +389,16 @@ export class StreamVideoClient {
       this.eventHandlersToUnregister.forEach((unregister) => unregister());
       this.eventHandlersToUnregister = [];
       this.effectsRegistered = false;
-      this.writeableStateStore.setConnectedUser(undefined);
+      this.state.setConnectedUser(undefined);
     });
   };
 
   /**
    * You can subscribe to WebSocket events provided by the API.
    * To remove a subscription, call the `off` method or, execute the returned unsubscribe function.
-   * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the reactive [state store](#readonlystatestore).
+   * Please note that subscribing to WebSocket events is an advanced use-case,
+   * for most use-cases it should be enough to watch for changes in the reactive
+   * `client.state`.
    *
    * @param eventName the event name or 'all'.
    * @param callback the callback which will be called when the event is emitted.
@@ -444,7 +437,7 @@ export class StreamVideoClient {
     options: { reuseInstance?: boolean } = {},
   ) => {
     const call = options.reuseInstance
-      ? this.writeableStateStore.findCall(type, id)
+      ? this.state.findCall(type, id)
       : undefined;
     return (
       call ??
@@ -453,7 +446,7 @@ export class StreamVideoClient {
         clientEventReporter: this.clientEventReporter,
         id: id,
         type: type,
-        clientStore: this.writeableStateStore,
+        clientState: this.state,
       })
     );
   };
@@ -492,7 +485,7 @@ export class StreamVideoClient {
         members: c.members,
         ownCapabilities: c.own_capabilities,
         watching: data.watch,
-        clientStore: this.writeableStateStore,
+        clientState: this.state,
       });
       call.state.updateFromCallResponse(c.call);
       await call.applyDeviceConfig(c.call.settings, {
@@ -501,7 +494,7 @@ export class StreamVideoClient {
       });
       if (data.watch) {
         await call.setup();
-        this.writeableStateStore.registerCall(call);
+        this.state.registerCall(call);
       }
       calls.push(call);
     }
@@ -636,7 +629,7 @@ export class StreamVideoClient {
           clientEventReporter: this.clientEventReporter,
           type: callType,
           id: callId,
-          clientStore: this.writeableStateStore,
+          clientState: this.state,
           ringing: true,
         });
         await call.get();

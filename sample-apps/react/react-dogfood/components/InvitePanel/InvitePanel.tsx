@@ -1,7 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Icon, IconButton, useI18n } from '@stream-io/video-react-sdk';
+import { Icon, IconButton } from '@stream-io/video-react-sdk';
 import { useIsDemoEnvironment } from '../../context/AppEnvironmentContext';
+import { useAppI18n } from '../../hooks/useAppI18n';
+
+/**
+ * Builds the URL encoded in the invite QR code: the current location with every
+ * query param preserved (`encryption_key`, `environment`, ...) plus `from_qr`.
+ */
+const buildQrCodeUrl = () => {
+  const { origin, pathname, search, hash } = window.location;
+  const params = new URLSearchParams(search);
+  params.set('from_qr', 'true');
+  return `${origin}${pathname}?${params.toString()}${hash}`;
+};
 
 export const InvitePopup = ({
   callId,
@@ -10,22 +22,23 @@ export const InvitePopup = ({
   callId: string;
   close: () => void;
 }) => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const { isCopied, copyInviteLink } = useCopyInviteLink();
 
-  const qrCodeContent = new URL(window.location.toString());
-  qrCodeContent.searchParams.set('from_qr', 'true');
+  const qrCodeContent = buildQrCodeUrl();
 
   return (
     <div className="rd__invite-popup">
       <div className="rd__invite-popup__header">
         <h2 className="rd__invite-popup__heading">
-          {t('Your meeting is live!')}
+          {t('invite.meetingLive.title', 'Your meeting is live!')}
         </h2>
         <IconButton
           className="rd__invite-popup__close"
           icon="close"
           onClick={close}
+          size="sm"
+          variant="secondary"
         />
       </div>
 
@@ -38,25 +51,25 @@ export const InvitePopup = ({
       </button>
 
       <p className="rd__invite-popup__description">
-        {t('Or share this call ID with the others you want in the meeting:')}
+        {t(
+          'invite.shareCallId.description',
+          'Or share this call ID with the others you want in the meeting:',
+        )}
       </p>
       <div className="rd__invite-popup__id" onClick={copyInviteLink}>
         <div>
-          {t('Call ID:')}
+          {t('invite.callId.label', 'Call ID:')}
           <span className="rd__invite-popup__id-text">{callId}</span>
         </div>
         <Icon className="rd__invite-popup__id-button" icon="copy" />
       </div>
-      <div
-        className="rd__invite-popup__qr-container"
-        title={qrCodeContent.toString()}
-      >
+      <div className="rd__invite-popup__qr-container" title={qrCodeContent}>
         <p className="rd__invite-popup__qr-description">
           To test on a mobile device, scan the QR Code below:
         </p>
         <QRCodeSVG
           className="rd__invite-popup__qr-code"
-          value={qrCodeContent.toString()}
+          value={qrCodeContent}
         />
       </div>
     </div>
@@ -64,32 +77,38 @@ export const InvitePopup = ({
 };
 
 export const Invite = () => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const { isCopied, copyInviteLink } = useCopyInviteLink();
   return (
     <div className="rd__invite__copy">
-      <h2 className="rd__invite__copy-header">{t('Share the link')}</h2>
+      <h2 className="rd__invite__copy-header">
+        {t('invite.shareTheLink.title', 'Share the link')}
+      </h2>
       <p className="rd__invite__copy-description">
-        {t('Click the button below to copy the call link:')}
+        {t(
+          'invite.copyLink.description',
+          'Click the button below to copy the call link:',
+        )}
       </p>
       <button
         className="rd__button rd__button--primary rd__invite__copy-button"
         onClick={copyInviteLink}
       >
         <Icon className="rd__button__icon" icon="person-add" />
-        {isCopied ? t('Copied invite link') : t('Copy invite link')}
+        {isCopied
+          ? t('invite.copiedInviteLink.label', 'Copied invite link')
+          : t('invite.copyInviteLink.label', 'Copy invite link')}
       </button>
     </div>
   );
 };
 
 export const InvitePanel = () => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const isDemoEnvironment = useIsDemoEnvironment();
   const [expanded, setExpanded] = useState(false);
 
-  const qrCodeContent = new URL(window.location.toString());
-  qrCodeContent.searchParams.set('from_qr', 'true');
+  const qrCodeContent = buildQrCodeUrl();
   return (
     <div className="rd__invite">
       <Invite />
@@ -100,7 +119,7 @@ export const InvitePanel = () => {
               className="rd__invite__qr-header rd__invite__qr-header--accordion"
               onClick={() => setExpanded((prev) => !prev)}
             >
-              {t('Test on mobile')}
+              {t('invite.testOnMobile.title', 'Test on mobile')}
               <Icon
                 className="rd__invite__qr-chevron"
                 icon={expanded ? 'chevron-up' : 'chevron-down'}
@@ -109,15 +128,15 @@ export const InvitePanel = () => {
             {expanded && (
               <>
                 <p className="rd__invite__qr-description">
-                  {t('To test on a mobile device, scan the QR Code below:')}
+                  {t(
+                    'invite.testOnMobile.description',
+                    'To test on a mobile device, scan the QR Code below:',
+                  )}
                 </p>
-                <div
-                  className="rd__invite__qr-container"
-                  title={qrCodeContent.toString()}
-                >
+                <div className="rd__invite__qr-container" title={qrCodeContent}>
                   <QRCodeSVG
                     className="rd__invite__qr-code"
-                    value={qrCodeContent.toString()}
+                    value={qrCodeContent}
                   />
                 </div>
               </>
@@ -125,17 +144,19 @@ export const InvitePanel = () => {
           </>
         ) : (
           <>
-            <h2 className="rd__invite__qr-header">{t('Test on mobile')}</h2>
+            <h2 className="rd__invite__qr-header">
+              {t('invite.testOnMobile.title', 'Test on mobile')}
+            </h2>
             <p className="rd__invite__qr-description">
-              {t('To test on a mobile device, scan the QR Code below:')}
+              {t(
+                'invite.testOnMobile.description',
+                'To test on a mobile device, scan the QR Code below:',
+              )}
             </p>
-            <div
-              className="rd__invite__qr-container"
-              title={qrCodeContent.toString()}
-            >
+            <div className="rd__invite__qr-container" title={qrCodeContent}>
               <QRCodeSVG
                 className="rd__invite__qr-code"
-                value={qrCodeContent.toString()}
+                value={qrCodeContent}
               />
             </div>
           </>

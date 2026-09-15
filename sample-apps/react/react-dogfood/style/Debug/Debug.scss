@@ -4,7 +4,7 @@
   height: 600px;
   width: 500px;
   background-color: var(--str-video__background-color1);
-  color: var(--str-video__text-color1);
+  color: var(--str-video__text-primary);
   z-index: 10;
 }
 
@@ -22,8 +22,8 @@
   width: 100%;
   height: 100%;
   position: absolute;
-  padding-top: var(--str-video__spacing-md);
-  padding-left: var(--str-video__spacing-md);
+  padding-top: var(--str-video__spacing-sm);
+  padding-left: var(--str-video__spacing-sm);
 }
 
 .rd__debug__participant-view--screen-share {

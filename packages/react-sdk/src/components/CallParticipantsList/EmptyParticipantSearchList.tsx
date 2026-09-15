@@ -1,10 +1,10 @@
-import { useI18n } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 
 export const EmptyParticipantSearchList = () => {
   const { t } = useI18n();
   return (
     <div className="str-video__participant-list--empty">
-      {t('No participants found')}
+      {t('participantList.noParticipantsFound.text', 'No participants found')}
     </div>
   );
 };

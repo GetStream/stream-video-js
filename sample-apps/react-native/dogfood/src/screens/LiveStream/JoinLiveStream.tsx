@@ -1,4 +1,5 @@
-import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
+import { useTheme } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 import React, { useMemo, useState } from 'react';
 import {
   Image,
@@ -35,7 +36,7 @@ export const JoinLiveStream = ({
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const userId = useAppGlobalStoreValue((store) => store.userId);
   const userName = useAppGlobalStoreValue((store) => store.userName);
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const orientation = useOrientation();
   const {
     params: { mode, scannedCallId },
@@ -82,12 +83,20 @@ export const JoinLiveStream = ({
         <Image source={{ uri: userImageUrl }} style={styles.logo} />
         <View>
           <Text style={styles.title}>
-            {t('Hello, {{ userName }}', { userName: userName || userId })}
+            {t('joinLivestream.greeting.title', 'Hello, {{ userName }}', {
+              userName: userName || userId,
+            })}
           </Text>
           <Text style={styles.subTitle}>
             {mode === 'host'
-              ? t('Start a livestream by entering the call ID.')
-              : t('Join/View a live stream by entering the call ID.')}
+              ? t(
+                  'joinLivestream.host.description',
+                  'Start a livestream by entering the call ID.',
+                )
+              : t(
+                  'joinLivestream.viewer.description',
+                  'Join/View a live stream by entering the call ID.',
+                )}
           </Text>
         </View>
       </View>
@@ -95,7 +104,7 @@ export const JoinLiveStream = ({
         <View style={styles.createCall}>
           <View style={styles.inputContainer}>
             <TextInput
-              placeholder={t('Livestream ID')}
+              placeholder={t('joinLivestream.callId.label', 'Livestream ID')}
               value={callId}
               autoCapitalize="none"
               autoCorrect={false}
@@ -122,14 +131,14 @@ export const JoinLiveStream = ({
           {isHost ? (
             <Button
               onPress={enterBackstageHandler}
-              text={t('Start Livestream')}
+              text={t('joinLivestream.start.label', 'Start Livestream')}
               size="large"
               disabled={!isValidCallId}
             />
           ) : (
             <Button
               onPress={joinLiveStreamHandler}
-              text={t('Join Livestream')}
+              text={t('joinLivestream.join.label', 'Join Livestream')}
               size="large"
               disabled={!isValidCallId}
             />

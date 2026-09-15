@@ -8,7 +8,6 @@ import {
   UpdateUserPermissionsRequestRevokePermissionsEnum,
   useCall,
   useCallStateHooks,
-  useI18n,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import { Cross } from '../assets/Cross';
@@ -22,6 +21,7 @@ import { VideoSlash } from '../assets/VideoSlash';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import React, { useCallback, useMemo } from 'react';
 import { generateParticipantTitle } from '../utils';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 type CallParticipantOptionType = {
   title: string;
@@ -40,10 +40,10 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   const { participant, setSelectedParticipant } = props;
   const call = useCall();
   const {
-    theme: { semantics, primitives },
+    theme: { semantics },
   } = useTheme();
   const styles = useStyles();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const { useHasPermissions } = useCallStateHooks();
   const userHasMuteUsersCapability = useHasPermissions(
     OwnCapability.MUTE_USERS,
@@ -205,7 +205,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
             <Avatar size={'xl'} user={participant} />
             <Text style={styles.name}>
               {generateParticipantTitle(participant.userId) +
-                (showYouLabel ? ` ${t('You')}` : '')}
+                (showYouLabel ? ` ${t('common.you.label', 'You')}` : '')}
             </Text>
           </View>
           <Pressable

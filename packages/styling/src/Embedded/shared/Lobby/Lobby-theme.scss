@@ -12,15 +12,7 @@
 
   &-value {
     color: var(--str-video__text-color2);
-    margin-bottom: var(--str-video__spacing-md);
+    margin-bottom: var(--str-video__spacing-sm);
     display: block;
-  }
-
-  .str-video__button {
-    background-color: var(--str-video__button-primary-active);
-
-    &:not([disabled]):hover {
-      background-color: var(--str-video__button-primary-hover);
-    }
   }
 }

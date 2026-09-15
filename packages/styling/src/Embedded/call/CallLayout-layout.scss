@@ -3,7 +3,7 @@
   position: relative;
   flex-direction: column;
   height: 100%;
-  padding: var(--str-video__spacing-sm);
+  padding: var(--str-video__spacing-xs);
   overflow: auto hidden;
 
   .str-video__permission-requests {
@@ -18,7 +18,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
+  padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
   background-color: var(--str-video__base-color7);
   border-radius: var(--str-video__border-radius-xxl);
 }
@@ -27,8 +27,8 @@
   display: flex;
   flex: 1;
   min-height: 0;
-  gap: var(--str-video__spacing-md);
-  padding: var(--str-video__spacing-md);
+  gap: var(--str-video__spacing-sm);
+  padding: var(--str-video__spacing-sm);
   position: relative;
 }
 
@@ -42,7 +42,7 @@
 .str-video__embedded-notifications {
   position: absolute;
   bottom: 60px;
-  left: var(--str-video__spacing-lg);
+  left: var(--str-video__spacing-md);
   right: 0;
   z-index: 3;
 }
@@ -74,8 +74,8 @@
   min-height: 0;
   width: 100%;
   border-radius: var(--str-video__border-radius-md);
-  padding: var(--str-video__spacing-lg);
-  margin: var(--str-video__spacing-lg) 0;
+  padding: var(--str-video__spacing-md);
+  margin: var(--str-video__spacing-md) 0;
 }
 
 @container (min-width: 700px) {

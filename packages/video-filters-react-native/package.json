@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-filters-react-native",
-  "version": "0.16.0",
+  "version": "1.0.0-beta.0",
   "description": "Video Filters for the Stream React Native Video SDK",
   "main": "dist/commonjs/index.js",
   "module": "dist/module/index.js",

@@ -1,9 +1,6 @@
 import { OwnCapability } from '@stream-io/video-client';
-import {
-  Restricted,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-bindings';
+import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 import {
   CancelCallConfirmButton,
   CompositeButton,
@@ -71,11 +68,11 @@ export const CallControls = ({
                 <>
                   <DeviceSelectorAudioInput
                     visualType="list"
-                    title={t('Microphone')}
+                    title={t('common.microphone.label', 'Microphone')}
                   />
                   <DeviceSelectorAudioOutput
                     visualType="list"
-                    title={t('Speaker')}
+                    title={t('common.speaker.label', 'Speaker')}
                   />
                 </>
               }
@@ -108,10 +105,10 @@ export const CallControls = ({
         </div>
       </div>
       <div className="str-video__call-controls--group str-video__call-controls--sidebar">
-        <WithTooltip title={t('Participants')}>
+        <WithTooltip title={t('common.participants.label', 'Participants')}>
           <CompositeButton
             active={showParticipants}
-            aria-label={t('Participants')}
+            aria-label={t('common.participants.label', 'Participants')}
             aria-pressed={showParticipants}
             onClick={onToggleParticipants}
           >

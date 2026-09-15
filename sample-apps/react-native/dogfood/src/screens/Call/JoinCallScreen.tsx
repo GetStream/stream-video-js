@@ -15,7 +15,6 @@ import {
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import {
   MemberRequest,
-  useI18n,
   useStreamVideoClient,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
@@ -24,13 +23,19 @@ import { KnownUsers } from '../../constants/KnownUsers';
 import { randomId } from '../../modules/helpers/randomId';
 import { useOrientation } from '../../hooks/useOrientation';
 import { Button } from '@stream-io/video-react-native-sdk/src/components/utility/Button';
+import { useAppI18n } from '../../hooks/useAppI18n';
+
+const ENABLE_RING_PINNING = __DEV__;
 
 const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
+  const [callType, setCallType] = useState<string>('default');
+  const [pinnedCallId, setPinnedCallId] = useState<string>('');
   const userId = useAppGlobalStoreValue((store) => store.userId);
+  const devMode = useAppGlobalStoreValue((store) => store.devMode);
   const [ringingUsers, setRingingUsers] = useState<string[]>([]);
   const videoClient = useStreamVideoClient();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const orientation = useOrientation();
   const styles = useStyles();
   const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +51,10 @@ const JoinCallScreen = () => {
     ringingUserIds = [...new Set([...ringingUserIds, userId])];
 
     try {
-      const call = videoClient?.call('default', randomId());
+      const call = videoClient?.call(
+        callType || 'default',
+        pinnedCallId || randomId(),
+      );
       await call?.getOrCreate({
         ring: true,
         video: true,
@@ -56,6 +64,7 @@ const JoinCallScreen = () => {
             ring: {
               auto_cancel_timeout_ms: 30000,
               incoming_call_timeout_ms: 30000,
+              missed_call_timeout_ms: 30000,
             },
           },
           members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
@@ -73,7 +82,14 @@ const JoinCallScreen = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [ringingUserIdsText, ringingUsers, videoClient, userId]);
+  }, [
+    ringingUserIdsText,
+    ringingUsers,
+    videoClient,
+    userId,
+    callType,
+    pinnedCallId,
+  ]);
 
   const isRingingUserSelected = (userid: string) =>
     ringingUsers.find((ringingUser) => ringingUser === userid);
@@ -107,7 +123,9 @@ const JoinCallScreen = () => {
         showsVerticalScrollIndicator={true}
       >
         <View style={styles.topContainer}>
-          <Text style={styles.headerText}>{t('Select Participants')}</Text>
+          <Text style={styles.headerText}>
+            {t('joinCall.selectParticipants.title', 'Select Participants')}
+          </Text>
           {KnownUsers.filter((user) => user.id !== userId).map((user) => {
             return (
               <Pressable
@@ -133,7 +151,7 @@ const JoinCallScreen = () => {
         <View style={styles.bottomContainer}>
           <View style={styles.orContainer}>
             <View style={styles.orSeparator} />
-            <Text style={styles.orText}>{t('OR')}</Text>
+            <Text style={styles.orText}>{t('joinCall.or.label', 'OR')}</Text>
             <View style={styles.orSeparator} />
           </View>
 
@@ -141,7 +159,10 @@ const JoinCallScreen = () => {
             <TextInput
               autoCapitalize="none"
               autoCorrect={false}
-              placeholder={t('Enter comma separated User ids')}
+              placeholder={t(
+                'joinCall.userIds.label',
+                'Enter comma separated User ids',
+              )}
               value={ringingUserIdsText}
               onChangeText={(value) => {
                 setRingingUserIdsText(value);
@@ -149,12 +170,39 @@ const JoinCallScreen = () => {
               style={styles.textInputStyle}
             />
             <Button
-              text={isLoading ? t('Calling...') : t('Start a New Call')}
+              text={
+                isLoading
+                  ? t('joinCall.calling.label', 'Calling...')
+                  : t('joinCall.startNewCall.label', 'Start a New Call')
+              }
               disabled={startCallDisabled}
               onPress={startCallHandler}
               size="large"
             />
           </View>
+          {(ENABLE_RING_PINNING || devMode) && (
+            <View style={styles.pinningContainer}>
+              <Text style={styles.pinningText}>
+                Pin the ring to one call instance (leave blank for a new one)
+              </Text>
+              <TextInput
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder={'Call type (default)'}
+                value={callType}
+                onChangeText={setCallType}
+                style={styles.textInputStyle}
+              />
+              <TextInput
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder={'Call ID (random when blank)'}
+                value={pinnedCallId}
+                onChangeText={setPinnedCallId}
+                style={styles.textInputStyle}
+              />
+            </View>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -233,6 +281,13 @@ const useStyles = () => {
           color: semantics.textDisabled,
           fontSize: primitives.typographyFontSizeXs,
           fontWeight: primitives.typographyFontWeightSemiBold,
+        },
+        pinningContainer: {
+          marginTop: primitives.spacingLg,
+        },
+        pinningText: {
+          color: semantics.textPrimary,
+          fontSize: 13,
         },
       }),
     [primitives, semantics],

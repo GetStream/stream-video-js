@@ -152,7 +152,13 @@ export const useGleap = (
         const state = client.state;
         const data = Object.entries(state).reduce<Record<string, any>>(
           (acc, [key, observable]) => {
-            if (!!observable && typeof observable.subscribe === 'function') {
+            // the state class also carries its backing subjects as enumerable
+            // properties; only the `$`-suffixed observables are public state.
+            if (
+              key.endsWith('$') &&
+              !!observable &&
+              typeof observable.subscribe === 'function'
+            ) {
               const value = RxUtils.getCurrentValue<unknown>(observable);
               if (value && value instanceof Call) {
                 // special handling for the active call

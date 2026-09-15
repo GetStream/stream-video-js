@@ -3,10 +3,10 @@ import { forwardRef } from 'react';
 import { OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
-  useI18n,
   useToggleCallRecording,
 } from '@stream-io/video-react-bindings';
-import { CompositeButton } from '../Button/';
+import { useI18n } from '../../i18n';
+import { Button, CompositeButton } from '../Button/';
 import { Icon } from '../Icon';
 import {
   MenuToggle,
@@ -37,23 +37,38 @@ const RecordEndConfirmation = (props: PropsWithErrorHandler) => {
     <div className="str-video__end-recording__confirmation">
       <div className="str-video__end-recording__header">
         <Icon icon="recording-on" />
-        <h2 className="str-video__end-recording__heading">
-          {t('End recording')}
-        </h2>
+        <div className="str-video__end-recording__text">
+          <h2 className="str-video__end-recording__heading">
+            {t(
+              'callControls.recordCallButton.endRecording.title',
+              'End recording',
+            )}
+          </h2>
+          <p className="str-video__end-recording__description">
+            {t(
+              'callControls.recordCallButton.confirmEndRecording.description',
+              'Are you sure you want end the recording?',
+            )}
+          </p>
+        </div>
       </div>
-      <p className="str-video__end-recording__description">
-        {t('Are you sure you want end the recording?')}
-      </p>
       <div className="str-video__end-recording__actions">
-        <CompositeButton variant="secondary" onClick={close}>
-          {t('Cancel')}
-        </CompositeButton>
-        <CompositeButton
-          variant="primary"
+        <Button
+          variant="destructive"
           onClick={isAwaitingResponse ? undefined : handleClick}
         >
-          {isAwaitingResponse ? <LoadingIndicator /> : t('End recording')}
-        </CompositeButton>
+          {isAwaitingResponse ? (
+            <LoadingIndicator />
+          ) : (
+            t(
+              'callControls.recordCallButton.endRecording.title',
+              'End recording',
+            )
+          )}
+        </Button>
+        <Button variant="secondary" appearance="outline" onClick={close}>
+          {t('common.cancel.label', 'Cancel')}
+        </Button>
       </div>
     </div>
   );
@@ -67,7 +82,7 @@ const ToggleEndRecordingMenuButton = forwardRef<
     <CompositeButton
       ref={ref}
       active={true}
-      variant="secondary"
+      variant="destructive"
       data-testid="recording-stop-button"
     >
       <Icon icon="recording-off" />
@@ -104,8 +119,12 @@ export const RecordCallConfirmationButton = (
   }
 
   const title = isAwaitingResponse
-    ? t('Waiting for recording to start...')
-    : (caption ?? t('Record call'));
+    ? t(
+        'callControls.recordCallButton.waitingRecordingStart.title',
+        'Waiting for recording to start...',
+      )
+    : (caption ??
+      t('callControls.recordCallButton.recordCall.title', 'Record call'));
 
   return (
     <Restricted
@@ -118,7 +137,7 @@ export const RecordCallConfirmationButton = (
         <CompositeButton
           active={isCallRecordingInProgress}
           caption={caption}
-          variant="secondary"
+          variant={isCallRecordingInProgress ? 'destructive' : 'secondary'}
           data-testid="recording-start-button"
           onClick={isAwaitingResponse ? undefined : handleClick}
         >
@@ -141,12 +160,20 @@ export const RecordCallButton = (props: RecordCallButtonProps) => {
 
   const handleClick = createCallControlHandler(props, toggleCallRecording);
 
-  let title = caption ?? t('Record call');
+  let title =
+    caption ??
+    t('callControls.recordCallButton.recordCall.title', 'Record call');
 
   if (isAwaitingResponse) {
     title = isCallRecordingInProgress
-      ? t('Waiting for recording to stop...')
-      : t('Waiting for recording to start...');
+      ? t(
+          'callControls.recordCallButton.waitingRecordingStop.title',
+          'Waiting for recording to stop...',
+        )
+      : t(
+          'callControls.recordCallButton.waitingRecordingStart.title',
+          'Waiting for recording to start...',
+        );
   }
 
   return (
@@ -159,7 +186,7 @@ export const RecordCallButton = (props: RecordCallButtonProps) => {
       <CompositeButton
         active={isCallRecordingInProgress}
         caption={caption}
-        variant="secondary"
+        variant={isCallRecordingInProgress ? 'destructive' : 'secondary'}
         data-testid={
           isCallRecordingInProgress
             ? 'recording-stop-button'

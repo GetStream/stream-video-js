@@ -1,7 +1,8 @@
 import { PropsWithChildren } from 'react';
 import { Placement } from '@floating-ui/react';
 
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 import { Notification } from './Notification';
 
 export type SpeakingWhileMutedNotificationProps = {
@@ -21,7 +22,12 @@ export const SpeakingWhileMutedNotification = ({
   const { isSpeakingWhileMuted } = useMicrophoneState();
   const { t } = useI18n();
 
-  const message = text ?? t('You are muted. Unmute to speak.');
+  const message =
+    text ??
+    t(
+      'notification.speakingWhileMuted.text',
+      'You are muted. Unmute to speak.',
+    );
   return (
     <Notification
       message={message}

@@ -4,16 +4,13 @@
   display: flex;
   justify-content: space-between;
   gap: var(--str-video__spacing-sm);
-  padding-block: 0.5rem;
+  padding-block: var(--str-video__spacing-xs);
   width: 100%;
   align-items: center;
 
-  .str-video__call-controls__button {
-    padding: unset;
-  }
-
   .str-video__participant-listing-item__display-name {
     flex: 1;
+    min-inline-size: 0;
     @include utils.ellipsis-text();
   }
 
@@ -26,11 +23,12 @@
   .str-video__participant-listing-item__media-indicator-group {
     display: flex;
     align-items: center;
-    gap: var(--str-video__spacing-sm);
+    flex-shrink: 0;
+    gap: var(--str-video__spacing-xs);
 
     .str-video__participant-listing-item__icon {
-      width: 0.75rem;
-      height: 0.75rem;
+      inline-size: var(--str-video__icon-size-sm);
+      block-size: var(--str-video__icon-size-sm);
     }
   }
 }

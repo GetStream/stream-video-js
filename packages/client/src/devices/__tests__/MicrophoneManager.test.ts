@@ -12,7 +12,7 @@ import {
   AudioBitrateProfile,
   TrackType,
 } from '../../gen/video/sfu/models/models';
-import { CallingState, StreamVideoWriteableStateStore } from '../../store';
+import { CallingState, ClientState } from '../../store';
 import {
   createLocalStorageMock,
   emitDeviceIds,
@@ -105,7 +105,7 @@ describe('MicrophoneManager', () => {
       type: '',
       streamClient,
       clientEventReporter: new ClientEventReporter({ streamClient }),
-      clientStore: new StreamVideoWriteableStateStore(),
+      clientState: new ClientState(),
     });
     const devicePersistence = { enabled: false, storageKey: '' };
     manager = new MicrophoneManager(call, devicePersistence, 'disable-tracks');

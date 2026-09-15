@@ -50,13 +50,13 @@ input {
 }
 
 body {
-  background-color: var(--str-video__base-color4);
-  color: var(--str-video__text-color1);
+  background-color: var(--str-video__background-core-app);
+  color: var(--str-video__text-primary);
 }
 
 .str-video {
-  background-color: var(--str-video__base-color4);
-  color: var(--str-video__text-color1);
+  background-color: var(--str-video__background-core-app);
+  color: var(--str-video__text-primary);
   height: 100vh;
   height: 100dvh;
   display: flex;
@@ -69,7 +69,7 @@ body {
   gap: 1rem;
   padding: 0.5rem;
   overflow-x: hidden;
-  background-color: var(--str-video__base-color4);
+  background-color: var(--str-video__background-core-app);
 
   .rd__stage {
     flex: 1;

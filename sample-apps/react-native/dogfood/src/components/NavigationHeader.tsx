@@ -2,10 +2,10 @@ import {
   Avatar,
   StreamVideoRN,
   useConnectedUser,
-  useI18n,
   useStreamVideoClient,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../hooks/useAppI18n';
 import React, { useMemo } from 'react';
 import { Alert, Pressable, StyleSheet, Text } from 'react-native';
 import {
@@ -22,7 +22,7 @@ import { Leave } from '../assets/Leave';
 export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   const videoClient = useStreamVideoClient();
   const user = useConnectedUser();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const styles = useStyles();
   const userName = useAppGlobalStoreValue((store) => store.userName);
   const environment = useAppGlobalStoreValue((store) => store.appEnvironment);
@@ -34,7 +34,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
       'Are you sure you want to sign out?',
       [
         {
-          text: t('Cancel'),
+          text: t('navigationHeader.logout.cancel.label', 'Cancel'),
           onPress: () => {},
           style: 'cancel',
         },

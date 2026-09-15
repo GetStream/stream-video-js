@@ -1,7 +1,7 @@
 .str-video__call-stats {
   border-radius: var(--str-video__border-radius-lg);
   background-color: var(--str-video__base-color7);
-  padding: var(--str-video__spacing-md);
+  padding: var(--str-video__spacing-sm);
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -14,7 +14,7 @@
   .str-video__call-stats__header {
     display: flex;
     flex-direction: column;
-    margin-bottom: var(--str-video__spacing-md);
+    margin-bottom: var(--str-video__spacing-sm);
   }
 
   .str-video__call-stats__heading {
@@ -23,14 +23,14 @@
   }
 
   .str-video__call-stats__icon {
-    margin-right: var(--str-video__spacing-sm);
+    margin-right: var(--str-video__spacing-xs);
     height: 18px;
     width: 18px;
   }
 
   .str-video__call-stats__description {
     font-size: var(--str-video__font-size-sm);
-    margin-bottom: var(--str-video__spacing-sm);
+    margin-bottom: var(--str-video__spacing-xs);
     font-weight: 600;
   }
 
@@ -73,7 +73,7 @@
   .str-video__call-explanation__icon {
     height: 12px;
     width: 12px;
-    margin-left: var(--str-video__spacing-xs);
+    margin-left: var(--str-video__space-6);
 
     &:hover {
       cursor: pointer;
@@ -82,7 +82,7 @@
 
   .str-video__call-explanation__description {
     background-color: var(--str-video__base-color3);
-    padding: var(--str-video__spacing-xs);
+    padding: var(--str-video__space-6);
     font-size: var(--str-video__font-size-xs);
     border-radius: var(--str-video__border-radius-xs);
   }
@@ -96,7 +96,7 @@
 
   .str-video__call-stats__tag {
     border-radius: var(--str-video__border-radius-sm);
-    padding: var(--str-video__spacing-xs);
+    padding: var(--str-video__space-6);
     font-size: var(--str-video__font-size-sm);
     font-weight: 600;
     height: 30px;

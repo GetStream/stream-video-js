@@ -1,12 +1,12 @@
 import React from 'react';
 import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
-import { useI18n } from '@stream-io/video-react-bindings';
 import { UserInfo } from './UserInfo';
 import {
   IncomingCallControls as DefaultIncomingCallControls,
   type IncomingCallControlsProps,
 } from '../CallControls';
 import { useTheme } from '../../../contexts';
+import { useI18n } from '../../../i18n';
 
 /**
  * Props for the IncomingCall Component.
@@ -64,7 +64,9 @@ export const IncomingCall = ({
       <View style={[styles.topContainer, incomingCall.topContainer]}>
         <UserInfo />
         <Text style={[styles.incomingCallText, incomingCall.incomingCallText]}>
-          {isConnecting ? t('Connecting...') : t('Incoming Call...')}
+          {isConnecting
+            ? t('common.connecting.text', 'Connecting...')
+            : t('ringingCall.incoming.title', 'Incoming Call...')}
         </Text>
       </View>
       <View style={[styles.bottomContainer, incomingCall.bottomContainer]}>

@@ -4,7 +4,6 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  useI18n,
 } from '@stream-io/video-react-sdk';
 import { useRouter } from 'next/router';
 import {
@@ -16,7 +15,10 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { useAppEnvironment } from '../../context/AppEnvironmentContext';
+import {
+  useAppEnvironment,
+  useIsProntoEnvironment,
+} from '../../context/AppEnvironmentContext';
 import { useSettings } from '../../context/SettingsContext';
 import { getClient } from '../../helpers/client';
 import { ServerSideCredentialsProps } from '../../lib/getServerSideCredentialsProps';
@@ -24,6 +26,8 @@ import { meetingId } from '../../lib/idGenerators';
 import appTranslations from '../../translations';
 import { DefaultAppHeader } from '../DefaultAppHeader';
 import { DialingCallNotification } from './DialingCallNotification';
+import { RingStateDebugPane } from './RingStateDebugPane';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 function findLastIndex<T>(
   arr: readonly T[],
@@ -41,19 +45,33 @@ export const DialerPage = ({
   userToken,
 }: ServerSideCredentialsProps) => {
   const {
-    settings: { language, fallbackLanguage },
+    settings: { language },
   } = useSettings();
   const [error, setError] = useState<Error | undefined>();
   const [videoClient, setVideoClient] = useState<StreamVideoClient>();
   const router = useRouter();
-  const callType = (router.query['type'] as string) || 'default';
+  // `call_type` and `call_id` pin the ring to one call instance, so repeated
+  // rings reuse it. `type` is the name the rest of the app uses.
+  const callType =
+    (router.query['call_type'] as string) ||
+    (router.query['type'] as string) ||
+    'default';
+  const pinnedCallId = router.query['call_id'] as string | undefined;
+  const useLocalCoordinator = router.query['use_local_coordinator'] === 'true';
+  const coordinatorUrl = useLocalCoordinator
+    ? 'http://localhost:3030/video'
+    : (router.query['coordinator_url'] as string | undefined);
   const [userIds, setUserIds] = useState(['']);
   const [ringingCall, setRingingCall] = useState<Call | undefined>(undefined);
   const environment = useAppEnvironment();
-  const { t } = useI18n();
+  const isProntoEnvironment = useIsProntoEnvironment();
+  const { t } = useAppI18n();
 
   useEffect(() => {
-    const _client = getClient({ apiKey, user, userToken }, environment);
+    const _client = getClient(
+      { apiKey, user, userToken, coordinatorUrl },
+      environment,
+    );
     setVideoClient(_client);
 
     window.client = _client;
@@ -62,7 +80,7 @@ export const DialerPage = ({
       setVideoClient(undefined);
       window.client = undefined;
     };
-  }, [apiKey, user, userToken, environment]);
+  }, [apiKey, user, userToken, environment, coordinatorUrl]);
 
   const handleUserIdChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>, index: number) => {
@@ -131,7 +149,7 @@ export const DialerPage = ({
       return;
     }
 
-    const call = videoClient.call(callType, meetingId());
+    const call = videoClient.call(callType, pinnedCallId || meetingId());
     const members = userIds
       .filter((uid) => uid !== '')
       .map((uid) => ({ user_id: uid }));
@@ -155,7 +173,7 @@ export const DialerPage = ({
             ring: {
               auto_cancel_timeout_ms: 60_000,
               incoming_call_timeout_ms: 60_000,
-              missed_call_timeout_ms: 5000,
+              missed_call_timeout_ms: 60_000,
             },
           },
         },
@@ -173,6 +191,8 @@ export const DialerPage = ({
       const params = new URLSearchParams(
         router.query as Record<string, string>,
       );
+      // the join page reads `type`, so carry over whichever alias was used
+      params.set('type', callType);
       params.set('skip_lobby', 'true');
       router.push(`/join/${ringingCall.id}?${params.toString()}`);
     }
@@ -191,9 +211,8 @@ export const DialerPage = ({
   return (
     <StreamVideo
       client={videoClient}
-      translationsOverrides={appTranslations}
+      translations={appTranslations}
       language={language}
-      fallbackLanguage={fallbackLanguage}
     >
       <DefaultAppHeader />
       {ringingCall && (
@@ -209,7 +228,7 @@ export const DialerPage = ({
                 className="rd__input rd__dialer-input"
                 name={`user-id-${index}`}
                 type="text"
-                placeholder={t('User ID')}
+                placeholder={t('ringing.dialer.userId.placeholder', 'User ID')}
                 value={userId}
                 data-index={index}
                 data-1p-ignore
@@ -223,7 +242,10 @@ export const DialerPage = ({
                 <button
                   className="rd__button"
                   type="button"
-                  aria-label={t('Delete user')}
+                  aria-label={t(
+                    'ringing.dialer.deleteUser.ariaLabel',
+                    'Delete user',
+                  )}
                   data-testid={`callee-user-id-${index}-delete`}
                   onClick={() => handleDeleteUserId(index)}
                 >
@@ -238,7 +260,7 @@ export const DialerPage = ({
             disabled={!!ringingCall}
             data-testid="ring-button"
           >
-            {t('Ring')}
+            {t('ringing.dialer.ring.label', 'Ring')}
           </button>
           <div className="rd__dialer-notifications">
             <Notification
@@ -251,6 +273,7 @@ export const DialerPage = ({
             />
           </div>
         </form>
+        {isProntoEnvironment && <RingStateDebugPane call={ringingCall} />}
       </div>
     </StreamVideo>
   );

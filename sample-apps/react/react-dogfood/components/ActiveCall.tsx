@@ -14,7 +14,6 @@ import {
   ScreenShareButton,
   SpeakingWhileMutedNotification,
   useCallStateHooks,
-  useI18n,
   WithTooltip,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
@@ -67,6 +66,7 @@ import {
 } from './RemoteFilePublisher';
 import { ModerationNotification } from './ModerationNotification';
 import { E2EEKeyNotification } from './E2EEKeyNotification';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -80,8 +80,10 @@ type SidebarContent =
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
-  const { useParticipantCount } = useCallStateHooks();
+  const { useParticipantCount, useIsCallCaptioningInProgress } =
+    useCallStateHooks();
   const participantCount = useParticipantCount();
+  const isCaptioning = useIsCallCaptioningInProgress();
   const {
     current: currentTourStep,
     active: isTourActive,
@@ -125,7 +127,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
     channelId: activeCall?.id,
   });
 
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   useEffect(() => {
     // helps with Fast-Refresh
@@ -195,7 +197,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 close={() => setShowInvitePopup(false)}
               />
             )}
-            {isPronto && <ClosedCaptions />}
+            {isCaptioning && <ClosedCaptions />}
           </div>
 
           <div
@@ -311,10 +313,15 @@ export const ActiveCall = (props: ActiveCallProps) => {
               </div>
             )}
             {isPipSupported && (
-              <WithTooltip title={t('Pop out Picture-in-Picture')}>
+              <WithTooltip
+                title={t(
+                  'activeCall.pictureInPicture.popOut.title',
+                  'Pop out Picture-in-Picture',
+                )}
+              >
                 <CompositeButton
                   active={!!pipWindow}
-                  variant="primary"
+                  variant={pipWindow ? 'primary' : 'secondary'}
                   onClick={pipWindow ? closePipWindow : openPipWindow}
                 >
                   <Icon icon="pip" />
@@ -339,10 +346,14 @@ export const ActiveCall = (props: ActiveCallProps) => {
           <div className="str-video__call-controls--group str-video__call-controls--sidebar">
             {isPronto && (
               <div className="str-video__call-controls__desktop">
-                <WithTooltip title={t('Closed Captions Queue')}>
+                <WithTooltip
+                  title={t(
+                    'closedCaptions.queue.title',
+                    'Closed Captions Queue',
+                  )}
+                >
                   <CompositeButton
                     active={showClosedCaptions}
-                    variant="primary"
                     onClick={() => {
                       setSidebarContent(
                         showClosedCaptions ? null : 'closed-captions',
@@ -373,7 +384,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 disableOnChatOpen={showChat}
               >
                 <div className="rd-chat__chat-button__wrapper">
-                  <WithTooltip title={t('Chat')}>
+                  <WithTooltip title={t('chat.panel.title', 'Chat')}>
                     <CompositeButton
                       active={showChat}
                       disabled={!chatClient}

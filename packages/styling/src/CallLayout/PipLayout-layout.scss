@@ -11,9 +11,9 @@
 
 .str-video__pip-screen-share-local {
   display: flex;
-  gap: var(--str-video__spacing-sm);
+  gap: var(--str-video__spacing-xs);
   border-radius: var(--str-video__border-radius-sm);
-  padding: var(--str-video__spacing-md);
+  padding: var(--str-video__spacing-sm);
   font-size: var(--str-video__font-size-sm);
 
   .str-video__icon {
@@ -87,8 +87,8 @@
         content: '';
         position: absolute;
         inset: 0;
-        border: 2px solid var(--str-video__primary-color);
-        border-radius: var(--str-video__border-radius-sm);
+        border: var(--str-video__w200) solid var(--str-video__accent-primary);
+        border-radius: var(--str-video__radius-2xl);
         pointer-events: none;
         z-index: 1;
       }
@@ -100,8 +100,8 @@
   }
 
   @mixin pip-avatar-size($size, $font-size) {
-    .str-video__video-placeholder__avatar,
-    .str-video__video-placeholder__initials-fallback {
+    .str-video__avatar,
+    .str-video__avatar--initials-fallback {
       width: $size;
       height: $size;
       font-size: $font-size;

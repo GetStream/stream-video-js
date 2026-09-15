@@ -6,11 +6,12 @@ import {
 import {
   Restricted,
   useCallStateHooks,
-  useI18n,
   type UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 import clsx from 'clsx';
-import { CompositeButton, IconButtonWithMenuProps } from '../Button';
+import { Badge } from '../Badge';
+import { CompositeButton, CompositeButtonProps } from '../Button';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
@@ -24,7 +25,7 @@ import {
 
 export type ToggleAudioPreviewButtonProps = PropsWithErrorHandler<
   Pick<
-    IconButtonWithMenuProps,
+    CompositeButtonProps,
     'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
   > &
     UseInputMediaDeviceOptions
@@ -62,11 +63,20 @@ export const ToggleAudioPreviewButton = (
   return (
     <WithTooltip
       title={
-        !hasBrowserPermission
-          ? t('Check your browser audio permissions')
-          : isSystemMuted
-            ? t('Microphone is paused by your system')
-            : (caption ?? t('Mic'))
+        isPromptingPermission
+          ? t('common.waitingForPermission.title', 'Waiting for permission')
+          : !hasBrowserPermission
+            ? t(
+                'callControls.toggleAudioButton.checkBrowserAudioPermissions.title',
+                'Check your browser audio permissions',
+              )
+            : isSystemMuted
+              ? t(
+                  'callControls.toggleAudioButton.microphonePausedBySystem.title',
+                  'Microphone is paused by your system',
+                )
+              : (caption ??
+                t('callControls.toggleAudioButton.mic.title', 'Mic'))
       }
       tooltipDisabled={tooltipDisabled}
     >
@@ -76,7 +86,7 @@ export const ToggleAudioPreviewButton = (
         className={clsx(
           !hasBrowserPermission && 'str-video__device-unavailable',
         )}
-        variant="secondary"
+        variant={optionsAwareIsMute ? 'destructive' : 'secondary'}
         disabled={
           !hasBrowserPermission || (!optimisticUpdates && isTogglePending)
         }
@@ -95,27 +105,11 @@ export const ToggleAudioPreviewButton = (
         }}
       >
         <Icon icon={!optionsAwareIsMute ? 'mic' : 'mic-off'} />
-        {!hasBrowserPermission && (
-          <span
-            className="str-video__no-media-permission"
-            title={t('Check your browser audio permissions')}
-            children="!"
-          />
-        )}
-        {isPromptingPermission && (
-          <span
-            className="str-video__pending-permission"
-            title={t('Waiting for permission')}
-            children="?"
-          />
-        )}
-        {isSystemMuted && hasBrowserPermission && (
-          <span
-            className="str-video__system-muted"
-            title={t('Microphone is paused by your system')}
-            children="!"
-          />
-        )}
+        {isPromptingPermission ? (
+          <Badge variant="error" icon="question-mark-fill" />
+        ) : !hasBrowserPermission || isSystemMuted ? (
+          <Badge variant="error" icon="exclamation-mark-fill" />
+        ) : null}
       </CompositeButton>
     </WithTooltip>
   );
@@ -123,7 +117,7 @@ export const ToggleAudioPreviewButton = (
 
 export type ToggleAudioPublishingButtonProps = PropsWithErrorHandler<
   Pick<
-    IconButtonWithMenuProps,
+    CompositeButtonProps,
     'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
   > &
     UseInputMediaDeviceOptions
@@ -172,26 +166,47 @@ export const ToggleAudioPublishingButton = (
       <PermissionNotification
         permission={OwnCapability.SEND_AUDIO}
         isAwaitingApproval={isAwaitingPermission}
-        messageApproved={t('You can now speak.')}
-        messageAwaitingApproval={t('Awaiting for an approval to speak.')}
-        messageRevoked={t('You can no longer speak.')}
+        messageApproved={t(
+          'callControls.toggleAudioButton.permissionGranted.text',
+          'You can now speak.',
+        )}
+        messageAwaitingApproval={t(
+          'callControls.toggleAudioButton.awaitingApproval.text',
+          'Awaiting for an approval to speak.',
+        )}
+        messageRevoked={t(
+          'callControls.toggleAudioButton.permissionRevoked.text',
+          'You can no longer speak.',
+        )}
       >
         <WithTooltip
           title={
-            !hasPermission
-              ? t('You have no permission to share your audio')
-              : !hasBrowserPermission
-                ? t('Check your browser mic permissions')
-                : isSystemMuted
-                  ? t('Microphone is paused by your system')
-                  : (caption ?? t('Mic'))
+            isPromptingPermission
+              ? t('common.waitingForPermission.title', 'Waiting for permission')
+              : !hasPermission
+                ? t(
+                    'callControls.toggleAudioButton.noPermissionToShareAudio.title',
+                    'You have no permission to share your audio',
+                  )
+                : !hasBrowserPermission
+                  ? t(
+                      'callControls.toggleAudioButton.checkBrowserMicPermissions.title',
+                      'Check your browser mic permissions',
+                    )
+                  : isSystemMuted
+                    ? t(
+                        'callControls.toggleAudioButton.microphonePausedBySystem.title',
+                        'Microphone is paused by your system',
+                      )
+                    : (caption ??
+                      t('callControls.toggleAudioButton.mic.title', 'Mic'))
           }
           tooltipDisabled={tooltipDisabled}
         >
           <CompositeButton
             active={optionsAwareIsMute}
             caption={caption}
-            variant="secondary"
+            variant={optionsAwareIsMute ? 'destructive' : 'secondary'}
             disabled={
               !hasBrowserPermission ||
               !hasPermission ||
@@ -212,25 +227,11 @@ export const ToggleAudioPublishingButton = (
             }}
           >
             <Icon icon={optionsAwareIsMute ? 'mic-off' : 'mic'} />
-            {(!hasBrowserPermission || !hasPermission) && (
-              <span className="str-video__no-media-permission">!</span>
-            )}
-            {isPromptingPermission && (
-              <span
-                className="str-video__pending-permission"
-                title={t('Waiting for permission')}
-              >
-                ?
-              </span>
-            )}
-            {isSystemMuted && hasBrowserPermission && hasPermission && (
-              <span
-                className="str-video__system-muted"
-                title={t('Microphone is paused by your system')}
-              >
-                !
-              </span>
-            )}
+            {isPromptingPermission ? (
+              <Badge variant="error" icon="question-mark-fill" />
+            ) : !hasBrowserPermission || !hasPermission || isSystemMuted ? (
+              <Badge variant="error" icon="exclamation-mark-fill" />
+            ) : null}
           </CompositeButton>
         </WithTooltip>
       </PermissionNotification>

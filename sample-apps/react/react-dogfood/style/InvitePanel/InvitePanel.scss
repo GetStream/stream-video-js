@@ -3,10 +3,12 @@
   flex-direction: column;
 
   &__qr {
-    margin-top: var(--str-video__spacing-lg);
+    margin-top: var(--str-video__spacing-md);
     &-header {
-      font-size: var(--str-video__font-size-md);
-      font-weight: 500;
+      font-size: var(--str-video__typography-font-size-sm);
+      line-height: var(--str-video__typography-line-height-normal);
+      font-weight: var(--str-video__typography-font-weight-semi-bold);
+      color: var(--str-video__text-primary);
 
       &--accordion {
         display: flex;
@@ -21,49 +23,55 @@
     }
 
     &-description {
-      font-size: var(--str-video__font-size-xs);
-      color: var(--str-video__text-color2);
+      font-size: var(--str-video__typography-font-size-xs);
+      line-height: var(--str-video__typography-line-height-tight);
+      font-weight: var(--str-video__typography-font-weight-regular);
+      color: var(--str-video__text-secondary);
     }
 
     &-chevron {
-      width: 1rem;
-      height: 1rem;
+      inline-size: var(--str-video__icon-size-sm);
+      block-size: var(--str-video__icon-size-sm);
     }
 
     &-container {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-top: var(--str-video__spacing-lg);
-      border-radius: var(--str-video__border-radius-md);
-      background-color: var(--str-video__base-color4);
+      margin-top: var(--str-video__spacing-md);
+      border-radius: var(--str-video__radius-lg);
+      background-color: var(--str-video__background-core-surface-default);
       width: 100%;
     }
 
     &-code {
-      margin: var(--str-video__spacing-md) 0;
-      padding: 0 var(--str-video__spacing-md);
-      border-radius: var(--str-video__border-radius-md);
-      background-color: white;
+      margin: var(--str-video__spacing-sm) 0;
+      padding: 0 var(--str-video__spacing-sm);
+      border-radius: var(--str-video__radius-xl);
+      background-color: var(--str-video__base-white);
       width: 100px;
       height: 100px;
     }
   }
 
   &__copy {
-    margin-top: var(--str-video__spacing-lg);
+    margin-top: var(--str-video__spacing-md);
     &-header {
-      font-size: var(--str-video__font-size-md);
-      font-weight: 500;
+      font-size: var(--str-video__typography-font-size-sm);
+      line-height: var(--str-video__typography-line-height-normal);
+      font-weight: var(--str-video__typography-font-weight-semi-bold);
+      color: var(--str-video__text-primary);
     }
 
     &-description {
-      font-size: var(--str-video__font-size-xs);
-      color: var(--str-video__text-color2);
+      font-size: var(--str-video__typography-font-size-xs);
+      line-height: var(--str-video__typography-line-height-tight);
+      font-weight: var(--str-video__typography-font-weight-regular);
+      color: var(--str-video__text-secondary);
     }
 
     &-button {
-      margin-top: var(--str-video__spacing-lg);
+      margin-top: var(--str-video__spacing-md);
     }
   }
 }
@@ -71,14 +79,14 @@
 .rd__invite-popup {
   display: flex;
   flex-direction: column;
-  padding: var(--str-video__spacing-md);
+  padding: var(--str-video__spacing-sm);
   border-radius: var(--str-video__border-radius-md);
   position: absolute;
-  bottom: var(--str-video__spacing-lg);
-  right: var(--str-video__spacing-lg);
+  bottom: var(--str-video__spacing-md);
+  right: var(--str-video__spacing-md);
   background-color: var(--str-video__base-color6);
   max-width: 250px;
-  gap: var(--str-video__spacing-md);
+  gap: var(--str-video__spacing-sm);
 
   &__header {
     display: flex;
@@ -115,7 +123,7 @@
 
     &-text {
       color: var(--str-video__brand-color3);
-      margin-left: var(--str-video__spacing-md);
+      margin-left: var(--str-video__spacing-sm);
     }
   }
   &__qr-container {
@@ -130,8 +138,8 @@
   }
 
   &__qr-code {
-    margin: var(--str-video__spacing-md) 0;
-    padding: 0 var(--str-video__spacing-md);
+    margin: var(--str-video__spacing-sm) 0;
+    padding: 0 var(--str-video__spacing-sm);
     border-radius: var(--str-video__border-radius-md);
     background-color: white;
     width: 100px;

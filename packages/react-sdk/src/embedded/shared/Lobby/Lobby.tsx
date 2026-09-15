@@ -2,9 +2,9 @@ import clsx from 'clsx';
 import {
   useCallStateHooks,
   useConnectedUser,
-  useI18n,
 } from '@stream-io/video-react-bindings';
-import { Icon } from '../../../components';
+import { useI18n } from '../../../i18n';
+import { Button, Icon } from '../../../components';
 import { DeviceControls } from './DeviceControls';
 
 interface LobbyProps {
@@ -25,8 +25,9 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
   const settings = useCallSettings();
 
   const isVideoEnabled = settings?.video.enabled ?? true;
-  const resolvedJoinLabel = joinLabel ?? t('Join');
-  const resolvedTitle = title ?? t('Set up your call before joining');
+  const resolvedJoinLabel = joinLabel ?? t('lobby.join.label', 'Join');
+  const resolvedTitle =
+    title ?? t('lobby.setUpYourCall.title', 'Set up your call before joining');
 
   return (
     <div className="str-video__embedded-lobby">
@@ -43,15 +44,15 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
 
         <div className="str-video__embedded-lobby__display-name">
           <div className="str-video__embedded-lobby__display-name-label">
-            {t('Display name')}
+            {t('lobby.displayName.label', 'Display name')}
           </div>
           <span className="str-video__embedded-lobby__display-name-value">
             {user?.name}
           </span>
-          <button className="str-video__button" onClick={onJoin}>
-            <Icon className="str-video__button__icon" icon="login" />
+          <Button size="sm" onClick={onJoin}>
+            <Icon icon="login" />
             {resolvedJoinLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

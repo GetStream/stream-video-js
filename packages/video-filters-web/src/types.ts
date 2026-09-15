@@ -47,17 +47,20 @@ export interface SegmenterOptions {
   isSelfieMode: boolean;
   segmentationOptions?: SegmentationOptions;
 }
-/**
- * Static configuration for the processor, defining which background
- * effect should be applied and how it should behave.
- */
-export interface BackgroundOptions {
-  basePath?: string;
-  modelPath?: string;
+export interface BackgroundEffectOptions {
   backgroundFilter?: BackgroundFilter;
   backgroundBlurLevel?: BackgroundBlurLevel;
   backgroundImage?: string | undefined;
   segmentationOptions?: SegmentationOptions;
+}
+
+/**
+ * Static configuration for the processor, defining which background
+ * effect should be applied and how it should behave.
+ */
+export interface BackgroundOptions extends BackgroundEffectOptions {
+  basePath?: string;
+  modelPath?: string;
 }
 
 /**

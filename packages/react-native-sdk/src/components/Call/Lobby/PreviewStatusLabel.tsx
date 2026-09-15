@@ -2,9 +2,9 @@ import React from 'react';
 import {
   useCallStateHooks,
   useConnectedUser,
-  useI18n,
 } from '@stream-io/video-react-bindings';
 import { StatusLabel } from '../../utility/StatusLabel';
+import { useI18n } from '../../../i18n';
 
 /**
  * Props for the PreviewStatusLabel component.
@@ -32,7 +32,12 @@ export const PreviewStatusLabel = ({
 
   return (
     <StatusLabel
-      label={label ?? connectedUser?.name ?? connectedUser?.id ?? t('You')}
+      label={
+        label ??
+        connectedUser?.name ??
+        connectedUser?.id ??
+        t('common.you.label', 'You')
+      }
       isAudioMuted={isAudioMuted}
       isVideoMuted={isVideoMuted}
       showSpeechIndicator={showSpeechIndicator}

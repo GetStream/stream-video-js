@@ -2,6 +2,8 @@ name: Version and release
 env:
   STREAM_API_KEY: ${{ vars.CLIENT_TEST_API_KEY }}
   STREAM_SECRET: ${{ secrets.CLIENT_TEST_SECRET }}
+  # The npm dist-tag is derived from the branch
+  NPM_DIST_TAG: ${{ github.ref_name == 'main' && 'beta' || github.ref_name == 'release-v1' && 'latest' || '' }}
 
 on:
 # Disable the automatic release trigger
@@ -33,6 +35,15 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+
+      - name: Verify the branch maps to an npm dist-tag
+        run: |
+          if [ -z "$NPM_DIST_TAG" ]; then
+            echo "::error::Refusing to release from '${{ github.ref_name }}'." \
+                 "Releases run from 'main' (dist-tag beta) or 'release-v1' (dist-tag latest)."
+            exit 1
+          fi
+          echo "Releasing from '${{ github.ref_name }}' to dist-tag '$NPM_DIST_TAG'."
 
       - name: Setup Node
         uses: actions/setup-node@v6

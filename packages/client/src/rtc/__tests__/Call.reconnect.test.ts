@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
-import { StreamVideoWriteableStateStore } from '../../store';
+import { ClientState } from '../../store';
 import { CallingState } from '../../store';
 import { NegotiationError } from '../NegotiationError';
 import { ReconnectReason } from '../types';
@@ -27,7 +27,7 @@ vi.mock('../../StreamSfuClient', () => ({
 
 const makeCall = ({ reportingEnabled = false } = {}) => {
   const streamClient = new StreamClient('test-key');
-  const clientStore = new StreamVideoWriteableStateStore();
+  const clientState = new ClientState();
   return new Call({
     type: 'default',
     id: 'test-call',
@@ -36,7 +36,7 @@ const makeCall = ({ reportingEnabled = false } = {}) => {
       streamClient,
       enabled: reportingEnabled,
     }),
-    clientStore,
+    clientState,
     ringing: false,
     watching: false,
   });
@@ -729,13 +729,13 @@ describe('Call reconnect wiring (PC event → leave)', () => {
     sfuClient.iceTrickleBuffer = new IceTrickleBuffer();
 
     const streamClient = new StreamClient('test-key');
-    const clientStore = new StreamVideoWriteableStateStore();
+    const clientState = new ClientState();
     call = new Call({
       type: 'default',
       id: 'test-call',
       streamClient,
       clientEventReporter: new ClientEventReporter({ streamClient }),
-      clientStore,
+      clientState,
       ringing: false,
       watching: false,
     });

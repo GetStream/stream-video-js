@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import {
   DeviceSelectorAudioInput,
   DeviceSelectorAudioOutput,
@@ -41,8 +42,14 @@ export const ToggleMicButton = () => {
       ToggleButton={ToggleMenuButton}
       visualType={MenuVisualType.MENU}
     >
-      <DeviceSelectorAudioInput visualType="list" title={t('Microphone')} />
-      <DeviceSelectorAudioOutput visualType="list" title={t('Speaker')} />
+      <DeviceSelectorAudioInput
+        visualType="list"
+        title={t('common.microphone.label', 'Microphone')}
+      />
+      <DeviceSelectorAudioOutput
+        visualType="list"
+        title={t('common.speaker.label', 'Speaker')}
+      />
     </MenuToggle>
   );
 };

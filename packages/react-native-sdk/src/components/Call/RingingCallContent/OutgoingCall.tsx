@@ -2,11 +2,12 @@ import React from 'react';
 import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { UserInfo } from './UserInfo';
 import { Z_INDEX } from '../../../constants';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CallControls, type OutgoingCallControlsProps } from '../CallControls';
 import { CallAppBar } from '../CallControls/CallAppBar';
 import { LobbyCameraPreview } from '../Lobby';
+import { useI18n } from '../../../i18n';
 
 /**
  * Props for the OutgoingCall Component.
@@ -59,7 +60,7 @@ export const OutgoingCall = ({
         <View style={[styles.content, outgoingCall.content]}>
           <UserInfo color="accent" />
           <Text style={[styles.callingText, outgoingCall.callingText]}>
-            {t('Calling...')}
+            {t('ringingCall.outgoing.title', 'Calling...')}
           </Text>
         </View>
         <CallControls />

@@ -3,7 +3,6 @@ import {
   Icon,
   useCallStateHooks,
   useConnectedUser,
-  useI18n,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 
@@ -11,6 +10,7 @@ import { LockIcon } from './LockIcon';
 import { isCallEncrypted } from '../lib/e2ee';
 import { getRandomWords } from '../lib/names';
 import { useLobbyE2EE } from '../context/LobbyE2EEContext';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 /**
  * Lobby control that turns on end-to-end encryption for the call and manages the
@@ -25,7 +25,7 @@ import { useLobbyE2EE } from '../context/LobbyE2EEContext';
  * Rendered only in the `pronto` environment (gated by the caller).
  */
 export const LobbyEncryption = () => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const e2ee = useLobbyE2EE();
   const { useCallSettings, useCallCreatedBy } = useCallStateHooks();
   const settings = useCallSettings();
@@ -138,14 +138,23 @@ export const LobbyEncryption = () => {
           <LockIcon className="rd__lobby-encryption__lock" />
           <span className="rd__lobby-encryption__text">
             <span className="rd__lobby-encryption__title">
-              {t('End-to-end encryption')}
+              {t(
+                'encryption.lobby.endToEndEncryption.title',
+                'End-to-end encryption',
+              )}
             </span>
             <span className="rd__lobby-encryption__subtitle">
               {needsKey
-                ? t('Enter the shared key to join')
+                ? t(
+                    'encryption.lobby.enterSharedKey.description',
+                    'Enter the shared key to join',
+                  )
                 : creatorName
-                  ? `${t('Enabled by')} ${creatorName}`
-                  : t('This call is encrypted')}
+                  ? `${t('encryption.lobby.enabledBy.text', 'Enabled by')} ${creatorName}`
+                  : t(
+                      'encryption.lobby.callEncrypted.description',
+                      'This call is encrypted',
+                    )}
             </span>
           </span>
         </div>
@@ -161,12 +170,21 @@ export const LobbyEncryption = () => {
           <LockIcon className="rd__lobby-encryption__lock" />
           <span className="rd__lobby-encryption__text">
             <span className="rd__lobby-encryption__title">
-              {t('End-to-end encryption')}
+              {t(
+                'encryption.lobby.endToEndEncryption.title',
+                'End-to-end encryption',
+              )}
             </span>
             <span className="rd__lobby-encryption__subtitle">
               {isOn
-                ? t('Only people with the key can join')
-                : t('Encrypt this call with a shared key')}
+                ? t(
+                    'encryption.lobby.onlyPeopleWithKey.description',
+                    'Only people with the key can join',
+                  )
+                : t(
+                    'encryption.lobby.encryptWithSharedKey.description',
+                    'Encrypt this call with a shared key',
+                  )}
             </span>
           </span>
           <span className="rd__lobby-encryption__track" aria-hidden="true">
@@ -184,7 +202,7 @@ export const LobbyEncryption = () => {
         <div className="rd__lobby-encryption__reveal-inner" aria-hidden={!isOn}>
           <div className="rd__lobby-encryption__details">
             <div className="rd__lobby-encryption__key-label">
-              {t('Shared key')}
+              {t('encryption.lobby.sharedKey.label', 'Shared key')}
             </div>
             <div className="rd__lobby-encryption__key-row">
               <div className="rd__lobby-encryption__key-field">
@@ -195,7 +213,10 @@ export const LobbyEncryption = () => {
                   spellCheck={false}
                   autoComplete="off"
                   readOnly={keyReadOnly}
-                  placeholder={t('Shared room key')}
+                  placeholder={t(
+                    'encryption.lobby.sharedRoomKey.placeholder',
+                    'Shared room key',
+                  )}
                   tabIndex={isOn ? undefined : -1}
                   onChange={(e) => onKeyChange(e.currentTarget.value)}
                 />
@@ -203,8 +224,14 @@ export const LobbyEncryption = () => {
                   <button
                     type="button"
                     className="rd__lobby-encryption__refresh"
-                    aria-label={t('Generate a new key')}
-                    title={t('Generate a new key')}
+                    aria-label={t(
+                      'encryption.lobby.generateNewKey.label',
+                      'Generate a new key',
+                    )}
+                    title={t(
+                      'encryption.lobby.generateNewKey.label',
+                      'Generate a new key',
+                    )}
                     tabIndex={isOn ? undefined : -1}
                     onClick={onRefresh}
                   >
@@ -218,15 +245,19 @@ export const LobbyEncryption = () => {
                 tabIndex={isOn ? undefined : -1}
                 onClick={onCopyLink}
               >
-                {copied ? t('Copied') : t('Copy link')}
+                {copied
+                  ? t('common.copied.label', 'Copied')
+                  : t('common.copyLink.label', 'Copy link')}
               </button>
             </div>
             <p className="rd__lobby-encryption__hint">
               {needsKey
                 ? t(
+                    'encryption.lobby.askCreatorForKey.description',
                     'Ask the call creator for the shared key, then enter it here.',
                   )
                 : t(
+                    'encryption.lobby.shareKeyWarning.description',
                     'Anyone with this key (or the invite link that contains it) can join the call. Share it only with people you trust.',
                   )}
             </p>

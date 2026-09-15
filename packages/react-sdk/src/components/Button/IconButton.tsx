@@ -1,33 +1,23 @@
-import { ComponentProps, ForwardedRef, forwardRef } from 'react';
+import { forwardRef } from 'react';
 import clsx from 'clsx';
 
-import { Icon, IconProps } from '../Icon';
+import { Button, ButtonProps } from './Button';
+import { Icon } from '../Icon';
 
-export type ButtonWithIconProps = {
-  enabled?: boolean;
-  variant?: string;
-} & ComponentProps<'button'> &
-  IconProps;
+export type IconButtonProps = Omit<ButtonProps, 'children'> & {
+  icon: string;
+};
 
-export const IconButton = forwardRef(function IconButtonRender(
-  props: ButtonWithIconProps,
-  ref: ForwardedRef<HTMLButtonElement>,
-) {
-  const { icon, enabled, variant, onClick, className, ...rest } = props;
-  return (
-    <button
-      className={clsx('str-video__call-controls__button', className, {
-        [`str-video__call-controls__button--variant-${variant}`]: variant,
-        'str-video__call-controls__button--enabled': enabled,
-      })}
-      onClick={(e) => {
-        e.preventDefault();
-        onClick?.(e);
-      }}
-      ref={ref}
-      {...rest}
-    >
-      <Icon icon={icon} />
-    </button>
-  );
-});
+export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
+  function IconButtonRender({ icon, className, ...props }, ref) {
+    return (
+      <Button
+        ref={ref}
+        className={clsx('str-video__button--icon-only', className)}
+        {...props}
+      >
+        <Icon icon={icon} />
+      </Button>
+    );
+  },
+);

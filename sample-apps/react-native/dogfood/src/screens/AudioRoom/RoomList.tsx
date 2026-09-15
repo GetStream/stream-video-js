@@ -17,12 +17,12 @@ import {
 } from 'react-native';
 import {
   Call,
-  useI18n,
   useStreamVideoClient,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import CreateRoomModal from './CreateRoomModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 type RoomFlatList = FlatListProps<Call>;
 
@@ -37,7 +37,7 @@ const RoomList = (props: Props) => {
   const [calls, setCalls] = useState<Call[]>([]);
   const [loadingCalls, setLoadingCalls] = useState(true);
   const [loadingError, setLoadingError] = useState<Error>();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const styles = useStyles();
   // state for the pull to refresh
   const [refreshing, setRefreshing] = React.useState(false);
@@ -148,7 +148,10 @@ const RoomList = (props: Props) => {
     return loadingCalls ? (
       <ActivityIndicator size={'small'} style={styles.activityIndicator} />
     ) : (
-      <Button onPress={queryLiveCalls} title={t('Load more')} />
+      <Button
+        onPress={queryLiveCalls}
+        title={t('roomList.loadMore.label', 'Load more')}
+      />
     );
   }, [loadingCalls, queryLiveCalls, t, styles]);
 

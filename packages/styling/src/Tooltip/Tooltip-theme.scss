@@ -1,39 +1,22 @@
 @use '../utils';
 
 .str-video {
-  /* The border radius used for the borders of the component */
-  --str-video__tooltip--border-radius: var(--str-video__border-radius-xs);
+  --str-video__tooltip-bg: var(--str-video__background-core-inverse);
 
-  /* The text/icon color of the component */
-  --str-video__tooltip--color: var(--str-video__text-color1);
-
-  /* The background color of the component */
-  --str-video__tooltip--background-color: var(
-    --str-video__button-default-hover
-  );
-
-  /* Top border of the component */
+  --str-video__tooltip--background-color: var(--str-video__tooltip-bg);
+  --str-video__tooltip--color: var(--str-video__text-on-accent);
+  --str-video__tooltip--box-shadow: var(--str-video__box-shadow-3);
+  --str-video__tooltip--border-radius: var(--str-video__radius-md);
   --str-video__tooltip--border-block-start: none;
-
-  /* Bottom border of the component */
   --str-video__tooltip--border-block-end: none;
-
-  /* Left (right in RTL layout) border of the component */
   --str-video__tooltip--border-inline-start: none;
-
-  /* Right (left in RTL layout) border of the component */
   --str-video__tooltip--border-inline-end: none;
 
-  /* Box shadow applied to the component */
-  --str-video__tooltip--box-shadow: none;
+  &.str-video__theme-dark {
+    --str-video__tooltip-bg: var(--str-video__background-core-elevation-2);
+  }
 }
 
 .str-video__tooltip {
   @include utils.component-layer-overrides('tooltip');
-  font-size: 14px;
-  line-height: 1rem;
-
-  &::after {
-    background-color: var(--str-video__tooltip-background-color);
-  }
 }

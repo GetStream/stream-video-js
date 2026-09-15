@@ -234,7 +234,10 @@ export const AdaptivePipGrid = (props: AdaptivePipGridProps) => {
           <div className="str-video__pip-screen-share-local">
             <Icon icon="screen-share-off" />
             <span className="str-video__pip-screen-share-local__title">
-              {t('You are presenting your screen')}
+              {t(
+                'common.presentingYourScreen.text',
+                'You are presenting your screen',
+              )}
             </span>
           </div>
         ) : (
@@ -252,6 +255,8 @@ export const AdaptivePipGrid = (props: AdaptivePipGridProps) => {
       <div className="rd__pip-grid__container" ref={setContainerElement}>
         {pageArrowsVisible && page > 0 && (
           <IconButton
+            size="sm"
+            variant="secondary"
             icon="caret-left"
             onClick={() =>
               setPage((currentPage) => Math.max(0, currentPage - 1))
@@ -275,6 +280,8 @@ export const AdaptivePipGrid = (props: AdaptivePipGridProps) => {
         {pageArrowsVisible && page < pageCount - 1 && (
           <IconButton
             icon="caret-right"
+            size="sm"
+            variant="secondary"
             onClick={() =>
               setPage((currentPage) => Math.min(pageCount - 1, currentPage + 1))
             }

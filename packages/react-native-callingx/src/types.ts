@@ -203,6 +203,14 @@ export interface ICallingxModule {
 
   registerVoipToken(): void;
 
+  /**
+   * Asks the Android call service to stop. Android-only; resolves as a no-op on iOS.
+   *
+   * This is a *request*, not a command: the service hosts every call, so it stays alive while any
+   * call is registered or in the middle of being registered. Use {@link endCallWithReason} to tear
+   * down an individual call — this method never ends calls, and never dismisses their
+   * notifications.
+   */
   stopService(): Promise<void>;
 
   /**

@@ -1,16 +1,17 @@
 import {
   Restricted,
   useCallStateHooks,
-  useI18n,
   UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 import clsx from 'clsx';
 import {
   OwnCapability,
   RequestPermissionRequestPermissionsEnum,
   SfuModels,
 } from '@stream-io/video-client';
-import { CompositeButton, IconButtonWithMenuProps } from '../Button/';
+import { Badge } from '../Badge';
+import { CompositeButton, CompositeButtonProps } from '../Button/';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
@@ -24,7 +25,7 @@ import {
 
 export type ToggleVideoPreviewButtonProps = PropsWithErrorHandler<
   Pick<
-    IconButtonWithMenuProps,
+    CompositeButtonProps,
     'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
   > &
     UseInputMediaDeviceOptions
@@ -60,11 +61,20 @@ export const ToggleVideoPreviewButton = (
   return (
     <WithTooltip
       title={
-        !hasBrowserPermission
-          ? t('Check your browser video permissions')
-          : isSystemMuted
-            ? t('Camera is paused by your system')
-            : (caption ?? t('Video'))
+        isPromptingPermission
+          ? t('common.waitingForPermission.title', 'Waiting for permission')
+          : !hasBrowserPermission
+            ? t(
+                'callControls.toggleVideoButton.checkBrowserVideoPermissions.title',
+                'Check your browser video permissions',
+              )
+            : isSystemMuted
+              ? t(
+                  'callControls.toggleVideoButton.cameraPausedBySystem.title',
+                  'Camera is paused by your system',
+                )
+              : (caption ??
+                t('callControls.toggleVideoButton.video.title', 'Video'))
       }
       tooltipDisabled={tooltipDisabled}
     >
@@ -74,7 +84,7 @@ export const ToggleVideoPreviewButton = (
         className={clsx(
           !hasBrowserPermission && 'str-video__device-unavailable',
         )}
-        variant="secondary"
+        variant={optionsAwareIsMute ? 'destructive' : 'secondary'}
         data-testid={
           optionsAwareIsMute
             ? 'preview-video-unmute-button'
@@ -93,27 +103,11 @@ export const ToggleVideoPreviewButton = (
         }}
       >
         <Icon icon={!optionsAwareIsMute ? 'camera' : 'camera-off'} />
-        {!hasBrowserPermission && (
-          <span
-            className="str-video__no-media-permission"
-            title={t('Check your browser video permissions')}
-            children="!"
-          />
-        )}
-        {isPromptingPermission && (
-          <span
-            className="str-video__pending-permission"
-            title={t('Waiting for permission')}
-            children="?"
-          />
-        )}
-        {isSystemMuted && hasBrowserPermission && (
-          <span
-            className="str-video__system-muted"
-            title={t('Camera is paused by your system')}
-            children="!"
-          />
-        )}
+        {isPromptingPermission ? (
+          <Badge variant="error" icon="question-mark-fill" />
+        ) : !hasBrowserPermission || isSystemMuted ? (
+          <Badge variant="error" icon="exclamation-mark-fill" />
+        ) : null}
       </CompositeButton>
     </WithTooltip>
   );
@@ -121,7 +115,7 @@ export const ToggleVideoPreviewButton = (
 
 type ToggleVideoPublishingButtonProps = PropsWithErrorHandler<
   Pick<
-    IconButtonWithMenuProps,
+    CompositeButtonProps,
     'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
   > &
     UseInputMediaDeviceOptions
@@ -172,30 +166,52 @@ export const ToggleVideoPublishingButton = (
       <PermissionNotification
         permission={OwnCapability.SEND_VIDEO}
         isAwaitingApproval={isAwaitingPermission}
-        messageApproved={t('You can now share your video.')}
+        messageApproved={t(
+          'callControls.toggleVideoButton.permissionGranted.text',
+          'You can now share your video.',
+        )}
         messageAwaitingApproval={t(
+          'callControls.toggleVideoButton.awaitingApproval.text',
           'Awaiting for an approval to share your video.',
         )}
-        messageRevoked={t('You can no longer share your video.')}
+        messageRevoked={t(
+          'callControls.toggleVideoButton.permissionRevoked.text',
+          'You can no longer share your video.',
+        )}
       >
         <WithTooltip
           title={
-            !hasPermission
-              ? t('You have no permission to share your video')
-              : !hasBrowserPermission
-                ? t('Check your browser video permissions')
-                : !isPublishingVideoAllowed
-                  ? t('Video publishing is disabled by the system')
-                  : isSystemMuted
-                    ? t('Camera is paused by your system')
-                    : caption || t('Video')
+            isPromptingPermission
+              ? t('common.waitingForPermission.title', 'Waiting for permission')
+              : !hasPermission
+                ? t(
+                    'callControls.toggleVideoButton.noPermissionToShareVideo.title',
+                    'You have no permission to share your video',
+                  )
+                : !hasBrowserPermission
+                  ? t(
+                      'callControls.toggleVideoButton.checkBrowserVideoPermissions.title',
+                      'Check your browser video permissions',
+                    )
+                  : !isPublishingVideoAllowed
+                    ? t(
+                        'callControls.toggleVideoButton.videoPublishingDisabled.title',
+                        'Video publishing is disabled by the system',
+                      )
+                    : isSystemMuted
+                      ? t(
+                          'callControls.toggleVideoButton.cameraPausedBySystem.title',
+                          'Camera is paused by your system',
+                        )
+                      : caption ||
+                        t('callControls.toggleVideoButton.video.title', 'Video')
           }
           tooltipDisabled={tooltipDisabled}
         >
           <CompositeButton
             active={optionsAwareIsMute}
             caption={caption}
-            variant="secondary"
+            variant={optionsAwareIsMute ? 'destructive' : 'secondary'}
             disabled={
               !hasBrowserPermission ||
               !hasPermission ||
@@ -216,30 +232,14 @@ export const ToggleVideoPublishingButton = (
             }}
           >
             <Icon icon={optionsAwareIsMute ? 'camera-off' : 'camera'} />
-            {(!hasBrowserPermission ||
+            {isPromptingPermission ? (
+              <Badge variant="error" icon="question-mark-fill" />
+            ) : !hasBrowserPermission ||
               !hasPermission ||
-              !isPublishingVideoAllowed) && (
-              <span className="str-video__no-media-permission">!</span>
-            )}
-            {isPromptingPermission && (
-              <span
-                className="str-video__pending-permission"
-                title={t('Waiting for permission')}
-              >
-                ?
-              </span>
-            )}
-            {isSystemMuted &&
-              hasBrowserPermission &&
-              hasPermission &&
-              isPublishingVideoAllowed && (
-                <span
-                  className="str-video__system-muted"
-                  title={t('Camera is paused by your system')}
-                >
-                  !
-                </span>
-              )}
+              !isPublishingVideoAllowed ||
+              isSystemMuted ? (
+              <Badge variant="error" icon="exclamation-mark-fill" />
+            ) : null}
           </CompositeButton>
         </WithTooltip>
       </PermissionNotification>
