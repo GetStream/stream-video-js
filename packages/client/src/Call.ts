@@ -979,12 +979,14 @@ export class Call {
     members_limit?: number;
     video?: boolean;
   }): Promise<GetCallResponse> => {
+    const getLeaveGeneration = this.leaveGeneration;
     await this.setup();
 
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
       params,
     );
+    if (this.leaveGeneration !== getLeaveGeneration) return response;
 
     this.updateFromCallStateResponse(response);
 
@@ -1154,6 +1156,13 @@ export class Call {
         throw new Error(`Illegal State: call.join() shall be called only once`);
       }
 
+      // snapshot before the first await: a leave() landing at any point from
+      // here on supersedes this join, and the retry loop must bail out instead
+      // of resurrecting a call that leave() already tore down.
+      const joinLeaveGeneration = this.leaveGeneration;
+      const supersededByLeave = () =>
+        this.leaveGeneration !== joinLeaveGeneration;
+
       // we need this to be set before the callingx.joinCall() is
       // called to avoid registering the test call in the CallKit/Telecom
       this.allowOwnTracksLoopback = allowOwnTracksLoopback;
@@ -1166,9 +1175,17 @@ export class Call {
       if (callingX) {
         // for Android/iOS, we need to start the call in the callingx library as soon as possible
         await callingX.joinCall(this, this.clientState.calls);
+        if (supersededByLeave()) {
+          this.logger.debug('Join superseded by leave; not setting up');
+          return;
+        }
       }
 
       await this.setup();
+      if (supersededByLeave()) {
+        this.logger.debug('Join superseded by leave; not registering');
+        return;
+      }
 
       this.clientEventReporter.registerCall(this.cid, {
         callType: this.type,
@@ -1191,6 +1208,10 @@ export class Call {
           { joinReason: 'first-attempt', joinSource },
           async () => {
             for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+              if (supersededByLeave()) {
+                this.logger.debug('Join superseded by leave; not attempting');
+                return;
+              }
               try {
                 this.logger.trace(`Joining call (${attempt})`, this.cid);
                 await this.doJoin(data);
@@ -1198,6 +1219,10 @@ export class Call {
                 delete joinData.migrating_from_list;
                 return;
               } catch (err) {
+                if (supersededByLeave()) {
+                  this.logger.debug('Join superseded by leave; not retrying');
+                  return;
+                }
                 this.logger.warn(`Failed to join call (${attempt})`, this.cid);
                 if (
                   (err instanceof ErrorFromResponse && err.unrecoverable) ||
@@ -1266,6 +1291,10 @@ export class Call {
     // globals resolve to the call's factory. Idempotent across
     // reconnect/migration attempts.
     await this.ensureMediaFactory();
+    if (supersededByLeave()) {
+      this.logger.debug('Join superseded by leave; not wiring media');
+      return;
+    }
 
     const callingX = globalThis.streamRNVideoSDK?.callingX;
     if (callingX) {
@@ -1293,10 +1322,17 @@ export class Call {
           'CoordinatorJoin',
           () => this.doJoinRequest(data),
         );
+        if (!joinResponse || supersededByLeave()) {
+          this.logger.debug(
+            'Join superseded by leave; not creating SFU client',
+          );
+          return;
+        }
         this.credentials = joinResponse.credentials;
         statsOptions = joinResponse.stats_options;
         this.lastStatsOptions = statsOptions;
       } catch (error) {
+        if (supersededByLeave()) return;
         // prevent triggering reconnect flow if the state is OFFLINE
         const avoidRestoreState =
           this.state.callingState === CallingState.OFFLINE;
@@ -1351,6 +1387,10 @@ export class Call {
         getGenericSdp('recvonly', dangerouslyForceCodec, subscriberFmtpLine),
         getGenericSdp('sendonly', dangerouslyForceCodec, fmtpLine),
       ]);
+      if (supersededByLeave()) {
+        this.logger.debug('Join superseded by leave; not joining SFU');
+        return;
+      }
       const isReconnecting =
         this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED;
       const reconnectDetails = isReconnecting
@@ -1384,6 +1424,12 @@ export class Call {
               source: ParticipantSource.WEBRTC_UNSPECIFIED,
             }),
           );
+        if (supersededByLeave()) {
+          this.logger.debug(
+            'Join superseded by leave; not applying SFU response',
+          );
+          return;
+        }
 
         this.currentPublishOptions = publishOptions;
         this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
@@ -1395,6 +1441,10 @@ export class Call {
           );
         }
       } catch (error) {
+        if (supersededByLeave()) {
+          this.logger.debug('Join superseded by leave; ignoring SFU failure');
+          return;
+        }
         this.logger.warn('Join SFU request failed', error);
         sfuClient.close(
           StreamSfuClient.JOIN_FAILED,
@@ -1406,8 +1456,8 @@ export class Call {
       }
     }
 
-    // If the user left while this join was in flight, bail before re-setting JOINED and before
-    // peer-connection setup below (both run synchronously after this, so one check covers them).
+    // If the user left while this join was in flight, bail before re-setting JOINED
+    // or starting peer-connection setup below.
     if (supersededByLeave()) {
       this.logger.debug('Join superseded by leave; aborting join flow');
       return;
@@ -1436,6 +1486,10 @@ export class Call {
         closePreviousInstances: !performingMigration,
         unifiedSessionId: this.unifiedSessionId,
       });
+    }
+    if (supersededByLeave()) {
+      this.logger.debug('Join superseded by leave; not completing join flow');
+      return;
     }
 
     // make sure we only track connection timing if we are not calling this method as part of a reconnection flow
@@ -1622,6 +1676,7 @@ export class Call {
     closePreviousInstances: boolean;
     unifiedSessionId: string;
   }) => {
+    const joinLeaveGeneration = this.leaveGeneration;
     const {
       sfuClient,
       connectionConfig,
@@ -1638,10 +1693,12 @@ export class Call {
     // Flush the previous reporter's final sample while its peer connections are
     // still alive, before we dispose them below. Awaits only the sampling step.
     await this.sfuStatsReporter?.flush();
+    if (this.leaveGeneration !== joinLeaveGeneration) return;
     this.sfuStatsReporter?.stop();
     this.sfuStatsReporter = undefined;
     if (closePreviousInstances && this.subscriber) {
       await this.subscriber.dispose();
+      if (this.leaveGeneration !== joinLeaveGeneration) return;
       this.state.removeAllOrphanedTracks();
     }
     const basePeerConnectionOptions: BasePeerConnectionOpts = {
@@ -1688,6 +1745,7 @@ export class Call {
     if (!isAnonymous) {
       if (closePreviousInstances && this.publisher) {
         await this.publisher.dispose();
+        if (this.leaveGeneration !== joinLeaveGeneration) return;
       }
       this.publisher = new Publisher(
         basePeerConnectionOptions,
@@ -1731,15 +1789,32 @@ export class Call {
    *
    * @internal
    * @param data the join call data.
+   * @returns The coordinator response, or undefined if leave superseded the request before it was sent.
    */
-  doJoinRequest = async (data?: JoinCallData): Promise<JoinCallResponse> => {
+  doJoinRequest = async (
+    data?: JoinCallData,
+  ): Promise<JoinCallResponse | undefined> => {
+    const joinLeaveGeneration = this.leaveGeneration;
     const location = await this.streamClient.getLocationHint();
+    if (this.leaveGeneration !== joinLeaveGeneration) {
+      this.logger.debug(
+        'Join superseded by leave; not sending coordinator request',
+      );
+      return;
+    }
     const e2ee = !!this.e2eeManager;
     const request: JoinCallRequest = { ...data, location, e2ee };
     const joinResponse = await this.streamClient.post<
       JoinCallResponse,
       JoinCallRequest
     >(`${this.streamClientBasePath}/join`, request);
+
+    if (this.leaveGeneration !== joinLeaveGeneration) {
+      this.logger.debug(
+        'Join superseded by leave; not applying coordinator response',
+      );
+      return joinResponse;
+    }
 
     this.state.updateFromCallResponse(joinResponse.call);
     this.state.setMembers(joinResponse.members);
@@ -1755,6 +1830,7 @@ export class Call {
     if (!isReconnecting && this.ringing && !this.isCreatedByMe) {
       // signals other users that I have accepted the incoming call.
       await this.accept();
+      if (this.leaveGeneration !== joinLeaveGeneration) return joinResponse;
     }
 
     if (this.streamClient._hasConnectionID()) {
@@ -1859,6 +1935,7 @@ export class Call {
       callingState === CallingState.JOINING ||
       callingState === CallingState.RECONNECTING ||
       callingState === CallingState.MIGRATING ||
+      callingState === CallingState.LEFT ||
       callingState === CallingState.RECONNECTING_FAILED
     )
       return;
@@ -1869,19 +1946,26 @@ export class Call {
     // `POST /join` per entry) once the call is already healthy again.
     if (hasPending(this.reconnectConcurrencyTag)) return;
 
+    const reconnectLeaveGeneration = this.leaveGeneration;
+    const supersededByLeave = () =>
+      this.leaveGeneration !== reconnectLeaveGeneration;
     return withoutConcurrency(this.reconnectConcurrencyTag, async () => {
+      if (supersededByLeave()) return;
       const reconnectStartTime = Date.now();
       this.reconnectStrategy = strategy;
       this.reconnectReason = reason;
       const sfuRejoinFailures = new Map<string, number>();
 
       const markAsReconnectingFailed = async () => {
+        if (supersededByLeave()) return;
         try {
           // attempt to fetch the call data from the server, as the call
           // state might have changed while we were reconnecting or were offline
           await this.get();
         } finally {
-          this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+          if (!supersededByLeave()) {
+            this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+          }
         }
       };
 
@@ -1951,6 +2035,7 @@ export class Call {
         try {
           // wait until the network is available
           await this.networkAvailableTask?.promise;
+          if (supersededByLeave()) return;
 
           this.logger.info(
             `[Reconnect] Reconnecting with strategy ${
@@ -2001,6 +2086,7 @@ export class Call {
           this.consecutiveNegotiationFailures = 0;
           break; // do-while loop, reconnection worked, exit the loop
         } catch (error) {
+          if (supersededByLeave()) return;
           if (attemptedStrategy === WebsocketReconnectStrategy.REJOIN) {
             const failedSfu = this.credentials?.server.edge_name;
             if (failedSfu) {
@@ -2044,6 +2130,7 @@ export class Call {
 
           // exponential backoff with jitter, capped at 5 s
           await sleep(retryInterval(attempt));
+          if (supersededByLeave()) return;
 
           const wasMigrating =
             this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE;
@@ -2074,6 +2161,7 @@ export class Call {
           );
         }
       } while (
+        !supersededByLeave() &&
         this.state.callingState !== CallingState.JOINED &&
         this.state.callingState !== CallingState.RECONNECTING_FAILED &&
         this.state.callingState !== CallingState.LEFT
@@ -2087,10 +2175,12 @@ export class Call {
    * @internal
    */
   private reconnectFast = async () => {
+    const reconnectLeaveGeneration = this.leaveGeneration;
     const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
     this.state.setCallingState(CallingState.RECONNECTING);
     await this.doJoin(this.joinCallData);
+    if (this.leaveGeneration !== reconnectLeaveGeneration) return;
     await this.get(); // fetch the latest call state, as it might have changed
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.FAST,
@@ -2103,6 +2193,7 @@ export class Call {
    * @internal
    */
   private reconnectRejoin = async () => {
+    const reconnectLeaveGeneration = this.leaveGeneration;
     const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
     this.state.setCallingState(CallingState.RECONNECTING);
@@ -2115,7 +2206,9 @@ export class Call {
       { joinReason },
       () => this.doJoin(this.joinCallData),
     );
+    if (this.leaveGeneration !== reconnectLeaveGeneration) return;
     await this.restorePublishedTracks();
+    if (this.leaveGeneration !== reconnectLeaveGeneration) return;
     this.restoreSubscribedTracks();
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.REJOIN,
@@ -2128,6 +2221,7 @@ export class Call {
    * @internal
    */
   private reconnectMigrate = async () => {
+    const reconnectLeaveGeneration = this.leaveGeneration;
     const reconnectStartTime = Date.now();
     const currentSfuClient = this.sfuClient;
     if (!currentSfuClient) {
@@ -2145,32 +2239,35 @@ export class Call {
     const migrationTask = makeSafePromise(currentSfuClient.enterMigration());
 
     try {
-      const currentSfu = currentSfuClient.edgeName;
-      await this.clientEventReporter.withJoinLifecycle(
-        this.cid,
-        { joinReason: 'migration' },
-        () =>
-          this.doJoin({
-            ...this.joinCallData,
-            migrating_from: currentSfu,
-            migrating_from_list: [currentSfu],
-          }),
-      );
-    } finally {
-      // cleanup the migration_from field after the migration is complete or failed
-      // as we don't want to keep dirty data in the join call data
-      delete this.joinCallData?.migrating_from;
-      delete this.joinCallData?.migrating_from_list;
-    }
+      try {
+        const currentSfu = currentSfuClient.edgeName;
+        await this.clientEventReporter.withJoinLifecycle(
+          this.cid,
+          { joinReason: 'migration' },
+          () =>
+            this.doJoin({
+              ...this.joinCallData,
+              migrating_from: currentSfu,
+              migrating_from_list: [currentSfu],
+            }),
+        );
+      } finally {
+        // cleanup the migration_from field after the migration is complete or failed
+        // as we don't want to keep dirty data in the join call data
+        delete this.joinCallData?.migrating_from;
+        delete this.joinCallData?.migrating_from_list;
+      }
 
-    await this.restorePublishedTracks();
-    this.restoreSubscribedTracks();
+      if (this.leaveGeneration !== reconnectLeaveGeneration) return;
+      await this.restorePublishedTracks();
+      if (this.leaveGeneration !== reconnectLeaveGeneration) return;
+      this.restoreSubscribedTracks();
 
-    try {
       // Wait for the migration to complete, then close the previous SFU client
       // and the peer connection instances. In case of failure, the migration
       // task would throw an error and REJOIN would be attempted.
       await migrationTask();
+      if (this.leaveGeneration !== reconnectLeaveGeneration) return;
 
       // in MIGRATE, we can consider the call as joined only after
       // `participantMigrationComplete` event is received, signaled by
