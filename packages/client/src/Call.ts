@@ -979,12 +979,14 @@ export class Call {
     members_limit?: number;
     video?: boolean;
   }): Promise<GetCallResponse> => {
+    const getLeaveGeneration = this.leaveGeneration;
     await this.setup();
 
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
       params,
     );
+    if (this.leaveGeneration !== getLeaveGeneration) return response;
 
     this.updateFromCallStateResponse(response);
 
@@ -1330,6 +1332,7 @@ export class Call {
         statsOptions = joinResponse.stats_options;
         this.lastStatsOptions = statsOptions;
       } catch (error) {
+        if (supersededByLeave()) return;
         // prevent triggering reconnect flow if the state is OFFLINE
         const avoidRestoreState =
           this.state.callingState === CallingState.OFFLINE;
@@ -1932,6 +1935,7 @@ export class Call {
       callingState === CallingState.JOINING ||
       callingState === CallingState.RECONNECTING ||
       callingState === CallingState.MIGRATING ||
+      callingState === CallingState.LEFT ||
       callingState === CallingState.RECONNECTING_FAILED
     )
       return;
@@ -1942,19 +1946,26 @@ export class Call {
     // `POST /join` per entry) once the call is already healthy again.
     if (hasPending(this.reconnectConcurrencyTag)) return;
 
+    const reconnectLeaveGeneration = this.leaveGeneration;
+    const supersededByLeave = () =>
+      this.leaveGeneration !== reconnectLeaveGeneration;
     return withoutConcurrency(this.reconnectConcurrencyTag, async () => {
+      if (supersededByLeave()) return;
       const reconnectStartTime = Date.now();
       this.reconnectStrategy = strategy;
       this.reconnectReason = reason;
       const sfuRejoinFailures = new Map<string, number>();
 
       const markAsReconnectingFailed = async () => {
+        if (supersededByLeave()) return;
         try {
           // attempt to fetch the call data from the server, as the call
           // state might have changed while we were reconnecting or were offline
           await this.get();
         } finally {
-          this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+          if (!supersededByLeave()) {
+            this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+          }
         }
       };
 
@@ -2024,6 +2035,7 @@ export class Call {
         try {
           // wait until the network is available
           await this.networkAvailableTask?.promise;
+          if (supersededByLeave()) return;
 
           this.logger.info(
             `[Reconnect] Reconnecting with strategy ${
@@ -2074,6 +2086,7 @@ export class Call {
           this.consecutiveNegotiationFailures = 0;
           break; // do-while loop, reconnection worked, exit the loop
         } catch (error) {
+          if (supersededByLeave()) return;
           if (attemptedStrategy === WebsocketReconnectStrategy.REJOIN) {
             const failedSfu = this.credentials?.server.edge_name;
             if (failedSfu) {
@@ -2147,6 +2160,7 @@ export class Call {
           );
         }
       } while (
+        !supersededByLeave() &&
         this.state.callingState !== CallingState.JOINED &&
         this.state.callingState !== CallingState.RECONNECTING_FAILED &&
         this.state.callingState !== CallingState.LEFT
@@ -2160,10 +2174,12 @@ export class Call {
    * @internal
    */
   private reconnectFast = async () => {
+    const reconnectLeaveGeneration = this.leaveGeneration;
     const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
     this.state.setCallingState(CallingState.RECONNECTING);
     await this.doJoin(this.joinCallData);
+    if (this.leaveGeneration !== reconnectLeaveGeneration) return;
     await this.get(); // fetch the latest call state, as it might have changed
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.FAST,
@@ -2176,6 +2192,7 @@ export class Call {
    * @internal
    */
   private reconnectRejoin = async () => {
+    const reconnectLeaveGeneration = this.leaveGeneration;
     const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
     this.state.setCallingState(CallingState.RECONNECTING);
@@ -2188,7 +2205,9 @@ export class Call {
       { joinReason },
       () => this.doJoin(this.joinCallData),
     );
+    if (this.leaveGeneration !== reconnectLeaveGeneration) return;
     await this.restorePublishedTracks();
+    if (this.leaveGeneration !== reconnectLeaveGeneration) return;
     this.restoreSubscribedTracks();
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.REJOIN,
@@ -2201,6 +2220,7 @@ export class Call {
    * @internal
    */
   private reconnectMigrate = async () => {
+    const reconnectLeaveGeneration = this.leaveGeneration;
     const reconnectStartTime = Date.now();
     const currentSfuClient = this.sfuClient;
     if (!currentSfuClient) {
@@ -2218,32 +2238,35 @@ export class Call {
     const migrationTask = makeSafePromise(currentSfuClient.enterMigration());
 
     try {
-      const currentSfu = currentSfuClient.edgeName;
-      await this.clientEventReporter.withJoinLifecycle(
-        this.cid,
-        { joinReason: 'migration' },
-        () =>
-          this.doJoin({
-            ...this.joinCallData,
-            migrating_from: currentSfu,
-            migrating_from_list: [currentSfu],
-          }),
-      );
-    } finally {
-      // cleanup the migration_from field after the migration is complete or failed
-      // as we don't want to keep dirty data in the join call data
-      delete this.joinCallData?.migrating_from;
-      delete this.joinCallData?.migrating_from_list;
-    }
+      try {
+        const currentSfu = currentSfuClient.edgeName;
+        await this.clientEventReporter.withJoinLifecycle(
+          this.cid,
+          { joinReason: 'migration' },
+          () =>
+            this.doJoin({
+              ...this.joinCallData,
+              migrating_from: currentSfu,
+              migrating_from_list: [currentSfu],
+            }),
+        );
+      } finally {
+        // cleanup the migration_from field after the migration is complete or failed
+        // as we don't want to keep dirty data in the join call data
+        delete this.joinCallData?.migrating_from;
+        delete this.joinCallData?.migrating_from_list;
+      }
 
-    await this.restorePublishedTracks();
-    this.restoreSubscribedTracks();
+      if (this.leaveGeneration !== reconnectLeaveGeneration) return;
+      await this.restorePublishedTracks();
+      if (this.leaveGeneration !== reconnectLeaveGeneration) return;
+      this.restoreSubscribedTracks();
 
-    try {
       // Wait for the migration to complete, then close the previous SFU client
       // and the peer connection instances. In case of failure, the migration
       // task would throw an error and REJOIN would be attempted.
       await migrationTask();
+      if (this.leaveGeneration !== reconnectLeaveGeneration) return;
 
       // in MIGRATE, we can consider the call as joined only after
       // `participantMigrationComplete` event is received, signaled by

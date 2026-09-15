@@ -10,8 +10,10 @@ import { Call } from '../Call';
 import * as sfu from '../StreamSfuClient';
 import * as rtc from '../rtc';
 import { StreamClient } from '../coordinator/connection/client';
+import { ErrorFromResponse } from '../coordinator/connection/types';
 import { ClientEventReporter } from '../reporting';
-import type { JoinCallResponse } from '../gen/coordinator';
+import type { GetCallResponse, JoinCallResponse } from '../gen/coordinator';
+import { WebsocketReconnectStrategy } from '../gen/video/sfu/models/models';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { CallingState, ClientState } from '../store';
 import { promiseWithResolvers } from '../helpers/promise';
@@ -29,18 +31,10 @@ vi.mock('../coordinator/connection/utils', async (importOriginal) => {
   };
 });
 
-type CallingXStub = {
-  joinCall: ReturnType<typeof vi.fn>;
-  endCall: ReturnType<typeof vi.fn>;
-  wireAudioEngineSubscription: ReturnType<typeof vi.fn>;
-};
-
 // the React Native globals that `join()`/`leave()` reach for when the SDK runs
 // on a device. Installed only by the tests that assert on callingX behavior.
-const installCallingX = (
-  joinCall: CallingXStub['joinCall'] = vi.fn().mockResolvedValue(undefined),
-): CallingXStub => {
-  const callingX: CallingXStub = {
+const installCallingX = (joinCall = vi.fn().mockResolvedValue(undefined)) => {
+  const callingX = {
     joinCall,
     endCall: vi.fn(),
     wireAudioEngineSubscription: vi.fn(),
@@ -54,6 +48,13 @@ const installCallingX = (
 
 describe('Call lifecycle wiring', () => {
   let call: Call;
+  let internalCall: {
+    doJoin: Call['join'];
+    reconnectFast: () => Promise<void>;
+    restorePublishedTracks: () => Promise<void>;
+    restoreSubscribedTracks: () => void;
+    applyDeviceConfig: () => Promise<void>;
+  };
 
   beforeEach(() => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
@@ -70,6 +71,7 @@ describe('Call lifecycle wiring', () => {
       }),
       clientState: new ClientState(),
     });
+    internalCall = call as unknown as typeof internalCall;
   });
 
   afterEach(() => {
@@ -126,7 +128,7 @@ describe('Call lifecycle wiring', () => {
   it('call.join() reports joinSource without putting it on the wire', async () => {
     vi.spyOn(call, 'setup').mockResolvedValue(undefined);
     const doJoin = vi
-      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .spyOn(internalCall, 'doJoin')
       .mockResolvedValue(undefined);
     const withJoinLifecycle = vi.spyOn(
       call.clientEventReporter,
@@ -148,7 +150,7 @@ describe('Call lifecycle wiring', () => {
     const joinTask = promiseWithResolvers<void>();
     vi.spyOn(call, 'setup').mockResolvedValue(undefined);
     const doJoin = vi
-      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .spyOn(internalCall, 'doJoin')
       .mockReturnValue(joinTask.promise);
 
     const firstJoin = call.join();
@@ -164,75 +166,40 @@ describe('Call lifecycle wiring', () => {
     ]);
   });
 
-  // Regression guard for the join-retry / leave race.
-  //
-  // `supersededByLeave` is snapshotted *inside* `doJoin` (Call.ts), so every
-  // retry re-reads an already-incremented `leaveGeneration` and concludes that
-  // no leave happened. A leave that lands while an attempt is in flight
-  // therefore does not stop the retry loop, and the next attempt performs a
-  // full join — coordinator request, SFU socket, peer connections — on a call
-  // the user has already left, after `leaveCallHooks` tore down its event
-  // wiring. The retry loop needs a generation check of its own, at `join()`
-  // scope rather than per-attempt.
-  it('call.join() stops retrying once leave() has superseded the join', async () => {
-    const firstAttempt = promiseWithResolvers<void>();
-    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
-    const doJoin = vi
-      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
-      .mockImplementationOnce(async () => {
-        // first attempt hangs (e.g. awaiting a JoinResponse), then times out
-        await firstAttempt.promise;
-        throw new Error('join response timeout');
-      })
-      .mockResolvedValue(undefined);
+  // Cover both a retryable attempt and the last allowed attempt.
+  it.each([3, 1])(
+    'leave() cancels an in-flight join with maxJoinRetries=%s',
+    async (maxJoinRetries) => {
+      const callingX = installCallingX();
+      const pending = promiseWithResolvers<void>();
+      vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+      const doJoin = vi
+        .spyOn(internalCall, 'doJoin')
+        .mockImplementationOnce(async () => {
+          await pending.promise;
+          throw new Error('join response timeout');
+        })
+        .mockResolvedValue(undefined);
 
-    const joinTask = call.join({ maxJoinRetries: 3 });
-    await vi.waitFor(() => expect(doJoin).toHaveBeenCalledTimes(1));
+      const task = call.join({ maxJoinRetries });
+      await vi.waitFor(() => expect(doJoin).toHaveBeenCalledTimes(1));
+      await call.leave();
+      expect(call.state.callingState).toBe(CallingState.LEFT);
+      pending.resolve();
 
-    // the user leaves while the first attempt is still in flight
-    await call.leave();
-    expect(call.state.callingState).toBe(CallingState.LEFT);
-
-    // ...only now does the first attempt fail
-    firstAttempt.resolve();
-    await joinTask;
-
-    expect(doJoin).toHaveBeenCalledTimes(1);
-    expect(call.state.callingState).toBe(CallingState.LEFT);
-  });
-
-  // maxJoinRetries: 1 means the failed attempt is also the last one, so the
-  // failure would normally be rethrown and reported as an error-ended call.
-  // A leave that superseded the join must not produce either.
-  it('call.join() swallows a superseded final-attempt failure', async () => {
-    const callingX = installCallingX();
-    const attempt = promiseWithResolvers<void>();
-    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
-    const doJoin = vi
-      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
-      .mockImplementation(async () => {
-        await attempt.promise;
-        throw new Error('join response timeout');
-      });
-
-    const joinTask = call.join({ maxJoinRetries: 1 });
-    await vi.waitFor(() => expect(doJoin).toHaveBeenCalledTimes(1));
-
-    await call.leave();
-    attempt.resolve();
-
-    await expect(joinTask).resolves.toBeUndefined();
-    expect(doJoin).toHaveBeenCalledTimes(1);
-    expect(call.state.callingState).toBe(CallingState.LEFT);
-    expect(callingX.endCall).not.toHaveBeenCalledWith(call, 'error');
-  });
+      await expect(task).resolves.toBeUndefined();
+      expect(doJoin).toHaveBeenCalledTimes(1);
+      expect(call.state.callingState).toBe(CallingState.LEFT);
+      expect(callingX.endCall).not.toHaveBeenCalledWith(call, 'error');
+    },
+  );
 
   it('call.join() stops retrying when leave() lands during the backoff', async () => {
     const backoff = promiseWithResolvers<void>();
     sleepControl.onSleep = () => backoff.promise;
     vi.spyOn(call, 'setup').mockResolvedValue(undefined);
     const doJoin = vi
-      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .spyOn(internalCall, 'doJoin')
       .mockRejectedValue(new Error('transient failure'));
 
     const joinTask = call.join({ maxJoinRetries: 3 });
@@ -247,51 +214,40 @@ describe('Call lifecycle wiring', () => {
     expect(call.state.callingState).toBe(CallingState.LEFT);
   });
 
-  // `setup()` is deliberately left unmocked here: it re-registers effects and
-  // device managers and resets the calling state to IDLE, so a superseded join
-  // that resumes into it would silently resurrect a call the user has left.
-  it('call.join() never attempts or sets up when leave() lands during callingX.joinCall', async () => {
-    const joinCall = promiseWithResolvers<void>();
-    const callingX = installCallingX(vi.fn().mockReturnValue(joinCall.promise));
-    const setup = vi.spyOn(call, 'setup');
-    const doJoin = vi
-      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
-      .mockResolvedValue(undefined);
+  it.each(['callingX.joinCall', 'setup'] as const)(
+    'call.join() stops before registration when leave() lands during %s',
+    async (phase) => {
+      const pending = promiseWithResolvers<void>();
+      const callingX = installCallingX();
+      // Keep real setup for the native-join case to detect reinitialization.
+      const setup = vi.spyOn(call, 'setup');
+      const paused = phase === 'setup' ? setup : callingX.joinCall;
+      paused.mockReturnValue(pending.promise);
+      const registerCall = vi.spyOn(call.clientEventReporter, 'registerCall');
+      const doJoin = vi
+        .spyOn(internalCall, 'doJoin')
+        .mockResolvedValue(undefined);
 
-    const joinTask = call.join();
-    await call.leave();
-    expect(call.state.callingState).toBe(CallingState.LEFT);
-    joinCall.resolve();
+      const task = call.join();
+      await vi.waitFor(() => expect(paused).toHaveBeenCalled());
+      await call.leave();
+      expect(call.state.callingState).toBe(CallingState.LEFT);
+      pending.resolve();
 
-    await expect(joinTask).resolves.toBeUndefined();
-    expect(setup).not.toHaveBeenCalled();
-    expect(doJoin).not.toHaveBeenCalled();
-    expect(call.state.callingState).toBe(CallingState.LEFT);
-    expect(callingX.endCall).not.toHaveBeenCalledWith(call, 'error');
-  });
-
-  it('call.join() never attempts when leave() lands during setup()', async () => {
-    const setupTask = promiseWithResolvers<void>();
-    vi.spyOn(call, 'setup').mockReturnValue(setupTask.promise);
-    const registerCall = vi.spyOn(call.clientEventReporter, 'registerCall');
-    const doJoin = vi
-      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
-      .mockResolvedValue(undefined);
-
-    const joinTask = call.join();
-    await call.leave();
-    setupTask.resolve();
-
-    await expect(joinTask).resolves.toBeUndefined();
-    expect(registerCall).not.toHaveBeenCalled();
-    expect(doJoin).not.toHaveBeenCalled();
-    expect(call.state.callingState).toBe(CallingState.LEFT);
-  });
+      await expect(task).resolves.toBeUndefined();
+      if (phase === 'callingX.joinCall') expect(setup).not.toHaveBeenCalled();
+      expect(registerCall).not.toHaveBeenCalled();
+      expect(doJoin).not.toHaveBeenCalled();
+      expect(call.state.callingState).toBe(CallingState.LEFT);
+      expect(callingX.endCall).not.toHaveBeenCalledWith(call, 'error');
+    },
+  );
 
   it.each([
     'media factory',
     'location hint',
     'coordinator request',
+    'coordinator rejection',
     'acceptance',
     'generic SDP',
     'SFU join',
@@ -326,7 +282,12 @@ describe('Call lifecycle wiring', () => {
     const request = vi
       .spyOn(call.streamClient, 'post')
       .mockImplementation(async () => {
-        if (phase === 'coordinator request') await pending.promise;
+        if (
+          phase === 'coordinator request' ||
+          phase === 'coordinator rejection'
+        )
+          await pending.promise;
+        if (phase === 'coordinator rejection') throw new Error('Join failed');
         return fromPartial<JoinCallResponse>({
           call: { egress: {}, custom: {}, created_by: { id: 'other-user' } },
           members: [],
@@ -370,6 +331,7 @@ describe('Call lifecycle wiring', () => {
       'media factory': mediaFactory,
       'location hint': locationHint,
       'coordinator request': request,
+      'coordinator rejection': request,
       acceptance: accept,
       'generic SDP': genericSdp,
       'SFU join': joinSfu,
@@ -415,6 +377,135 @@ describe('Call lifecycle wiring', () => {
       expect(callingX!.endCall).not.toHaveBeenCalledWith(call, 'error');
     }
   });
+
+  it.each([
+    ['FAST', 'join'],
+    ['REJOIN', 'join'],
+    ['MIGRATE', 'join'],
+    ['MIGRATE', 'migration'],
+  ] as const)(
+    'stops %s reconnect after leave during %s',
+    async (strategy, phase) => {
+      const pending = promiseWithResolvers<void>();
+      const doJoin = vi
+        .spyOn(internalCall, 'doJoin')
+        .mockImplementation(async () => {
+          if (phase === 'join') await pending.promise;
+        });
+      const get = vi.spyOn(call, 'get').mockResolvedValue(fromPartial({}));
+      const restorePublished = vi
+        .spyOn(internalCall, 'restorePublishedTracks')
+        .mockResolvedValue(undefined);
+      const restoreSubscribed = vi
+        .spyOn(internalCall, 'restoreSubscribedTracks')
+        .mockImplementation(() => {});
+      const oldSfu = fromPartial<sfu.StreamSfuClient>({
+        enterMigration: vi.fn().mockReturnValue(pending.promise),
+        leaveAndClose: vi.fn().mockResolvedValue(undefined),
+        close: vi.fn(),
+      });
+      const oldSubscriber = fromPartial<rtc.Subscriber>({
+        detachEventHandlers: vi.fn(),
+        dispose: vi.fn().mockResolvedValue(undefined),
+      });
+      const oldPublisher = fromPartial<rtc.Publisher>({
+        detachEventHandlers: vi.fn(),
+        dispose: vi.fn().mockResolvedValue(undefined),
+      });
+      call['sfuClient'] = oldSfu;
+      call['subscriber'] = oldSubscriber;
+      call['publisher'] = oldPublisher;
+      call.clientState.registerOrUpdateCall(call);
+      const task = call['reconnect'](
+        WebsocketReconnectStrategy[strategy],
+        'test',
+      );
+      await vi.waitFor(() =>
+        expect(
+          phase === 'join' ? doJoin : restoreSubscribed,
+        ).toHaveBeenCalled(),
+      );
+      await call.leave();
+      vi.mocked(oldSubscriber.dispose).mockClear();
+      vi.mocked(oldPublisher.dispose).mockClear();
+      restoreSubscribed.mockClear();
+      pending.resolve();
+      await task;
+
+      expect(call.state.callingState).toBe(CallingState.LEFT);
+      expect(call.clientState.calls).not.toContain(call);
+      expect(get).not.toHaveBeenCalled();
+      expect(restoreSubscribed).not.toHaveBeenCalled();
+      if (phase === 'join') expect(restorePublished).not.toHaveBeenCalled();
+      if (strategy === 'MIGRATE') {
+        expect(oldSubscriber.dispose).toHaveBeenCalledOnce();
+        expect(oldPublisher.dispose).toHaveBeenCalledOnce();
+        expect(oldSfu.close).toHaveBeenCalledOnce();
+      }
+    },
+  );
+
+  it.each(['reconnect failure', 'failure refresh'] as const)(
+    'preserves LEFT when leave happens during %s',
+    async (phase) => {
+      const pending = promiseWithResolvers<void>();
+      const reconnect = vi
+        .spyOn(internalCall, 'reconnectFast')
+        .mockImplementation(async () => {
+          if (phase === 'reconnect failure') await pending.promise;
+          throw new ErrorFromResponse(fromPartial({ unrecoverable: true }));
+        });
+      const get = vi.spyOn(call, 'get').mockImplementation(async () => {
+        await pending.promise;
+        return fromPartial<GetCallResponse>({});
+      });
+      const task = call['reconnect'](WebsocketReconnectStrategy.FAST, 'test');
+      await vi.waitFor(() =>
+        expect(
+          phase === 'reconnect failure' ? reconnect : get,
+        ).toHaveBeenCalled(),
+      );
+      await call.leave();
+      pending.resolve();
+      await task;
+
+      expect(call.state.callingState).toBe(CallingState.LEFT);
+      expect(call.clientState.calls).not.toContain(call);
+      expect(get).toHaveBeenCalledTimes(phase === 'failure refresh' ? 1 : 0);
+    },
+  );
+
+  it.each([false, true])(
+    'get() respects leave during fetch: %s',
+    async (leaveDuringFetch) => {
+      const pending = promiseWithResolvers<GetCallResponse>();
+      const response = fromPartial<GetCallResponse>({ call: { settings: {} } });
+      const request = vi
+        .spyOn(call.streamClient, 'get')
+        .mockReturnValue(pending.promise);
+      vi.spyOn(call.streamClient, '_hasConnectionID').mockReturnValue(true);
+      const update = vi
+        .spyOn(call, 'updateFromCallStateResponse')
+        .mockImplementation(() => {});
+      const configure = vi
+        .spyOn(internalCall, 'applyDeviceConfig')
+        .mockResolvedValue(undefined);
+      await call.leave();
+      const task = call.get(); // deliberate reuse must still work
+      await vi.waitFor(() => expect(request).toHaveBeenCalled());
+      if (leaveDuringFetch) await call.leave();
+      pending.resolve(response);
+      await expect(task).resolves.toBe(response);
+
+      expect(call.clientState.calls.includes(call)).toBe(!leaveDuringFetch);
+      expect(update).toHaveBeenCalledTimes(leaveDuringFetch ? 0 : 1);
+      expect(configure).toHaveBeenCalledTimes(leaveDuringFetch ? 0 : 1);
+      expect(call.state.callingState).toBe(
+        leaveDuringFetch ? CallingState.LEFT : CallingState.IDLE,
+      );
+      if (!leaveDuringFetch) await call.leave();
+    },
+  );
 
   it.each([
     'stats flush',
@@ -484,7 +575,7 @@ describe('Call lifecycle wiring', () => {
     sleepControl.onSleep = () => Promise.resolve();
     vi.spyOn(call, 'setup').mockResolvedValue(undefined);
     const doJoin = vi
-      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .spyOn(internalCall, 'doJoin')
       .mockRejectedValueOnce(new Error('transient failure'))
       .mockResolvedValue(undefined);
 
@@ -497,7 +588,7 @@ describe('Call lifecycle wiring', () => {
     sleepControl.onSleep = () => Promise.resolve();
     vi.spyOn(call, 'setup').mockResolvedValue(undefined);
     const doJoin = vi
-      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .spyOn(internalCall, 'doJoin')
       .mockRejectedValue(new Error('transient failure'));
 
     await expect(call.join({ maxJoinRetries: 2 })).rejects.toThrow(
@@ -510,7 +601,7 @@ describe('Call lifecycle wiring', () => {
   it('call.join() is still allowed after a completed leave()', async () => {
     vi.spyOn(call, 'setup').mockResolvedValue(undefined);
     const doJoin = vi
-      .spyOn(call as unknown as { doJoin: Call['join'] }, 'doJoin')
+      .spyOn(internalCall, 'doJoin')
       .mockResolvedValue(undefined);
 
     await call.leave();
