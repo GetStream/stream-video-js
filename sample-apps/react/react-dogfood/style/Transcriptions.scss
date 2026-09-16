@@ -1,9 +1,6 @@
-.rd__transcriptions {
-  .str-video__call-stats {
-    padding: 0;
+.rd__transcriptions__status {
+  --rd__stat-card-background: var(--str-video__background-color2);
 
-    .str-video__call-stats__card {
-      background-color: var(--str-video__background-color2);
-    }
-  }
+  border-radius: var(--str-video__border-radius-lg);
+  background-color: var(--str-video__base-color7);
 }

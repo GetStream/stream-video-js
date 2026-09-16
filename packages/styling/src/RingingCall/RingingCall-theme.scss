@@ -1,24 +1,25 @@
 .str-video__call-panel {
-  background: var(--str-video__background-color3);
-  border: 2px solid rgba(200,200,200,0.6);
-  border-radius: 10px;
+  background: var(--str-video__background-core-surface-card);
+  border: 2px solid var(--str-video__border-core-default);
+  border-radius: var(--str-video__radius-md);
 }
 
 .str-video__call-panel--ringing {
   .str-video__call-panel__members-list {
-
     .str-video__call-panel__member-box {
-      border-radius: var(--str-video__border-radius-circle);
-      background: var(--str-video__background-color6);
+      border-radius: var(--str-video__radius-max);
+      background: var(--str-video__background-core-surface-strong);
 
       &:before {
-        content: "";
+        content: '';
         position: absolute;
         inset: 0;
-        border-radius: var(--str-video__border-radius-circle);
-        padding: 4px;
-        background:linear-gradient(
-            180deg,var(--str-video__primary-color),var(--str-video__info-color)
+        border-radius: var(--str-video__radius-max);
+        padding: var(--str-video__space-4);
+        background: linear-gradient(
+          180deg,
+          var(--str-video__accent-primary),
+          var(--str-video__accent-success)
         );
         -webkit-mask:
           linear-gradient(#fff 0 0) content-box,
@@ -28,11 +29,11 @@
       }
 
       .str-video__member_details {
-        background-color: var(--str-video__background-color4);
-        color: var(--str-video__text-color1);
-        border-radius: 4px;
-        font-size: 12px;
-        line-height: 16px;
+        background-color: var(--str-video__background-core-overlay-dark-strong);
+        color: var(--str-video__text-on-accent);
+        border-radius: var(--str-video__radius-xs);
+        font-size: var(--str-video__typography-font-size-xs);
+        line-height: var(--str-video__typography-line-height-tight);
       }
     }
   }

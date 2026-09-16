@@ -76,6 +76,7 @@ export const E2EEKeyNotification = () => {
 
   return (
     <Notification
+      state="error"
       isVisible={!dismissed}
       placement="top"
       message={message}

@@ -74,6 +74,7 @@ export const DeviceDisconnectedNotification = ({
 
   return (
     <Notification
+      state="error"
       isVisible={disconnectedDevices.size > 0}
       placement="top-start"
       message={message}

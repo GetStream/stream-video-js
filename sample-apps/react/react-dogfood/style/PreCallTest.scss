@@ -120,24 +120,12 @@
   align-self: center;
 }
 .rd__pre-call-test__stats {
-  background: none;
-  padding: 0;
-  .str-video__call-stats__card-container {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--str-video__spacing-xs);
-  }
+  --rd__stat-card-columns: 3;
+  --rd__stat-card-gap: var(--str-video__spacing-xs);
 
-  .str-video__call-stats__card {
-    width: auto;
-    min-width: 0;
-    gap: var(--str-video__space-6);
-  }
-
-  .str-video__call-stats__card-content {
-    min-width: 0;
-  }
-  .str-video__call-stats__card-value {
+  // Values here are live-updating numbers in a narrow track, so they get one line and an ellipsis
+  // rather than reflowing the row on every tick.
+  .rd__stat-card__value {
     overflow: hidden;
     font-variant-numeric: tabular-nums;
     text-overflow: ellipsis;
