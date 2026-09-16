@@ -22,26 +22,24 @@
   return self;
 }
 
-- (void)isEnabled:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+- (NSNumber *)isEnabled
 {
-  resolve(@([_impl isEnabled]));
+  return @([_impl isEnabled]);
 }
 
-- (void)setEnabled:(BOOL)enabled
-           resolve:(RCTPromiseResolveBlock)resolve
-            reject:(RCTPromiseRejectBlock)reject
+- (NSNumber *)setEnabled:(BOOL)enabled
 {
   if (![_impl setEnabled:enabled]) {
-    reject(@"NOISE_CANCELLATION_FILTER_NOT_REGISTERED", @"Noise cancellation filter not registered", nil);
-    return;
+    @throw [NSException exceptionWithName:@"NOISE_CANCELLATION_FILTER_NOT_REGISTERED"
+                                  reason:@"Noise cancellation filter not registered. Call registerProcessor first."
+                                userInfo:nil];
   }
-  resolve(@YES);
+  return @YES;
 }
 
-- (void)deviceSupportsAdvancedAudioProcessing:(RCTPromiseResolveBlock)resolve
-                                       reject:(RCTPromiseRejectBlock)reject
+- (NSNumber *)deviceSupportsAdvancedAudioProcessing
 {
-  resolve(@([_impl deviceSupportsAdvancedAudioProcessing]));
+  return @([_impl deviceSupportsAdvancedAudioProcessing]);
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
