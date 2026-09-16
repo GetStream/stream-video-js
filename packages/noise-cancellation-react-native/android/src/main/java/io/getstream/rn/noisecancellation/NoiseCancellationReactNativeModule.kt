@@ -1,29 +1,21 @@
 package io.getstream.rn.noisecancellation
 
 import android.content.pm.PackageManager
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.Promise
 import android.util.Log
+import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactApplicationContext
 
 class NoiseCancellationReactNativeModule(reactContext: ReactApplicationContext) :
-    ReactContextBaseJavaModule(reactContext) {
+    NativeNoiseCancellationReactNativeSpec(reactContext) {
 
-    override fun getName(): String {
-        return NAME
-    }
-
-    @ReactMethod
-    fun isEnabled(promise: Promise) {
+    override fun isEnabled(promise: Promise) {
         val controller = guardControllerInit(promise)
         controller?.let {
             promise.resolve(it.noiseCancellation.isEnabled())
         }
     }
 
-    @ReactMethod
-    fun setEnabled(enabled: Boolean, promise: Promise) {
+    override fun setEnabled(enabled: Boolean, promise: Promise) {
         val controller = guardControllerInit(promise)
         controller?.let {
             it.noiseCancellation.setEnabled(enabled)
@@ -31,8 +23,7 @@ class NoiseCancellationReactNativeModule(reactContext: ReactApplicationContext) 
         }
     }
 
-    @ReactMethod
-    fun deviceSupportsAdvancedAudioProcessing(promise: Promise) {
+    override fun deviceSupportsAdvancedAudioProcessing(promise: Promise) {
         val hasSupport = reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_AUDIO_PRO)
         promise.resolve(hasSupport)
     }
@@ -50,6 +41,6 @@ class NoiseCancellationReactNativeModule(reactContext: ReactApplicationContext) 
     }
 
     companion object {
-        const val NAME = "NoiseCancellationReactNative"
+        const val NAME = NativeNoiseCancellationReactNativeSpec.NAME
     }
 }
