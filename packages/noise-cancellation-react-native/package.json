@@ -29,7 +29,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "rimraf android/build && rimraf dist",
-    "build": "yarn clean && bob build"
+    "build": "yarn clean && bob build",
+    "test": "node --test __tests__/native-module.test.cjs"
   },
   "keywords": [
     "react-native",
@@ -58,7 +59,20 @@
   },
   "peerDependencies": {
     "@stream-io/react-native-webrtc": "^145.3.1",
-    "react-native": "*"
+    "react-native": ">=0.79.0"
+  },
+  "codegenConfig": {
+    "name": "NoiseCancellationReactNativeSpec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "io.getstream.rn.noisecancellation"
+    },
+    "ios": {
+      "modulesProvider": {
+        "NoiseCancellationReactNative": "NoiseCancellationReactNative"
+      }
+    }
   },
   "react-native-builder-bob": {
     "source": "src",

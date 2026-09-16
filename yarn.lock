@@ -6937,7 +6937,7 @@ __metadata:
     typescript: "npm:^6.0.3"
   peerDependencies:
     "@stream-io/react-native-webrtc": ^145.3.1
-    react-native: "*"
+    react-native: ">=0.79.0"
   languageName: unknown
   linkType: soft
 
