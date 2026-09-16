@@ -10,7 +10,7 @@
   &__live-badge,
   &__backstage-badge {
     padding: var(--str-video__space-6) var(--str-video__spacing-sm);
-    border-radius: var(--str-video__space-6);
+    border-radius: var(--str-video__radius-sm);
     font-size: var(--str-video__typography-font-size-sm);
     font-weight: var(--str-video__typography-font-weight-semi-bold);
   }

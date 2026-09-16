@@ -35,7 +35,9 @@ export const DeviceControls = ({ isVideoEnabled }: DeviceControlsProps) => {
         />
         {displayName && (
           <span className="str-video__embedded-lobby__participant-label">
-            {displayName}
+            <span className="str-video__embedded-lobby__participant-label-text">
+              {displayName}
+            </span>
           </span>
         )}
         <div className="str-video__embedded-lobby__media-toggle">

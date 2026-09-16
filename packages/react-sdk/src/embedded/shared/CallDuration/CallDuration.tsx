@@ -1,6 +1,10 @@
 import { Icon } from '../../../components';
 
 interface CallDurationProps {
+  /**
+   * A formatted duration as produced by `useCallDuration`: `MM:SS`, or
+   * `HH:MM:SS` past the hour. Everything up to the last `:` is dimmed.
+   */
   elapsed: string;
 }
 

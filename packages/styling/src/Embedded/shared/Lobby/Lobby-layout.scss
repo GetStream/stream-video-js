@@ -147,19 +147,23 @@
 
 .str-video__embedded-lobby__participant-label {
   position: absolute;
-  inset: auto auto var(--str-video__space-8) var(--str-video__space-8);
+  inset: auto auto var(--str-video__spacing-xs) var(--str-video__spacing-xs);
   display: flex;
   align-items: center;
   min-block-size: var(--str-video__size-32);
   max-inline-size: min(256px, calc(50% - var(--str-video__space-48)));
-  padding: var(--str-video__space-4) var(--str-video__space-12);
+  padding: var(--str-video__spacing-xxs) var(--str-video__spacing-sm);
   border-radius: var(--str-video__radius-lg);
   font-size: var(--str-video__typography-font-size-xs);
   line-height: var(--str-video__typography-line-height-tight);
   font-weight: var(--str-video__typography-font-weight-regular);
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+
+  &-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .str-video__embedded-lobby__join {
