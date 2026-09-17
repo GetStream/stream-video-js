@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import {
   Call,
   CallingState,
@@ -17,6 +18,7 @@ import {
   filter,
   map,
 } from 'rxjs';
+import { getIosVideoSubscriptionDemand } from '../../../../utils/internal/IosVideoSubscriptionDemand';
 
 type TrackSubscriberProps = {
   participantSessionId: string;
@@ -40,12 +42,46 @@ type TrackSubscriberProps = {
  * This component is used to unsubscribe to video track and subscribe only to the audio track of the participant (by passing undefined dimensions) in the following cases:
  * 1. When the participant stops publishing the video track
  * 2. When the participant becomes invisible
+ *
+ * On iOS the request is not made directly: the demand of this view is registered
+ * with the call's demand coordinator, which merges it with the demand of the
+ * other surfaces rendering the same track - most notably the native Picture in
+ * Picture window, whose bounds take precedence while it is active.
 */
 const TrackSubscriber = (props: TrackSubscriberProps) => {
   const { call, participantSessionId, trackType, isVisible, dimensions$ } =
     props;
 
   useEffect(() => {
+    const isPublishingTrack$ = call.state.participants$.pipe(
+      map((ps) => ps.find((p) => p.sessionId === participantSessionId)),
+      filter((p): p is StreamVideoParticipant => !!p),
+      distinctUntilKeyChanged('publishedTracks'),
+      map((p) =>
+        trackType === 'videoTrack' ? hasVideo(p) : hasScreenShare(p),
+      ),
+      distinctUntilChanged(),
+    );
+    if (Platform.OS === 'ios') {
+      // on iOS this view is only one of the surfaces that can render the track:
+      // the native Picture in Picture window owns the dimensions of the track it
+      // renders, so the demand of this view is merged in by the coordinator.
+      const handle = getIosVideoSubscriptionDemand(call).registerInline({
+        sessionId: participantSessionId,
+        trackType,
+      });
+      const iosSubscription = combineLatest([
+        dimensions$,
+        isPublishingTrack$,
+      ]).subscribe(([dimension, isPublishing]) => {
+        handle.update({ dimension, eligible: isVisible && isPublishing });
+      });
+      return () => {
+        iosSubscription.unsubscribe();
+        handle.release();
+      };
+    }
+
     const requestTrackWithDimensions = (
       debounceType: DebounceType,
       dimension: SfuModels.VideoDimension | undefined,
@@ -62,15 +98,7 @@ const TrackSubscriber = (props: TrackSubscriberProps) => {
       });
       call.trackSubscriptionManager.apply(debounceType);
     };
-    const isPublishingTrack$ = call.state.participants$.pipe(
-      map((ps) => ps.find((p) => p.sessionId === participantSessionId)),
-      filter((p): p is StreamVideoParticipant => !!p),
-      distinctUntilKeyChanged('publishedTracks'),
-      map((p) =>
-        trackType === 'videoTrack' ? hasVideo(p) : hasScreenShare(p),
-      ),
-      distinctUntilChanged(),
-    );
+
     const isJoinedState$ = call.state.callingState$.pipe(
       map((callingState) => callingState === CallingState.JOINED),
     );

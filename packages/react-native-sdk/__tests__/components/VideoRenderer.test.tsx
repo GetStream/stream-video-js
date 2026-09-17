@@ -53,4 +53,52 @@ describe('VideoRenderer', () => {
       );
     }
   });
+
+  it('serves two tiles of the same participant with a single subscription', async () => {
+    const remote = mockParticipant({ sessionId: 'remote-1' });
+    const call = mockCall(mockClientWithUser(), [remote]);
+    call.state.setCallingState(CallingState.JOINED);
+
+    // the participant is shown in the grid and in the floating tile at once
+    const { rerender } = render(
+      <>
+        <VideoRenderer participant={remote} trackType="videoTrack" />
+        <VideoRenderer participant={remote} trackType="videoTrack" />
+      </>,
+      { call },
+    );
+    await act(async () => {});
+
+    const [gridTile, floatingTile] = screen.getAllByTestId(
+      ComponentTestIds.PARTICIPANT_MEDIA_STREAM,
+    );
+    fireEvent(gridTile!, 'layout', {
+      nativeEvent: { layout: { width: 200, height: 400, x: 0, y: 0 } },
+    });
+    fireEvent(floatingTile!, 'layout', {
+      nativeEvent: { layout: { width: 300, height: 100, x: 0, y: 0 } },
+    });
+
+    expect(call.trackSubscriptionManager.subscriptions).toEqual([
+      expect.objectContaining({
+        sessionId: 'remote-1',
+        trackType: SfuModels.TrackType.VIDEO,
+        // one subscription has to satisfy both tiles
+        dimension: { width: 300, height: 400 },
+      }),
+    ]);
+
+    // the floating tile is dismissed, the grid tile keeps its own demand
+    rerender(
+      <>
+        <VideoRenderer participant={remote} trackType="videoTrack" />
+      </>,
+    );
+    expect(call.trackSubscriptionManager.subscriptions).toContainEqual(
+      expect.objectContaining({
+        sessionId: 'remote-1',
+        dimension: { width: 200, height: 400 },
+      }),
+    );
+  });
 });
