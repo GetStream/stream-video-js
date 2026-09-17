@@ -107,16 +107,15 @@ const TrackSubscriber = (props: TrackSubscriberProps) => {
     const inlineConsumer = pipWindow
       ? undefined
       : pipDemand?.registerInlineConsumer(trackKey);
-    const isOwnedByPip$ =
-      pipWindow || !pipDemand ? of(false) : pipDemand.isOwnedByPip$(trackKey);
+    const canWrite$ = pipDemand?.canWrite$(trackKey, pipWindow) ?? of(true);
 
     const subscription = combineLatest([
       dimensions$,
       isPublishingTrack$,
       isJoinedState$,
-      isOwnedByPip$,
-    ]).subscribe(([dimension, isPublishing, isJoined, isOwnedByPip]) => {
-      if (isJoined && !isOwnedByPip) {
+      canWrite$,
+    ]).subscribe(([dimension, isPublishing, isJoined, canWrite]) => {
+      if (isJoined && canWrite) {
         if (!isVisible || !isPublishing) {
           requestTrackWithDimensions(DebounceType.MEDIUM, undefined);
         } else if (dimension) {
@@ -129,8 +128,8 @@ const TrackSubscriber = (props: TrackSubscriberProps) => {
       subscription.unsubscribe();
       // releasing hands the track back to the inline views, which request their
       // current demand again, or gives it up when there are none left.
-      ownership?.release();
-      inlineConsumer?.release();
+      ownership?.();
+      inlineConsumer?.();
     };
   }, [
     call,

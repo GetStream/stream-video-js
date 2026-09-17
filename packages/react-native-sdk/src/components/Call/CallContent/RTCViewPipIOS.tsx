@@ -77,6 +77,26 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     };
   }, [call]);
   const [isPipActive, setIsPipActive] = useState(false);
+  const lastPipActive = React.useRef(false);
+  const onPiPChangeRef = React.useRef(onPiPChange);
+  onPiPChangeRef.current = onPiPChange;
+
+  const updatePipState = useCallback(
+    (active: boolean) => {
+      if (lastPipActive.current === active) return;
+      lastPipActive.current = active;
+      setIsPipActive(active);
+      if (active) {
+        activePipIdentity = pipIdentity;
+        isInPiPMode$.next(true);
+      } else if (activePipIdentity === pipIdentity) {
+        activePipIdentity = undefined;
+        isInPiPMode$.next(false);
+      }
+      onPiPChangeRef.current?.(active);
+    },
+    [pipIdentity],
+  );
 
   // we debounce the participants to avoid unnecessary rerenders
   // that happen when participant tracks are all subscribed simultaneously
@@ -112,21 +132,23 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
   const nativeRef = React.useRef<any>(null);
 
   React.useEffect(() => {
+    const node = findNodeHandle(nativeRef.current);
     let callClosedInvokedOnce = false;
     const onCallClosed = () => {
       if (callClosedInvokedOnce) {
         return;
       }
       callClosedInvokedOnce = true;
-      const node = findNodeHandle(nativeRef.current);
       if (node !== null) {
         onNativeCallClosed(node);
       }
-      shouldDisableIOSLocalVideoOnBackgroundRef.current = true;
+      if (!activePipIdentity || activePipIdentity === pipIdentity) {
+        shouldDisableIOSLocalVideoOnBackgroundRef.current = true;
+      }
       // the window is gone: its bounds stop being valid geometry and the track
       // it owns goes back to the inline views, or is given up.
-      setIsPipActive(false);
       pipWindow?.release();
+      updatePipState(false);
     };
     const unsubFunc = call?.on('call.ended', () => {
       videoLoggerSystem
@@ -147,7 +169,7 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
       unsubFunc?.();
       subscription?.unsubscribe();
     };
-  }, [call, pipWindow]);
+  }, [call, pipWindow, pipIdentity, updatePipState]);
 
   const onDimensionsUpdated = useCallback((width: number, height: number) => {
     const node = findNodeHandle(nativeRef.current);
@@ -184,25 +206,15 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     const { active, identity } = event.nativeEvent;
     // a recycled native view can still deliver the events of the window it
     // replaced; they describe a window that is gone.
-    if (identity !== pipIdentity) return;
-    setIsPipActive(active);
-    if (active) {
-      activePipIdentity = identity;
-      isInPiPMode$.next(true);
-    } else if (activePipIdentity === identity) {
-      // only the window that entered Picture in Picture may report leaving it:
-      // a replaced view stopping must not reset the state of its successor.
-      activePipIdentity = undefined;
-      isInPiPMode$.next(false);
-    }
-    onPiPChange?.(active);
+    if (identity !== pipIdentity || pipWindow?.isReleased) return;
+    updatePipState(active);
   };
 
   const handlePiPBoundsChange = (event: {
     nativeEvent: PiPBoundsChangeEvent;
   }) => {
     const { identity, width, height } = event.nativeEvent;
-    if (identity !== pipIdentity) return;
+    if (identity !== pipIdentity || pipWindow?.isReleased) return;
     videoLoggerSystem
       .getLogger('RTCViewPipIOS')
       .debug('onPiPBoundsChange', { width, height, identity });
@@ -258,6 +270,7 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
   return (
     <>
       <RTCViewPipNative
+        key={pipIdentity}
         streamURL={streamURL}
         mirror={mirror}
         ref={nativeRef}

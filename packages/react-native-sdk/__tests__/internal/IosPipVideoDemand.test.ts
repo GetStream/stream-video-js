@@ -34,16 +34,16 @@ describe('IosPipVideoDemand', () => {
     window.release();
 
     expect(window.dimensions$.getValue()).toBeUndefined();
-    await expect(firstValueFrom(demand.isOwnedByPip$(trackKey))).resolves.toBe(
-      false,
+    await expect(firstValueFrom(demand.canWrite$(trackKey))).resolves.toBe(
+      true,
     );
 
     // a disposed window neither reports geometry nor owns tracks anymore
     window.setBounds({ width: 200, height: 300 });
     window.own(trackKey);
     expect(window.dimensions$.getValue()).toBeUndefined();
-    await expect(firstValueFrom(demand.isOwnedByPip$(trackKey))).resolves.toBe(
-      false,
+    await expect(firstValueFrom(demand.canWrite$(trackKey))).resolves.toBe(
+      true,
     );
   });
 });
