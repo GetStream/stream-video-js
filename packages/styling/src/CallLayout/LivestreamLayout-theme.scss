@@ -1,0 +1,23 @@
+.str-video__livestream-layout__wrapper {
+  .str-video__livestream-layout__overlay {
+    .str-video__livestream-layout__live-badge {
+      background-color: var(--str-video__accent-primary);
+      color: var(--str-video__text-on-accent);
+    }
+
+    .str-video__livestream-layout__live-badge__dot {
+      background-color: var(--str-video__background-core-on-accent);
+    }
+
+    .str-video__livestream-layout__viewers-count,
+    .str-video__livestream-layout__duration,
+    .str-video__livestream-layout__speaker-name {
+      background-color: var(--str-video__background-core-surface-default);
+      color: var(--str-video__text-primary);
+
+      .str-video__icon {
+        background-color: currentColor;
+      }
+    }
+  }
+}
