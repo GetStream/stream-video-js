@@ -12,17 +12,29 @@ import {
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useMemo, useState } from 'react';
 import { findNodeHandle } from 'react-native';
 import {
   onNativeCallClosed,
   onNativeDimensionsUpdated,
+  type PiPBoundsChangeEvent,
+  type PiPChangeEvent,
   RTCViewPipNative,
 } from './RTCViewPipNative';
 import { debounceTime } from 'rxjs';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
 import { isInPiPMode$ } from '../../../utils/internal/rxSubjects';
+import {
+  getIosPipVideoDemand,
+  type IosPipVideoWindow,
+} from '../../../utils/internal/IosPipVideoDemand';
+import TrackSubscriber from '../../Participant/ParticipantView/VideoRenderer/TrackSubscriber';
+
+/** Tags the native window of a view, so that events of a replaced one are rejected. */
+let lastPipIdentity = 0;
+/** The identity of the window that put the app in Picture in Picture, if any. */
+let activePipIdentity: string | undefined;
 
 type Props = {
   includeLocalParticipantVideo?: boolean;
@@ -51,6 +63,20 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
   const [allParticipants, setAllParticipants] = useState<
     StreamVideoParticipant[]
   >(call?.state.participants ?? []);
+
+  // one native window per call and view lifetime: its bounds are the demand of
+  // the track it renders and must not outlive it.
+  const { pipWindow, pipIdentity } = useMemo<{
+    pipWindow?: IosPipVideoWindow;
+    pipIdentity?: string;
+  }>(() => {
+    if (!call) return {};
+    return {
+      pipWindow: getIosPipVideoDemand(call).claimWindow(),
+      pipIdentity: `pip-${++lastPipIdentity}`,
+    };
+  }, [call]);
+  const [isPipActive, setIsPipActive] = useState(false);
 
   // we debounce the participants to avoid unnecessary rerenders
   // that happen when participant tracks are all subscribed simultaneously
@@ -97,6 +123,10 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
         onNativeCallClosed(node);
       }
       shouldDisableIOSLocalVideoOnBackgroundRef.current = true;
+      // the window is gone: its bounds stop being valid geometry and the track
+      // it owns goes back to the inline views, or is given up.
+      setIsPipActive(false);
+      pipWindow?.release();
     };
     const unsubFunc = call?.on('call.ended', () => {
       videoLoggerSystem
@@ -117,7 +147,7 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
       unsubFunc?.();
       subscription?.unsubscribe();
     };
-  }, [call]);
+  }, [call, pipWindow]);
 
   const onDimensionsUpdated = useCallback((width: number, height: number) => {
     const node = findNodeHandle(nativeRef.current);
@@ -150,9 +180,33 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
       ? mirrorOverride
       : !!participantInSpotlight?.isLocalParticipant && direction === 'front';
 
-  const handlePiPChange = (event: { nativeEvent: { active: boolean } }) => {
-    isInPiPMode$.next(event.nativeEvent.active);
-    onPiPChange?.(event.nativeEvent.active);
+  const handlePiPChange = (event: { nativeEvent: PiPChangeEvent }) => {
+    const { active, identity } = event.nativeEvent;
+    // a recycled native view can still deliver the events of the window it
+    // replaced; they describe a window that is gone.
+    if (identity !== pipIdentity) return;
+    setIsPipActive(active);
+    if (active) {
+      activePipIdentity = identity;
+      isInPiPMode$.next(true);
+    } else if (activePipIdentity === identity) {
+      // only the window that entered Picture in Picture may report leaving it:
+      // a replaced view stopping must not reset the state of its successor.
+      activePipIdentity = undefined;
+      isInPiPMode$.next(false);
+    }
+    onPiPChange?.(active);
+  };
+
+  const handlePiPBoundsChange = (event: {
+    nativeEvent: PiPBoundsChangeEvent;
+  }) => {
+    const { identity, width, height } = event.nativeEvent;
+    if (identity !== pipIdentity) return;
+    videoLoggerSystem
+      .getLogger('RTCViewPipIOS')
+      .debug('onPiPBoundsChange', { width, height, identity });
+    pipWindow?.setBounds({ width, height });
   };
 
   // Get participant info for avatar placeholder
@@ -193,6 +247,14 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     participantInSpotlight?.connectionQuality ??
     SfuModels.ConnectionQuality.UNSPECIFIED;
 
+  // while the native window is on screen, its bounds - and not the hidden
+  // inline layout behind it - are the demand of the track it renders. The local
+  // preview is never subscribed to.
+  const pipTrackOwner =
+    isPipActive && participantInSpotlight?.isLocalParticipant !== true
+      ? participantInSpotlight
+      : undefined;
+
   return (
     <>
       <RTCViewPipNative
@@ -200,6 +262,8 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
         mirror={mirror}
         ref={nativeRef}
         onPiPChange={handlePiPChange}
+        onPiPBoundsChange={handlePiPBoundsChange}
+        pipIdentity={pipIdentity}
         participantName={participantName}
         participantImageURL={participantImageURL}
         isReconnecting={isReconnecting}
@@ -210,6 +274,16 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
         isSpeaking={participantIsSpeaking}
         connectionQuality={participantConnectionQuality}
       />
+      {pipTrackOwner && call && pipWindow && (
+        <TrackSubscriber
+          call={call}
+          participantSessionId={pipTrackOwner.sessionId}
+          trackType={trackType}
+          isVisible={true}
+          dimensions$={pipWindow.dimensions$}
+          pipWindow={pipWindow}
+        />
+      )}
       {participantInSpotlight && (
         <DimensionsUpdatedRenderless
           participant={participantInSpotlight}

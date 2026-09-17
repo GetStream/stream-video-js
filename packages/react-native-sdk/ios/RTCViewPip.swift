@@ -35,20 +35,10 @@ class RTCViewPip: UIView {
         }
     }
 
-    /// Opaque identity issued by JS for the current call/view/selection. Every
-    /// event is tagged with it so that JS can reject the ones that belong to a
-    /// replaced call, view or selection.
-    @objc public var pipIdentity: NSString? = nil {
-        didSet {
-            guard pipIdentity != oldValue else { return }
-            // the new identity has to learn the current geometry and lifecycle
-            // even though neither of them changed, otherwise an unchanged
-            // window would stall the new selection.
-            lastEmittedBounds = nil
-            lastEmittedIsActive = nil
-            replayCachedState()
-        }
-    }
+    /// Opaque identity issued by JS for this view and its window. It stays the
+    /// same while the rendered participant or track changes, and every event is
+    /// tagged with it, so that JS can reject the events of a view it replaced.
+    @objc public var pipIdentity: NSString? = nil
 
     // MARK: - Cached Picture in Picture State
 
@@ -361,8 +351,8 @@ class RTCViewPip: UIView {
         emitBoundsIfNeeded()
     }
 
-    /// Replays the cached state, so that a new identity or a newly registered
-    /// listener does not have to wait for the next native change.
+    /// Replays the cached state, so that a newly registered listener does not
+    /// have to wait for the next native change.
     ///
     /// An inactive lifecycle is deliberately not replayed: it tells a listener
     /// nothing it does not already assume, while re-emitting it would invoke

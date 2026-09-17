@@ -34,9 +34,9 @@ type RTCViewPipNativeProps = {
    */
   onPiPBoundsChange?: (event: { nativeEvent: PiPBoundsChangeEvent }) => void;
   /**
-   * Opaque identity of the current call/view/selection. The native view tags
-   * every event with it, so that events of a replaced call, view or selection
-   * can be rejected. Changing it replays the current native state.
+   * Opaque identity of this view and its native window, stable while the
+   * rendered participant or track changes. The native view tags every event
+   * with it, so that the events of a replaced view can be rejected.
    */
   pipIdentity?: string;
   /** The participant's name for the avatar placeholder when video is disabled */
