@@ -32,102 +32,69 @@ test('propagates the error when the native module is missing', () => {
   expect(load).toThrow(error);
 });
 
-test('adapts synchronous controls to Promises and dispatches change after success', async () => {
-  const { NoiseCancellation } = load();
-  const noiseCancellation = new NoiseCancellation();
-  const onChange = jest.fn();
-  noiseCancellation.on('change', onChange);
+test.each([
+  ['enable', true],
+  ['disable', false],
+] as const)(
+  '%s adapts native results, event timing, and errors',
+  async (method, enabled) => {
+    const { NoiseCancellation, setEnabled } = load();
+    const adapter = new NoiseCancellation();
+    const onChange = jest.fn();
+    adapter.on('change', onChange);
 
-  const enabled = noiseCancellation.enable();
-  expect(enabled).toBeInstanceOf(Promise);
-  expect(nativeModule.setEnabled).toHaveBeenCalledWith(true);
-  expect(onChange).not.toHaveBeenCalled();
-  await expect(enabled).resolves.toBeUndefined();
-  expect(onChange).toHaveBeenNthCalledWith(1, true);
-
-  const disabled = noiseCancellation.disable();
-  expect(disabled).toBeInstanceOf(Promise);
-  expect(nativeModule.setEnabled).toHaveBeenLastCalledWith(false);
-  expect(onChange).toHaveBeenCalledTimes(1);
-  await expect(disabled).resolves.toBeUndefined();
-  expect(onChange).toHaveBeenNthCalledWith(2, false);
-});
-
-test('rejects adapter calls but throws from direct helpers without dispatching change', async () => {
-  const { NoiseCancellation, setEnabled } = load();
-  const error = new Error('Noise cancellation filter not registered');
-  nativeModule.setEnabled.mockImplementation(() => {
-    throw error;
-  });
-  const noiseCancellation = new NoiseCancellation();
-  const onChange = jest.fn();
-  noiseCancellation.on('change', onChange);
-
-  await expect(noiseCancellation.enable()).rejects.toBe(error);
-  await expect(noiseCancellation.disable()).rejects.toBe(error);
-  expect(() => setEnabled(true)).toThrow(error);
-  expect(onChange).not.toHaveBeenCalled();
-});
-
-test('returns native boolean results directly from exported helpers', () => {
-  const { isEnabled, setEnabled, deviceSupportsAdvancedAudioProcessing } =
-    load();
-
-  expect(isEnabled()).toBe(true);
-  expect(setEnabled(false)).toBe(true);
-  expect(deviceSupportsAdvancedAudioProcessing()).toBe(true);
-  expect(nativeModule.isEnabled).toHaveBeenCalledTimes(1);
-  expect(nativeModule.setEnabled).toHaveBeenCalledWith(false);
-  expect(
-    nativeModule.deviceSupportsAdvancedAudioProcessing,
-  ).toHaveBeenCalledTimes(1);
-});
-
-test('keeps instance queries and lifecycle methods Promise-based while helpers return booleans', async () => {
-  const {
-    NoiseCancellation,
-    isEnabled,
-    deviceSupportsAdvancedAudioProcessing,
-  } = load();
-  nativeModule.isEnabled.mockReturnValue(false);
-  nativeModule.deviceSupportsAdvancedAudioProcessing.mockReturnValue(false);
-  const noiseCancellation = new NoiseCancellation();
-
-  expect(isEnabled()).toBe(false);
-  expect(deviceSupportsAdvancedAudioProcessing()).toBe(false);
-  for (const query of [
-    noiseCancellation.isEnabled,
-    noiseCancellation.canAutoEnable,
-  ]) {
-    const result = query();
+    expect(setEnabled(enabled)).toBe(true);
+    const result = adapter[method]();
     expect(result).toBeInstanceOf(Promise);
-    await expect(result).resolves.toBe(false);
-  }
-  for (const lifecycle of [noiseCancellation.init, noiseCancellation.dispose]) {
-    const result = lifecycle();
+    expect(nativeModule.setEnabled.mock.calls).toEqual([[enabled], [enabled]]);
+    expect(onChange).not.toHaveBeenCalled();
+    await expect(result).resolves.toBeUndefined();
+    expect(onChange.mock.calls).toEqual([[enabled]]);
+
+    const error = new Error('Processor not registered');
+    nativeModule.setEnabled.mockImplementation(() => {
+      throw error;
+    });
+    expect(() => setEnabled(enabled)).toThrow(error);
+    await expect(adapter[method]()).rejects.toBe(error);
+    expect(onChange).toHaveBeenCalledTimes(1);
+  },
+);
+
+test.each([
+  ['isEnabled', 'isEnabled'],
+  ['deviceSupportsAdvancedAudioProcessing', 'canAutoEnable'],
+] as const)(
+  '%s returns booleans directly and Promises through %s',
+  async (nativeMethod, adapterMethod) => {
+    const api = load();
+    const adapter = new api.NoiseCancellation();
+    const query = nativeModule[nativeMethod];
+
+    for (const value of [true, false]) {
+      query.mockReturnValue(value);
+      expect(api[nativeMethod]()).toBe(value);
+      const result = adapter[adapterMethod]();
+      expect(result).toBeInstanceOf(Promise);
+      await expect(result).resolves.toBe(value);
+    }
+    expect(query).toHaveBeenCalledTimes(4);
+
+    const error = new Error('Native query failed');
+    query.mockImplementation(() => {
+      throw error;
+    });
+    expect(api[nativeMethod]).toThrow(error);
+    await expect(adapter[adapterMethod]()).rejects.toBe(error);
+  },
+);
+
+test.each(['init', 'dispose'] as const)(
+  '%s returns a resolved Promise',
+  async (method) => {
+    const { NoiseCancellation } = load();
+    const result = new NoiseCancellation()[method]();
     expect(result).toBeInstanceOf(Promise);
     await expect(result).resolves.toBeUndefined();
-  }
-});
-
-test('converts synchronous query errors to adapter rejections', async () => {
-  const {
-    NoiseCancellation,
-    isEnabled,
-    deviceSupportsAdvancedAudioProcessing,
-  } = load();
-  const error = new Error('Native query failed');
-  const throwError = () => {
-    throw error;
-  };
-  nativeModule.isEnabled.mockImplementation(throwError);
-  nativeModule.deviceSupportsAdvancedAudioProcessing.mockImplementation(
-    throwError,
-  );
-  const noiseCancellation = new NoiseCancellation();
-
-  expect(isEnabled).toThrow(error);
-  expect(deviceSupportsAdvancedAudioProcessing).toThrow(error);
-  await expect(noiseCancellation.isEnabled()).rejects.toBe(error);
-  await expect(noiseCancellation.canAutoEnable()).rejects.toBe(error);
-});
+  },
+);

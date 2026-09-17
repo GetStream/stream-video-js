@@ -6,7 +6,8 @@ import com.facebook.react.bridge.ReactApplicationContext
 class NoiseCancellationReactNativeModule(reactContext: ReactApplicationContext) :
     NativeNoiseCancellationReactNativeSpec(reactContext) {
 
-    override fun isEnabled(): Boolean = requireController().noiseCancellation.isEnabled()
+    override fun isEnabled(): Boolean =
+        NoiseCancellationReactNative.controller?.noiseCancellation?.isEnabled() ?: false
 
     override fun setEnabled(enabled: Boolean): Boolean {
         requireController().noiseCancellation.setEnabled(enabled)
