@@ -22,7 +22,7 @@ import {
 import {
   getIosPipTrack$,
   setIosPipTrack,
-} from '../../../../utils/internal/IosPipVideoDemand';
+} from '../../../../utils/internal/iosPipTrack';
 
 type TrackSubscriberProps = {
   participantSessionId: string;
@@ -37,7 +37,8 @@ type TrackSubscriberProps = {
   /**
    * Set by the native iOS Picture in Picture window, whose bounds this
    * subscriber requests. While it does, the inline views of the same track
-   * stop requesting their own, hidden layout.
+   * stop requesting their own, hidden layout. Only rendered on iOS; on other
+   * platforms the gate is always open.
    */
   isPipWriter?: boolean;
 };

@@ -121,7 +121,7 @@ describe('TrackSubscriber', () => {
     );
   });
 
-  it('follows the publication of the track it renders', () => {
+  it('follows the publication and the rejoin of the track it renders', () => {
     const call = joinedCall();
     const dimensions$ = inlineDimensions$();
 
@@ -129,30 +129,14 @@ describe('TrackSubscriber', () => {
     act(() => dimensions$.next({ width: 180, height: 240 }));
     expect(dimensionOf(call)).toEqual({ width: 180, height: 240 });
 
-    act(() =>
-      call.state.setParticipants([
-        mockParticipant({ sessionId, publishedTracks: [] }),
-      ]),
-    );
+    act(() => call.state.updateParticipant(sessionId, { publishedTracks: [] }));
     expect(dimensionOf(call)).toBeUndefined();
-
     act(() =>
-      call.state.setParticipants([
-        mockParticipant({
-          sessionId,
-          publishedTracks: [SfuModels.TrackType.VIDEO],
-        }),
-      ]),
+      call.state.updateParticipant(sessionId, {
+        publishedTracks: [SfuModels.TrackType.VIDEO],
+      }),
     );
     expect(dimensionOf(call)).toEqual({ width: 180, height: 240 });
-  });
-
-  it('requests the native window bounds again after a rejoin', () => {
-    const call = joinedCall();
-    const dimensions$ = inlineDimensions$();
-
-    render(pipSubscriber(call, dimensions$));
-    act(() => dimensions$.next({ width: 180, height: 240 }));
 
     act(() => {
       call.state.setCallingState(CallingState.RECONNECTING);
@@ -161,7 +145,6 @@ describe('TrackSubscriber', () => {
       });
       call.state.setCallingState(CallingState.JOINED);
     });
-
     expect(dimensionOf(call)).toEqual({ width: 180, height: 240 });
   });
 

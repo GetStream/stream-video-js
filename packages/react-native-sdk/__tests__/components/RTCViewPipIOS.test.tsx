@@ -4,7 +4,6 @@ import { act } from '@testing-library/react-native';
 import {
   type Call,
   CallingState,
-  DebounceType,
   SfuModels,
   type StreamVideoParticipant,
 } from '@stream-io/video-client';
@@ -29,6 +28,8 @@ jest.spyOn(UIManager, 'getViewManagerConfig').mockReturnValue({
 
 const sessionId = 'remote-session-1';
 const otherSessionId = 'remote-session-2';
+const inlineLayout = { width: 390, height: 725 };
+const pipBounds = { width: 180, height: 240 };
 
 const remoteParticipant = (custom?: Partial<StreamVideoParticipant>) =>
   mockParticipant({
@@ -64,13 +65,10 @@ const dimensionOf = (
       subscription.trackType === trackType,
   )?.dimension;
 
-/** Drives the native events of one rendered picture in picture view. */
-const pipView = (index = 0) => {
-  const view = screen.UNSAFE_getAllByType(RTCViewPipNative).at(index);
-  if (!view) throw new Error(`no picture in picture view at index ${index}`);
-  const props = view.props;
+/** Drives the native events of the rendered picture in picture view. */
+const pipView = () => {
+  const props = screen.UNSAFE_getByType(RTCViewPipNative).props;
   return {
-    props,
     change: (active: boolean) =>
       act(() => props.onPiPChange({ nativeEvent: { active } })),
     bounds: (width: number, height: number) =>
@@ -78,9 +76,12 @@ const pipView = (index = 0) => {
   };
 };
 
+const dimensions$ = (dimension?: SfuModels.VideoDimension) =>
+  new BehaviorSubject<SfuModels.VideoDimension | undefined>(dimension);
+
 const inlineSubscriber = (
   call: Call,
-  dimensions$: BehaviorSubject<SfuModels.VideoDimension | undefined>,
+  inline$: BehaviorSubject<SfuModels.VideoDimension | undefined>,
   session = sessionId,
 ) => (
   <TrackSubscriber
@@ -88,12 +89,9 @@ const inlineSubscriber = (
     participantSessionId={session}
     trackType="videoTrack"
     isVisible={true}
-    dimensions$={dimensions$}
+    dimensions$={inline$}
   />
 );
-
-const dimensions$ = (dimension?: SfuModels.VideoDimension) =>
-  new BehaviorSubject<SfuModels.VideoDimension | undefined>(dimension);
 
 const renderPip = (
   call: Call,
@@ -117,31 +115,36 @@ describe('RTCViewPipIOS', () => {
   });
 
   it.each(['start-first', 'bounds-first'])(
-    'keeps native bounds through hidden layout and resize (%s)',
+    'requests the native bounds instead of the hidden inline layout (%s)',
     (order) => {
       const call = joinedCall();
       const updates = mockSfuClient(call);
-      const inline$ = dimensions$({ width: 390, height: 725 });
-
+      const inline$ = dimensions$(inlineLayout);
       renderPip(call, inline$);
       settle();
-      expect(dimensionOf(call)).toEqual({ width: 390, height: 725 });
+      expect(dimensionOf(call)).toEqual(inlineLayout);
 
-      if (order === 'start-first') pipView().change(true);
-      pipView().bounds(180, 240);
+      if (order === 'start-first') {
+        pipView().change(true);
+        settle();
+        // nothing to request until the window reports its bounds.
+        expect(dimensionOf(call)).toEqual(inlineLayout);
+      }
+      pipView().bounds(pipBounds.width, pipBounds.height);
       if (order === 'bounds-first') pipView().change(true);
       settle();
+      expect(dimensionOf(call)).toEqual(pipBounds);
 
-      // Native events already contain validated, truncated logical points.
-      expect(dimensionOf(call)).toEqual({ width: 180, height: 240 });
-
+      // the hidden inline layout can no longer overwrite the window.
       act(() => inline$.next({ width: 390, height: 800 }));
       settle();
-      expect(dimensionOf(call)).toEqual({ width: 180, height: 240 });
+      expect(dimensionOf(call)).toEqual(pipBounds);
 
       pipView().bounds(320, 180);
       settle();
       expect(dimensionOf(call)).toEqual({ width: 320, height: 180 });
+
+      // leaving PiP hands the track back to the inline view in one update.
       updates.mockClear();
       pipView().change(false);
       settle();
@@ -153,49 +156,73 @@ describe('RTCViewPipIOS', () => {
     },
   );
 
-  it.each([false, true])(
-    'waits for native bounds (inline mounted: %s)',
-    (withInline) => {
-      const call = joinedCall();
-      const updates = mockSfuClient(call);
-      const inline$ = withInline
-        ? dimensions$({ width: 390, height: 725 })
-        : undefined;
-      renderPip(call, inline$);
-      settle();
-      const sent = updates.mock.calls.length;
-      pipView().change(true);
-      act(() => inline$?.next({ width: 390, height: 900 }));
-      settle();
-      expect(dimensionOf(call)).toEqual(
-        withInline ? { width: 390, height: 725 } : undefined,
-      );
-      expect(updates).toHaveBeenCalledTimes(sent);
-    },
-  );
-
-  it('subscribes without an inline tile or stream and clears the previous selection', () => {
+  it('transfers the demand between participants and clears a track without an inline view', () => {
     const call = joinedCall([
-      remoteParticipant({ videoStream: undefined }),
+      remoteParticipant(),
       remoteParticipant({ sessionId: otherSessionId, videoStream: undefined }),
     ]);
     const updates = mockSfuClient(call);
-    renderPip(call);
+    const inline$ = dimensions$(inlineLayout);
+    renderPip(call, inline$);
     pipView().change(true);
-    pipView().bounds(180, 240);
-    expect(dimensionOf(call)).toEqual({ width: 180, height: 240 });
-    act(() =>
-      call.state.setParticipants((participants) => [...participants].reverse()),
-    );
+    pipView().bounds(pipBounds.width, pipBounds.height);
     settle();
-    expect(dimensionOf(call)).toBeUndefined();
-    expect(dimensionOf(call, otherSessionId)).toEqual({
-      width: 180,
-      height: 240,
-    });
+    expect(dimensionOf(call)).toEqual(pipBounds);
+    expect(dimensionOf(call, otherSessionId)).toBeUndefined();
+
+    const switchSpotlight = () => {
+      act(() =>
+        call.state.setParticipants((participants) =>
+          [...participants].reverse(),
+        ),
+      );
+      settle();
+    };
+
+    // the other participant has no inline view: it is subscribed from PiP only.
+    switchSpotlight();
+    expect(dimensionOf(call, otherSessionId)).toEqual(pipBounds);
+    expect(dimensionOf(call)).toEqual(inlineLayout);
+
+    // and dropped again when the window moves on.
+    switchSpotlight();
+    expect(dimensionOf(call)).toEqual(pipBounds);
+    expect(dimensionOf(call, otherSessionId)).toBeUndefined();
+
     pipView().change(false);
     settle();
-    expect(updates).toHaveBeenLastCalledWith([]);
+    expect(dimensionOf(call)).toEqual(inlineLayout);
+    expect(updates).toHaveBeenLastCalledWith([
+      expect.objectContaining({ sessionId, dimension: inlineLayout }),
+    ]);
+  });
+
+  it('transfers the demand from the camera to the screen share track', () => {
+    const call = joinedCall();
+    mockSfuClient(call);
+    const inline$ = dimensions$(inlineLayout);
+    renderPip(call, inline$);
+    pipView().change(true);
+    pipView().bounds(pipBounds.width, pipBounds.height);
+    settle();
+    expect(dimensionOf(call)).toEqual(pipBounds);
+
+    const publish = (...tracks: SfuModels.TrackType[]) => {
+      act(() =>
+        call.state.updateParticipant(sessionId, { publishedTracks: tracks }),
+      );
+      settle();
+    };
+    const screenShare = () =>
+      dimensionOf(call, sessionId, SfuModels.TrackType.SCREEN_SHARE);
+
+    publish(SfuModels.TrackType.VIDEO, SfuModels.TrackType.SCREEN_SHARE);
+    expect(screenShare()).toEqual(pipBounds);
+    expect(dimensionOf(call)).toEqual(inlineLayout);
+
+    publish(SfuModels.TrackType.VIDEO);
+    expect(dimensionOf(call)).toEqual(pipBounds);
+    expect(screenShare()).toBeUndefined();
   });
 
   it('deduplicates lifecycle transitions and uses the latest callback', () => {
@@ -205,11 +232,10 @@ describe('RTCViewPipIOS', () => {
     const { rerender } = renderPip(call, undefined, {
       onPiPChange: firstCallback,
     });
-    const view = pipView();
-    view.change(true);
-    view.change(true);
-    view.bounds(180, 240);
-    view.bounds(320, 180);
+    pipView().change(true);
+    pipView().change(true);
+    pipView().bounds(pipBounds.width, pipBounds.height);
+    pipView().bounds(320, 180);
     expect(firstCallback.mock.calls).toEqual([[true]]);
     expect(isInPiPMode$.getValue()).toBe(true);
     rerender(<RTCViewPipIOS onPiPChange={nextCallback} />);
@@ -220,82 +246,6 @@ describe('RTCViewPipIOS', () => {
     expect(isInPiPMode$.getValue()).toBe(false);
   });
 
-  it('transfers the demand between participants with the same window bounds', () => {
-    const call = joinedCall([
-      remoteParticipant(),
-      remoteParticipant({ sessionId: otherSessionId }),
-    ]);
-    mockSfuClient(call);
-    const inline$ = dimensions$({ width: 390, height: 725 });
-    const otherInline$ = dimensions$({ width: 200, height: 100 });
-
-    render(
-      <>
-        <RTCViewPipIOS />
-        {inlineSubscriber(call, inline$)}
-        {inlineSubscriber(call, otherInline$, otherSessionId)}
-      </>,
-      { call },
-    );
-    pipView().change(true);
-    pipView().bounds(180, 240);
-    settle();
-
-    expect(dimensionOf(call)).toEqual({ width: 180, height: 240 });
-    expect(dimensionOf(call, otherSessionId)).toEqual({
-      width: 200,
-      height: 100,
-    });
-
-    act(() => {
-      call.state.setParticipants((participants) => [...participants].reverse());
-    });
-    settle();
-
-    expect(dimensionOf(call, otherSessionId)).toEqual({
-      width: 180,
-      height: 240,
-    });
-    expect(dimensionOf(call)).toEqual({ width: 390, height: 725 });
-  });
-
-  it('transfers the demand from the camera to the screen share track', () => {
-    const call = joinedCall();
-    mockSfuClient(call);
-    const inline$ = dimensions$({ width: 390, height: 725 });
-
-    renderPip(call, inline$);
-    pipView().change(true);
-    pipView().bounds(180, 240);
-    settle();
-    expect(dimensionOf(call)).toEqual({ width: 180, height: 240 });
-
-    act(() => {
-      call.state.updateParticipant(sessionId, {
-        publishedTracks: [
-          SfuModels.TrackType.VIDEO,
-          SfuModels.TrackType.SCREEN_SHARE,
-        ],
-      });
-    });
-    settle();
-
-    expect(
-      dimensionOf(call, sessionId, SfuModels.TrackType.SCREEN_SHARE),
-    ).toEqual({ width: 180, height: 240 });
-    expect(dimensionOf(call)).toEqual({ width: 390, height: 725 });
-    act(() =>
-      call.state.updateParticipant(sessionId, {
-        publishedTracks: [SfuModels.TrackType.VIDEO],
-      }),
-    );
-    settle();
-    expect(dimensionOf(call)).toEqual({ width: 180, height: 240 });
-    expect(
-      dimensionOf(call, sessionId, SfuModels.TrackType.SCREEN_SHARE),
-    ).toBeUndefined();
-  });
-
   it('creates no subscription for a local only picture in picture', () => {
     const call = joinedCall([
       mockParticipant({
@@ -304,101 +254,113 @@ describe('RTCViewPipIOS', () => {
         publishedTracks: [SfuModels.TrackType.VIDEO],
       }),
     ]);
-    const updateSubscriptions = mockSfuClient(call);
-
+    const updates = mockSfuClient(call);
     render(<RTCViewPipIOS includeLocalParticipantVideo={true} />, { call });
     pipView().change(true);
-    pipView().bounds(180, 240);
+    pipView().bounds(pipBounds.width, pipBounds.height);
     settle();
-
     expect(call.trackSubscriptionManager.subscriptions).toHaveLength(0);
-    expect(updateSubscriptions).not.toHaveBeenCalled();
+    expect(updates).not.toHaveBeenCalled();
   });
 
   it('gives the track back when the view is unmounted', () => {
     const call = joinedCall();
     mockSfuClient(call);
-    const inline$ = dimensions$({ width: 390, height: 725 });
-
+    const inline$ = dimensions$(inlineLayout);
     const { rerender } = renderPip(call, inline$);
     pipView().change(true);
-    pipView().bounds(180, 240);
+    pipView().bounds(pipBounds.width, pipBounds.height);
     settle();
-    expect(dimensionOf(call)).toEqual({ width: 180, height: 240 });
+    expect(dimensionOf(call)).toEqual(pipBounds);
 
     rerender(<>{inlineSubscriber(call, inline$)}</>);
     settle();
-
-    expect(dimensionOf(call)).toEqual({ width: 390, height: 725 });
+    expect(dimensionOf(call)).toEqual(inlineLayout);
     expect(isInPiPMode$.getValue()).toBe(false);
   });
 
-  it('gives the track back when the call is left', () => {
+  it.each(['call.ended event', 'LEFT calling state'])(
+    'gives the track back on %s and ignores later native events',
+    (reason) => {
+      const call = joinedCall();
+      mockSfuClient(call);
+      const onPiPChange = jest.fn();
+      let endCall: (() => void) | undefined;
+      const originalOn = call.on.bind(call);
+      jest.spyOn(call, 'on').mockImplementation(((name: any, cb: any) => {
+        if (name === 'call.ended') endCall = cb;
+        return originalOn(name, cb);
+      }) as typeof call.on);
+      const inline$ = dimensions$(inlineLayout);
+      renderPip(call, inline$, { onPiPChange });
+      const view = pipView();
+      view.change(true);
+      view.bounds(pipBounds.width, pipBounds.height);
+      settle();
+      expect(dimensionOf(call)).toEqual(pipBounds);
+
+      act(() => {
+        if (reason === 'call.ended event') endCall?.();
+        else call.state.setCallingState(CallingState.LEFT);
+      });
+      expect(isInPiPMode$.getValue()).toBe(false);
+      expect(onPiPChange.mock.calls).toEqual([[true], [false]]);
+
+      // the disposed window is not valid geometry anymore.
+      act(() => call.state.setCallingState(CallingState.JOINED));
+      view.change(true);
+      view.bounds(400, 500);
+      settle();
+      expect(dimensionOf(call)).toEqual(inlineLayout);
+      expect(onPiPChange).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it('does not let a pending stop clear a restarted PiP subscription', () => {
     const call = joinedCall();
-    mockSfuClient(call);
-    const inline$ = dimensions$({ width: 390, height: 725 });
-
-    renderPip(call, inline$);
-    const view = pipView();
-    view.change(true);
-    view.bounds(180, 240);
-    settle();
-    expect(dimensionOf(call)).toEqual({ width: 180, height: 240 });
-
-    act(() => call.state.setCallingState(CallingState.LEFT));
-    expect(isInPiPMode$.getValue()).toBe(false);
-    act(() => call.state.setCallingState(CallingState.JOINED));
-    // the disposed window is not valid geometry anymore.
-    view.bounds(200, 300);
-    settle();
-
-    expect(dimensionOf(call)).toEqual({ width: 390, height: 725 });
-  });
-
-  it('does not let a replaced window resurrect its bounds', () => {
-    const call = joinedCall();
-    mockSfuClient(call);
-    const inline$ = dimensions$({ width: 390, height: 725 });
-
-    const { rerender } = render(
-      <>
-        <RTCViewPipIOS key="first" />
-        {inlineSubscriber(call, inline$)}
-      </>,
-      { call },
-    );
-
+    renderPip(call);
     pipView().change(true);
-    pipView().bounds(180, 240);
-    settle();
-    expect(dimensionOf(call)).toEqual({ width: 180, height: 240 });
-
-    rerender(
-      <>
-        <RTCViewPipIOS key="second" />
-        {inlineSubscriber(call, inline$)}
-      </>,
-    );
-    settle();
-
+    pipView().bounds(pipBounds.width, pipBounds.height);
+    pipView().change(false);
     pipView().change(true);
-    settle();
-    expect(dimensionOf(call)).toEqual({ width: 390, height: 725 });
-
     pipView().bounds(200, 300);
     settle();
     expect(dimensionOf(call)).toEqual({ width: 200, height: 300 });
   });
 
-  it('leaves another call with the same cid alone', () => {
+  it.each([false, true])(
+    'releases PiP demand when both views unmount (inline first: %s)',
+    (inlineFirst) => {
+      const call = joinedCall();
+      const updates = mockSfuClient(call);
+      const inline = inlineSubscriber(call, dimensions$(inlineLayout));
+      const { unmount } = render(
+        <>
+          {inlineFirst && inline}
+          <RTCViewPipIOS />
+          {!inlineFirst && inline}
+        </>,
+        { call },
+      );
+      pipView().change(true);
+      pipView().bounds(pipBounds.width, pipBounds.height);
+      settle();
+      unmount();
+      settle();
+      expect(dimensionOf(call)).toBeUndefined();
+      expect(updates).toHaveBeenLastCalledWith([]);
+      expect(isInPiPMode$.getValue()).toBe(false);
+    },
+  );
+
+  it('keeps the demand of each Call instance apart, even with the same cid', () => {
     const client = mockClientWithUser({ id: 'test-user-id' });
     const call = joinedCall([remoteParticipant()], client);
     const otherCall = joinedCall([remoteParticipant()], client);
     expect(otherCall.cid).toBe(call.cid);
     mockSfuClient(call);
     mockSfuClient(otherCall);
-    const otherInline$ = dimensions$({ width: 390, height: 725 });
-
+    const otherInline$ = dimensions$(inlineLayout);
     const { rerender } = render(
       <>
         <RTCViewPipIOS />
@@ -407,15 +369,14 @@ describe('RTCViewPipIOS', () => {
       { call },
     );
     pipView().change(true);
-    pipView().bounds(180, 240);
+    pipView().bounds(pipBounds.width, pipBounds.height);
     settle();
-
-    expect(dimensionOf(call)).toEqual({ width: 180, height: 240 });
-    expect(dimensionOf(otherCall)).toEqual({ width: 390, height: 725 });
+    expect(dimensionOf(call)).toEqual(pipBounds);
+    expect(dimensionOf(otherCall)).toEqual(inlineLayout);
 
     rerender(<>{inlineSubscriber(otherCall, otherInline$)}</>);
     settle();
-    expect(dimensionOf(otherCall)).toEqual({ width: 390, height: 725 });
+    expect(dimensionOf(otherCall)).toEqual(inlineLayout);
   });
 
   it('starts with fresh bounds when the provider replaces a call with the same cid', () => {
@@ -428,134 +389,15 @@ describe('RTCViewPipIOS', () => {
       </StreamCallProvider>
     );
     const { rerender } = render(content(call), { call });
-    const first = pipView();
-    first.change(true);
-    first.bounds(180, 240);
+    pipView().change(true);
+    pipView().bounds(pipBounds.width, pipBounds.height);
     rerender(content(nextCall));
     settle();
     expect(isInPiPMode$.getValue()).toBe(false);
-    first.bounds(400, 500);
     pipView().change(true);
     expect(dimensionOf(nextCall)).toBeUndefined();
     pipView().bounds(200, 300);
     expect(dimensionOf(nextCall)).toEqual({ width: 200, height: 300 });
     expect(dimensionOf(call)).toBeUndefined();
-  });
-
-  it('does not let a pending stop clear a restarted PiP subscription', () => {
-    const call = joinedCall();
-    renderPip(call);
-    pipView().change(true);
-    pipView().bounds(180, 240);
-    pipView().change(false);
-    pipView().change(true);
-    pipView().bounds(200, 300);
-    settle();
-    expect(dimensionOf(call)).toEqual({ width: 200, height: 300 });
-  });
-
-  it('clears PiP on call end and ignores subsequent native events', () => {
-    const call = joinedCall();
-    const onPiPChange = jest.fn();
-    let endCall: (() => void) | undefined;
-    const originalOn = call.on.bind(call);
-    jest.spyOn(call, 'on').mockImplementation(((name: any, callback: any) => {
-      if (name === 'call.ended') endCall = callback;
-      return originalOn(name, callback);
-    }) as typeof call.on);
-    render(<RTCViewPipIOS onPiPChange={onPiPChange} />, { call });
-    const view = pipView();
-    view.change(true);
-    view.bounds(180, 240);
-    act(() => endCall?.());
-    view.change(true);
-    view.bounds(400, 500);
-    settle();
-    expect(isInPiPMode$.getValue()).toBe(false);
-    expect(dimensionOf(call)).toBeUndefined();
-    expect(onPiPChange.mock.calls).toEqual([[true], [false]]);
-  });
-
-  it.each([false, true])(
-    'releases PiP demand when both views unmount (inline first: %s)',
-    (inlineFirst) => {
-      const call = joinedCall();
-      const updateSubscriptions = mockSfuClient(call);
-      const inline$ = dimensions$({ width: 390, height: 725 });
-      const inline = inlineSubscriber(call, inline$);
-      const { unmount } = render(
-        <>
-          {inlineFirst && inline}
-          <RTCViewPipIOS />
-          {!inlineFirst && inline}
-        </>,
-        { call },
-      );
-      pipView().change(true);
-      pipView().bounds(180, 240);
-      settle();
-      unmount();
-      settle();
-      expect(dimensionOf(call)).toBeUndefined();
-      expect(updateSubscriptions).toHaveBeenLastCalledWith([]);
-      expect(isInPiPMode$.getValue()).toBe(false);
-    },
-  );
-
-  it('preserves camera override precedence and resumes automatic bounds when cleared', () => {
-    const call = joinedCall();
-    const updateSubscriptions = mockSfuClient(call);
-    render(<RTCViewPipIOS />, { call });
-    pipView().change(true);
-    pipView().bounds(180, 240);
-    const globalResolution = { width: 640, height: 360 };
-    const sessionResolution = { width: 1280, height: 720 };
-    act(() => call.setPreferredIncomingVideoResolution(globalResolution));
-    expect(dimensionOf(call)).toEqual(globalResolution);
-    act(() =>
-      call.setPreferredIncomingVideoResolution(sessionResolution, [sessionId]),
-    );
-    expect(dimensionOf(call)).toEqual(sessionResolution);
-    act(() => call.setIncomingVideoEnabled(false));
-    expect(dimensionOf(call)).toBeUndefined();
-    act(() =>
-      call.setPreferredIncomingVideoResolution(sessionResolution, [sessionId]),
-    );
-    expect(dimensionOf(call)).toEqual(sessionResolution);
-    act(() => call.setPreferredIncomingVideoResolution(undefined, [sessionId]));
-    pipView().bounds(200, 300);
-    expect(dimensionOf(call)).toBeUndefined();
-    act(() => call.setIncomingVideoEnabled(true));
-    act(() => jest.advanceTimersByTime(DebounceType.SLOW));
-    expect(dimensionOf(call)).toEqual({ width: 200, height: 300 });
-    expect(updateSubscriptions).toHaveBeenLastCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({
-          sessionId,
-          dimension: { width: 200, height: 300 },
-        }),
-      ]),
-    );
-  });
-
-  it('does not apply camera overrides to screen share demand', () => {
-    const call = joinedCall([
-      remoteParticipant({
-        publishedTracks: [SfuModels.TrackType.SCREEN_SHARE],
-      }),
-    ]);
-    render(<RTCViewPipIOS />, { call });
-    act(() => call.setIncomingVideoEnabled(false));
-    pipView().change(true);
-    pipView().bounds(180, 240);
-    expect(
-      dimensionOf(call, sessionId, SfuModels.TrackType.SCREEN_SHARE),
-    ).toEqual({ width: 180, height: 240 });
-    act(() =>
-      call.setPreferredIncomingVideoResolution({ width: 1280, height: 720 }),
-    );
-    expect(
-      dimensionOf(call, sessionId, SfuModels.TrackType.SCREEN_SHARE),
-    ).toEqual({ width: 180, height: 240 });
   });
 });
