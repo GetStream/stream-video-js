@@ -16,7 +16,48 @@ class RTCViewPip: UIView {
     // Back-reference set by RTCViewPipManager
     weak var manager: RTCViewPipManager?
 
-    @objc var onPiPChange: RCTBubblingEventBlock?
+    /// Notifies JS about the picture-in-picture lifecycle. The payload keeps its
+    /// `active` boolean and additionally carries the current `identity`.
+    @objc var onPiPChange: RCTBubblingEventBlock? {
+        didSet {
+            // a freshly registered listener has to learn the current state.
+            lastEmittedIsActive = nil
+            replayCachedState()
+        }
+    }
+
+    /// Notifies JS about the actual laid out bounds of the picture-in-picture
+    /// window, in logical points, tagged with the current `identity`.
+    @objc var onPiPBoundsChange: RCTBubblingEventBlock? {
+        didSet {
+            lastEmittedBounds = nil
+            replayCachedState()
+        }
+    }
+
+    /// Opaque identity issued by JS for the current call/view/selection. Every
+    /// event is tagged with it so that JS can reject the ones that belong to a
+    /// replaced call, view or selection.
+    @objc public var pipIdentity: NSString? = nil {
+        didSet {
+            guard pipIdentity != oldValue else { return }
+            // the new identity has to learn the current geometry and lifecycle
+            // even though neither of them changed, otherwise an unchanged
+            // window would stall the new selection.
+            lastEmittedBounds = nil
+            lastEmittedIsActive = nil
+            replayCachedState()
+        }
+    }
+
+    // MARK: - Cached Picture in Picture State
+
+    /// The latest valid bounds reported by the current controller, in points.
+    private var cachedBounds: CGSize?
+    /// The latest lifecycle state reported by the current controller.
+    private var cachedIsActive: Bool = false
+    private var lastEmittedBounds: CGSize?
+    private var lastEmittedIsActive: Bool?
 
     // MARK: - Avatar Placeholder Properties
 
@@ -155,9 +196,17 @@ class RTCViewPip: UIView {
     
     @objc
     func onCallClosed() {
-        PictureInPictureLogger.log("pictureInPictureController cleanup called")
+        PictureInPictureLogger.log("pictureInPictureController cleanup called, identity: \(self.currentIdentity)")
+        self.pictureInPictureController?.onPiPStateChange = nil
+        self.pictureInPictureController?.onSizeUpdate = nil
         self.pictureInPictureController?.cleanup()
         self.pictureInPictureController = nil
+        // the cached state describes the disposed controller, so it must not be
+        // replayed to a listener or an identity registered afterwards.
+        self.cachedBounds = nil
+        self.cachedIsActive = false
+        self.lastEmittedBounds = nil
+        self.lastEmittedIsActive = nil
     }
     
     @objc
@@ -191,9 +240,8 @@ class RTCViewPip: UIView {
                 }
                 self.pictureInPictureController?.sourceView = self
                 self.pictureInPictureController?.isMirrored = self.mirror
-                // Set up PiP state change callback
-                self.pictureInPictureController?.onPiPStateChange = { [weak self] isActive in
-                    self?.sendPiPChangeEvent(isActive: isActive)
+                if let controller = self.pictureInPictureController {
+                    self.installCallbacks(on: controller)
                 }
                 if let reactTag = self.reactTag,
                    let size = self.manager?.getCachedSize(for: reactTag) {
@@ -277,12 +325,79 @@ class RTCViewPip: UIView {
         }
     }
     
-    private func sendPiPChangeEvent(isActive: Bool) {
-        guard let onPiPChange = onPiPChange else {
-            return
-        }
+    // MARK: - Picture in Picture Events
 
-        PictureInPictureLogger.log("Sending PiP state change event: \(isActive)")
-        onPiPChange(["active": isActive])
+    private var currentIdentity: String {
+        (pipIdentity as String?) ?? ""
+    }
+
+    /// Wires the controller callbacks. Both of them verify that they still come
+    /// from the controller they were installed on, so that a queued callback of
+    /// a disposed controller is dropped instead of being retagged with the
+    /// identity of its replacement.
+    private func installCallbacks(on controller: StreamPictureInPictureController) {
+        controller.onPiPStateChange = { [weak self, weak controller] isActive in
+            guard let self, let controller,
+                  self.pictureInPictureController === controller else { return }
+            self.cachedIsActive = isActive
+            self.emitLifecycleIfNeeded()
+        }
+        controller.onSizeUpdate = { [weak self, weak controller] size in
+            guard let self, let controller,
+                  self.pictureInPictureController === controller else { return }
+            self.handleSizeUpdate(size)
+        }
+    }
+
+    private func handleSizeUpdate(_ size: CGSize) {
+        guard size.width.isFinite, size.height.isFinite else { return }
+        // truncated to match the integer dimensions the inline views report.
+        let bounds = CGSize(
+            width: size.width.rounded(.towardZero),
+            height: size.height.rounded(.towardZero)
+        )
+        guard bounds.width > 0, bounds.height > 0 else { return }
+        cachedBounds = bounds
+        emitBoundsIfNeeded()
+    }
+
+    /// Replays the cached state, so that a new identity or a newly registered
+    /// listener does not have to wait for the next native change.
+    ///
+    /// An inactive lifecycle is deliberately not replayed: it tells a listener
+    /// nothing it does not already assume, while re-emitting it would invoke
+    /// the consumer facing callback for a size or selection only change.
+    private func replayCachedState() {
+        if cachedIsActive {
+            emitLifecycleIfNeeded()
+        }
+        emitBoundsIfNeeded()
+    }
+
+    private func emitLifecycleIfNeeded() {
+        guard let onPiPChange = onPiPChange else { return }
+        guard lastEmittedIsActive != cachedIsActive else { return }
+        lastEmittedIsActive = cachedIsActive
+
+        PictureInPictureLogger.log(
+            "Sending PiP state change event: \(cachedIsActive), identity: \(currentIdentity)"
+        )
+        onPiPChange(["active": cachedIsActive, "identity": currentIdentity])
+    }
+
+    private func emitBoundsIfNeeded() {
+        guard let onPiPBoundsChange = onPiPBoundsChange, let bounds = cachedBounds else { return }
+        guard lastEmittedBounds != bounds else { return }
+        lastEmittedBounds = bounds
+
+        PictureInPictureLogger.log(
+            "Sending PiP bounds event: \(Int(bounds.width))x\(Int(bounds.height)) points"
+                + " at displayScale \(traitCollection.displayScale), identity: \(currentIdentity)"
+        )
+        onPiPBoundsChange([
+            "identity": currentIdentity,
+            "width": bounds.width,
+            "height": bounds.height
+        ])
     }
 }
