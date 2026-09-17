@@ -12,13 +12,9 @@ const COMPONENT_NAME = 'RTCViewPip';
 
 export type PiPChangeEvent = {
   active: boolean;
-  /** the identity the native view was tagged with when it emitted the event */
-  identity: string;
 };
 
 export type PiPBoundsChangeEvent = {
-  /** the identity the native view was tagged with when it emitted the event */
-  identity: string;
   /** the laid out width of the native window, in logical points */
   width: number;
   /** the laid out height of the native window, in logical points */
@@ -33,12 +29,6 @@ type RTCViewPipNativeProps = {
    * Reports the actual laid out bounds of the native Picture in Picture window.
    */
   onPiPBoundsChange?: (event: { nativeEvent: PiPBoundsChangeEvent }) => void;
-  /**
-   * Opaque identity of this view and its native window, stable while the
-   * rendered participant or track changes. The native view tags every event
-   * with it, so that the events of a replaced view can be rejected.
-   */
-  pipIdentity?: string;
   /** The participant's name for the avatar placeholder when video is disabled */
   participantName?: string;
   /** The URL string for the participant's profile image */
@@ -106,8 +96,6 @@ export const RTCViewPipNative = React.memo(
         onPiPChange={props.onPiPChange}
         // eslint-disable-next-line react/prop-types
         onPiPBoundsChange={props.onPiPBoundsChange}
-        // eslint-disable-next-line react/prop-types
-        pipIdentity={props.pipIdentity}
         // eslint-disable-next-line react/prop-types
         participantName={props.participantName}
         // eslint-disable-next-line react/prop-types

@@ -9,10 +9,6 @@ import {
 } from '@stream-io/video-client';
 import { BehaviorSubject } from 'rxjs';
 import TrackSubscriber from '../../src/components/Participant/ParticipantView/VideoRenderer/TrackSubscriber';
-import {
-  getIosPipVideoDemand,
-  type IosPipVideoWindow,
-} from '../../src/utils/internal/IosPipVideoDemand';
 import mockParticipant from '../mocks/participant';
 import { mockCall } from '../mocks/call';
 import { mockClientWithUser } from '../mocks/client';
@@ -69,7 +65,7 @@ const inlineSubscriber = (
 
 const pipSubscriber = (
   call: Call,
-  window: IosPipVideoWindow,
+  dimensions$: BehaviorSubject<SfuModels.VideoDimension | undefined>,
   options: { session?: string; trackType?: VideoTrackType } = {},
 ) => (
   <TrackSubscriber
@@ -77,8 +73,8 @@ const pipSubscriber = (
     participantSessionId={options.session ?? sessionId}
     trackType={options.trackType ?? 'videoTrack'}
     isVisible={true}
-    dimensions$={window.dimensions$}
-    pipWindow={window}
+    dimensions$={dimensions$}
+    isPipWriter
   />
 );
 
@@ -127,10 +123,10 @@ describe('TrackSubscriber', () => {
 
   it('follows the publication of the track it renders', () => {
     const call = joinedCall();
-    const window = getIosPipVideoDemand(call).claimWindow();
+    const dimensions$ = inlineDimensions$();
 
-    render(pipSubscriber(call, window));
-    act(() => window.setBounds({ width: 180, height: 240 }));
+    render(pipSubscriber(call, dimensions$));
+    act(() => dimensions$.next({ width: 180, height: 240 }));
     expect(dimensionOf(call)).toEqual({ width: 180, height: 240 });
 
     act(() =>
@@ -153,10 +149,10 @@ describe('TrackSubscriber', () => {
 
   it('requests the native window bounds again after a rejoin', () => {
     const call = joinedCall();
-    const window = getIosPipVideoDemand(call).claimWindow();
+    const dimensions$ = inlineDimensions$();
 
-    render(pipSubscriber(call, window));
-    act(() => window.setBounds({ width: 180, height: 240 }));
+    render(pipSubscriber(call, dimensions$));
+    act(() => dimensions$.next({ width: 180, height: 240 }));
 
     act(() => {
       call.state.setCallingState(CallingState.RECONNECTING);

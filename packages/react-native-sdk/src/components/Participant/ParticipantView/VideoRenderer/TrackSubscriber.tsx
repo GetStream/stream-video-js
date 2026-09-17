@@ -20,8 +20,8 @@ import {
   of,
 } from 'rxjs';
 import {
-  getIosPipVideoDemand,
-  type IosPipVideoWindow,
+  getIosPipTrack$,
+  setIosPipTrack,
 } from '../../../../utils/internal/IosPipVideoDemand';
 
 type TrackSubscriberProps = {
@@ -39,7 +39,7 @@ type TrackSubscriberProps = {
    * subscriber requests. While it does, the inline views of the same track
    * stop requesting their own, hidden layout.
    */
-  pipWindow?: IosPipVideoWindow;
+  isPipWriter?: boolean;
 };
 
 /**
@@ -64,7 +64,7 @@ const TrackSubscriber = (props: TrackSubscriberProps) => {
     trackType,
     isVisible,
     dimensions$,
-    pipWindow,
+    isPipWriter,
   } = props;
 
   useEffect(() => {
@@ -98,16 +98,19 @@ const TrackSubscriber = (props: TrackSubscriberProps) => {
     );
 
     const trackKey = { sessionId: participantSessionId, trackType };
-    const pipDemand =
-      Platform.OS === 'ios' ? getIosPipVideoDemand(call) : undefined;
-    // the native window owns the demand of the track it renders. An inline view
-    // only announces itself, so that the window knows whether giving the track
-    // back leaves a consumer behind, and stops requesting while it is owned.
-    const ownership = pipWindow?.own(trackKey);
-    const inlineConsumer = pipWindow
-      ? undefined
-      : pipDemand?.registerInlineConsumer(trackKey);
-    const canWrite$ = pipDemand?.canWrite$(trackKey, pipWindow) ?? of(true);
+    const pipTrack$ = Platform.OS === 'ios' ? getIosPipTrack$(call) : undefined;
+    if (isPipWriter && pipTrack$) setIosPipTrack(call, trackKey);
+    const canWrite$ = pipTrack$
+      ? pipTrack$.pipe(
+          map((track) => {
+            const sameTrack =
+              track?.sessionId === participantSessionId &&
+              track?.trackType === trackType;
+            return isPipWriter ? sameTrack : !sameTrack;
+          }),
+          distinctUntilChanged(),
+        )
+      : of(true);
 
     const subscription = combineLatest([
       dimensions$,
@@ -126,10 +129,13 @@ const TrackSubscriber = (props: TrackSubscriberProps) => {
 
     return () => {
       subscription.unsubscribe();
-      // releasing hands the track back to the inline views, which request their
-      // current demand again, or gives it up when there are none left.
-      ownership?.();
-      inlineConsumer?.();
+      if (isPipWriter && pipTrack$) {
+        // Let sibling inline views finish unmounting before handing back demand.
+        queueMicrotask(() => {
+          if (pipTrack$.getValue() === trackKey)
+            setIosPipTrack(call, undefined);
+        });
+      }
     };
   }, [
     call,
@@ -137,7 +143,7 @@ const TrackSubscriber = (props: TrackSubscriberProps) => {
     trackType,
     isVisible,
     dimensions$,
-    pipWindow,
+    isPipWriter,
   ]);
 
   return null;
