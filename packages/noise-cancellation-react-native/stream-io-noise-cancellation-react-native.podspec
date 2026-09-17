@@ -18,7 +18,6 @@ Pod::Spec.new do |s|
   s.dependency "stream-react-native-webrtc"
   s.dependency 'StreamVideoNoiseCancellation'
 
-  public_header_files = 'ios/Headers/*.h'
   # Swift/Objective-C compatibility https://blog.cocoapods.org/CocoaPods-1.5.0/
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES'

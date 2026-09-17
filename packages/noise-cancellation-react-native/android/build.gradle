@@ -2,7 +2,7 @@ buildscript {
   ext.NoiseCancellationReactNative = [
     kotlinVersion: "2.0.21",
     minSdkVersion: 24,
-    compileSdkVersion: 36
+    compileSdkVersion: 35
   ]
 
   ext.getExtOrDefault = { prop ->
@@ -48,6 +48,13 @@ android {
   }
 }
 
+kotlin {
+  compilerOptions {
+    jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+  }
+}
+
+// Intentionally retained for testing future snapshot releases of the native library.
 rootProject.allprojects {
   repositories {
     maven {
