@@ -24,7 +24,7 @@ export type HostLivestreamControlsProps = HostStartStreamButtonProps & {
    */
   LivestreamMediaControls?: React.ComponentType<LivestreamMediaControlsProps> | null;
   onLayout?: ViewProps['onLayout'];
-};
+} & Pick<LivestreamMediaControlsProps, 'onMorePress'>;
 
 /**
  * The HostLivestreamControls component displays the call controls for the live stream at host's end.
@@ -32,11 +32,10 @@ export type HostLivestreamControlsProps = HostStartStreamButtonProps & {
 export const HostLivestreamControls = ({
   HostStartStreamButton = DefaultHostStartStreamButton,
   LivestreamMediaControls = DefaultLivestreamMediaControls,
-  onEndStreamHandler,
+  onMorePress,
   onStartStreamHandler,
-  hls,
-  disableStopPublishedStreamsOnEndStream,
   onLayout,
+  hls,
 }: HostLivestreamControlsProps) => {
   const {
     theme: { hostLivestreamControls },
@@ -47,19 +46,17 @@ export const HostLivestreamControls = ({
       onLayout={onLayout}
     >
       <View style={[styles.leftElement, hostLivestreamControls.leftElement]}>
-        {HostStartStreamButton && (
-          <HostStartStreamButton
-            onEndStreamHandler={onEndStreamHandler}
-            onStartStreamHandler={onStartStreamHandler}
-            hls={hls}
-            disableStopPublishedStreamsOnEndStream={
-              disableStopPublishedStreamsOnEndStream
-            }
-          />
+        {LivestreamMediaControls && (
+          <LivestreamMediaControls onMorePress={onMorePress} />
         )}
       </View>
       <View style={[styles.rightElement, hostLivestreamControls.rightElement]}>
-        {LivestreamMediaControls && <LivestreamMediaControls />}
+        {HostStartStreamButton && (
+          <HostStartStreamButton
+            onStartStreamHandler={onStartStreamHandler}
+            hls={hls}
+          />
+        )}
       </View>
     </View>
   );

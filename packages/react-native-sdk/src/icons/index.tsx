@@ -28,3 +28,4 @@ export * from './ExclamationMark';
 export * from './Language';
 export * from './ControlButtonIcon';
 export * from './Back';
+export * from './Eye';

@@ -1,20 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View, type ViewProps } from 'react-native';
 import {
   DurationBadge as DefaultDurationBadge,
   type DurationBadgeProps,
 } from './DurationBadge';
-import {
-  LiveIndicator as DefaultLiveIndicator,
-  type LiveIndicatorProps,
-} from './LiveIndicator';
-import {
-  FollowerCount as DefaultFollowerCount,
-  type FollowerCountProps,
-} from './FollowerCount';
+import { type LiveIndicatorProps } from './LiveIndicator';
+import { type FollowerCountProps } from './FollowerCount';
 import { useTheme } from '../../../contexts';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { Z_INDEX } from '../../../constants';
+import { HangUpCallButton } from '../../Call';
+import { SfuModels, videoLoggerSystem } from '@stream-io/video-client';
 
 /**
  * Props for the HostLivestreamTopView component.
@@ -32,6 +28,19 @@ export type HostLivestreamTopViewProps = {
    * Component to customize the Follower count indicator on the host's live stream's top view.
    */
   FollowerCount?: React.ComponentType<FollowerCountProps> | null;
+  /**
+   * Enable HTTP live streaming
+   */
+  hls?: boolean;
+  /**
+   * Disable the published streams to not be stopped if the host ends the livestream.
+   */
+  disableStopPublishedStreamsOnEndStream?: boolean;
+  /**
+   * Handler to be called after the End Stream button is pressed.
+   * @returns void
+   */
+  onEndStreamHandler?: () => void;
   onLayout?: ViewProps['onLayout'];
 };
 
@@ -40,10 +49,12 @@ export type HostLivestreamTopViewProps = {
  */
 export const HostLivestreamTopView = ({
   DurationBadge = DefaultDurationBadge,
-  LiveIndicator = DefaultLiveIndicator,
-  FollowerCount = DefaultFollowerCount,
   onLayout,
+  onEndStreamHandler,
+  hls,
+  disableStopPublishedStreamsOnEndStream,
 }: HostLivestreamTopViewProps) => {
+  const call = useCall();
   const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
     useCallStateHooks();
   const isCallLive = useIsCallLive();
@@ -52,24 +63,51 @@ export const HostLivestreamTopView = ({
   const {
     theme: { hostLivestreamTopView },
   } = useTheme();
+  const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
+
+  const onEndStreamButtonPress = async () => {
+    if (!liveOrBroadcasting || isAwaitingResponse) {
+      return;
+    }
+
+    try {
+      setIsAwaitingResponse(true);
+      if (!disableStopPublishedStreamsOnEndStream) {
+        await call?.stopPublish(SfuModels.TrackType.VIDEO);
+        await call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
+      }
+      if (hls) {
+        await call?.stopHLS();
+      } else {
+        await call?.stopLive();
+      }
+
+      setIsAwaitingResponse(false);
+      if (onEndStreamHandler) {
+        onEndStreamHandler();
+      }
+    } catch (error) {
+      const logger = videoLoggerSystem.getLogger('HostLivestreamTopView');
+      logger.error('Error stopping livestream', error);
+    }
+  };
 
   return (
     <View
       style={[styles.container, hostLivestreamTopView.container]}
       onLayout={onLayout}
     >
-      <View style={[styles.leftElement, hostLivestreamTopView.leftElement]}>
+      <View
+        style={[styles.leftElement, hostLivestreamTopView.leftElement]}
+      ></View>
+      <View style={[styles.centerElement, hostLivestreamTopView.centerElement]}>
         {DurationBadge && <DurationBadge mode="host" />}
       </View>
-      <View
-        style={[styles.centerElement, hostLivestreamTopView.centerElement]}
-      />
       <View style={[styles.rightElement, hostLivestreamTopView.rightElement]}>
-        <View style={[styles.liveInfo, hostLivestreamTopView.liveInfo]}>
-          {liveOrBroadcasting && LiveIndicator && null}{' '}
-          {/* TODO: UPDATE LiveIndicator */}
-          {FollowerCount && <FollowerCount />}
-        </View>
+        <HangUpCallButton
+          disabled={!liveOrBroadcasting || isAwaitingResponse}
+          onPressHandler={onEndStreamButtonPress}
+        />
       </View>
     </View>
   );

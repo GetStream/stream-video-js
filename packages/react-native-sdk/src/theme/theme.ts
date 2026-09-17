@@ -192,9 +192,12 @@ export type Theme = {
   };
   hostLivestream: {
     container: ViewStyle;
+    livestreamLayout: ViewStyle;
   };
   viewerLivestream: {
     container: ViewStyle;
+    livestreamLayout: ViewStyle;
+    viewerStatusPanel: ViewStyle;
   };
   livestreamLayout: {
     container: ViewStyle;
@@ -211,7 +214,6 @@ export type Theme = {
     leftElement: ViewStyle;
     centerElement: ViewStyle;
     rightElement: ViewStyle;
-    liveInfo: ViewStyle;
   };
   followerCount: {
     container: ViewStyle;
@@ -220,16 +222,31 @@ export type Theme = {
   liveIndicator: {
     container: ViewStyle;
     label: TextStyle;
+    indicator: ViewStyle;
   };
   hostLivestreamControls: {
     container: ViewStyle;
     leftElement: ViewStyle;
     rightElement: ViewStyle;
   };
-  viewerLivestreamControls: {
+  hostLivestreamStatusPanel: {
     container: ViewStyle;
     leftElement: ViewStyle;
     rightElement: ViewStyle;
+    followerCount: ViewStyle;
+  };
+  viewerLivestreamStatusPanel: {
+    container: ViewStyle;
+    leftElement: ViewStyle;
+    rightElement: ViewStyle;
+    followerCount: ViewStyle;
+    button: Partial<CallControlsButtonStyle>;
+  };
+  viewerLivestreamOverlay: {
+    container: ViewStyle;
+    leftElement: ViewStyle;
+    rightElement: ViewStyle;
+    frame: ViewStyle;
   };
   livestreamMediaControls: {
     container: ViewStyle;
@@ -485,27 +502,27 @@ export const resolveTheme = (isDark: boolean): Theme => {
     livestreamLayout: {
       container: {
         borderRadius: theme.primitives.radius2xl,
-        marginHorizontal: theme.primitives.spacingXxs,
       },
     },
     viewerLivestreamTopView: {
       container: {
+        backgroundColor: theme.semantics.backgroundCoreApp,
         padding: theme.primitives.spacingSm,
         gap: theme.primitives.spacingXs,
       },
       leftElement: {},
       centerElement: {},
       rightElement: {},
-      liveInfo: {},
     },
     followerCount: {
       container: {
+        height: theme.foundations.layout.size32,
         minWidth: theme.foundations.layout.size32,
-        paddingVertical: theme.foundations.spacing.space6,
+        paddingVertical: theme.primitives.spacingXxs,
         paddingHorizontal: theme.primitives.spacingXs,
-        gap: theme.primitives.spacingXs,
         borderRadius: theme.foundations.radius.radiusFull,
         backgroundColor: theme.semantics.backgroundCoreSurfaceDefault,
+        gap: theme.primitives.spacingXs,
       },
       label: {
         fontWeight: theme.primitives.typographyFontWeightSemiBold,
@@ -514,8 +531,25 @@ export const resolveTheme = (isDark: boolean): Theme => {
       },
     },
     liveIndicator: {
-      container: {},
-      label: {},
+      container: {
+        height: theme.foundations.layout.size32,
+        paddingHorizontal: theme.primitives.spacingSm,
+        paddingVertical: theme.primitives.spacingXxs,
+        borderRadius: theme.components.buttonRadiusFull,
+        backgroundColor: theme.semantics.accentPrimary,
+        gap: theme.primitives.spacingXs,
+      },
+      label: {
+        fontSize: theme.primitives.typographyFontSizeXs,
+        fontWeight: theme.primitives.typographyFontWeightSemiBold,
+        color: theme.semantics.textOnAccent,
+      },
+      indicator: {
+        width: theme.foundations.layout.size8,
+        height: theme.foundations.layout.size8,
+        backgroundColor: theme.semantics.textOnAccent,
+        borderRadius: theme.components.buttonRadiusFull,
+      },
     },
     livestreamMediaControls: {
       container: {},
@@ -524,6 +558,9 @@ export const resolveTheme = (isDark: boolean): Theme => {
     //Livestream host
     hostLivestream: {
       container: {},
+      livestreamLayout: {
+        paddingHorizontal: theme.primitives.spacingXxs,
+      },
     },
     hostLivestreamTopView: {
       container: {
@@ -543,12 +580,28 @@ export const resolveTheme = (isDark: boolean): Theme => {
       leftElement: {},
       rightElement: {},
     },
+    hostLivestreamStatusPanel: {
+      container: {
+        padding: theme.primitives.spacingXs,
+        gap: theme.primitives.spacingXxs,
+      },
+      leftElement: {
+        gap: theme.primitives.spacingXs,
+      },
+      rightElement: {},
+      followerCount: {},
+    },
 
     //Livestream viewer
     viewerLivestream: {
       container: {},
+      livestreamLayout: {},
+      viewerStatusPanel: {
+        left: theme.primitives.spacingXxs,
+        right: theme.primitives.spacingXxs,
+      },
     },
-    viewerLivestreamControls: {
+    viewerLivestreamOverlay: {
       container: {
         padding: theme.primitives.spacingSm,
         gap: theme.primitives.spacingXs,
@@ -557,6 +610,11 @@ export const resolveTheme = (isDark: boolean): Theme => {
         gap: theme.primitives.spacingXs,
       },
       rightElement: {},
+      frame: {
+        backgroundColor: theme.semantics.backgroundCoreApp,
+        padding: theme.primitives.spacingXxs,
+        borderRadius: theme.primitives.radius2xl,
+      },
     },
     livestreamViewerLobby: {
       container: {
@@ -575,6 +633,29 @@ export const resolveTheme = (isDark: boolean): Theme => {
       },
       participantsText: {
         fontSize: theme.primitives.typographyFontSizeMd,
+      },
+    },
+    viewerLivestreamStatusPanel: {
+      container: {
+        padding: theme.primitives.spacingXs,
+        gap: theme.primitives.spacingXxs,
+        left: theme.primitives.spacingXxs,
+        right: theme.primitives.spacingXxs,
+        bottom: theme.primitives.spacingXxs,
+      },
+      leftElement: {
+        gap: theme.primitives.spacingXs,
+      },
+      rightElement: {
+        gap: theme.primitives.spacingXs,
+      },
+      followerCount: {},
+      button: {
+        container: {
+          width: theme.foundations.layout.size32,
+          height: theme.foundations.layout.size32,
+          margin: 0,
+        },
       },
     },
 

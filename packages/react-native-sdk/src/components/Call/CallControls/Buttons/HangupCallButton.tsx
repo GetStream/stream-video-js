@@ -22,6 +22,10 @@ export type HangUpCallButtonProps = {
    */
   onHangupCallHandler?: (err?: Error) => void;
   /**
+   * Whether the button is disabled.
+   */
+  disabled?: boolean;
+  /**
    * Sets the height, width and border-radius (half the value) of the button.
    */
   size?: React.ComponentProps<typeof CallControlsButton>['size'];
@@ -33,6 +37,7 @@ export type HangUpCallButtonProps = {
  * Mostly calls call.leave() internally.
  */
 export const HangUpCallButton = ({
+  disabled = false,
   onPressHandler,
   onHangupCallHandler,
 }: HangUpCallButtonProps) => {
@@ -65,6 +70,7 @@ export const HangUpCallButton = ({
     <CallControlsButton
       onPress={onPress}
       color={semantics.buttonDestructiveBg}
+      disabled={disabled}
       testID={ButtonTestIds.HANG_UP_CALL}
       style={hangupCallButton}
     >

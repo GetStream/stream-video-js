@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { humanize } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { Users } from '../../../icons';
+import { Eye } from '../../../icons';
 
 /**
  * Props for the FollowerCount component.
@@ -33,7 +33,7 @@ export const FollowerCount = ({
 
   return (
     <View style={[styles.container, followerCount.container]}>
-      <Users color={semantics.textPrimary} size={components.iconSizeMd} />
+      <Eye color={semantics.textPrimary} size={components.iconSizeMd} />
       <Text style={followerCount.label}>
         {humanizeParticipantCount
           ? humanize(totalParticipants)

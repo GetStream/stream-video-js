@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { getRNInCallManagerLibNoThrow } from '../../../modules/call-manager/PrevLibDetection';
 
@@ -26,6 +26,7 @@ import {
   ScreenShareOverlay as DefaultScreenShaerOverlay,
   type ScreenShareOverlayProps,
 } from '../../utility/ScreenShareOverlay';
+import { HostStatusPanel } from './HostStatusPanel';
 
 /**
  * Props for the HostLivestream component.
@@ -52,7 +53,7 @@ export type HostLivestreamProps = Omit<HostLivestreamTopViewProps, 'onLayout'> &
      * Component to customize the ScreenShareOverlay.
      */
     ScreenShareOverlay?: React.ComponentType<ScreenShareOverlayProps> | null;
-  };
+  } & Pick<HostLivestreamControlsProps, 'onMorePress'>;
 
 /**
  * The HostLivestream component displays the UI for the Host's live stream.
@@ -70,10 +71,10 @@ export const HostLivestream = ({
   LivestreamMediaControls,
   onEndStreamHandler,
   onStartStreamHandler,
+  onMorePress,
   hls,
   disableStopPublishedStreamsOnEndStream,
 }: HostLivestreamProps) => {
-  const styles = useStyles();
   const {
     theme: { hostLivestream },
   } = useTheme();
@@ -118,7 +119,14 @@ export const HostLivestream = ({
             setTopViewHeight(event.nativeEvent.layout.height);
           }}
         >
-          <HostLivestreamTopView {...topViewProps} />
+          <HostLivestreamTopView
+            {...topViewProps}
+            onEndStreamHandler={onEndStreamHandler}
+            hls={hls}
+            disableStopPublishedStreamsOnEndStream={
+              disableStopPublishedStreamsOnEndStream
+            }
+          />
         </View>
       )}
       {FloatingParticipantView &&
@@ -136,12 +144,15 @@ export const HostLivestream = ({
             ]}
           />
         )}
-      {LivestreamLayout && (
-        <LivestreamLayout ScreenShareOverlay={ScreenShareOverlay} />
-      )}
+      <View style={[styles.livestreamLayout, hostLivestream.livestreamLayout]}>
+        {LivestreamLayout && (
+          <LivestreamLayout ScreenShareOverlay={ScreenShareOverlay} />
+        )}
+        <HostStatusPanel style={styles.hostStatusPanel} />
+      </View>
       {HostLivestreamControls && (
         <HostLivestreamControls
-          onEndStreamHandler={onEndStreamHandler}
+          onMorePress={onMorePress}
           onStartStreamHandler={onStartStreamHandler}
           HostStartStreamButton={HostStartStreamButton}
           LivestreamMediaControls={LivestreamMediaControls}
@@ -149,33 +160,33 @@ export const HostLivestream = ({
           onLayout={(event) => {
             setControlsHeight(event.nativeEvent.layout.height);
           }}
-          disableStopPublishedStreamsOnEndStream={
-            disableStopPublishedStreamsOnEndStream
-          }
         />
       )}
     </View>
   );
 };
 
-const useStyles = () => {
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          flex: 1,
-        },
-        topViewContainer: {
-          zIndex: Z_INDEX.IN_FRONT,
-        },
-        controlsViewContainer: {
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: Z_INDEX.IN_FRONT,
-        },
-      }),
-    [],
-  );
-};
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  topViewContainer: {
+    zIndex: Z_INDEX.IN_FRONT,
+  },
+  controlsViewContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: Z_INDEX.IN_FRONT,
+  },
+  livestreamLayout: {
+    flex: 1,
+  },
+  hostStatusPanel: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    zIndex: Z_INDEX.IN_FRONT,
+  },
+});

@@ -1,10 +1,10 @@
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { useI18n } from '../../../i18n';
 import React, { useState } from 'react';
 import { ActivityIndicator } from 'react-native';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { useTheme } from '../../../contexts';
-import { EndBroadcastIcon, StartStreamIcon } from '../../../icons';
-import { SfuModels, videoLoggerSystem } from '@stream-io/video-client';
+import { StartStreamIcon } from '../../../icons';
+import { videoLoggerSystem } from '@stream-io/video-client';
 import { Button } from '../../utility/Button';
 
 /**
@@ -16,43 +16,32 @@ export type HostStartStreamButtonProps = {
    * @returns void
    */
   onStartStreamHandler?: () => void;
-  /**
-   * Handler to be called after the End Stream button is pressed.
-   * @returns void
-   */
-  onEndStreamHandler?: () => void;
+
   /**
    * Enable HTTP live streaming
    */
   hls?: boolean;
-  /**
-   * Disable the published streams to not be stopped if the host ends the livestream.
-   */
-  disableStopPublishedStreamsOnEndStream?: boolean;
 };
 
 /**
  * The HostStartStreamButton component displays and controls the start and end of the host's live stream.
  */
 export const HostStartStreamButton = ({
-  onEndStreamHandler,
   onStartStreamHandler,
   hls,
-  disableStopPublishedStreamsOnEndStream,
 }: HostStartStreamButtonProps) => {
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
     useCallStateHooks();
+  const isCallLive = useIsCallLive();
+  const isBroadcasting = useIsCallHLSBroadcastingInProgress();
+  const liveOrBroadcasting = isCallLive || isBroadcasting;
   const {
     theme: { components, semantics },
   } = useTheme();
 
   const call = useCall();
-  const isCallLive = useIsCallLive();
-  const isCallBroadcasting = useIsCallHLSBroadcastingInProgress();
   const { t } = useI18n();
-
-  const liveOrBroadcasting = isCallLive || isCallBroadcasting;
 
   const onStartStreamButtonPress = async () => {
     try {
@@ -71,49 +60,15 @@ export const HostStartStreamButton = ({
     }
   };
 
-  const onEndStreamButtonPress = async () => {
-    try {
-      setIsAwaitingResponse(true);
-      if (!disableStopPublishedStreamsOnEndStream) {
-        await call?.stopPublish(SfuModels.TrackType.VIDEO);
-        await call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
-      }
-      if (hls) {
-        await call?.stopHLS();
-      } else {
-        await call?.stopLive();
-      }
-
-      setIsAwaitingResponse(false);
-      if (onEndStreamHandler) {
-        onEndStreamHandler();
-      }
-    } catch (error) {
-      const logger = videoLoggerSystem.getLogger('HostStartStreamButton');
-      logger.error('Error stopping livestream', error);
-    }
-  };
-
   const onPress = async () => {
-    if (liveOrBroadcasting) {
-      await onEndStreamButtonPress();
-    } else {
-      await onStartStreamButtonPress();
-    }
+    await onStartStreamButtonPress();
   };
 
   const renderIcon = () => {
     if (isAwaitingResponse) {
       return <ActivityIndicator />;
     }
-    if (liveOrBroadcasting) {
-      return (
-        <EndBroadcastIcon
-          color={semantics.textOnAccent}
-          size={components.iconSizeMd}
-        />
-      );
-    }
+
     return (
       <StartStreamIcon
         color={semantics.textOnAccent}
@@ -124,9 +79,11 @@ export const HostStartStreamButton = ({
 
   const text = isAwaitingResponse
     ? t('common.loading.text', 'Loading...')
-    : liveOrBroadcasting
-      ? t('livestreamControls.stop.label', 'Stop Livestream')
-      : t('livestreamControls.start.label', 'Start Livestream');
+    : t('livestreamControls.start.label', 'Start');
+
+  if (liveOrBroadcasting) {
+    return null;
+  }
 
   return (
     <Button

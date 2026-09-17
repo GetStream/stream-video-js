@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { useI18n } from '../../../i18n';
@@ -6,46 +6,33 @@ import { useI18n } from '../../../i18n';
 /**
  * Props for the LiveIndicator component.
  */
-export type LiveIndicatorProps = {};
+export type LiveIndicatorProps = {
+  isLive: boolean;
+};
 
 /**
  * The LiveIndicator component displays whether the live stream is live or not.
  */
-//TODO: UPDATE
-export const LiveIndicator = ({}: LiveIndicatorProps) => {
-  const styles = useStyles();
+export const LiveIndicator = ({ isLive }: LiveIndicatorProps) => {
   const {
     theme: { liveIndicator },
   } = useTheme();
   const { t } = useI18n();
+  if (!isLive) {
+    return null;
+  }
   return (
     <View style={[styles.container, liveIndicator.container]}>
-      <Text style={[styles.label, liveIndicator.label]}>
-        {t('common.live.label', 'Live')}
-      </Text>
+      <View style={liveIndicator.indicator} />
+      <Text style={liveIndicator.label}>{t('common.live.label', 'LIVE')}</Text>
     </View>
   );
 };
 
-const useStyles = () => {
-  const {
-    theme: { primitives, components },
-  } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          paddingHorizontal: primitives.spacingSm,
-          paddingVertical: primitives.spacingSm,
-          borderTopLeftRadius: components.buttonRadiusSm,
-          borderBottomLeftRadius: components.buttonRadiusSm,
-          justifyContent: 'center',
-        },
-        label: {
-          textAlign: 'center',
-          includeFontPadding: false,
-        },
-      }),
-    [primitives, components],
-  );
-};
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
