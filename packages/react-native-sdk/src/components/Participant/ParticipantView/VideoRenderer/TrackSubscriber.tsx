@@ -17,8 +17,12 @@ import {
   distinctUntilKeyChanged,
   filter,
   map,
+  of,
 } from 'rxjs';
-import { getIosVideoSubscriptionDemand } from '../../../../utils/internal/IosVideoSubscriptionDemand';
+import {
+  getIosPipVideoDemand,
+  type IosPipVideoWindow,
+} from '../../../../utils/internal/IosPipVideoDemand';
 
 type TrackSubscriberProps = {
   participantSessionId: string;
@@ -30,6 +34,12 @@ type TrackSubscriberProps = {
    * the last reported layout survives a remount of this component.
    */
   dimensions$: BehaviorSubject<SfuModels.VideoDimension | undefined>;
+  /**
+   * Set by the native iOS Picture in Picture window, whose bounds this
+   * subscriber requests. While it does, the inline views of the same track
+   * stop requesting their own, hidden layout.
+   */
+  pipWindow?: IosPipVideoWindow;
 };
 
 /**
@@ -43,45 +53,21 @@ type TrackSubscriberProps = {
  * 1. When the participant stops publishing the video track
  * 2. When the participant becomes invisible
  *
- * On iOS the request is not made directly: the demand of this view is registered
- * with the call's demand coordinator, which merges it with the demand of the
- * other surfaces rendering the same track - most notably the native Picture in
- * Picture window, whose bounds take precedence while it is active.
+ * The same component serves the native iOS Picture in Picture window, which
+ * renders one of the tracks too. Its bounds take precedence over the inline
+ * views of that track for as long as it is on screen.
 */
 const TrackSubscriber = (props: TrackSubscriberProps) => {
-  const { call, participantSessionId, trackType, isVisible, dimensions$ } =
-    props;
+  const {
+    call,
+    participantSessionId,
+    trackType,
+    isVisible,
+    dimensions$,
+    pipWindow,
+  } = props;
 
   useEffect(() => {
-    const isPublishingTrack$ = call.state.participants$.pipe(
-      map((ps) => ps.find((p) => p.sessionId === participantSessionId)),
-      filter((p): p is StreamVideoParticipant => !!p),
-      distinctUntilKeyChanged('publishedTracks'),
-      map((p) =>
-        trackType === 'videoTrack' ? hasVideo(p) : hasScreenShare(p),
-      ),
-      distinctUntilChanged(),
-    );
-    if (Platform.OS === 'ios') {
-      // on iOS this view is only one of the surfaces that can render the track:
-      // the native Picture in Picture window owns the dimensions of the track it
-      // renders, so the demand of this view is merged in by the coordinator.
-      const handle = getIosVideoSubscriptionDemand(call).registerInline({
-        sessionId: participantSessionId,
-        trackType,
-      });
-      const iosSubscription = combineLatest([
-        dimensions$,
-        isPublishingTrack$,
-      ]).subscribe(([dimension, isPublishing]) => {
-        handle.update({ dimension, eligible: isVisible && isPublishing });
-      });
-      return () => {
-        iosSubscription.unsubscribe();
-        handle.release();
-      };
-    }
-
     const requestTrackWithDimensions = (
       debounceType: DebounceType,
       dimension: SfuModels.VideoDimension | undefined,
@@ -98,17 +84,39 @@ const TrackSubscriber = (props: TrackSubscriberProps) => {
       });
       call.trackSubscriptionManager.apply(debounceType);
     };
-
+    const isPublishingTrack$ = call.state.participants$.pipe(
+      map((ps) => ps.find((p) => p.sessionId === participantSessionId)),
+      filter((p): p is StreamVideoParticipant => !!p),
+      distinctUntilKeyChanged('publishedTracks'),
+      map((p) =>
+        trackType === 'videoTrack' ? hasVideo(p) : hasScreenShare(p),
+      ),
+      distinctUntilChanged(),
+    );
     const isJoinedState$ = call.state.callingState$.pipe(
       map((callingState) => callingState === CallingState.JOINED),
     );
+
+    const trackKey = { sessionId: participantSessionId, trackType };
+    const pipDemand =
+      Platform.OS === 'ios' ? getIosPipVideoDemand(call) : undefined;
+    // the native window owns the demand of the track it renders. An inline view
+    // only announces itself, so that the window knows whether giving the track
+    // back leaves a consumer behind, and stops requesting while it is owned.
+    const ownership = pipWindow?.own(trackKey);
+    const inlineConsumer = pipWindow
+      ? undefined
+      : pipDemand?.registerInlineConsumer(trackKey);
+    const isOwnedByPip$ =
+      pipWindow || !pipDemand ? of(false) : pipDemand.isOwnedByPip$(trackKey);
 
     const subscription = combineLatest([
       dimensions$,
       isPublishingTrack$,
       isJoinedState$,
-    ]).subscribe(([dimension, isPublishing, isJoined]) => {
-      if (isJoined) {
+      isOwnedByPip$,
+    ]).subscribe(([dimension, isPublishing, isJoined, isOwnedByPip]) => {
+      if (isJoined && !isOwnedByPip) {
         if (!isVisible || !isPublishing) {
           requestTrackWithDimensions(DebounceType.MEDIUM, undefined);
         } else if (dimension) {
@@ -119,8 +127,19 @@ const TrackSubscriber = (props: TrackSubscriberProps) => {
 
     return () => {
       subscription.unsubscribe();
+      // releasing hands the track back to the inline views, which request their
+      // current demand again, or gives it up when there are none left.
+      ownership?.release();
+      inlineConsumer?.release();
     };
-  }, [call, participantSessionId, trackType, isVisible, dimensions$]);
+  }, [
+    call,
+    participantSessionId,
+    trackType,
+    isVisible,
+    dimensions$,
+    pipWindow,
+  ]);
 
   return null;
 };
