@@ -1,4 +1,5 @@
 import {
+  type Call,
   CallingState,
   SfuModels,
   hasAudio,
@@ -26,6 +27,21 @@ import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/intern
 import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
 import { isInPiPMode$ } from '../../../utils/internal/rxSubjects';
 import TrackSubscriber from '../../Participant/ParticipantView/VideoRenderer/TrackSubscriber';
+
+// One native view per Call instance. React Native drops the events of an
+// unmounted view, so an event the previous call's controller queued before
+// the replacement cannot reach the view of its successor.
+const nativeViewKeys = new WeakMap<Call, number>();
+let nextNativeViewKey = 0;
+const nativeViewKeyOf = (call: Call | undefined) => {
+  if (!call) return 0;
+  let key = nativeViewKeys.get(call);
+  if (key === undefined) {
+    key = ++nextNativeViewKey;
+    nativeViewKeys.set(call, key);
+  }
+  return key;
+};
 
 type Props = {
   includeLocalParticipantVideo?: boolean;
@@ -66,6 +82,15 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
   const isPipActiveRef = useRef(false);
   // set once the call is closed: later native events describe a disposed window.
   const isClosedRef = useRef(false);
+  // the handlers below are bound to the view they were rendered for; an event
+  // of a replaced view is rejected even if it were delivered.
+  const nativeViewKey = nativeViewKeyOf(call);
+  const activeNativeViewKeyRef = useRef(nativeViewKey);
+  useEffect(() => {
+    activeNativeViewKeyRef.current = nativeViewKey;
+  }, [nativeViewKey]);
+  const isStaleNativeEvent = () =>
+    isClosedRef.current || nativeViewKey !== activeNativeViewKeyRef.current;
   const onPiPChangeRef = useRef(onPiPChange);
   useEffect(() => {
     onPiPChangeRef.current = onPiPChange;
@@ -180,14 +205,14 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
       : !!participantInSpotlight?.isLocalParticipant && direction === 'front';
 
   const handlePiPChange = (event: { nativeEvent: PiPChangeEvent }) => {
-    if (isClosedRef.current) return;
+    if (isStaleNativeEvent()) return;
     updatePipState(event.nativeEvent.active);
   };
 
   const handlePiPBoundsChange = (event: {
     nativeEvent: PiPBoundsChangeEvent;
   }) => {
-    if (isClosedRef.current) return;
+    if (isStaleNativeEvent()) return;
     const { width, height } = event.nativeEvent;
     pipDimensions$.next({ width, height });
   };
@@ -241,6 +266,7 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
   return (
     <>
       <RTCViewPipNative
+        key={nativeViewKey}
         streamURL={streamURL}
         mirror={mirror}
         ref={nativeRef}

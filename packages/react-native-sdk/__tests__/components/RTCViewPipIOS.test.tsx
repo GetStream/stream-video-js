@@ -389,11 +389,19 @@ describe('RTCViewPipIOS', () => {
       </StreamCallProvider>
     );
     const { rerender } = render(content(call), { call });
-    pipView().change(true);
-    pipView().bounds(pipBounds.width, pipBounds.height);
+    const first = pipView();
+    first.change(true);
+    first.bounds(pipBounds.width, pipBounds.height);
     rerender(content(nextCall));
     settle();
     expect(isInPiPMode$.getValue()).toBe(false);
+
+    // events the replaced window queued before the switch are rejected.
+    first.change(true);
+    first.bounds(400, 500);
+    expect(isInPiPMode$.getValue()).toBe(false);
+    expect(dimensionOf(nextCall)).toBeUndefined();
+
     pipView().change(true);
     expect(dimensionOf(nextCall)).toBeUndefined();
     pipView().bounds(200, 300);
