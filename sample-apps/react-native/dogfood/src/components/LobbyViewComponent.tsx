@@ -1,11 +1,15 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { JoinCallButton, Lobby } from '@stream-io/video-react-native-sdk';
-import { useAppI18n } from '../hooks/useAppI18n';
-import React, { useCallback } from 'react';
-import { Pressable, StyleSheet, View, Text } from 'react-native';
+import {
+  JoinCallButton,
+  Lobby,
+  useTheme,
+} from '@stream-io/video-react-native-sdk';
+import React, { useCallback, useMemo } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MeetingStackParamList } from '../../types';
-import { appTheme } from '../theme';
 import { useOrientation } from '../hooks/useOrientation';
+import { NavigationHeader } from './NavigationHeader';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 type LobbyViewComponentType = NativeStackScreenProps<
   MeetingStackParamList,
@@ -13,6 +17,7 @@ type LobbyViewComponentType = NativeStackScreenProps<
 > & {
   callId: string;
   onJoinCallHandler: () => void;
+  onCloseHandler: () => void;
 };
 
 export const LobbyViewComponent = ({
@@ -23,6 +28,7 @@ export const LobbyViewComponent = ({
 }: LobbyViewComponentType) => {
   const { t } = useAppI18n();
   const orientation = useOrientation();
+  const styles = useStyles();
 
   const JoinCallButtonComponent = useCallback(() => {
     return (
@@ -45,11 +51,13 @@ export const LobbyViewComponent = ({
         )}
       </>
     );
-  }, [onJoinCallHandler, callId, navigation, route.name, t]);
+  }, [onJoinCallHandler, callId, navigation, route.name, t, styles]);
 
   return (
     <View style={styles.container}>
+      <NavigationHeader route={route} navigation={navigation} options={{}} />
       <Lobby
+        style={styles.lobby}
         JoinCallButton={JoinCallButtonComponent}
         landscape={orientation === 'landscape'}
       />
@@ -57,18 +65,52 @@ export const LobbyViewComponent = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: appTheme.colors.static_grey,
-  },
-  anonymousButton: {
-    marginTop: 8,
-  },
-  anonymousButtonText: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: appTheme.colors.primary,
-    textAlign: 'center',
-  },
-});
+const useStyles = () => {
+  const {
+    theme: { foundations, semantics, primitives },
+  } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: semantics.backgroundCoreApp,
+        },
+        lobby: {
+          paddingHorizontal: 16,
+        },
+        header: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          padding: primitives.spacingSm,
+          gap: primitives.spacingXs,
+        },
+        closeButton: {
+          width: foundations.layout.size40,
+          height: foundations.layout.size40,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        userNameText: {
+          flex: 1,
+          paddingLeft: primitives.spacingXs,
+          fontSize: primitives.typographyFontSizeSm,
+          fontWeight: primitives.typographyFontWeightSemiBold,
+          color: semantics.textPrimary,
+        },
+        closeIcon: {
+          color: semantics.buttonSecondaryText,
+        },
+        anonymousButton: {
+          marginTop: 8,
+        },
+        anonymousButtonText: {
+          fontSize: 20,
+          fontWeight: '500',
+          color: semantics.buttonPrimaryText,
+          textAlign: 'center',
+        },
+      }),
+    [semantics, primitives, foundations],
+  );
+};

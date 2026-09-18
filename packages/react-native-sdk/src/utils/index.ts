@@ -1,22 +1,18 @@
-// Utility to join strings with commas and 'and'
-export const generateCallTitle = (
-  memberUserIds: string[],
-  totalMembersToShow?: number,
-) => {
-  const supportedAmountOfMemberUserIds = memberUserIds.slice(
-    0,
-    totalMembersToShow,
-  );
-  if (
-    totalMembersToShow &&
-    supportedAmountOfMemberUserIds.length < totalMembersToShow
-  ) {
-    return supportedAmountOfMemberUserIds.join(' and ');
+// Utility to join member names: one name, two names with "and",
+// or the first two plus the remaining count.
+export const generateCallTitle = (memberUserIds: string[]) => {
+  if (memberUserIds.length === 0) {
+    return '';
+  }
+  if (memberUserIds.length === 1) {
+    return memberUserIds[0];
+  }
+  if (memberUserIds.length === 2) {
+    return `${memberUserIds[0]} and ${memberUserIds[1]}`;
   }
 
-  const allMembersExceptLast = supportedAmountOfMemberUserIds.slice(0, -1);
-  const lastMember = supportedAmountOfMemberUserIds.slice(-1)[0];
-  return `${allMembersExceptLast.join(', ')}, and ${lastMember}`;
+  const remaining = memberUserIds.length - 2;
+  return `${memberUserIds[0]}, ${memberUserIds[1]} and ${remaining} other`;
 };
 
 // Utility to truncate long strings

@@ -106,8 +106,6 @@ const useCustomTheme = (): DeepPartial<Theme> => {
   const { top, right, bottom, left } = useSafeAreaInsets();
 
   return {
-    variants: {
-      insets: { top, right, bottom, left },
-    },
+    insets: { top, right, bottom, left },
   };
 };

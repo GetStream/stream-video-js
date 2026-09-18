@@ -10,6 +10,7 @@
  * pass `count`.
  */
 export type TranslationCatalog = {
+  'common.connecting.text': 'Connecting...';
   'common.join.label': 'Join';
   'common.joining.text': 'Joining...';
   'common.live.label': 'Live';
@@ -25,18 +26,11 @@ export type TranslationCatalog = {
   'livestreamViewer.stillInProgress.text': 'Livestream is still in progress';
   'livestreamViewer.willStartIn.text': 'Livestream will start in:';
   'livestreamViewer.willStartSoon.text': 'Livestream will start soon';
-  'lobby.beforeJoining.title': 'Before joining';
-  'lobby.footer.aboutToJoin.text': 'You are about to join a call.';
-  'lobby.footer.noOtherParticipants.text': 'Currently there are no other participants in the call.';
-  'lobby.footer.otherParticipants.text_one': 'There is {{ count }} more person in the call.';
-  'lobby.footer.otherParticipants.text_other': 'There are {{ count }} more people in the call.';
-  'lobby.setupAudioVideo.description': 'Setup your audio and video';
   'participantView.screenShare.byUser.text': '{{ userName }} is sharing their screen';
   'participantView.screenShare.byYou.text': 'You are sharing your screen';
   'participantView.screenShare.stop.label': 'Stop Screen Sharing';
   'ringingCall.incoming.title': 'Incoming Call...';
   'ringingCall.leftCall.title': 'You have left the call';
   'ringingCall.outgoing.title': 'Calling...';
-  'ringingCall.preparing.title': 'Preparing call';
   'screenShare.sharingWithEveryone.text': 'You are sharing your screen with everyone';
 };

@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   Text,
   View,
@@ -15,13 +14,14 @@ import {
 import { randomId } from '../../modules/helpers/randomId';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
-import { appTheme } from '../../theme';
 import { TextInput } from '../../components/TextInput';
-import { Button } from '../../components/Button';
 import { deeplinkCallId$ } from '../../hooks/useDeepLinkEffect';
 import { useTheme } from '@stream-io/video-react-native-sdk';
 import { useAppI18n } from '../../hooks/useAppI18n';
 import { useOrientation } from '../../hooks/useOrientation';
+import { Button } from '@stream-io/video-react-native-sdk/src/components/utility/Button';
+
+const StreamLogo = require('../../assets/images/stream_placeholder.png');
 
 type JoinMeetingScreenProps = NativeStackScreenProps<
   MeetingStackParamList,
@@ -35,15 +35,11 @@ const isValidCallId = (callId: string) => callId && callId.match(callIdRegex);
 const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const setState = useAppGlobalStoreSetState();
   const callId = useAppGlobalStoreValue((store) => store.callId) || '';
-  const { theme } = useTheme();
   const { t } = useAppI18n();
   const orientation = useOrientation();
   const styles = useStyles();
 
   const { navigation } = props;
-  const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
-  const userId = useAppGlobalStoreValue((store) => store.userId);
-  const userName = useAppGlobalStoreValue((store) => store.userName);
 
   const joinCallHandler = useCallback(() => {
     navigation.navigate('MeetingScreen', { callId });
@@ -78,121 +74,130 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const isValidCall = isValidCallId(callId);
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, landscapeStyles]}
+      behavior={'position'}
+      style={[{ flex: 1 }, landscapeStyles]}
+      contentContainerStyle={{ flex: 1 }}
     >
-      <View style={styles.topContainer}>
-        <Image source={{ uri: userImageUrl }} style={styles.logo} />
-        <View>
-          <Text style={styles.title}>
-            {t('joinMeeting.greeting.title', 'Hello, {{ userName }}', {
-              userName: userName || userId,
-            })}
-          </Text>
-          <Text style={styles.subTitle}>
-            {t(
-              'joinMeeting.enterCallId.description',
-              'Start or join a meeting by entering the call ID.',
-            )}
-          </Text>
+      <View style={styles.container}>
+        <View style={styles.topContainer}>
+          <Image source={StreamLogo} style={styles.logo} resizeMode="contain" />
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>{t('Stream Video Calling')}</Text>
+            <Text style={styles.subTitle}>
+              {t(
+                'joinMeeting.enterCallId.description',
+                'Start a new call, join a meeting by entering the call ID or by scanning a QR code.',
+              )}
+            </Text>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.bottomContainer}>
-        <View style={styles.createCall}>
-          <TextInput
-            placeholder={t('joinMeeting.callId.label', 'Type your Call ID')}
-            value={callId}
-            autoCapitalize="none"
-            autoCorrect={false}
-            onChangeText={(text) => {
-              setState({ callId: text.trim().split(' ').join('-') });
-            }}
-          />
+        <View style={styles.bottomContainer}>
+          <View style={styles.createCall}>
+            <TextInput
+              placeholder={t('joinMeeting.callId.label', 'Enter Call ID')}
+              value={callId}
+              autoCapitalize="none"
+              autoCorrect={false}
+              onChangeText={(text) => {
+                setState({ callId: text.trim().split(' ').join('-') });
+              }}
+            />
+            <Button
+              onPress={joinCallHandler}
+              text={t('joinMeeting.join.label', 'Join Call')}
+              size="large"
+              disabled={!isValidCall}
+            />
+          </View>
+
+          <View style={styles.orContainer}>
+            <View style={styles.orSeparator} />
+            <Text style={styles.orText}>{t('OR')}</Text>
+            <View style={styles.orSeparator} />
+          </View>
+
           <Button
-            onPress={joinCallHandler}
-            title={t('joinMeeting.join.label', 'Join Call')}
-            disabled={!isValidCall}
-            buttonStyle={{
-              ...styles.joinCallButton,
-              backgroundColor: isValidCall
-                ? theme.colors.buttonPrimary
-                : theme.colors.buttonDisabled,
+            onPress={() => {
+              const randomCallID = randomId();
+              startNewCallHandler(randomCallID);
             }}
+            text={t('joinMeeting.startNewCall.label', 'Start a New Call')}
+            size="large"
           />
         </View>
-        <Button
-          onPress={() => {
-            const randomCallID = randomId();
-            startNewCallHandler(randomCallID);
-          }}
-          title={t('joinMeeting.startNewCall.label', 'Start a New Call')}
-          buttonStyle={styles.startNewCallButton}
-        />
       </View>
     </KeyboardAvoidingView>
   );
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { primitives, semantics, insets },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          padding: appTheme.spacing.lg,
-          backgroundColor: theme.colors.sheetPrimary,
           flex: 1,
-          justifyContent: 'space-evenly',
-          paddingRight:
-            theme.variants.insets.right + theme.variants.spacingSizes.lg,
-          paddingLeft:
-            theme.variants.insets.left + theme.variants.spacingSizes.lg,
+          paddingHorizontal: primitives.spacingMd,
+          paddingTop: primitives.spacing3xl,
+          paddingBottom: primitives.spacing3xl + insets.bottom,
+          backgroundColor: semantics.backgroundCoreApp,
         },
         topContainer: {
           flex: 1,
           justifyContent: 'center',
+          gap: primitives.spacing3xl,
         },
         logo: {
-          height: 100,
-          width: 100,
-          borderRadius: 50,
+          width: '100%',
+          marginHorizontal: 68,
           alignSelf: 'center',
         },
+        titleContainer: {
+          gap: primitives.spacingSm,
+        },
         title: {
-          fontSize: 30,
-          color: appTheme.colors.static_white,
-          fontWeight: '500',
+          fontSize: primitives.typographyFontSizeXl,
+          color: semantics.textPrimary,
+          fontWeight: primitives.typographyFontWeightSemiBold,
           textAlign: 'center',
-          marginTop: appTheme.spacing.lg,
         },
         subTitle: {
-          color: appTheme.colors.light_gray,
-          fontSize: 16,
+          fontSize: primitives.typographyFontSizeMd,
+          color: semantics.textSecondary,
+          fontWeight: primitives.typographyFontWeightRegular,
           textAlign: 'center',
-          marginHorizontal: appTheme.spacing.xl,
         },
         bottomContainer: {
-          flex: 1,
+          flexDirection: 'column',
           justifyContent: 'center',
-        },
-        joinCallButton: {
-          marginLeft: appTheme.spacing.lg,
-        },
-        startNewCallButton: {
-          width: '100%',
-        },
-        iconButton: {
-          width: 40,
+          gap: primitives.spacing2xl,
         },
         createCall: {
-          display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          gap: primitives.spacingLg,
+        },
+        orContainer: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: primitives.spacingSm,
+        },
+        orSeparator: {
+          flex: 1,
+          height: 1,
+          backgroundColor: semantics.backgroundUtilityDisabled,
+        },
+        orText: {
+          color: semantics.textDisabled,
+          fontSize: primitives.typographyFontSizeXs,
+          fontWeight: primitives.typographyFontWeightSemiBold,
         },
       }),
-    [theme],
+    [primitives, semantics, insets],
   );
 };
 

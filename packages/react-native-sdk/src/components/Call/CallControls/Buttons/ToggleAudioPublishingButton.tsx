@@ -1,9 +1,8 @@
 import React from 'react';
 import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { CallControlsButton } from './CallControlsButton';
-import { IconWrapper, Mic, MicOff } from '../../../icons';
-import { useTheme } from '../../../contexts/ThemeContext';
+import { Mic, MicOff, ControlButtonIcon } from '../../../../icons';
+import { CallControlsButton } from '..';
 
 /**
  * Props for the Toggle Audio publishing button
@@ -14,6 +13,10 @@ export type ToggleAudioPublishingButtonProps = {
    * @returns void
    */
   onPressHandler?: () => void;
+  /**
+   * Boolean to enable/disable the button
+   */
+  disabled?: boolean;
 };
 
 /**
@@ -21,13 +24,10 @@ export type ToggleAudioPublishingButtonProps = {
  */
 export const ToggleAudioPublishingButton = ({
   onPressHandler,
+  disabled,
 }: ToggleAudioPublishingButtonProps) => {
   const { useMicrophoneState } = useCallStateHooks();
   const { optimisticIsMute, microphone } = useMicrophoneState();
-
-  const {
-    theme: { colors, toggleAudioPublishingButton, defaults },
-  } = useTheme();
   const onPress = async () => {
     if (onPressHandler) {
       onPressHandler();
@@ -41,18 +41,15 @@ export const ToggleAudioPublishingButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
       <CallControlsButton
         onPress={onPress}
-        color={
-          !optimisticIsMute ? colors.buttonSecondary : colors.buttonWarning
-        }
-        style={toggleAudioPublishingButton}
+        disabled={disabled}
+        turnedOn={!optimisticIsMute}
       >
-        <IconWrapper>
-          {!optimisticIsMute ? (
-            <Mic color={colors.iconPrimary} size={defaults.iconSize} />
-          ) : (
-            <MicOff color={colors.iconPrimary} size={defaults.iconSize} />
-          )}
-        </IconWrapper>
+        <ControlButtonIcon
+          icon={Mic}
+          iconOff={MicOff}
+          disabled={disabled}
+          turnedOn={!optimisticIsMute}
+        />
       </CallControlsButton>
     </Restricted>
   );

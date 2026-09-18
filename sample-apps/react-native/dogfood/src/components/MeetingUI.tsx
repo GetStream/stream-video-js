@@ -114,6 +114,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
       <LobbyViewComponent
         callId={callId}
         onJoinCallHandler={onJoinCallHandler}
+        onCloseHandler={onCallEnded}
         navigation={navigation}
         route={route}
       />

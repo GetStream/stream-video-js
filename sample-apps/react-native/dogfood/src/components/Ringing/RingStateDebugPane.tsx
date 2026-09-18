@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Platform,
   Pressable,
@@ -12,9 +12,9 @@ import {
   GetCallRingStateResponse,
   useCall,
   useCallStateHooks,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { appTheme } from '../../theme';
+import { Z_INDEX } from '../../constants';
 
 /**
  * Dev-only pane for inspecting the ring outcome of the active ringing call:
@@ -26,14 +26,14 @@ import { appTheme } from '../../theme';
 export const RingStateDebugPane = () => {
   const call = useCall();
   const [expanded, setExpanded] = useState(false);
-  const { top } = useSafeAreaInsets();
+  const styles = useStyles();
 
   if (!call) {
     return null;
   }
 
   return (
-    <View style={[styles.container, { top: top + appTheme.spacing.md }]}>
+    <View style={styles.container}>
       <Pressable
         style={styles.header}
         onPress={() => setExpanded((prev) => !prev)}
@@ -49,6 +49,7 @@ const RingStateDebug = ({ call }: { call: Call }) => {
   const { useCallCallingState, useCallSession } = useCallStateHooks();
   const callingState = useCallCallingState();
   const session = useCallSession();
+  const styles = useStyles();
   const [polled, setPolled] = useState<GetCallRingStateResponse>();
   const [polledAt, setPolledAt] = useState<string>();
   const [error, setError] = useState<string>();
@@ -97,87 +98,99 @@ const RingStateDebug = ({ call }: { call: Call }) => {
   );
 };
 
-const Row = ({ label, value }: { label: string; value?: string }) => (
-  <View style={styles.row}>
-    <Text style={styles.rowLabel}>{label}</Text>
-    <Text style={styles.rowValue} numberOfLines={1}>
-      {value || '—'}
-    </Text>
-  </View>
-);
+const Row = ({ label, value }: { label: string; value?: string }) => {
+  const styles = useStyles();
+  return (
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowValue} numberOfLines={1}>
+        {value || '—'}
+      </Text>
+    </View>
+  );
+};
 
 const formatMap = (map?: { [key: string]: string }) => {
   const userIds = Object.keys(map ?? {});
   return userIds.length > 0 ? userIds.join(', ') : undefined;
 };
 
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    left: appTheme.spacing.md,
-    right: appTheme.spacing.md,
-    zIndex: appTheme.zIndex.IN_FRONT,
-    backgroundColor: appTheme.colors.static_overlay,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  header: {
-    paddingVertical: appTheme.spacing.sm,
-    paddingHorizontal: appTheme.spacing.md,
-  },
-  headerText: {
-    color: appTheme.colors.static_white,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  body: {
-    maxHeight: 320,
-    paddingHorizontal: appTheme.spacing.md,
-    paddingBottom: appTheme.spacing.md,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 2,
-  },
-  rowLabel: {
-    color: appTheme.colors.light_gray,
-    fontSize: 12,
-    marginRight: appTheme.spacing.sm,
-  },
-  rowValue: {
-    color: appTheme.colors.static_white,
-    fontSize: 12,
-    flexShrink: 1,
-  },
-  button: {
-    marginTop: appTheme.spacing.sm,
-    paddingVertical: appTheme.spacing.sm,
-    borderRadius: 6,
-    backgroundColor: appTheme.colors.primary,
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    backgroundColor: appTheme.colors.disabled,
-  },
-  buttonText: {
-    color: appTheme.colors.static_white,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  error: {
-    color: appTheme.colors.error,
-    fontSize: 12,
-    marginTop: appTheme.spacing.sm,
-  },
-  hint: {
-    color: appTheme.colors.light_gray,
-    fontSize: 11,
-    marginTop: appTheme.spacing.sm,
-  },
-  json: {
-    color: appTheme.colors.light_blue,
-    fontSize: 11,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-  },
-});
+const useStyles = () => {
+  const {
+    theme: { semantics, primitives, insets },
+  } = useTheme();
+
+  return useMemo(() => {
+    return StyleSheet.create({
+      container: {
+        position: 'absolute',
+        left: primitives.spacingMd,
+        right: primitives.spacingMd,
+        top: insets.top + primitives.spacingMd,
+        zIndex: Z_INDEX.IN_FRONT,
+        backgroundColor: semantics.backgroundCoreOverlayLight,
+        borderRadius: 8,
+        overflow: 'hidden',
+      },
+      header: {
+        paddingVertical: primitives.spacingSm,
+        paddingHorizontal: primitives.spacingMd,
+      },
+      headerText: {
+        color: semantics.textOnAccent,
+        fontSize: 14,
+        fontWeight: 'bold',
+      },
+      body: {
+        maxHeight: 320,
+        paddingHorizontal: primitives.spacingMd,
+        paddingBottom: primitives.spacingMd,
+      },
+      row: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 2,
+      },
+      rowLabel: {
+        color: semantics.textSecondary,
+        fontSize: 12,
+        marginRight: primitives.spacingSm,
+      },
+      rowValue: {
+        color: semantics.textOnAccent,
+        fontSize: 12,
+        flexShrink: 1,
+      },
+      button: {
+        marginTop: primitives.spacingSm,
+        paddingVertical: primitives.spacingSm,
+        borderRadius: 6,
+        backgroundColor: semantics.accentPrimary,
+        alignItems: 'center',
+      },
+      buttonDisabled: {
+        backgroundColor: semantics.borderUtilityDisabled,
+      },
+      buttonText: {
+        color: semantics.textOnAccent,
+        fontSize: 13,
+        fontWeight: '600',
+      },
+      error: {
+        color: semantics.accentError,
+        fontSize: 12,
+        marginTop: primitives.spacingSm,
+      },
+      hint: {
+        color: semantics.textSecondary,
+        fontSize: 11,
+        marginTop: primitives.spacingSm,
+      },
+      json: {
+        color: semantics.textSecondary,
+        fontSize: 11,
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+      },
+    });
+  }, [semantics, primitives, insets]);
+};

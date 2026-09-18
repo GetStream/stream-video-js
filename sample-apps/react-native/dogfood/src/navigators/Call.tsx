@@ -35,7 +35,6 @@ const Calls = () => {
         <ActiveCall
           onCallEnded={() => {}}
           onHangupCallHandler={() => firstCall?.leave()}
-          onChatOpenHandler={null}
         />
       </LayoutProvider>
     );

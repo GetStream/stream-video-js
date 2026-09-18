@@ -13,12 +13,12 @@ import {
 } from 'react-native';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { TextInput } from '../../components/TextInput';
-import { Button } from '../../components/Button';
 import { randomId } from '../../modules/helpers/randomId';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LiveStreamParamList } from '../../../types';
 import { useOrientation } from '../../hooks/useOrientation';
 import QRCode from '../../assets/QRCode';
+import { Button } from '@stream-io/video-react-native-sdk/src/components';
 
 type JoinLiveStreamScreenProps = NativeStackScreenProps<
   LiveStreamParamList,
@@ -30,7 +30,9 @@ export const JoinLiveStream = ({
   route,
 }: JoinLiveStreamScreenProps) => {
   const styles = useStyles();
-  const { theme } = useTheme();
+  const {
+    theme: { semantics },
+  } = useTheme();
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const userId = useAppGlobalStoreValue((store) => store.userId);
   const userName = useAppGlobalStoreValue((store) => store.userName);
@@ -119,7 +121,7 @@ export const JoinLiveStream = ({
                 <QRCode
                   width={20}
                   height={20}
-                  fill={theme.colors.textPrimary.toString()}
+                  fill={semantics.textPrimary.toString()}
                 />
               </TouchableOpacity>
             )}
@@ -129,13 +131,15 @@ export const JoinLiveStream = ({
           {isHost ? (
             <Button
               onPress={enterBackstageHandler}
-              title={t('joinLivestream.start.label', 'Start Livestream')}
+              text={t('joinLivestream.start.label', 'Start Livestream')}
+              size="large"
               disabled={!isValidCallId}
             />
           ) : (
             <Button
               onPress={joinLiveStreamHandler}
-              title={t('joinLivestream.join.label', 'Join Livestream')}
+              text={t('joinLivestream.join.label', 'Join Livestream')}
+              size="large"
               disabled={!isValidCallId}
             />
           )}
@@ -146,13 +150,15 @@ export const JoinLiveStream = ({
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics, primitives },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          padding: theme.variants.spacingSizes.lg,
-          backgroundColor: theme.colors.sheetPrimary,
+          padding: primitives.spacingLg,
+          backgroundColor: semantics.backgroundCoreApp,
           flex: 1,
           justifyContent: 'space-evenly',
         },
@@ -168,16 +174,16 @@ const useStyles = () => {
         },
         title: {
           fontSize: 30,
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           fontWeight: '500',
           textAlign: 'center',
-          marginTop: theme.variants.spacingSizes.lg,
+          marginTop: primitives.spacingLg,
         },
         subTitle: {
-          color: theme.colors.textSecondary,
+          color: semantics.textSecondary,
           fontSize: 16,
           textAlign: 'center',
-          marginHorizontal: theme.variants.spacingSizes.xl,
+          marginHorizontal: primitives.spacingXl,
         },
         bottomContainer: {
           flex: 1,
@@ -208,15 +214,15 @@ const useStyles = () => {
           alignItems: 'center',
         },
         buttonContainer: {
-          marginTop: theme.variants.spacingSizes.md,
+          marginTop: primitives.spacingMd,
         },
         noIdText: {
-          color: theme.colors.textPrimary,
-          marginTop: theme.variants.spacingSizes.lg,
+          color: semantics.textPrimary,
+          marginTop: primitives.spacingLg,
           fontSize: 12,
           textAlign: 'left',
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };

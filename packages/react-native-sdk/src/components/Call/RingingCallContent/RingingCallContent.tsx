@@ -18,10 +18,6 @@ import {
   CallLeftIndicator as DefaultCallLeftIndicator,
   type CallLeftIndicatorProps,
 } from './CallLeftIndicator';
-import {
-  CallPreparingIndicator as DefaultCallPreparingIndicator,
-  type CallPreparingIndicatorProps,
-} from './CallPreparingIndicator';
 import { useTheme } from '../../../contexts';
 
 /**
@@ -45,10 +41,6 @@ export type RingingCallContentProps = {
    */
   CallLeftIndicator?: React.ComponentType<CallLeftIndicatorProps> | null;
   /**
-   * Prop to override the component shown when the call is in idle state.
-   */
-  CallPreparingIndicator?: React.ComponentType<CallPreparingIndicatorProps> | null;
-  /**
    * Check if device is in landscape mode.
    * This will apply the landscape mode styles to the component.
    */
@@ -65,7 +57,6 @@ const RingingCallPanel = ({
   OutgoingCall = DefaultOutgoingCall,
   CallContent = DefaultCallContent,
   CallLeftIndicator = DefaultCallLeftIndicator,
-  CallPreparingIndicator = DefaultCallPreparingIndicator,
   landscape,
   onBackPress,
   callingState,
@@ -73,24 +64,26 @@ const RingingCallPanel = ({
   const call = useCall();
   const isCallCreatedByMe = call?.isCreatedByMe;
 
-  switch (callingState) {
-    case CallingState.RINGING:
-      return isCallCreatedByMe
-        ? OutgoingCall && <OutgoingCall landscape={landscape} />
-        : IncomingCall && <IncomingCall landscape={landscape} />;
-    case CallingState.LEFT:
-      return (
-        CallLeftIndicator && <CallLeftIndicator onBackPress={onBackPress} />
-      );
-    case CallingState.IDLE:
-      return (
-        CallPreparingIndicator && (
-          <CallPreparingIndicator onBackPress={onBackPress} />
-        )
-      );
-    default:
-      return CallContent && <CallContent landscape={landscape} />;
+  if (
+    callingState == CallingState.RINGING ||
+    callingState == CallingState.IDLE ||
+    callingState == CallingState.JOINING
+  ) {
+    return isCallCreatedByMe
+      ? OutgoingCall && <OutgoingCall landscape={landscape} />
+      : IncomingCall && (
+          <IncomingCall
+            landscape={landscape}
+            isConnecting={callingState == CallingState.JOINING}
+          />
+        );
   }
+
+  if (callingState == CallingState.LEFT) {
+    return CallLeftIndicator && <CallLeftIndicator onBackPress={onBackPress} />;
+  }
+
+  return CallContent && <CallContent landscape={landscape} />;
 };
 
 /**
@@ -104,7 +97,7 @@ export const RingingCallContent = (props: RingingCallContentProps) => {
   const callingState = useCallCallingState();
 
   return (
-    <View style={[StyleSheet.absoluteFill, ringingCallContent.container]}>
+    <View style={[StyleSheet.absoluteFill, ringingCallContent?.container]}>
       <RingingCallPanel {...props} callingState={callingState} />
     </View>
   );

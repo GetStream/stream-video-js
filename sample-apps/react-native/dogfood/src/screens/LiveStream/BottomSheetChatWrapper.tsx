@@ -1,6 +1,7 @@
 import {
   FollowerCount,
   LiveIndicator,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
 import React, {
   useCallback,
@@ -24,7 +25,6 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { appTheme } from '../../theme';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -51,27 +51,16 @@ const patchSafeAreaInsets = (insets: { top: number; bottom: number }) => {
 };
 
 const BottomSheetHandleComponent = ({ onClose }: { onClose: () => void }) => {
+  const styles = useStyles();
   return (
-    <View
-      style={[
-        styles.handleContainer,
-        { backgroundColor: appTheme.colors.static_grey },
-      ]}
-    >
-      <Text
-        style={[styles.handleText, { color: appTheme.colors.static_white }]}
-      >
-        Live Chat
-      </Text>
+    <View style={styles.handleContainer}>
+      <Text style={styles.handleText}>Live Chat</Text>
       <View style={styles.liveContainer}>
         <LiveIndicator />
         <FollowerCount />
       </View>
       <TouchableOpacity onPress={onClose}>
-        <Cross
-          color={appTheme.colors.static_white}
-          style={styles.handleCloseButton}
-        />
+        <Cross color={styles.icon.color} style={styles.handleCloseButton} />
       </TouchableOpacity>
     </View>
   );
@@ -101,6 +90,7 @@ const BottomSheetChatWrapper = React.forwardRef<
   const safeAreaInsets = patchSafeAreaInsets(useSafeAreaInsets());
   const { client: chatClient } = useChatContext();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const styles = useStyles();
 
   const snapPoints = useMemo(() => {
     if (windowHeight >= windowWidth) {
@@ -217,6 +207,7 @@ const LivestreamChat = ({
   focusOutsideMessageInput,
 }: LivestreamChatProps) => {
   const { animatedKeyboardState, textInputNodesRef } = useBottomSheetInternal();
+  const styles = useStyles();
 
   /**
    * Mirrors the focus/blur handling of the library's own BottomSheetTextInput
@@ -279,38 +270,52 @@ const LivestreamChat = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: appTheme.colors.static_grey,
-  },
-  chatBottomSheetContainer: {
-    flex: 1,
-    alignItems: 'center',
-    backgroundColor: appTheme.colors.dark_gray,
-  },
-  chatContainer: {
-    width: '100%',
-  },
-  handleContainer: {
-    flexDirection: 'row',
-    flex: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  handleCloseButton: {
-    height: 16,
-    width: 16,
-  },
-  handleText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  liveContainer: {
-    flexDirection: 'row',
-  },
-});
+const useStyles = () => {
+  const {
+    theme: { semantics },
+  } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: semantics.backgroundCoreApp,
+        },
+        chatBottomSheetContainer: {
+          flex: 1,
+          alignItems: 'center',
+          backgroundColor: semantics.backgroundCoreApp,
+        },
+        chatContainer: {
+          width: '100%',
+        },
+        handleContainer: {
+          flexDirection: 'row',
+          flex: 1,
+          paddingHorizontal: 10,
+          paddingVertical: 5,
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: semantics.backgroundCoreApp,
+        },
+        handleCloseButton: {
+          height: 16,
+          width: 16,
+        },
+        handleText: {
+          fontSize: 16,
+          fontWeight: 'bold',
+          color: semantics.textPrimary,
+        },
+        liveContainer: {
+          flexDirection: 'row',
+        },
+        icon: {
+          color: semantics.textPrimary,
+        },
+      }),
+    [semantics],
+  );
+};
 
 export default BottomSheetChatWrapper;

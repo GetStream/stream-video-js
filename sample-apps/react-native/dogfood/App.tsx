@@ -12,10 +12,7 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from './src/contexts/AppContext';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   navigationRef,
   StaticNavigationService,
@@ -32,15 +29,14 @@ import { setPushConfig } from './src/utils/setPushConfig';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Appearance, LogBox, Platform } from 'react-native';
+import { Appearance, LogBox, StatusBar } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
 import {
-  defaultTheme,
+  resolveTheme,
   StreamTheme,
   useCalls,
 } from '@stream-io/video-react-native-sdk';
 import Toast from 'react-native-toast-message';
-import { appTheme } from './src/theme';
 import { TestRecording } from './src/navigators/TestRecording';
 
 // only enable warning and error logs from webrtc library
@@ -63,15 +59,18 @@ const StackNavigator = () => {
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const userName = useAppGlobalStoreValue((store) => store.userName);
   const setState = useAppGlobalStoreSetState();
-  const { bottom } = useSafeAreaInsets();
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
-  const color =
-    themeMode === 'light'
-      ? appTheme.colors.static_white
-      : defaultTheme.colors.sheetPrimary;
+
+  const style = React.useMemo(
+    () => resolveTheme(themeMode === 'dark'),
+    [themeMode],
+  );
 
   useEffect(() => {
     Appearance.setColorScheme(themeMode);
+    StatusBar.setBarStyle(
+      themeMode === 'light' ? 'dark-content' : 'light-content',
+    );
   }, [themeMode]);
 
   useDeepLinkEffect();
@@ -157,28 +156,24 @@ const StackNavigator = () => {
 
   if (!(userId && userImageUrl && userName)) {
     return (
-      <StreamTheme>
+      <StreamTheme style={style}>
         <LoginScreen />
       </StreamTheme>
     );
   }
 
-  const containerStyle = {
-    flex: 1,
-    paddingBottom: Platform.OS === 'android' ? bottom : 0,
-    backgroundColor: color,
-  };
-
   return (
-    <GestureHandlerRootView style={containerStyle}>
-      <VideoWrapper>
-        <RingingWatcher />
-        <ChatWrapper>
-          <Stack.Navigator>{mode}</Stack.Navigator>
-          <Toast />
-        </ChatWrapper>
-      </VideoWrapper>
-    </GestureHandlerRootView>
+    <StreamTheme style={style}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <VideoWrapper>
+          <RingingWatcher />
+          <ChatWrapper>
+            <Stack.Navigator>{mode}</Stack.Navigator>
+            <Toast />
+          </ChatWrapper>
+        </VideoWrapper>
+      </GestureHandlerRootView>
+    </StreamTheme>
   );
 };
 

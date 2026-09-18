@@ -1,11 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../contexts';
-import { type ViewerLivestreamTopViewProps } from '../LivestreamTopView/ViewerLivestreamTopView';
 import {
-  ViewerLivestreamControls as DefaultViewerLivestreamControls,
-  type ViewerLivestreamControlsProps,
-} from '../LivestreamControls/ViewerLivestreamControls';
+  ViewerLivestreamTopView as DefaultViewerLivestreamTopView,
+  type ViewerLivestreamTopViewProps,
+} from '../LivestreamTopView/ViewerLivestreamTopView';
 import type { ViewerLeaveStreamButtonProps } from '../LivestreamControls/ViewerLeaveStreamButton';
 import {
   LivestreamLayout as DefaultLivestreamLayout,
@@ -20,12 +19,20 @@ import { CallingState, hasVideo } from '@stream-io/video-client';
 import { CallEndedView } from '../LivestreamPlayer/LivestreamEnded';
 import { ViewerLobby } from './ViewerLobby';
 import { getRNInCallManagerLibNoThrow } from '../../../modules/call-manager/PrevLibDetection';
+import {
+  ViewerStatusPanel as DefaultViewerStatusPanel,
+  type ViewerStatusPanelProps,
+} from './ViewerStatusPanel';
+import { Z_INDEX } from '../../../constants';
+import { ViewerLivestreamOverlay } from './ViewerLivestreamOverlay';
 
 /**
  * Props for the ViewerLivestream component.
  */
-export type ViewerLivestreamProps = ViewerLivestreamTopViewProps &
-  ViewerLivestreamControlsProps &
+export type ViewerLivestreamProps = Omit<
+  ViewerLivestreamTopViewProps,
+  'showControls' | 'onLayout'
+> &
   ViewerLeaveStreamButtonProps & {
     /**
      * Component to customize the top view at the viewer's live stream.
@@ -36,13 +43,13 @@ export type ViewerLivestreamProps = ViewerLivestreamTopViewProps &
      */
     LivestreamLayout?: React.ComponentType<LivestreamLayoutProps> | null;
     /**
-     * Component to customize the bottom view controls at the viewer's live stream.
-     */
-    ViewerLivestreamControls?: React.ComponentType<ViewerLivestreamControlsProps> | null;
-    /**
      * Component to customize the FloatingParticipantView when screen is shared.
      */
     FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps> | null;
+    /**
+     * Component to customize the status panel at the viewer's live stream.
+     */
+    ViewerStatusPanel?: React.ComponentType<ViewerStatusPanelProps> | null;
     /**
      * Determines when the viewer joins the call.
      *
@@ -57,21 +64,17 @@ export type ViewerLivestreamProps = ViewerLivestreamTopViewProps &
  * The ViewerLivestream component renders the UI for the Viewer's live stream.
  */
 export const ViewerLivestream = ({
-  ViewerLivestreamTopView,
-  ViewerLivestreamControls = DefaultViewerLivestreamControls,
+  ViewerLivestreamTopView = DefaultViewerLivestreamTopView,
+  ViewerStatusPanel = DefaultViewerStatusPanel,
   LivestreamLayout = DefaultLivestreamLayout,
   FloatingParticipantView = DefaultFloatingParticipantView,
-  LiveIndicator,
-  FollowerCount,
   DurationBadge,
-  ViewerLeaveStreamButton,
   onLeaveStreamHandler,
   joinBehavior,
 }: ViewerLivestreamProps) => {
-  const styles = useStyles();
   const call = useCall();
   const {
-    theme: { viewerLivestream },
+    theme: { viewerLivestream, primitives, insets },
   } = useTheme();
   const {
     useHasOngoingScreenShare,
@@ -92,13 +95,13 @@ export const ViewerLivestream = ({
     hasVideo(currentSpeaker) &&
     currentSpeaker;
   const [hasLeft, setHasLeft] = useState(false);
+  const [showControls, setShowControls] = useState(true);
 
   const canJoinEarly = useCanJoinEarly();
   const canJoinBackstage =
     useOwnCapabilities()?.includes('join-backstage') ?? false;
 
   const [topViewHeight, setTopViewHeight] = React.useState<number>();
-  const [controlsHeight, setControlsHeight] = React.useState<number>();
 
   // Automatically route audio to speaker devices as relevant for watching videos.
   useEffect(() => {
@@ -115,15 +118,6 @@ export const ViewerLivestream = ({
       setHasLeft(true);
     }
   }, [callingState]);
-
-  const topViewProps: ViewerLivestreamTopViewProps = {
-    LiveIndicator,
-    FollowerCount,
-    DurationBadge,
-    onLayout: (event) => {
-      setTopViewHeight(event.nativeEvent.layout.height);
-    },
-  };
 
   useEffect(() => {
     const canJoinAsap = canJoinLive || canJoinEarly || canJoinBackstage;
@@ -162,32 +156,53 @@ export const ViewerLivestream = ({
     );
   }
 
+  const statusPanelStyle = {
+    bottom: insets.bottom + primitives.spacingXxs,
+  };
+
   return (
     <View style={[styles.container, viewerLivestream.container]}>
-      {ViewerLivestreamTopView && <ViewerLivestreamTopView {...topViewProps} />}
-      {FloatingParticipantView &&
-        floatingParticipant &&
-        topViewHeight &&
-        controlsHeight && (
-          <FloatingParticipantView
-            participant={floatingParticipant}
-            draggableContainerStyle={[
-              StyleSheet.absoluteFill,
-              {
-                top: topViewHeight,
-                bottom: controlsHeight,
-              },
-            ]}
-          />
-        )}
-      {LivestreamLayout && <LivestreamLayout />}
-      {ViewerLivestreamControls && (
-        <ViewerLivestreamControls
-          ViewerLeaveStreamButton={ViewerLeaveStreamButton}
-          onLeaveStreamHandler={onLeaveStreamHandler}
+      <View
+        style={[styles.livestreamLayout, viewerLivestream.livestreamLayout]}
+      >
+        {LivestreamLayout && <LivestreamLayout style={{ borderRadius: 0 }} />}
+      </View>
+      {ViewerLivestreamTopView && (
+        <ViewerLivestreamTopView
+          DurationBadge={DurationBadge}
+          showControls={showControls}
           onLayout={(event) => {
-            setControlsHeight(event.nativeEvent.layout.height);
+            setTopViewHeight(event.nativeEvent.layout.height);
           }}
+          onLeaveStreamHandler={onLeaveStreamHandler}
+          style={styles.topView}
+        />
+      )}
+      {FloatingParticipantView && floatingParticipant && topViewHeight && (
+        <FloatingParticipantView
+          participant={floatingParticipant}
+          draggableContainerStyle={[
+            StyleSheet.absoluteFill,
+            {
+              top: topViewHeight,
+              bottom: 0,
+            },
+          ]}
+        />
+      )}
+      <ViewerLivestreamOverlay
+        showControls={showControls}
+        setShowControls={(value) => setShowControls(value)}
+      />
+      {ViewerStatusPanel && (
+        <ViewerStatusPanel
+          showControls={showControls}
+          setShowControls={(value) => setShowControls(value)}
+          style={[
+            styles.viewerStatusPanel,
+            viewerLivestream.viewerStatusPanel,
+            statusPanelStyle,
+          ]}
         />
       )}
     </View>
@@ -198,7 +213,8 @@ const useCanJoinEarly = () => {
   const { useCallStartsAt, useCallSettings } = useCallStateHooks();
   const startsAt = useCallStartsAt();
   const settings = useCallSettings();
-  const joinAheadTimeSeconds = settings?.backstage.join_ahead_time_seconds;
+  const joinAheadTimeSeconds =
+    settings?.backstage?.join_ahead_time_seconds ?? 0;
   const [canJoinEarly, setCanJoinEarly] = useState(() =>
     checkCanJoinEarly(startsAt, joinAheadTimeSeconds),
   );
@@ -226,20 +242,23 @@ const checkCanJoinEarly = (
   return Date.now() >= +startsAt - (joinAheadTimeSeconds ?? 0) * 1000;
 };
 
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          flex: 1,
-          paddingBottom: theme.variants.insets.bottom,
-          paddingLeft: theme.variants.insets.left,
-          paddingRight: theme.variants.insets.right,
-          paddingTop: theme.variants.insets.top,
-          backgroundColor: theme.colors.sheetPrimary,
-        },
-      }),
-    [theme],
-  );
-};
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    flexDirection: 'column',
+  },
+  livestreamLayout: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  viewerStatusPanel: {
+    position: 'absolute',
+    zIndex: Z_INDEX.IN_FRONT + 2,
+  },
+  topView: {
+    zIndex: Z_INDEX.IN_FRONT,
+  },
+});
