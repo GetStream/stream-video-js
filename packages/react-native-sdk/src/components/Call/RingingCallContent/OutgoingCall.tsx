@@ -78,15 +78,13 @@ const Background = () => {
   const { useCameraState } = useCallStateHooks();
   const { optimisticIsMute } = useCameraState();
 
-  const wantsCamera = !optimisticIsMute;
-
-  if (!wantsCamera) {
+  if (optimisticIsMute) {
     return <View style={[styles.background, outgoingCall.background]} />;
   }
 
   return (
     <View style={[styles.background, outgoingCall.background]}>
-      <LobbyCameraPreview style={StyleSheet.absoluteFill} objectFit="cover" />
+      <LobbyCameraPreview />
     </View>
   );
 };
