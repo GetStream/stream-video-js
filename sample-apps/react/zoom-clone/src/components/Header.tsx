@@ -20,7 +20,7 @@ export const Header = () => {
         <div className="flex gap-2 items-center">
           <span>Signed in as: {user?.name}</span>
           <button
-            className="bg-zinc-800 rounded-full flex justify-center items-center text-video-white px-2 py-1"
+            className="bg-zinc-800 rounded-full flex justify-center items-center text-white px-2 py-1"
             disabled={!(videoClient && chatClient)}
             onClick={async () => {
               if (!(videoClient && chatClient)) return;

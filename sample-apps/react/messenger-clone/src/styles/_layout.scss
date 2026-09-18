@@ -72,6 +72,21 @@ body {
   }
 }
 
+// `.str-chat__avatar` globally declares `grid-area: avatar`, but the channel
+// header is a grid with `grid-template-columns` and no `grid-template-areas`.
+// The unmatched name creates implicit tracks, dropping the avatar into a second
+// row at the far right where it overflows the 72px header.
+.str-chat__channel-header .str-chat__avatar {
+  grid-area: auto;
+}
+
+// The header grid is `1fr auto 1fr`: avatar in the first column, the centred
+// title in the second, actions in the third. Without this the button stretches
+// across its column, and `start` would butt it against the title.
+.str-chat__channel-header .rmc__button {
+  justify-self: end;
+}
+
 @media screen and (min-width: 768px) {
   #sidebar {
     width: 30%;
