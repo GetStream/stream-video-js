@@ -11,6 +11,11 @@
     mask-image: var(--str-video__icon--call-latency);
   }
 
+  &--poll {
+    -webkit-mask-image: var(--str-video__icon--poll);
+    mask-image: var(--str-video__icon--poll);
+  }
+
   &--network-quality {
     -webkit-mask-image: var(--str-video__icon--network-quality);
     mask-image: var(--str-video__icon--network-quality);
