@@ -6052,6 +6052,12 @@ export interface JoinCallRequest {
    */
   ring?: boolean;
   /**
+   * whether the client intends to publish a single high-quality layer for server-side transcoding; only honoured when the call's transcoding mode is available
+   * @type {boolean}
+   * @memberof JoinCallRequest
+   */
+  transcode?: boolean;
+  /**
    *
    * @type {boolean}
    * @memberof JoinCallRequest
