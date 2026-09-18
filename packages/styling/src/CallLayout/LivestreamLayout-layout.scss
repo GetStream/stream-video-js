@@ -95,7 +95,7 @@
       inline-size: var(--str-video__size-8);
       block-size: var(--str-video__size-8);
       border-radius: var(--str-video__radius-full);
-      animation: str-video__livestream-live-blink 2s ease-in-out infinite
+      animation: str-video__livestream-live-blink 1s ease-in-out infinite
         alternate;
     }
 
