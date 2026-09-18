@@ -12,7 +12,13 @@ export const AppShell = () => {
   if (!user) return <div>Could not load the user data</div>;
 
   return (
-    <StreamTheme as="main" className="main-container">
+    // stream-chat-react renders light by default; without this the SDK
+    // default (dark) would put dark video components on a white chat surface.
+    <StreamTheme
+      as="main"
+      className="main-container"
+      theme="str-video__theme-light"
+    >
       <ClientProviders user={user}>
         <ChatView>
           <ChatView.Selector />

@@ -11,6 +11,10 @@
   background-color: var(--str-video__button-secondary-bg);
   color: var(--str-video__button-secondary-text-on-accent);
 
+  .str-video__icon {
+    background-color: currentColor;
+  }
+
   &__face {
     display: inline-flex;
     align-items: center;
