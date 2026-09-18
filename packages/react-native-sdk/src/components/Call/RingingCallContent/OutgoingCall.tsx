@@ -4,12 +4,12 @@ import { UserInfo } from './UserInfo';
 import { Z_INDEX } from '../../../constants';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
-import { MediaStream, RTCView } from '@stream-io/react-native-webrtc';
 import { useTheme } from '../../../contexts/ThemeContext';
 import {
   OutgoingCallControls as DefaultOutgoingCallControls,
   type OutgoingCallControlsProps,
 } from '../CallControls';
+import { LobbyCameraPreview } from '../Lobby';
 
 /**
  * Props for the OutgoingCall Component.
@@ -108,11 +108,9 @@ const Background = () => {
     theme: { colors, outgoingCall },
   } = useTheme();
   const { useCameraState } = useCallStateHooks();
-  const { isMute, camera } = useCameraState();
-  const localVideoStream = camera.state.mediaStream as unknown as
-    MediaStream | undefined;
+  const { optimisticIsMute } = useCameraState();
 
-  if (isMute || !localVideoStream) {
+  if (optimisticIsMute) {
     return (
       <View
         style={[
@@ -131,13 +129,7 @@ const Background = () => {
         outgoingCall.background,
       ]}
     >
-      <RTCView
-        streamURL={localVideoStream.toURL()}
-        zOrder={Z_INDEX.IN_BACK}
-        style={StyleSheet.absoluteFill}
-        mirror
-        objectFit="cover"
-      />
+      <LobbyCameraPreview />
     </View>
   );
 };
