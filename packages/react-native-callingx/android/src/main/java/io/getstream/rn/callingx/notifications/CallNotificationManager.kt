@@ -41,17 +41,6 @@ class CallNotificationManager(
     internal companion object {
         private const val TAG = "[Callingx] CallNotificationManager"
         private const val DISABLED_COLOR = "#757575" // NOTE: hint color might be ignored by OS
-
-        /**
-         * Schemes the platform documents as resolvable for `Person.setUri()`: "tel:" is looked up
-         * through PhoneLookup and "mailto:" through the contacts email column.
-         *
-         * A contacts `CONTENT_LOOKUP_URI` is also resolvable, but any "content:" URI in a
-         * notification is run through the system's URI grant check, which throws a
-         * SecurityException from notify() when the app cannot grant it. Since no caller passes
-         * one, it is left out rather than risking that crash.
-         */
-        private val CONTACT_URI_SCHEMES = setOf("tel", "mailto")
     }
 
     enum class OptimisticState { NONE, ACCEPTING, REJECTING }
@@ -491,22 +480,15 @@ class CallNotificationManager(
                         .firstOrNull { it.isNotEmpty() }
                         ?: CallService.DEFAULT_DISPLAY_NAME
 
-        val builder =
-                Person.Builder()
-                        .setName(name)
-                        .setKey(address.toString())
-                        .setIcon(IconCompat.createWithResource(context, R.drawable.ic_user))
-                        .setImportant(true)
-
-        // setUri() feeds the platform's contact lookup, so it only makes sense for a handle the
-        // provider can resolve (e.g. "tel:+15551234"). Opaque ids such as Stream user ids never
-        // match a contact, and are carried by setKey() above instead. See CONTACT_URI_SCHEMES.
-        val scheme = address.scheme?.lowercase()
-        if (scheme != null && scheme in CONTACT_URI_SCHEMES) {
-            builder.setUri(address.toString())
-        }
-
-        return builder.build()
+        // The address is an opaque `<packageName>:<handle>` URI (see toTelecomAddress), so it
+        // only identifies the Person via setKey(); setUri() would feed the platform's contact
+        // lookup, which can never resolve it.
+        return Person.Builder()
+                .setName(name)
+                .setKey(address.toString())
+                .setIcon(IconCompat.createWithResource(context, R.drawable.ic_user))
+                .setImportant(true)
+                .build()
     }
 
 }
