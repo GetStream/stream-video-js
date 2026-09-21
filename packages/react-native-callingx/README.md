@@ -58,6 +58,8 @@ await CallingxModule.displayIncomingCall(
 - `acquireBackgroundTask(owner)` / `releaseBackgroundTask(owner)` (Android) — ref-counted keep-alive task that keeps the JS runtime/timers alive in the background; the underlying HeadlessJS task starts on the first acquire and stops once all owners release.
 - `stopService()` (Android) — asks the call service to stop. A request, not a command: the service hosts every call, so it stays alive while any call is registered or is being registered. Use `endCallWithReason(callId, reason)` to tear down an individual call.
 
+`phoneNumber` is the call handle. iOS uses it as the CallKit `CXHandle`. Android uses it as the Telecom address, wrapped as `<packageName>:<phoneNumber>` unless it already carries a scheme such as `tel:` or `sip:` (a scheme-less address reboots ColorOS devices). The Stream Video SDK passes the caller's user id on iOS and the call id on Android.
+
 ## Event names
 
 Call events:
