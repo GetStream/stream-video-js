@@ -57,6 +57,13 @@ class CallService : Service(), CallRepository.Listener {
         internal const val EXTRA_CALL_ID = "extra_call_id"
         internal const val EXTRA_NAME = "extra_name"
         internal const val EXTRA_URI = "extra_uri"
+        /**
+         * A null-scheme address reboots ColorOS devices (Telecom NPE), so the handle is wrapped
+         * with the package name like the Android SDK ("$packageName:$callId"). The address is
+         * never displayed or dialed.
+         */
+        internal fun toTelecomAddress(context: Context, handle: String): Uri =
+                Uri.fromParts(context.packageName, handle, null)
         internal const val EXTRA_IS_VIDEO = "extra_is_video"
         internal const val EXTRA_DISPLAY_TITLE = "displayTitle"
         internal const val EXTRA_DISPLAY_OPTIONS = "display_options"
