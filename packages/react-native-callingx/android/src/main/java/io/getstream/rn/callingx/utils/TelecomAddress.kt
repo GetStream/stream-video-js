@@ -2,7 +2,6 @@ package io.getstream.rn.callingx
 
 import android.content.Context
 import android.net.Uri
-import androidx.core.net.toUri
 
 /**
  * ColorOS Telecom NPEs in PhoneNumberUtilsExtImpl.getNumberFromIntent when the
@@ -15,15 +14,10 @@ import androidx.core.net.toUri
  * treat the handle as a dialable number. This matches the Stream Android SDK, which
  * registers Telecom calls with
  * `"$appSchema:${callId.id}"` (`appSchema` being the app package name).
+ *
+ * The handle is always wrapped, never parsed: the address is not displayed for
+ * self-managed calls, and parsing would promote anything before a `:` in the handle
+ * (e.g. a Stream call cid `default:abc`) to the scheme.
  */
-internal fun toTelecomAddress(context: Context, handle: String): Uri {
-  val trimmed = handle.trim()
-  if (trimmed.isEmpty()) {
-    return Uri.fromParts(context.packageName, "unknown", null)
-  }
-  val parsed = trimmed.toUri()
-  if (!parsed.scheme.isNullOrBlank()) {
-    return parsed
-  }
-  return Uri.fromParts(context.packageName, trimmed, null)
-}
+internal fun toTelecomAddress(context: Context, handle: String): Uri =
+  Uri.fromParts(context.packageName, handle, null)
