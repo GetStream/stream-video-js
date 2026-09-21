@@ -13,8 +13,7 @@
     "build": "yarn clean && rollup -c",
     "test": "vitest",
     "test-ci": "vitest run --coverage",
-    "generate:open-api": "./generate-openapi.sh protocol",
-    "generate:open-api:dev": "./generate-openapi.sh chat"
+    "generate:open-api": "./generate-openapi.sh"
   },
   "repository": {
     "type": "git",
@@ -43,7 +42,6 @@
     "webrtc-adapter": "^8.2.4"
   },
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.40.1",
     "@rollup/plugin-replace": "^6.0.3",
     "@rollup/plugin-typescript": "^12.3.0",
     "@stream-io/audio-filters-web": "workspace:^",

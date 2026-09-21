@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { convertTimestampToDate } from '@stream-io/video-client';
 import {
   type CallSessionResponse,
   type StreamCallEvent,
@@ -23,12 +24,11 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
   const session = useCallSession();
 
   const [duration, setDuration] = useState(() => {
-    if (!session || !session.live_started_at) {
+    const liveStartTime = convertTimestampToDate(session?.live_started_at);
+    if (!liveStartTime) {
       return 0;
     }
-    const liveStartTime = new Date(session.live_started_at);
-    const now = new Date();
-    return Math.floor((now.getTime() - liveStartTime.getTime()) / 1000);
+    return Math.floor((Date.now() - liveStartTime.getTime()) / 1000);
   });
 
   const call = useCall();

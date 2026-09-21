@@ -4,15 +4,17 @@ import type {
   VideoDimension,
 } from './gen/video/sfu/models/models';
 import type {
-  AudioSettingsRequestDefaultDeviceEnum,
-  CallRecordingStartedEventRecordingTypeEnum,
+  AudioSettingsRequest,
+  CallRecordingStartedEvent,
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
   VideoReactionResponse,
   StartRecordingRequest,
   StartRecordingResponse,
+  StopRecordingResponse,
 } from './gen/coordinator';
+import type { StreamResponse } from './coordinator/connection/api-client';
 import type { StreamClient } from './coordinator/connection/client';
 import type { ClientEventReporter } from './reporting';
 import type {
@@ -404,15 +406,20 @@ export type StreamVideoClientOptions =
   | StreamVideoClientOptionsWithAnonymousUser
   | StreamVideoClientOptionsWithAuthenticatedUser;
 
-export type CallRecordingType = CallRecordingStartedEventRecordingTypeEnum;
+export type CallRecordingType = CallRecordingStartedEvent['recording_type'];
+
+type StartRecording = Promise<StreamResponse<StartRecordingResponse>>;
+
 export type StartCallRecordingFnType = {
-  (): Promise<StartRecordingResponse>;
-  (type: CallRecordingType): Promise<StartRecordingResponse>;
-  (request: StartRecordingRequest): Promise<StartRecordingResponse>;
-  (
-    request: StartRecordingRequest,
-    type: CallRecordingType,
-  ): Promise<StartRecordingResponse>;
+  (): StartRecording;
+  (type: CallRecordingType): StartRecording;
+  (request: StartRecordingRequest): StartRecording;
+  (request: StartRecordingRequest, type: CallRecordingType): StartRecording;
+};
+
+export type StopCallRecordingFnType = {
+  (): Promise<StreamResponse<StopRecordingResponse>>;
+  (type: CallRecordingType): Promise<StreamResponse<StopRecordingResponse>>;
 };
 
 type StreamRNVideoSDKCallManagerRingingParams = {
@@ -422,7 +429,7 @@ type StreamRNVideoSDKCallManagerRingingParams = {
 type StreamRNVideoSDKCallManagerSetupParams =
   StreamRNVideoSDKCallManagerRingingParams & {
     cid: string;
-    defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
+    defaultDevice: AudioSettingsRequest['default_device'];
   };
 
 type StreamRNVideoSDKCallManagerStartParams =

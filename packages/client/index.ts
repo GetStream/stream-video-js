@@ -1,7 +1,24 @@
 import 'webrtc-adapter';
 
 export * from './src/gen/coordinator';
+// Types for the `common`-tagged routes the video-only spec omits (devices,
+// guest, WS auth) and for the v1 routes Call still uses. See src/gen/shims.ts.
+export type {
+  ConnectUserDetailsRequest,
+  CreateDeviceRequest,
+  CreateGuestRequest,
+  CreateGuestResponse,
+  ListDevicesResponse,
+  Response,
+  UserRequest,
+  WSAuthMessage,
+} from './src/gen/shims';
 export * from './src/coordinator/connection/types';
+export type {
+  RateLimit,
+  RequestMetadata,
+  StreamResponse,
+} from './src/coordinator/connection/api-client';
 
 export * as SfuEvents from './src/gen/video/sfu/event/events';
 export * as SfuModels from './src/gen/video/sfu/models/models';
@@ -31,3 +48,4 @@ export * from './src/rtc/e2ee/EncryptionManager';
 export * as Browsers from './src/helpers/browsers';
 
 export * from './src/logger';
+export * from './src/helpers/time';

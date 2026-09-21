@@ -13,6 +13,8 @@ import {
   type StreamClientOptions,
 } from '../../coordinator/connection/types';
 import type { GetCallRingStateResponse } from '../../gen/coordinator';
+import { dateToNs } from '../../helpers/time';
+import type { StreamResponse } from '../../coordinator/connection/api-client';
 
 const SESSION_ID = 'session-1';
 const START_AFTER_MS = 15_000;
@@ -20,7 +22,8 @@ const INTERVAL_MS = 5_000;
 
 const ringState = (
   overrides: Partial<GetCallRingStateResponse> = {},
-): GetCallRingStateResponse => ({
+): StreamResponse<GetCallRingStateResponse> => ({
+  metadata: fromPartial({}),
   duration: '1ms',
   call_cid: 'test:call',
   session_id: SESSION_ID,
@@ -127,7 +130,9 @@ describe('RingStatePoller', () => {
 
   it('joins the call once when someone else accepted', async () => {
     const getRingState = startPolling(
-      ringState({ accepted_by: { john: '2026-08-24T10:00:04Z' } }),
+      ringState({
+        accepted_by: { john: dateToNs(new Date('2026-08-24T10:00:04Z')) },
+      }),
     );
 
     await vi.advanceTimersByTimeAsync(START_AFTER_MS + 3 * INTERVAL_MS);
@@ -140,7 +145,9 @@ describe('RingStatePoller', () => {
 
   it('ignores an acceptance by the current user', async () => {
     startPolling(
-      ringState({ accepted_by: { [userId]: '2026-08-24T10:00:04Z' } }),
+      ringState({
+        accepted_by: { [userId]: dateToNs(new Date('2026-08-24T10:00:04Z')) },
+      }),
     );
 
     await vi.advanceTimersByTimeAsync(START_AFTER_MS);
@@ -149,7 +156,11 @@ describe('RingStatePoller', () => {
   });
 
   it('cancels the call when everyone else rejected', async () => {
-    startPolling(ringState({ rejected_by: { john: '2026-08-24T10:00:09Z' } }));
+    startPolling(
+      ringState({
+        rejected_by: { john: dateToNs(new Date('2026-08-24T10:00:09Z')) },
+      }),
+    );
 
     await vi.advanceTimersByTimeAsync(START_AFTER_MS);
 
@@ -218,7 +229,11 @@ describe('RingStatePoller', () => {
   });
 
   it('keeps polling when everyone else is marked missed before auto-cancel', async () => {
-    startPolling(ringState({ missed_by: { john: '2026-08-24T10:00:35Z' } }));
+    startPolling(
+      ringState({
+        missed_by: { john: dateToNs(new Date('2026-08-24T10:00:35Z')) },
+      }),
+    );
 
     await vi.advanceTimersByTimeAsync(START_AFTER_MS);
 
@@ -229,8 +244,8 @@ describe('RingStatePoller', () => {
   it('leaves without rejecting when the call has ended, even if it was accepted', async () => {
     startPolling(
       ringState({
-        accepted_by: { john: '2026-08-24T10:00:04Z' },
-        call_ended_at: '2026-08-24T10:00:20Z',
+        accepted_by: { john: dateToNs(new Date('2026-08-24T10:00:04Z')) },
+        call_ended_at: dateToNs(new Date('2026-08-24T10:00:20Z')),
       }),
     );
 
@@ -299,7 +314,9 @@ describe('RingStatePoller', () => {
 
   it('retries the join on the next poll when it failed', async () => {
     const getRingState = startPolling(
-      ringState({ accepted_by: { john: '2026-08-24T10:00:04Z' } }),
+      ringState({
+        accepted_by: { john: dateToNs(new Date('2026-08-24T10:00:04Z')) },
+      }),
     );
     vi.mocked(call.join).mockRejectedValueOnce(new Error('transient'));
 

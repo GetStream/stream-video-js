@@ -4,7 +4,6 @@ import {
   CompositeButton,
   Icon,
   OwnCapability,
-  TranscriptionSettingsResponseClosedCaptionModeEnum,
   useCall,
   useCallStateHooks,
   WithTooltip,
@@ -22,8 +21,7 @@ export const ToggleClosedCaptionsButton = () => {
   const canStop = useHasPermissions(OwnCapability.STOP_CLOSED_CAPTIONS_CALL);
   const canToggle = isCaptioned ? canStop : canStart;
   const isClosedCaptionsEnabled =
-    settings?.transcription.closed_caption_mode !==
-    TranscriptionSettingsResponseClosedCaptionModeEnum.DISABLED;
+    settings?.transcription.closed_caption_mode !== 'disabled';
 
   if (!isClosedCaptionsEnabled || (!canStart && !canStop)) return null;
 

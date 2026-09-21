@@ -5,11 +5,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import {
-  NoiseCancellationSettingsModeEnum,
-  OwnCapability,
-  videoLoggerSystem,
-} from '@stream-io/video-client';
+import { OwnCapability, videoLoggerSystem } from '@stream-io/video-client';
 
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
@@ -73,8 +69,7 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
   const noiseCancellationAllowed = !!(
     settings &&
     settings.audio.noise_cancellation &&
-    settings.audio.noise_cancellation.mode !==
-      NoiseCancellationSettingsModeEnum.DISABLED
+    settings.audio.noise_cancellation.mode !== 'disabled'
   );
 
   const hasCapability = useHasPermissions(

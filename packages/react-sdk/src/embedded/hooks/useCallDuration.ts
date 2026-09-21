@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { convertTimestampToDate } from '@stream-io/video-client';
 
 const formatElapsed = (seconds: number) => {
   const h = Math.floor(seconds / 3600);
@@ -9,12 +10,14 @@ const formatElapsed = (seconds: number) => {
 };
 
 /**
- * Returns a live-updating formatted elapsed duration string
- * computed from the given start date.
+ * Returns a live-updating formatted elapsed duration string computed from the
+ * given start time.
+ *
+ * @param startedAt a server-sent timestamp, in unix nanoseconds.
  */
-export const useCallDuration = (startedAt?: string) => {
+export const useCallDuration = (startedAt?: number) => {
   const startedAtDate = useMemo(
-    () => (startedAt ? new Date(startedAt).getTime() : undefined),
+    () => convertTimestampToDate(startedAt)?.getTime(),
     [startedAt],
   );
 

@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { CallRecording } from '@stream-io/video-client';
+import { CallRecording, convertTimestampToDate } from '@stream-io/video-client';
 import { Icon } from '../Icon';
 
 export type CallRecordingListItemProps = {
@@ -7,9 +7,9 @@ export type CallRecordingListItemProps = {
   recording: CallRecording;
 };
 
-const dateFormat = (date: string) => {
-  const format = new Date(date);
-  return format.toTimeString().split(' ')[0];
+const dateFormat = (timestamp: number) => {
+  const date = convertTimestampToDate(timestamp);
+  return date ? date.toTimeString().split(' ')[0] : '';
 };
 export const CallRecordingListItem = ({
   recording,

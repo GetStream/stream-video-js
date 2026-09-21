@@ -5,11 +5,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../i18n';
 import clsx from 'clsx';
-import {
-  OwnCapability,
-  RequestPermissionRequestPermissionsEnum,
-  SfuModels,
-} from '@stream-io/video-client';
+import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import { Badge } from '../Badge';
 import { CompositeButton, CompositeButtonProps } from '../Button/';
 import { DeviceSelectorVideo } from '../DeviceSettings';
@@ -135,7 +131,7 @@ export const ToggleVideoPublishingButton = (
   } = props;
 
   const { hasPermission, requestPermission, isAwaitingPermission } =
-    useRequestPermission(RequestPermissionRequestPermissionsEnum.SEND_VIDEO);
+    useRequestPermission('send-video');
 
   const { useCameraState, useCallSettings, useLocalParticipant } =
     useCallStateHooks();

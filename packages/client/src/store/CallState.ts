@@ -62,6 +62,7 @@ import {
 import { Comparator, defaultSortPreset } from '../sorting';
 import { ensureExhausted } from '../helpers/ensureExhausted';
 import { hasScreenShare } from '../helpers/participantUtils';
+import { convertTimestampToDate, nsToDate } from '../helpers/time';
 import { videoLoggerSystem } from '../logger';
 import type { AllEventHandlers, CallStateEventHandlers } from './types';
 
@@ -1049,13 +1050,13 @@ export class CallState {
   updateFromCallResponse = (call: CallResponse) => {
     this.setBackstage(call.backstage);
     setCurrentValue(this.blockedUserIdsSubject, call.blocked_user_ids);
-    setCurrentValue(this.createdAtSubject, new Date(call.created_at));
-    setCurrentValue(this.updatedAtSubject, new Date(call.updated_at));
+    setCurrentValue(this.createdAtSubject, nsToDate(call.created_at));
+    setCurrentValue(this.updatedAtSubject, nsToDate(call.updated_at));
     setCurrentValue(
       this.startsAtSubject,
-      call.starts_at ? new Date(call.starts_at) : undefined,
+      convertTimestampToDate(call.starts_at),
     );
-    this.setEndedAt(call.ended_at ? new Date(call.ended_at) : undefined);
+    this.setEndedAt(convertTimestampToDate(call.ended_at));
     setCurrentValue(this.createdBySubject, call.created_by);
     setCurrentValue(this.customSubject, call.custom);
     setCurrentValue(this.egressSubject, call.egress);
@@ -1103,7 +1104,7 @@ export class CallState {
       };
     });
     if (ringState.call_ended_at) {
-      this.setEndedAt(new Date(ringState.call_ended_at));
+      this.setEndedAt(nsToDate(ringState.call_ended_at));
     }
   };
 

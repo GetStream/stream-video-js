@@ -5,6 +5,7 @@ import pluginReact from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import importPlugin from 'eslint-plugin-import';
 import reactCompiler from 'eslint-plugin-react-compiler';
+import unusedImports from 'eslint-plugin-unused-imports';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -54,6 +55,14 @@ export default [
       'react-hooks/purity': 'error',
       'react-hooks/exhaustive-deps': 'error',
       'react-compiler/react-compiler': 'off',
+    },
+  },
+  {
+    files: ['packages/client/src/gen/coordinator/**/*.ts'],
+    plugins: { 'unused-imports': unusedImports },
+    rules: {
+      'unused-imports/no-unused-imports': 'error',
+      '@typescript-eslint/consistent-type-imports': 'error',
     },
   },
 ];

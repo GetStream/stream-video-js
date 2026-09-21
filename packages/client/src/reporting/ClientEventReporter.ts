@@ -75,7 +75,9 @@ export type ClientEventReporterOptions = {
 };
 
 // TODO OL: update OpenAPI
-type ReportedClientEvent = ClientEvent & { source?: JoinSource };
+type ReportedClientEvent = Omit<ClientEvent, 'source'> & {
+  source?: JoinSource;
+};
 
 type StageError = {
   reason: string;
@@ -207,14 +209,16 @@ export class ClientEventReporter {
     this.coordinatorWsPair = undefined;
   };
 
-  private buildCoordinatorWsCommon = (pair: StagePairState): ClientEvent => ({
+  private buildCoordinatorWsCommon = (
+    pair: StagePairState,
+  ): ReportedClientEvent => ({
     user_id: pair.userIdSnapshot ?? this.streamClient.userID,
     stage: 'CoordinatorWS',
     stage_id: pair.sid,
     ...(this.coordinatorConnectId && {
       coordinator_connect_id: this.coordinatorConnectId,
     }),
-    timestamp: new Date().toISOString(),
+    timestamp: new Date(),
     user_agent: this.streamClient.getUserAgent(),
     sdk_version: this.streamClient.getSdkVersion(),
   });
@@ -409,7 +413,7 @@ export class ClientEventReporter {
       ...(coordinatorConnectId && {
         coordinator_connect_id: coordinatorConnectId,
       }),
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
       user_agent: this.streamClient.getUserAgent(),
       sdk_version: this.streamClient.getSdkVersion(),
       event_type: 'initiated',
@@ -708,7 +712,7 @@ export class ClientEventReporter {
     cid: string,
     stage: ClientEventStage,
     pair: StagePairState,
-  ): ClientEvent => {
+  ): ReportedClientEvent => {
     const ctx = this.callContexts.get(cid);
     const coordinatorConnectId = this.coordinatorConnectId;
     return {
@@ -723,7 +727,7 @@ export class ClientEventReporter {
       ...(coordinatorConnectId && {
         coordinator_connect_id: coordinatorConnectId,
       }),
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
       user_agent: this.streamClient.getUserAgent(),
       sdk_version: this.streamClient.getSdkVersion(),
     };
@@ -749,7 +753,7 @@ export class ClientEventReporter {
           ReportClientEventRequest
         >(
           'post',
-          '/call_client_event',
+          '/api/v2/video/call_client_event',
           { events: [body] },
           { publicEndpoint: true },
         );

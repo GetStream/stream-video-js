@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  convertTimestampToDate,
   CallingState,
   CancelCallConfirmButton,
   humanize,
@@ -41,11 +42,11 @@ const LatencyIndicator = () => {
   );
 };
 
-const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
+const Elapsed = ({ startedAt }: { startedAt: number | undefined }) => {
   const [elapsed, setElapsed] = useState<string>();
   const startedAtDate = useMemo(
     // eslint-disable-next-line react-hooks/purity
-    () => (startedAt ? new Date(startedAt).getTime() : Date.now()),
+    () => convertTimestampToDate(startedAt)?.getTime() ?? Date.now(),
     [startedAt],
   );
   useEffect(() => {

@@ -1,8 +1,4 @@
-import {
-  OwnCapability,
-  RequestPermissionRequestPermissionsEnum,
-  SfuModels,
-} from '@stream-io/video-client';
+import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import {
   Restricted,
   useCallStateHooks,
@@ -137,7 +133,7 @@ export const ToggleAudioPublishingButton = (
   } = props;
 
   const { hasPermission, requestPermission, isAwaitingPermission } =
-    useRequestPermission(RequestPermissionRequestPermissionsEnum.SEND_AUDIO);
+    useRequestPermission('send-audio');
 
   const { useMicrophoneState, useLocalParticipant } = useCallStateHooks();
   const {

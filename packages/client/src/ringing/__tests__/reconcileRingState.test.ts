@@ -12,6 +12,7 @@ import { StreamClient } from '../../coordinator/connection/client';
 import type { JoinSource } from '../../reporting';
 import { ClientEventReporter } from '../../reporting';
 import { settled } from '../../helpers/concurrency';
+import { nowNs } from '../../helpers/time';
 
 describe('reconcileRingState', () => {
   describe('acceptance', () => {
@@ -227,7 +228,7 @@ describe('reconcileRingState', () => {
       fromPartial({
         type: 'call.accepted',
         call_cid: call.cid,
-        created_at: new Date().toISOString(),
+        created_at: nowNs(),
         user: { id: 'm2' },
         call: {
           ...callResponse('m1'),
@@ -265,7 +266,7 @@ describe('reconcileRingState', () => {
 const reconcile = (call: Call, joinSource: JoinSource = 'ring-ws') =>
   reconcileRingState(call, joinSource);
 
-const timestamp = () => new Date().toISOString();
+const timestamp = () => nowNs();
 
 const callResponse = (createdById: string) =>
   fromPartial<CallResponse>({

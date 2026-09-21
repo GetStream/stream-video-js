@@ -13,19 +13,19 @@ export const mockClientWithUser = (
 ): StreamVideoClient => {
   const client = new StreamVideoClient(apiKey);
   simulateUserConnection(client, {
-    created_at: '',
+    created_at: 0,
     custom: {},
     devices: [
       {
         id: '123',
-        created_at: '',
+        created_at: 0,
         push_provider: '',
         user_id: '',
       },
     ],
     role: '',
     teams: ['teamA'],
-    updated_at: '',
+    updated_at: 0,
     id: 'test-user-id',
     ...user,
   });
