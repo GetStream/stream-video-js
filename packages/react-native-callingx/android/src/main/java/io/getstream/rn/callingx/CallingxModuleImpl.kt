@@ -7,7 +7,6 @@ import android.os.ParcelUuid
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
-import androidx.core.net.toUri
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -280,7 +279,7 @@ class CallingxModuleImpl(
                         this.action = CallService.ACTION_UPDATE_CALL
                         putExtra(CallService.EXTRA_CALL_ID, callId)
                         putExtra(CallService.EXTRA_NAME, callerName)
-                        putExtra(CallService.EXTRA_URI, phoneNumber.toUri())
+                        putExtra(CallService.EXTRA_URI, toTelecomAddress(phoneNumber))
                         putExtra(CallService.EXTRA_IS_VIDEO, true)
                         putExtra(CallService.EXTRA_DISPLAY_OPTIONS, Arguments.toBundle(displayOptions))
                     }
@@ -419,7 +418,7 @@ class CallingxModuleImpl(
                     this.action = action
                     putExtra(CallService.EXTRA_CALL_ID, callId)
                     putExtra(CallService.EXTRA_NAME, callerName)
-                    putExtra(CallService.EXTRA_URI, phoneNumber.toUri())
+                    putExtra(CallService.EXTRA_URI, toTelecomAddress(phoneNumber))
                     putExtra(CallService.EXTRA_IS_VIDEO, hasVideo)
                     putExtra(CallService.EXTRA_DISPLAY_OPTIONS, Arguments.toBundle(displayOptions))
                 }
