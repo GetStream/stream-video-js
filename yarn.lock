@@ -6928,8 +6928,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/noise-cancellation-react-native@workspace:packages/noise-cancellation-react-native"
   dependencies:
+    "@babel/core": "npm:^7.29.7"
+    "@react-native/babel-preset": "npm:0.86.2"
+    "@react-native/jest-preset": "npm:0.86.2"
     "@stream-io/react-native-webrtc": "npm:145.3.1"
     "@stream-io/typescript-config": "workspace:^"
+    "@types/jest": "npm:^29.5.14"
+    "@types/node": "npm:^25.9.5"
+    jest: "npm:^29.7.0"
     react: "npm:19.2.3"
     react-native: "npm:0.86.2"
     react-native-builder-bob: "npm:^0.43.0"
@@ -6937,7 +6943,7 @@ __metadata:
     typescript: "npm:^6.0.3"
   peerDependencies:
     "@stream-io/react-native-webrtc": ^145.3.1
-    react-native: "*"
+    react-native: ">=0.79.0"
   languageName: unknown
   linkType: soft
 

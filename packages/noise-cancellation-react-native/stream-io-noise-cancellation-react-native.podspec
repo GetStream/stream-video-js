@@ -10,14 +10,14 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => '13.0' }
+  s.platforms    = { :ios => min_ios_version_supported }
   s.source       = { :git => "https://github.com/GetStream/stream-video-js.git", :tag => "#{s.version}" }
 
-  s.source_files = "ios/**/*.{h,m,mm,swift}"
+  s.source_files = "ios/**/*.{h,m,mm,swift,cpp}"
+  s.private_header_files = "ios/NoiseCancellationReactNative.h"
   s.dependency "stream-react-native-webrtc"
   s.dependency 'StreamVideoNoiseCancellation'
 
-  public_header_files = 'ios/Headers/*.h'
   # Swift/Objective-C compatibility https://blog.cocoapods.org/CocoaPods-1.5.0/
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES'
