@@ -8,6 +8,7 @@ import {
   Notification,
   useCallStateHooks,
   WithTooltip,
+  TimestampNS,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 
@@ -42,7 +43,7 @@ const LatencyIndicator = () => {
   );
 };
 
-const Elapsed = ({ startedAt }: { startedAt: number | undefined }) => {
+const Elapsed = ({ startedAt }: { startedAt: TimestampNS | undefined }) => {
   const [elapsed, setElapsed] = useState<string>();
   const startedAtDate = useMemo(
     // eslint-disable-next-line react-hooks/purity
