@@ -31,7 +31,7 @@ export type StreamResponse<T> = T & {
   metadata: RequestMetadata;
 };
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 /**
  * Adapter between the generated API classes and {@link StreamClient}.
@@ -39,7 +39,6 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
  * It delegates rather than owning transport: HTTP auth is coupled to the live
  * WebSocket through `connection_id`, so `StreamClient` keeps auth, token
  * refresh, reconnection and error wrapping.
- *
  */
 export class ApiClient {
   private readonly streamClient: StreamClient;
