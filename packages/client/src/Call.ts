@@ -80,8 +80,6 @@ import {
   ClientPublishOptions,
   ClosedCaptionsSettings,
   JoinCallData,
-  StartCallRecordingFnType,
-  StopCallRecordingFnType,
   TrackMuteType,
   VideoTrackType,
 } from './types';
@@ -2702,28 +2700,26 @@ export class Call {
   };
 
   /**
-   * Starts recording the call
+   * Starts recording the call.
+   *
+   * @param recordingType the kind of recording to start. The v2 API requires
+   * one; `composite` matches what the removed v1 route defaulted to.
+   * @param request optional recording settings.
    */
-  startRecording: StartCallRecordingFnType = async (
-    dataOrType?: StartRecordingRequest | CallRecordingType,
-    type?: CallRecordingType,
+  startRecording = (
+    recordingType: CallRecordingType = 'composite',
+    request?: StartRecordingRequest,
   ) => {
-    // v2 removed the legacy /start_recording route, so recording_type is now a
-    // path parameter the generated signature requires. The old route defaulted
-    // to `composite` server-side; keep that default so `call.startRecording()`
-    // and `call.startRecording('raw')` both keep working.
-    const recordingType =
-      (typeof dataOrType === 'string' ? dataOrType : type) ?? 'composite';
-    const body = typeof dataOrType === 'string' ? undefined : dataOrType;
-    return this.api.startRecording({ recording_type: recordingType }, body);
+    return this.api.startRecording({ recording_type: recordingType }, request);
   };
 
   /**
-   * Stops recording the call
+   * Stops recording the call.
+   *
+   * @param recordingType the kind of recording to stop.
    */
-  stopRecording: StopCallRecordingFnType = async (type?: CallRecordingType) => {
-    // see startRecording: the same default applies
-    return this.api.stopRecording({ recording_type: type ?? 'composite' });
+  stopRecording = (recordingType: CallRecordingType = 'composite') => {
+    return this.api.stopRecording({ recording_type: recordingType });
   };
 
   /**

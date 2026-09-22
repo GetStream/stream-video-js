@@ -10,11 +10,7 @@ import type {
   MemberResponse,
   OwnCapability,
   VideoReactionResponse,
-  StartRecordingRequest,
-  StartRecordingResponse,
-  StopRecordingResponse,
 } from './gen/coordinator';
-import type { StreamResponse } from './coordinator/connection/api-client';
 import type { StreamClient } from './coordinator/connection/client';
 import type { ClientEventReporter } from './reporting';
 import type {
@@ -407,20 +403,6 @@ export type StreamVideoClientOptions =
   | StreamVideoClientOptionsWithAuthenticatedUser;
 
 export type CallRecordingType = CallRecordingStartedEvent['recording_type'];
-
-type StartRecording = Promise<StreamResponse<StartRecordingResponse>>;
-
-export type StartCallRecordingFnType = {
-  (): StartRecording;
-  (type: CallRecordingType): StartRecording;
-  (request: StartRecordingRequest): StartRecording;
-  (request: StartRecordingRequest, type: CallRecordingType): StartRecording;
-};
-
-export type StopCallRecordingFnType = {
-  (): Promise<StreamResponse<StopRecordingResponse>>;
-  (type: CallRecordingType): Promise<StreamResponse<StopRecordingResponse>>;
-};
 
 type StreamRNVideoSDKCallManagerRingingParams = {
   isRingingTypeCall: boolean;
