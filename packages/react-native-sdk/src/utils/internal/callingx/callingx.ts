@@ -67,9 +67,14 @@ function getCallingxCallArgs(call: Call): [string, string, string, boolean] {
       call.state.participants,
       call.currentUserId,
     );
+  const createdByHandle = call.state.createdBy?.id ?? callDisplayName;
   return [
     call.cid, // unique id for call
-    call.state.createdBy?.id ?? callDisplayName, // handle for native call UI (prefer createdBy user id, fallback to call display name)
+    // handle for the native call UI. On iOS it is shown in CallKit Recents and used for
+    // call-back, so we send the caller's user id (matches the Swift SDK). On Android the
+    // self-managed Telecom address is never displayed and callingx wraps it as
+    // `<packageName>:<handle>`, so we send the call id (matches the Android SDK).
+    Platform.OS === 'android' ? call.id : createdByHandle,
     callDisplayName, // display name for display in call screen
     call.state.settings?.video?.enabled ?? false, // is video call?
   ];

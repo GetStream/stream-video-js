@@ -1,4 +1,5 @@
 export * from './BlurToggleButton/BlurToggleButton';
+export * from './CallDuration/CallDuration';
 export * from './CallFeedback/CallFeedback';
 export * from './ConnectionNotification/ConnectionNotification';
 export * from './EmbeddedParticipantViewUI/EmbeddedParticipantViewUI';

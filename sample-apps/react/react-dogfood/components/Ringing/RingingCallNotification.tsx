@@ -116,7 +116,7 @@ function RingingCallUI() {
               ) : null}
             </div>
             <AcceptCallButton onClick={handleAccept} />
-            <CancelCallButton onClick={handleReject} />
+            <CancelCallButton size="sm" onClick={handleReject} />
           </div>
         }
       />

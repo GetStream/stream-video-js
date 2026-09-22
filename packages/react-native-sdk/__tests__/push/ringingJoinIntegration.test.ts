@@ -225,14 +225,14 @@ describe('a ringing join overtaken by leave', () => {
     });
     const call = createCall('incoming');
 
-    const joining = call.join().catch((e: Error) => e.message);
+    const joining = call.join();
     await tick();
     await call.leave({ reject: false });
 
     finishHook();
-    await expect(joining).resolves.toContain(
-      'Call was left while the join was in progress',
-    );
+    // A leave that overtakes the join settles it quietly rather than rejecting;
+    // the release below is what proves the late setup was not stranded.
+    await expect(joining).resolves.toBeUndefined();
     await flush();
 
     expect((call as any).doJoin).not.toHaveBeenCalled();

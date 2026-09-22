@@ -4,7 +4,6 @@ import {
   CancelCallConfirmButton,
   humanize,
   Icon,
-  LoadingIndicator,
   Notification,
   useCallStateHooks,
   WithTooltip,
@@ -200,6 +199,7 @@ export const ActiveCallHeader = ({
           if (isOffline || hasFailedToRecover) {
             return (
               <Notification
+                state="error"
                 isVisible
                 placement="bottom"
                 message={
@@ -216,18 +216,14 @@ export const ActiveCallHeader = ({
           return (
             <Notification
               isVisible={isJoining || isReconnecting || isMigrating}
-              iconClassName={null}
+              state="loading"
               placement="bottom"
               message={
-                <LoadingIndicator
-                  text={
-                    isMigrating
-                      ? 'Migrating...'
-                      : isJoining
-                        ? 'Joining...'
-                        : 'Reconnecting...'
-                  }
-                />
+                isMigrating
+                  ? 'Migrating...'
+                  : isJoining
+                    ? 'Joining...'
+                    : 'Reconnecting...'
               }
             >
               <span />

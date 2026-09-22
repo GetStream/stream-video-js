@@ -32,6 +32,7 @@ export const AcceptCallButton = ({
   );
   return (
     <IconButton
+      className="str-video__accept-call-button"
       size="sm"
       disabled={disabled}
       icon="call-accept"

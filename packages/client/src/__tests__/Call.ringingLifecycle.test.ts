@@ -154,7 +154,7 @@ describe('ringing call lifecycle integration', () => {
 
   it('abandons a join that a leave overtook during native registration', async () => {
     let finishRegistration: () => void = () => {};
-    const { callingX } = install();
+    const { callingX, onLeave, onJoinFailed } = install();
     callingX.joinCall.mockImplementation(
       () => new Promise<void>((resolve) => (finishRegistration = resolve)),
     );
@@ -166,9 +166,14 @@ describe('ringing call lifecycle integration', () => {
     await call.leave({ reject: false });
     finishRegistration();
 
-    await expect(joining).rejects.toThrow(
-      /left while the join was in progress/i,
-    );
+    // A superseding leave is not a join failure: the join settles quietly rather
+    // than rejecting, and the error path stays shut.
+    await expect(joining).resolves.toBeUndefined();
+    expect(onJoinFailed).not.toHaveBeenCalled();
+    expect(callingX.endCall).not.toHaveBeenCalledWith(call, 'error');
+    // Release still happens - `leave()` itself fires it, which is why the join
+    // does not need to.
+    expect(onLeave).toHaveBeenCalledTimes(1);
     // `doJoin` captures the generation itself, so this check has to be here
     expect(doJoin).not.toHaveBeenCalled();
   });
@@ -209,7 +214,7 @@ describe('ringing call lifecycle integration', () => {
 
   it('stops a join that a leave overtook during preparation', async () => {
     let releaseHook: () => void = () => {};
-    const { beforeJoin } = install();
+    const { beforeJoin, onLeave, onJoinFailed } = install();
     beforeJoin.mockImplementation(
       () => new Promise<void>((resolve) => (releaseHook = resolve)),
     );
@@ -221,9 +226,11 @@ describe('ringing call lifecycle integration', () => {
     await call.leave({ reject: false });
     releaseHook();
 
-    await expect(joining).rejects.toThrow(
-      /left while the join was in progress/i,
-    );
+    await expect(joining).resolves.toBeUndefined();
+    expect(onJoinFailed).not.toHaveBeenCalled();
+    // Whatever `beforeJoin` installed is released exactly once, by the `leave()`
+    // that overtook the join rather than by the join itself.
+    expect(onLeave).toHaveBeenCalledTimes(1);
     expect(doJoin).not.toHaveBeenCalled();
     expect(call.state.callingState).toBe(CallingState.LEFT);
   });

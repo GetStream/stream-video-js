@@ -13,11 +13,12 @@ export const RingingCallControls = () => {
   return (
     <div className="str-video__pending-call-controls">
       {call.isCreatedByMe ? (
-        <CancelCallButton disabled={buttonsDisabled} />
+        <CancelCallButton size="sm" disabled={buttonsDisabled} />
       ) : (
         <>
           <AcceptCallButton disabled={buttonsDisabled} />
           <CancelCallButton
+            size="sm"
             onClick={() => {
               const reason = call.isCreatedByMe ? 'cancel' : 'decline';
               call.leave({ reject: true, reason }).catch((err) => {

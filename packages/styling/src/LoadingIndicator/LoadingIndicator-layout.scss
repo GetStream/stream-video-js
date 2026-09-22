@@ -2,4 +2,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: var(--str-video__spacing-xs);
+
+  .str-video__loading-indicator-text {
+    margin: 0;
+  }
 }

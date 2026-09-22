@@ -95,14 +95,14 @@ describe('a join cancelled while its native registration is pending', () => {
     const call = createCall();
     const release = deferRegistration('startCall');
 
-    const joining = call.join().catch((e: Error) => e);
+    const joining = call.join();
     await tick();
     await call.leave();
     release();
 
-    await expect(joining).resolves.toThrow(
-      'Call was left while the join was in progress',
-    );
+    // The cancelled join settles quietly; what matters is that it stopped short
+    // of doJoin and left nothing registered natively.
+    await expect(joining).resolves.toBeUndefined();
     expect((call as any).doJoin).not.toHaveBeenCalled();
     expect(call.state.callingState).toBe(CallingState.LEFT);
     expect(mockCallingxModule.endCallWithReason).toHaveBeenCalledWith(
