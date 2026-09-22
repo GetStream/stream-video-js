@@ -111,7 +111,6 @@ export class VideoApi {
       undefined,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -124,7 +123,6 @@ export class VideoApi {
       undefined,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -156,7 +154,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -173,7 +170,6 @@ export class VideoApi {
       pathParams,
       queryParams,
       body,
-      'application/json',
     );
   }
 
@@ -199,7 +195,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -213,7 +208,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -227,7 +221,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -241,7 +234,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -255,7 +247,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -272,7 +263,6 @@ export class VideoApi {
       pathParams,
       queryParams,
       body,
-      'application/json',
     );
   }
 
@@ -286,7 +276,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -312,7 +301,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -326,7 +314,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -343,7 +330,6 @@ export class VideoApi {
       pathParams,
       queryParams,
       body,
-      'application/json',
     );
   }
 
@@ -357,7 +343,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -371,7 +356,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -397,7 +381,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -411,7 +394,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -425,7 +407,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -451,7 +432,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -465,7 +445,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -491,7 +470,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -517,7 +495,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -578,7 +555,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -592,7 +568,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -606,7 +581,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -632,7 +606,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -658,7 +631,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -672,7 +644,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -698,7 +669,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -712,7 +682,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -726,7 +695,6 @@ export class VideoApi {
       pathParams,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -767,7 +735,6 @@ export class VideoApi {
       undefined,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -780,7 +747,6 @@ export class VideoApi {
       undefined,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -872,7 +838,6 @@ export class VideoApi {
       undefined,
       queryParams,
       body,
-      'application/json',
     );
   }
 
@@ -894,7 +859,6 @@ export class VideoApi {
       undefined,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -907,7 +871,6 @@ export class VideoApi {
       undefined,
       undefined,
       request,
-      'application/json',
     );
   }
 
@@ -920,7 +883,6 @@ export class VideoApi {
       undefined,
       undefined,
       request,
-      'application/json',
     );
   }
 }

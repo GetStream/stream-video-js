@@ -48,24 +48,38 @@ describe('ApiClient.sendRequest', () => {
     );
   });
 
-  it('passes body and content type through, and omits headers without one', async () => {
+  it('defaults the content type to application/json, GETs included', async () => {
     const { apiClient, doAxiosRequest } = setup();
     await apiClient.sendRequest(
       'POST',
       '/api/v2/devices',
       undefined,
       undefined,
-      { id: 'd1' },
-      'application/json',
+      {
+        id: 'd1',
+      },
     );
     await apiClient.sendRequest('GET', '/api/v2/devices');
+    await apiClient.sendRequest(
+      'POST',
+      '/api/v2/devices',
+      undefined,
+      undefined,
+      { id: 'd2' },
+      'application/octet-stream',
+    );
 
     expect(doAxiosRequest.mock.calls[0][2]).toEqual({ id: 'd1' });
     expect(doAxiosRequest.mock.calls[0][3].headers).toEqual({
       'Content-Type': 'application/json',
     });
     expect(doAxiosRequest.mock.calls[1][2]).toBeUndefined();
-    expect(doAxiosRequest.mock.calls[1][3].headers).toBeUndefined();
+    expect(doAxiosRequest.mock.calls[1][3].headers).toEqual({
+      'Content-Type': 'application/json',
+    });
+    expect(doAxiosRequest.mock.calls[2][3].headers).toEqual({
+      'Content-Type': 'application/octet-stream',
+    });
   });
 
   it('flattens the body and attaches metadata built from headers', async () => {

@@ -2977,25 +2977,6 @@ export class Call {
   };
 
   /**
-   * Retrieves all recordings for the current call across its sessions.
-   *
-   * @deprecated use {@link listRecordings} instead.
-   */
-  queryRecordings = async () => {
-    return this.listRecordings();
-  };
-
-  /**
-   * Retrieves the list of transcriptions for the current call.
-   *
-   * @returns the list of transcriptions.
-   * @deprecated use {@link listTranscriptions} instead.
-   */
-  queryTranscriptions = async () => {
-    return this.listTranscriptions();
-  };
-
-  /**
    * Loads the call participant stats for the given parameters.
    */
   getCallParticipantsStats = async (opts: {

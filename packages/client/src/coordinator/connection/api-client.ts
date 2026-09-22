@@ -53,7 +53,7 @@ export class ApiClient {
     pathParams?: Record<string, string>,
     queryParams?: Record<string, unknown>,
     body?: unknown,
-    contentType?: string,
+    contentType: string = 'application/json',
   ): Promise<StreamResponse<T>> => {
     const response = await this.streamClient.doAxiosRequest<T>(
       method.toLowerCase(),
@@ -65,7 +65,7 @@ export class ApiClient {
       body,
       {
         params: queryParams,
-        headers: contentType ? { 'Content-Type': contentType } : undefined,
+        headers: { 'Content-Type': contentType },
       },
     );
 
