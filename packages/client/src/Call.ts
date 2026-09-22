@@ -1,7 +1,6 @@
 import { StreamSfuClient } from './StreamSfuClient';
 import { CallApi } from './gen/coordinator/video/CallApi';
-import { VideoApi } from './gen/coordinator/video/VideoApi';
-import { ApiClient } from './coordinator/connection/api-client';
+import type { VideoApi } from './gen/coordinator/video/VideoApi';
 import type { StreamResponse } from './coordinator/connection/api-client';
 import { SfuJoinError } from './errors';
 import {
@@ -356,11 +355,12 @@ export class Call {
     ownCapabilities,
     sortParticipantsBy,
     clientState,
+    videoApi,
     ringing = false,
     watching = false,
   }: CallConstructor) {
-    this.videoApi = new VideoApi(new ApiClient(streamClient));
-    this.api = new CallApi(this.videoApi, type, id);
+    this.videoApi = videoApi;
+    this.api = new CallApi(videoApi, type, id);
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;

@@ -11,6 +11,7 @@ import type {
   OwnCapability,
   VideoReactionResponse,
 } from './gen/coordinator';
+import type { VideoApi } from './gen/coordinator/video/VideoApi';
 import type { StreamClient } from './coordinator/connection/client';
 import type { ClientEventReporter } from './reporting';
 import type {
@@ -311,6 +312,12 @@ export type CallConstructor = {
    * The shared client event reporter, owned by `StreamVideoClient`.
    */
   clientEventReporter: ClientEventReporter;
+
+  /**
+   * The shared generated API client, owned by `StreamVideoClient`. `VideoApi`
+   * holds no per-call state, so every `Call` reuses the one instance.
+   */
+  videoApi: VideoApi;
 
   /**
    * The Call type.

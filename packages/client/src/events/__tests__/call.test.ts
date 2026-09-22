@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 import { describe, expect, it, vi } from 'vitest';
 import { CallingState, ClientState } from '../../store';
 import { watchCallEnded, watchSfuCallEnded } from '../call';
@@ -186,6 +188,7 @@ const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
     clientState: store,
     streamClient: client,
     clientEventReporter: new ClientEventReporter({ streamClient: client }),
+    videoApi: new VideoApi(new ApiClient(client)),
     ringing: ring,
   });
 };

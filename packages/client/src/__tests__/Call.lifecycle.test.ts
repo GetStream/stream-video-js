@@ -1,3 +1,5 @@
+import { VideoApi } from '../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../coordinator/connection/api-client';
 /**
  * @vitest-environment happy-dom
  */
@@ -71,6 +73,7 @@ describe('Call lifecycle wiring', () => {
       type: 'test',
       id: generateUUIDv4(),
       streamClient,
+      videoApi: new VideoApi(new ApiClient(streamClient)),
       clientEventReporter: new ClientEventReporter({
         streamClient,
         enabled: false,

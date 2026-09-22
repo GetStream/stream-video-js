@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { NoiseCancellationStub } from './NoiseCancellationStub';
@@ -101,6 +103,7 @@ describe('MicrophoneManager', () => {
       id: '',
       type: '',
       streamClient,
+      videoApi: new VideoApi(new ApiClient(streamClient)),
       clientEventReporter: new ClientEventReporter({ streamClient }),
       clientState: new ClientState(),
     });

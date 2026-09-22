@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 import './mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -32,6 +34,7 @@ const makeCall = ({ reportingEnabled = false } = {}) => {
     type: 'default',
     id: 'test-call',
     streamClient,
+    videoApi: new VideoApi(new ApiClient(streamClient)),
     clientEventReporter: new ClientEventReporter({
       streamClient,
       enabled: reportingEnabled,
@@ -734,6 +737,7 @@ describe('Call reconnect wiring (PC event → leave)', () => {
       type: 'default',
       id: 'test-call',
       streamClient,
+      videoApi: new VideoApi(new ApiClient(streamClient)),
       clientEventReporter: new ClientEventReporter({ streamClient }),
       clientState,
       ringing: false,

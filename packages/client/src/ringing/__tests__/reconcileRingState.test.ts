@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 import { describe, expect, it, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { reconcileRingState } from '../reconcileRingState';
@@ -314,6 +316,7 @@ const ringingCall = ({
     id: '12345',
     clientState: store,
     streamClient,
+    videoApi: new VideoApi(new ApiClient(streamClient)),
     clientEventReporter: new ClientEventReporter({ streamClient }),
     ringing: true,
   });

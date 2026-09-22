@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ScreenShareManager } from '../ScreenShareManager';
 import { Call } from '../../Call';
@@ -43,6 +45,7 @@ describe('ScreenShareManager', () => {
         id: '',
         type: '',
         streamClient,
+        videoApi: new VideoApi(new ApiClient(streamClient)),
         clientEventReporter: new ClientEventReporter({ streamClient }),
         clientState: new ClientState(),
       }),

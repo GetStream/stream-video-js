@@ -214,6 +214,7 @@ export class StreamVideoClient {
         }
 
         call = new Call({
+          videoApi: this.api,
           streamClient: this.streamClient,
           clientEventReporter: this.clientEventReporter,
           type: e.call.type,
@@ -473,6 +474,7 @@ export class StreamVideoClient {
     return (
       call ??
       new Call({
+        videoApi: this.api,
         streamClient: this.streamClient,
         clientEventReporter: this.clientEventReporter,
         id: id,
@@ -514,6 +516,7 @@ export class StreamVideoClient {
     const calls = [];
     for (const c of response.calls) {
       const call = new Call({
+        videoApi: this.api,
         streamClient: this.streamClient,
         clientEventReporter: this.clientEventReporter,
         id: c.call.id,
@@ -641,6 +644,7 @@ export class StreamVideoClient {
         // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
         const [callType, callId] = call_cid.split(':');
         call = new Call({
+          videoApi: this.api,
           streamClient: this.streamClient,
           clientEventReporter: this.clientEventReporter,
           type: callType,
