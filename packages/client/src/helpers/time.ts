@@ -28,14 +28,17 @@ export const dateToNs = (date: Date): number => msToNs(date.getTime());
  * {@link nsToDate} when the value is known to be present; use this when it comes
  * straight off a response, an event or persisted state.
  *
- * The guard covers two cases that are silent rather than loud: an absent value
+ * The guard covers three cases that are silent rather than loud: an absent value
  * (`nsToDate(undefined as never)` yields an `Invalid Date`, and
- * `.toISOString()` on one throws `RangeError`, typically mid-render) and a
- * non-finite one (a malformed payload or hand-built fixture producing `NaN`).
+ * `.toISOString()` on one throws `RangeError`, typically mid-render), a
+ * non-finite one (a malformed payload or hand-built fixture producing `NaN`)
+ * and a finite one outside the range `Date` can represent (about ±8.64e15 ms
+ * from the epoch), which also yields an `Invalid Date`.
  */
 export const convertTimestampToDate = (
   timestamp?: number | null,
 ): Date | undefined => {
   if (timestamp == null || !Number.isFinite(timestamp)) return undefined;
-  return nsToDate(timestamp);
+  const date = nsToDate(timestamp);
+  return Number.isNaN(date.getTime()) ? undefined : date;
 };

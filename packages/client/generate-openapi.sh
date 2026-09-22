@@ -34,7 +34,8 @@ rm -rf "$OUTPUT_DIR"
     --language ts --spec "$SPEC_DIR/video-clientside-api.yaml" --output "$OUTPUT_DIR" \
     --opt response_dates_as_number=true \
     --opt typed_filters=true \
-    --opt separate_params=true
+    --opt separate_params=true \
+    --opt passthrough_response=true
 )
 
 echo "export * from './models';" >"$OUTPUT_DIR/index.ts"
