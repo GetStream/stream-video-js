@@ -40,16 +40,6 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
  * WebSocket through `connection_id`, so `StreamClient` keeps auth, token
  * refresh, reconnection and error wrapping.
  *
- * `sendRequest` returns the flattened `StreamResponse<T>`, not the
- * `{ body, metadata }` pair stream-chat and feeds use. Their generated methods
- * need the raw body to run a per-model date decoder on it; this spec types every
- * response date as a number, so there are no decoders and the generator emits
- * each method as `return this.apiClient.sendRequest<T>(...)`. The envelope is
- * built once, here. If the spec ever gains a decodable date the generated
- * methods go back to expecting `{ body, metadata }` and this return type stops
- * compiling — see generate-openapi.sh.
- *
- * The positional signature is the generator's calling convention; keep it.
  */
 export class ApiClient {
   private readonly streamClient: StreamClient;
