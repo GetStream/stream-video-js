@@ -18,7 +18,7 @@
     width: 100%;
 
     .rd__feedback {
-      box-shadow: 0px 14px 34px rgba(0, 0, 0, 0.75);
+      box-shadow: var(--str-video__box-shadow-4);
     }
   }
 }

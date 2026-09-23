@@ -1,6 +1,6 @@
 .rd__transcriptions__status {
-  --rd__stat-card-background: var(--str-video__background-color2);
+  --rd__stat-card-background: var(--str-video__background-core-surface-default);
 
-  border-radius: var(--str-video__border-radius-lg);
-  background-color: var(--str-video__base-color7);
+  border-radius: var(--str-video__radius-3xl);
+  background-color: var(--str-video__background-core-surface-subtle);
 }

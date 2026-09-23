@@ -38,7 +38,7 @@ export const CallLobby = () => {
 
           <button
             onClick={clickHandler}
-            className="p-4 bg-cyan-600 text-lg text-video-white rounded-full"
+            className="p-4 bg-cyan-600 text-lg text-white rounded-full"
           >
             {!callId && <>CREATE AND JOIN CALL</>}
             {callId && <>JOIN CALL</>}
