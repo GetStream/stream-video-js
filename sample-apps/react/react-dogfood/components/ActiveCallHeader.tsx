@@ -38,7 +38,10 @@ const LatencyIndicator = () => {
           'rd__header__latency-indicator--bad': latency && latency > 400,
         })}
       ></div>
-      {latency} ms
+      <span>
+        {latency}
+        <span className="rd__header__latency-unit"> ms</span>
+      </span>
     </div>
   );
 };
@@ -68,7 +71,12 @@ const Elapsed = ({ startedAt }: { startedAt: TimestampNS | undefined }) => {
   return (
     <div className="rd__header__elapsed">
       <Icon className="rd__header__elapsed-icon" icon="verified" />
-      <div className="rd__header__elapsed-time">{elapsed}</div>
+      <div className="rd__header__elapsed-time">
+        <span className="rd__header__elapsed-time__lead">
+          {elapsed?.slice(0, elapsed.lastIndexOf(':') + 1)}
+        </span>
+        {elapsed?.slice(elapsed.lastIndexOf(':') + 1)}
+      </div>
     </div>
   );
 };

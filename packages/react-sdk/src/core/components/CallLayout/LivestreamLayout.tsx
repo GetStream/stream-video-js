@@ -12,7 +12,7 @@ import { useI18n } from '../../../i18n';
 import { hasScreenShare, humanize } from '@stream-io/video-client';
 import { ParticipantView, useParticipantViewContext } from '../ParticipantView';
 import { ParticipantsAudio } from '../Audio';
-import { Icon } from '../../../components';
+import { Icon, IconButton } from '../../../components';
 import {
   usePaginatedLayoutSortPreset,
   useRawRemoteParticipants,
@@ -301,6 +301,10 @@ const ParticipantOverlay = (props: {
           <div className="str-video__livestream-layout__overlay__bar-left">
             {showLiveBadge && (
               <span className="str-video__livestream-layout__live-badge">
+                <span
+                  className="str-video__livestream-layout__live-badge__dot"
+                  aria-hidden="true"
+                />
                 {t('common.live.label', 'Live')}
               </span>
             )}
@@ -317,7 +321,7 @@ const ParticipantOverlay = (props: {
                 className="str-video__livestream-layout__speaker-name"
                 title={participant.name || participant.userId || ''}
               >
-                {participant.name || participant.userId || ''}
+                <span>{participant.name || participant.userId || ''}</span>
               </span>
             )}
           </div>
@@ -330,27 +334,31 @@ const ParticipantOverlay = (props: {
           </div>
           <div className="str-video__livestream-layout__overlay__bar-right">
             {showMuteButton && (
-              <span
+              <IconButton
+                icon={isSpeakerMuted ? 'speaker-off' : 'speaker'}
+                variant="secondary"
+                appearance="solid"
+                size="sm"
                 className={clsx(
                   'str-video__livestream-layout__mute-button',
                   isSpeakerMuted &&
                     'str-video__livestream-layout__mute-button--muted',
                 )}
                 onClick={() => speaker.setVolume(isSpeakerMuted ? 1 : 0)}
-              >
-                <Icon icon={isSpeakerMuted ? 'speaker-off' : 'speaker'} />
-              </span>
+              />
             )}
             {enableFullScreen &&
               participantViewElement &&
               typeof participantViewElement.requestFullscreen !==
                 'undefined' && (
-                <span
+                <IconButton
+                  icon="fullscreen"
+                  variant="secondary"
+                  appearance="solid"
+                  size="sm"
                   className="str-video__livestream-layout__go-fullscreen"
                   onClick={toggleFullScreen}
-                >
-                  <Icon icon="fullscreen" />
-                </span>
+                />
               )}
           </div>
         </div>

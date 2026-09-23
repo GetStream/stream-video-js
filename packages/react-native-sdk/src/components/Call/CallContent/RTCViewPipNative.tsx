@@ -14,10 +14,21 @@ export type PiPChangeEvent = {
   active: boolean;
 };
 
+export type PiPBoundsChangeEvent = {
+  /** the laid out width of the native window, in logical points */
+  width: number;
+  /** the laid out height of the native window, in logical points */
+  height: number;
+};
+
 type RTCViewPipNativeProps = {
   streamURL?: string;
   mirror?: boolean;
   onPiPChange?: (event: { nativeEvent: PiPChangeEvent }) => void;
+  /**
+   * Reports the actual laid out bounds of the native Picture in Picture window.
+   */
+  onPiPBoundsChange?: (event: { nativeEvent: PiPBoundsChangeEvent }) => void;
   /** The participant's name for the avatar placeholder when video is disabled */
   participantName?: string;
   /** The URL string for the participant's profile image */
@@ -83,6 +94,8 @@ export const RTCViewPipNative = React.memo(
         mirror={props.mirror}
         // eslint-disable-next-line react/prop-types
         onPiPChange={props.onPiPChange}
+        // eslint-disable-next-line react/prop-types
+        onPiPBoundsChange={props.onPiPBoundsChange}
         // eslint-disable-next-line react/prop-types
         participantName={props.participantName}
         // eslint-disable-next-line react/prop-types

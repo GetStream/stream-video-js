@@ -80,10 +80,14 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
   useEffect(() => {
     const noiseCancellationNativeLib =
       getNoiseCancellationLibThrowIfNotInstalled();
-    noiseCancellationNativeLib
-      .deviceSupportsAdvancedAudioProcessing()
-      .then((result) => setDeviceSupportsAdvancedAudioProcessing(result));
-    noiseCancellationNativeLib.isEnabled().then((e) => setIsEnabled(e));
+    try {
+      setDeviceSupportsAdvancedAudioProcessing(
+        noiseCancellationNativeLib.deviceSupportsAdvancedAudioProcessing(),
+      );
+      setIsEnabled(noiseCancellationNativeLib.isEnabled());
+    } catch (err) {
+      console.error('Failed to read noise cancellation state', err);
+    }
   }, []);
 
   const isSupported = hasCapability && noiseCancellationAllowed;

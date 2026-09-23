@@ -3,7 +3,7 @@
   flex-grow: 1;
   min-height: 0;
   overflow: auto;
-  background: var(--str-video__background-color4);
+  background: var(--str-video__background-core-surface-subtle);
 }
 
 .rd__inspector input {
@@ -11,7 +11,7 @@
   padding: 4px 9px;
   border-radius: 4px;
   background: none;
-  border: 1px solid var(--str-video__base-color3);
+  border: 1px solid var(--str-video__border-core-default);
   color: #fff;
 
   &:focus {
@@ -20,14 +20,14 @@
   }
 
   &::placeholder {
-    color: var(--str-video__text-color2);
+    color: var(--str-video__text-secondary);
   }
 
   &:disabled {
-    color: var(--str-video__base-color3);
+    color: var(--str-video__text-disabled);
 
     &::placeholder {
-      color: var(--str-video__base-color3);
+      color: var(--str-video__text-disabled);
     }
   }
 }
@@ -38,7 +38,7 @@
   padding: 5px 10px;
   border-radius: 4px;
   border: 0;
-  background: var(--str-video__background-color5);
+  background: var(--str-video__background-core-surface-default);
   color: #fff;
   cursor: pointer;
   white-space: nowrap;
@@ -49,13 +49,13 @@
   }
 
   &:disabled {
-    background: var(--str-video__base-color3);
-    color: var(--str-video__text-color3);
+    background: var(--str-video__background-utility-disabled);
+    color: var(--str-video__text-tertiary);
   }
 }
 
 .rd__join-call-form {
-  background: var(--str-video__background-color5);
+  background: var(--str-video__background-core-surface-default);
   padding: 20px;
 }
 
@@ -72,7 +72,7 @@
 .rd__connection-string-input {
   display: flex;
   position: relative;
-  border-color: var(--str-video__base-color3);
+  border-color: var(--str-video__border-core-default);
 
   &_invalid {
     animation: flash-invalid 0.5s;
@@ -125,23 +125,23 @@
     text-align: center;
     top: 0;
     right: 1px;
-    color: var(--str-video__base-color3);
+    color: var(--str-video__text-disabled);
   }
 }
 
 @keyframes flash-invalid {
   from {
-    border-color: var(--str-video__danger-color--accent);
+    border-color: var(--str-video__accent-error);
     transform: scale(1);
   }
 
   20% {
-    border-color: var(--str-video__danger-color--accent);
+    border-color: var(--str-video__accent-error);
     transform: scale(0.98);
   }
 
   to {
-    border-color: var(--str-video__base-color3);
+    border-color: var(--str-video__border-core-default);
     transform: scale(1);
   }
 }
@@ -149,14 +149,14 @@
 .rd__join-call-form-or {
   margin: 0 20px;
   text-align: center;
-  color: var(--str-video__text-color2);
+  color: var(--str-video__text-secondary);
 }
 
 .rd__join-call-form-log {
   font-size: 13px;
   padding: 5px 10px;
   margin: 10px 0 -5px;
-  background: var(--str-video__background-color0);
+  background: var(--str-video__background-core-app);
   border: 1px solid transparent;
   border-radius: 4px;
   width: fit-content;
@@ -188,20 +188,20 @@
   justify-content: space-between;
 
   & .rd__join-call-form-log {
-    background: var(--str-video__background-color5);
+    background: var(--str-video__background-core-surface-default);
   }
 
   & button.rd__copy-button {
-    background: var(--str-video__background-color5);
+    background: var(--str-video__background-core-surface-default);
   }
 }
 
 button.rd__join-call-form-join {
-  background: var(--str-video__secondary-color);
+  background: var(--str-video__accent-primary);
 }
 
 button.rd__join-call-form-leave {
-  background: var(--str-video__button-tertiary-base);
+  background: var(--str-video__accent-error);
 }
 
 button.rd__copy-button {
@@ -225,7 +225,7 @@ button.rd__copy-button {
   flex-grow: 1;
   max-width: 600px;
   padding: 14px;
-  border: 1px solid var(--str-video__base-color6);
+  border: 1px solid var(--str-video__background-core-surface-subtle);
   border-radius: 4px;
 
   &_wide {
@@ -238,7 +238,7 @@ button.rd__copy-button {
     font-size: 11px;
     text-transform: uppercase;
     margin: -5px 0 10px;
-    color: var(--str-video__text-color2);
+    color: var(--str-video__text-secondary);
   }
 
   ul {
@@ -252,7 +252,7 @@ button.rd__copy-button {
   }
 
   dt {
-    color: var(--str-video__text-color2);
+    color: var(--str-video__text-secondary);
   }
 
   dd {
@@ -277,7 +277,7 @@ button.rd__copy-button {
   }
 
   small {
-    color: var(--str-video__text-color2);
+    color: var(--str-video__text-secondary);
     font-size: 1em;
   }
 }
@@ -325,7 +325,7 @@ button.rd__copy-button {
     padding: 0;
     margin: 0;
     background: none;
-    color: var(--str-video__secondary-color);
+    color: var(--str-video__accent-primary);
   }
 
   &:hover .rd__inspector-device-select {
@@ -333,7 +333,7 @@ button.rd__copy-button {
   }
 
   .rd__inspector-device-checkmark {
-    color: var(--str-video__text-color2);
+    color: var(--str-video__text-secondary);
   }
 }
 
@@ -345,7 +345,7 @@ button.rd__copy-button {
   &_placeholder {
     justify-content: center;
     height: 60px;
-    background: var(--str-video__background-color5);
+    background: var(--str-video__background-core-surface-default);
   }
 
   .rd__transport-diagram-remote {
@@ -363,7 +363,7 @@ button.rd__copy-button {
   }
 
   .rd__ice-candidate {
-    background: var(--str-video__background-color5);
+    background: var(--str-video__background-core-surface-default);
     padding: 10px;
   }
 
@@ -374,14 +374,14 @@ button.rd__copy-button {
 
   i {
     flex-grow: 1;
-    border-bottom: 1px solid var(--str-video__background-color5);
+    border-bottom: 1px solid var(--str-video__background-core-surface-subtle);
     min-width: 5px;
   }
 }
 
 .rd__inspector-pre {
   font-size: 13px;
-  color: var(--str-video__text-color2);
+  color: var(--str-video__text-secondary);
 }
 
 .rd__inspector-bookmarklet {

@@ -16,7 +16,6 @@ import android.os.IBinder
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
-import androidx.core.net.toUri
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.CallNotificationManager
@@ -58,6 +57,13 @@ class CallService : Service(), CallRepository.Listener {
         internal const val EXTRA_CALL_ID = "extra_call_id"
         internal const val EXTRA_NAME = "extra_name"
         internal const val EXTRA_URI = "extra_uri"
+        /**
+         * A null-scheme address reboots ColorOS devices (Telecom NPE), so the handle is wrapped
+         * with the package name like the Android SDK ("$packageName:$callId"). The address is
+         * never displayed or dialed.
+         */
+        internal fun toTelecomAddress(context: Context, handle: String): Uri =
+                Uri.fromParts(context.packageName, handle, null)
         internal const val EXTRA_IS_VIDEO = "extra_is_video"
         internal const val EXTRA_DISPLAY_TITLE = "displayTitle"
         internal const val EXTRA_DISPLAY_OPTIONS = "display_options"
@@ -118,7 +124,6 @@ class CallService : Service(), CallRepository.Listener {
                 return
             }
 
-            val createdById = data["created_by_id"]
             val createdName = data["created_by_display_name"].orEmpty()
             val displayName = data["call_display_name"].orEmpty()
             val callDisplayName = displayName.ifEmpty { createdName.ifEmpty { DEFAULT_DISPLAY_NAME } }
@@ -131,7 +136,7 @@ class CallService : Service(), CallRepository.Listener {
                     Intent(context, CallService::class.java).apply {
                         action = ACTION_INCOMING_CALL
                         putExtra(EXTRA_CALL_ID, callCid)
-                        putExtra(EXTRA_URI, createdById?.toUri() ?: callDisplayName.toUri())
+                        putExtra(EXTRA_URI, toTelecomAddress(context, callCid.substringAfter(':')))
                         putExtra(EXTRA_NAME, callDisplayName)
                         putExtra(EXTRA_IS_VIDEO, isVideo)
                     }

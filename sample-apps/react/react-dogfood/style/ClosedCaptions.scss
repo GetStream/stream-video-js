@@ -8,11 +8,11 @@
 
 .rd__closed-captions__line {
   margin: 0;
-  font-size: var(--str-video__font-size-md);
+  font-size: var(--str-video__typography-font-size-md);
 }
 
 .rd__closed-captions__speaker {
-  color: var(--str-video__text-color3);
+  color: var(--str-video__text-tertiary);
 }
 
 .rd__closed-captions-sidebar {
@@ -35,7 +35,7 @@
 
     .rd__closed-captions__line {
       line-height: 1.7;
-      font-size: var(--str-video__font-size-sm);
+      font-size: var(--str-video__typography-font-size-sm);
     }
   }
 }

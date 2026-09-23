@@ -30,9 +30,9 @@
     display: flex;
     flex-direction: column;
     text-align: center;
-    font-size: var(--str-video__font-size-xxl);
+    font-size: var(--str-video__typography-font-size-2xl);
     > span {
-      color: var(--str-video__alert-success);
+      color: var(--str-video__accent-success);
     }
   }
 

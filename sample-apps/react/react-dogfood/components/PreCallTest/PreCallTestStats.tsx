@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  StatCard,
   type CallStatsReport,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
+import { StatCard, StatCardGrid } from '../StatCard';
 
 const BOUNDS = {
   latency: { lowBound: 75, highBound: 400 },
@@ -91,8 +91,8 @@ export const PreCallTestStats = () => {
   const subscriber = report?.subscriberStats;
 
   return (
-    <div className="str-video__call-stats rd__pre-call-test__stats">
-      <div className="str-video__call-stats__card-container">
+    <div className="rd__pre-call-test__stats">
+      <StatCardGrid>
         <StatCard
           label="Latency"
           value={formatMs(publisher?.averageRoundTripTimeInMs)}
@@ -139,7 +139,7 @@ export const PreCallTestStats = () => {
             BOUNDS.audioJitter,
           )}
         />
-      </div>
+      </StatCardGrid>
     </div>
   );
 };

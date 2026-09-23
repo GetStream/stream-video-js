@@ -6,7 +6,7 @@ import {
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import clsx from 'clsx';
+import { StatCard, StatCardGrid, StatCardTag } from '../StatCard';
 import { useAppI18n } from '../../hooks/useAppI18n';
 import type {
   LooseTranslateFunction,
@@ -94,11 +94,11 @@ export const TranscriptionSettings = () => {
 
   return (
     <div className="rd__transcriptions">
-      <div className="str-video__call-stats">
-        <div className="str-video__call-stats__card-container">
+      <div className="rd__transcriptions__status">
+        <StatCardGrid>
           <ClosedCaptionStatus />
           <TranscriptionStatus />
-        </div>
+        </StatCardGrid>
       </div>
 
       <h4>{t('common.language.label', 'Language')}</h4>
@@ -167,35 +167,18 @@ const StatusCard = (props: {
   const { label, value, status } = props;
 
   return (
-    <div className="str-video__call-stats__card">
-      <div className="str-video__call-stats__card-content">
-        <div className="str-video__call-stats__card-label">{label}</div>
-        <div className="str-video__call-stats__card-value">{value}</div>
-      </div>
-      {status && (
-        <StatusIndicator status={status}>
-          {status === 'on'
-            ? t('common.status.on.label', 'on')
-            : t('common.status.off.label', 'off')}
-        </StatusIndicator>
-      )}
-    </div>
-  );
-};
-
-const StatusIndicator = (props: {
-  children: ReactNode;
-  status: 'on' | 'off';
-}) => {
-  const { children, status } = props;
-  return (
-    <div
-      className={clsx('str-video__call-stats__tag', {
-        'str-video__call-stats__tag--good': status === 'on',
-        'str-video__call-stats__tag--bad': status === 'off',
-      })}
-    >
-      <div className="str-video__call-stats__tag__text">{children}</div>
-    </div>
+    <StatCard
+      label={label}
+      value={value}
+      tag={
+        status && (
+          <StatCardTag variant={status === 'on' ? 'good' : 'bad'}>
+            {status === 'on'
+              ? t('common.status.on.label', 'on')
+              : t('common.status.off.label', 'off')}
+          </StatCardTag>
+        )
+      }
+    />
   );
 };

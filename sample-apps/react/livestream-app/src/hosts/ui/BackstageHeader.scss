@@ -13,19 +13,19 @@
         .backstage-header-title {
           font-style: normal;
           font-weight: 500;
-          font-size: 20px;
-          line-height: 25px;
+          font-size: var(--str-video__typography-font-size-xl);
+          line-height: var(--str-video__typography-line-height-relaxed);
           margin: 0;
-          color: #fcfcfc;
+          color: var(--str-video__text-primary);
         }
 
         .backstage-header-subtitle {
           font-style: normal;
           font-weight: 400;
-          font-size: 17px;
-          line-height: 20px;
+          font-size: var(--str-video__typography-font-size-md);
+          line-height: var(--str-video__typography-line-height-normal);
           margin: 0;
-          color: #cececd;
+          color: var(--str-video__text-secondary);
         }
       }
     }
