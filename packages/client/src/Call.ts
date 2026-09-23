@@ -3051,10 +3051,13 @@ export class Call {
    * for displaying in map-like UIs.
    */
   getCallStatsMap = async (
-    // The filters are the operation's *second* argument: with separate_params
-    // the path parameters stand alone, so reading them off `[0]` and removing
-    // the ids leaves `{}` and silently drops every filter.
-    params: Parameters<VideoApi['getCallStatsMap']>[1] = {},
+    params: {
+      start_time?: Date;
+      end_time?: Date;
+      exclude_publishers?: boolean;
+      exclude_subscribers?: boolean;
+      exclude_sfus?: boolean;
+    } = {},
     callSessionId: string | undefined = this.state.session?.id,
   ): Promise<StreamResponse<QueryCallStatsMapResponse>> => {
     if (!callSessionId) throw new Error('callSessionId is required');
