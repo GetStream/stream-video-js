@@ -25,6 +25,7 @@ import { TextInput } from '../../components/TextInput';
 import { KnownUsers } from '../../constants/KnownUsers';
 import { randomId } from '../../modules/helpers/randomId';
 import { useOrientation } from '../../hooks/useOrientation';
+import { getE2EESettingsOverride } from '../../utils/e2ee';
 
 const ENABLE_RING_PINNING = __DEV__;
 
@@ -67,6 +68,10 @@ const JoinCallScreen = () => {
               incoming_call_timeout_ms: 30000,
               missed_call_timeout_ms: 30000,
             },
+            // Merged rather than assigned: the ring timeouts above are what make the
+            // callee's quit-state case work, and encryption mode is frozen at
+            // creation, so it has to be requested here or not at all.
+            ...getE2EESettingsOverride(),
           },
           members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
             return {
