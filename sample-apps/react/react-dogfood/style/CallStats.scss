@@ -1,0 +1,48 @@
+.rd__call-stats {
+  // .rd__sidebar__call-stats is a flex row, so the default stretch alignment
+  // pins this panel to the scroller's height while its content runs on past
+  // the painted background — leaving the lower sections sitting on the drawer
+  // surface instead. Size to content instead.
+  align-self: flex-start;
+  border-radius: var(--str-video__radius-3xl);
+  background-color: var(--str-video__background-core-surface-subtle);
+  padding: var(--str-video__spacing-sm);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  h3 {
+    margin: unset;
+  }
+}
+
+.rd__call-stats__header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--str-video__spacing-sm);
+}
+
+.rd__call-stats__heading {
+  display: flex;
+  align-items: center;
+}
+
+.rd__call-stats__icon {
+  margin-right: var(--str-video__spacing-xs);
+  height: 18px;
+  width: 18px;
+}
+
+.rd__call-stats__description {
+  font-size: var(--str-video__typography-font-size-sm);
+  margin-bottom: var(--str-video__spacing-xs);
+  font-weight: 600;
+}
+
+.rd__call-stats__latency-chart-container {
+  position: relative;
+  margin: auto;
+  height: 170px;
+  width: 100%;
+}

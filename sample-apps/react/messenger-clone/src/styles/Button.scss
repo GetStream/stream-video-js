@@ -1,0 +1,30 @@
+.rmc__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  block-size: 32px;
+  min-inline-size: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--str-video__radius-max);
+  background-color: var(--str-video__background-core-surface-default);
+  color: var(--str-video__text-primary);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background-image: linear-gradient(
+      var(--str-video__background-utility-hover),
+      var(--str-video__background-utility-hover)
+    );
+  }
+
+  &:disabled {
+    color: var(--str-video__text-disabled);
+    cursor: default;
+  }
+
+  &--green {
+    background-color: var(--str-video__accent-success);
+    color: var(--str-video__text-on-accent);
+  }
+}

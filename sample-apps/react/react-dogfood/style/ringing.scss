@@ -58,25 +58,25 @@
   width: 340px;
   max-height: 70vh;
   padding: var(--str-video__spacing-md);
-  border-radius: var(--str-video__border-radius-sm);
-  background-color: var(--str-video__background-color2);
-  color: var(--str-video__text-color1);
-  font-size: 0.75rem;
+  border-radius: var(--str-video__radius-lg);
+  background-color: var(--str-video__background-core-surface-default);
+  color: var(--str-video__text-primary);
+  font-size: var(--str-video__typography-font-size-xs);
 }
 
 .rd__dialer-debug-title {
   margin: 0 0 var(--str-video__spacing-sm);
-  font-size: 0.875rem;
+  font-size: var(--str-video__typography-font-size-sm);
 }
 
 .rd__dialer-debug-empty {
   margin: 0 0 var(--str-video__spacing-sm);
-  color: var(--str-video__text-color2);
+  color: var(--str-video__text-secondary);
 }
 
 .rd__dialer-debug-error {
   margin: var(--str-video__spacing-sm) 0 0;
-  color: var(--str-video__alert-caution);
+  color: var(--str-video__accent-warning);
 }
 
 .rd__dialer-debug-list {
@@ -89,7 +89,7 @@
 
   dt {
     flex: 0 0 6.5rem;
-    color: var(--str-video__text-color2);
+    color: var(--str-video__text-secondary);
   }
 
   dd {

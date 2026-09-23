@@ -8,7 +8,6 @@ import {
 import clsx from 'clsx';
 
 import {
-  CallStats,
   CompositeButton,
   DeviceSelectorAudioInput,
   DeviceSelectorAudioOutput,
@@ -22,6 +21,7 @@ import {
   WithTooltip,
 } from '@stream-io/video-react-sdk';
 
+import { CallStats } from '../CallStats';
 import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
 import { VideoEffectsSettings } from './VideoEffects';
 import { TranscriptionSettings } from './Transcriptions';

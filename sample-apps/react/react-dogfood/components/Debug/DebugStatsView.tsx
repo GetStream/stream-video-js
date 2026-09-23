@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Call, StatCard, useCallStateHooks } from '@stream-io/video-react-sdk';
+import { Call, useCallStateHooks } from '@stream-io/video-react-sdk';
+import { StatCard, StatCardGrid } from '../StatCard';
 import { useFloatingUIPreset } from '../../hooks/useFloatingUIPreset';
 
 export const DebugStatsView = (props: {
@@ -55,7 +56,7 @@ export const DebugStatsView = (props: {
       />
       {isPopperOpen && (
         <div
-          className="rd__debug__track-stats str-video__call-stats"
+          className="rd__debug__track-stats"
           ref={refs.setFloating}
           style={{
             position: strategy,
@@ -65,7 +66,7 @@ export const DebugStatsView = (props: {
           }}
         >
           <h3>Participant stats</h3>
-          <div className="str-video__call-stats__card-container">
+          <StatCardGrid>
             {trackStats
               ?.map((track) => {
                 if (track.kind === 'video') {
@@ -93,7 +94,7 @@ export const DebugStatsView = (props: {
                 return null;
               })
               .filter(Boolean)}
-          </div>
+          </StatCardGrid>
           {reportForTracks?.map((report, index) => (
             <pre key={index}>
               {JSON.stringify(unwrapStats(report.rawStats), null, 2)}

@@ -1,22 +1,15 @@
 import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from 'react';
-import clsx from 'clsx';
 import {
   AggregatedStatsReport,
   CallStatsReport,
+  Icon,
   SfuModels,
-} from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { StreamTFunction, useI18n } from '../../i18n';
-import { useFloating, useHover, useInteractions } from '@floating-ui/react';
-import { Icon } from '../Icon';
+  useCallStateHooks,
+} from '@stream-io/video-react-sdk';
+import { StatCard, StatCardGrid } from '../StatCard';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 const CallStatsLatencyChart = lazy(() => import('./CallStatsLatencyChart'));
-
-enum Status {
-  GOOD = 'Good',
-  OK = 'Ok',
-  BAD = 'Bad',
-}
 
 export type CallStatsProps = {
   latencyLowBound?: number;
@@ -47,7 +40,7 @@ export const CallStats = (props: CallStatsProps) => {
     return Array.from({ length: 20 }, (_, i) => ({ x: now + i, y: 0 }));
   });
 
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const [publishBitrate, setPublishBitrate] = useState('-');
   const [subscribeBitrate, setSubscribeBitrate] = useState('-');
   const [publishAudioBitrate, setPublishAudioBitrate] = useState('-');
@@ -116,18 +109,15 @@ export const CallStats = (props: CallStatsProps) => {
   };
 
   return (
-    <div className="str-video__call-stats">
+    <div className="rd__call-stats">
       {callStatsReport && (
         <>
-          <div className="str-video__call-stats__header">
-            <h3 className="str-video__call-stats__heading">
-              <Icon
-                className="str-video__call-stats__icon"
-                icon="call-latency"
-              />
+          <div className="rd__call-stats__header">
+            <h3 className="rd__call-stats__heading">
+              <Icon className="rd__call-stats__icon" icon="call-latency" />
               {t('callStats.callLatency.title', 'Call Latency')}
             </h3>
-            <p className="str-video__call-stats__description">
+            <p className="rd__call-stats__description">
               {t(
                 'callStats.callLatency.description',
                 'Very high latency values may reduce call quality, cause lag, and make the call less enjoyable.',
@@ -135,21 +125,18 @@ export const CallStats = (props: CallStatsProps) => {
             </p>
           </div>
 
-          <div className="str-video__call-stats__latencychart">
+          <div className="rd__call-stats__latency-chart">
             <Suspense fallback={LatencyChartSuspenseFallback}>
               <CallStatsLatencyChart values={latencyBuffer} />
             </Suspense>
           </div>
 
-          <div className="str-video__call-stats__header">
-            <h3 className="str-video__call-stats__heading">
-              <Icon
-                className="str-video__call-stats__icon"
-                icon="network-quality"
-              />
+          <div className="rd__call-stats__header">
+            <h3 className="rd__call-stats__heading">
+              <Icon className="rd__call-stats__icon" icon="network-quality" />
               {t('callStats.videoPerformance.title', 'Video performance')}
             </h3>
-            <p className="str-video__call-stats__description">
+            <p className="rd__call-stats__description">
               {t(
                 'callStats.videoPerformance.description',
                 'Review the key data points below to assess call performance',
@@ -157,7 +144,7 @@ export const CallStats = (props: CallStatsProps) => {
             </p>
           </div>
 
-          <div className="str-video__call-stats__card-container">
+          <StatCardGrid>
             <StatCard
               label={t('callStats.region.label', 'Region')}
               value={callStatsReport.datacenter}
@@ -216,14 +203,14 @@ export const CallStats = (props: CallStatsProps) => {
               label={t('callStats.receivingBitrate.label', 'Receiving bitrate')}
               value={subscribeBitrate}
             />
-          </div>
+          </StatCardGrid>
 
-          <div className="str-video__call-stats__header">
-            <h3 className="str-video__call-stats__heading">
-              <Icon className="str-video__call-stats__icon" icon="mic" />
+          <div className="rd__call-stats__header">
+            <h3 className="rd__call-stats__heading">
+              <Icon className="rd__call-stats__icon" icon="mic" />
               {t('callStats.audioPerformance.title', 'Audio Performance')}
             </h3>
-            <p className="str-video__call-stats__description">
+            <p className="rd__call-stats__description">
               {t(
                 'callStats.audioPerformance.description',
                 'Review the key audio data points below to assess audio performance',
@@ -231,7 +218,7 @@ export const CallStats = (props: CallStatsProps) => {
             </p>
           </div>
 
-          <div className="str-video__call-stats__card-container">
+          <StatCardGrid>
             <StatCard
               label={t('callStats.latency.label', 'Latency')}
               value={`${callStatsReport.publisherAudioStats.averageRoundTripTimeInMs} ms.`}
@@ -277,117 +264,11 @@ export const CallStats = (props: CallStatsProps) => {
                 value: callStatsReport.subscriberAudioStats.averageJitterInMs,
               }}
             />
-          </div>
+          </StatCardGrid>
         </>
       )}
     </div>
   );
-};
-
-const StatCardExplanation = (props: { description: string }) => {
-  const { description } = props;
-  const [isOpen, setIsOpen] = useState(false);
-
-  const { refs, floatingStyles, context } = useFloating({
-    open: isOpen,
-    onOpenChange: setIsOpen,
-  });
-
-  const hover = useHover(context);
-
-  const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
-
-  return (
-    <>
-      <div
-        className="str-video__call-explanation"
-        ref={refs.setReference}
-        {...getReferenceProps()}
-      >
-        <Icon className="str-video__call-explanation__icon" icon="info" />
-      </div>
-      {isOpen && (
-        <div
-          className="str-video__call-explanation__description"
-          ref={refs.setFloating}
-          style={floatingStyles}
-          {...getFloatingProps()}
-        >
-          {description}
-        </div>
-      )}
-    </>
-  );
-};
-
-const StatsTag = (props: { children: ReactNode; status: Status }) => {
-  const { children, status } = props;
-  return (
-    <div
-      className={clsx('str-video__call-stats__tag', {
-        'str-video__call-stats__tag--good': status === Status.GOOD,
-        'str-video__call-stats__tag--ok': status === Status.OK,
-        'str-video__call-stats__tag--bad': status === Status.BAD,
-      })}
-    >
-      <div className="str-video__call-stats__tag__text">{children}</div>
-    </div>
-  );
-};
-
-export const StatCard = (props: {
-  label: string;
-  value: string | ReactNode;
-  description?: string;
-  comparison?: { value: number; highBound: number; lowBound: number };
-}) => {
-  const { label, value, description, comparison } = props;
-
-  const { t } = useI18n();
-  const status = comparison ? toStatus(comparison) : undefined;
-
-  return (
-    <div className="str-video__call-stats__card">
-      <div className="str-video__call-stats__card-content">
-        <div className="str-video__call-stats__card-label">
-          {label}
-          {description && <StatCardExplanation description={description} />}
-        </div>
-        <div className="str-video__call-stats__card-value">{value}</div>
-      </div>
-      {status && <StatsTag status={status}>{statusLabel(status, t)}</StatsTag>}
-    </div>
-  );
-};
-
-/**
- * The label rendered for a stat's status.
- *
- * A `switch` of literal `t()` calls rather than the runtime-valued `t()` lookup this used to be:
- * the literal keys are statically extractable, which is what makes these three translatable - none
- * of them had a catalog entry before.
- */
-const statusLabel = (status: Status, t: StreamTFunction): string => {
-  switch (status) {
-    case Status.GOOD:
-      return t('callStats.status.good.label', 'Good');
-    case Status.OK:
-      return t('callStats.status.ok.label', 'Ok');
-    case Status.BAD:
-      return t('callStats.status.bad.label', 'Bad');
-  }
-};
-
-const toStatus = (config: {
-  value: number;
-  lowBound: number;
-  highBound: number;
-}): Status => {
-  const { value, lowBound, highBound } = config;
-  if (value <= lowBound) return Status.GOOD;
-  if (value >= lowBound && value <= highBound) return Status.OK;
-  if (value >= highBound) return Status.BAD;
-  return Status.GOOD;
 };
 
 const toFrameSize = (stats: AggregatedStatsReport) => {

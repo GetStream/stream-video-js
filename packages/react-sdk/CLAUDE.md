@@ -142,7 +142,6 @@ The SDK follows a strict layered architecture where responsibilities are cleanly
 - `CallControls` - Control buttons (mute, camera, screen share, etc.)
 - `CallParticipantsList` - List of participants with metadata
 - `DeviceSettings` - Device selection UI (camera, microphone, speaker)
-- `CallStats` - Display call quality statistics
 - `BackgroundFilters` - Video background effects UI
 - `NoiseCancellation` - Noise cancellation controls
 - And many more in `src/components/`
@@ -486,7 +485,7 @@ t('livestream.backstage.participantsJoinedEarly.text', {
 The inline default is what makes a partial custom dictionary safe — an unsupplied key still renders
 English, never a raw dotted path — and it keeps the copy visible at the call site.
 
-- **Namespaces follow the source tree** (`callControls.*`, `participantView.*`, `callStats.*`), so
+- **Namespaces follow the source tree** (`callControls.*`, `participantView.*`, `callRecordingList.*`), so
   keys are predictable from the component. Genuinely shared copy lives in `common.*`. Modality is
   the leaf: `.label`, `.ariaLabel`, `.placeholder`, `.title`, `.description`, `.text`.
 - **Keys shared with the React Native SDK use identical strings** (`common.live.label`,
@@ -499,9 +498,8 @@ English, never a raw dotted path — and it keeps the copy visible at the call s
   `LooseTranslationDictionary` and `StreamTFunction`, which is what `useI18n().t` is typed as — a
   typo is a compile error. `BundledKey` must never become `string`; that collapses the prose
   overload and silently disables all key checking.
-- **`runtimeDefaults.ts` is empty**, and should stay that way. The two lookup tables that used to
-  resolve a key from a runtime value (`CallingState`, the call-stats verdict) are `switch`
-  statements of literal `t()` calls, which is what makes them translatable at all.
+- **`runtimeDefaults.ts` is empty**, and should stay that way. Resolve runtime values such as
+  `CallingState` through `switch` statements of literal `t()` calls so codegen can extract the keys.
 - **`yarn build-translations`** parses the `t()` call sites via `@stream-io/i18n/codegen` and
   regenerates `keys.ts`. It hard-fails on: a key used with two different inline copies; a key with
   no inline default and no `runtimeDefaults` entry (it would render as the raw dotted key); a key
@@ -618,7 +616,7 @@ Audio is simpler than video (no visibility concerns):
 - CSS copied from `@stream-io/video-styling` during build
 - TypeScript compilation for type definitions
 - Source maps included
-- Special handling for lazy-loaded chunks (e.g., `CallStatsLatencyChart`) applies
+- Special handling for lazy-loaded chunks (e.g., `BackgroundFilters`) applies
   to the CommonJS builds; the ESM build has no chunks, every module is its own file
 
 ## Dependencies
@@ -628,7 +626,6 @@ Audio is simpler than video (no visibility concerns):
 - `@stream-io/video-client` - Core WebRTC client (workspace dependency)
 - `@stream-io/video-react-bindings` - React hooks layer (workspace dependency)
 - `@stream-io/video-filters-web` - Video filters (background blur, effects)
-- `chart.js` & `react-chartjs-2` - Call statistics charts
 - `@floating-ui/react` - Tooltips, dropdowns positioning
 - `clsx` - Conditional CSS class names
 
@@ -1065,7 +1062,6 @@ When adding public APIs:
 - `src/components/DeviceSettings/DeviceSelector.tsx` - Device selection UI
 - `src/components/BackgroundFilters/BackgroundFilters.tsx` - Video filters
 - `src/components/CallParticipantsList/` - Participant list UI
-- `src/components/CallStats/` - Call quality statistics display
 
 ### Key External Files (in bindings package)
 

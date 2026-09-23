@@ -6,9 +6,9 @@
   width: 100%;
 
   .str-video__loading-indicator__icon.spinner {
-    width: 4rem;
-    height: 4rem;
-    -webkit-mask-size: 4rem;
-    mask-size: 4rem;
+    width: 64px;
+    height: 64px;
+    -webkit-mask-size: 64px;
+    mask-size: 64px;
   }
 }

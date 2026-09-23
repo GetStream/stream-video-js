@@ -1,4 +1,7 @@
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCallStateHooks,
+  useConnectedUser,
+} from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 import {
   ToggleAudioPreviewButton,
@@ -16,10 +19,12 @@ interface DeviceControlsProps {
 
 export const DeviceControls = ({ isVideoEnabled }: DeviceControlsProps) => {
   const { t } = useI18n();
+  const user = useConnectedUser();
   const { useCameraState, useMicrophoneState } = useCallStateHooks();
 
   const { hasBrowserPermission: hasCameraPermission } = useCameraState();
   const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
+  const displayName = user?.name || user?.id;
 
   return (
     <>
@@ -28,6 +33,13 @@ export const DeviceControls = ({ isVideoEnabled }: DeviceControlsProps) => {
           DisabledVideoPreview={DisabledVideoPreview}
           NoCameraPreview={NoCameraPreview}
         />
+        {displayName && (
+          <span className="str-video__embedded-lobby__participant-label">
+            <span className="str-video__embedded-lobby__participant-label-text">
+              {displayName}
+            </span>
+          </span>
+        )}
         <div className="str-video__embedded-lobby__media-toggle">
           <ToggleAudioPreviewButton Menu={null} />
           {isVideoEnabled && <ToggleVideoPreviewButton Menu={null} />}

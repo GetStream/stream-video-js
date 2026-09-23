@@ -1,6 +1,5 @@
 export * from './AcceptCallButton';
 export * from './CallControls';
-export * from './CallStatsButton';
 export * from './CancelCallButton';
 export * from './ReactionsButton';
 export * from './RecordCallButton';

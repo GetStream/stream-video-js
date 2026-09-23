@@ -1,14 +1,24 @@
 .rd__input,
 .rd__textarea {
-  background-color: var(--str-video__background-core-app);
-  border-radius: var(--str-video__border-radius-md);
-  padding: var(--str-video__space-6) var(--str-video__spacing-sm);
-  border: 1px solid var(--str-video__base-color3);
-  color: var(--str-video__base-color1);
+  min-block-size: 40px;
+  padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
+  border: var(--str-video__w100) solid var(--str-video__border-core-default);
+  border-radius: var(--str-video__input-radius-text-input);
+  background-color: transparent;
+  color: var(--str-video__input-text-default);
+  font-size: var(--str-video__typography-font-size-sm);
+  line-height: var(--str-video__typography-line-height-normal);
+  font-weight: var(--str-video__typography-font-weight-regular);
   width: 100%;
+
+  &::placeholder {
+    color: var(--str-video__input-text-placeholder);
+  }
 
   &:focus,
   &:focus-visible {
-    border: 1px solid var(--str-video__base-color1);
+    outline: var(--str-video__w200) solid
+      var(--str-video__border-utility-focused);
+    outline-offset: calc(var(--str-video__w100) * -1);
   }
 }

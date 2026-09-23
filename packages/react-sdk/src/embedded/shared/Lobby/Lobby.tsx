@@ -1,8 +1,5 @@
 import clsx from 'clsx';
-import {
-  useCallStateHooks,
-  useConnectedUser,
-} from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 import { Button, Icon } from '../../../components';
 import { DeviceControls } from './DeviceControls';
@@ -18,7 +15,6 @@ interface LobbyProps {
  */
 export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
   const { t } = useI18n();
-  const user = useConnectedUser();
   const { useCameraState, useCallSettings } = useCallStateHooks();
 
   const { isMute } = useCameraState();
@@ -32,7 +28,15 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
   return (
     <div className="str-video__embedded-lobby">
       <div className="str-video__embedded-lobby__content">
-        <h1 className="str-video__embedded-lobby__heading">{resolvedTitle}</h1>
+        <div className="str-video__embedded-lobby__title">
+          <Icon
+            icon="language"
+            className="str-video__embedded-lobby__title-icon"
+          />
+          <h1 className="str-video__embedded-lobby__heading">
+            {resolvedTitle}
+          </h1>
+        </div>
         <div
           className={clsx(
             'str-video__embedded-lobby__camera',
@@ -42,18 +46,10 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
           <DeviceControls isVideoEnabled={isVideoEnabled} />
         </div>
 
-        <div className="str-video__embedded-lobby__display-name">
-          <div className="str-video__embedded-lobby__display-name-label">
-            {t('lobby.displayName.label', 'Display name')}
-          </div>
-          <span className="str-video__embedded-lobby__display-name-value">
-            {user?.name}
-          </span>
-          <Button size="sm" onClick={onJoin}>
-            <Icon icon="login" />
-            {resolvedJoinLabel}
-          </Button>
-        </div>
+        <Button className="str-video__embedded-lobby__join" onClick={onJoin}>
+          <Icon icon="login" />
+          {resolvedJoinLabel}
+        </Button>
       </div>
     </div>
   );

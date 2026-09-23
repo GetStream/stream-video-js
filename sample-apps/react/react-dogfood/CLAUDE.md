@@ -78,9 +78,17 @@ Components are organized by feature/responsibility:
 - **Lobby.tsx** - Pre-call device selection and settings
 - **ActiveCall.tsx** - Active call UI with participant grid/layout
 - **CallLayout/** - Layout components (Grid, Speaker, Spotlight)
+- **CallStats/** - App-owned call statistics UI with a lazy-loaded latency chart
+- **StatCard/** - Shared measurement cards, grids, and status tags used by call stats, pre-call tests, debug stats, and transcription settings
 - **Debug/** - Debug panels and inspection tools
 - **Inspector/** - Deep SDK state inspection
 - **Settings/** - Audio/video/effects configuration
+
+Call statistics UI lives in this app, not in the React SDK. Import `CallStats` and `StatCard` from
+the local component directories; continue using `useCallStateHooks().useCallStatsReport()` from the
+SDK for stats data. The app owns the `chart.js` and `react-chartjs-2` dependencies, the styles in
+`style/CallStats.scss` and `style/StatCard.scss`, and the `callStats.*` / `statCard.*` translation keys
+(accessed through `useAppI18n`). Keep the chart lazy-loaded so its dependencies load only when needed.
 
 ### SDK Integration Flow
 
