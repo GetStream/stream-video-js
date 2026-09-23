@@ -1,4 +1,5 @@
 import {
+  type Call,
   CallingState,
   SfuModels,
   hasAudio,
@@ -12,17 +13,35 @@ import {
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { findNodeHandle } from 'react-native';
 import {
   onNativeCallClosed,
   onNativeDimensionsUpdated,
+  type PiPBoundsChangeEvent,
+  type PiPChangeEvent,
   RTCViewPipNative,
 } from './RTCViewPipNative';
-import { debounceTime } from 'rxjs';
+import { BehaviorSubject, debounceTime } from 'rxjs';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
 import { isInPiPMode$ } from '../../../utils/internal/rxSubjects';
+import TrackSubscriber from '../../Participant/ParticipantView/VideoRenderer/TrackSubscriber';
+
+// One native view per Call instance. React Native drops the events of an
+// unmounted view, so an event the previous call's controller queued before
+// the replacement cannot reach the view of its successor.
+const nativeViewKeys = new WeakMap<Call, number>();
+let nextNativeViewKey = 0;
+const nativeViewKeyOf = (call: Call | undefined) => {
+  if (!call) return 0;
+  let key = nativeViewKeys.get(call);
+  if (key === undefined) {
+    key = ++nextNativeViewKey;
+    nativeViewKeys.set(call, key);
+  }
+  return key;
+};
 
 type Props = {
   includeLocalParticipantVideo?: boolean;
@@ -51,6 +70,39 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
   const [allParticipants, setAllParticipants] = useState<
     StreamVideoParticipant[]
   >(call?.state.participants ?? []);
+
+  // bounds of the native window, in logical points. While the window is on
+  // screen they are the demand of the track it renders.
+  const [pipDimensions$] = useState(
+    () => new BehaviorSubject<SfuModels.VideoDimension | undefined>(undefined),
+  );
+  const [isPipActive, setIsPipActive] = useState(false);
+  // synchronous mirror of isPipActive: native may emit the same lifecycle
+  // state twice (e.g. failedToStart after didStop) before React re-renders.
+  const isPipActiveRef = useRef(false);
+  // set once the call is closed: later native events describe a disposed window.
+  const isClosedRef = useRef(false);
+  // the handlers below are bound to the view they were rendered for; an event
+  // of a replaced view is rejected even if it were delivered.
+  const nativeViewKey = nativeViewKeyOf(call);
+  const activeNativeViewKeyRef = useRef(nativeViewKey);
+  useEffect(() => {
+    activeNativeViewKeyRef.current = nativeViewKey;
+  }, [nativeViewKey]);
+  const isStaleNativeEvent = () =>
+    isClosedRef.current || nativeViewKey !== activeNativeViewKeyRef.current;
+  const onPiPChangeRef = useRef(onPiPChange);
+  useEffect(() => {
+    onPiPChangeRef.current = onPiPChange;
+  }, [onPiPChange]);
+
+  const updatePipState = useCallback((active: boolean) => {
+    if (isPipActiveRef.current === active) return;
+    isPipActiveRef.current = active;
+    setIsPipActive(active);
+    isInPiPMode$.next(active);
+    onPiPChangeRef.current?.(active);
+  }, []);
 
   // we debounce the participants to avoid unnecessary rerenders
   // that happen when participant tracks are all subscribed simultaneously
@@ -86,17 +138,19 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
   const nativeRef = React.useRef<any>(null);
 
   React.useEffect(() => {
-    let callClosedInvokedOnce = false;
+    const node = findNodeHandle(nativeRef.current);
+    isClosedRef.current = false;
     const onCallClosed = () => {
-      if (callClosedInvokedOnce) {
+      if (isClosedRef.current) {
         return;
       }
-      callClosedInvokedOnce = true;
-      const node = findNodeHandle(nativeRef.current);
+      isClosedRef.current = true;
       if (node !== null) {
         onNativeCallClosed(node);
       }
       shouldDisableIOSLocalVideoOnBackgroundRef.current = true;
+      pipDimensions$.next(undefined);
+      updatePipState(false);
     };
     const unsubFunc = call?.on('call.ended', () => {
       videoLoggerSystem
@@ -117,7 +171,7 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
       unsubFunc?.();
       subscription?.unsubscribe();
     };
-  }, [call]);
+  }, [call, pipDimensions$, updatePipState]);
 
   const onDimensionsUpdated = useCallback((width: number, height: number) => {
     const node = findNodeHandle(nativeRef.current);
@@ -150,9 +204,17 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
       ? mirrorOverride
       : !!participantInSpotlight?.isLocalParticipant && direction === 'front';
 
-  const handlePiPChange = (event: { nativeEvent: { active: boolean } }) => {
-    isInPiPMode$.next(event.nativeEvent.active);
-    onPiPChange?.(event.nativeEvent.active);
+  const handlePiPChange = (event: { nativeEvent: PiPChangeEvent }) => {
+    if (isStaleNativeEvent()) return;
+    updatePipState(event.nativeEvent.active);
+  };
+
+  const handlePiPBoundsChange = (event: {
+    nativeEvent: PiPBoundsChangeEvent;
+  }) => {
+    if (isStaleNativeEvent()) return;
+    const { width, height } = event.nativeEvent;
+    pipDimensions$.next({ width, height });
   };
 
   // Get participant info for avatar placeholder
@@ -193,13 +255,23 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     participantInSpotlight?.connectionQuality ??
     SfuModels.ConnectionQuality.UNSPECIFIED;
 
+  // while the native window is on screen, its bounds - and not the hidden
+  // inline layout behind it - are the demand of the track it renders. The local
+  // preview is never subscribed to.
+  const pipTrackOwner =
+    isPipActive && participantInSpotlight?.isLocalParticipant !== true
+      ? participantInSpotlight
+      : undefined;
+
   return (
     <>
       <RTCViewPipNative
+        key={nativeViewKey}
         streamURL={streamURL}
         mirror={mirror}
         ref={nativeRef}
         onPiPChange={handlePiPChange}
+        onPiPBoundsChange={handlePiPBoundsChange}
         participantName={participantName}
         participantImageURL={participantImageURL}
         isReconnecting={isReconnecting}
@@ -210,6 +282,16 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
         isSpeaking={participantIsSpeaking}
         connectionQuality={participantConnectionQuality}
       />
+      {pipTrackOwner && call && (
+        <TrackSubscriber
+          call={call}
+          participantSessionId={pipTrackOwner.sessionId}
+          trackType={trackType}
+          isVisible={true}
+          dimensions$={pipDimensions$}
+          isPipWriter
+        />
+      )}
       {participantInSpotlight && (
         <DimensionsUpdatedRenderless
           participant={participantInSpotlight}
