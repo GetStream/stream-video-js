@@ -56,6 +56,9 @@ private enum AudioDeviceId {
     static let speaker = "speaker"
 }
 
+/// Extensions tried when an app passes a sound name without one.
+private let soundExtensions = ["m4a", "caf", "wav", "aiff", "mp3", "aif"]
+
 @objc(StreamInCallManager)
 class StreamInCallManager: RCTEventEmitter {
 
@@ -83,7 +86,10 @@ class StreamInCallManager: RCTEventEmitter {
     /// Wired in `setup()`; torn down in `stop()`.
     private var engineSubscription: AnyCancellable?
 
+    private var soundPlayer: AVAudioPlayer?
+
     override func invalidate() {
+        stopSound()
         stop()
         super.invalidate()
     }
@@ -881,6 +887,71 @@ class StreamInCallManager: RCTEventEmitter {
                 self?.setProximityMonitoringEnabled(enabled)
             }
         }
+    }
+
+    // MARK: - Call Sounds
+
+    /// Starts the looping sound.
+    ///
+    /// - Parameters:
+    ///   - soundName: a resource in the app bundle, with or without extension. The SDK ships
+    ///     no sound of its own, so an unresolvable name means nothing is played.
+    ///   - playIfMuted: Android-only, ignored here.
+    @objc(playSound:playIfMuted:)
+    func playSound(soundName: String?, playIfMuted: Bool) {
+        DispatchQueue.main.async { [self] in
+            stopSoundOnMainQueue()
+
+            guard let url = resolveSoundURL(soundName) else {
+                log("playSound(): no sound found for \(soundName ?? "<none>")")
+                return
+            }
+
+            do {
+                let player = try AVAudioPlayer(contentsOf: url)
+                player.numberOfLoops = -1 // loop until the call is answered or cancelled
+                player.prepareToPlay()
+                player.play()
+                soundPlayer = player
+                log("playSound(): playing \(url.lastPathComponent)")
+            } catch {
+                log("playSound(): failed to play \(url.lastPathComponent) - \(error)")
+            }
+        }
+    }
+
+    @objc(stopSound)
+    func stopSound() {
+        DispatchQueue.main.async { [self] in
+            stopSoundOnMainQueue()
+        }
+    }
+
+    private func stopSoundOnMainQueue() {
+        guard let player = soundPlayer else { return }
+        soundPlayer = nil
+        player.stop()
+    }
+
+    /// Resolves the sound to play against the app bundle, mirroring how CallKit resolves its
+    /// `ringtoneSound`. The SDK ships no sound of its own.
+    private func resolveSoundURL(_ soundName: String?) -> URL? {
+        guard let soundName, !soundName.isEmpty else { return nil }
+        return findSound(named: soundName, in: .main)
+    }
+
+    private func findSound(named soundName: String, in bundle: Bundle) -> URL? {
+        let name = (soundName as NSString).deletingPathExtension
+        let providedExtension = (soundName as NSString).pathExtension
+        let extensions = providedExtension.isEmpty
+            ? soundExtensions
+            : [providedExtension]
+        for ext in extensions {
+            if let url = bundle.url(forResource: name, withExtension: ext) {
+                return url
+            }
+        }
+        return nil
     }
 
     // MARK: - RCTEventEmitter

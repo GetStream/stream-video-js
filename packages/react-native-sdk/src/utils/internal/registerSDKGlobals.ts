@@ -114,6 +114,10 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       }
     },
     start: ({ isRingingTypeCall, cid }) => {
+      safeNativeCall('stopRingtone', () =>
+        StreamInCallManagerNativeModule.stopSound(),
+      );
+
       // Apply the audio config a consumer recorded via `callManager.start(config)` at this single
       // join-time start, before the native audio manager is activated.
       const config = publicCallManager.getStoredConfig();
