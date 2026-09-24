@@ -17,13 +17,18 @@ import {
 } from '@stream-io/video-filters-react-native';
 
 // step 1: register your filters for once in your app's lifecycle
-await registerBackgroundBlurVideoFilters();
-const imageOneUri = await registerVirtualBackgroundFilter({
-  uri: 'https://example.com/path/to/remoteImage.png',
-});
-const imageTwoUri = await registerVirtualBackgroundFilter(
-  require('../path/to/localImage.jpg'),
-);
+// the helpers are synchronous and throw if registration fails
+try {
+  registerBackgroundBlurVideoFilters();
+  const imageOneUri = registerVirtualBackgroundFilter({
+    uri: 'https://example.com/path/to/remoteImage.png',
+  });
+  const imageTwoUri = registerVirtualBackgroundFilter(
+    require('../path/to/localImage.jpg'),
+  );
+} catch (error) {
+  console.error('Failed to register video filters', error);
+}
 
 // step 2: apply the filter to the local media stream
 function setMediumBlurFilter() {
@@ -47,6 +52,25 @@ function clearVideoFilters() {
   localMediaStream?.getVideoTracks().forEach((track) => {
     track._setVideoEffect(null);
   });
+}
+```
+
+## Migrating from Promise-based helpers
+
+The helpers (`registerBackgroundBlurVideoFilters`, `registerBlurVideoFilters`, `registerVirtualBackgroundFilter` and `unregisterAllFilters`) now return their values synchronously and throw synchronously on failure. Replace `.then()`/`.catch()` chains with direct calls and `try`/`catch`:
+
+```ts
+// before
+registerBackgroundBlurVideoFilters()
+  .then(() => console.log('registered'))
+  .catch((error) => console.error(error));
+
+// after
+try {
+  registerBackgroundBlurVideoFilters();
+  console.log('registered');
+} catch (error) {
+  console.error(error);
 }
 ```
 
