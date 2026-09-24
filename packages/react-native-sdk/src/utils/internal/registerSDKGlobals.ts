@@ -115,6 +115,7 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
     },
     start: ({ isRingingTypeCall, cid }) => {
       safeNativeCall('stopRingtone', () =>
+        //stop the ringtone if it is playing before audio session setup
         StreamInCallManagerNativeModule.stopSound(),
       );
 

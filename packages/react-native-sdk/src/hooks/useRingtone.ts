@@ -12,7 +12,6 @@ import { getCallingxLibIfAvailable } from '../utils/push/libs/callingx';
 const NativeManager = NativeModules.StreamInCallManager;
 const CallingxModule = getCallingxLibIfAvailable();
 
-/** States in which a call's audio is live, or about to be. */
 const ACTIVE_CALLING_STATES: CallingState[] = [
   CallingState.JOINING,
   CallingState.JOINED,
@@ -41,14 +40,16 @@ export type RingtoneOptions = {
   playIfMuted?: boolean;
 };
 
-/**
- * Returns whether the operating system rings incoming calls for us, in which case the
- * `incoming` sound must be skipped.
- */
-const isIncomingRungByTheSystem = (): boolean => {
-  if (!CallingxModule?.isSetup) {
+const isIncomingRungByTheSystem = (cid: string | undefined): boolean => {
+  if (!CallingxModule) {
     return false;
   }
+
+  if (cid && CallingxModule.isCallTracked(cid)) {
+    // The call is tracked by callingx, so it is rung by the system.
+    return true;
+  }
+
   const pushConfig = StreamVideoRN.getConfig().push;
   const skipInForeground =
     Platform.OS === 'ios'
@@ -60,10 +61,6 @@ const isIncomingRungByTheSystem = (): boolean => {
 /**
  * Plays a ringtone while a call is ringing, and stops it as soon as the call is answered,
  * rejected, cancelled or times out.
- *
- * The `incoming` sound is skipped when ringing push is configured, and when another call is
- * already active so a second incoming call doesn't ring over a conversation in progress —
- * the same rule callingx applies in its `CallService`. `outgoing` is never skipped.
  *
  * @example
  * ```tsx
@@ -79,6 +76,7 @@ export const useRingtone = ({
   playIfMuted = false,
 }: RingtoneOptions) => {
   const call = useCall();
+  const cid = call?.cid;
   const isCallCreatedByMe = call?.isCreatedByMe;
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
@@ -99,13 +97,9 @@ export const useRingtone = ({
     let soundName: string | undefined;
     if (isCallCreatedByMe) {
       soundName = outgoing;
-    } else if (isIncomingRungByTheSystem()) {
+    } else if (isIncomingRungByTheSystem(cid) || hasOtherActiveCall) {
       logger.debug(
-        'skipping the incoming sound, the OS rings incoming calls for this app',
-      );
-    } else if (hasOtherActiveCall) {
-      logger.debug(
-        'skipping the incoming sound, another call is already active',
+        'skipping the incoming sound, the OS rings incoming calls for this app or there is another active call',
       );
     } else {
       soundName = incoming;
@@ -117,7 +111,6 @@ export const useRingtone = ({
 
     try {
       NativeManager.playSound(soundName, playIfMuted);
-      logger.debug(`played "${soundName}"`);
     } catch (error) {
       logger.warn(`failed to play "${soundName}"`, error);
       return;
@@ -126,13 +119,13 @@ export const useRingtone = ({
     return () => {
       try {
         NativeManager.stopSound();
-        logger.debug('stopped the sound');
       } catch (error) {
         logger.warn('failed to stop the sound', error);
       }
     };
   }, [
     callingState,
+    cid,
     isCallCreatedByMe,
     hasOtherActiveCall,
     incoming,

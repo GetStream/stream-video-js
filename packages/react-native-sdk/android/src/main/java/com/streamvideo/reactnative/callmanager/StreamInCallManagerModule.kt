@@ -22,7 +22,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
 
     private val mAudioDeviceManager = AudioDeviceManager(reactContext)
 
-    private val mCallSoundPlayer = SoundPlayer(reactContext)
+    private val mSoundPlayer = SoundPlayer(reactContext)
 
     override fun getName(): String {
         return TAG
@@ -44,7 +44,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     override fun invalidate() {
         // Ensure we cleanup proximity and screen flags too
         stop()
-        mCallSoundPlayer.stopSound()
+        mSoundPlayer.stopSound()
         mAudioDeviceManager.close()
         super.invalidate()
     }
@@ -210,12 +210,12 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun playSound(soundName: String?, playIfMuted: Boolean) {
-        mCallSoundPlayer.playSound(soundName, playIfMuted)
+        mSoundPlayer.playSound(soundName, playIfMuted)
     }
 
     @ReactMethod
     fun stopSound() {
-        mCallSoundPlayer.stopSound()
+        mSoundPlayer.stopSound()
     }
 
     @ReactMethod
