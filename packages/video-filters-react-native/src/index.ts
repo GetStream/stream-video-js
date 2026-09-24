@@ -1,4 +1,5 @@
-import { Image, NativeModules, Platform } from 'react-native';
+import { Image } from 'react-native';
+import VideoFiltersReactNative from './NativeVideoFiltersReactNative';
 
 const resolveAssetSourceFunc = Image.resolveAssetSource;
 
@@ -8,60 +9,47 @@ type ImageSourceType = Exclude<
   Array<any>
 >;
 
-const LINKING_ERROR =
-  `The package '@stream-io/video-filters-react-native' doesn't seem to be linked. Make sure: \n\n` +
-  Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
-  '- You rebuilt the app after installing the package\n' +
-  '- You are not using Expo Go\n';
-
-const VideoFiltersReactNative = NativeModules.VideoFiltersReactNative
-  ? NativeModules.VideoFiltersReactNative
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      },
-    );
-
 /**
  * Registers the background blur video filters.
  * The name of the background filters are 'BackgroundBlurLight', 'BackgroundBlurMedium' and 'BackgroundBlurHeavy'.
+ * Runs synchronously; throws if the native registration fails.
  */
-export async function registerBackgroundBlurVideoFilters(): Promise<boolean> {
-  return await VideoFiltersReactNative.registerBackgroundBlurVideoFilters();
+export function registerBackgroundBlurVideoFilters(): boolean {
+  return VideoFiltersReactNative.registerBackgroundBlurVideoFilters();
 }
 
 /**
  * Registers a virtual background filter with the given image.
  * Note: it uses Image.resolveAssetSource to resolve the URI of the given image source.
+ * Runs synchronously; throws if the native registration fails.
  *
  * @param imageSource Source of the image to use as the background. It can be either remote or local image
  * @returns the URI of the image that was registered as the virtual background
  */
-export async function registerVirtualBackgroundFilter(
+export function registerVirtualBackgroundFilter(
   imageSource: ImageSourceType,
-): Promise<string> {
+): string {
   const source = resolveAssetSourceFunc(imageSource);
   const imageUri = source.uri;
-  await VideoFiltersReactNative.registerVirtualBackgroundFilter(imageUri);
+  VideoFiltersReactNative.registerVirtualBackgroundFilter(imageUri);
   return imageUri;
 }
 
 /**
  * Registers the blur video filters.
  * The name of the blur filters are 'BlurLight', 'BlurMedium' and 'BlurHeavy'.
+ * Runs synchronously; throws if the native registration fails.
  */
-export async function registerBlurVideoFilters(): Promise<boolean> {
-  return await VideoFiltersReactNative.registerBlurVideoFilters();
+export function registerBlurVideoFilters(): boolean {
+  return VideoFiltersReactNative.registerBlurVideoFilters();
 }
 
 /**
  * Unregisters all filters that were previously registered via this module,
  * allowing the native processor instances to be released. Safe to call even
  * if no filters were registered.
+ * Runs synchronously; throws if the native unregistration fails.
  */
-export async function unregisterAllFilters(): Promise<boolean> {
-  return await VideoFiltersReactNative.unregisterAllFilters();
+export function unregisterAllFilters(): boolean {
+  return VideoFiltersReactNative.unregisterAllFilters();
 }
