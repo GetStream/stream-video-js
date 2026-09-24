@@ -16,6 +16,18 @@ export type ConfigProps =
       /** Path to a custom ringtone file for Android incoming calls (relative to project root). Supported: .mp3, .ogg, .wav, .m4a */
       androidRingtone?: string;
       /**
+       * Path(s) to the sounds played by the `useRingtone` hook on iOS, relative to the
+       * project root. Supported: .caf, .aiff, .m4a, .wav. The files are copied into the app
+       * bundle; reference them by name from the hook.
+       */
+      iosCallSounds?: string | string[];
+      /**
+       * Path(s) to the sounds played by the `useRingtone` hook on Android, relative to
+       * the project root. Supported: .mp3, .ogg, .wav, .m4a. The files are copied into
+       * `res/raw` with normalized names; reference them by name from the hook.
+       */
+      androidCallSounds?: string | string[];
+      /**
        * Controls the Android FCM messaging-service override that resolves
        * `com.google.firebase.MESSAGING_EVENT` service collisions (e.g. with
        * `expo-notifications`).
