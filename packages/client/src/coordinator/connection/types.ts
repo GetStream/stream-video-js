@@ -1,5 +1,5 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ConnectedEvent, VideoEvent } from '../../gen/coordinator';
+import { ConnectedEvent, TimestampNS, VideoEvent } from '../../gen/coordinator';
 import type { UserRequest } from '../../gen/shims';
 import { AllSfuEvents } from '../../rtc';
 import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
@@ -181,7 +181,7 @@ export type StreamVideoEvent = (
    * client events (`health.check`, `app.updated`, `user.*`) also declare
    * `received_at`; the local stamp overwrites those.
    */
-  received_at?: number;
+  received_at?: TimestampNS;
 };
 
 // TODO: we should use WSCallEvent here but that needs fixing

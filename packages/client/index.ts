@@ -1,6 +1,7 @@
 import 'webrtc-adapter';
 
 export * from './src/gen/coordinator';
+export type {} from './src/gen/coordinator/models/timestamp-guard';
 // Types for the `common`-tagged routes the video-only spec omits (devices,
 // guest, WS auth) and for the v1 routes Call still uses. See src/gen/shims.ts.
 export type {
