@@ -8,9 +8,14 @@ import {
 import { appTheme } from '../theme';
 import { TextInput } from './TextInput';
 import { isE2EESupported } from '../utils/e2ee';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 /**
- * Debug entry for the end-to-end encryption key.
+ * Entry for the ringing-call end-to-end encryption passphrase.
+ *
+ * Ringing calls are joined by the SDK (often from CallKit/Telecom, possibly
+ * with the app killed), so unlike meetings there is no lobby in which to enter a
+ * per-call key: caller and callee configure the same passphrase here up front.
  *
  * Keys are the app's business, not the SDK's, so the passphrase never leaves
  * this app: it is stretched locally and installed as a shared key. Interop with
@@ -22,6 +27,7 @@ export const E2EEKeyInput = () => {
   const stored = useAppGlobalStoreValue((store) => store.e2eeKeyInput) ?? '';
   const [draft, setDraft] = useState(stored);
   const styles = useStyles();
+  const { t } = useAppI18n();
 
   useEffect(() => {
     setDraft(stored);
@@ -49,13 +55,16 @@ export const E2EEKeyInput = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>End-to-end encryption</Text>
+      <Text style={styles.label}>
+        {t('joinCall.e2eeKey.label', 'End-to-end encryption for ringing calls')}
+      </Text>
       <TextInput
         placeholder="Shared passphrase"
         value={draft}
         autoCapitalize="none"
         autoCorrect={false}
         onChangeText={onChangeText}
+        style={styles.input}
       />
       <Text style={styles.status}>{status}</Text>
     </View>
@@ -69,6 +78,11 @@ const useStyles = () => {
       StyleSheet.create({
         container: {
           marginTop: appTheme.spacing.lg,
+        },
+        // The shared TextInput is `flex: 1` for row layouts; in this column it
+        // would collapse to zero height.
+        input: {
+          flex: 0,
         },
         label: {
           color: theme.colors.textPrimary,

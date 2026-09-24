@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -18,8 +18,10 @@ import { MeetingStackParamList } from '../../../types';
 import { appTheme } from '../../theme';
 import { TextInput } from '../../components/TextInput';
 import { Button } from '../../components/Button';
-import { E2EEKeyInput } from '../../components/E2EEKeyInput';
-import { deeplinkCallId$ } from '../../hooks/useDeepLinkEffect';
+import { deeplinkCall$ } from '../../hooks/useDeepLinkEffect';
+import { MeetingEncryptionSetup } from '../../components/MeetingEncryptionSetup';
+import { getRandomWords } from '../../modules/helpers/randomWords';
+import { isE2EEEnvironment } from '../../utils/e2ee';
 import { useTheme } from '@stream-io/video-react-native-sdk';
 import { useAppI18n } from '../../hooks/useAppI18n';
 import { useOrientation } from '../../hooks/useOrientation';
@@ -46,26 +48,42 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
   const userName = useAppGlobalStoreValue((store) => store.userName);
 
+  const appEnvironment = useAppGlobalStoreValue(
+    (store) => store.appEnvironment,
+  );
+  const allowEncryption = isE2EEEnvironment(appEnvironment);
+  // Chosen before the call exists, since encryption is fixed at creation. Not
+  // persisted: the key belongs to the meeting it is handed to.
+  const [e2eeEnabled, setE2eeEnabled] = useState(false);
+  const [e2eeKey, setE2eeKey] = useState('');
+  const encryptionKey =
+    allowEncryption && e2eeEnabled ? e2eeKey.trim() || undefined : undefined;
+
+  const onToggleEncryption = (enabled: boolean) => {
+    setE2eeEnabled(enabled);
+    if (enabled && !e2eeKey.trim()) setE2eeKey(getRandomWords(3));
+  };
+
   const joinCallHandler = useCallback(() => {
-    navigation.navigate('MeetingScreen', { callId });
-  }, [navigation, callId]);
+    navigation.navigate('MeetingScreen', { callId, encryptionKey });
+  }, [navigation, callId, encryptionKey]);
 
   const startNewCallHandler = (call_id: string) => {
-    navigation.navigate('MeetingScreen', { callId: call_id });
+    navigation.navigate('MeetingScreen', { callId: call_id, encryptionKey });
   };
 
   useEffect(() => {
-    const subscription = deeplinkCallId$.subscribe((deeplinkCallId) => {
-      if (deeplinkCallId) {
-        if (isValidCallId(deeplinkCallId)) {
+    const subscription = deeplinkCall$.subscribe((deeplinkCall) => {
+      if (deeplinkCall) {
+        if (isValidCallId(deeplinkCall.callId)) {
           // Delay the navigation to wait for the first render to complete
           setTimeout(() => {
-            navigation.navigate('MeetingScreen', { callId: deeplinkCallId });
+            navigation.navigate('MeetingScreen', deeplinkCall);
           }, 300);
         } else {
-          console.warn('Invalid call id from deeplink', deeplinkCallId);
+          console.warn('Invalid call id from deeplink', deeplinkCall.callId);
         }
-        deeplinkCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
+        deeplinkCall$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
       }
     });
 
@@ -130,7 +148,15 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           title={t('joinMeeting.startNewCall.label', 'Start a New Call')}
           buttonStyle={styles.startNewCallButton}
         />
-        <E2EEKeyInput />
+        {allowEncryption && (
+          <MeetingEncryptionSetup
+            enabled={e2eeEnabled}
+            encryptionKey={e2eeKey}
+            onToggle={onToggleEncryption}
+            onKeyChange={setE2eeKey}
+            onRefresh={() => setE2eeKey(getRandomWords(3))}
+          />
+        )}
       </View>
     </KeyboardAvoidingView>
   );

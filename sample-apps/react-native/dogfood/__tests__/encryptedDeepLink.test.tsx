@@ -7,7 +7,7 @@ import {
 import {
   useDeepLinkEffect,
   useEncryptedDeepLinkEffect,
-  deeplinkCallId$,
+  deeplinkCall$,
 } from '../src/hooks/useDeepLinkEffect';
 
 const mockClient = {
@@ -15,7 +15,6 @@ const mockClient = {
 };
 let mockEnvironment = 'pronto';
 let mockRoute = 'JoinMeetingScreen';
-const mockSetState = jest.fn();
 
 // This app-level test runs before SDK builds in CI. Mock only the SDK API it uses.
 jest.mock(
@@ -34,7 +33,6 @@ jest.mock(
   { virtual: true },
 );
 jest.mock('../src/contexts/AppContext', () => ({
-  useAppGlobalStoreSetState: () => mockSetState,
   useAppGlobalStoreValue: (selector: any) =>
     selector({ appEnvironment: mockEnvironment }),
 }));
@@ -66,9 +64,8 @@ beforeEach(() => {
   mockEnvironment = 'pronto';
   mockRoute = 'JoinMeetingScreen';
   mockClient.state.calls = [];
-  mockSetState.mockReset();
   removeListener.mockClear();
-  deeplinkCallId$.next(undefined);
+  deeplinkCall$.next(undefined);
   jest.spyOn(Alert, 'alert').mockImplementation(() => {});
   jest.spyOn(Linking, 'getInitialURL').mockResolvedValue(null);
   jest.spyOn(Linking, 'addEventListener').mockImplementation((_, handler) => {
@@ -88,24 +85,22 @@ const listen = async () => {
 };
 
 it.each(encryptedLinks)(
-  'retains a $environment cold-start key through login and saves it before navigation',
+  'retains a $environment cold-start key through login and hands it to that meeting only',
   async ({ environment, url }) => {
     mockEnvironment = environment;
     jest.mocked(Linking.getInitialURL).mockResolvedValue(url);
     await listen();
-    expect(mockSetState).not.toHaveBeenCalled();
-    expect(deeplinkCallId$.value).toBeUndefined();
-    const subscription = deeplinkCallId$.subscribe((callId) => {
-      if (callId) {
-        expect(mockSetState).toHaveBeenCalledWith({ e2eeKeyInput: 'new-key' });
-      }
-    });
+    expect(deeplinkCall$.value).toBeUndefined();
     const view = renderHook(useClientLinks);
-    expect(deeplinkCallId$.value).toBe('call-123');
+    expect(deeplinkCall$.value).toEqual({
+      callId: 'call-123',
+      encryptionKey: 'new-key',
+    });
+    // consumed by the join screen, and not replayed on the next login
+    deeplinkCall$.next(undefined);
     view.unmount();
     renderHook(useClientLinks);
-    expect(mockSetState).toHaveBeenCalledTimes(1);
-    subscription.unsubscribe();
+    expect(deeplinkCall$.value).toBeUndefined();
   },
 );
 
@@ -117,13 +112,15 @@ it.each(['https', 'streamvideo'])(
     openURL(
       `${scheme}://pronto.getstream.io/join/call-123?encryption_key=%20new%2Bkey%20`,
     );
-    expect(mockSetState).toHaveBeenCalledWith({ e2eeKeyInput: 'new+key' });
-    expect(deeplinkCallId$.value).toBe('call-123');
+    expect(deeplinkCall$.value).toEqual({
+      callId: 'call-123',
+      encryptionKey: 'new+key',
+    });
   },
 );
 
 it.each(encryptedLinks)(
-  'alerts outside $environment without saving or navigating, and does not retry on switching',
+  'alerts outside $environment without navigating, and does not retry on switching',
   async ({ environment, url }) => {
     await listen();
     mockEnvironment = environment === 'pronto' ? 'demo' : 'pronto';
@@ -134,8 +131,7 @@ it.each(encryptedLinks)(
     );
     mockEnvironment = environment;
     view.rerender({});
-    expect(mockSetState).not.toHaveBeenCalled();
-    expect(deeplinkCallId$.value).toBeUndefined();
+    expect(deeplinkCall$.value).toBeUndefined();
   },
 );
 
@@ -154,8 +150,7 @@ it.each([
     expect(Alert.alert).toHaveBeenCalledWith(
       'Leave the current call before opening this link',
     );
-    expect(mockSetState).not.toHaveBeenCalled();
-    expect(deeplinkCallId$.value).toBeUndefined();
+    expect(deeplinkCall$.value).toBeUndefined();
   },
 );
 
@@ -169,8 +164,7 @@ it.each(['MeetingScreen', 'GuestMeetingScreen'])(
     expect(Alert.alert).toHaveBeenCalledWith(
       'Leave the current call before opening this link',
     );
-    expect(mockSetState).not.toHaveBeenCalled();
-    expect(deeplinkCallId$.value).toBeUndefined();
+    expect(deeplinkCall$.value).toBeUndefined();
   },
 );
 
@@ -179,13 +173,12 @@ it.each([
   'https://getstream.io/video/demos/join/call-123',
   'https://pronto-staging.getstream.io/join/call-123',
   'https://example.com/join/call-123',
-])('preserves the saved key for an ordinary link: %s', async (url) => {
+])('opens an ordinary link without a key: %s', async (url) => {
   await listen();
   renderHook(useClientLinks);
   openURL(url);
-  expect(mockSetState).not.toHaveBeenCalled();
   expect(Alert.alert).not.toHaveBeenCalled();
-  expect(deeplinkCallId$.value).toBe('call-123');
+  expect(deeplinkCall$.value).toEqual({ callId: 'call-123' });
 });
 
 it.each([
@@ -198,14 +191,12 @@ it.each([
   async (url) => {
     jest.mocked(Linking.getInitialURL).mockResolvedValue(url);
     await listen();
-    expect(deeplinkCallId$.value).toBeUndefined();
+    expect(deeplinkCall$.value).toBeUndefined();
     renderHook(useClientLinks);
-    expect(mockSetState).not.toHaveBeenCalled();
-    expect(deeplinkCallId$.value).toBeUndefined();
+    expect(deeplinkCall$.value).toBeUndefined();
 
     openURL(url);
-    expect(mockSetState).not.toHaveBeenCalled();
-    expect(deeplinkCallId$.value).toBeUndefined();
+    expect(deeplinkCall$.value).toBeUndefined();
   },
 );
 
@@ -214,8 +205,7 @@ it('ignores malformed links and removes its listener on unmount', async () => {
   renderHook(useClientLinks);
   openURL('not a URL');
   openURL('https://pronto.getstream.io/join/invalid!id?encryption_key=unused');
-  expect(mockSetState).not.toHaveBeenCalled();
-  expect(deeplinkCallId$.value).toBeUndefined();
+  expect(deeplinkCall$.value).toBeUndefined();
   await cleanupAsync();
   expect(removeListener).toHaveBeenCalledTimes(1);
 });

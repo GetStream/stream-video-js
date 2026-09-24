@@ -36,7 +36,17 @@ export const isCallEncrypted = (
 ): boolean =>
   settings?.encryption?.mode === EncryptionSettingsResponseModeEnum.AUTO_ON;
 
-/** The MMKV key the debug UI writes the passphrase to. */
+/**
+ * E2EE is limited to the `pronto` / `pronto-staging` environments, matching the
+ * react-dogfood app.
+ */
+export const isE2EEEnvironment = (env: AppEnvironment): boolean =>
+  env === 'pronto' || env === 'pronto-staging';
+
+/** The `settings_override` that creates a call end-to-end encrypted. */
+export const E2EE_SETTINGS_OVERRIDE = { encryption: ENCRYPTION_OVERRIDE };
+
+/** The MMKV key the ringing-call passphrase is persisted under. */
 const E2EE_KEY_INPUT_STORE_KEY = 'e2eeKeyInput';
 
 /**
@@ -98,9 +108,10 @@ const deriveKeyFromPassphrase = (passphrase: string): ArrayBuffer =>
   ).slice().buffer;
 
 /**
- * Whether calls should be created and joined end-to-end encrypted.
+ * Whether ringing calls should be created and joined end-to-end encrypted.
  *
- * Reports intent only - whether a key is configured. Device capability is a
+ * Meetings carry their key per call, through the lobby; this reads the
+ * persisted ringing-call passphrase. Reports intent only - whether a key is configured. Device capability is a
  * separate question, {@link isE2EESupported}, so that an unsupported build fails
  * visibly instead of silently downgrading a call the user asked to encrypt.
  */
@@ -117,7 +128,8 @@ export const isE2EEConfigured = (): boolean => Boolean(getE2EEKeyInput());
 export const isE2EESupported = (): boolean => EncryptionManager.isSupported();
 
 /**
- * The `settings_override` to create a call with, or `undefined` when E2EE is off.
+ * The `settings_override` to create a ringing call with, or `undefined` when no
+ * ringing-call passphrase is configured.
  *
  * Spread into the create (or `join({ create: true })`) data. Encryption is frozen
  * when the call is created, so this has to be set there rather than at join time.
@@ -127,7 +139,7 @@ export const isE2EESupported = (): boolean => EncryptionManager.isSupported();
  * than creating a plain call and joining it in the clear.
  */
 export const getE2EESettingsOverride = () =>
-  isE2EEConfigured() ? { encryption: ENCRYPTION_OVERRIDE } : undefined;
+  isE2EEConfigured() ? E2EE_SETTINGS_OVERRIDE : undefined;
 
 /** Events worth seeing in the log while debugging an interop failure. */
 const LOGGED_E2EE_EVENTS = [
@@ -202,7 +214,7 @@ export const disposeE2EEManager = (call: Call | undefined) => {
 };
 
 /**
- * Attach an encryption manager to a call, if the debug menu holds a key.
+ * Attach an encryption manager to a call, keyed from the given passphrase.
  *
  * Call it **awaited, immediately before `call.join()`**, the way the web app
  * does: the join request carries the E2EE flag and the peer connections are
@@ -210,13 +222,17 @@ export const disposeE2EEManager = (call: Call | undefined) => {
  * Attaching from the join handler also means the client has long since connected
  * a user, which is what `call.currentUserId` needs.
  *
- * A no-op when no key is configured, so it is safe to call unconditionally.
+ * A no-op without a passphrase, so it is safe to call unconditionally.
  *
  * Key derivation lives here rather than in the SDK by design: generating,
  * deriving and distributing keys is the integrator's responsibility.
  */
-export const attachE2EEIfConfigured = async (call: Call): Promise<void> => {
-  if (!isE2EEConfigured()) {
+export const attachE2EE = async (
+  call: Call,
+  passphrase: string | undefined,
+): Promise<void> => {
+  const input = passphrase?.trim();
+  if (!input) {
     // Say so out loud: silence here is ambiguous between "no key set" and "this
     // build has no E2EE code at all", which is a stale bundle rather than a bug.
     console.log('[e2ee] no usable key configured, joining unencrypted');
@@ -230,7 +246,6 @@ export const attachE2EEIfConfigured = async (call: Call): Promise<void> => {
       'An encryption key is set, but end-to-end encryption is not supported on this device or build.',
     );
   }
-  const input = getE2EEKeyInput()!;
 
   const userId = call.currentUserId;
   if (!userId) {
@@ -259,3 +274,13 @@ export const attachE2EEIfConfigured = async (call: Call): Promise<void> => {
     throw error;
   }
 };
+
+/**
+ * {@link attachE2EE} with the persisted ringing-call passphrase.
+ *
+ * Ringing calls are joined by the SDK rather than from a lobby, so there is no
+ * per-call key entry: both sides configure the same passphrase up front on the
+ * Call screen.
+ */
+export const attachE2EEIfConfigured = (call: Call): Promise<void> =>
+  attachE2EE(call, getE2EEKeyInput());

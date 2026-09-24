@@ -103,6 +103,9 @@ void DOGFOOD;
 const { MeetingUI } = jest.requireActual(
   '../../../../sample-apps/react-native/dogfood/src/components/MeetingUI',
 ) as { MeetingUI: React.ComponentType<any> };
+const { LobbyE2EEContext } = jest.requireActual(
+  '../../../../sample-apps/react-native/dogfood/src/contexts/LobbyE2EEContext',
+) as { LobbyE2EEContext: React.Context<any> };
 const { EncryptionManager } = jest.requireMock(
   '@stream-io/video-react-native-sdk',
 ) as { EncryptionManager: any };
@@ -129,19 +132,27 @@ const navigation = () => ({
   goBack: jest.fn(),
 });
 
+/** The meeting's lobby key, as the meeting screen provides it. */
+const e2eeControls = {
+  encryptionKey: 'a-passphrase',
+  updateEncryptionKey: jest.fn(),
+};
+
+const meeting = (nav: any) => (
+  <LobbyE2EEContext.Provider value={e2eeControls}>
+    <MeetingUI callId="dogfood" navigation={nav} route={{} as any} />
+  </LobbyE2EEContext.Provider>
+);
+
 const renderMeeting = (nav = navigation()) => {
-  const view = render(
-    <MeetingUI callId="dogfood" navigation={nav as any} route={{} as any} />,
-  );
+  const view = render(meeting(nav));
   return { view, nav };
 };
 
 /** Swaps in a replacement Call, the way a changed callId or client does. */
 const replaceCall = (view: any, nav: any, next: any) => {
   mockCall = next;
-  view.rerender(
-    <MeetingUI callId="dogfood" navigation={nav as any} route={{} as any} />,
-  );
+  view.rerender(meeting(nav));
 };
 
 /**

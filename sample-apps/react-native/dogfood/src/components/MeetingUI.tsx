@@ -14,10 +14,12 @@ import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import { AuthenticationProgress } from './AuthenticatingProgress';
 import { CallErrorComponent } from './CallErrorComponent';
 import { LayoutProvider } from '../contexts/LayoutContext';
+import { useLobbyE2EE } from '../contexts/LobbyE2EEContext';
 import {
-  attachE2EEIfConfigured,
+  attachE2EE,
   disposeE2EEManager,
-  getE2EESettingsOverride,
+  E2EE_SETTINGS_OVERRIDE,
+  isCallEncrypted,
 } from '../utils/e2ee';
 /**
  * One run of this screen's join flow; see {@link MeetingUIFlow}'s `flowRef`.
@@ -77,6 +79,7 @@ const MeetingUIFlow = ({ callId, navigation, route }: Props) => {
   const callingState = useCallCallingState();
 
   const call = useCall();
+  const lobbyKey = useLobbyE2EE()?.encryptionKey?.trim();
 
   /**
    * This screen's flow, ended by the cleanup below.
@@ -138,11 +141,19 @@ const MeetingUIFlow = ({ callId, navigation, route }: Props) => {
     if (!call || joinInFlight.current) return;
     joinInFlight.current = true;
     const flow = flowRef.current;
+    // A key brought to a call that already exists unencrypted cannot encrypt
+    // it, and an E2EE join against it is rejected: the lobby says so, and the
+    // join goes ahead in the clear. Before the call has loaded, trust the intent.
+    const settings = call.state.settings;
+    const encryptionKey =
+      lobbyKey && (!settings || isCallEncrypted(settings))
+        ? lobbyKey
+        : undefined;
     try {
       // call.updatePublishOptions({ preferredCodec: 'h264' });
       // Attach E2EE here rather than on mount: awaiting it immediately before
       // the join leaves no window in which the join could win the race.
-      await attachE2EEIfConfigured(call);
+      await attachE2EE(call, encryptionKey);
       if (!flow.active) {
         // The flow ended while this was preparing, so its cleanup found no
         // manager to dispose. Release the one just attached - but only once
@@ -155,10 +166,11 @@ const MeetingUIFlow = ({ callId, navigation, route }: Props) => {
       // The override is repeated here because this join creates the call when
       // the screen's getOrCreate has not landed yet, and a call created without
       // it rejects the E2EE join the attached manager asks for.
-      const settings_override = getE2EESettingsOverride();
       await call.join({
         create: true,
-        ...(settings_override ? { data: { settings_override } } : {}),
+        ...(encryptionKey
+          ? { data: { settings_override: E2EE_SETTINGS_OVERRIDE } }
+          : {}),
       });
       // The flow can end during the join above - a replacement Call, or this
       // screen going away. Core may still resolve that join rather than reject
@@ -198,7 +210,7 @@ const MeetingUIFlow = ({ callId, navigation, route }: Props) => {
     } finally {
       joinInFlight.current = false;
     }
-  }, [call, appStoreSetState]);
+  }, [call, appStoreSetState, lobbyKey]);
 
   const onChatOpenHandler = () => {
     navigation.navigate('ChatScreen', { callId });

@@ -5,13 +5,13 @@ import {
   CallingState,
   type StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
-import {
-  useAppGlobalStoreSetState,
-  useAppGlobalStoreValue,
-} from '../contexts/AppContext';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { navigationRef } from '../utils/staticNavigationUtils';
 
-export const deeplinkCallId$ = new BehaviorSubject<string | undefined>(
+/** A meeting to open, with the shared E2EE key when the link carried one. */
+export type DeepLinkCall = { callId: string; encryptionKey?: string };
+
+export const deeplinkCall$ = new BehaviorSubject<DeepLinkCall | undefined>(
   undefined,
 );
 
@@ -51,7 +51,7 @@ export const useDeepLinkEffect = () => {
           ? { callId, encryptionKey, environment }
           : undefined,
       );
-      if (!encryptionKey) deeplinkCallId$.next(callId);
+      if (!encryptionKey) deeplinkCall$.next({ callId });
     };
     const { remove } = Linking.addEventListener('url', ({ url }) => {
       parseAndSetCallID(url);
@@ -69,7 +69,6 @@ export const useEncryptedDeepLinkEffect = (
   client: StreamVideoClient | undefined,
 ) => {
   const environment = useAppGlobalStoreValue((store) => store.appEnvironment);
-  const setState = useAppGlobalStoreSetState();
 
   useEffect(() => {
     if (!client) return;
@@ -97,9 +96,12 @@ export const useEncryptedDeepLinkEffect = (
         Alert.alert('Leave the current call before opening this link');
         return;
       }
-      setState({ e2eeKeyInput: link.encryptionKey });
-      deeplinkCallId$.next(link.callId);
+      // The key opens this one meeting, the way the web app keeps it in the URL.
+      deeplinkCall$.next({
+        callId: link.callId,
+        encryptionKey: link.encryptionKey,
+      });
     });
     return () => subscription.unsubscribe();
-  }, [client, environment, setState]);
+  }, [client, environment]);
 };

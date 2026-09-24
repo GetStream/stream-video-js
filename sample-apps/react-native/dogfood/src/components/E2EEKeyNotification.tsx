@@ -7,6 +7,7 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
+import { useLobbyE2EE } from '../contexts/LobbyE2EEContext';
 import { updateE2EESharedKeys } from '../utils/e2ee';
 import { appTheme } from '../theme';
 import { TextInput } from './TextInput';
@@ -28,7 +29,10 @@ export const E2EEKeyNotification = () => {
   const call = useCall();
   const { t } = useAppI18n();
   const setState = useAppGlobalStoreSetState();
+  const e2ee = useLobbyE2EE();
   const storedKey = useAppGlobalStoreValue((store) => store.e2eeKeyInput) ?? '';
+  // A meeting carries its own key; a ringing call uses the persisted one.
+  const currentKey = e2ee ? (e2ee.encryptionKey ?? '') : storedKey;
   const [dismissed, setDismissed] = useState(false);
   const [draftKey, setDraftKey] = useState('');
   const styles = useStyles();
@@ -46,10 +50,14 @@ export const E2EEKeyNotification = () => {
   const applyKey = () => {
     const key = draftKey.trim();
     if (!key || !call) return;
-    // Persist as well as apply: the stored value is what the next call is
-    // created and encrypted with.
-    setState({ e2eeKeyInput: key });
-    updateE2EESharedKeys(call, key);
+    if (e2ee) {
+      e2ee.updateEncryptionKey(key);
+    } else {
+      // Persist as well as apply: the stored value is what the next ringing
+      // call is created and encrypted with.
+      setState({ e2eeKeyInput: key });
+      updateE2EESharedKeys(call, key);
+    }
     setDraftKey('');
   };
 
@@ -82,7 +90,7 @@ export const E2EEKeyNotification = () => {
         <View style={styles.form}>
           <TextInput
             placeholder={
-              storedKey
+              currentKey
                 ? t('e2eeKeyNotification.newKey.label', 'New meeting key')
                 : t('e2eeKeyNotification.key.label', 'Meeting key')
             }

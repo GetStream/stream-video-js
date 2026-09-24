@@ -2,6 +2,7 @@ export type GuestMeetingScreenParams = {
   guestUserId: string;
   callId: string;
   mode: 'guest' | 'anonymous';
+  encryptionKey?: string;
 };
 
 export type LoginStackParamList = {
@@ -10,8 +11,8 @@ export type LoginStackParamList = {
 
 export type MeetingStackParamList = {
   JoinMeetingScreen: undefined;
-  MeetingScreen: { callId: string };
-  GuestModeScreen: { callId: string };
+  MeetingScreen: { callId: string; encryptionKey?: string };
+  GuestModeScreen: { callId: string; encryptionKey?: string };
   GuestMeetingScreen: GuestMeetingScreenParams;
   ChatScreen: { callId: string };
 };
