@@ -1,4 +1,7 @@
 import { StreamSfuClient } from './StreamSfuClient';
+import { CallApi } from './gen/coordinator/video/CallApi';
+import type { VideoApi } from './gen/coordinator/video/VideoApi';
+import type { StreamResponse } from './coordinator/connection/api-client';
 import { SfuJoinError } from './errors';
 import {
   BasePeerConnectionOpts,
@@ -30,9 +33,6 @@ import {
 } from './store/rxUtils';
 import { ScopedLogger, videoLoggerSystem } from './logger';
 import {
-  AcceptCallResponse,
-  BlockUserRequest,
-  BlockUserResponse,
   CallRingEvent,
   CallSettingsResponse,
   CallStateResponseFields,
@@ -40,79 +40,35 @@ import {
   CollectUserFeedbackResponse,
   Credentials,
   DeleteCallRequest,
-  DeleteCallResponse,
-  DeleteRecordingResponse,
-  DeleteTranscriptionResponse,
-  EndCallResponse,
-  GetCallReportResponse,
   GetCallResponse,
-  GetCallRingStateResponse,
   GetCallSessionParticipantStatsDetailsResponse,
   GetOrCreateCallRequest,
-  GetOrCreateCallResponse,
   GoLiveRequest,
-  GoLiveResponse,
-  JoinCallRequest,
   JoinCallResponse,
   KickUserRequest,
-  KickUserResponse,
-  ListRecordingsResponse,
-  ListTranscriptionsResponse,
-  MuteUsersRequest,
-  MuteUsersResponse,
   PinRequest,
-  PinResponse,
   QueryCallMembersRequest,
-  QueryCallMembersResponse,
   QueryCallParticipantsRequest,
-  QueryCallParticipantsResponse,
   QueryCallSessionParticipantStatsResponse,
   QueryCallSessionParticipantStatsTimelineResponse,
   QueryCallStatsMapResponse,
-  RejectCallRequest,
-  RejectCallResponse,
   RequestPermissionRequest,
   RequestPermissionResponse,
   RingCallRequest,
-  RingCallResponse,
-  SendCallEventRequest,
-  SendCallEventResponse,
   SendVideoReactionRequest,
-  SendVideoReactionResponse,
   StartClosedCaptionsRequest,
-  StartClosedCaptionsResponse,
   StartFrameRecordingRequest,
-  StartFrameRecordingResponse,
-  StartHLSBroadcastingResponse,
-  StartRecordingRequest,
-  StartRecordingResponse,
   StartRTMPBroadcastsRequest,
-  StartRTMPBroadcastsResponse,
+  StartRecordingRequest,
   StartTranscriptionRequest,
-  StartTranscriptionResponse,
   StatsOptions,
-  StopAllRTMPBroadcastsResponse,
   StopClosedCaptionsRequest,
-  StopClosedCaptionsResponse,
-  StopFrameRecordingResponse,
-  StopHLSBroadcastingResponse,
   StopLiveRequest,
-  StopLiveResponse,
-  StopRecordingResponse,
-  StopRTMPBroadcastsResponse,
-  StopTranscriptionResponse,
-  UnblockUserRequest,
-  UnblockUserResponse,
+  StopTranscriptionRequest,
   UnpinRequest,
-  UnpinResponse,
   UpdateCallMembersRequest,
-  UpdateCallMembersResponse,
   UpdateCallRequest,
-  UpdateCallResponse,
   UpdateUserPermissionsRequest,
-  UpdateUserPermissionsRequestGrantPermissionsEnum,
-  UpdateUserPermissionsRequestRevokePermissionsEnum,
-  UpdateUserPermissionsResponse,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
 import {
@@ -123,7 +79,6 @@ import {
   ClientPublishOptions,
   ClosedCaptionsSettings,
   JoinCallData,
-  StartCallRecordingFnType,
   TrackMuteType,
   VideoTrackType,
 } from './types';
@@ -189,7 +144,6 @@ import {
   PromiseWithResolvers,
   promiseWithResolvers,
 } from './helpers/promise';
-import { GetCallStatsResponse } from './gen/shims';
 import { isReactNative } from './helpers/platforms';
 
 /**
@@ -197,12 +151,12 @@ import { isReactNative } from './helpers/platforms';
  */
 export class Call {
   /**
-   * The type of the call.
+   * The call type.
    */
   readonly type: string;
 
   /**
-   * The ID of the call.
+   * The call ID.
    */
   readonly id: string;
 
@@ -210,6 +164,21 @@ export class Call {
    * The call CID.
    */
   readonly cid: string;
+
+  /**
+   * The generated API for this call, scoped to its type and id.
+   *
+   * `Call` promotes the operations it curates (see `endCall`, `muteOthers`,
+   * `sendReaction`, ...) to its own surface; anything it does not is reachable
+   * here without waiting for a hand-written passthrough.
+   */
+  readonly api: CallApi;
+
+  /**
+   * The generated API for call-independent operations, and the transport that
+   * `api` delegates through.
+   */
+  protected readonly videoApi: VideoApi;
 
   /**
    * The state of this call.
@@ -353,7 +322,6 @@ export class Call {
    */
   private readonly leaveCallHooks: Set<Function> = new Set();
 
-  private readonly streamClientBasePath: string;
   private streamClientEventHandlers = new Map<Function, () => void>();
 
   /**
@@ -387,9 +355,12 @@ export class Call {
     ownCapabilities,
     sortParticipantsBy,
     clientState,
+    videoApi,
     ringing = false,
     watching = false,
   }: CallConstructor) {
+    this.videoApi = videoApi;
+    this.api = new CallApi(videoApi, type, id);
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
@@ -398,7 +369,6 @@ export class Call {
     this.streamClient = streamClient;
     this.clientEventReporter = clientEventReporter;
     this.clientState = clientState;
-    this.streamClientBasePath = `/call/${this.type}/${this.id}`;
     this.logger = videoLoggerSystem.getLogger('Call');
 
     const callTypeConfig = CallTypes.get(type);
@@ -974,18 +944,15 @@ export class Call {
    * @param params.video if set to true, in a ringing scenario, mobile SDKs will show "incoming video call", audio only otherwise.
    */
   get = async (params?: {
+    members_limit?: number;
     ring?: boolean;
     notify?: boolean;
-    members_limit?: number;
     video?: boolean;
-  }): Promise<GetCallResponse> => {
+  }): Promise<StreamResponse<GetCallResponse>> => {
     const getLeaveGeneration = this.leaveGeneration;
     await this.setup();
 
-    const response = await this.streamClient.get<GetCallResponse>(
-      this.streamClientBasePath,
-      params,
-    );
+    const response = await this.api.get(params);
     if (this.leaveGeneration !== getLeaveGeneration) return response;
 
     this.updateFromCallStateResponse(response);
@@ -1011,10 +978,7 @@ export class Call {
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
     await this.setup();
 
-    const response = await this.streamClient.post<
-      GetOrCreateCallResponse,
-      GetOrCreateCallRequest
-    >(this.streamClientBasePath, data);
+    const response = await this.api.getOrCreate(data);
 
     this.updateFromCallStateResponse(response);
 
@@ -1042,29 +1006,6 @@ export class Call {
   };
 
   /**
-   * Deletes the call.
-   */
-  delete = async (
-    data: DeleteCallRequest = {},
-  ): Promise<DeleteCallResponse> => {
-    return this.streamClient.post<DeleteCallResponse, DeleteCallRequest>(
-      `${this.streamClientBasePath}/delete`,
-      data,
-    );
-  };
-
-  /**
-   * Sends a ring notification to the provided users who are not already in the call.
-   * All users should be members of the call.
-   */
-  ring = async (data: RingCallRequest = {}): Promise<RingCallResponse> => {
-    return this.streamClient.post<RingCallResponse, RingCallRequest>(
-      `${this.streamClientBasePath}/ring`,
-      data,
-    );
-  };
-
-  /**
    * Returns who accepted, rejected or missed the ring for a call session.
    * Safe to poll: it performs no writes and emits no events.
    *
@@ -1072,17 +1013,12 @@ export class Call {
    * Pass it explicitly to read a session that has already ended, as ending a
    * call clears its current session.
    */
-  getRingState = async (
-    callSessionId?: string,
-  ): Promise<GetCallRingStateResponse> => {
+  getRingState = async (callSessionId?: string) => {
     const sessionId = callSessionId ?? this.state.session?.id;
     if (!sessionId) {
       throw new Error('Cannot read the ring state: the call has no session');
     }
-    return this.streamClient.get<GetCallRingStateResponse>(
-      `${this.streamClientBasePath}/ring_state`,
-      { call_session_id: sessionId },
-    );
+    return this.api.getCallRingState({ call_session_id: sessionId });
   };
 
   /**
@@ -1103,9 +1039,7 @@ export class Call {
   accept = async () => {
     return withoutConcurrency(this.acceptRejectConcurrencyTag, () => {
       this.tracer.trace('call.accept', '');
-      return this.streamClient.post<AcceptCallResponse>(
-        `${this.streamClientBasePath}/accept`,
-      );
+      return this.api.accept();
     });
   };
 
@@ -1118,15 +1052,10 @@ export class Call {
    *
    * @param reason the reason for rejecting the call.
    */
-  reject = async (
-    reason: RejectReason = 'decline',
-  ): Promise<RejectCallResponse> => {
+  reject = async (reason: RejectReason = 'decline') => {
     return withoutConcurrency(this.acceptRejectConcurrencyTag, () => {
       this.tracer.trace('call.reject', reason);
-      return this.streamClient.post<RejectCallResponse, RejectCallRequest>(
-        `${this.streamClientBasePath}/reject`,
-        { reason },
-      );
+      return this.api.reject({ reason });
     });
   };
 
@@ -1803,11 +1732,7 @@ export class Call {
       return;
     }
     const e2ee = !!this.e2eeManager;
-    const request: JoinCallRequest = { ...data, location, e2ee };
-    const joinResponse = await this.streamClient.post<
-      JoinCallResponse,
-      JoinCallRequest
-    >(`${this.streamClientBasePath}/join`, request);
+    const joinResponse = await this.api.join({ ...data, location, e2ee });
 
     if (this.leaveGeneration !== joinLeaveGeneration) {
       this.logger.debug(
@@ -2717,52 +2642,8 @@ export class Call {
    *
    * @param reaction the reaction to send.
    */
-  sendReaction = async (
-    reaction: SendVideoReactionRequest,
-  ): Promise<SendVideoReactionResponse> => {
-    return this.streamClient.post(
-      `${this.streamClientBasePath}/reaction`,
-      reaction,
-    );
-  };
-
-  /**
-   * Blocks the user with the given `userId`.
-   *
-   * @param userId the id of the user to block.
-   */
-  blockUser = async (userId: string) => {
-    return this.streamClient.post<BlockUserResponse, BlockUserRequest>(
-      `${this.streamClientBasePath}/block`,
-      {
-        user_id: userId,
-      },
-    );
-  };
-
-  /**
-   * Unblocks the user with the given `userId`.
-   *
-   * @param userId the id of the user to unblock.
-   */
-  unblockUser = async (userId: string) => {
-    return this.streamClient.post<UnblockUserResponse, UnblockUserRequest>(
-      `${this.streamClientBasePath}/unblock`,
-      {
-        user_id: userId,
-      },
-    );
-  };
-
-  /**
-   * Kicks the user with the given `userId`.
-   * @param data the kick request.
-   */
-  kickUser = async (data: KickUserRequest): Promise<KickUserResponse> => {
-    return this.streamClient.post<KickUserResponse, KickUserRequest>(
-      `${this.streamClientBasePath}/kick`,
-      data,
-    );
+  sendReaction = async (reaction: SendVideoReactionRequest) => {
+    return this.api.sendVideoReaction(reaction);
   };
 
   /**
@@ -2803,13 +2684,10 @@ export class Call {
    * @param type the type of the mute operation.
    */
   muteUser = (userId: string | string[], type: TrackMuteType) => {
-    return this.streamClient.post<MuteUsersResponse, MuteUsersRequest>(
-      `${this.streamClientBasePath}/mute_users`,
-      {
-        user_ids: Array.isArray(userId) ? userId : [userId],
-        [type]: true,
-      },
-    );
+    return this.api.muteUsers({
+      user_ids: Array.isArray(userId) ? userId : [userId],
+      [type]: true,
+    });
   };
 
   /**
@@ -2818,83 +2696,39 @@ export class Call {
    * @param type the type of the mute operation.
    */
   muteAllUsers = (type: TrackMuteType) => {
-    return this.streamClient.post<MuteUsersResponse, MuteUsersRequest>(
-      `${this.streamClientBasePath}/mute_users`,
-      {
-        mute_all_users: true,
-        [type]: true,
-      },
-    );
+    return this.api.muteUsers({ mute_all_users: true, [type]: true });
   };
 
   /**
-   * Starts recording the call
-   */
-  startRecording: StartCallRecordingFnType = async (
-    dataOrType?: StartRecordingRequest | CallRecordingType,
-    type?: CallRecordingType,
-  ): Promise<StartRecordingResponse> => {
-    type = typeof dataOrType === 'string' ? dataOrType : type;
-    dataOrType = typeof dataOrType === 'string' ? undefined : dataOrType;
-
-    const endpoint = !type
-      ? `/start_recording`
-      : `/recordings/${encodeURIComponent(type)}/start`;
-
-    return this.streamClient.post<
-      StartRecordingResponse,
-      StartRecordingRequest
-    >(`${this.streamClientBasePath}${endpoint}`, dataOrType);
-  };
-
-  /**
-   * Stops recording the call
-   */
-  stopRecording = async (type?: CallRecordingType) => {
-    const endpoint = !type
-      ? `/stop_recording`
-      : `/recordings/${encodeURIComponent(type)}/stop`;
-
-    return this.streamClient.post<StopRecordingResponse>(
-      `${this.streamClientBasePath}${endpoint}`,
-    );
-  };
-
-  /**
-   * Starts the transcription of the call.
+   * Starts recording the call.
    *
-   * @param request the request data.
+   * @param recordingType the kind of recording to start. The v2 API requires
+   * one; `composite` matches what the removed v1 route defaulted to.
+   * @param request optional recording settings.
    */
-  startTranscription = async (
-    request?: StartTranscriptionRequest,
-  ): Promise<StartTranscriptionResponse> => {
-    return this.streamClient.post<
-      StartTranscriptionResponse,
-      StartTranscriptionRequest
-    >(`${this.streamClientBasePath}/start_transcription`, request);
+  startRecording = (
+    recordingType: CallRecordingType = 'composite',
+    request?: StartRecordingRequest,
+  ) => {
+    return this.api.startRecording({ recording_type: recordingType }, request);
   };
 
   /**
-   * Stops the transcription of the call.
+   * Stops recording the call.
+   *
+   * @param recordingType the kind of recording to stop.
    */
-  stopTranscription = async (): Promise<StopTranscriptionResponse> => {
-    return this.streamClient.post<StopTranscriptionResponse>(
-      `${this.streamClientBasePath}/stop_transcription`,
-    );
+  stopRecording = (recordingType: CallRecordingType = 'composite') => {
+    return this.api.stopRecording({ recording_type: recordingType });
   };
 
   /**
    * Starts the closed captions of the call.
    */
-  startClosedCaptions = async (
-    options?: StartClosedCaptionsRequest,
-  ): Promise<StartClosedCaptionsResponse> => {
+  startClosedCaptions = async (options?: StartClosedCaptionsRequest) => {
     const trx = this.state.setCaptioning(true); // optimistic update
     try {
-      return await this.streamClient.post<
-        StartClosedCaptionsResponse,
-        StartClosedCaptionsRequest
-      >(`${this.streamClientBasePath}/start_closed_captions`, options);
+      return await this.api.startClosedCaptions(options);
     } catch (err) {
       trx.rollback(); // revert the optimistic update
       throw err;
@@ -2904,15 +2738,10 @@ export class Call {
   /**
    * Stops the closed captions of the call.
    */
-  stopClosedCaptions = async (
-    options?: StopClosedCaptionsRequest,
-  ): Promise<StopClosedCaptionsResponse> => {
+  stopClosedCaptions = async (options?: StopClosedCaptionsRequest) => {
     const trx = this.state.setCaptioning(false); // optimistic update
     try {
-      return await this.streamClient.post<
-        StopClosedCaptionsResponse,
-        StopClosedCaptionsRequest
-      >(`${this.streamClientBasePath}/stop_closed_captions`, options);
+      return await this.api.stopClosedCaptions(options);
     } catch (err) {
       trx.rollback(); // revert the optimistic update
       throw err;
@@ -2934,7 +2763,11 @@ export class Call {
    * (for example, a user might be allowed to request permission to publish audio, but not video).
    */
   requestPermissions = async (
-    data: RequestPermissionRequest,
+    // The v2 spec widened `permissions` from an enum to `string[]`. Narrowing
+    // it back keeps `canRequest` exhaustive and stops a typo compiling.
+    data: Omit<RequestPermissionRequest, 'permissions'> & {
+      permissions: OwnCapability[];
+    },
   ): Promise<RequestPermissionResponse> => {
     const { permissions } = data;
     const canRequestPermissions = permissions.every((permission) =>
@@ -2945,10 +2778,7 @@ export class Call {
         `You are not allowed to request permissions: ${permissions.join(', ')}`,
       );
     }
-    return this.streamClient.post<
-      RequestPermissionResponse,
-      RequestPermissionRequest
-    >(`${this.streamClientBasePath}/request_permission`, data);
+    return this.api.requestPermission(data);
   };
 
   /**
@@ -2965,12 +2795,11 @@ export class Call {
    */
   grantPermissions = async (
     userId: string,
-    permissions: string[] | UpdateUserPermissionsRequestGrantPermissionsEnum[],
+    permissions: OwnCapability[] | string[],
   ) => {
     return this.updateUserPermissions({
       user_id: userId,
-      grant_permissions:
-        permissions as UpdateUserPermissionsRequestGrantPermissionsEnum[],
+      grant_permissions: permissions,
     });
   };
 
@@ -2988,125 +2817,26 @@ export class Call {
    */
   revokePermissions = async (
     userId: string,
-    permissions: string[] | UpdateUserPermissionsRequestRevokePermissionsEnum[],
+    permissions: OwnCapability[] | string[],
   ) => {
     return this.updateUserPermissions({
       user_id: userId,
-      revoke_permissions:
-        permissions as UpdateUserPermissionsRequestRevokePermissionsEnum[],
+      revoke_permissions: permissions,
     });
-  };
-
-  /**
-   * Allows you to grant or revoke a specific permission to a user in a call. The permissions are specific to the call experience and do not survive the call itself.
-   * When revoking a permission, this endpoint will also mute the relevant track from the user. This is similar to muting a user with the difference that the user will not be able to unmute afterwards.
-   * Supported permissions that can be granted or revoked: `send-audio`, `send-video` and `screenshare`.
-   *
-   * `call.permissions_updated` event is sent to all members of the call.
-   */
-  updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
-    return this.streamClient.post<
-      UpdateUserPermissionsResponse,
-      UpdateUserPermissionsRequest
-    >(`${this.streamClientBasePath}/user_permissions`, data);
-  };
-
-  /**
-   * Starts the livestreaming of the call.
-   *
-   * @param data the request data.
-   * @param params the request params.
-   */
-  goLive = async (data: GoLiveRequest = {}, params?: { notify?: boolean }) => {
-    return this.streamClient.post<GoLiveResponse, GoLiveRequest>(
-      `${this.streamClientBasePath}/go_live`,
-      data,
-      params,
-    );
-  };
-
-  /**
-   * Stops the livestreaming of the call.
-   */
-  stopLive = async (data: StopLiveRequest = {}) => {
-    return this.streamClient.post<StopLiveResponse>(
-      `${this.streamClientBasePath}/stop_live`,
-      data,
-    );
   };
 
   /**
    * Starts the broadcasting of the call.
    */
   startHLS = async () => {
-    return this.streamClient.post<StartHLSBroadcastingResponse>(
-      `${this.streamClientBasePath}/start_broadcasting`,
-      {},
-    );
+    return this.api.startHLSBroadcasting();
   };
 
   /**
    * Stops the broadcasting of the call.
    */
   stopHLS = async () => {
-    return this.streamClient.post<StopHLSBroadcastingResponse>(
-      `${this.streamClientBasePath}/stop_broadcasting`,
-      {},
-    );
-  };
-
-  /**
-   * Starts the RTMP-out broadcasting of the call.
-   */
-  startRTMPBroadcasts = async (
-    data: StartRTMPBroadcastsRequest,
-  ): Promise<StartRTMPBroadcastsResponse> => {
-    return this.streamClient.post<
-      StartRTMPBroadcastsResponse,
-      StartRTMPBroadcastsRequest
-    >(`${this.streamClientBasePath}/rtmp_broadcasts`, data);
-  };
-
-  /**
-   * Stops all RTMP-out broadcasting of the call.
-   */
-  stopAllRTMPBroadcasts = async (): Promise<StopAllRTMPBroadcastsResponse> => {
-    return this.streamClient.post<StopAllRTMPBroadcastsResponse>(
-      `${this.streamClientBasePath}/rtmp_broadcasts/stop`,
-    );
-  };
-
-  /**
-   * Stops the RTMP-out broadcasting of the call specified by it's name.
-   */
-  stopRTMPBroadcast = async (
-    name: string,
-  ): Promise<StopRTMPBroadcastsResponse> => {
-    return this.streamClient.post<StopRTMPBroadcastsResponse>(
-      `${this.streamClientBasePath}/rtmp_broadcasts/${name}/stop`,
-    );
-  };
-
-  /**
-   * Starts frame by frame recording.
-   * Sends call.frame_recording_started events
-   */
-  startFrameRecording = async (
-    data: StartFrameRecordingRequest,
-  ): Promise<StartFrameRecordingResponse> => {
-    return this.streamClient.post<
-      StartFrameRecordingResponse,
-      StartFrameRecordingRequest
-    >(`${this.streamClientBasePath}/start_frame_recording`, data);
-  };
-
-  /**
-   * Stops frame recording.
-   */
-  stopFrameRecording = async (): Promise<StopFrameRecordingResponse> => {
-    return this.streamClient.post<StopFrameRecordingResponse>(
-      `${this.streamClientBasePath}/stop_frame_recording`,
-    );
+    return this.api.stopHLSBroadcasting();
   };
 
   /**
@@ -3114,11 +2844,8 @@ export class Call {
    *
    * @param updates the updates to apply to the call.
    */
-  update = async (updates: UpdateCallRequest) => {
-    const response = await this.streamClient.patch<
-      UpdateCallResponse,
-      UpdateCallRequest
-    >(`${this.streamClientBasePath}`, updates);
+  update = async (updates?: UpdateCallRequest) => {
+    const response = await this.api.update(updates);
 
     const { call, members, own_capabilities } = response;
     this.state.updateFromCallResponse(call);
@@ -3132,9 +2859,7 @@ export class Call {
    * Ends the call. Once the call is ended, it cannot be re-joined.
    */
   endCall = async () => {
-    return this.streamClient.post<EndCallResponse>(
-      `${this.streamClientBasePath}/mark_ended`,
-    );
+    return this.api.end();
   };
 
   /**
@@ -3170,10 +2895,7 @@ export class Call {
    * @param request the request object.
    */
   pinForEveryone = async (request: PinRequest) => {
-    return this.streamClient.post<PinResponse, PinRequest>(
-      `${this.streamClientBasePath}/pin`,
-      request,
-    );
+    return this.api.videoPin(request);
   };
 
   /**
@@ -3184,10 +2906,7 @@ export class Call {
    * @param request the request object.
    */
   unpinForEveryone = async (request: UnpinRequest) => {
-    return this.streamClient.post<UnpinResponse, UnpinRequest>(
-      `${this.streamClientBasePath}/unpin`,
-      request,
-    );
+    return this.api.videoUnpin(request);
   };
 
   /**
@@ -3196,10 +2915,7 @@ export class Call {
    * @returns
    */
   queryMembers = (request?: Omit<QueryCallMembersRequest, 'type' | 'id'>) => {
-    return this.streamClient.post<
-      QueryCallMembersResponse,
-      QueryCallMembersRequest
-    >('/call/members', {
+    return this.videoApi.queryCallMembers({
       ...(request || {}),
       id: this.id,
       type: this.type,
@@ -3215,25 +2931,8 @@ export class Call {
   queryParticipants = async (
     data: QueryCallParticipantsRequest = {},
     params: { limit?: number } = {},
-  ): Promise<QueryCallParticipantsResponse> => {
-    return this.streamClient.post<
-      QueryCallParticipantsResponse,
-      QueryCallParticipantsRequest
-    >(`${this.streamClientBasePath}/participants`, data, params);
-  };
-
-  /**
-   * Will update the call members.
-   *
-   * @param data the request data.
-   */
-  updateCallMembers = async (
-    data: UpdateCallMembersRequest,
-  ): Promise<UpdateCallMembersResponse> => {
-    return this.streamClient.post<
-      UpdateCallMembersResponse,
-      UpdateCallMembersRequest
-    >(`${this.streamClientBasePath}/members`, data);
+  ) => {
+    return this.api.queryCallParticipants({ ...data, ...params });
   };
 
   /**
@@ -3278,124 +2977,6 @@ export class Call {
   };
 
   /**
-   * Retrieves the list of recordings for the current call or call session.
-   *
-   * If `callSessionId` is provided, it will return the recordings for that call session.
-   * Otherwise, all recordings for the current call will be returned.
-   *
-   * @param callSessionId the call session id to retrieve recordings for.
-   * @deprecated use {@link listRecordings} instead.
-   */
-  queryRecordings = async (
-    callSessionId?: string,
-  ): Promise<ListRecordingsResponse> => {
-    return this.listRecordings(callSessionId);
-  };
-
-  /**
-   * Retrieves the list of recordings for the current call or call session.
-   *
-   * If `callSessionId` is provided, it will return the recordings for that call session.
-   * Otherwise, all recordings for the current call will be returned.
-   *
-   * @param callSessionId the call session id to retrieve recordings for.
-   */
-  listRecordings = async (
-    callSessionId?: string,
-  ): Promise<ListRecordingsResponse> => {
-    let endpoint = this.streamClientBasePath;
-    if (callSessionId) {
-      endpoint = `${endpoint}/${callSessionId}`;
-    }
-    return this.streamClient.get<ListRecordingsResponse>(
-      `${endpoint}/recordings`,
-    );
-  };
-
-  /**
-   * Deletes a recording for the given call session.
-   *
-   * @param callSessionId the call session id that the recording belongs to.
-   * @param filename the recording filename.
-   */
-  deleteRecording = async (
-    callSessionId: string,
-    filename: string,
-  ): Promise<DeleteRecordingResponse> => {
-    return this.streamClient.delete<DeleteRecordingResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(
-        callSessionId,
-      )}/recordings/${encodeURIComponent(filename)}`,
-    );
-  };
-
-  /**
-   * Deletes a transcription for the given call session.
-   *
-   * @param callSessionId the call session id that the transcription belongs to.
-   * @param filename the transcription filename.
-   */
-  deleteTranscription = async (
-    callSessionId: string,
-    filename: string,
-  ): Promise<DeleteTranscriptionResponse> => {
-    return this.streamClient.delete<DeleteTranscriptionResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(
-        callSessionId,
-      )}/transcriptions/${encodeURIComponent(filename)}`,
-    );
-  };
-
-  /**
-   * Retrieves the list of transcriptions for the current call.
-   *
-   * @returns the list of transcriptions.
-   * @deprecated use {@link listTranscriptions} instead.
-   */
-  queryTranscriptions = async (): Promise<ListTranscriptionsResponse> => {
-    return this.listTranscriptions();
-  };
-
-  /**
-   * Retrieves the list of transcriptions for the current call.
-   *
-   * @returns the list of transcriptions.
-   */
-  listTranscriptions = async (): Promise<ListTranscriptionsResponse> => {
-    return this.streamClient.get<ListTranscriptionsResponse>(
-      `${this.streamClientBasePath}/transcriptions`,
-    );
-  };
-
-  /**
-   * Retrieve call statistics for a particular call session (historical).
-   * Here `callSessionID` is mandatory.
-   *
-   * @param callSessionID the call session ID to retrieve statistics for.
-   * @returns The call stats.
-   * @deprecated use `call.getCallReport` instead.
-   * @internal
-   */
-  getCallStats = async (callSessionID: string) => {
-    const endpoint = `${this.streamClientBasePath}/stats/${callSessionID}`;
-    return this.streamClient.get<GetCallStatsResponse>(endpoint);
-  };
-
-  /**
-   * Retrieve call report. If the `callSessionID` is not specified, then the
-   * report for the latest call session is retrieved. If it is specified, then
-   * the report for that particular session is retrieved if it exists.
-   *
-   * @param callSessionID the optional call session ID to retrieve statistics for
-   * @returns the call report
-   */
-  getCallReport = async (callSessionID: string = '') => {
-    const endpoint = `${this.streamClientBasePath}/report`;
-    const params = callSessionID !== '' ? { session_id: callSessionID } : {};
-    return this.streamClient.get<GetCallReportResponse>(endpoint, params);
-  };
-
-  /**
    * Loads the call participant stats for the given parameters.
    */
   getCallParticipantsStats = async (opts: {
@@ -3416,20 +2997,23 @@ export class Call {
       kind = 'details',
     } = opts;
     if (!sessionId) return;
-    const base = `${this.streamClient.baseURL}/call_stats/${this.type}/${this.id}/${sessionId}`;
+    const scope = {
+      call_type: this.type,
+      call_id: this.id,
+      session: sessionId,
+    };
     if (!userId || !userSessionId) {
-      return this.streamClient.get<QueryCallSessionParticipantStatsResponse>(
-        `${base}/participants`,
-      );
+      return this.videoApi.queryCallSessionParticipantStats(scope);
     }
+    const participant = {
+      ...scope,
+      user: userId,
+      user_session: userSessionId,
+    };
     if (kind === 'details') {
-      return this.streamClient.get<GetCallSessionParticipantStatsDetailsResponse>(
-        `${base}/participant/${userId}/${userSessionId}/details`,
-      );
+      return this.videoApi.getCallSessionParticipantStatsDetails(participant);
     }
-    return this.streamClient.get<QueryCallSessionParticipantStatsTimelineResponse>(
-      `${base}/participants/${userId}/${userSessionId}/timeline`,
-    );
+    return this.videoApi.getCallSessionParticipantStatsTimeline(participant);
   };
 
   /**
@@ -3449,10 +3033,7 @@ export class Call {
     const { sdkName, sdkVersion, ...platform } = getSdkSignature(
       await getClientDetails(),
     );
-    return this.streamClient.post<
-      CollectUserFeedbackResponse,
-      CollectUserFeedbackRequest
-    >(`${this.streamClientBasePath}/feedback`, {
+    return this.api.collectUserFeedback({
       rating,
       reason,
       user_session_id: this.sfuClient?.sessionId,
@@ -3471,17 +3052,17 @@ export class Call {
    */
   getCallStatsMap = async (
     params: {
-      start_time?: Date | string;
-      end_time?: Date | string;
+      start_time?: Date;
+      end_time?: Date;
       exclude_publishers?: boolean;
       exclude_subscribers?: boolean;
       exclude_sfus?: boolean;
     } = {},
     callSessionId: string | undefined = this.state.session?.id,
-  ): Promise<QueryCallStatsMapResponse> => {
+  ): Promise<StreamResponse<QueryCallStatsMapResponse>> => {
     if (!callSessionId) throw new Error('callSessionId is required');
-    return this.streamClient.get<QueryCallStatsMapResponse>(
-      `${this.streamClient.baseURL}/call_stats/${this.type}/${this.id}/${callSessionId}/map`,
+    return this.videoApi.getCallStatsMap(
+      { call_type: this.type, call_id: this.id, session: callSessionId },
       params,
     );
   };
@@ -3492,10 +3073,170 @@ export class Call {
    * @param payload the payload to send.
    */
   sendCustomEvent = async (payload: { [key: string]: any }) => {
-    return this.streamClient.post<SendCallEventResponse, SendCallEventRequest>(
-      `${this.streamClientBasePath}/event`,
-      { custom: payload },
+    return this.api.sendCallEvent({ custom: payload });
+  };
+
+  /**
+   * Deletes the call.
+   */
+  delete = (data: DeleteCallRequest = {}) => {
+    return this.api.delete(data);
+  };
+
+  /**
+   * Starts the livestream of the call.
+   */
+  goLive = (data: GoLiveRequest = {}) => {
+    return this.api.goLive(data);
+  };
+
+  /**
+   * Kicks a user from the call.
+   */
+  kickUser = (data: KickUserRequest) => {
+    return this.api.kickUser(data);
+  };
+
+  /**
+   * Lists the recordings of the call.
+   */
+  listRecordings = () => {
+    return this.api.listRecordings();
+  };
+
+  /**
+   * Lists the transcriptions of the call.
+   */
+  listTranscriptions = () => {
+    return this.api.listTranscriptions();
+  };
+
+  /**
+   * Rings the call, notifying its members.
+   */
+  ring = (data: RingCallRequest = {}) => {
+    return this.api.ring(data);
+  };
+
+  /**
+   * Starts frame recording of the call.
+   */
+  startFrameRecording = (data: StartFrameRecordingRequest) => {
+    return this.api.startFrameRecording(data);
+  };
+
+  /**
+   * Starts RTMP broadcasts of the call.
+   */
+  startRTMPBroadcasts = (data: StartRTMPBroadcastsRequest) => {
+    return this.api.startRTMPBroadcasts(data);
+  };
+
+  /**
+   * Starts transcribing the call.
+   */
+  startTranscription = (request?: StartTranscriptionRequest) => {
+    return this.api.startTranscription(request);
+  };
+
+  /**
+   * Stops all RTMP broadcasts of the call.
+   */
+  stopAllRTMPBroadcasts = () => {
+    return this.api.stopAllRTMPBroadcasts();
+  };
+
+  /**
+   * Stops frame recording of the call.
+   */
+  stopFrameRecording = () => {
+    return this.api.stopFrameRecording();
+  };
+
+  /**
+   * Stops the livestream of the call.
+   */
+  stopLive = (data: StopLiveRequest = {}) => {
+    return this.api.stopLive(data);
+  };
+
+  /**
+   * Stops transcribing the call.
+   */
+  stopTranscription = (request?: StopTranscriptionRequest) => {
+    return this.api.stopTranscription(request);
+  };
+
+  /**
+   * Updates the members of the call.
+   */
+  updateCallMembers = (data: UpdateCallMembersRequest) => {
+    return this.api.updateCallMembers(data);
+  };
+
+  /**
+   * Grants or revokes permissions for a user.
+   */
+  updateUserPermissions = (data: UpdateUserPermissionsRequest) => {
+    return this.api.updateUserPermissions(data);
+  };
+
+  /**
+   * Blocks a user from the call.
+   *
+   * @param userId the id of the user to block.
+   */
+  blockUser = (userId: string) => {
+    return this.api.blockUser({ user_id: userId });
+  };
+
+  /**
+   * Unblocks a previously blocked user.
+   *
+   * @param userId the id of the user to unblock.
+   */
+  unblockUser = (userId: string) => {
+    return this.api.unblockUser({ user_id: userId });
+  };
+
+  /**
+   * Deletes a recording of the call.
+   *
+   * @param callSessionId the session the recording belongs to.
+   * @param filename the name of the recording to delete.
+   */
+  deleteRecording = (callSessionId: string, filename: string) => {
+    return this.api.deleteRecording({ session: callSessionId, filename });
+  };
+
+  /**
+   * Deletes a transcription of the call.
+   *
+   * @param callSessionId the session the transcription belongs to.
+   * @param filename the name of the transcription to delete.
+   */
+  deleteTranscription = (callSessionId: string, filename: string) => {
+    return this.api.deleteTranscription({ session: callSessionId, filename });
+  };
+
+  /**
+   * Returns the report of the call, optionally scoped to one session.
+   *
+   * @param callSessionID the session to report on; all sessions when omitted.
+   */
+  getCallReport = (callSessionID: string = '') => {
+    return this.api.getCallReport(
+      callSessionID !== '' ? { session_id: callSessionID } : {},
     );
+  };
+
+  /**
+   * Stops a single RTMP broadcast of the call.
+   *
+   * @param name the name of the broadcast to stop.
+   */
+  stopRTMPBroadcast = (name: string) => {
+    return this.api.stopRTMPBroadcast({ name });
   };
 
   /**

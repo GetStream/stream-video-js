@@ -1,3 +1,5 @@
+import { VideoApi } from '../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../coordinator/connection/api-client';
 /**
  * @vitest-environment happy-dom
  */
@@ -17,6 +19,7 @@ import { WebsocketReconnectStrategy } from '../gen/video/sfu/models/models';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { CallingState, ClientState } from '../store';
 import { promiseWithResolvers } from '../helpers/promise';
+import type { StreamResponse } from '../coordinator/connection/api-client';
 
 // A controlled stand-in for the retry backoff. Unless a test installs a hook,
 // the real `sleep` is used, so the rest of the suite is unaffected.
@@ -70,6 +73,7 @@ describe('Call lifecycle wiring', () => {
       type: 'test',
       id: generateUUIDv4(),
       streamClient,
+      videoApi: new VideoApi(new ApiClient(streamClient)),
       clientEventReporter: new ClientEventReporter({
         streamClient,
         enabled: false,
@@ -282,19 +286,29 @@ describe('Call lifecycle wiring', () => {
     const updateState = vi.spyOn(call.state, 'updateFromCallResponse');
     const accept = vi
       .spyOn(call, 'accept')
-      .mockImplementation(() => responseAt('acceptance', { duration: '0ms' }));
+      .mockImplementation(() =>
+        responseAt('acceptance', fromPartial({ duration: '0ms' })),
+      );
     const registerCall = vi.spyOn(call.clientState, 'registerOrUpdateCall');
-    const request = vi.spyOn(call.streamClient, 'post').mockImplementation(() =>
-      responseAt(
-        'coordinator request',
-        fromPartial<JoinCallResponse>({
-          call: { egress: {}, custom: {}, created_by: { id: 'other-user' } },
-          members: [],
-          own_capabilities: [],
-          stats_options: { enable_rtc_stats: false },
-        }),
-      ),
-    );
+    const request = vi
+      .spyOn(call.streamClient, 'doAxiosRequest')
+      .mockImplementation(() =>
+        responseAt(
+          'coordinator request',
+          fromPartial({
+            data: fromPartial<JoinCallResponse>({
+              call: {
+                egress: {},
+                custom: {},
+                created_by: { id: 'other-user' },
+              },
+              members: [],
+              own_capabilities: [],
+              stats_options: { enable_rtc_stats: false },
+            }),
+          }),
+        ),
+      ) as never;
     const genericSdp = vi
       .spyOn(rtc, 'getGenericSdp')
       .mockImplementation(() => responseAt('generic SDP', 'sdp'));
@@ -447,7 +461,7 @@ describe('Call lifecycle wiring', () => {
         });
       const get = vi.spyOn(call, 'get').mockImplementation(async () => {
         await pending.promise;
-        return fromPartial<GetCallResponse>({});
+        return fromPartial<StreamResponse<GetCallResponse>>({});
       });
       const task = call['reconnect'](WebsocketReconnectStrategy.FAST, 'test');
       const paused = {
@@ -473,11 +487,11 @@ describe('Call lifecycle wiring', () => {
   it.each([false, true])(
     'get() respects leave during fetch: %s',
     async (leaveDuringFetch) => {
-      const pending = promiseWithResolvers<GetCallResponse>();
+      const pending = promiseWithResolvers<{ data: GetCallResponse }>();
       const response = fromPartial<GetCallResponse>({ call: { settings: {} } });
       const request = vi
-        .spyOn(call.streamClient, 'get')
-        .mockReturnValue(pending.promise);
+        .spyOn(call.streamClient, 'doAxiosRequest')
+        .mockReturnValue(pending.promise as never);
       vi.spyOn(call.streamClient, '_hasConnectionID').mockReturnValue(true);
       const update = vi
         .spyOn(call, 'updateFromCallStateResponse')
@@ -489,8 +503,8 @@ describe('Call lifecycle wiring', () => {
       const task = call.get(); // deliberate reuse must still work
       await vi.waitFor(() => expect(request).toHaveBeenCalled());
       if (leaveDuringFetch) await call.leave();
-      pending.resolve(response);
-      await expect(task).resolves.toBe(response);
+      pending.resolve(fromPartial({ data: response }));
+      await expect(task).resolves.toMatchObject(response);
 
       expect(call.clientState.calls.includes(call)).toBe(!leaveDuringFetch);
       expect(update).toHaveBeenCalledTimes(leaveDuringFetch ? 0 : 1);

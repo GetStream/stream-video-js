@@ -3,14 +3,15 @@ import {
   asDynamicKey,
   DropDownSelect,
   DropDownSelectOption,
-  TranscriptionSettingsRequestLanguageEnum,
-  TranscriptionSettingsRequestModeEnum,
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { StatCard, StatCardGrid, StatCardTag } from '../StatCard';
 import { useAppI18n } from '../../hooks/useAppI18n';
-import type { LooseTranslateFunction } from '@stream-io/video-react-sdk';
+import type {
+  LooseTranslateFunction,
+  TranscriptionSettingsRequest,
+} from '@stream-io/video-react-sdk';
 
 /**
  * The transcription languages the backend accepts, in the order the dropdown lists them. The
@@ -74,18 +75,14 @@ export const TranscriptionSettings = () => {
 
   useEffect(() => {
     if (!call) return;
-    const language = transcriptionLanguage
-      ? // @ts-expect-error - TS doesn't know about the enum values
-        TranscriptionSettingsRequestLanguageEnum[
-          transcriptionLanguage.toUpperCase()
-        ]
-      : TranscriptionSettingsRequestLanguageEnum.AUTO;
+    const language = (transcriptionLanguage ??
+      'auto') as TranscriptionSettingsRequest['language'];
     call
       .update({
         settings_override: {
           transcription: {
             ...call.state.settings?.transcription,
-            mode: TranscriptionSettingsRequestModeEnum.AUTO_ON,
+            mode: 'auto-on',
             language,
           },
         },

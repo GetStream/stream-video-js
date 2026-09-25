@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 /**
  * @vitest-environment happy-dom
  */
@@ -44,6 +46,7 @@ describe('DynascaleManager', () => {
       id: 'id',
       type: 'default',
       streamClient,
+      videoApi: new VideoApi(new ApiClient(streamClient)),
       clientEventReporter: new ClientEventReporter({ streamClient }),
       clientState: new ClientState(),
     });

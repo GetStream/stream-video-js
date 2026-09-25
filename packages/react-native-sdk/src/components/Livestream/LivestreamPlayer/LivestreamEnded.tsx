@@ -55,7 +55,7 @@ export const CallEndedView = () => {
     const fetchRecordings = async () => {
       if (recordingsResponse == null) {
         try {
-          const callRecordingsResponse = await call?.queryRecordings();
+          const callRecordingsResponse = await call?.listRecordings();
           if (!isCanceled) {
             setRecordingsResponse(callRecordingsResponse);
           }

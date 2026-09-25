@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { RequestPermissionRequestPermissionsEnum } from '@stream-io/video-client';
+import { OwnCapability } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
-export const useRequestPermission = (
-  permission: RequestPermissionRequestPermissionsEnum,
-) => {
+export const useRequestPermission = (permission: OwnCapability) => {
   const call = useCall();
   const { useHasPermissions } = useCallStateHooks();
   const hasPermission = useHasPermissions(permission);

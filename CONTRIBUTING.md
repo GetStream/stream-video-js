@@ -55,14 +55,27 @@ To update SFU models and API endpoints [generate ts client](https://github.com/G
 
 #### Coordinator API changes (internal)
 
-We have a shell script which will generate the Coordinator models from the OpenAPI spec.
+We have a shell script which will generate the Coordinator client from the
+OpenAPI spec, using the in-house `chat-manager` generator. The spec is built
+from a local `chat` checkout rather than the published `protocol` repository, so
+the client can never drift from a stale published file.
+
 This script expects the following directory structure to be set up:
 
 - `chat` - the `chat` repository
 - `stream-video-js` - current repository
-- `cd stream-video-js/packages/client && yarn generate:open-api:dev`
 
-Alternatively you can use the following script `cd stream-video-js/packages/client && yarn generate:open-api` to generate the models from the [protocol repository](https://github.com/GetStream/protocol).
+```sh
+cd stream-video-js/packages/client && yarn generate:open-api
+```
+
+Pass a path if your `chat` checkout is elsewhere:
+`./generate-openapi.sh /path/to/chat`.
+
+The output under `src/gen/coordinator` is committed, so CI never needs the
+`chat-manager` binary. Do not hand-edit it - the script wipes that directory on
+every run. Hand-written types belong in `src/gen/shims.ts`, which sits beside
+it.
 
 ## PRs
 

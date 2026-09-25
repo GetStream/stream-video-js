@@ -35,6 +35,17 @@ type UnhandledEventType = EventTypes<
   | 'health.check'
   | 'user.updated'
   | 'custom'
+  | 'app.updated'
+  | 'call.dtmf'
+  | 'ingress.error'
+  | 'ingress.started'
+  | 'ingress.stopped'
+  | 'user.banned'
+  | 'user.deactivated'
+  | 'user.deleted'
+  | 'user.presence.changed'
+  | 'user.reactivated'
+  | 'user.unbanned'
 >;
 
 export type AllEventHandlers = {

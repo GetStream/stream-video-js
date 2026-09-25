@@ -1,3 +1,5 @@
+import { VideoApi } from '../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../coordinator/connection/api-client';
 import '../rtc/__tests__/mocks/webrtc.mocks';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -8,6 +10,7 @@ import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { CallingState, ClientState } from '../store';
 import { CallSessionResponse } from '../gen/coordinator';
+import { nowNs } from '../helpers/time';
 
 const ME = 'jane';
 
@@ -24,6 +27,7 @@ describe('Leaving a call settled by the current user', () => {
       type: 'test',
       id: generateUUIDv4(),
       streamClient,
+      videoApi: new VideoApi(new ApiClient(streamClient)),
       clientEventReporter: new ClientEventReporter({ streamClient }),
       clientState,
       ringing,
@@ -40,7 +44,7 @@ describe('Leaving a call settled by the current user', () => {
       fromPartial<CallSessionResponse>({
         id: 'session-1',
         accepted_by: {},
-        rejected_by: { [ME]: new Date().toISOString() },
+        rejected_by: { [ME]: nowNs() },
         missed_by: {},
         participants: [],
         participants_count_by_role: {},

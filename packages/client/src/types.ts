@@ -4,15 +4,14 @@ import type {
   VideoDimension,
 } from './gen/video/sfu/models/models';
 import type {
-  AudioSettingsRequestDefaultDeviceEnum,
-  CallRecordingStartedEventRecordingTypeEnum,
+  AudioSettingsRequest,
+  CallRecordingStartedEvent,
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
   VideoReactionResponse,
-  StartRecordingRequest,
-  StartRecordingResponse,
 } from './gen/coordinator';
+import type { VideoApi } from './gen/coordinator/video/VideoApi';
 import type { StreamClient } from './coordinator/connection/client';
 import type { ClientEventReporter } from './reporting';
 import type {
@@ -315,6 +314,12 @@ export type CallConstructor = {
   clientEventReporter: ClientEventReporter;
 
   /**
+   * The shared generated API client, owned by `StreamVideoClient`. `VideoApi`
+   * holds no per-call state, so every `Call` reuses the one instance.
+   */
+  videoApi: VideoApi;
+
+  /**
    * The Call type.
    */
   type: string;
@@ -404,16 +409,7 @@ export type StreamVideoClientOptions =
   | StreamVideoClientOptionsWithAnonymousUser
   | StreamVideoClientOptionsWithAuthenticatedUser;
 
-export type CallRecordingType = CallRecordingStartedEventRecordingTypeEnum;
-export type StartCallRecordingFnType = {
-  (): Promise<StartRecordingResponse>;
-  (type: CallRecordingType): Promise<StartRecordingResponse>;
-  (request: StartRecordingRequest): Promise<StartRecordingResponse>;
-  (
-    request: StartRecordingRequest,
-    type: CallRecordingType,
-  ): Promise<StartRecordingResponse>;
-};
+export type CallRecordingType = CallRecordingStartedEvent['recording_type'];
 
 type StreamRNVideoSDKCallManagerRingingParams = {
   isRingingTypeCall: boolean;
@@ -422,7 +418,7 @@ type StreamRNVideoSDKCallManagerRingingParams = {
 type StreamRNVideoSDKCallManagerSetupParams =
   StreamRNVideoSDKCallManagerRingingParams & {
     cid: string;
-    defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
+    defaultDevice: AudioSettingsRequest['default_device'];
   };
 
 type StreamRNVideoSDKCallManagerStartParams =

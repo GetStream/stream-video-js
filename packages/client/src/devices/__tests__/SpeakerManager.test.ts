@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 /* @vitest-environment happy-dom */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
@@ -54,6 +56,7 @@ describe('SpeakerManager.test', () => {
         id: '',
         type: '',
         streamClient,
+        videoApi: new VideoApi(new ApiClient(streamClient)),
         clientEventReporter: new ClientEventReporter({ streamClient }),
         clientState: new ClientState(),
       }),
@@ -161,6 +164,7 @@ describe('SpeakerManager.test', () => {
         id: '',
         type: '',
         streamClient,
+        videoApi: new VideoApi(new ApiClient(streamClient)),
         clientEventReporter: new ClientEventReporter({ streamClient }),
         clientState: new ClientState(),
       }),
@@ -189,6 +193,7 @@ describe('SpeakerManager.test', () => {
           id: '',
           type: '',
           streamClient,
+          videoApi: new VideoApi(new ApiClient(streamClient)),
           clientEventReporter: new ClientEventReporter({ streamClient }),
           clientState: new ClientState(),
         }),

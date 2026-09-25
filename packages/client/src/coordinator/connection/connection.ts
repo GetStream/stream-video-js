@@ -9,14 +9,11 @@ import {
 } from './utils';
 import type { StreamVideoEvent, UR, WSConnectionError } from './types';
 import type { LogLevel } from '@stream-io/logger';
-import {
-  ConnectedEvent,
-  ConnectionErrorEvent,
-  WSAuthMessage,
-  WSAuthMessageProductsEnum,
-} from '../../gen/coordinator';
+import { ConnectedEvent, ConnectionErrorEvent } from '../../gen/coordinator';
+import type { WSAuthMessage } from '../../gen/shims';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
 import { getTimers } from '../../timers';
+import { nowNs } from '../../helpers/time';
 import { APIErrorCodes } from './errors';
 
 /**
@@ -214,7 +211,7 @@ export class StableWSConnection {
     params.set('stream-auth-type', this.client.getAuthType());
     params.set('X-Stream-Client', this.client.getUserAgent());
 
-    return `${this.client.wsBaseURL}/connect?${params.toString()}`;
+    return `${this.client.wsBaseURL}/api/v2/connect?${params.toString()}`;
   };
 
   /**
@@ -532,7 +529,7 @@ export class StableWSConnection {
 
     const wsAuthMessage: WSAuthMessage = {
       token,
-      products: [WSAuthMessageProductsEnum.VIDEO],
+      products: ['video'],
       user_details: {
         id: user.id,
         name: user.name,
@@ -605,7 +602,7 @@ export class StableWSConnection {
     }
 
     if (data) {
-      data.received_at = new Date();
+      data.received_at = nowNs();
       this.client.dispatchEvent(data);
     }
     this.scheduleConnectionCheck();
@@ -708,7 +705,13 @@ export class StableWSConnection {
       const { error } = event;
       code = error.code;
       message = error.message;
-      statusCode = error.StatusCode;
+      // The OpenAPI spec and the backend both spell this `StatusCode`
+      // (monolith/errors/errors.go: `json:"StatusCode"`, kept for backward
+      // compatibility). The TypeScript generator snake_cases property names,
+      // so the model declares `status_code` - a name that never appears on the
+      // wire. Read the real one; the fallback covers a generator fix.
+      statusCode =
+        (error as { StatusCode?: number }).StatusCode ?? error.status_code;
     }
 
     const msg = `WS failed with code: ${code}: ${APIErrorCodes[code] || code} and reason: ${message}`;

@@ -1,8 +1,5 @@
 import { useMemo, useState } from 'react';
-import {
-  EncryptionManager,
-  EncryptionSettingsResponseModeEnum,
-} from '@stream-io/video-react-sdk';
+import { EncryptionManager } from '@stream-io/video-react-sdk';
 import { MAX_PARTICIPANTS } from '../config';
 import { useHarnessEngine, useSnapshot } from '../hooks/useHarness';
 import type { PreferredCodec } from '../harness/snapshot';
@@ -52,10 +49,7 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
         {resolvedEncryptionMode && (
           <span
             className={`control-bar__badge ${
-              resolvedEncryptionMode ===
-              EncryptionSettingsResponseModeEnum.DISABLED
-                ? 'no'
-                : 'ok'
+              resolvedEncryptionMode === 'disabled' ? 'no' : 'ok'
             }`}
             title="Encryption mode the backend resolved for this call, from the call settings. This is only what the call permits: the SFU badge says whether E2EE is actually active."
           >

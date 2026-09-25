@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MicrophoneManager } from '../MicrophoneManager';
 import { Call } from '../../Call';
@@ -91,6 +93,7 @@ describe('MicrophoneManager React Native', () => {
         id: '',
         type: '',
         streamClient,
+        videoApi: new VideoApi(new ApiClient(streamClient)),
         clientState: new ClientState(),
         clientEventReporter: new ClientEventReporter({ streamClient }),
       }),

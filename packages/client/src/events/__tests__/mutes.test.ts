@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Call } from '../../Call';
 import {
@@ -21,6 +23,7 @@ describe('mutes', () => {
         type: 'test',
         id: 'test',
         streamClient,
+        videoApi: new VideoApi(new ApiClient(streamClient)),
         clientEventReporter: new ClientEventReporter({ streamClient }),
       });
 

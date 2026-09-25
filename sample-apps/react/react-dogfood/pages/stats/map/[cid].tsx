@@ -35,8 +35,8 @@ export default function MapStats(props: ServerSideCredentialsProps) {
         await _call.get();
         const stats = await _call.getCallStatsMap(
           {
-            start_time,
-            end_time,
+            start_time: start_time ? new Date(start_time) : undefined,
+            end_time: end_time ? new Date(end_time) : undefined,
             exclude_publishers: exclude_publishers === 'true',
             exclude_subscribers: exclude_subscribers === 'true',
             exclude_sfus: exclude_sfus === 'true',

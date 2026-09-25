@@ -1,4 +1,8 @@
-import { OwnUserResponse, StreamVideoClient } from '@stream-io/video-client';
+import {
+  nowNs,
+  OwnUserResponse,
+  StreamVideoClient,
+} from '@stream-io/video-client';
 
 const apiKey = 'API_KEY';
 const simulateUserConnection = (
@@ -13,19 +17,19 @@ export const mockClientWithUser = (
 ): StreamVideoClient => {
   const client = new StreamVideoClient(apiKey);
   simulateUserConnection(client, {
-    created_at: '',
+    created_at: nowNs(),
     custom: {},
     devices: [
       {
         id: '123',
-        created_at: '',
+        created_at: nowNs(),
         push_provider: '',
         user_id: '',
       },
     ],
     role: '',
     teams: ['teamA'],
-    updated_at: '',
+    updated_at: nowNs(),
     id: 'test-user-id',
     ...user,
   });
