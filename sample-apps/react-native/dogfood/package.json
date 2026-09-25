@@ -10,6 +10,19 @@
     "build": "tsc",
     "setup": "yarn && yarn build:react-native:deps && npx pod-install"
   },
+  "codegenConfig": {
+    "name": "AppSpecs",
+    "type": "modules",
+    "jsSrcsDir": "src/specs",
+    "android": {
+      "javaPackageName": "io.getstream.rnvideosample"
+    },
+    "ios": {
+      "modulesProvider": {
+        "VideoEffectsModule": "VideoEffectsModule"
+      }
+    }
+  },
   "dependencies": {
     "@gorhom/bottom-sheet": "5.2.9",
     "@notifee/react-native": "9.1.8",
