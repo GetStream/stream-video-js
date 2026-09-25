@@ -26,6 +26,7 @@ import { TransceiverCache } from '../TransceiverCache';
 import { promiseWithResolvers } from '../../helpers/promise';
 import { settled } from '../../helpers/concurrency';
 import { isFirefox } from '../../helpers/browsers';
+import { isReactNative } from '../../helpers/platforms';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -38,6 +39,12 @@ vi.mock('../../helpers/browsers', async (importOriginal) => {
   const actual =
     await importOriginal<typeof import('../../helpers/browsers')>();
   return { ...actual, isFirefox: vi.fn().mockReturnValue(false) };
+});
+
+vi.mock('../../helpers/platforms', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('../../helpers/platforms')>();
+  return { ...actual, isReactNative: vi.fn().mockReturnValue(false) };
 });
 
 describe('Publisher', () => {
@@ -106,6 +113,207 @@ describe('Publisher', () => {
   });
 
   describe('Publishing', () => {
+    describe('E2EE initialization failures', () => {
+      afterEach(() => {
+        vi.mocked(isReactNative).mockReturnValue(false);
+      });
+
+      const setup = async () => {
+        await publisher.dispose();
+        const e2ee = { encrypt: vi.fn(), decrypt: vi.fn() };
+        publisher = new Publisher(
+          {
+            sfuClient,
+            dispatcher,
+            state,
+            tag: 'test',
+            enableTracing: false,
+            e2ee,
+          },
+          [
+            fromPartial<PublishOption>({
+              id: 1,
+              trackType: TrackType.VIDEO,
+              codec: { name: 'vp9' },
+            }),
+          ],
+        );
+        const transceivers: RTCRtpTransceiver[] = [];
+        vi.mocked(publisher['pc'].addTransceiver).mockImplementation((kind) => {
+          expect(kind).toBe('video');
+          const transceiver = new RTCRtpTransceiver();
+          vi.mocked(transceiver.sender.replaceTrack).mockImplementation(
+            async (track) => {
+              expect(e2ee.encrypt).toHaveBeenCalledWith(
+                transceiver.sender,
+                'vp9',
+                'VIDEO',
+              );
+              Object.assign(transceiver.sender, { track });
+            },
+          );
+          transceivers.push(transceiver);
+          return transceiver;
+        });
+        const track = new MediaStreamTrack();
+        vi.mocked(track.clone).mockImplementation(() => new MediaStreamTrack());
+        const realNegotiate = publisher['negotiate'];
+        const negotiate = vi.fn<Publisher['negotiate']>().mockResolvedValue();
+        publisher['negotiate'] = negotiate;
+        return { e2ee, transceivers, track, negotiate, realNegotiate };
+      };
+
+      it.each([
+        'encrypt',
+        'getParameters',
+        'setParameters',
+        'replaceTrack',
+      ] as const)(
+        'retires the sender after %s fails and attaches encryption on retry',
+        async (failurePoint) => {
+          const { e2ee, transceivers, track, negotiate } = await setup();
+          const error = new Error('initialization failed');
+          e2ee.encrypt.mockImplementationOnce((sender: RTCRtpSender) => {
+            expect(sender.track).toBeNull();
+            if (failurePoint === 'encrypt') throw error;
+            if (failurePoint === 'getParameters') {
+              vi.mocked(sender.getParameters).mockImplementationOnce(() => {
+                throw error;
+              });
+            } else {
+              vi.mocked(sender[failurePoint]).mockRejectedValueOnce(error);
+            }
+          });
+          await expect(publisher.publish(track, TrackType.VIDEO)).rejects.toBe(
+            error,
+          );
+          const failed = transceivers[0];
+          expect(failed.sender.track).toBeNull();
+          expect(failed.stop).toHaveBeenCalledOnce();
+          expect(publisher['transceiverCache'].items()).toHaveLength(0);
+          expect(publisher['clonedTracks'].size).toBe(0);
+          expect(negotiate).not.toHaveBeenCalled();
+
+          await publisher.publish(track, TrackType.VIDEO);
+          expect(transceivers).toHaveLength(2);
+          expect(e2ee.encrypt).toHaveBeenLastCalledWith(
+            transceivers[1].sender,
+            'vp9',
+            'VIDEO',
+          );
+          expect(transceivers[1].sender.track).not.toBeNull();
+          expect(publisher['transceiverCache'].indexOf(failed)).toBe(-1);
+          expect(publisher['transceiverCache'].indexOf(transceivers[1])).toBe(
+            0,
+          );
+          expect(negotiate).toHaveBeenCalledOnce();
+        },
+      );
+
+      it('keeps the mid index of a retired sender that reached an m-section', async () => {
+        const { e2ee, transceivers, track } = await setup();
+        const error = new Error('initialization failed');
+        e2ee.encrypt.mockImplementationOnce((sender: RTCRtpSender) => {
+          Object.assign(transceivers[0], { mid: '0' });
+          vi.mocked(sender.replaceTrack).mockRejectedValueOnce(error);
+        });
+        await expect(publisher.publish(track, TrackType.VIDEO)).rejects.toBe(
+          error,
+        );
+        expect(publisher['transceiverCache'].items()).toHaveLength(0);
+        expect(publisher['transceiverCache'].indexOf(transceivers[0])).toBe(0);
+
+        await publisher.publish(track, TrackType.VIDEO);
+        expect(publisher['transceiverCache'].indexOf(transceivers[1])).toBe(1);
+      });
+
+      it('reports the initialization failure even when cleanup throws', async () => {
+        const { e2ee, transceivers, track } = await setup();
+        const error = new Error('initialization failed');
+        e2ee.encrypt.mockImplementationOnce(() => {
+          vi.mocked(transceivers[0].stop).mockImplementationOnce(() => {
+            throw new Error('peer connection is closed');
+          });
+          throw error;
+        });
+        await expect(publisher.publish(track, TrackType.VIDEO)).rejects.toBe(
+          error,
+        );
+        expect(publisher['transceiverCache'].items()).toHaveLength(0);
+      });
+
+      it('leaves the cloned track alone on React Native', async () => {
+        vi.mocked(isReactNative).mockReturnValue(true);
+        const { e2ee, transceivers, track } = await setup();
+        const error = new Error('initialization failed');
+        e2ee.encrypt.mockImplementationOnce(() => {
+          throw error;
+        });
+        await expect(publisher.publish(track, TrackType.VIDEO)).rejects.toBe(
+          error,
+        );
+        const [clone] = publisher['clonedTracks'];
+        expect(clone.stop).not.toHaveBeenCalled();
+        expect(transceivers[0].stop).toHaveBeenCalledOnce();
+        expect(publisher['transceiverCache'].items()).toHaveLength(0);
+      });
+
+      it('reuses an encrypted sender when only negotiation failed', async () => {
+        const { e2ee, transceivers, track, negotiate } = await setup();
+        const error = new Error('negotiation failed');
+        negotiate.mockRejectedValueOnce(error);
+        await expect(publisher.publish(track, TrackType.VIDEO)).rejects.toBe(
+          error,
+        );
+        expect(transceivers[0].sender.track).not.toBeNull();
+        expect(transceivers[0].stop).not.toHaveBeenCalled();
+        await publisher.publish(track, TrackType.VIDEO);
+        expect(transceivers).toHaveLength(1);
+        expect(e2ee.encrypt).toHaveBeenCalledOnce();
+        expect(negotiate).toHaveBeenCalledTimes(2);
+      });
+
+      it('has no media to expose if ICE restart negotiates during parameter setup', async () => {
+        const { e2ee, transceivers, track, negotiate, realNegotiate } =
+          await setup();
+        negotiate.mockImplementation(realNegotiate);
+        publisher['publishOptions'].push(
+          fromPartial<PublishOption>({
+            id: 2,
+            trackType: TrackType.VIDEO,
+            codec: { name: 'vp9' },
+          }),
+        );
+        sfuClient.setPublisher = vi
+          .fn()
+          .mockResolvedValue({ response: { sdp: 'answer-sdp' } });
+        const parameters = promiseWithResolvers<void>();
+        e2ee.encrypt
+          .mockImplementationOnce(() => {})
+          .mockImplementationOnce((sender: RTCRtpSender) => {
+            vi.mocked(sender.setParameters).mockReturnValueOnce(
+              parameters.promise,
+            );
+          });
+        const publish = publisher.publish(track, TrackType.VIDEO);
+        await vi.waitFor(() => expect(e2ee.encrypt).toHaveBeenCalledTimes(2));
+        const [published, pending] = transceivers;
+        expect(pending.sender.track).toBeNull();
+        expect(pending.sender.replaceTrack).not.toHaveBeenCalled();
+
+        await publisher.restartIce();
+        const restart = vi.mocked(sfuClient.setPublisher).mock.calls[1][0];
+        expect(restart.tracks.map((t) => t.trackId)).toEqual([
+          published.sender.track!.id,
+        ]);
+
+        parameters.resolve();
+        await publish;
+        expect(pending.sender.track).not.toBeNull();
+        expect(sfuClient.setPublisher).toHaveBeenCalledTimes(3);
+      });
+    });
+
     it('should throw when publishing ended tracks', async () => {
       const track = new MediaStreamTrack();
       // @ts-expect-error readonly field
