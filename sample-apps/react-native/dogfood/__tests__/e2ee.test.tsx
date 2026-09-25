@@ -4,7 +4,8 @@ import {
   type Call,
   EncryptionManager,
 } from '@stream-io/video-react-native-sdk';
-import { attachE2EEIfConfigured } from '../src/utils/e2ee';
+import { attachE2EE, attachE2EEIfConfigured } from '../src/utils/e2ee';
+import { LobbyE2EEContext } from '../src/contexts/LobbyE2EEContext';
 import { mmkvStorage } from '../src/contexts/createStoreContext';
 import { MeetingUI } from '../src/components/MeetingUI';
 
@@ -60,7 +61,10 @@ jest.mock('../src/components/CallErrorComponent', () => ({
 const createCall = () => {
   const call = {
     currentUserId: undefined as string | undefined,
-    state: { callingState: 'idle' },
+    state: {
+      callingState: 'idle',
+      settings: undefined as { encryption: { mode: string } } | undefined,
+    },
     setE2EEManager: jest.fn(),
     join: jest.fn().mockResolvedValue(undefined),
     leave: jest.fn(async () => {
@@ -105,15 +109,46 @@ it('remains a no-op without a configured key', async () => {
   expect(EncryptionManager.create).not.toHaveBeenCalled();
 });
 
-it('shows the setup error and ends the meeting flow before joining', async () => {
+it('does not read the ringing-call passphrase for a meeting', async () => {
+  mockCall.currentUserId = 'user';
+  await expect(
+    attachE2EE(mockCall as unknown as Call, undefined),
+  ).resolves.toBeUndefined();
+  await expect(
+    attachE2EE(mockCall as unknown as Call, '  '),
+  ).resolves.toBeUndefined();
+  expect(mmkvStorage.getString).not.toHaveBeenCalled();
+  expect(EncryptionManager.create).not.toHaveBeenCalled();
+});
+
+const renderMeeting = (encryptionKey: string) => {
   type Props = React.ComponentProps<typeof MeetingUI>;
-  await renderAsync(
-    <MeetingUI
-      callId="test-call"
-      navigation={{} as Props['navigation']}
-      route={{} as Props['route']}
-    />,
+  return renderAsync(
+    <LobbyE2EEContext.Provider
+      value={{ encryptionKey, updateEncryptionKey: jest.fn() }}
+    >
+      <MeetingUI
+        callId="test-call"
+        navigation={{} as Props['navigation']}
+        route={{} as Props['route']}
+      />
+    </LobbyE2EEContext.Provider>,
   );
+};
+
+it('joins an existing unencrypted call in the clear despite a brought key', async () => {
+  mockCall.currentUserId = 'user';
+  mockCall.state.settings = { encryption: { mode: 'disabled' } };
+  await renderMeeting('test-key');
+  await act(async () => mockJoin());
+
+  expect(EncryptionManager.create).not.toHaveBeenCalled();
+  expect(mockCall.setE2EEManager).not.toHaveBeenCalled();
+  expect(mockCall.join).toHaveBeenCalledWith({ create: true });
+});
+
+it('shows the setup error and ends the meeting flow before joining', async () => {
+  await renderMeeting('test-key');
   await act(async () => mockJoin());
 
   expect(mockCall.join).not.toHaveBeenCalled();

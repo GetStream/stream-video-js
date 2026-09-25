@@ -13,6 +13,8 @@ import {
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import { useAppI18n } from '../hooks/useAppI18n';
+import { useLobbyE2EE } from '../contexts/LobbyE2EEContext';
+import { getInviteUrl } from '../utils/inviteLink';
 import {
   Alert,
   FlatList,
@@ -68,18 +70,16 @@ export const ParticipantsInfoListModal = ({
   const call = useCall();
 
   const environment = useAppGlobalStoreValue((store) => store.appEnvironment);
+  const e2ee = useLobbyE2EE();
 
   const inviteHandler = async () => {
     if (!call) {
       throw new Error('Call not found');
     }
     try {
-      const url =
-        environment === 'pronto'
-          ? `https://pronto.getstream.io/join/${call.id}`
-          : environment === 'pronto-staging'
-            ? `https://pronto-staging.getstream.io/join/${call.id}`
-            : `https://getstream.io/video/demos/join/${call.id}`;
+      // The key rides along, like the web invite panel, so the invitee's lobby
+      // can decrypt without typing it in.
+      const url = getInviteUrl(environment, call.id, e2ee?.encryptionKey);
       await Share.share({
         url,
         title: 'Stream Calls | Join Call',

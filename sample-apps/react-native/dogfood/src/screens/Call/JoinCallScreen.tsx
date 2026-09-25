@@ -25,11 +25,15 @@ import { TextInput } from '../../components/TextInput';
 import { KnownUsers } from '../../constants/KnownUsers';
 import { randomId } from '../../modules/helpers/randomId';
 import { useOrientation } from '../../hooks/useOrientation';
-import { getE2EESettingsOverride } from '../../utils/e2ee';
+import { getE2EESettingsOverride, isE2EEEnvironment } from '../../utils/e2ee';
+import { E2EEKeyInput } from '../../components/E2EEKeyInput';
 
 const ENABLE_RING_PINNING = __DEV__;
 
 const JoinCallScreen = () => {
+  const allowEncryption = isE2EEEnvironment(
+    useAppGlobalStoreValue((store) => store.appEnvironment),
+  );
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
   const [callType, setCallType] = useState<string>('default');
   const [pinnedCallId, setPinnedCallId] = useState<string>('');
@@ -178,6 +182,7 @@ const JoinCallScreen = () => {
             disabled={startCallDisabled}
             onPress={startCallHandler}
           />
+          {allowEncryption && <E2EEKeyInput />}
           {(ENABLE_RING_PINNING || devMode) && (
             <View style={styles.pinningContainer}>
               <Text style={styles.pinningText}>

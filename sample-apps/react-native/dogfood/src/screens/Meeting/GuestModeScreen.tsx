@@ -34,6 +34,7 @@ export const GuestModeScreen = ({
       mode: 'guest',
       guestUserId: username,
       callId: callId,
+      encryptionKey: route.params.encryptionKey,
     });
   };
 
@@ -42,6 +43,7 @@ export const GuestModeScreen = ({
       mode: 'anonymous',
       callId: callId,
       guestUserId: '!anon',
+      encryptionKey: route.params.encryptionKey,
     });
   };
 

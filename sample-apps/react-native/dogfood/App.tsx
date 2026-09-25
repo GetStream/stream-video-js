@@ -4,7 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './types';
 import {
-  deeplinkCallId$,
+  deeplinkCall$,
   useDeepLinkEffect,
 } from './src/hooks/useDeepLinkEffect';
 import {
@@ -136,8 +136,8 @@ const StackNavigator = () => {
   }
 
   useEffect(() => {
-    const subscription = deeplinkCallId$.subscribe((prontoCallId) => {
-      if (prontoCallId) {
+    const subscription = deeplinkCall$.subscribe((deeplinkCall) => {
+      if (deeplinkCall) {
         setState({ appMode: 'Meeting' });
       }
     });

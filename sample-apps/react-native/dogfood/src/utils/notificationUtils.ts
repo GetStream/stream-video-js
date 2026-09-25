@@ -1,5 +1,5 @@
 import notifee, { AndroidImportance } from '@notifee/react-native';
-import { deeplinkCallId$ } from '../hooks/useDeepLinkEffect';
+import { deeplinkCall$ } from '../hooks/useDeepLinkEffect';
 
 export const NON_RINGING_CHANNEL_ID = 'stream_non_ringing_calls';
 
@@ -76,7 +76,7 @@ export async function displayNonRingingNotification(
 
 /**
  * When a user taps a non-ringing notification, extract the call_cid
- * and navigate to the call via deeplinkCallId$.
+ * and navigate to the call via deeplinkCall$.
  */
 export function handleNotificationTap(data?: {
   [key: string]: string | number | object;
@@ -93,6 +93,6 @@ export function handleNotificationTap(data?: {
   // Extract call ID from cid (format: "type:id")
   const callId = callCid.split(':')[1];
   if (callId) {
-    deeplinkCallId$.next(callId);
+    deeplinkCall$.next({ callId });
   }
 }
