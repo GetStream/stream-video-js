@@ -29,18 +29,21 @@ internal class SoundPlayer(private val context: Context) {
                 return
             }
 
+            // Held locally until it is actually playing: `setDataSource` and `prepare` throw for
+            // an unreadable or unsupported source, and a player that never reaches the field
+            // could not be released by `stopLocked()` — it would leak a native player per call.
+            val player = MediaPlayer()
             try {
-                mediaPlayer = MediaPlayer().apply {
-                    setAudioAttributes(audioAttributes(playIfMuted))
-                    setDataSource(context, uri)
-                    isLooping = true
-                    prepare()
-                    start()
-                }
+                player.setAudioAttributes(audioAttributes(playIfMuted))
+                player.setDataSource(context, uri)
+                player.isLooping = true
+                player.prepare()
+                player.start()
+                mediaPlayer = player
                 Log.d(TAG, "playSound(): playing $uri")
             } catch (e: Exception) {
                 Log.e(TAG, "playSound(): failed to play $uri", e)
-                stopLocked()
+                player.release()
             }
         }
     }
