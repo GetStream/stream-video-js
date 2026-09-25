@@ -12,6 +12,7 @@ import com.streamvideo.reactnative.audio.AudioDeviceManager
 import com.streamvideo.reactnative.audio.utils.CallAudioRole
 import com.streamvideo.reactnative.audio.utils.WebRtcAudioUtils
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint
+import com.streamvideo.reactnative.util.SoundPlayer
 import java.util.Locale
 
 
@@ -21,6 +22,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     private var audioManagerActivated = false
 
     private val mAudioDeviceManager = AudioDeviceManager(reactContext)
+
+    private val mSoundPlayer = SoundPlayer(reactContext)
 
     override fun getName(): String {
         return TAG
@@ -42,6 +45,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     override fun invalidate() {
         // Ensure we cleanup proximity and screen flags too
         stop()
+        mSoundPlayer.stopSound()
         mAudioDeviceManager.close()
         super.invalidate()
     }
@@ -203,6 +207,16 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
                 deviceId
             )
         }
+    }
+
+    @ReactMethod
+    fun playSound(soundName: String?, playIfMuted: Boolean) {
+        mSoundPlayer.playSound(soundName, playIfMuted)
+    }
+
+    @ReactMethod
+    fun stopSound() {
+        mSoundPlayer.stopSound()
     }
 
     @ReactMethod

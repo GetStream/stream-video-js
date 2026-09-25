@@ -83,7 +83,10 @@ class StreamInCallManager: RCTEventEmitter {
     /// Wired in `setup()`; torn down in `stop()`.
     private var engineSubscription: AnyCancellable?
 
+    private let soundPlayer = SoundPlayer()
+
     override func invalidate() {
+        stopSound()
         stop()
         super.invalidate()
     }
@@ -881,6 +884,21 @@ class StreamInCallManager: RCTEventEmitter {
                 self?.setProximityMonitoringEnabled(enabled)
             }
         }
+    }
+
+    // MARK: - Call Sounds
+
+    /// Starts the looping ringing tone. See `SoundPlayer`.
+    /// - Parameter playIfMuted: Android-only, accepted so the bridge signature matches across
+    ///   platforms; iOS playback follows the call's audio session.
+    @objc(playSound:playIfMuted:)
+    func playSound(soundName: String?, playIfMuted: Bool) {
+        soundPlayer.playSound(soundName)
+    }
+
+    @objc(stopSound)
+    func stopSound() {
+        soundPlayer.stopSound()
     }
 
     // MARK: - RCTEventEmitter

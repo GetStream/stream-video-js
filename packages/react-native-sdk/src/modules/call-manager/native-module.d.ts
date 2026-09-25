@@ -72,6 +72,18 @@ export interface CallManager extends NativeModule {
   setup: () => void;
 
   /**
+   * Starts the looping sound.
+   * @param soundName - The name of the sound resource. Nothing plays when it can't be resolved.
+   * @param playIfMuted - Whether to play even when the ringer is silenced. Android-only.
+   */
+  playSound: (soundName: string, playIfMuted: boolean) => void;
+
+  /**
+   * Stops the sound started by `playSound`.
+   */
+  stopSound: () => void;
+
+  /**
    * Mutes the speaker
    */
   muteAudioOutput: () => void;
