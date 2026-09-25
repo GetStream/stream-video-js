@@ -240,6 +240,7 @@ describe('Publisher', () => {
           error,
         );
         expect(publisher['transceiverCache'].items()).toHaveLength(0);
+        expect(publisher['clonedTracks'].size).toBe(0);
       });
 
       it('leaves the cloned track alone on React Native', async () => {

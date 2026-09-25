@@ -222,13 +222,13 @@ export class Publisher extends BasePeerConnection {
   ) => {
     this.transceiverCache.remove(transceiver);
     this.trackIdToTrackType.delete(track.id);
+    // on React Native a clone shares its native source, so stopping it here
+    // would stop the track the caller passed in. dispose() releases it.
+    if (!isReactNative()) this.stopTrack(track);
     try {
       transceiver.stop();
-      // on React Native a clone shares its native source, so stopping it here
-      // would stop the track the caller passed in. dispose() releases it.
-      if (!isReactNative()) this.stopTrack(track);
     } catch (err) {
-      this.logger.debug('Failed to clean up a retired transceiver', err);
+      this.logger.debug('Failed to stop a retired transceiver', err);
     }
   };
 
