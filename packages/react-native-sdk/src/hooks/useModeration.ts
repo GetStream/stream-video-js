@@ -26,7 +26,6 @@ export const useModeration = (options?: ModerationOptions) => {
     disableAllFilters,
   } = filtersApi || {};
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const restoreRef = useRef<Promise<void>>(undefined);
   useEffect(() => {
     if (!call) return;
     const unsubscribe = call.on('call.moderation_blur', () => {
@@ -42,26 +41,30 @@ export const useModeration = (options?: ModerationOptions) => {
         return;
       }
 
-      restoreRef.current = (restoreRef.current || Promise.resolve()).then(() =>
-        applyVideoBlurFilter?.('heavy').then(() => {
-          if (duration <= 0) return;
+      try {
+        applyVideoBlurFilter?.('heavy');
+      } catch {
+        void turnCameraOff();
+        return;
+      }
+      if (duration <= 0) return;
 
-          const restore = () => {
-            const { blur, image } = currentBackgroundFilter || {};
-            const action = blur
-              ? applyBackgroundBlurFilter?.(blur)
-              : image
-                ? applyBackgroundImageFilter?.(image)
-                : Promise.resolve(disableAllFilters?.());
+      const restore = () => {
+        const { blur, image } = currentBackgroundFilter || {};
+        try {
+          if (blur) {
+            applyBackgroundBlurFilter?.(blur);
+          } else if (image) {
+            applyBackgroundImageFilter?.(image);
+          } else {
+            disableAllFilters?.();
+          }
+        } catch (err) {
+          console.error(`Failed to restore pre-moderation effect`, err);
+        }
+      };
 
-            action?.catch((err) => {
-              console.error(`Failed to restore pre-moderation effect`, err);
-            });
-          };
-
-          blurTimeoutRef.current = setTimeout(restore, duration);
-        }, turnCameraOff),
-      );
+      blurTimeoutRef.current = setTimeout(restore, duration);
     });
     return () => {
       unsubscribe();
@@ -77,10 +80,5 @@ export const useModeration = (options?: ModerationOptions) => {
     isSupported,
   ]);
 
-  useEffect(
-    () => () => {
-      restoreRef.current?.then(() => clearTimeout(blurTimeoutRef.current));
-    },
-    [],
-  );
+  useEffect(() => () => clearTimeout(blurTimeoutRef.current), []);
 };

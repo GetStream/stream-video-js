@@ -23,21 +23,27 @@ export type BackgroundFiltersAPI = {
   /**
    * Applies a background image filter to the video.
    *
+   * Throws if the native filter registration fails.
+   *
    * @param imageSource the URL of the image to use as the background.
    */
-  applyBackgroundImageFilter: (imageSource: ImageSourceType) => Promise<void>;
+  applyBackgroundImageFilter: (imageSource: ImageSourceType) => void;
   /**
    * Applies a background blur filter to the video.
    *
+   * Throws if the native filter registration fails.
+   *
    * @param blurLevel the level of blur to apply to the background.
    */
-  applyBackgroundBlurFilter: (blurIntensity: BlurIntensity) => Promise<void>;
+  applyBackgroundBlurFilter: (blurIntensity: BlurIntensity) => void;
   /**
    * Applies a video blur filter to the video.
    *
+   * Throws if the native filter registration fails.
+   *
    * @param blurIntensity the level of blur to apply to the video.
    */
-  applyVideoBlurFilter: (blurIntensity: BlurIntensity) => Promise<void>;
+  applyVideoBlurFilter: (blurIntensity: BlurIntensity) => void;
   /**
    * Disables all filters applied to the video.
    */
