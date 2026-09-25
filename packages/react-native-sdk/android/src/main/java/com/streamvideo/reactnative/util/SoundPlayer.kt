@@ -13,7 +13,7 @@ internal class SoundPlayer(private val context: Context) {
     private var mediaPlayer: MediaPlayer? = null
 
     /**
-     * Starts the ringing sound, replacing any sound that is already playing.
+     * Starts the sound, replacing any sound that is already playing.
      *
      * @param soundName a `res/raw` resource name (with or without extension), or a content /
      * resource URI.
@@ -29,9 +29,6 @@ internal class SoundPlayer(private val context: Context) {
                 return
             }
 
-            // Held locally until it is actually playing: `setDataSource` and `prepare` throw for
-            // an unreadable or unsupported source, and a player that never reaches the field
-            // could not be released by `stopLocked()` — it would leak a native player per call.
             val player = MediaPlayer()
             try {
                 player.setAudioAttributes(audioAttributes(playIfMuted))
