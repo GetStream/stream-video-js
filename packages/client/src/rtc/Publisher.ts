@@ -150,7 +150,9 @@ export class Publisher extends BasePeerConnection {
     const sendEncodings = isSvcCodec(publishOption.codec?.name)
       ? toSvcEncodings(encodings)
       : encodings;
-    const transceiver = this.pc.addTransceiver(track, {
+    // An E2EE sender must never have media before its transform is attached,
+    // including when another track or an ICE restart negotiates this PC.
+    const transceiver = this.pc.addTransceiver(this.e2ee ? track.kind : track, {
       direction: 'sendonly',
       sendEncodings,
     });
@@ -161,21 +163,73 @@ export class Publisher extends BasePeerConnection {
     this.trackIdToTrackType.set(track.id, trackType);
     this.logger.debug(`Added ${TrackType[trackType]} transceiver`);
 
-    const params = transceiver.sender.getParameters();
-    params.degradationPreference =
-      toRTCDegradationPreference(publishOption.degradationPreference) ??
-      'maintain-framerate';
-    await transceiver.sender.setParameters(params);
     if (this.e2ee) {
-      this.e2ee.encrypt(
-        transceiver.sender,
-        publishOption.codec?.name.toLowerCase(),
-        TrackType[publishOption.trackType],
-      );
-      this.logger.debug('E2EE encryptor attached to sender');
+      await this.initEncryptedSender(transceiver, track, publishOption);
+    } else {
+      await this.setDegradationPreference(transceiver.sender, publishOption);
     }
 
     await this.negotiate();
+  };
+
+  /**
+   * Attaches the encryptor, applies sender parameters, then attaches the track.
+   *
+   * `encrypt` must run before the first await: Chrome short-circuits a sender
+   * whose encoded streams aren't created in the task that created it, and the
+   * track goes on last so the sender has no media until both steps succeed.
+   */
+  private initEncryptedSender = async (
+    transceiver: RTCRtpTransceiver,
+    track: MediaStreamTrack,
+    publishOption: PublishOption,
+  ) => {
+    try {
+      const { sender } = transceiver;
+      const codec = publishOption.codec?.name.toLowerCase();
+      this.e2ee!.encrypt(sender, codec, TrackType[publishOption.trackType]);
+      this.logger.debug('E2EE encryptor attached to sender');
+      await this.setDegradationPreference(sender, publishOption);
+      await sender.replaceTrack(track);
+    } catch (err) {
+      this.retireTransceiver(transceiver, track);
+      throw err;
+    }
+  };
+
+  private setDegradationPreference = async (
+    sender: RTCRtpSender,
+    publishOption: PublishOption,
+  ) => {
+    const params = sender.getParameters();
+    params.degradationPreference =
+      toRTCDegradationPreference(publishOption.degradationPreference) ??
+      'maintain-framerate';
+    await sender.setParameters(params);
+  };
+
+  /**
+   * Discards a sender whose E2EE initialization failed.
+   *
+   * A partially initialized sender may carry no transform, so publish() must
+   * not reuse it: retiring it from the cache is what keeps a later publish or
+   * ICE restart from putting cleartext on the wire. Cleanup cannot throw, so
+   * the initialization failure is what reaches the caller.
+   */
+  private retireTransceiver = (
+    transceiver: RTCRtpTransceiver,
+    track: MediaStreamTrack,
+  ) => {
+    this.transceiverCache.remove(transceiver);
+    this.trackIdToTrackType.delete(track.id);
+    // on React Native a clone shares its native source, so stopping it here
+    // would stop the track the caller passed in. dispose() releases it.
+    if (!isReactNative()) this.stopTrack(track);
+    try {
+      transceiver.stop();
+    } catch (err) {
+      this.logger.debug('Failed to stop a retired transceiver', err);
+    }
   };
 
   /**

@@ -22,6 +22,23 @@ export class TransceiverCache {
   };
 
   /**
+   * Retires a failed sender from the reusable cache.
+   *
+   * A transceiver that never reached an m-section also leaves the creation
+   * history: once stopped, it is left out of every later offer, so counting
+   * it would shift the `mid` index of every transceiver added after it. One
+   * that is already associated keeps its slot, since its m-section survives
+   * as a rejected one.
+   */
+  remove = (transceiver: RTCRtpTransceiver) => {
+    const index = this.cache.findIndex((b) => b.transceiver === transceiver);
+    if (index !== -1) this.cache.splice(index, 1);
+    if (transceiver.mid) return;
+    const orderIndex = this.transceiverOrder.indexOf(transceiver);
+    if (orderIndex !== -1) this.transceiverOrder.splice(orderIndex, 1);
+  };
+
+  /**
    * Gets the transceiver for the given publish option.
    */
   get = (publishOption: PublishOption): PublishBundle | undefined => {

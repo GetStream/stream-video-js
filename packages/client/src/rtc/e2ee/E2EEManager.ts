@@ -5,7 +5,16 @@
  * attaching their own encoded transform in these two methods.
  */
 export interface E2EEManager {
-  /** `trackType` only groups perf stats, keeping a camera and screen share apart. */
+  /**
+   * Synchronously attach a transform that encrypts the sender's outgoing frames.
+   * Must support a sender without a track, and throw if attachment fails.
+   *
+   * `sender.track` is always null here: the track is attached only after this
+   * returns, so implementations must not read it. Use `codec` and `trackType`
+   * instead.
+   *
+   * `trackType` only groups perf stats, keeping a camera and screen share apart.
+   */
   encrypt(sender: RTCRtpSender, codec?: string, trackType?: string): void;
   /** `trackType` only groups perf stats, keeping a peer's audio and video apart. */
   decrypt(receiver: RTCRtpReceiver, userId: string, trackType?: string): void;

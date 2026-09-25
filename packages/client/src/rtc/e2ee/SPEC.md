@@ -79,7 +79,7 @@ await call.join();
 - **Removal comes in per-epoch and per-user forms, and the names must stay distinct.** `removeKey(userId, keyIndex)` retires one epoch; `removeAllKeys(userId)` revokes the participant entirely. Do not render these as overloads of one name: dropping the index argument would then silently mean "revoke everything", which is the opposite of the caller's intent and impossible to catch in review.
 - **Every key operation's outcome is tabulated in Appendix B.** Implement the edge cases (removing the latest or active epoch, a failed import, an absent index) from that table rather than from prose.
 - **Join request carries `e2ee: true`** so the backend knows the call is encrypted.
-- The internal attach points (`encrypt(sender, codec, trackType)` / `decrypt(receiver, userId, trackType)`) are called by the RTC layer, not by apps. Keeping them behind a small interface lets an integrator plug in a different scheme (e.g. SFrame).
+- The internal attach points (`encrypt(sender, codec, trackType)` / `decrypt(receiver, userId, trackType)`) are called by the RTC layer, not by apps. The publisher creates an E2EE sender without a track and attaches media only after `encrypt` returns and sender parameters succeed. `encrypt` must synchronously attach the transform or throw, and must support a sender whose `track` is null. A failed initialization retires that transceiver so retries cannot bypass attachment. Keeping these points behind a small interface lets an integrator plug in a different scheme (e.g. SFrame).
 
 ---
 
