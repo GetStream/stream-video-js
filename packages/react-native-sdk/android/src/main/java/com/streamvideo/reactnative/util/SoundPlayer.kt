@@ -1,4 +1,4 @@
-package com.streamvideo.reactnative.callmanager
+package com.streamvideo.reactnative.util
 
 import android.content.Context
 import android.media.AudioAttributes
