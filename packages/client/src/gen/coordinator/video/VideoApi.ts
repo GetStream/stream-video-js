@@ -122,7 +122,7 @@ export class VideoApi {
       '/api/v2/video/call/stats',
       undefined,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -153,7 +153,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -207,7 +207,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/delete',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -220,7 +220,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/event',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -246,7 +246,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/go_live',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -300,7 +300,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/members',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -313,7 +313,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/mute_users',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -380,7 +380,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/recordings/{recording_type}/start',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -393,7 +393,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/recordings/{recording_type}/stop',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -406,7 +406,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/reject',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -444,7 +444,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/ring',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -494,7 +494,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/rtmp_broadcasts/{name}/stop',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -554,7 +554,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/start_closed_captions',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -567,7 +567,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/start_frame_recording',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -580,7 +580,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/start_transcription',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -605,7 +605,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/stop_closed_captions',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -630,7 +630,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/stop_live',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -643,7 +643,7 @@ export class VideoApi {
       '/api/v2/video/call/{type}/{id}/stop_transcription',
       pathParams,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -746,7 +746,7 @@ export class VideoApi {
       '/api/v2/video/call_stats',
       undefined,
       undefined,
-      request,
+      request ?? {},
     );
   }
 
@@ -882,7 +882,7 @@ export class VideoApi {
       '/api/v2/video/stats',
       undefined,
       undefined,
-      request,
+      request ?? {},
     );
   }
 }
