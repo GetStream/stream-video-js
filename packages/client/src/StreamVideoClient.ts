@@ -53,11 +53,6 @@ export class StreamVideoClient {
 
   /**
    * The generated API for all coordinator operations.
-   *
-   * `StreamVideoClient` promotes the handful it curates (`queryCalls`,
-   * `createGuestUser`, ...) to its own surface; the rest of the coordinator -
-   * polls, uploads, block lists, user groups - is reachable here rather than
-   * being flattened onto the client.
    */
   readonly api: VideoApi;
 
@@ -500,9 +495,6 @@ export class StreamVideoClient {
   /**
    * Queries calls and returns them as live {@link Call} instances, applying the
    * device config and, with `watch: true`, setting up and registering each one.
-   *
-   * The raw operation, returning the response exactly as the API sends it, is
-   * `client.api.queryCalls()`.
    *
    * @param data the query data.
    * @param opts additional options, for tweaking the API behavior.

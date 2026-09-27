@@ -24,19 +24,7 @@ export const nsToDate = (ns: TimestampNS): Date => new Date(nsToMs(ns));
 export const dateToNs = (date: Date): TimestampNS => msToNs(date.getTime());
 
 /**
- * A server-sent timestamp as a `Date`, or `undefined` when there is none.
- *
- * The guarded companion to {@link nsToDate}, for the boundary where a wire
- * timestamp becomes something a date library or a UI prop consumes. Use
- * {@link nsToDate} when the value is known to be present; use this when it comes
- * straight off a response, an event or persisted state.
- *
- * The guard covers three cases that are silent rather than loud: an absent value
- * (`nsToDate(undefined as never)` yields an `Invalid Date`, and
- * `.toISOString()` on one throws `RangeError`, typically mid-render), a
- * non-finite one (a malformed payload or hand-built fixture producing `NaN`)
- * and a finite one outside the range `Date` can represent (about ±8.64e15 ms
- * from the epoch), which also yields an `Invalid Date`.
+ * A server-sent timestamp as a `Date`, or `undefined` when absent or invalid.
  */
 export const convertTimestampToDate = (
   timestamp?: TimestampNS | null,

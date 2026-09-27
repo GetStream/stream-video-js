@@ -175,11 +175,6 @@ export type StreamVideoEvent = (
 ) & {
   /**
    * When this client received the frame, as a unix-nanosecond timestamp.
-   *
-   * Stamped locally on every incoming frame, so it follows the same wire
-   * convention as the server-sent dates on the event itself. Nine generated
-   * client events (`health.check`, `app.updated`, `user.*`) also declare
-   * `received_at`; the local stamp overwrites those.
    */
   received_at?: TimestampNS;
 };

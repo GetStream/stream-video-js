@@ -1,25 +1,12 @@
 import type { AxiosResponse } from 'axios';
 import type { StreamClient } from './client';
 
-/**
- * Rate-limit state reported by the coordinator on every response.
- *
- * `rate_limit_reset` is a `Date` rather than a wire timestamp: it is built here
- * from the `x-ratelimit-reset` header, not read off a response body, so it never
- * goes through the unix-nanosecond convention the API uses for its own dates.
- */
 export type RateLimit = {
   rate_limit?: number;
   rate_limit_remaining?: number;
   rate_limit_reset?: Date;
 };
 
-/**
- * Per-request metadata attached to every generated API response.
- *
- * Field names match `stream-chat` and `@stream-io/feeds-client` exactly — the
- * same envelope across all three SDKs is worth more than a naming preference.
- */
 export type RequestMetadata = {
   response_headers: Record<string, string>;
   rate_limit: RateLimit;
@@ -33,13 +20,6 @@ export type StreamResponse<T> = T & {
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
-/**
- * Adapter between the generated API classes and {@link StreamClient}.
- *
- * It delegates rather than owning transport: HTTP auth is coupled to the live
- * WebSocket through `connection_id`, so `StreamClient` keeps auth, token
- * refresh, reconnection and error wrapping.
- */
 export class ApiClient {
   private readonly streamClient: StreamClient;
 
@@ -73,7 +53,6 @@ export class ApiClient {
   };
 }
 
-/** Fills `{param}` placeholders and prefixes the coordinator base URL. */
 const buildRequestUrl = (
   baseURL: string,
   pathTemplate: string,

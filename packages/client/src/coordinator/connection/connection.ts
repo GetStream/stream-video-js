@@ -705,11 +705,6 @@ export class StableWSConnection {
       const { error } = event;
       code = error.code;
       message = error.message;
-      // The OpenAPI spec and the backend both spell this `StatusCode`
-      // (monolith/errors/errors.go: `json:"StatusCode"`, kept for backward
-      // compatibility). The TypeScript generator snake_cases property names,
-      // so the model declares `status_code` - a name that never appears on the
-      // wire. Read the real one; the fallback covers a generator fix.
       statusCode =
         (error as { StatusCode?: number }).StatusCode ?? error.status_code;
     }

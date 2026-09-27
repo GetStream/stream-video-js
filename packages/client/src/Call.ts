@@ -166,18 +166,10 @@ export class Call {
   readonly cid: string;
 
   /**
-   * The generated API for this call, scoped to its type and id.
-   *
-   * `Call` promotes the operations it curates (see `endCall`, `muteOthers`,
-   * `sendReaction`, ...) to its own surface; anything it does not is reachable
-   * here without waiting for a hand-written passthrough.
+   * The generated API for this call.
    */
   readonly api: CallApi;
 
-  /**
-   * The generated API for call-independent operations, and the transport that
-   * `api` delegates through.
-   */
   protected readonly videoApi: VideoApi;
 
   /**
@@ -2702,8 +2694,7 @@ export class Call {
   /**
    * Starts recording the call.
    *
-   * @param recordingType the kind of recording to start. The v2 API requires
-   * one; `composite` matches what the removed v1 route defaulted to.
+   * @param recordingType the kind of recording to start.
    * @param request optional recording settings.
    */
   startRecording = (
@@ -2763,8 +2754,6 @@ export class Call {
    * (for example, a user might be allowed to request permission to publish audio, but not video).
    */
   requestPermissions = async (
-    // The v2 spec widened `permissions` from an enum to `string[]`. Narrowing
-    // it back keeps `canRequest` exhaustive and stops a typo compiling.
     data: Omit<RequestPermissionRequest, 'permissions'> & {
       permissions: OwnCapability[];
     },

@@ -314,8 +314,7 @@ export type CallConstructor = {
   clientEventReporter: ClientEventReporter;
 
   /**
-   * The shared generated API client, owned by `StreamVideoClient`. `VideoApi`
-   * holds no per-call state, so every `Call` reuses the one instance.
+   * The shared generated API client, owned by `StreamVideoClient`.
    */
   videoApi: VideoApi;
 

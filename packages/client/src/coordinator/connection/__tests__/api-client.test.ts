@@ -24,8 +24,6 @@ const setup = (response: AxiosResponse = axiosResponse()) => {
   return { apiClient: new ApiClient(streamClient), doAxiosRequest };
 };
 
-// The generated classes call sendRequest positionally, so the argument order
-// asserted here is part of the generator contract.
 describe('ApiClient.sendRequest', () => {
   it('lowercases the method and resolves the path against baseURL', async () => {
     const { apiClient, doAxiosRequest } = setup();

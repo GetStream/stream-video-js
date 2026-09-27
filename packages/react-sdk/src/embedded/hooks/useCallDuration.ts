@@ -13,10 +13,8 @@ const formatElapsed = (seconds: number) => {
 };
 
 /**
- * Returns a live-updating formatted elapsed duration string computed from the
- * given start time.
- *
- * @param startedAt a server-sent timestamp, in unix nanoseconds.
+ * Returns a live-updating formatted elapsed duration string
+ * computed from the given start date.
  */
 export const useCallDuration = (startedAt?: TimestampNS) => {
   const startedAtDate = useMemo(

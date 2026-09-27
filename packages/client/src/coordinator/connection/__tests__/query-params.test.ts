@@ -32,16 +32,6 @@ describe('stringifyQueryParams', () => {
     );
   });
 
-  /**
-   * Writing the serializer is not enough: it has to be the one axios uses.
-   * It was previously handed over per request and silently dropped on the way,
-   * so every request fell back to the axios default - `filter_conditions` went
-   * out as `filter_conditions[user_id][$eq]=x`, which the coordinator does not
-   * read, and filters were applied server-side to nothing.
-   *
-   * Installed on the instance, it covers the generated client and the
-   * hand-written `streamClient.get/post/...` helpers alike.
-   */
   it('is the serializer axios actually uses', () => {
     const client = new StreamClient('key', { baseURL: 'https://x.io' });
     const config = (

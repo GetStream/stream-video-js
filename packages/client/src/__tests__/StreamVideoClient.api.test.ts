@@ -27,15 +27,9 @@ describe('StreamVideoClient - coordinator API', () => {
   let client: StreamVideoClient;
   let request: Mock<StreamClient['doAxiosRequest']>;
 
-  /** Makes the spy resolve with `data`, shaped as an axios response. */
   const respondWith = (data: unknown) =>
     request.mockResolvedValue({ data, status: 200, headers: {} } as never);
 
-  /**
-   * Asserts a request was issued, matching the path by suffix. When a body is
-   * given, some request with that path must carry it - the generated client
-   * fills absent optional keys with `undefined`, so the comparison ignores them.
-   */
   const expectRequest = (method: string, path: string, body?: unknown) => {
     const toPath = request.mock.calls.filter(
       ([m, url]) => m === method && String(url).endsWith(path),
@@ -44,7 +38,6 @@ describe('StreamVideoClient - coordinator API', () => {
     if (body === undefined) return;
     const defined = (value: unknown) =>
       JSON.parse(JSON.stringify(value ?? null));
-    // the most recent matching request, not "some request had this body"
     expect(defined(toPath[toPath.length - 1][2])).toEqual(defined(body));
   };
 
