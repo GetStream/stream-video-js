@@ -138,6 +138,7 @@
   "mobileBanner.tryNativeDemo.description": "Wir sehen, dass du ein mobiles Gerät verwendest. Warum probierst du es nicht in einer unserer nativen mobilen Apps aus:",
   "mobileBanner.tryNativeDemo.title": "Native Demo ausprobieren!",
   "mobileBanner.tryReactNative.label": "React Native ausprobieren",
+  "notification.cameraUnavailable.text": "Kamera konnte nicht gestartet werden. Schließe andere Apps, die sie verwenden könnten, und versuche es erneut.",
   "notification.degradedPerformance.cpuOverloaded.text": "Hintergrundfilter reduzieren die Bildrate und überlasten die CPU. Deaktiviere die Filter für optimale Leistung.",
   "notification.degradedPerformance.degraded.text": "Die Leistung der Hintergrundfilter ist beeinträchtigt. Erwäge, die Filter für optimale Leistung zu deaktivieren.",
   "notification.degradedPerformance.frameRateReduced.text": "Hintergrundfilter reduzieren die Bildrate. Erwäge, die Filter für optimale Leistung zu deaktivieren.",
