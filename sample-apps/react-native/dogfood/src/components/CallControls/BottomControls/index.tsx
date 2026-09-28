@@ -6,7 +6,7 @@ import {
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import React, { useMemo, useState } from 'react';
-import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
+import { LayoutChangeEvent, ScrollView, StyleSheet, View } from 'react-native';
 import { MoreActionsButton } from '../MoreActionsButton';
 import { ParticipantsButton } from './ParticipantsButton';
 import { ChatButton } from './ChatButton';
@@ -48,34 +48,48 @@ export const BottomControls = ({
     setMeasuredHeight(event.nativeEvent.layout.height);
   };
 
+  const buttons = (
+    <>
+      <View style={[styles.left, landscape && styles.groupLandscape]}>
+        <MoreActionsButton controlsContainerHeight={controlsContainerHeight} />
+        <ToggleAudioPublishingButton />
+        <ToggleVideoPublishingButton />
+        <ScreenShareToggleButton
+          screenShareOptions={{ type: 'broadcast', includeAudio: true }}
+        />
+        <RecordCallButton
+          toggleCallRecording={toggleCallRecording}
+          isAwaitingResponse={isAwaitingResponse}
+          isCallRecordingInProgress={isCallRecordingInProgress}
+        />
+      </View>
+      <View style={[styles.right, landscape && styles.groupLandscape]}>
+        <ParticipantsButton onParticipantInfoPress={onParticipantInfoPress} />
+        {onChatOpenHandler && <ChatButton onPressHandler={onChatOpenHandler} />}
+      </View>
+    </>
+  );
+
   return (
     <>
-      <View
-        style={[styles.container, landscape && styles.containerLandscape]}
-        onLayout={onLayout}
-      >
-        <View style={[styles.left, landscape && styles.groupLandscape]}>
-          <MoreActionsButton
-            controlsContainerHeight={controlsContainerHeight}
-          />
-          <ToggleAudioPublishingButton />
-          <ToggleVideoPublishingButton />
-          <ScreenShareToggleButton
-            screenShareOptions={{ type: 'broadcast', includeAudio: true }}
-          />
-          <RecordCallButton
-            toggleCallRecording={toggleCallRecording}
-            isAwaitingResponse={isAwaitingResponse}
-            isCallRecordingInProgress={isCallRecordingInProgress}
-          />
+      {landscape ? (
+        // a short window cannot fit the whole column, so let it scroll
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          onLayout={onLayout}
+          contentContainerStyle={[
+            styles.containerLandscape,
+            styles.landscapeContent,
+          ]}
+        >
+          {buttons}
+        </ScrollView>
+      ) : (
+        <View style={styles.container} onLayout={onLayout}>
+          {buttons}
         </View>
-        <View style={[styles.right, landscape && styles.groupLandscape]}>
-          <ParticipantsButton onParticipantInfoPress={onParticipantInfoPress} />
-          {onChatOpenHandler && (
-            <ChatButton onPressHandler={onChatOpenHandler} />
-          )}
-        </View>
-      </View>
+      )}
       {controlsContainerHeight !== undefined && (
         <SubtitleContainer controlsContainerHeight={controlsContainerHeight} />
       )}
@@ -114,6 +128,9 @@ const useStyles = () => {
           paddingTop: theme.variants.spacingSizes.sm,
           paddingBottom: theme.variants.spacingSizes.sm,
           paddingHorizontal: theme.variants.spacingSizes.sm,
+        },
+        landscapeContent: {
+          flexGrow: 1,
         },
         groupLandscape: {
           flex: 0,
