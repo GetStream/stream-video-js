@@ -75,6 +75,7 @@ export const BottomControls = ({
       {landscape ? (
         // a short window cannot fit the whole column, so let it scroll
         <ScrollView
+          style={styles.landscapeScroll}
           showsVerticalScrollIndicator={false}
           bounces={false}
           onLayout={onLayout}
@@ -128,6 +129,11 @@ const useStyles = () => {
           paddingTop: theme.variants.spacingSizes.sm,
           paddingBottom: theme.variants.spacingSizes.sm,
           paddingHorizontal: theme.variants.spacingSizes.sm,
+        },
+        // a ScrollView grows by default and would take width from the video
+        landscapeScroll: {
+          flexGrow: 0,
+          flexShrink: 0,
         },
         landscapeContent: {
           flexGrow: 1,
