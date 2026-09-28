@@ -373,6 +373,13 @@ class CallingxModule implements ICallingxModule {
     }, CallingxModule.KEEP_ALIVE_STOP_DEBOUNCE_MS);
   };
 
+  getFcmToken = async (): Promise<string> => {
+    if (Platform.OS !== 'android') {
+      return '';
+    }
+    return NativeCallingModule.getFcmToken();
+  };
+
   fulfillAnswerCallAction = (callId: string, didFail: boolean): void => {
     NativeCallingModule.fulfillAnswerCallAction(callId, didFail);
   };

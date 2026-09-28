@@ -7,7 +7,10 @@ import {
 import type { StreamVideoConfig } from '../../StreamVideoRN/types';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { AppState } from 'react-native';
-import type { EndCallReason } from '@stream-io/react-native-callingx';
+import type {
+  EndCallReason,
+  RingCallPushPayload,
+} from '@stream-io/react-native-callingx';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -187,15 +190,12 @@ export const canListenToWS = () =>
 
 export const shouldCallBeClosed = (
   call: Call,
-  pushData: { [key: string]: string | object },
+  pushData: RingCallPushPayload | undefined,
 ) => {
-  const created_by_id = pushData?.created_by_id as string;
-  const receiver_id = pushData?.receiver_id as string;
-
   const { mustEndCall, endCallReason } = shouldCallBeEnded(
     call,
-    created_by_id,
-    receiver_id,
+    pushData?.created_by_id,
+    pushData?.receiver_id,
   );
   return { mustEndCall, endCallReason };
 };

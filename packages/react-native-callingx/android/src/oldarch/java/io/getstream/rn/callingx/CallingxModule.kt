@@ -186,6 +186,11 @@ class CallingxModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun getFcmToken(promise: Promise) {
+        impl.getFcmToken(promise)
+    }
+
+    @ReactMethod
     fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
         impl.fulfillAnswerCallAction(callId, didFail)
     }
