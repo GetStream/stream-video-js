@@ -27,6 +27,11 @@ import {
 } from '../../Participant/ParticipantView';
 import type { CallContentProps } from '../CallContent';
 import { useTheme } from '../../../contexts';
+import {
+  DEFAULT_NUMBER_OF_COLUMNS,
+  getAutoNumberOfColumns,
+  getVisibleRows,
+} from './gridSizing';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant>
@@ -61,7 +66,8 @@ export type CallParticipantsListProps = CallParticipantsListComponentProps &
     participants: StreamVideoParticipant[];
     /**
      * The number of columns to display in the list of participants while in vertical or horizontal scrolling mode. This property is only used when there are more than 2 participants.
-     * @default 2
+     * When omitted, vertical lists pick between 2 and 4 columns based on the size of the list's container,
+     * so wide containers (landscape, tablets, large foldable displays) don't stretch the tiles. Horizontal lists default to 2.
      */
     numberOfColumns?: number;
     /**
@@ -82,7 +88,7 @@ export type CallParticipantsListProps = CallParticipantsListComponentProps &
  * hence it should be used only in a flex parent container
  */
 export const CallParticipantsList = ({
-  numberOfColumns = 2,
+  numberOfColumns: numberOfColumnsProp,
   horizontal,
   participants,
   ParticipantView = DefaultParticipantView,
@@ -185,6 +191,16 @@ export const CallParticipantsList = ({
     },
     [],
   );
+
+  const numberOfColumns =
+    numberOfColumnsProp ??
+    (horizontal
+      ? DEFAULT_NUMBER_OF_COLUMNS
+      : getAutoNumberOfColumns({
+          containerHeight: containerLayout.height,
+          containerWidth: containerLayout.width,
+          participantsLength: participants.length,
+        }));
 
   const { itemHeight, itemWidth } = calculateParticipantViewSize({
     containerHeight: containerLayout.height,
@@ -350,13 +366,8 @@ function calculateParticipantViewSize({
   let itemHeight = containerHeight;
   // in vertical mode, we calculate the height of the participant view based on the containerHeight (aka the phone's screen height)
   if (!horizontal) {
-    if (participantsLength <= 4) {
-      // special case: if there are 4 or less participants, we display them in 2 rows
-      itemHeight = containerHeight / 2;
-    } else {
-      // generally, we display the participants in 3 rows
-      itemHeight = containerHeight / 3;
-    }
+    itemHeight =
+      containerHeight / getVisibleRows(participantsLength, numberOfColumns);
   }
 
   let itemWidth = containerWidth / numberOfColumns;
