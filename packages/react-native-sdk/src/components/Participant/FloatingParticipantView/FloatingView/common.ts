@@ -59,14 +59,14 @@ export function getClosestSnapAlignment({
 }: {
   position: { x: number; y: number };
   snapAlignments: SnapAlignments;
-}) {
+}): FloatingViewAlignment {
   'worklet';
   let minDistanceSquared = Number.MAX_VALUE;
   let closestSnapAlignmentKey: FloatingViewAlignment =
     FloatingViewAlignment.topRight;
   for (const key in snapAlignments) {
-    // NOTE: key is a string always but we know that it is a FloatingViewAlignment, so we have to cast it unfortunately
-    const currentAlignmentKey = key as unknown as FloatingViewAlignment;
+    // NOTE: for...in yields string keys, so convert back to the numeric enum value
+    const currentAlignmentKey = Number(key) as FloatingViewAlignment;
     const offset = snapAlignments[currentAlignmentKey];
     const currDistanceSquared =
       (offset.x - position.x) * (offset.x - position.x) +
@@ -76,7 +76,7 @@ export function getClosestSnapAlignment({
       closestSnapAlignmentKey = currentAlignmentKey;
     }
   }
-  return snapAlignments[closestSnapAlignmentKey];
+  return closestSnapAlignmentKey;
 }
 
 export type FloatingViewProps = React.PropsWithChildren<{
