@@ -2,6 +2,26 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.46.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.45.2...@stream-io/video-react-native-sdk-1.46.0) (2026-09-28)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.11.1`
+- `@stream-io/react-native-callingx` updated to version `0.11.5`
+- `@stream-io/video-filters-react-native` updated to version `0.16.2`
+- `@stream-io/video-client` updated to version `1.61.0`
+- `@stream-io/video-react-bindings` updated to version `1.20.4`
+
+### Features
+
+- **rn:** add end-to-end encryption support ([#2427](https://github.com/GetStream/stream-video-js/issues/2427)) ([fcd9722](https://github.com/GetStream/stream-video-js/commit/fcd97225597c26ec14bde100b6a4ed14da0ccf93))
+
+### Bug Fixes
+
+- **react-native-callingx:** use <packageName>:<callId> as the Android Telecom address ([#2453](https://github.com/GetStream/stream-video-js/issues/2453)) ([9d484fe](https://github.com/GetStream/stream-video-js/commit/9d484fe22966b0abb6d02a7a39c8f3df394c2508)), closes [#2452](https://github.com/GetStream/stream-video-js/issues/2452) [#2452](https://github.com/GetStream/stream-video-js/issues/2452)
+- **react-native:** iOS Picture in Picture window size must be reported ([#2448](https://github.com/GetStream/stream-video-js/issues/2448)) ([cfea22b](https://github.com/GetStream/stream-video-js/commit/cfea22bfb60464b156031ebdb85f063ca29f6ea2))
+- replaced RTCView with camera preview for outgoing call component ([#2450](https://github.com/GetStream/stream-video-js/issues/2450)) ([551083f](https://github.com/GetStream/stream-video-js/commit/551083fdeae3664e5a71c4de7b9b27c345283db0)), closes [#2436](https://github.com/GetStream/stream-video-js/issues/2436)
+
 ## [1.45.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.45.1...@stream-io/video-react-native-sdk-1.45.2) (2026-09-11)
 
 ### Dependency Updates
