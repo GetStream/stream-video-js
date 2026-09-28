@@ -6,9 +6,11 @@ import {
   CallControlsButtonStyle,
   type Insets,
 } from './types';
-import { tokens } from './tokens';
+import { tokens, type ThemeColorScheme } from './tokens';
 import { IStreamTokens } from './tokens/StreamTokens.types';
 import { DeepPartial } from '../contexts';
+
+export type { ThemeColorScheme };
 
 export type Theme = {
   foundations: Required<IStreamTokens['foundations']>;
@@ -219,8 +221,8 @@ export type Theme = {
   [component: string]: any;
 };
 
-export const resolveTheme = (isDark: boolean): Theme => {
-  const theme = isDark ? tokens.dark : tokens.light;
+export const resolveTheme = (colorScheme: ThemeColorScheme): Theme => {
+  const theme = tokens[colorScheme];
   return {
     foundations: theme.foundations,
     semantics: theme.semantics,
@@ -954,4 +956,4 @@ export const resolveTheme = (isDark: boolean): Theme => {
   };
 };
 
-export const defaultTheme = resolveTheme(false);
+export const defaultTheme = resolveTheme('light');

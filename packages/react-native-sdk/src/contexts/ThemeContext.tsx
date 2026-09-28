@@ -1,11 +1,15 @@
 import React, {
   createContext,
-  type PropsWithChildren,
   useContext,
   useMemo,
+  type PropsWithChildren,
 } from 'react';
 
-import { defaultTheme, type Theme } from '../theme/theme';
+import {
+  resolveTheme,
+  type Theme,
+  type ThemeColorScheme,
+} from '../theme/theme';
 
 /**
  * Recursively marks every property of `T` as optional.
@@ -23,6 +27,7 @@ export type DeepPartial<T> = {
 export type StreamThemeInputValue = {
   mergedStyle?: Theme;
   style?: DeepPartial<Theme>;
+  colorScheme?: ThemeColorScheme;
 };
 
 /**
@@ -61,12 +66,11 @@ const merge = <T extends Record<string, unknown>>(
 
 export const mergeThemes = (params: MergedThemesParams) => {
   const { style, theme } = params;
-  const finalTheme = (
-    !theme || Object.keys(theme).length === 0
-      ? JSON.parse(JSON.stringify(defaultTheme))
-      : JSON.parse(JSON.stringify(theme))
-  ) as Theme;
 
+  const base =
+    !theme || Object.keys(theme).length === 0 ? resolveTheme('light') : theme;
+
+  const finalTheme = JSON.parse(JSON.stringify(base)) as Theme;
   if (style) {
     merge(finalTheme, style);
   }
@@ -83,15 +87,31 @@ export const ThemeContext = createContext<Theme>(
 export const StreamTheme: React.FC<
   PropsWithChildren<StreamThemeInputValue & Partial<ThemeContextValue>>
 > = (props) => {
-  const { children, mergedStyle, style, theme } = props;
+  const { children, mergedStyle, style, theme, colorScheme } = props;
+
+  const parentTheme = useContext(ThemeContext);
+  const inheritedTheme =
+    parentTheme === DEFAULT_BASE_CONTEXT_VALUE ? undefined : parentTheme;
 
   const modifiedTheme = useMemo(() => {
     if (mergedStyle) {
       return mergedStyle;
     }
 
-    return mergeThemes({ style, theme });
-  }, [mergedStyle, style, theme]);
+    // Picks the base theme that `style` is then layered on top of. The first
+    // of these that is present wins:
+    //
+    //   1. `theme`        - a complete theme supplied by the consumer.
+    //   2. `colorScheme`  - prebuild theme corresponding to the color scheme.
+    //   3. the parent     - the theme of an enclosing `StreamTheme`, so a
+    //                       nested provider adding a few overrides keeps the
+    //                       scheme chosen above.
+    //   4. light          - default when all else is undefined.
+    const base =
+      theme ?? (colorScheme ? resolveTheme(colorScheme) : inheritedTheme);
+
+    return mergeThemes({ style, theme: base });
+  }, [mergedStyle, style, theme, colorScheme, inheritedTheme]);
 
   return (
     <ThemeContext.Provider value={modifiedTheme}>

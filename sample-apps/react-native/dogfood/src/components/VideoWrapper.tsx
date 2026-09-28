@@ -33,7 +33,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const disableRingStatePolling = useAppGlobalStoreValue(
     (store) => store.disableRingStatePolling,
   );
-  const customTheme = useCustomTheme(themeMode);
+  const customTheme = useCustomTheme();
   const setState = useAppGlobalStoreSetState();
 
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
@@ -129,7 +129,11 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   }
 
   return (
-    <StreamVideo client={videoClient} style={customTheme}>
+    <StreamVideo
+      client={videoClient}
+      style={customTheme}
+      colorScheme={themeMode}
+    >
       <NonRingingPushTokenRegistration />
       {children}
     </StreamVideo>

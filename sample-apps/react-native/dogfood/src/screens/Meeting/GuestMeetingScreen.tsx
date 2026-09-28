@@ -22,7 +22,7 @@ export const GuestMeetingScreen = (props: Props) => {
     (store) => store.appEnvironment,
   );
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
-  const customTheme = useCustomTheme(themeMode);
+  const customTheme = useCustomTheme();
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
     undefined,
   );
@@ -87,7 +87,11 @@ export const GuestMeetingScreen = (props: Props) => {
   }
 
   return (
-    <StreamVideo client={videoClient} style={customTheme}>
+    <StreamVideo
+      client={videoClient}
+      style={customTheme}
+      colorScheme={themeMode}
+    >
       <StreamCall call={call}>
         <MeetingUI callId={callId} {...props} />
       </StreamCall>

@@ -31,11 +31,7 @@ import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Appearance, LogBox, StatusBar } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
-import {
-  resolveTheme,
-  StreamTheme,
-  useCalls,
-} from '@stream-io/video-react-native-sdk';
+import { StreamTheme, useCalls } from '@stream-io/video-react-native-sdk';
 import Toast from 'react-native-toast-message';
 import { TestRecording } from './src/navigators/TestRecording';
 
@@ -60,11 +56,6 @@ const StackNavigator = () => {
   const userName = useAppGlobalStoreValue((store) => store.userName);
   const setState = useAppGlobalStoreSetState();
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
-
-  const style = React.useMemo(
-    () => resolveTheme(themeMode === 'dark'),
-    [themeMode],
-  );
 
   useEffect(() => {
     Appearance.setColorScheme(themeMode);
@@ -156,14 +147,14 @@ const StackNavigator = () => {
 
   if (!(userId && userImageUrl && userName)) {
     return (
-      <StreamTheme style={style}>
+      <StreamTheme colorScheme={themeMode}>
         <LoginScreen />
       </StreamTheme>
     );
   }
 
   return (
-    <StreamTheme style={style}>
+    <StreamTheme colorScheme={themeMode}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <VideoWrapper>
           <RingingWatcher />

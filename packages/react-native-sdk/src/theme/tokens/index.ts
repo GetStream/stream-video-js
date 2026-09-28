@@ -39,7 +39,4 @@ export const tokens = {
   dark: darkTokens,
 } satisfies Record<'light' | 'dark', StreamTokens>;
 
-/**
- * @internal
- */
-export type TokenColorScheme = keyof typeof tokens;
+export type ThemeColorScheme = keyof typeof tokens;

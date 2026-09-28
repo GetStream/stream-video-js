@@ -14,7 +14,7 @@
  */
 
 import { type DeepPartial, mergeThemes } from '../../src/contexts/ThemeContext';
-import { defaultTheme, type Theme } from '../../src/theme/theme';
+import { defaultTheme, resolveTheme, type Theme } from '../../src/theme/theme';
 
 const semanticsOverride: DeepPartial<Theme> = {
   semantics: { textPrimary: '#000000' },
@@ -55,6 +55,16 @@ describe('mergeThemes', () => {
     expect(mergeThemes({})).toEqual(defaultTheme);
   });
 
+  it('clones before merging so the given theme stays clean', () => {
+    const dark = resolveTheme('dark');
+    const before = dark.semantics.textPrimary;
+    const merged = mergeThemes({ theme: dark, style: semanticsOverride });
+
+    expect(merged).not.toBe(dark);
+    expect(merged.semantics.textPrimary).toBe('#000000');
+    expect(dark.semantics.textPrimary).toBe(before);
+  });
+
   it('merges an override into the defaults without dropping siblings', () => {
     const merged = mergeThemes({ style: semanticsOverride });
 
@@ -86,6 +96,57 @@ describe('mergeThemes', () => {
     mergeThemes({ style: semanticsOverride });
 
     expect(defaultTheme.semantics.textPrimary).toBe(before);
+  });
+
+  it('replaces arrays instead of merging them element-wise', () => {
+    const merged = mergeThemes({
+      style: {
+        participantView: { container: { transform: [{ scaleX: -1 }] } },
+      },
+    });
+
+    expect(merged.participantView.container.transform).toEqual([
+      { scaleX: -1 },
+    ]);
+
+    const replaced = mergeThemes({
+      theme: merged,
+      style: {
+        participantView: { container: { transform: [{ scaleY: 2 }] } },
+      },
+    });
+
+    expect(replaced.participantView.container.transform).toEqual([
+      { scaleY: 2 },
+    ]);
+  });
+
+  it('lets null overwrite a value', () => {
+    const merged = mergeThemes({
+      style: { participantView: { container: { backgroundColor: null } } },
+    });
+
+    expect(merged.participantView.container.backgroundColor).toBeNull();
+  });
+
+  it('replaces a non-object target with an object override', () => {
+    const base = mergeThemes({
+      style: { myCustomComponent: 'not-an-object' },
+    });
+
+    const merged = mergeThemes({
+      theme: base,
+      style: { myCustomComponent: { nested: true } },
+    });
+
+    expect(merged.myCustomComponent).toEqual({ nested: true });
+  });
+
+  it('adds a component block the theme does not declare', () => {
+    const merged = mergeThemes({ style: customComponentOverride });
+
+    expect(merged.myCustomComponent).toEqual({ anything: true });
+    expect(merged.semantics).toEqual(defaultTheme.semantics);
   });
 
   it('ignores undefined values in the override', () => {
