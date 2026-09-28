@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # PreToolUse hook: block PR creation unless a Linear ticket ID is present in
-# the branch name, PR title, or PR body.
+# the PR title or PR body. The branch name does not count.
 #
 # Acts on:
 #   - Bash commands that run `gh pr create` (or its alias `gh pr new`)
@@ -11,7 +11,7 @@
 # Team keys default to REACT, RN, VID; override with LINEAR_TEAM_KEYS="A B C".
 # If LINEAR_API_KEY is set, the ticket is also verified against Linear's API.
 #
-# Requires: bash, jq, git, curl.
+# Requires: bash, jq, curl.
 
 set -uo pipefail
 
@@ -36,17 +36,17 @@ cwd="$(printf '%s' "$input" | jq -r '.cwd // empty')"
 [ -n "$cwd" ] && [ -d "$cwd" ] || cwd="${CLAUDE_PROJECT_DIR:-$PWD}"
 
 haystack=""
-head_branch=""
 
 if [ "$tool_name" = "Bash" ]; then
   cmd="$(printf '%s' "$input" | jq -r '.tool_input.command // empty')"
   printf '%s\n' "$cmd" | grep -qE "$GH_PR_CREATE_RE" || exit 0
 
   # The inline title/body (including heredocs) are part of the command string.
-  haystack="$cmd"
-
-  # --head/-H <branch> (strip an optional "owner:" prefix and quotes).
-  head_branch="$(printf '%s' "$cmd" | grep -oE -- '(--head|-H)[= ]+[^[:space:]]+' | head -n1 | sed -E 's/^(--head|-H)[= ]+//; s/["'\'']//g; s/^[^:]*://')"
+  # Scan from `gh pr create` onward, so earlier commands (e.g. `git switch -c
+  # react-123-...`) don't count, and drop the branch/repo flag values.
+  haystack="$(printf '%s\n' "$cmd" \
+    | awk 'found { print; next } match($0, /gh[[:space:]]+pr[[:space:]]+(create|new)/) { print substr($0, RSTART); found = 1 }' \
+    | sed -E 's/(^|[[:space:]])(--head|-H|--base|-B|--repo|-R)([= ]+)("[^"]*"|'\''[^'\'']*'\''|[^[:space:]]+)/\1/g')"
 
   # --body-file/-F <path>
   body_file="$(printf '%s' "$cmd" | grep -oE -- '(--body-file|-F)[= ]+[^[:space:]]+' | head -n1 | sed -E 's/^(--body-file|-F)[= ]+//; s/["'\'']//g')"
@@ -56,15 +56,11 @@ if [ "$tool_name" = "Bash" ]; then
   fi
 elif printf '%s' "$tool_name" | grep -qiE "$MCP_PR_TOOL_RE"; then
   haystack="$(printf '%s' "$input" | jq -r '[.tool_input.title, .tool_input.body] | map(select(. != null) | tostring) | join("\n")')"
-  head_branch="$(printf '%s' "$input" | jq -r '.tool_input.head // .tool_input.branch // empty' | sed -E 's/^[^:]*://')"
 else
   exit 0
 fi
 
-branch="$head_branch"
-[ -n "$branch" ] || branch="$(git -C "$cwd" branch --show-current 2>/dev/null || true)"
-
-ids="$(printf '%s\n%s\n' "$branch" "$haystack" \
+ids="$(printf '%s\n' "$haystack" \
   | grep -oiE "(^|[^[:alnum:]])($KEYS_ALT)-[0-9]+" \
   | grep -oiE "($KEYS_ALT)-[0-9]+" \
   | tr '[:lower:]' '[:upper:]' | awk '!seen[$0]++')"
@@ -73,12 +69,13 @@ if [ -z "$ids" ]; then
   cat >&2 <<EOF
 Blocked: no Linear ticket ID found for this pull request.
 
-Checked the branch name ('${branch:-<unknown>}'), the PR title, and the PR body for an ID
-matching one of the team keys: ${TEAM_KEYS} (e.g. REACT-123, RN-45, VID-678).
+Checked the PR title and PR body for an ID matching one of the team keys:
+${TEAM_KEYS} (e.g. REACT-123, RN-45, VID-678). The branch name does not count.
 
 Before opening the PR:
   1. Find the existing Linear ticket for this work, or create one in the right team.
-  2. Put its ID in the branch name (e.g. 'fix/react-123-short-description') or the PR title.
+  2. Put its ID in the PR title or PR body
+     (e.g. '🎫 Ticket: https://linear.app/stream/issue/REACT-123').
   3. Retry creating the PR.
 EOF
   exit 2
@@ -112,7 +109,7 @@ if [ -n "${LINEAR_API_KEY:-}" ]; then
     cat >&2 <<EOF
 Blocked: Linear ticket ID(s) $(echo $ids | tr ' ' ',') were found, but none exist in Linear.
 
-Find or create the correct Linear ticket and put its real ID in the branch name or PR title, then retry.
+Find or create the correct Linear ticket and put its real ID in the PR title or PR body, then retry.
 EOF
     exit 2
   fi
