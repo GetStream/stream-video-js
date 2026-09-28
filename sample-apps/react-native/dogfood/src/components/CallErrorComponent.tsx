@@ -8,7 +8,8 @@ type Props = {
   title: string;
   message: string;
   returnToHomeHandler: () => void;
-  backToLobbyHandler: () => void;
+  /** Omit when the call this error belongs to must not be joined again. */
+  backToLobbyHandler?: () => void;
 };
 
 export const CallErrorComponent = ({
@@ -26,11 +27,13 @@ export const CallErrorComponent = ({
         title={t('callError.returnToHome.label', 'Return to Home')}
         onPress={returnToHomeHandler}
       />
-      <Button
-        title={t('callError.backToLobby.label', 'Back to Lobby')}
-        onPress={backToLobbyHandler}
-        buttonStyle={styles.backToLobbyButton}
-      />
+      {backToLobbyHandler && (
+        <Button
+          title={t('callError.backToLobby.label', 'Back to Lobby')}
+          onPress={backToLobbyHandler}
+          buttonStyle={styles.backToLobbyButton}
+        />
+      )}
     </View>
   );
 };

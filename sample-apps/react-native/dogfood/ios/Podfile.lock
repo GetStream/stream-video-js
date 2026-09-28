@@ -75,6 +75,30 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - QuickCrypto (1.1.7):
+    - hermes-engine
+    - NitroModules
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RCTDeprecation (0.86.2)
   - RCTRequired (0.86.2)
   - RCTSwiftUI (0.86.2)
@@ -1564,6 +1588,28 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - react-native-quick-base64 (3.0.1):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - react-native-safe-area-context (5.8.1):
     - hermes-engine
     - RCTRequired
@@ -2549,9 +2595,9 @@ PODS:
     - ReactNativeDependencies
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (145.3.1):
+  - stream-react-native-webrtc (145.4.0-alpha.1):
     - React-Core
-    - StreamWebRTC (= 145.15.0)
+    - StreamWebRTC (= 145.17.0)
   - stream-video-react-native (2.0.0-beta.1):
     - hermes-engine
     - RCTRequired
@@ -2576,7 +2622,7 @@ PODS:
     - stream-react-native-webrtc
     - Yoga
   - StreamVideoNoiseCancellation (1.0.3)
-  - StreamWebRTC (145.15.0)
+  - StreamWebRTC (145.17.0)
   - Teleport (1.1.12):
     - hermes-engine
     - RCTRequired
@@ -2636,6 +2682,7 @@ DEPENDENCIES:
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - NitroMmkv (from `../node_modules/react-native-mmkv`)
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
+  - QuickCrypto (from `../node_modules/react-native-quick-crypto`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
   - RCTRequired (from `../node_modules/react-native/Libraries/Required`)
   - RCTSwiftUI (from `../node_modules/react-native/ReactApple/RCTSwiftUI`)
@@ -2677,6 +2724,7 @@ DEPENDENCIES:
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
+  - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-video (from `../node_modules/react-native-video`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
@@ -2753,6 +2801,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-mmkv"
   NitroModules:
     :path: "../node_modules/react-native-nitro-modules"
+  QuickCrypto:
+    :path: "../node_modules/react-native-quick-crypto"
   RCTDeprecation:
     :path: "../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation"
   RCTRequired:
@@ -2833,6 +2883,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-picker"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
+  react-native-quick-base64:
+    :path: "../node_modules/react-native-quick-base64"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-video:
@@ -2955,6 +3007,7 @@ SPEC CHECKSUMS:
   MMKVCore: 3d16ce9f7d411e135020915fde98a056859a1efa
   NitroMmkv: 38b271a19e7e152025a6893160c98326872ea05f
   NitroModules: e0ac5f9a04e23cb2f378b51810ebc07ed63aeae9
+  QuickCrypto: 52d2f094ec7051e1ce8e66333088fefe6c253a7a
   RCTDeprecation: bccb6545c26db881ecddfd83a3f9ea82aba1605f
   RCTRequired: b2f74764d596fc0051f00fee94b49bf41a6f7f5a
   RCTSwiftUI: c6d6a31b849b9dfa64c33b55dc91ac15dd55774c
@@ -2995,6 +3048,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: c29d5e7db12b72d656144276ee89bbb94d5c4c6d
   react-native-image-picker: 09cea417bef3ee25008ad21d4426f9a1fc54ad84
   react-native-netinfo: a05f9b897e76ad24b53f615fed1cbb731932363d
+  react-native-quick-base64: e254a406ac7d7f20857c9fbcbfb57fbf91ae21be
   react-native-safe-area-context: 6255354c51cdabe084b19ed7bd2cd9cd6b0f57e2
   react-native-video: 950a8bb07646654716ebf0dd78acf16f95fa3b6c
   React-NativeModulesApple: 167e532fb9bae30f3c66636b8ee0092bab263667
@@ -3047,10 +3101,10 @@ SPEC CHECKSUMS:
   stream-chat-react-native: e97f6d3ed0c2828b20610ffc0023ad7f9c90738d
   stream-io-noise-cancellation-react-native: 1c97675f11979a8f144706aa1105eeebc5ca380d
   stream-io-video-filters-react-native: 7a2c93ed95c7213f44cb8a9a15246f8301d2f67c
-  stream-react-native-webrtc: 971cdfc04e294bfa9ef85fa9504402816f1d65df
+  stream-react-native-webrtc: 8347bb401bfe33b52fd0da1a0b66b2b3016aef2f
   stream-video-react-native: 177671d5813623f097d311a4d6eb9e59394d693d
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
-  StreamWebRTC: 89743e7e21ec6e388462919246051e8ed6b3dfc1
+  StreamWebRTC: 8543c52d49cadcbe051582d0b13de01c8085735f
   Teleport: c56b30b08bd20d10da1efb0f21c6bc50c269ee6a
   VisionCamera: b51af005669c6642dd1b4fca434eda4c1778de87
   Yoga: 542a30dafe5b0f5f1d9f185ea7b2a3811ac54801
