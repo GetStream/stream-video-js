@@ -3,7 +3,7 @@ import React from 'react';
 import { getInitialsOfName } from '../../utils';
 import { ComponentTestIds, ImageTestIds } from '../../constants/TestIds';
 import { DeepPartial, useTheme } from '../../contexts/ThemeContext';
-import { AvatarSize, type Theme } from '../../theme/theme';
+import { type AvatarSize, type Theme } from '../../theme';
 
 export type AvatarUser =
   | { id: string; name?: string; image?: string }

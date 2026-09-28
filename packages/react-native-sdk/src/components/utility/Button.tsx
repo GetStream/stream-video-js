@@ -9,7 +9,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
-import { BaseButtonSizes, BaseButtonVariants } from '../../theme/theme';
+import { type BaseButtonSizes, type BaseButtonVariants } from '../../theme';
 
 interface ButtonProps {
   /**

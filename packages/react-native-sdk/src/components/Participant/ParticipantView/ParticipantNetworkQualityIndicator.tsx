@@ -25,7 +25,6 @@ const useConnectionQualitySignalColors = (
     return null;
   }
 
-  //TODO: update tokens
   switch (connectionQuality) {
     case SfuModels.ConnectionQuality.EXCELLENT:
       return [

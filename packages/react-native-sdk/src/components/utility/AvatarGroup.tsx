@@ -3,10 +3,10 @@ import { Avatar, type AvatarUser } from './Avatar';
 import { useTheme } from '../../contexts';
 import { Z_INDEX } from '../../constants';
 import {
-  AvatarGroupPosition,
-  AvatarGroupSize,
-  AvatarGroupStyle,
-} from '../../theme/theme';
+  type AvatarGroupPosition,
+  type AvatarGroupSize,
+  type AvatarGroupStyle,
+} from '../../theme';
 
 export type AvatarGroupProps = {
   /**

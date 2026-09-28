@@ -47,7 +47,7 @@ export type RingingCallContentProps = {
   landscape?: boolean;
   /**
    * Callback to handle the back icon press event
-   * in CallLeftIndicator and CallPreparingIndicator components.
+   * in CallLeftIndicator component.
    */
   onBackPress?: () => void;
 };

@@ -1,59 +1,14 @@
 import { type ColorValue, type TextStyle, type ViewStyle } from 'react-native';
-import { type Insets } from './types';
+import {
+  AvatarGroupStyle,
+  AvatarStyle,
+  BaseButtonStyle,
+  CallControlsButtonStyle,
+  type Insets,
+} from './types';
 import { tokens } from './tokens';
 import { IStreamTokens } from './tokens/StreamTokens.types';
 import { DeepPartial } from '../contexts';
-
-export type BaseButtonSizes = 'small' | 'medium' | 'large';
-export type BaseButtonVariants =
-  'primary' | 'secondary' | 'destructive' | 'disabled';
-type ButtonVariantStyle = {
-  container: ViewStyle;
-  text: TextStyle;
-};
-
-type BaseButtonStyle = {
-  container: ViewStyle;
-  content: ViewStyle;
-  accessory: ViewStyle;
-} & {
-  [key in BaseButtonVariants]: ButtonVariantStyle;
-} & {
-  [key in BaseButtonSizes]: ViewStyle;
-};
-
-export type AvatarSize = '3xl' | '2xl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs';
-type AvatarStyle = {
-  container: {
-    base: ViewStyle;
-  } & { [key in AvatarSize]: ViewStyle };
-  text: {
-    base: TextStyle;
-  } & { [key in AvatarSize]: TextStyle };
-};
-
-export type AvatarGroupSize = '3xl' | '2xl' | 'xl' | 'lg';
-export type AvatarGroupPosition =
-  | 'top-left'
-  | 'top-right'
-  | 'bottom-left'
-  | 'bottom-right'
-  | 'center-top'
-  | 'center-bottom';
-export type AvatarGroupStyle = {
-  container: { [key in AvatarGroupSize]: ViewStyle };
-  item: { [key in AvatarGroupSize]: ViewStyle };
-  text: {
-    base: TextStyle;
-  } & { [key in AvatarGroupSize]: TextStyle };
-} & {
-  [key in AvatarGroupPosition]: ViewStyle;
-};
-
-type CallControlsButtonStyle = {
-  container: ViewStyle;
-  badge: ViewStyle;
-};
 
 export type Theme = {
   foundations: Required<IStreamTokens['foundations']>;
@@ -990,7 +945,6 @@ export const resolveTheme = (isDark: boolean): Theme => {
       },
     },
 
-    //legacy
     insets: {
       top: theme.foundations.spacing.space0,
       right: theme.foundations.spacing.space0,

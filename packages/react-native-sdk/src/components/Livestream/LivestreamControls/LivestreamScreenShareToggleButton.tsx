@@ -17,7 +17,7 @@ export type LivestreamScreenShareToggleButtonProps = {};
  */
 export const LivestreamScreenShareToggleButton = () => {
   const {
-    theme: { colors },
+    theme: { semantics },
   } = useTheme();
 
   const screenCapturePickerViewiOSRef = React.useRef(null);
@@ -30,7 +30,9 @@ export const LivestreamScreenShareToggleButton = () => {
     <CallControlsButton
       onPress={onPress}
       color={
-        hasPublishedScreenShare ? colors.buttonWarning : colors.buttonSecondary
+        hasPublishedScreenShare
+          ? semantics.accentWarning
+          : semantics.buttonSecondaryBg
       }
     >
       <ControlButtonIcon
