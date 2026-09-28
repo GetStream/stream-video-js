@@ -128,6 +128,10 @@ export const processCallFromPushInBackground = async (
         'processCallFromPushInBackground: failed to join call from push notification',
         e,
       );
+      // Cleanup is not repeated here: `join()`'s own failure boundary already
+      // released whatever the pre-join hook installed, and a second call would
+      // invoke a release-only registration twice.
+      onIOSActionCanBeFulfilled(true);
     }
   } else if (action === 'decline') {
     const alreadyLeft = callFromPush.state.callingState === CallingState.LEFT;
