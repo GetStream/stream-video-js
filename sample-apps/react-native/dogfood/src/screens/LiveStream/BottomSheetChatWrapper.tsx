@@ -56,7 +56,7 @@ const BottomSheetHandleComponent = ({ onClose }: { onClose: () => void }) => {
     <View style={styles.handleContainer}>
       <Text style={styles.handleText}>Live Chat</Text>
       <View style={styles.liveContainer}>
-        <LiveIndicator />
+        <LiveIndicator isLive={true} />
         <FollowerCount />
       </View>
       <TouchableOpacity onPress={onClose}>
