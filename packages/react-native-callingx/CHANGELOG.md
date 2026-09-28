@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.11.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.11.4...@stream-io/react-native-callingx-0.11.5) (2026-09-28)
+
+### Bug Fixes
+
+- **react-native-callingx:** use <packageName>:<callId> as the Android Telecom address ([#2453](https://github.com/GetStream/stream-video-js/issues/2453)) ([9d484fe](https://github.com/GetStream/stream-video-js/commit/9d484fe22966b0abb6d02a7a39c8f3df394c2508)), closes [#2452](https://github.com/GetStream/stream-video-js/issues/2452) [#2452](https://github.com/GetStream/stream-video-js/issues/2452)
+
 ## [0.11.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.11.3...@stream-io/react-native-callingx-0.11.4) (2026-09-11)
 
 ### Bug Fixes
