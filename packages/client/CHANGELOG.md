@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.61.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.60.0...@stream-io/video-client-1.61.0) (2026-09-28)
+
+### Features
+
+- **rn:** add end-to-end encryption support ([#2427](https://github.com/GetStream/stream-video-js/issues/2427)) ([fcd9722](https://github.com/GetStream/stream-video-js/commit/fcd97225597c26ec14bde100b6a4ed14da0ccf93))
+
+### Bug Fixes
+
+- **client:** abandon retries when leave supersedes join ([#2441](https://github.com/GetStream/stream-video-js/issues/2441)) ([342bea6](https://github.com/GetStream/stream-video-js/commit/342bea6923aef8511228fc7f547a85e2191ca013)), closes [#2422](https://github.com/GetStream/stream-video-js/issues/2422)
+- **client:** never publish unencrypted media before the E2EE transform is attached ([#2460](https://github.com/GetStream/stream-video-js/issues/2460)) ([6d5d0bc](https://github.com/GetStream/stream-video-js/commit/6d5d0bc5085c20f1ab3e379a8e0e13cabe6c2ccc))
+
 ## [1.60.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.59.1...@stream-io/video-client-1.60.0) (2026-09-11)
 
 ### Features
