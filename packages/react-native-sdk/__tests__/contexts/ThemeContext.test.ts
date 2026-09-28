@@ -122,11 +122,15 @@ describe('mergeThemes', () => {
   });
 
   it('lets null overwrite a value', () => {
+    const base = mergeThemes({
+      style: { myCustomComponent: { nested: true } },
+    });
     const merged = mergeThemes({
-      style: { participantView: { container: { backgroundColor: null } } },
+      theme: base,
+      style: { myCustomComponent: null },
     });
 
-    expect(merged.participantView.container.backgroundColor).toBeNull();
+    expect(merged.myCustomComponent).toBeNull();
   });
 
   it('replaces a non-object target with an object override', () => {
