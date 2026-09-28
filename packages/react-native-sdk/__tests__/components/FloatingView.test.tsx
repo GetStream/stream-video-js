@@ -62,7 +62,7 @@ describe('useFloatingVideoDimensions', () => {
 
   it('sizes the view from its container, not the window', () => {
     const { result, rerender } = renderHook(
-      ({ container }) =>
+      ({ container }: { container: { width: number; height: number } }) =>
         useFloatingVideoDimensions(container, participant, 'videoTrack'),
       { initialProps: { container: { width: 400, height: 800 } } },
     );

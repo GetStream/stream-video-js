@@ -10,7 +10,9 @@ describe('getVisibleRows', () => {
     [5, 2, 3],
     [12, 2, 3],
     [6, 3, 2],
-    [4, 4, 2],
+    [4, 4, 1],
+    [3, 3, 1],
+    [0, 2, 1],
   ])('%i participants in %i columns -> %i rows', (count, columns, rows) => {
     expect(getVisibleRows(count, columns)).toBe(rows);
   });
@@ -45,6 +47,36 @@ describe('getAutoNumberOfColumns', () => {
         containerWidth: 860,
         containerHeight: 520,
         participantsLength: 6,
+      }),
+    ).toBe(3);
+  });
+
+  it('uses one full-height row instead of reserving an empty row', () => {
+    expect(
+      getAutoNumberOfColumns({
+        containerWidth: 860,
+        containerHeight: 520,
+        participantsLength: 3,
+      }),
+    ).toBe(3);
+  });
+
+  it('fills a wide short window as 2x2 instead of one row of tall tiles', () => {
+    expect(
+      getAutoNumberOfColumns({
+        containerWidth: 800,
+        containerHeight: 400,
+        participantsLength: 4,
+      }),
+    ).toBe(2);
+  });
+
+  it('prefers bigger tiles over more columns in a phone landscape window', () => {
+    expect(
+      getAutoNumberOfColumns({
+        containerWidth: 602,
+        containerHeight: 327,
+        participantsLength: 5,
       }),
     ).toBe(3);
   });
