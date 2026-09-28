@@ -29,7 +29,10 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "rimraf android/build && rimraf dist",
-    "build": "yarn clean && bob build"
+    "build": "yarn clean && bob build",
+    "test": "jest --coverage && yarn test:types",
+    "test-ci": "yarn test",
+    "test:types": "tsc -p tsconfig.spec.json"
   },
   "keywords": [
     "react-native",
@@ -48,8 +51,14 @@
   },
   "homepage": "https://github.com/GetStream/stream-video-js#readme",
   "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@react-native/babel-preset": "0.86.2",
+    "@react-native/jest-preset": "0.86.2",
     "@stream-io/react-native-webrtc": "145.3.1",
     "@stream-io/typescript-config": "workspace:^",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^25.9.5",
+    "jest": "^29.7.0",
     "react": "19.2.3",
     "react-native": "0.86.2",
     "react-native-builder-bob": "^0.43.0",
@@ -58,7 +67,20 @@
   },
   "peerDependencies": {
     "@stream-io/react-native-webrtc": "^145.3.1",
-    "react-native": "*"
+    "react-native": ">=0.79.0"
+  },
+  "codegenConfig": {
+    "name": "VideoFiltersReactNativeSpec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "com.streamio.videofiltersreactnative"
+    },
+    "ios": {
+      "modulesProvider": {
+        "VideoFiltersReactNative": "VideoFiltersReactNative"
+      }
+    }
   },
   "react-native-builder-bob": {
     "source": "src",
