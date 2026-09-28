@@ -17,6 +17,11 @@ export type BottomControlsProps = Pick<
   CallContentProps,
   'supportedReactions'
 > & {
+  /**
+   * Stacks the controls vertically for the landscape layout,
+   * where they sit beside the video instead of below it.
+   */
+  landscape?: boolean;
   onChatOpenHandler: (() => void) | null;
   onParticipantInfoPress: () => void;
   toggleCallRecording: () => Promise<void>;
@@ -30,18 +35,26 @@ export const BottomControls = ({
   toggleCallRecording,
   isAwaitingResponse,
   isCallRecordingInProgress,
+  landscape,
 }: BottomControlsProps) => {
   const styles = useStyles();
-  const [controlsContainerHeight, setControlsContainerHeight] = useState(0);
+  const [measuredHeight, setMeasuredHeight] = useState<number>();
+  // drawers and subtitles are lifted above the controls only when the
+  // controls are below the video; beside the video there is nothing to clear
+  const controlsContainerHeight =
+    measuredHeight === undefined ? undefined : landscape ? 0 : measuredHeight;
 
   const onLayout = (event: LayoutChangeEvent) => {
-    setControlsContainerHeight(event.nativeEvent.layout.height);
+    setMeasuredHeight(event.nativeEvent.layout.height);
   };
 
   return (
     <>
-      <View style={styles.container} onLayout={onLayout}>
-        <View style={styles.left}>
+      <View
+        style={[styles.container, landscape && styles.containerLandscape]}
+        onLayout={onLayout}
+      >
+        <View style={[styles.left, landscape && styles.groupLandscape]}>
           <MoreActionsButton
             controlsContainerHeight={controlsContainerHeight}
           />
@@ -56,14 +69,14 @@ export const BottomControls = ({
             isCallRecordingInProgress={isCallRecordingInProgress}
           />
         </View>
-        <View style={styles.right}>
+        <View style={[styles.right, landscape && styles.groupLandscape]}>
           <ParticipantsButton onParticipantInfoPress={onParticipantInfoPress} />
           {onChatOpenHandler && (
             <ChatButton onPressHandler={onChatOpenHandler} />
           )}
         </View>
       </View>
-      {!!controlsContainerHeight && (
+      {controlsContainerHeight !== undefined && (
         <SubtitleContainer controlsContainerHeight={controlsContainerHeight} />
       )}
     </>
@@ -94,6 +107,19 @@ const useStyles = () => {
           flexDirection: 'row',
           justifyContent: 'flex-end',
           gap: theme.variants.spacingSizes.xs,
+        },
+        containerLandscape: {
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          paddingTop: theme.variants.spacingSizes.sm,
+          paddingBottom: theme.variants.spacingSizes.sm,
+          paddingHorizontal: theme.variants.spacingSizes.sm,
+        },
+        groupLandscape: {
+          flex: 0,
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
         },
       }),
     [theme],
