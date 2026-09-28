@@ -42,7 +42,7 @@ export class StreamClient {
   anonymous: boolean;
   persistUserOnConnectionFailure?: boolean;
   axiosInstance: AxiosInstance;
-  baseURL?: string;
+  readonly baseURL: string;
   browser: boolean;
   clientID?: string;
   key: string;
@@ -61,7 +61,7 @@ export class StreamClient {
   user?: UserWithId;
   private cachedUserAgent?: string;
   userID?: string;
-  wsBaseURL?: string;
+  readonly wsBaseURL: string;
   wsConnection: StableWSConnection | null;
   private wsPromiseSafe: SafePromise<ConnectedEvent | undefined> | null;
   consecutiveFailures: number;
@@ -121,7 +121,10 @@ export class StreamClient {
       });
     }
 
-    this.setBaseURL(this.options.baseURL || 'https://video.stream-io-api.com');
+    this.baseURL = this.options.baseURL || 'https://video.stream-io-api.com';
+    this.wsBaseURL = this.baseURL
+      .replace('http', 'ws')
+      .replace(':3030', ':8800');
 
     this.axiosInstance = axios.create({
       ...this.options,
@@ -151,13 +154,6 @@ export class StreamClient {
 
   getAuthType = () => {
     return this.anonymous ? 'anonymous' : 'jwt';
-  };
-
-  setBaseURL = (baseURL: string) => {
-    this.baseURL = baseURL;
-    this.wsBaseURL = this.baseURL
-      .replace('http', 'ws')
-      .replace(':3030', ':8800');
   };
 
   getLocationHint = async (
@@ -621,7 +617,6 @@ export class StreamClient {
         'Call connectUser or connectAnonymousUser before starting the connection',
       );
     }
-    if (!this.wsBaseURL) throw Error('Websocket base url not set');
     if (!this.clientID) throw Error('clientID is not set');
 
     // The StableWSConnection handles all the reconnection logic.

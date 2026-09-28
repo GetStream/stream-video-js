@@ -37,11 +37,7 @@ export class ApiClient {
   ): Promise<StreamResponse<T>> => {
     const response = await this.streamClient.doAxiosRequest<T>(
       method.toLowerCase(),
-      buildRequestUrl(
-        this.streamClient.baseURL ?? '',
-        pathTemplate,
-        pathParams,
-      ),
+      buildRequestUrl(this.streamClient.baseURL, pathTemplate, pathParams),
       body,
       {
         params: queryParams,

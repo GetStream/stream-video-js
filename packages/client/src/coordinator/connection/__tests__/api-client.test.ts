@@ -131,3 +131,11 @@ describe('ApiClient.sendRequest', () => {
     expect(result.metadata.client_request_id).toBe('');
   });
 });
+
+describe('StreamClient base URL', () => {
+  it('defaults to the coordinator host', () => {
+    const client = new StreamClient('key');
+    expect(client.baseURL).toBe('https://video.stream-io-api.com');
+    expect(client.wsBaseURL).toBe('wss://video.stream-io-api.com');
+  });
+});
