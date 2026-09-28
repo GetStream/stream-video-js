@@ -26,6 +26,7 @@ import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
 import { VideoEffectsSettings } from './VideoEffects';
 import { TranscriptionSettings } from './Transcriptions';
 import { LanguageMenu } from './LanguageMenu';
+import { ThemeMenu } from './ThemeMenu';
 import { CallRecordings } from '../CallRecordings';
 import { useSettings } from '../../context/SettingsContext';
 import { useIsProntoEnvironment } from '../../context/AppEnvironmentContext';
@@ -225,6 +226,14 @@ export const SettingsTabModalMenu = (props: {
         inMeeting
       >
         <LanguageMenu language={language} setLanguage={setLanguage!} />
+      </TabWrapper>
+
+      <TabWrapper
+        icon="theme"
+        label={t('settings.theme.label', 'Theme')}
+        inMeeting
+      >
+        <ThemeMenu />
       </TabWrapper>
 
       <TabWrapper
