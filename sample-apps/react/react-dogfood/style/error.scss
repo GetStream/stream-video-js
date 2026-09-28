@@ -15,15 +15,15 @@
   &__message {
     pre {
       padding: var(--str-video__spacing-sm);
-      background: var(--str-video__base-color-6);
-      border: 1px solid var(--str-video__base-color1);
-      border-radius: var(--str-video__border-radius-sm);
+      background: var(--str-video__background-core-surface-subtle);
+      border: 1px solid var(--str-video__text-primary);
+      border-radius: var(--str-video__radius-lg);
       color: var(--str-video__text-primary);
     }
 
     p {
       margin: 0;
-      font-size: var(--str-video__font-size-xs);
+      font-size: var(--str-video__typography-font-size-xs);
     }
   }
 

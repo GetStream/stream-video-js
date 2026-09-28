@@ -14,6 +14,9 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: var(--str-video__spacing-xs);
+        padding: var(--str-video__spacing-xs);
+        border-radius: var(--str-video__radius-md);
         cursor: pointer;
 
         &:hover {
@@ -39,6 +42,8 @@
       justify-content: center;
       align-items: center;
       margin-top: var(--str-video__spacing-md);
+      padding: var(--str-video__spacing-md);
+      min-block-size: 160px;
       border-radius: var(--str-video__radius-lg);
       background-color: var(--str-video__background-core-surface-default);
       width: 100%;
@@ -80,11 +85,11 @@
   display: flex;
   flex-direction: column;
   padding: var(--str-video__spacing-sm);
-  border-radius: var(--str-video__border-radius-md);
+  border-radius: var(--str-video__radius-2xl);
   position: absolute;
   bottom: var(--str-video__spacing-md);
   right: var(--str-video__spacing-md);
-  background-color: var(--str-video__base-color6);
+  background-color: var(--str-video__background-core-surface-subtle);
   max-width: 250px;
   gap: var(--str-video__spacing-sm);
 
@@ -96,7 +101,7 @@
   }
 
   &__heading {
-    font-size: var(--str-video__font-size-md);
+    font-size: var(--str-video__typography-font-size-md);
     margin: 0;
   }
 
@@ -107,14 +112,14 @@
   }
 
   &__description {
-    font-size: var(--str-video__font-size-xs);
+    font-size: var(--str-video__typography-font-size-xs);
     margin: 0;
   }
 
   &__id {
     display: flex;
     justify-content: space-between;
-    font-size: var(--str-video__font-size-xs);
+    font-size: var(--str-video__typography-font-size-xs);
     align-items: center;
 
     &:hover {
@@ -122,7 +127,7 @@
     }
 
     &-text {
-      color: var(--str-video__brand-color3);
+      color: var(--str-video__accent-success);
       margin-left: var(--str-video__spacing-sm);
     }
   }
@@ -133,14 +138,14 @@
   }
 
   &__qr-description {
-    font-size: var(--str-video__font-size-xs);
+    font-size: var(--str-video__typography-font-size-xs);
     margin: 0;
   }
 
   &__qr-code {
     margin: var(--str-video__spacing-sm) 0;
     padding: 0 var(--str-video__spacing-sm);
-    border-radius: var(--str-video__border-radius-md);
+    border-radius: var(--str-video__radius-2xl);
     background-color: white;
     width: 100px;
     height: 100px;

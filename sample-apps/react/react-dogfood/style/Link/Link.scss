@@ -5,7 +5,7 @@
 
   text-align: center;
   width: 100%;
-  font-size: var(--str-video__font-size-md);
+  font-size: var(--str-video__typography-font-size-md);
   font-weight: 500;
 
   &--align-left {
@@ -14,45 +14,52 @@
   }
 
   &--faux-button {
-    border-radius: var(--str-video__border-radius-md);
+    border-radius: var(--str-video__radius-2xl);
     padding: var(--str-video__space-6) var(--str-video__spacing-md);
 
     color: var(--str-video__text-primary);
 
-    background-color: var(--str-video__button-default-base);
+    background-color: var(--str-video__background-core-surface-subtle);
 
     text-decoration: none;
-    font-size: var(--str-video__font-size-sm);
+    font-size: var(--str-video__typography-font-size-sm);
 
     &:hover {
-      background-color: var(--str-video__button-default-hover);
+      background-image: linear-gradient(
+        var(--str-video__background-utility-hover),
+        var(--str-video__background-utility-hover)
+      );
       cursor: pointer;
       text-decoration: none;
     }
   }
 
   &--primary {
-    background-color: var(--str-video__brand-color1);
+    background-color: var(--str-video__accent-primary);
+    color: var(--str-video__button-primary-text-on-accent);
 
     &:hover {
-      background-color: var(--str-video__button-primary-hover);
+      background-image: linear-gradient(
+        var(--str-video__background-utility-hover),
+        var(--str-video__background-utility-hover)
+      );
     }
   }
 
   &--large {
-    font-size: var(--str-video__font-size-md);
+    font-size: var(--str-video__typography-font-size-md);
     padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
-    border-radius: var(--str-video__border-radius-md);
+    border-radius: var(--str-video__radius-2xl);
   }
 
   &__icon {
     margin-right: var(--str-video__space-6);
     height: 16px;
-    color: var(--str-video__text-primary);
+    background-color: currentColor;
   }
 
   &:disabled {
-    background-color: var(--str-video__button-default-disabled);
+    background-color: var(--str-video__background-utility-disabled);
     cursor: not-allowed;
   }
 }

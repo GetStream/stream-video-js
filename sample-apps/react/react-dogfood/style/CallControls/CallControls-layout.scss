@@ -48,7 +48,7 @@
 
     gap: 0.5rem;
 
-    border-radius: var(--str-video__border-radius-xxl);
+    border-radius: var(--str-video__radius-max);
 
     .str-video__call-controls--group {
       gap: 0.5rem;
@@ -84,7 +84,7 @@
 
 .rd__toggle-participants {
   .rd__waiting-room-list {
-    background-color: var(--str-video__base-color6);
+    background-color: var(--str-video__background-core-surface-subtle);
     padding: var(--str-video__spacing-md);
     min-width: 350px;
   }
@@ -115,7 +115,7 @@
     white-space: nowrap;
 
     .rd__button.rd__waiting-room-list__admit {
-      color: var(--str-video__alert-success);
+      color: var(--str-video__accent-success);
       width: auto;
     }
   }
@@ -129,16 +129,16 @@
   }
 
   .rd__participant-count {
-    font-size: 10px;
+    font-size: var(--str-video__typography-font-size-xxs);
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--str-video__border-radius-circle);
+    border-radius: var(--str-video__radius-max);
 
     position: absolute;
     top: -3px;
     right: -3px;
-    background: var(--str-video__brand-color3);
+    background: var(--str-video__accent-success);
     color: var(--str-video__text-on-inverse);
     padding: 5px;
     height: 16px;

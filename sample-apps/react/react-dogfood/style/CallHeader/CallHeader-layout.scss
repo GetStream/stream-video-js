@@ -6,7 +6,7 @@
 
   justify-content: space-between;
 
-  border-radius: var(--str-video__border-radius-xxl);
+  border-radius: var(--str-video__radius-max);
 
   padding: var(--str-video__spacing-md);
 
@@ -33,7 +33,7 @@
       overflow-x: hidden;
       overflow-x: clip;
       text-overflow: ellipsis;
-      font-size: var(---str-video__font-size-md);
+      font-size: var(--str-video__typography-font-size-md);
       font-weight: 400;
       margin: 0;
       max-width: 400px;
@@ -58,7 +58,7 @@
   align-items: center;
 
   .rd__button {
-    font-size: var(--str-video__font-size-xs);
+    font-size: var(--str-video__typography-font-size-xs);
     padding: var(--str-video__space-6) var(--str-video__spacing-sm);
   }
 }
@@ -81,16 +81,20 @@
   height: 28px;
   min-width: 28px;
   padding: 0 var(--str-video__spacing-xs);
-  border-radius: var(--str-video__border-radius-md);
-  background-color: var(--str-video__alert-success);
-  color: var(--str-video__base-color7);
-  font-size: var(--str-video__font-size-xs);
+  border-radius: var(--str-video__radius-2xl);
+  background-color: var(--str-video__accent-success);
+  // The fill is a fixed bright green in both themes, so the foreground has to
+  // be theme-invariant too. No semantic token stays dark in both (text-primary
+  // and background-core-app each invert), hence the primitive.
+  color: var(--str-video__base-black);
+  font-size: var(--str-video__typography-font-size-xs);
   font-weight: 600;
   letter-spacing: 0.02ex;
-  box-shadow: 0 0 14px -2px rgba(0, 226, 161, 0.7);
+  box-shadow: 0 0 14px -2px
+    color-mix(in srgb, var(--str-video__accent-success) 70%, transparent);
 
   &-icon {
-    font-size: 16px;
+    font-size: var(--str-video__typography-font-size-md);
     flex-shrink: 0;
   }
 
@@ -106,33 +110,37 @@
   justify-content: center;
   align-items: center;
   font-variant: tabular-nums;
-  background-color: var(--str-video__brand-color5);
+  background-color: var(--str-video__accent-error);
+  color: var(--str-video__text-on-accent);
   padding: var(--str-video__spacing-xxs) var(--str-video__spacing-sm);
-  border-radius: var(--str-video__border-radius-md);
-  font-size: var(--str-video__font-size-xs);
+  border-radius: var(--str-video__radius-2xl);
+  font-size: var(--str-video__typography-font-size-xs);
 }
 
 .rd__header__elapsed {
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: var(--str-video__spacing-xxs);
   font-variant: tabular-nums;
-  background-color: var(--str-video__base-color6);
-  // base-color6 is a legacy dark-only value, so it needs its light
-  // counterpart declared too — the header renders outside
-  // .str-video__theme-dark, so an inherited colour resolves light-theme
-  color: var(--str-video__base-color1);
-  padding: var(--str-video__spacing-xxs) var(--str-video__spacing-sm);
-  border-radius: var(--str-video__border-radius-md);
-  font-size: var(--str-video__font-size-xs);
+  block-size: 32px;
+  padding: var(--str-video__spacing-xxs) var(--str-video__spacing-xs);
+  border-radius: var(--str-video__radius-3xl);
+  background-color: var(--str-video__background-core-surface-default);
+  color: var(--str-video__text-primary);
+  font-size: var(--str-video__typography-font-size-sm);
+  line-height: var(--str-video__typography-line-height-normal);
+  font-weight: var(--str-video__typography-font-weight-semi-bold);
+
   &-icon {
-    margin-right: var(--str-video__spacing-xxs);
-    background-color: var(--str-video__alert-success);
-    height: 16px;
+    background-color: var(--str-video__accent-success);
+    block-size: var(--str-video__icon-size-sm);
+    inline-size: var(--str-video__icon-size-sm);
   }
 
-  &-time {
-    font-weight: 600;
+  // Figma splits the duration: everything before the seconds is de-emphasised.
+  &-time__lead {
+    color: var(--str-video__text-tertiary);
   }
 }
 
@@ -140,31 +148,37 @@
   display: none;
   justify-content: center;
   align-items: center;
+  gap: var(--str-video__spacing-xxs);
   font-variant: tabular-nums;
-  background-color: var(--str-video__base-color6);
-  color: var(--str-video__base-color1);
-  padding: var(--str-video__spacing-xxs) var(--str-video__spacing-sm);
-  border-radius: var(--str-video__border-radius-md);
-  font-size: var(--str-video__font-size-xs);
+  block-size: 32px;
+  padding: var(--str-video__spacing-xxs) var(--str-video__spacing-xs);
+  border-radius: var(--str-video__radius-3xl);
+  background-color: var(--str-video__background-core-surface-default);
+  color: var(--str-video__text-primary);
+  font-size: var(--str-video__typography-font-size-sm);
+  line-height: var(--str-video__typography-line-height-normal);
+  font-weight: var(--str-video__typography-font-weight-semi-bold);
+  gap: var(--str-video__spacing-xs);
 
-  font-weight: 600;
+  &-unit {
+    color: var(--str-video__text-tertiary);
+  }
 
   &-indicator {
-    height: 6px;
-    width: 6px;
-    margin-right: var(--str-video__spacing-xxs);
-    background-color: var(--str-video__alert-success);
+    block-size: 8px;
+    inline-size: 8px;
+    background-color: var(--str-video__accent-success);
 
-    border-radius: var(--str-video__border-radius-circle);
+    border-radius: var(--str-video__radius-max);
     &--good {
-      background-color: var(--str-video__alert-success);
+      background-color: var(--str-video__accent-success);
     }
     &--ok {
-      background-color: var(--str-video__alert-caution);
+      background-color: var(--str-video__accent-warning);
     }
 
     &--bad {
-      background-color: var(--str-video__alert-warning);
+      background-color: var(--str-video__accent-error);
     }
   }
 }
@@ -173,14 +187,22 @@
   display: none;
   justify-content: center;
   align-items: center;
+  gap: var(--str-video__spacing-xxs);
   font-variant: tabular-nums;
-  background-color: var(--str-video__base-color6);
-  color: var(--str-video__base-color1);
-  padding: var(--str-video__spacing-xxs) var(--str-video__spacing-sm);
-  border-radius: var(--str-video__border-radius-md);
-  font-size: var(--str-video__font-size-xs);
-  font-weight: 600;
-  gap: var(--str-video__space-6);
+  block-size: 32px;
+  padding: var(--str-video__spacing-xxs) var(--str-video__spacing-xs);
+  border-radius: var(--str-video__radius-3xl);
+  background-color: var(--str-video__background-core-surface-default);
+  color: var(--str-video__text-primary);
+  font-size: var(--str-video__typography-font-size-sm);
+  line-height: var(--str-video__typography-line-height-normal);
+  font-weight: var(--str-video__typography-font-weight-semi-bold);
+
+  .str-video__icon {
+    background-color: currentColor;
+    block-size: var(--str-video__icon-size-sm);
+    inline-size: var(--str-video__icon-size-sm);
+  }
 }
 
 .rd__header__audio-health {
@@ -189,8 +211,8 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: var(--str-video__border-radius-circle);
-  background-color: var(--str-video__alert-warning);
+  border-radius: var(--str-video__radius-max);
+  background-color: var(--str-video__accent-error);
   color: var(--str-video__text-on-accent);
 
   .str-video__icon {
@@ -208,11 +230,11 @@
   &--debug {
     width: auto;
     height: auto;
-    border-radius: var(--str-video__border-radius-md);
-    background-color: var(--str-video__base-color6);
+    border-radius: var(--str-video__radius-2xl);
+    background-color: var(--str-video__background-core-surface-subtle);
     padding: var(--str-video__spacing-xxs) var(--str-video__spacing-xs);
     gap: var(--str-video__spacing-xs);
-    font-size: var(--str-video__font-size-xs);
+    font-size: var(--str-video__typography-font-size-xs);
     font-family:
       ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
@@ -227,20 +249,20 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: #9ca3af;
+    background-color: var(--str-video__text-tertiary);
 
     &--healthy {
-      background-color: #22c55e;
-      box-shadow: 0 0 6px #22c55e;
+      background-color: var(--str-video__accent-success);
+      box-shadow: 0 0 6px var(--str-video__accent-success);
     }
 
     &--unhealthy {
-      background-color: #ef4444;
-      box-shadow: 0 0 6px #ef4444;
+      background-color: var(--str-video__accent-error);
+      box-shadow: 0 0 6px var(--str-video__accent-error);
     }
 
     &--unknown {
-      background-color: #9ca3af;
+      background-color: var(--str-video__text-tertiary);
     }
   }
 
@@ -256,18 +278,18 @@
 
   &__button {
     padding: var(--str-video__spacing-xxs) var(--str-video__spacing-xs);
-    border-radius: var(--str-video__border-radius-md);
-    border: 1px solid var(--str-video__base-color5);
-    background-color: var(--str-video__base-color6);
+    border-radius: var(--str-video__radius-2xl);
+    border: 1px solid var(--str-video__background-core-app);
+    background-color: var(--str-video__background-core-surface-subtle);
     color: var(--str-video__text-primary);
     font-family:
       ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: var(--str-video__font-size-xs);
+    font-size: var(--str-video__typography-font-size-xs);
     cursor: pointer;
     white-space: nowrap;
 
     &:hover {
-      background-color: var(--str-video__base-color5);
+      background-color: var(--str-video__background-core-app);
     }
   }
 }
@@ -287,7 +309,7 @@
     height: 1rem;
   }
   .rd__loading-indicator-text {
-    font-size: 0.875rem;
+    font-size: var(--str-video__typography-font-size-sm);
   }
 }
 
@@ -306,7 +328,7 @@
   &__user {
     display: none;
     flex-direction: column;
-    font-size: var(--str-video__font-size-xs);
+    font-size: var(--str-video__typography-font-size-xs);
   }
 
   &__name {
@@ -319,8 +341,8 @@
   }
 
   &__menu {
-    border-radius: var(--str-video__border-radius-lg);
-    background-color: var(--str-video__base-color7);
+    border-radius: var(--str-video__radius-3xl);
+    background-color: var(--str-video__background-core-surface-subtle);
     padding: var(--str-video__spacing-sm);
 
     &-list {
@@ -330,7 +352,7 @@
       display: flex;
       flex-direction: column;
       gap: var(--str-video__spacing-sm);
-      font-size: var(--str-video__font-size-xs);
+      font-size: var(--str-video__typography-font-size-xs);
     }
 
     &-item {
@@ -342,7 +364,7 @@
     }
 
     .rd__button.rd__user-session__menu-button {
-      font-size: var(--str-video__font-size-xs);
+      font-size: var(--str-video__typography-font-size-xs);
     }
   }
 

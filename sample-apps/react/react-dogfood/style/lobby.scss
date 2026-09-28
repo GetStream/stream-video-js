@@ -64,16 +64,16 @@
     .rd__display-name {
       background-color: #1d29380f;
       border: 1px solid #ffffff08;
-      border-radius: var(--str-video__border-radius-xl);
+      border-radius: var(--str-video__radius-4xl);
       padding: var(--str-video__spacing-md);
       width: 100%;
       text-align: center;
       backdrop-filter: blur(10px);
 
       &-label {
-        color: var(--str-video__text-color2);
+        color: var(--str-video__text-secondary);
         font-weight: 600;
-        font-size: var(--str-video__font-size-xs);
+        font-size: var(--str-video__typography-font-size-xs);
         letter-spacing: 0.25ex;
         text-transform: uppercase;
         margin-bottom: var(--str-video__spacing-sm);
@@ -89,23 +89,23 @@
     display: flex;
     align-items: center;
     padding: var(--str-video__spacing-sm);
-    border-radius: var(--str-video__border-radius-md);
-    background-color: var(--str-video__base-color6);
+    border-radius: var(--str-video__radius-2xl);
+    background-color: var(--str-video__background-core-surface-subtle);
     gap: var(--str-video__spacing-sm);
-    font-size: var(--str-video__font-size-xs);
+    font-size: var(--str-video__typography-font-size-xs);
   }
 
   &-heading {
     display: flex;
     flex-direction: column;
-    font-size: var(--str-video__font-size-xl);
+    font-size: var(--str-video__typography-font-size-xl);
     font-weight: 500;
     margin-bottom: var(--str-video__space-6);
     text-align: center;
   }
 
   &-heading__description {
-    font-size: var(--str-video__font-size-sm);
+    font-size: var(--str-video__typography-font-size-sm);
     font-weight: 400;
     margin-top: 0;
     margin-bottom: var(--str-video__spacing-sm);
@@ -183,7 +183,7 @@
 
   position: absolute;
   z-index: 10;
-  background-color: var(--str-video__background-color1);
+  background-color: var(--str-video__background-core-surface-subtle);
 
   .rd__try-native__logo {
     width: 96px;
@@ -197,7 +197,7 @@
 
   .rd__try-native__info-text {
     padding: 10px 0;
-    color: var(--str-video__base-color2);
+    color: var(--str-video__text-tertiary);
   }
 }
 
@@ -246,8 +246,22 @@
 .rd__lobby__camera-button.rd__button,
 .rd__lobby__mic-button.rd__button {
   display: none;
+  justify-content: flex-start;
+  gap: var(--str-video__spacing-xs);
+  min-block-size: 40px;
   padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
-  font-size: var(--str-video__font-size-xs);
+  border-color: var(--str-video__border-core-default);
+  border-radius: var(--str-video__input-radius-select-input);
+  color: var(--str-video__input-text-default);
+  font-size: var(--str-video__typography-font-size-sm);
+  line-height: var(--str-video__typography-line-height-normal);
+  font-weight: var(--str-video__typography-font-weight-regular);
+
+  .str-video__icon {
+    background-color: currentColor;
+    block-size: var(--str-video__icon-size-sm);
+    inline-size: var(--str-video__icon-size-sm);
+  }
 }
 .rd__lobby__camera-button__device,
 .rd__lobby__mic-button__device {
@@ -287,7 +301,7 @@ a.mapboxgl-ctrl-logo {
   // Frosted-glass card, matching the "Choose display name" panel.
   background-color: #1d29380f;
   border: 1px solid #ffffff08;
-  border-radius: var(--str-video__border-radius-xl);
+  border-radius: var(--str-video__radius-4xl);
   backdrop-filter: blur(10px);
   transition:
     background-color 0.2s ease,
@@ -308,8 +322,8 @@ a.mapboxgl-ctrl-logo {
   }
 
   &__lock {
-    font-size: 20px;
-    color: var(--str-video__text-color2);
+    font-size: var(--str-video__typography-font-size-xl);
+    color: var(--str-video__text-secondary);
     flex-shrink: 0;
   }
 
@@ -322,12 +336,12 @@ a.mapboxgl-ctrl-logo {
 
   &__title {
     font-weight: 600;
-    font-size: var(--str-video__font-size-sm);
+    font-size: var(--str-video__typography-font-size-sm);
   }
 
   &__subtitle {
-    font-size: var(--str-video__font-size-xs);
-    color: var(--str-video__text-color2);
+    font-size: var(--str-video__typography-font-size-xs);
+    color: var(--str-video__text-secondary);
   }
 
   // Toggle track + thumb.
@@ -336,8 +350,8 @@ a.mapboxgl-ctrl-logo {
     flex-shrink: 0;
     width: 40px;
     height: 24px;
-    border-radius: var(--str-video__border-radius-circle);
-    background-color: var(--str-video__base-color5);
+    border-radius: var(--str-video__radius-max);
+    background-color: var(--str-video__background-core-app);
     transition: background-color 0.15s ease;
   }
 
@@ -347,24 +361,32 @@ a.mapboxgl-ctrl-logo {
     left: 3px;
     width: 18px;
     height: 18px;
-    border-radius: var(--str-video__border-radius-circle);
-    background-color: #fff;
+    border-radius: var(--str-video__radius-max);
+    background-color: var(--str-video__background-core-on-accent);
     transition: transform 0.15s ease;
   }
 
   // Encrypted state: a soft green wash + green lock/title (no loud border glow).
   &--on {
-    background-color: rgba(0, 226, 161, 0.08);
-    border-color: rgba(0, 226, 161, 0.4);
+    background-color: color-mix(
+      in srgb,
+      var(--str-video__accent-success) 8%,
+      transparent
+    );
+    border-color: color-mix(
+      in srgb,
+      var(--str-video__accent-success) 40%,
+      transparent
+    );
   }
 
   &--on &__lock,
   &--on &__title {
-    color: var(--str-video__alert-success);
+    color: var(--str-video__accent-success);
   }
 
   &--on &__track {
-    background-color: var(--str-video__alert-success);
+    background-color: var(--str-video__accent-success);
   }
 
   &--on &__thumb {
@@ -408,11 +430,11 @@ a.mapboxgl-ctrl-logo {
   }
 
   &__key-label {
-    font-size: var(--str-video__font-size-xs);
+    font-size: var(--str-video__typography-font-size-xs);
     font-weight: 600;
     letter-spacing: 0.25ex;
     text-transform: uppercase;
-    color: var(--str-video__text-color2);
+    color: var(--str-video__text-secondary);
     text-align: left;
   }
 
@@ -439,7 +461,7 @@ a.mapboxgl-ctrl-logo {
     // Read-only for joiners: signal it isn't editable (no refresh button either).
     &:read-only {
       padding-right: var(--str-video__spacing-sm);
-      color: var(--str-video__text-color2);
+      color: var(--str-video__text-secondary);
       cursor: default;
     }
   }
@@ -457,8 +479,8 @@ a.mapboxgl-ctrl-logo {
     padding: 0;
     border: none;
     background: transparent;
-    border-radius: var(--str-video__border-radius-md);
-    color: var(--str-video__text-color2);
+    border-radius: var(--str-video__radius-2xl);
+    color: var(--str-video__text-secondary);
     cursor: pointer;
 
     &:hover {
@@ -475,8 +497,8 @@ a.mapboxgl-ctrl-logo {
 
   &__hint {
     margin: 0;
-    font-size: var(--str-video__font-size-xs);
-    color: var(--str-video__text-color2);
+    font-size: var(--str-video__typography-font-size-xs);
+    color: var(--str-video__text-secondary);
     text-align: left;
     line-height: 1.4;
   }
@@ -487,17 +509,17 @@ a.mapboxgl-ctrl-logo {
     // and resize the key input next to it.
     min-width: 5.5rem;
     padding: var(--str-video__space-6) var(--str-video__spacing-xs);
-    font-size: var(--str-video__font-size-xs);
+    font-size: var(--str-video__typography-font-size-xs);
     text-align: center;
-    border-radius: var(--str-video__border-radius-md);
-    border: 1px solid var(--str-video__base-color5);
-    background-color: var(--str-video__base-color6);
+    border-radius: var(--str-video__radius-2xl);
+    border: 1px solid var(--str-video__background-core-app);
+    background-color: var(--str-video__background-core-surface-subtle);
     color: var(--str-video__text-primary);
     white-space: nowrap;
     cursor: pointer;
 
     &:hover {
-      background-color: var(--str-video__base-color5);
+      background-color: var(--str-video__background-core-app);
     }
   }
 }

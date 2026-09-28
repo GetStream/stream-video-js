@@ -267,7 +267,7 @@ export const CallContent = ({
 
   return (
     <>
-      {!disablePictureInPicture && (
+      {Platform.OS === 'ios' && !disablePictureInPicture && (
         <RTCViewPipIOS
           includeLocalParticipantVideo={iOSPiPIncludeLocalParticipantVideo}
           mirror={mirror}

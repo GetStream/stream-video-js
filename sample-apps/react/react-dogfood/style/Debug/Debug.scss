@@ -3,7 +3,7 @@
   overflow: scroll;
   height: 600px;
   width: 500px;
-  background-color: var(--str-video__background-color1);
+  background-color: var(--str-video__background-core-surface-subtle);
   color: var(--str-video__text-primary);
   z-index: 10;
 
@@ -11,7 +11,7 @@
   flex-direction: column;
   gap: 0.75rem;
   padding: var(--str-video__spacing-sm);
-  border-radius: var(--str-video__border-radius-lg);
+  border-radius: var(--str-video__radius-3xl);
 
   h3 {
     margin: unset;
@@ -54,6 +54,6 @@
   bottom: 0.875rem;
   right: 0.875rem;
   padding: 4px;
-  background-color: var(--str-video__background-color1);
-  border-radius: var(--str-video__border-radius-xs);
+  background-color: var(--str-video__background-core-surface-subtle);
+  border-radius: var(--str-video__radius-md);
 }

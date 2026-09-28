@@ -14,17 +14,14 @@
     gap: 10px;
   }
 
-  .str-video__call-controls__button--variant-danger {
-    height: fit-content;
-  }
-
-  .str-video__participant,
-  .str-video__video-container {
-    display: flex;
-  }
+  // `.str-video__participant` / `.str-video__video-container` are gone, and the
+  // redesigned `.str-video__participant-view` already declares `display: flex`
+  // with its own aspect-ratio, so the old layout overrides are not replaced.
 }
 
-.str-video__participant_details,
+// Was `.str-video__participant_details` — an underscore where the SDK uses
+// hyphens, so it never matched anything.
+.str-video__participant-details,
 .str-video__notification {
   color: #fff;
 }
