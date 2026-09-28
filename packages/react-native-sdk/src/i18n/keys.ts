@@ -13,11 +13,10 @@ export type TranslationCatalog = {
   'common.connecting.text': 'Connecting...';
   'common.join.label': 'Join';
   'common.joining.text': 'Joining...';
-  'common.live.label': 'Live';
+  'common.live.label': 'LIVE';
   'common.loading.text': 'Loading...';
   'common.you.label': 'You';
-  'livestreamControls.start.label': 'Start Livestream';
-  'livestreamControls.stop.label': 'Stop Livestream';
+  'livestreamControls.start.label': 'Start';
   'livestreamPlayer.ended.title': 'The livestream has ended.';
   'livestreamPlayer.ended.watchRecordings.title': 'Watch recordings:';
   'livestreamViewer.earlyParticipants.text_one': '{{ count }} participant has joined early';
