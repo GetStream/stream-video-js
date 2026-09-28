@@ -2,21 +2,21 @@ export const DEFAULT_NUMBER_OF_COLUMNS = 2;
 const MAX_AUTO_NUMBER_OF_COLUMNS = 4;
 const MAX_VISIBLE_ROWS = 3;
 
-// 2 rows fit up to 4 participants in the default 2 columns, and at most 3 rows
-// are visible at once, the rest is reachable by scrolling
+// only the rows occupied by participants are visible, at most 3 at once,
+// the rest is reachable by scrolling
 export const getVisibleRows = (
   participantsLength: number,
   numberOfColumns: number,
 ) =>
   Math.max(
-    2,
+    1,
     Math.min(Math.ceil(participantsLength / numberOfColumns), MAX_VISIBLE_ROWS),
   );
 
 /**
- * Picks the number of columns whose tiles come closest to a square
- * for the given container, so that wide containers get more columns
- * instead of stretched tiles.
+ * Picks the number of columns whose cells fit the largest square tile
+ * (the biggest `min(cellWidth, cellHeight)`) for the given container,
+ * so that tiles are as big as possible. Ties keep fewer columns.
  */
 export const getAutoNumberOfColumns = ({
   containerHeight,
@@ -31,7 +31,7 @@ export const getAutoNumberOfColumns = ({
     return DEFAULT_NUMBER_OF_COLUMNS;
   }
   let bestColumns = DEFAULT_NUMBER_OF_COLUMNS;
-  let bestScore = Number.MAX_VALUE;
+  let bestTileSize = 0;
   const maxColumns = Math.min(
     MAX_AUTO_NUMBER_OF_COLUMNS,
     Math.max(DEFAULT_NUMBER_OF_COLUMNS, participantsLength),
@@ -42,10 +42,9 @@ export const getAutoNumberOfColumns = ({
     columns++
   ) {
     const rows = getVisibleRows(participantsLength, columns);
-    const aspectRatio = containerWidth / columns / (containerHeight / rows);
-    const score = Math.abs(Math.log(aspectRatio));
-    if (score < bestScore) {
-      bestScore = score;
+    const tileSize = Math.min(containerWidth / columns, containerHeight / rows);
+    if (tileSize > bestTileSize) {
+      bestTileSize = tileSize;
       bestColumns = columns;
     }
   }
