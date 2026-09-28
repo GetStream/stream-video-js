@@ -24,6 +24,10 @@ import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { ToggleEffectsButton } from './ToggleEffectsButton';
 import { ToggleMicButton } from './ToggleMicButton';
 import { ToggleCameraButton } from './ToggleCameraButton';
+import {
+  CameraUnavailableNotification,
+  useCameraUnavailable,
+} from './CameraUnavailableNotification';
 import { ToggleParticipantsPreviewButton } from './ToggleParticipantsPreview';
 import { ToggleHiFiButton } from './ToggleHiFiButton';
 import { LobbyEncryption } from './LobbyEncryption';
@@ -67,6 +71,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const callSession = useCallSession();
   const members = useCallMembers();
   const settings = useCallSettings();
+  const cameraUnavailable = useCameraUnavailable();
   const currentUser = useConnectedUser();
   const isProntoEnvironment = useIsProntoEnvironment();
   const isDemoEnvironment = useIsDemoEnvironment();
@@ -183,7 +188,12 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                         <ToggleAudioPreviewButton Menu={null} />
                       </MicCaptureErrorNotification>
                       {settings?.video.enabled && (
-                        <ToggleVideoPreviewButton Menu={null} />
+                        <CameraUnavailableNotification {...cameraUnavailable}>
+                          <ToggleVideoPreviewButton
+                            Menu={null}
+                            onError={cameraUnavailable.onError}
+                          />
+                        </CameraUnavailableNotification>
                       )}
                     </div>
                   </div>

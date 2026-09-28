@@ -138,6 +138,7 @@
   "mobileBanner.tryNativeDemo.description": "Vemos que estás usando un dispositivo móvil. ¿Por qué no lo pruebas en una de nuestras apps móviles nativas:",
   "mobileBanner.tryNativeDemo.title": "¡Prueba la demo nativa!",
   "mobileBanner.tryReactNative.label": "Probar React Native",
+  "notification.cameraUnavailable.text": "No se pudo iniciar la cámara. Cierra otras aplicaciones que puedan estar usándola e inténtalo de nuevo.",
   "notification.degradedPerformance.cpuOverloaded.text": "Los filtros de fondo están reduciendo la velocidad de fotogramas y sobrecargando la CPU. Desactiva los filtros para un rendimiento óptimo.",
   "notification.degradedPerformance.degraded.text": "El rendimiento de los filtros de fondo está degradado. Considera desactivar los filtros para un rendimiento óptimo.",
   "notification.degradedPerformance.frameRateReduced.text": "Los filtros de fondo están reduciendo la velocidad de fotogramas. Considera desactivar los filtros para un rendimiento óptimo.",
