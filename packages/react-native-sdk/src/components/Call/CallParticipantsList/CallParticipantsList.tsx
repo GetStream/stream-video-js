@@ -28,9 +28,9 @@ import {
 import type { CallContentProps } from '../CallContent';
 import { useTheme } from '../../../contexts';
 import {
+  calculateParticipantViewSize,
   DEFAULT_NUMBER_OF_COLUMNS,
   getAutoNumberOfColumns,
-  getVisibleRows,
 } from './gridSizing';
 
 type FlatListProps = React.ComponentProps<
@@ -324,7 +324,7 @@ const useStyles = () => {
       StyleSheet.create({
         flexed: { flex: 1 },
         participantWrapperHorizontal: {
-          // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
+          // note: if marginHorizontal is changed, be sure to change HORIZONTAL_ITEM_MARGIN in gridSizing.ts
           marginHorizontal: theme.variants.spacingSizes.sm,
           borderRadius: theme.variants.borderRadiusSizes.sm,
         },
@@ -338,45 +338,3 @@ const useStyles = () => {
     [theme],
   );
 };
-
-/**
- * This function calculates the size of the participant view based on the size of the container (the phone's screen size) and the number of participants.
- * @param {number} containerHeight - height of the container (the phone's screen height) in pixels
- * @param {number} containerWidth - width of the container (the phone's screen width) in pixels
- * @param {number} participantsLength - number of participants
- * @param {number} numColumns - number of columns
- * @param {boolean} horizontal - whether the participant view is in horizontal mode
- * @returns {object} - an object containing the height and width of the participant view
- */
-function calculateParticipantViewSize({
-  containerHeight,
-  containerWidth,
-  participantsLength,
-  numberOfColumns,
-  horizontal,
-  margin,
-}: {
-  containerHeight: number;
-  containerWidth: number;
-  participantsLength: number;
-  numberOfColumns: number;
-  horizontal: boolean | undefined;
-  margin: number;
-}) {
-  let itemHeight = containerHeight;
-  // in vertical mode, we calculate the height of the participant view based on the containerHeight (aka the phone's screen height)
-  if (!horizontal) {
-    itemHeight =
-      containerHeight / getVisibleRows(participantsLength, numberOfColumns);
-  }
-
-  let itemWidth = containerWidth / numberOfColumns;
-  if (horizontal) {
-    // in horizontal mode we apply margin of 8 to the participant view and that should be subtracted from the width
-    itemWidth = itemWidth - 8 * 2;
-  }
-
-  itemHeight = itemHeight - margin;
-  itemWidth = itemWidth - margin;
-  return { itemHeight, itemWidth };
-}

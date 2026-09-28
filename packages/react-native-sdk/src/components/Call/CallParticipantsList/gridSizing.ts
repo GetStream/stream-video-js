@@ -50,3 +50,41 @@ export const getAutoNumberOfColumns = ({
   }
   return bestColumns;
 };
+
+// the horizontal margin applied to each participant view in horizontal mode
+// (participantWrapperHorizontal in CallParticipantsList)
+const HORIZONTAL_ITEM_MARGIN = 8;
+
+/**
+ * Calculates the size of a participant view from the size of the list's
+ * container and the number of participants. The margin is applied on every
+ * side of the view, so it is subtracted twice per axis to keep each row and
+ * column within the container.
+ */
+export const calculateParticipantViewSize = ({
+  containerHeight,
+  containerWidth,
+  participantsLength,
+  numberOfColumns,
+  horizontal,
+  margin,
+}: {
+  containerHeight: number;
+  containerWidth: number;
+  participantsLength: number;
+  numberOfColumns: number;
+  horizontal: boolean | undefined;
+  margin: number;
+}) => {
+  if (horizontal) {
+    return {
+      itemHeight: containerHeight - margin * 2,
+      itemWidth: containerWidth / numberOfColumns - HORIZONTAL_ITEM_MARGIN * 2,
+    };
+  }
+  const rows = getVisibleRows(participantsLength, numberOfColumns);
+  return {
+    itemHeight: containerHeight / rows - margin * 2,
+    itemWidth: containerWidth / numberOfColumns - margin * 2,
+  };
+};

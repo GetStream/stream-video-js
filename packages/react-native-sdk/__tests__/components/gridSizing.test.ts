@@ -1,4 +1,5 @@
 import {
+  calculateParticipantViewSize,
   getAutoNumberOfColumns,
   getVisibleRows,
 } from '../../src/components/Call/CallParticipantsList/gridSizing';
@@ -99,5 +100,45 @@ describe('getAutoNumberOfColumns', () => {
         participantsLength: 6,
       }),
     ).toBe(2);
+  });
+});
+
+describe('calculateParticipantViewSize', () => {
+  const margin = 4;
+
+  it.each([
+    [390, 650, 6, 2],
+    [690, 350, 6, 3],
+    [860, 520, 6, 4],
+  ])(
+    'keeps every row and column of a %ix%i grid inside the container',
+    (containerWidth, containerHeight, participantsLength, numberOfColumns) => {
+      const { itemWidth, itemHeight } = calculateParticipantViewSize({
+        containerWidth,
+        containerHeight,
+        participantsLength,
+        numberOfColumns,
+        horizontal: false,
+        margin,
+      });
+      const rows = getVisibleRows(participantsLength, numberOfColumns);
+      expect(numberOfColumns * (itemWidth + margin * 2)).toBeCloseTo(
+        containerWidth,
+      );
+      expect(rows * (itemHeight + margin * 2)).toBeCloseTo(containerHeight);
+    },
+  );
+
+  it('fits the horizontal margins in horizontal mode', () => {
+    const { itemWidth, itemHeight } = calculateParticipantViewSize({
+      containerWidth: 400,
+      containerHeight: 120,
+      participantsLength: 5,
+      numberOfColumns: 2,
+      horizontal: true,
+      margin,
+    });
+    expect(2 * (itemWidth + 8 * 2)).toBeCloseTo(400);
+    expect(itemHeight + margin * 2).toBeCloseTo(120);
   });
 });
