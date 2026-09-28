@@ -2595,7 +2595,7 @@ PODS:
     - ReactNativeDependencies
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (145.4.0-alpha.1):
+  - stream-react-native-webrtc (145.4.1):
     - React-Core
     - StreamWebRTC (= 145.17.0)
   - stream-video-react-native (2.0.0-beta.1):
@@ -3007,7 +3007,7 @@ SPEC CHECKSUMS:
   MMKVCore: 3d16ce9f7d411e135020915fde98a056859a1efa
   NitroMmkv: 38b271a19e7e152025a6893160c98326872ea05f
   NitroModules: e0ac5f9a04e23cb2f378b51810ebc07ed63aeae9
-  QuickCrypto: 52d2f094ec7051e1ce8e66333088fefe6c253a7a
+  QuickCrypto: 61ed57f6cdce53a5bc1017054fa1ea4e24e0f14d
   RCTDeprecation: bccb6545c26db881ecddfd83a3f9ea82aba1605f
   RCTRequired: b2f74764d596fc0051f00fee94b49bf41a6f7f5a
   RCTSwiftUI: c6d6a31b849b9dfa64c33b55dc91ac15dd55774c
@@ -3099,9 +3099,9 @@ SPEC CHECKSUMS:
   RNSVG: 394cfd0518613b144c65ffe69045f827b78a7a7c
   RNWorklets: 43af89f696342f91118a2f1f3a879056e2f47331
   stream-chat-react-native: e97f6d3ed0c2828b20610ffc0023ad7f9c90738d
-  stream-io-noise-cancellation-react-native: 1c97675f11979a8f144706aa1105eeebc5ca380d
+  stream-io-noise-cancellation-react-native: b4c0401d5663ef11f6b59a6df5e4c157ec307f55
   stream-io-video-filters-react-native: 7a2c93ed95c7213f44cb8a9a15246f8301d2f67c
-  stream-react-native-webrtc: 8347bb401bfe33b52fd0da1a0b66b2b3016aef2f
+  stream-react-native-webrtc: 5c18524689456e8ad7e7dbc0f05d1ac11f5e7056
   stream-video-react-native: 177671d5813623f097d311a4d6eb9e59394d693d
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
   StreamWebRTC: 8543c52d49cadcbe051582d0b13de01c8085735f
