@@ -35,7 +35,7 @@
 
 .rd__sidebar {
   position: absolute;
-  border-radius: var(--str-video__radius-3xl);
+  border-radius: var(--str-video__radius-lg);
   height: calc(100vh - 60px);
   height: calc(100dvh - 60px);
 
@@ -51,8 +51,11 @@
   .rd__sidebar__container {
     flex-grow: 1;
     padding: var(--str-video__spacing-md) 0;
-    border-radius: var(--str-video__radius-3xl);
+    // Same surface as the SDK menu (Figma: elevation-2 + shadow elevation-3).
+    // The shadow separates the drawer from the page in light mode too.
+    border-radius: var(--str-video__radius-lg);
     background-color: var(--str-video__background-core-elevation-2);
+    box-shadow: var(--str-video__box-shadow-3);
   }
 
   .str-video__participant-list {
@@ -65,7 +68,9 @@
     display: flex;
     flex-direction: column;
     background-color: var(--str-video__background-core-elevation-2);
-    border-radius: var(--str-video__radius-3xl);
+    border-radius: var(--str-video__radius-lg);
+    // stream-chat paints its own square surfaces; keep the drawer's corners.
+    overflow: hidden;
     height: 100%;
     width: 100%;
   }
@@ -75,13 +80,15 @@
   display: flex;
   height: 100%;
   overflow-y: scroll;
+  // Clip scrolled content to the drawer's rounded corners.
+  border-radius: inherit;
 }
 
 .rd__participants {
   display: flex;
   flex-direction: column;
   background-color: var(--str-video__background-core-elevation-2);
-  border-radius: var(--str-video__radius-3xl);
+  border-radius: var(--str-video__radius-lg);
   padding: var(--str-video__spacing-md);
   height: 100%;
   width: 100%;
@@ -98,6 +105,10 @@
 
     &.rd__sidebar--open {
       width: 350px;
+      // overflow: hidden would clip the container's elevation-3 shadow;
+      // clip with enough margin to keep it.
+      overflow: visible;
+      clip-path: inset(-40px);
     }
 
     .rd__sidebar__container {
