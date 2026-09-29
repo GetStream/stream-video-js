@@ -82,7 +82,9 @@ open class VideoFilter: NSObject, VideoFrameProcessorDelegate {
     
     @objc private func updateRotation() {
         DispatchQueue.main.async {
-            self.sceneOrientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation ?? .unknown
+            let windowScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+            let scene = windowScenes.first { $0.activationState == .foregroundActive } ?? windowScenes.first
+            self.sceneOrientation = scene?.interfaceOrientation ?? .unknown
         }
     }
     

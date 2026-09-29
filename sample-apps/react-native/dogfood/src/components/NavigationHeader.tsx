@@ -66,7 +66,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
       route.name === 'TestRecordingScreen');
 
   return (
-    <SafeAreaView style={styles.header} edges={['top']}>
+    <SafeAreaView style={styles.header} edges={['top', 'left', 'right']}>
       <Text style={styles.headerText} numberOfLines={1}>
         {userName}
       </Text>

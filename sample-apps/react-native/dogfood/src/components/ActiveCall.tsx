@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CallContent,
+  type CallControlProps,
   NoiseCancellationProvider,
   StreamTheme,
   useCall,
@@ -15,6 +16,7 @@ import {
   Alert,
   StatusBar,
   StyleSheet,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { ParticipantsInfoListModal } from './ParticipantsInfoListModal';
@@ -23,10 +25,17 @@ import { BottomControls } from './CallControls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControls/TopControls';
+import { FoldAwareCallArea } from './FoldAwareCallArea';
+import { FoldAwareTopBar } from '../contexts/FoldAwareBarLayoutContext';
+import { useFoldDivision } from '../hooks/useFoldDivision';
 import { useLayout } from '../contexts/LayoutContext';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
-import DeviceInfo from 'react-native-device-info';
 import Toast from 'react-native-toast-message';
+
+// Windows shorter than this use the landscape layout (controls on the side).
+// Taller windows, such as tablets or a large foldable display, keep the
+// stacked layout even when wider than tall.
+const LANDSCAPE_LAYOUT_MAX_HEIGHT = 500;
 
 type ActiveCallProps = {
   onHangupCallHandler?: () => void;
@@ -65,8 +74,12 @@ export const ActiveCall = ({
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
   const isInPiPMode = useIsInPiPMode();
   const currentOrientation = useOrientation();
-  const isTablet = DeviceInfo.isTablet();
-  const isLandscape = !isTablet && currentOrientation === 'landscape';
+  const { height: windowHeight } = useWindowDimensions();
+  const isLandscape =
+    currentOrientation === 'landscape' &&
+    windowHeight < LANDSCAPE_LAYOUT_MAX_HEIGHT;
+  // on a foldable, keep the grid split at the hinge
+  const hasHinge = !!useFoldDivision();
 
   const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
@@ -102,23 +115,27 @@ export const ActiveCall = ({
   const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
     useToggleCallRecording();
 
-  const CustomBottomControls = useCallback(() => {
-    return (
-      <BottomControls
-        onParticipantInfoPress={onOpenCallParticipantsInfo}
-        onChatOpenHandler={onChatOpenHandler}
-        toggleCallRecording={toggleCallRecording}
-        isCallRecordingInProgress={isCallRecordingInProgress}
-        isAwaitingResponse={isAwaitingResponse}
-      />
-    );
-  }, [
-    onChatOpenHandler,
-    onOpenCallParticipantsInfo,
-    toggleCallRecording,
-    isAwaitingResponse,
-    isCallRecordingInProgress,
-  ]);
+  const CustomBottomControls = useCallback(
+    ({ landscape }: CallControlProps) => {
+      return (
+        <BottomControls
+          landscape={landscape}
+          onParticipantInfoPress={onOpenCallParticipantsInfo}
+          onChatOpenHandler={onChatOpenHandler}
+          toggleCallRecording={toggleCallRecording}
+          isCallRecordingInProgress={isCallRecordingInProgress}
+          isAwaitingResponse={isAwaitingResponse}
+        />
+      );
+    },
+    [
+      onChatOpenHandler,
+      onOpenCallParticipantsInfo,
+      toggleCallRecording,
+      isAwaitingResponse,
+      isCallRecordingInProgress,
+    ],
+  );
 
   const CustomTopControls = useCallback(() => {
     return (
@@ -141,17 +158,22 @@ export const ActiveCall = ({
           <StatusBar
             barStyle={themeMode === 'light' ? 'dark-content' : 'light-content'}
           />
-          {!isInPiPMode && <CustomTopControls />}
-          {!isInPiPMode && <E2EEKeyNotification />}
-          <CustomCallContentThemeOverride>
-            <CallContent
-              iOSPiPIncludeLocalParticipantVideo
-              onHangupCallHandler={onHangupCallHandler}
-              CallControls={CustomBottomControls}
-              landscape={isLandscape}
-              layout={selectedLayout}
-            />
-          </CustomCallContentThemeOverride>
+          <FoldAwareCallArea>
+            <FoldAwareTopBar>
+              {!isInPiPMode && <CustomTopControls />}
+              {!isInPiPMode && <E2EEKeyNotification />}
+            </FoldAwareTopBar>
+            <CustomCallContentThemeOverride>
+              <CallContent
+                iOSPiPIncludeLocalParticipantVideo
+                onHangupCallHandler={onHangupCallHandler}
+                CallControls={CustomBottomControls}
+                landscape={isLandscape}
+                layout={selectedLayout}
+                evenGridColumns={hasHinge}
+              />
+            </CustomCallContentThemeOverride>
+          </FoldAwareCallArea>
           <ParticipantsInfoListModal
             isCallParticipantsInfoVisible={isCallParticipantsVisible}
             setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}

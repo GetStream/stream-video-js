@@ -27,6 +27,11 @@ import {
 } from '../../Participant/ParticipantView';
 import type { CallContentProps } from '../CallContent';
 import { useTheme } from '../../../contexts';
+import {
+  calculateParticipantViewSize,
+  DEFAULT_NUMBER_OF_COLUMNS,
+  getAutoNumberOfColumns,
+} from './gridSizing';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant>
@@ -61,9 +66,16 @@ export type CallParticipantsListProps = CallParticipantsListComponentProps &
     participants: StreamVideoParticipant[];
     /**
      * The number of columns to display in the list of participants while in vertical or horizontal scrolling mode. This property is only used when there are more than 2 participants.
-     * @default 2
+     * When omitted, vertical lists pick between 2 and 4 columns based on the size of the list's container (see `evenGridColumns`),
+     * so wide containers (landscape, tablets, large foldable displays) don't stretch the tiles. Horizontal lists default to 2.
      */
     numberOfColumns?: number;
+    /**
+     * If true, the automatically picked number of columns is always even (2 or 4),
+     * so the grid splits down the middle, where foldable devices have their hinge.
+     * Ignored when `numberOfColumns` is set or in horizontal mode.
+     */
+    evenGridColumns?: boolean;
     /**
      * If true, the list will be displayed in horizontal scrolling mode
      */
@@ -82,7 +94,8 @@ export type CallParticipantsListProps = CallParticipantsListComponentProps &
  * hence it should be used only in a flex parent container
  */
 export const CallParticipantsList = ({
-  numberOfColumns = 2,
+  numberOfColumns: numberOfColumnsProp,
+  evenGridColumns,
   horizontal,
   participants,
   ParticipantView = DefaultParticipantView,
@@ -186,6 +199,17 @@ export const CallParticipantsList = ({
     [],
   );
 
+  const numberOfColumns =
+    numberOfColumnsProp ??
+    (horizontal
+      ? DEFAULT_NUMBER_OF_COLUMNS
+      : getAutoNumberOfColumns({
+          containerHeight: containerLayout.height,
+          containerWidth: containerLayout.width,
+          participantsLength: participants.length,
+          evenGridColumns,
+        }));
+
   const { itemHeight, itemWidth } = calculateParticipantViewSize({
     containerHeight: containerLayout.height,
     containerWidth: containerLayout.width,
@@ -193,6 +217,7 @@ export const CallParticipantsList = ({
     numberOfColumns,
     horizontal,
     margin: styles.participant.margin,
+    horizontalMargin: styles.participantWrapperHorizontal.marginHorizontal,
   });
 
   const itemContainerStyle = useMemo<StyleProp<ViewStyle>>(() => {
@@ -308,7 +333,6 @@ const useStyles = () => {
       StyleSheet.create({
         flexed: { flex: 1 },
         participantWrapperHorizontal: {
-          // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
           marginHorizontal: theme.variants.spacingSizes.sm,
           borderRadius: theme.variants.borderRadiusSizes.sm,
         },
@@ -322,50 +346,3 @@ const useStyles = () => {
     [theme],
   );
 };
-
-/**
- * This function calculates the size of the participant view based on the size of the container (the phone's screen size) and the number of participants.
- * @param {number} containerHeight - height of the container (the phone's screen height) in pixels
- * @param {number} containerWidth - width of the container (the phone's screen width) in pixels
- * @param {number} participantsLength - number of participants
- * @param {number} numColumns - number of columns
- * @param {boolean} horizontal - whether the participant view is in horizontal mode
- * @returns {object} - an object containing the height and width of the participant view
- */
-function calculateParticipantViewSize({
-  containerHeight,
-  containerWidth,
-  participantsLength,
-  numberOfColumns,
-  horizontal,
-  margin,
-}: {
-  containerHeight: number;
-  containerWidth: number;
-  participantsLength: number;
-  numberOfColumns: number;
-  horizontal: boolean | undefined;
-  margin: number;
-}) {
-  let itemHeight = containerHeight;
-  // in vertical mode, we calculate the height of the participant view based on the containerHeight (aka the phone's screen height)
-  if (!horizontal) {
-    if (participantsLength <= 4) {
-      // special case: if there are 4 or less participants, we display them in 2 rows
-      itemHeight = containerHeight / 2;
-    } else {
-      // generally, we display the participants in 3 rows
-      itemHeight = containerHeight / 3;
-    }
-  }
-
-  let itemWidth = containerWidth / numberOfColumns;
-  if (horizontal) {
-    // in horizontal mode we apply margin of 8 to the participant view and that should be subtracted from the width
-    itemWidth = itemWidth - 8 * 2;
-  }
-
-  itemHeight = itemHeight - margin;
-  itemWidth = itemWidth - margin;
-  return { itemHeight, itemWidth };
-}
