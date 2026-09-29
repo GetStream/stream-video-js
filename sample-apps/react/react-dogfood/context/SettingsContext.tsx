@@ -1,9 +1,11 @@
 import { createContext, PropsWithChildren, useContext, useState } from 'react';
+import { StreamTheme } from '@stream-io/video-react-sdk';
 import { useLanguage } from '../hooks/useLanguage';
 import {
   DeviceSelectionPreference,
   useDeviceSelectionPreference,
 } from '../hooks/useDeviceSelectionPreference';
+import { ThemeMode, useThemeMode } from '../hooks/useThemeMode';
 
 export type SegmentationModel =
   | 'selfie_segmenter_landscape'
@@ -21,6 +23,8 @@ const defaultState: Settings = {
   setDeviceSelectionPreference: () => {},
   segmentationModel: 'selfie_segmenter_landscape',
   setSegmentationModel: () => {},
+  themeMode: 'dark',
+  setThemeMode: () => {},
 };
 
 export type Settings = {
@@ -30,6 +34,8 @@ export type Settings = {
   setDeviceSelectionPreference: (value: DeviceSelectionPreference) => void;
   segmentationModel: SegmentationModel;
   setSegmentationModel: (value: SegmentationModel) => void;
+  themeMode: ThemeMode;
+  setThemeMode: (value: ThemeMode) => void;
 };
 
 export type SettingsContextValue = {
@@ -44,6 +50,7 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
   const { language, setLanguage } = useLanguage();
   const { deviceSelectionPreference, setDeviceSelectionPreference } =
     useDeviceSelectionPreference();
+  const { themeMode, setThemeMode } = useThemeMode();
 
   const [segmentationModel, setSegmentationModel] = useState<SegmentationModel>(
     () => {
@@ -66,6 +73,8 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
     setDeviceSelectionPreference,
     segmentationModel,
     setSegmentationModel,
+    themeMode,
+    setThemeMode,
   };
 
   return (
@@ -74,7 +83,7 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
         settings,
       }}
     >
-      {children}
+      <StreamTheme theme={themeMode}>{children}</StreamTheme>
     </SettingsContext.Provider>
   );
 };

@@ -192,6 +192,7 @@
     &-icon {
       height: var(--str-video__icon-size-sm);
       width: var(--str-video__icon-size-sm);
+      background-color: currentColor;
     }
 
     &-label {
