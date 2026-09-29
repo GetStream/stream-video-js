@@ -46,6 +46,7 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+    box-shadow: var(--str-video__box-shadow-3);
   }
 
   .rd__sidebar__container {
@@ -53,7 +54,6 @@
     padding: var(--str-video__spacing-md) 0;
     border-radius: var(--str-video__radius-lg);
     background-color: var(--str-video__background-core-elevation-2);
-    box-shadow: var(--str-video__box-shadow-3);
   }
 
   .str-video__participant-list {
@@ -100,14 +100,12 @@
     transition-duration: 0.3s;
 
     &.rd__sidebar--open {
-      width: 350px;
-      overflow: visible;
-      clip-path: inset(-40px);
+      width: 324px;
     }
 
     .rd__sidebar__container {
-      max-width: 350px;
-      min-width: 350px;
+      max-width: 324px;
+      min-width: 324px;
       display: flex;
       gap: var(--str-video__spacing-sm);
       height: 100%;
