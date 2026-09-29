@@ -3,25 +3,36 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: var(--str-video__spacing-sm);
   height: 100%;
-  padding: var(--str-video__spacing-md);
+  padding: var(--str-video__spacing-3xl) var(--str-video__spacing-xl);
   text-align: center;
 
   &__icon {
-    height: 100px;
-    width: 100px;
+    height: 32px;
+    width: 32px;
+    color: var(--str-video__text-tertiary);
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--str-video__spacing-xxs);
+    max-width: 320px;
+    font-size: var(--str-video__typography-font-size-sm);
+    line-height: var(--str-video__typography-line-height-normal);
   }
 
   &__title {
-    font-size: var(--str-video__typography-font-size-md);
-    font-weight: 600;
-    margin-bottom: 0;
+    margin: 0;
+    font-weight: var(--str-video__typography-font-weight-semi-bold);
+    color: var(--str-video__text-primary);
   }
 
   &__description {
-    font-size: var(--str-video__typography-font-size-sm);
+    margin: 0;
     font-weight: 400;
-    color: var(--str-video__text-tertiary);
+    color: var(--str-video__text-secondary);
   }
 }
 
@@ -30,12 +41,15 @@
   justify-content: space-between;
   align-items: center;
 
-  padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
+  gap: var(--str-video__spacing-sm);
+  padding: var(--str-video__spacing-md);
 
   .rd__chat-header__title {
     flex: 1;
-    font-size: var(--str-video__typography-font-size-sm);
-    font-weight: 500;
+    margin: 0;
+    font-size: var(--str-video__typography-font-size-md);
+    font-weight: var(--str-video__typography-font-weight-semi-bold);
+    line-height: var(--str-video__typography-line-height-normal);
   }
 }
 
@@ -43,16 +57,20 @@
   --str-chat__primary-color: var(--str-video__accent-primary);
   --str-chat__active-primary-color: var(--str-video__accent-primary);
   --str-chat__background-core-app: var(
-    --str-video__background-core-elevation-2
+    --str-video__background-core-elevation-1
   );
   --str-chat__background-core-elevation-1: var(
-    --str-video__background-core-elevation-2
+    --str-video__background-core-elevation-1
   );
   --str-chat__channel-border-radius: 8px;
 
   .str-video__icon {
     height: 18px;
     width: 18px;
+  }
+
+  .str-chat__attachment-selector__menu-button .str-video__icon {
+    background-color: currentColor;
   }
 }
 

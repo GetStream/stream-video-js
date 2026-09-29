@@ -1,5 +1,6 @@
 .rd__call-stats {
-  --rd__stat-card-background: var(--str-video__background-core-surface-subtle);
+  align-self: flex-start;
+  --rd__stat-card-background: var(--str-video__background-core-surface-default);
   padding: var(--str-video__spacing-sm);
   width: 100%;
   display: flex;
