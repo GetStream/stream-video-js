@@ -128,7 +128,8 @@ const useStyles = () => {
           justifyContent: 'space-between',
           paddingTop: theme.variants.spacingSizes.sm,
           paddingBottom: theme.variants.spacingSizes.sm,
-          paddingHorizontal: theme.variants.spacingSizes.sm,
+          // matches the top controls' horizontal padding so hang-up lines up
+          paddingHorizontal: theme.variants.spacingSizes.md,
         },
         // a ScrollView grows by default and would take width from the video
         landscapeScroll: {
