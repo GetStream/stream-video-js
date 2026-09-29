@@ -25,6 +25,8 @@ import { BottomControls } from './CallControls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControls/TopControls';
+import { FoldAwareCallArea } from './FoldAwareCallArea';
+import { FoldAwareTopBar } from '../contexts/FoldAwareBarLayoutContext';
 import { useLayout } from '../contexts/LayoutContext';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import Toast from 'react-native-toast-message';
@@ -153,17 +155,21 @@ export const ActiveCall = ({
           <StatusBar
             barStyle={themeMode === 'light' ? 'dark-content' : 'light-content'}
           />
-          {!isInPiPMode && <CustomTopControls />}
-          {!isInPiPMode && <E2EEKeyNotification />}
-          <CustomCallContentThemeOverride>
-            <CallContent
-              iOSPiPIncludeLocalParticipantVideo
-              onHangupCallHandler={onHangupCallHandler}
-              CallControls={CustomBottomControls}
-              landscape={isLandscape}
-              layout={selectedLayout}
-            />
-          </CustomCallContentThemeOverride>
+          <FoldAwareCallArea>
+            <FoldAwareTopBar>
+              {!isInPiPMode && <CustomTopControls />}
+              {!isInPiPMode && <E2EEKeyNotification />}
+            </FoldAwareTopBar>
+            <CustomCallContentThemeOverride>
+              <CallContent
+                iOSPiPIncludeLocalParticipantVideo
+                onHangupCallHandler={onHangupCallHandler}
+                CallControls={CustomBottomControls}
+                landscape={isLandscape}
+                layout={selectedLayout}
+              />
+            </CustomCallContentThemeOverride>
+          </FoldAwareCallArea>
           <ParticipantsInfoListModal
             isCallParticipantsInfoVisible={isCallParticipantsVisible}
             setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}

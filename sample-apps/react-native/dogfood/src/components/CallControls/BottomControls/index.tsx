@@ -5,13 +5,14 @@ import {
   ToggleVideoPublishingButton,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { LayoutChangeEvent, ScrollView, StyleSheet, View } from 'react-native';
 import { MoreActionsButton } from '../MoreActionsButton';
 import { ParticipantsButton } from './ParticipantsButton';
 import { ChatButton } from './ChatButton';
 import { RecordCallButton } from './RecordCallButton';
 import { SubtitleContainer } from './SubtitleContainer';
+import { useFoldAwareBarLayout } from '../../../contexts/FoldAwareBarLayoutContext';
 
 export type BottomControlsProps = Pick<
   CallContentProps,
@@ -47,6 +48,11 @@ export const BottomControls = ({
   const onLayout = (event: LayoutChangeEvent) => {
     setMeasuredHeight(event.nativeEvent.layout.height);
   };
+
+  const barLayout = useFoldAwareBarLayout();
+  useEffect(() => {
+    barLayout?.setBottomBarHeight(controlsContainerHeight ?? 0);
+  }, [barLayout, controlsContainerHeight]);
 
   const buttons = (
     <>

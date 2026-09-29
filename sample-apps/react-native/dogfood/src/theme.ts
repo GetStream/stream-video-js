@@ -1,6 +1,7 @@
 import { DeepPartial, Theme } from '@stream-io/video-react-native-sdk';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemeMode } from './contexts/AppContext';
+import { useFoldDivision } from './hooks/useFoldDivision';
 
 const opacityToHex = (opacity: number) => {
   return Math.round(opacity * 255)
@@ -36,7 +37,15 @@ export const appTheme = {
 };
 
 export const useCustomTheme = (mode: ThemeMode): DeepPartial<Theme> => {
-  const { top, right, bottom, left } = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
+  const { top, bottom } = insets;
+  let { left, right } = insets;
+  // while a foldable is partially folded, use equal side insets so
+  // layouts centered in the safe area are centered on the hinge
+  const foldDivision = useFoldDivision();
+  if (foldDivision?.active) {
+    left = right = Math.max(left, right);
+  }
 
   const baseTheme: DeepPartial<Theme> = {
     variants: {
