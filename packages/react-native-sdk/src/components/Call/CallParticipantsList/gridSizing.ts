@@ -17,6 +17,8 @@ export const getVisibleRows = (
  * Picks the number of columns whose cells fit the largest square tile
  * (the biggest `min(cellWidth, cellHeight)`) for the given container,
  * so that tiles are as big as possible. Ties keep fewer columns.
+ * Only even column counts are considered, so the grid divides cleanly
+ * down the middle, where foldable devices have their hinge.
  */
 export const getAutoNumberOfColumns = ({
   containerHeight,
@@ -39,7 +41,7 @@ export const getAutoNumberOfColumns = ({
   for (
     let columns = DEFAULT_NUMBER_OF_COLUMNS;
     columns <= maxColumns;
-    columns++
+    columns += 2
   ) {
     const rows = getVisibleRows(participantsLength, columns);
     const tileSize = Math.min(containerWidth / columns, containerHeight / rows);
