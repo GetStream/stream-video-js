@@ -27,6 +27,7 @@ import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControls/TopControls';
 import { FoldAwareCallArea } from './FoldAwareCallArea';
 import { FoldAwareTopBar } from '../contexts/FoldAwareBarLayoutContext';
+import { useFoldDivision } from '../hooks/useFoldDivision';
 import { useLayout } from '../contexts/LayoutContext';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import Toast from 'react-native-toast-message';
@@ -77,6 +78,8 @@ export const ActiveCall = ({
   const isLandscape =
     currentOrientation === 'landscape' &&
     windowHeight < LANDSCAPE_LAYOUT_MAX_HEIGHT;
+  // on a foldable, keep the grid split at the hinge
+  const hasHinge = !!useFoldDivision();
 
   const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
@@ -167,6 +170,7 @@ export const ActiveCall = ({
                 CallControls={CustomBottomControls}
                 landscape={isLandscape}
                 layout={selectedLayout}
+                evenGridColumns={hasHinge}
               />
             </CustomCallContentThemeOverride>
           </FoldAwareCallArea>
