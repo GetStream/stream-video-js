@@ -1,11 +1,7 @@
 import { BehaviorSubject, distinctUntilChanged, map, shareReplay } from 'rxjs';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
-import {
-  isShallowArrayEqual,
-  setCurrentValue,
-  setCurrentValueAsync,
-} from '../store/rxUtils';
+import { isShallowArrayEqual, setCurrentValue } from '../store/rxUtils';
 import { timeboxed } from '../coordinator/connection/utils';
 
 type BlockedAudioElement = {
@@ -111,22 +107,22 @@ export class BlockedAudioTracker {
    */
   resumeAudio = async () => {
     this.tracer.trace('resumeAudio', null);
-    await setCurrentValueAsync(
-      this.blockedElementsSubject,
-      async (elements) => {
-        let next = elements;
-        await Promise.all(
-          elements.map(async ({ element }) => {
-            try {
-              if (element.srcObject) await timeboxed([element.play()], 2000);
-              next = next.filter((entry) => entry.element !== element);
-            } catch (err) {
-              this.logger.warn(`Can't resume audio for element`, element, err);
-            }
-          }),
-        );
-        return next;
-      },
+    const snapshot = this.blockedElementsSubject.getValue();
+    const resumed = new Set<HTMLAudioElement>();
+    await Promise.all(
+      snapshot.map(async ({ element }) => {
+        try {
+          if (element.srcObject) await timeboxed([element.play()], 2000);
+          resumed.add(element);
+        } catch (err) {
+          this.logger.warn(`Can't resume audio for element`, element, err);
+        }
+      }),
+    );
+    // Apply the result to the current list, elements that got blocked while
+    // the playback was pending must stay tracked.
+    setCurrentValue(this.blockedElementsSubject, (elements) =>
+      elements.filter(({ element }) => !resumed.has(element)),
     );
   };
 }
