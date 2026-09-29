@@ -905,8 +905,10 @@ class StreamInCallManager: RCTEventEmitter {
 
     private func getCurrentWindow() -> UIWindow? {
         // With multiple connected scenes the first one may be in the background,
-        // so prefer the key window of a foreground-active scene.
-        let windowScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        // so prefer the key window of a foreground-active scene that has windows.
+        let windowScenes = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .filter { !$0.windows.isEmpty }
         let scene = windowScenes.first { $0.activationState == .foregroundActive } ?? windowScenes.first
         return scene?.windows.first { $0.isKeyWindow } ?? scene?.windows.first
     }
