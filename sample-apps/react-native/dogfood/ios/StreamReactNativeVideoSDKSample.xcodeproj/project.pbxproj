@@ -10,10 +10,12 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		4D2CFA4A1D21793DD346776C /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		4D971DCC2E57B61BFEDC0B7D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 88BB23A1BB898D9683DCB129 /* PrivacyInfo.xcprivacy */; };
+		78F928F64146AF6AD9C459ED /* RCTFoldRegion.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0E6222D6D4A468C5D186EC9D /* RCTFoldRegion.mm */; };
 		7C8805302FF7B284000B2C80 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C88052F2FF7B284000B2C80 /* SceneDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		971245789A3DE3BC5BE05B7A /* Pods_StreamReactNativeVideoSDKSample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EE5915852699CCF75559F04 /* Pods_StreamReactNativeVideoSDKSample.framework */; };
 		AABBCC010000000000000001 /* AudioUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABBCC010000000000000002 /* AudioUploader.swift */; };
+		C10AE3C3A510F12DF5575D03 /* FoldRegionObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80C62B827878FFC5ECC4F47F /* FoldRegionObserver.swift */; };
 		DD17437129221798001CBEA0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DD17437029221798001CBEA0 /* GoogleService-Info.plist */; };
 		DD17437229221798001CBEA0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DD17437029221798001CBEA0 /* GoogleService-Info.plist */; };
 		DD36F8FD2C182FFD00836A94 /* VideoEffectsModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD36F8FC2C182FFD00836A94 /* VideoEffectsModule.swift */; };
@@ -65,11 +67,13 @@
 
 /* Begin PBXFileReference section */
 		00E356EE1AD99517003FC87E /* StreamReactNativeVideoSDKSampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StreamReactNativeVideoSDKSampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0E6222D6D4A468C5D186EC9D /* RCTFoldRegion.mm */ = {isa = PBXFileReference; includeInIndex = 1; path = RCTFoldRegion.mm; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* StreamReactNativeVideoSDKSample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StreamReactNativeVideoSDKSample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = StreamReactNativeVideoSDKSample/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = StreamReactNativeVideoSDKSample/Info.plist; sourceTree = "<group>"; };
 		22F5F4AC7C0A54A4283E5EC3 /* Pods-StreamReactNativeVideoSDKSample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StreamReactNativeVideoSDKSample.release.xcconfig"; path = "Target Support Files/Pods-StreamReactNativeVideoSDKSample/Pods-StreamReactNativeVideoSDKSample.release.xcconfig"; sourceTree = "<group>"; };
 		7C88052F2FF7B284000B2C80 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		80C62B827878FFC5ECC4F47F /* FoldRegionObserver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FoldRegionObserver.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = StreamReactNativeVideoSDKSample/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		88BB23A1BB898D9683DCB129 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = StreamReactNativeVideoSDKSample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		9EE5915852699CCF75559F04 /* Pods_StreamReactNativeVideoSDKSample.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_StreamReactNativeVideoSDKSample.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -143,6 +147,8 @@
 				DD36F9002C1831FC00836A94 /* GrayScaleVideoFrameProcessor.swift */,
 				88BB23A1BB898D9683DCB129 /* PrivacyInfo.xcprivacy */,
 				7C88052F2FF7B284000B2C80 /* SceneDelegate.swift */,
+				80C62B827878FFC5ECC4F47F /* FoldRegionObserver.swift */,
+				0E6222D6D4A468C5D186EC9D /* RCTFoldRegion.mm */,
 			);
 			name = StreamReactNativeVideoSDKSample;
 			sourceTree = "<group>";
@@ -439,6 +445,8 @@
 				DDAF46312D763D11002F0E56 /* AppDelegate.swift in Sources */,
 				DD36F8FD2C182FFD00836A94 /* VideoEffectsModule.swift in Sources */,
 				7C8805302FF7B284000B2C80 /* SceneDelegate.swift in Sources */,
+				C10AE3C3A510F12DF5575D03 /* FoldRegionObserver.swift in Sources */,
+				78F928F64146AF6AD9C459ED /* RCTFoldRegion.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
