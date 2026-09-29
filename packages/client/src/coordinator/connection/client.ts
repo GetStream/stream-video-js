@@ -224,7 +224,15 @@ export class StreamClient {
     // we generate the client id client side
     this.userID = user.id;
     this.anonymous = false;
-    await this.tokenManager.setTokenOrProvider(tokenOrProvider, user, false);
+    try {
+      await this.tokenManager.setTokenOrProvider(tokenOrProvider, user, false);
+    } catch (err) {
+      // cleanup client to allow the user to retry connectUser again
+      if (!this.persistUserOnConnectionFailure) {
+        await this.disconnectUser();
+      }
+      throw err;
+    }
     this._setUser(user);
 
     this.connectUserTask = this.openConnection();
