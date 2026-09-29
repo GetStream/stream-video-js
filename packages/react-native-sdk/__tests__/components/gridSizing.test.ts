@@ -105,6 +105,7 @@ describe('getAutoNumberOfColumns', () => {
 
 describe('calculateParticipantViewSize', () => {
   const margin = 4;
+  const horizontalMargin = 8;
 
   it.each([
     [390, 650, 6, 2],
@@ -120,6 +121,7 @@ describe('calculateParticipantViewSize', () => {
         numberOfColumns,
         horizontal: false,
         margin,
+        horizontalMargin,
       });
       const rows = getVisibleRows(participantsLength, numberOfColumns);
       expect(numberOfColumns * (itemWidth + margin * 2)).toBeCloseTo(
@@ -137,8 +139,9 @@ describe('calculateParticipantViewSize', () => {
       numberOfColumns: 2,
       horizontal: true,
       margin,
+      horizontalMargin,
     });
-    expect(2 * (itemWidth + 8 * 2)).toBeCloseTo(400);
+    expect(2 * (itemWidth + horizontalMargin * 2)).toBeCloseTo(400);
     expect(itemHeight + margin * 2).toBeCloseTo(120);
   });
 });

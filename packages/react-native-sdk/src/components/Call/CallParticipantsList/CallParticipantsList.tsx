@@ -209,6 +209,7 @@ export const CallParticipantsList = ({
     numberOfColumns,
     horizontal,
     margin: styles.participant.margin,
+    horizontalMargin: styles.participantWrapperHorizontal.marginHorizontal,
   });
 
   const itemContainerStyle = useMemo<StyleProp<ViewStyle>>(() => {
@@ -324,7 +325,6 @@ const useStyles = () => {
       StyleSheet.create({
         flexed: { flex: 1 },
         participantWrapperHorizontal: {
-          // note: if marginHorizontal is changed, be sure to change HORIZONTAL_ITEM_MARGIN in gridSizing.ts
           marginHorizontal: theme.variants.spacingSizes.sm,
           borderRadius: theme.variants.borderRadiusSizes.sm,
         },
