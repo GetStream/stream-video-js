@@ -591,4 +591,20 @@ describe('Call lifecycle wiring', () => {
     await expect(call.join()).resolves.toBeUndefined();
     expect(doJoin).toHaveBeenCalledTimes(1);
   });
+  it('call.off() removes only the listener of the given event when one handler serves several events', () => {
+    const handler = vi.fn();
+    call.on('call.updated', handler);
+    call.on('call.ended', handler);
+
+    call.off('call.updated', handler);
+
+    const dispatch = (type: string) =>
+      call.streamClient.dispatchEvent(
+        fromPartial({ type, call_cid: call.cid }),
+      );
+    dispatch('call.updated');
+    expect(handler).not.toHaveBeenCalled();
+    dispatch('call.ended');
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
 });
