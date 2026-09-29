@@ -72,4 +72,17 @@ describe('useFloatingVideoDimensions', () => {
     rerender({ container: { width: 900, height: 600 } });
     expect(result.current?.height).toBeCloseTo(600 * 0.23);
   });
+
+  it('falls back to a portrait size while the video size is unknown', () => {
+    mockedUseTrackDimensions.mockReturnValue({ width: 0, height: 0 });
+    const { result } = renderHook(() =>
+      useFloatingVideoDimensions(
+        { width: 400, height: 800 },
+        participant,
+        'videoTrack',
+      ),
+    );
+    expect(result.current?.width).toBeCloseTo(400 * 0.23);
+    expect(result.current?.height).toBeCloseTo((400 * 0.23 * 4) / 3);
+  });
 });

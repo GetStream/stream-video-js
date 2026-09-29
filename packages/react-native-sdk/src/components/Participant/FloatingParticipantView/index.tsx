@@ -194,6 +194,8 @@ export const FloatingParticipantView = ({
                     height: floatingVideoDimensions.height,
                     borderRadius: floatingVideoDimensions.width * 0.1,
                     marginHorizontal: spacingSizes.md,
+                    // keeps the tile visible while the video has no frames yet
+                    backgroundColor: colors.sheetSecondary,
                   },
                   participantViewStyle,
                   { shadowColor: colors.sheetPrimary },
