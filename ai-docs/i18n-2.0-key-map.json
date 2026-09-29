@@ -503,8 +503,7 @@
         "split": [
           "notification.micCaptureError.title",
           "notification.micCaptureError.description"
-        ],
-        "note": "One old sentence became two keys so the snackbar can render each part on its own line in every language. Split an existing translation at the sentence boundary: the first sentence goes to .title, the rest to .description."
+        ]
       },
       "{{ count }} participants joined early": {
         "key": "livestream.backstage.participantsJoinedEarly.text",

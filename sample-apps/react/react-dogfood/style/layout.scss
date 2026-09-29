@@ -51,8 +51,6 @@
   .rd__sidebar__container {
     flex-grow: 1;
     padding: var(--str-video__spacing-md) 0;
-    // Same surface as the SDK menu (Figma: elevation-2 + shadow elevation-3).
-    // The shadow separates the drawer from the page in light mode too.
     border-radius: var(--str-video__radius-lg);
     background-color: var(--str-video__background-core-elevation-2);
     box-shadow: var(--str-video__box-shadow-3);
