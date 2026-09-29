@@ -686,6 +686,36 @@ describe('DynascaleManager', () => {
       );
     });
 
+    it('audio: does not start playback if unbound before the deferred stream attach runs', () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      const play = vi.spyOn(audioElement, 'play').mockResolvedValue();
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+      call.state.updateParticipant('session-id', {
+        audioStream: new MediaStream(),
+      });
+
+      // element is unbound (e.g. component unmounted) before timers fire
+      cleanup?.();
+      vi.runAllTimers();
+
+      expect(audioElement.srcObject).toBeNull();
+      expect(play).not.toHaveBeenCalled();
+    });
+
     it('audio: unmarks blocked element when the audio stream is removed', async () => {
       vi.useFakeTimers();
       const audioElement = document.createElement('audio');
