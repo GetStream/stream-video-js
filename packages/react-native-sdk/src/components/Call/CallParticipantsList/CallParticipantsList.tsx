@@ -66,10 +66,16 @@ export type CallParticipantsListProps = CallParticipantsListComponentProps &
     participants: StreamVideoParticipant[];
     /**
      * The number of columns to display in the list of participants while in vertical or horizontal scrolling mode. This property is only used when there are more than 2 participants.
-     * When omitted, vertical lists pick between 2 and 4 columns based on the size of the list's container,
+     * When omitted, vertical lists pick between 2 and 4 columns based on the size of the list's container (see `evenGridColumns`),
      * so wide containers (landscape, tablets, large foldable displays) don't stretch the tiles. Horizontal lists default to 2.
      */
     numberOfColumns?: number;
+    /**
+     * If true, the automatically picked number of columns is always even (2 or 4),
+     * so the grid splits down the middle, where foldable devices have their hinge.
+     * Ignored when `numberOfColumns` is set or in horizontal mode.
+     */
+    evenGridColumns?: boolean;
     /**
      * If true, the list will be displayed in horizontal scrolling mode
      */
@@ -89,6 +95,7 @@ export type CallParticipantsListProps = CallParticipantsListComponentProps &
  */
 export const CallParticipantsList = ({
   numberOfColumns: numberOfColumnsProp,
+  evenGridColumns,
   horizontal,
   participants,
   ParticipantView = DefaultParticipantView,
@@ -200,6 +207,7 @@ export const CallParticipantsList = ({
           containerHeight: containerLayout.height,
           containerWidth: containerLayout.width,
           participantsLength: participants.length,
+          evenGridColumns,
         }));
 
   const { itemHeight, itemWidth } = calculateParticipantViewSize({

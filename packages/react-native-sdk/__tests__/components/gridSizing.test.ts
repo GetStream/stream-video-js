@@ -49,17 +49,7 @@ describe('getAutoNumberOfColumns', () => {
         containerHeight: 520,
         participantsLength: 6,
       }),
-    ).toBe(4);
-  });
-
-  it('keeps an even column count for an odd number of participants', () => {
-    expect(
-      getAutoNumberOfColumns({
-        containerWidth: 860,
-        containerHeight: 520,
-        participantsLength: 3,
-      }),
-    ).toBe(2);
+    ).toBe(3);
   });
 
   it('fills a wide short window as 2x2 instead of one row of tall tiles', () => {
@@ -72,14 +62,14 @@ describe('getAutoNumberOfColumns', () => {
     ).toBe(2);
   });
 
-  it('picks the even column count with the bigger tiles in a phone landscape window', () => {
+  it('picks the column count with the bigger tiles in a phone landscape window', () => {
     expect(
       getAutoNumberOfColumns({
         containerWidth: 602,
         containerHeight: 327,
         participantsLength: 5,
       }),
-    ).toBe(4);
+    ).toBe(3);
   });
 
   it('never uses more columns than participants', () => {
@@ -89,7 +79,7 @@ describe('getAutoNumberOfColumns', () => {
         containerHeight: 300,
         participantsLength: 3,
       }),
-    ).toBe(2);
+    ).toBe(3);
   });
 
   it('falls back to 2 columns before the container is measured', () => {
@@ -100,6 +90,28 @@ describe('getAutoNumberOfColumns', () => {
         participantsLength: 6,
       }),
     ).toBe(2);
+  });
+
+  describe('with evenGridColumns', () => {
+    it.each([
+      [860, 520, 6, 4],
+      [860, 520, 3, 2],
+      [602, 327, 5, 4],
+      [2000, 300, 3, 2],
+      [390, 650, 5, 2],
+    ])(
+      'picks an even column count for a %ix%i container with %i participants',
+      (containerWidth, containerHeight, participantsLength, columns) => {
+        expect(
+          getAutoNumberOfColumns({
+            containerWidth,
+            containerHeight,
+            participantsLength,
+            evenGridColumns: true,
+          }),
+        ).toBe(columns);
+      },
+    );
   });
 });
 
