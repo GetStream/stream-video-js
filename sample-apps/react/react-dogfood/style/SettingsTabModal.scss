@@ -3,14 +3,10 @@
 .rd {
   &__tabmodal-container {
     display: flex;
-    border-radius: calc(
-      // +2px to fix border radius issue
-      var(--str-video__radius-3xl) + 2px
-    );
+    flex-direction: column;
+    border-radius: var(--str-video__radius-3xl);
     width: 90vw;
     min-height: 65vh;
-    border: 2px solid var(--str-video__border-core-subtle);
-
     box-shadow: var(--str-video__box-shadow-4);
   }
 
@@ -33,19 +29,19 @@
 
   &__tabmodal-sidebar {
     display: flex;
-    flex-direction: column;
-    overflow-x: scroll;
-    min-width: 100px;
+    flex-direction: row;
+    gap: var(--str-video__spacing-xxs);
+    overflow-x: auto;
 
     background-color: var(--str-video__background-core-elevation-1);
-    border-inline-end: 1px solid var(--str-video__border-core-subtle);
-    border-radius: var(--str-video__radius-3xl) 0 0 var(--str-video__radius-3xl);
+    border-block-end: 1px solid var(--str-video__border-core-subtle);
+    border-radius: var(--str-video__radius-3xl) var(--str-video__radius-3xl) 0 0;
     padding: var(--str-video__spacing-xxs);
   }
 
   &__tabmodal-content {
     background-color: var(--str-video__background-core-elevation-1);
-    border-radius: 0 var(--str-video__radius-3xl) var(--str-video__radius-3xl) 0;
+    border-radius: 0 0 var(--str-video__radius-3xl) var(--str-video__radius-3xl);
     padding: var(--str-video__spacing-sm);
     width: 100%;
     max-height: 65vh;
@@ -202,9 +198,12 @@
       display: none;
     }
 
-    &:first-of-type {
-      margin-top: 40px;
-    }
+    // Square icon-only buttons in the mobile strip.
+    flex: none;
+    justify-content: center;
+    inline-size: 40px;
+    block-size: 40px;
+    padding: 0;
 
     &:hover {
       cursor: pointer;
@@ -226,7 +225,13 @@
 @include breakpoints.respond-above(sm) {
   .rd {
     &__tabmodal-container {
+      flex-direction: row;
       width: 65vw;
+    }
+
+    &__tabmodal-content {
+      border-radius: 0 var(--str-video__radius-3xl) var(--str-video__radius-3xl)
+        0;
     }
 
     &__tabmodal-header {
@@ -238,16 +243,29 @@
     }
 
     &__tab {
+      justify-content: flex-start;
+      inline-size: auto;
+      block-size: auto;
       padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
 
       &-label {
         display: block;
+      }
+
+      &:first-of-type {
+        margin-top: 40px;
       }
     }
 
     &__tabmodal-sidebar {
       width: 300px;
       flex-direction: column;
+      gap: 0;
+      overflow-x: scroll;
+      border-block-end: none;
+      border-inline-end: 1px solid var(--str-video__border-core-subtle);
+      border-radius: var(--str-video__radius-3xl) 0 0
+        var(--str-video__radius-3xl);
     }
 
     &__tab-panel {

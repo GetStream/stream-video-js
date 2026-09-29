@@ -42,17 +42,11 @@
 .str-chat {
   --str-chat__primary-color: var(--str-video__accent-primary);
   --str-chat__active-primary-color: var(--str-video__accent-primary);
-  --str-chat__background-color: var(
-    --str-video__background-core-surface-subtle
+  --str-chat__background-core-app: var(
+    --str-video__background-core-elevation-2
   );
-  --str-chat__primary-surface-color: var(
-    --str-video__background-core-surface-default
-  );
-  --str-chat__primary-surface-color-low-emphasis: var(
-    --str-video__background-core-surface-default
-  );
-  --str-chat__secondary-background-color: var(
-    --str-video__background-core-surface-default
+  --str-chat__background-core-elevation-1: var(
+    --str-video__background-core-elevation-2
   );
   --str-chat__channel-border-radius: 8px;
 
