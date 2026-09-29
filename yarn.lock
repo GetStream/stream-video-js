@@ -7083,7 +7083,7 @@ __metadata:
     ua-parser-js: "npm:^1.0.41"
     vitest: "npm:^4.1.10"
     vitest-mock-extended: "npm:^4.0.0"
-    webrtc-adapter: "npm:^8.2.4"
+    webrtc-adapter: "npm:^9.0.6"
   languageName: unknown
   linkType: soft
 
@@ -22120,12 +22120,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webrtc-adapter@npm:^8.2.4":
-  version: 8.2.4
-  resolution: "webrtc-adapter@npm:8.2.4"
+"webrtc-adapter@npm:^9.0.6":
+  version: 9.0.6
+  resolution: "webrtc-adapter@npm:9.0.6"
   dependencies:
     sdp: "npm:^3.2.0"
-  checksum: 10/56b49c693bd5419471c4cfa05f03db0b94c5a35175e78ea21ab75096364d56603a94c55261f401d2cc36da662f1f729fb83bc0d60b87e0dbc1d9cc54f1996c23
+  checksum: 10/f9bbaf85122205a507e63e3bfb033029ff27440f1f17a82c9f476082cf180edc90756ba7a87668dcd5e5122a70110313da2b226b9c274a018e4dd3c1c65667a2
   languageName: node
   linkType: hard
 
