@@ -1,11 +1,5 @@
 .rd__call-stats {
-  // .rd__sidebar__call-stats is a flex row, so the default stretch alignment
-  // pins this panel to the scroller's height while its content runs on past
-  // the painted background — leaving the lower sections sitting on the drawer
-  // surface instead. Size to content instead.
-  align-self: flex-start;
-  border-radius: var(--str-video__radius-3xl);
-  background-color: var(--str-video__background-core-surface-subtle);
+  --rd__stat-card-background: var(--str-video__background-core-surface-subtle);
   padding: var(--str-video__spacing-sm);
   width: 100%;
   display: flex;
@@ -29,6 +23,7 @@
 }
 
 .rd__call-stats__icon {
+  background-color: currentColor;
   margin-right: var(--str-video__spacing-xs);
   height: 18px;
   width: 18px;

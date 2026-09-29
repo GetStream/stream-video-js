@@ -181,10 +181,10 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                     <div className="rd__lobby-media-toggle">
                       <MicCaptureErrorNotification placement="top">
                         <ToggleAudioPreviewButton Menu={null} />
+                        {settings?.video.enabled && (
+                          <ToggleVideoPreviewButton Menu={null} />
+                        )}
                       </MicCaptureErrorNotification>
-                      {settings?.video.enabled && (
-                        <ToggleVideoPreviewButton Menu={null} />
-                      )}
                     </div>
                   </div>
                   <div className="rd__lobby-controls">

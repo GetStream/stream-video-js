@@ -49,6 +49,11 @@
       gap: var(--str-video__spacing-xs);
       width: 100%;
       transform: translate(0, -50%);
+
+      .str-video__notification-wrapper {
+        display: flex;
+        gap: var(--str-video__spacing-xs);
+      }
     }
 
     .rd__lobby-video-preview,
