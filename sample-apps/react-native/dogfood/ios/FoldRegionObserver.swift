@@ -4,8 +4,9 @@
 //
 //  Observes the foldable hinge (iOS 27.1+) for the FoldRegion TurboModule.
 //  A UIHingeInteraction on the root view delivers hinge changes; the hinge
-//  position comes from the "division" reserved region. `onChange` is called
-//  only when the reported value changes. Use on the main thread.
+//  position comes from the "division" reserved region, which is read again
+//  when the window scene's geometry changes (rotation, resize). `onChange` is
+//  called only when the reported value changes. Use on the main thread.
 //
 import UIKit
 
@@ -16,6 +17,7 @@ final class FoldRegionObserver: NSObject {
   // UIHingeInteraction is iOS 27.1+, so it is stored untyped
   private var hingeInteraction: UIInteraction?
   private weak var observedView: UIView?
+  private var geometryObservation: NSKeyValueObservation?
   private var hingeIsPartiallyOpen = false
   // hinge angle in whole degrees, -1 when unknown
   private var hingeAngleDegrees = -1
@@ -43,9 +45,18 @@ final class FoldRegionObserver: NSObject {
     view.addInteraction(interaction)
     hingeInteraction = interaction
     observedView = view
+    // the hinge state does not change on rotation, but the division moves
+    geometryObservation = view.window?.windowScene?.observe(\.effectiveGeometry) { [weak self] _, _ in
+      // read the division after the layout pass for the new geometry
+      DispatchQueue.main.async { [weak self] in
+        self?.emitIfChanged()
+      }
+    }
   }
 
   @objc func stop() {
+    geometryObservation?.invalidate()
+    geometryObservation = nil
     if let interaction = hingeInteraction {
       observedView?.removeInteraction(interaction)
     }
@@ -60,6 +71,10 @@ final class FoldRegionObserver: NSObject {
           let window = view.window,
           let region = view.reservedRegions(kind: .division, options: .includeInactive).first
     else {
+      return Self.unavailable
+    }
+    // a closed hinge has no usable division, even when the region is retained
+    if hingeInteraction != nil && hingeStatus == "closed" {
       return Self.unavailable
     }
     let frame = view.convert(region.frame, to: window)
@@ -108,7 +123,9 @@ final class FoldRegionObserver: NSObject {
   }
 
   private static func rootView() -> UIView? {
-    let windowScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+    let windowScenes = UIApplication.shared.connectedScenes
+      .compactMap { $0 as? UIWindowScene }
+      .filter { !$0.windows.isEmpty }
     let scene = windowScenes.first { $0.activationState == .foregroundActive } ?? windowScenes.first
     let window = scene?.windows.first(where: { $0.isKeyWindow }) ?? scene?.windows.first
     return window?.rootViewController?.view ?? window
