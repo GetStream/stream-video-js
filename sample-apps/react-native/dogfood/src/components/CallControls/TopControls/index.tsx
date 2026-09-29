@@ -73,7 +73,10 @@ const useStyles = () => {
           top: 0,
           flexDirection: 'row',
           paddingVertical: 2,
-          paddingHorizontal: theme.variants.spacingSizes.md,
+          paddingLeft:
+            theme.variants.spacingSizes.md + theme.variants.insets.left,
+          paddingRight:
+            theme.variants.spacingSizes.md + theme.variants.insets.right,
           alignItems: 'center',
         },
         leftElement: {
