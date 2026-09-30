@@ -135,7 +135,8 @@ export async function joinCallingxCall(
     !c.isOwnTracksLoopbackAllowed &&
     CallingxModule.isOngoingCallsEnabled;
 
-  if (!call.ringing && !isNonRingingCallingxRegisteredCall(call)) {
+  // should we register this call in callingx?
+  if (call.ringing || CallingxModule.isOngoingCallsEnabled) {
     return;
   }
 
