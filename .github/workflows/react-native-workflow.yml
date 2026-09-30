@@ -82,12 +82,12 @@ jobs:
     timeout-minutes: 60
     needs: code_review
     if: ${{ github.event_name != 'workflow_dispatch' || !github.event.inputs.platform || github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'both' }}
-    runs-on: macos-15
+    runs-on: xcode-27
     steps:
       - uses: actions/checkout@v7
 
       - name: Select XCode version
-        run: sudo xcode-select --switch /Applications/Xcode_26.1.1.app
+        run: sudo xcode-select --switch /Applications/Xcode_27.1.app
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 20
