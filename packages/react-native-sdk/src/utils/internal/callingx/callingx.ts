@@ -130,10 +130,12 @@ export async function joinCallingxCall(
 
   const logger = videoLoggerSystem.getLogger('callingx');
 
-  const isOngoingCall = (c: Call) =>
-    !c.ringing && CallingxModule.isOngoingCallsEnabled;
+  const isNonRingingCallingxRegisteredCall = (c: Call) =>
+    !c.ringing &&
+    !c.isOwnTracksLoopbackAllowed &&
+    CallingxModule.isOngoingCallsEnabled;
 
-  if (!call.ringing && !isOngoingCall(call)) {
+  if (!call.ringing && !isNonRingingCallingxRegisteredCall(call)) {
     return;
   }
 
@@ -142,7 +144,7 @@ export async function joinCallingxCall(
     const activeCallsToLeave = activeCalls.filter(
       (c) =>
         c.cid !== call.cid &&
-        (c.ringing || isOngoingCall(c)) &&
+        (c.ringing || isNonRingingCallingxRegisteredCall(c)) &&
         c.state.callingState !== CallingState.LEFT,
     );
     for (const activeCall of activeCallsToLeave) {
