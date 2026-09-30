@@ -6,3 +6,4 @@ export * from './useWakeLock';
 export * from './useBreakpoints';
 export * from './useLayoutSwitcher';
 export * from './useLobbyCall';
+export * from './useThemeMode';

@@ -89,5 +89,18 @@
       "USE_SYNCHRONIZABLE_FOR_MUTABLES": true,
       "FORCE_REACT_RENDER_FOR_SETTLED_ANIMATIONS": false
     }
+  },
+  "codegenConfig": {
+    "name": "FoldRegionSpec",
+    "type": "modules",
+    "jsSrcsDir": "src/specs",
+    "android": {
+      "javaPackageName": "io.getstream.rnvideosample.foldregion"
+    },
+    "ios": {
+      "modulesProvider": {
+        "FoldRegion": "RCTFoldRegion"
+      }
+    }
   }
 }
