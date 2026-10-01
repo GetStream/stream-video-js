@@ -18,10 +18,12 @@ import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.utils.AudioEndpointUtils
 import io.getstream.rn.callingx.utils.SettingsStore
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -257,11 +259,11 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             throw e
         } finally {
             // Call lifecycle cleanup:
-            // - processCallActions(...) is launched in the CallControlScope, so its collector is
-            //   cancelled automatically when the Telecom call scope finishes.
+            // - The collectors launched in the CallControlScope are children of this coroutine and
+            //   nothing else ends them (core-telecom leaves its channels open after a disconnect,
+            //   and the action channel is never closed), so they are cancelled here.
             // - We then remove the call from the repository map and clear per-call flags.
-            // - The Call.actionSource channel is no longer referenced and can be garbage-collected;
-            //   we do not explicitly close it because callers use trySend(), which never suspends.
+            coroutineContext.cancelChildren()
             debugLog(TAG, "[repository] registerCall: Cleaning up call $callId")
             preCallEndpointsJob?.cancel()
             removeCall(callId)
