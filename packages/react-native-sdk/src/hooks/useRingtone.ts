@@ -41,6 +41,9 @@ export type RingtoneOptions = {
 };
 
 const isIncomingRungByTheSystem = (cid: string | undefined): boolean => {
+  // We check if the callingx module is available, instead of checking `isSetup` being true,
+  // because setup is not needed for native push handling, so this loose check guards
+  // 2 simultaneous ringtones to be played.
   if (!CallingxModule) {
     return false;
   }
