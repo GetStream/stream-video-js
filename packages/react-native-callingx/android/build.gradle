@@ -94,5 +94,10 @@ dependencies {
   implementation "com.facebook.react:react-android"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation "androidx.core:core-telecom:1.0.1"
-  api "com.google.firebase:firebase-messaging:24.1.2"
+  // Pinned at the MINIMUM version we need, not the latest, so a consumer's own
+  // Firebase BOM is respected via Gradle's highest-wins resolution. Callingx only
+  // references stable long-lived APIs — FirebaseMessagingService, RemoteMessage,
+  // and FirebaseMessaging.getInstance().getToken() returning Task<String> — all
+  // of which have existed since firebase-messaging 21.0.0.
+  api "com.google.firebase:firebase-messaging:21.0.0"
 }
