@@ -18,12 +18,10 @@ import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.utils.AudioEndpointUtils
 import io.getstream.rn.callingx.utils.SettingsStore
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,6 +70,12 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
 
     /** Per-call action-source flags, keyed by callId. */
     private val actionFlags = ConcurrentHashMap<String, CallActionFlags>()
+
+    /**
+     * Parent job of the per-session collectors, cancelled when the call disconnects so
+     * core-telecom's addCall can return.
+     */
+    private val sessionJobs = ConcurrentHashMap<String, Job>()
 
     init {
         val capabilities =
@@ -156,10 +160,12 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             )
 
             // Check if this specific call is already registered or registration is in progress
-            if (_calls.value.containsKey(callId)) {
+            // release() may have run while the pre-call endpoints were resolving above, so the
+            // check is repeated under the lock
+            if (isReleased || _calls.value.containsKey(callId)) {
                 Log.w(
                         TAG,
-                        "[repository] registerCall: Call $callId already registered, ignoring duplicate"
+                        "[repository] registerCall: Repository released or call $callId already registered, ignoring"
                 )
                 preCallEndpointsJob?.cancel()
                 return
@@ -219,28 +225,30 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                 // Call is now registered in Telecom — mark as no longer pending
                 updateCallById(callId) { copy(isPending = false) }
 
-                // Consume the actions to interact with the call inside the scope
-                launch { processCallActions(callId, flags, actionSource.consumeAsFlow()) }
+                sessionJobs[callId] = launch {
+                    // Consume the actions to interact with the call inside the scope
+                    launch { processCallActions(callId, flags, actionSource.consumeAsFlow()) }
 
-                launch {
-                    currentCallEndpoint.collect {
-                        updateCallById(callId) { copy(currentCallEndpoint = it) }
+                    launch {
+                        currentCallEndpoint.collect {
+                            updateCallById(callId) { copy(currentCallEndpoint = it) }
+                        }
                     }
-                }
-                launch {
-                    availableEndpoints.collect {
-                        updateCallById(callId) { copy(availableCallEndpoints = it) }
+                    launch {
+                        availableEndpoints.collect {
+                            updateCallById(callId) { copy(availableCallEndpoints = it) }
+                        }
                     }
-                }
-                // Once this in-call session has registered its endpoints, the preferred endpoint's
-                // identifier has been reused by it, so the pre-call subscription can be released.
-                launch {
-                    availableEndpoints.first { it.isNotEmpty() }
-                    preCallEndpointsJob?.cancel()
-                }
-                launch {
-                    isMuted.collect {
-                        updateCallById(callId) { copy(isMuted = it) }
+                    // Once this in-call session has registered its endpoints, the preferred endpoint's
+                    // identifier has been reused by it, so the pre-call subscription can be released.
+                    launch {
+                        availableEndpoints.first { it.isNotEmpty() }
+                        preCallEndpointsJob?.cancel()
+                    }
+                    launch {
+                        isMuted.collect {
+                            updateCallById(callId) { copy(isMuted = it) }
+                        }
                     }
                 }
             }
@@ -258,16 +266,14 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             Log.e(TAG, "[repository] registerCall: Error registering call $callId", e)
             throw e
         } finally {
-            // Call lifecycle cleanup:
-            // - The collectors launched in the CallControlScope are children of this coroutine and
-            //   nothing else ends them (core-telecom leaves its channels open after a disconnect,
-            //   and the action channel is never closed), so they are cancelled here.
-            // - We then remove the call from the repository map and clear per-call flags.
-            coroutineContext.cancelChildren()
+            // Call lifecycle cleanup: this runs once addCall has returned, which happens when the
+            // session collectors were cancelled in onIsCallDisconnected (normal end) or when
+            // registration failed. It removes the call from the map and clears per-call state.
             debugLog(TAG, "[repository] registerCall: Cleaning up call $callId")
             preCallEndpointsJob?.cancel()
             removeCall(callId)
             actionFlags.remove(callId)
+            sessionJobs.remove(callId)?.cancel()
         }
     }
 
@@ -552,6 +558,9 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         removeCall(callId)
         _listener?.onIsCallDisconnected(callId, cause, source)
         flags.isSelfDisconnected.set(false)
+        // End the session collectors so core-telecom's coroutineScope in addCall can complete;
+        // runs for both app-initiated (doDisconnect) and Telecom-initiated disconnects.
+        sessionJobs.remove(callId)?.cancel()
         debugLog(TAG, "[repository] onIsCallDisconnected[$callId]: Call removed from map")
     }
 
