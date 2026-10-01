@@ -509,15 +509,8 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                         "[repository] doAnswer[$callId]: Answer failed with error code: ${result.errorCode}"
                 )
                 flags.isSelfAnswered.set(false)
-                val call = _calls.value[callId]
-                if (call != null) {
-                    removeCall(callId)
-                    _listener?.onIsCallDisconnected(
-                            callId,
-                            DisconnectCause(DisconnectCause.BUSY),
-                            EventSource.APP
-                    )
-                }
+                // Telecom still holds the call after a failed answer, so disconnect it or it blocks every later incoming call (MAX_RINGING_CALLS); LOCAL because CallControl.disconnect only accepts LOCAL/REMOTE/MISSED/REJECTED.
+                doDisconnect(callId, flags, CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL)))
             }
         }
     }
