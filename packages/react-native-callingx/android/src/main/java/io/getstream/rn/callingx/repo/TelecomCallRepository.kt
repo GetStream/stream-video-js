@@ -382,7 +382,8 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
     /**
      * Collect the action source to handle client actions inside the call scope. The channel is
      * unbounded, so an action sent while a previous one is still suspended (for example
-     * `Disconnect` during `answer`) is processed next instead of being dropped.
+     * `Disconnect` during `answer`) is processed next instead of being dropped. Actions other
+     * than `Disconnect` are ignored once the call is no longer registered.
      */
     private suspend fun CallControlScope.processCallActions(
             callId: String,
@@ -390,6 +391,13 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             actionSource: Flow<CallAction>
     ) {
         actionSource.collect { action ->
+            if (action !is CallAction.Disconnect && !_calls.value.containsKey(callId)) {
+                debugLog(
+                        TAG,
+                        "[repository] processCallActions[$callId]: Ignoring ${action::class.simpleName}, call is no longer registered"
+                )
+                return@collect
+            }
             debugLog(TAG, "[repository] processCallActions[$callId]: action: ${action::class.simpleName}")
             when (action) {
                 is CallAction.Answer -> {
@@ -509,7 +517,9 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                         "[repository] doAnswer[$callId]: Answer failed with error code: ${result.errorCode}"
                 )
                 flags.isSelfAnswered.set(false)
-                // Telecom still holds the call after a failed answer, so disconnect it or it blocks every later incoming call (MAX_RINGING_CALLS); LOCAL because CallControl.disconnect only accepts LOCAL/REMOTE/MISSED/REJECTED.
+                // Telecom still holds the call after a failed answer, so disconnect it or it blocks
+                // every later incoming call (MAX_RINGING_CALLS); LOCAL because
+                // CallControl.disconnect only accepts LOCAL/REMOTE/MISSED/REJECTED.
                 doDisconnect(callId, flags, CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL)))
             }
         }
