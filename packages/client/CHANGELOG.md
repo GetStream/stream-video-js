@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.61.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.61.0...@stream-io/video-client-1.61.1) (2026-10-01)
+
+### Bug Fixes
+
+- **client:** stop endless rejoin loop when ICE never connects ([#2482](https://github.com/GetStream/stream-video-js/issues/2482)) ([a1b713d](https://github.com/GetStream/stream-video-js/commit/a1b713d08d48e940b09aad3c66c3dee118e819d6))
+
 ## [1.61.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.60.0...@stream-io/video-client-1.61.0) (2026-09-28)
 
 ### Features
