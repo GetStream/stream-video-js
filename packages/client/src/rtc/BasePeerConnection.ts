@@ -344,9 +344,14 @@ export abstract class BasePeerConnection {
 
     // we can't recover from a failed connection state (contrary to ICE)
     if (state === 'failed') {
+      const reason = this.iceHasEverConnected
+        ? ReconnectReason.CONNECTION_FAILED
+        : ReconnectReason.ICE_NEVER_CONNECTED;
+      clearTimeout(this.preConnectStuckTimeout);
+      this.preConnectStuckTimeout = undefined;
       this.onReconnectionNeeded?.(
         WebsocketReconnectStrategy.REJOIN,
-        ReconnectReason.CONNECTION_FAILED,
+        reason,
         this.peerType,
       );
       return;
