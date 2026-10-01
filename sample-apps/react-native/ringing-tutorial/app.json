@@ -13,7 +13,6 @@
         "aps-environment": "production"
       },
       "supportsTablet": true,
-      "googleServicesFile": "./GoogleService-Info.plist",
       "bundleIdentifier": "io.getstream.reactnative.ringingtutorial",
       "bitcode": false,
       "appleTeamId": "EHV7XZLAHA"
@@ -27,15 +26,6 @@
       "package": "io.getstream.reactnative.ringingtutorial"
     },
     "plugins": [
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "useFrameworks": "static",
-            "forceStaticLinking": ["stream-react-native-webrtc"]
-          }
-        }
-      ],
       "expo-router",
       [
         "expo-splash-screen",
