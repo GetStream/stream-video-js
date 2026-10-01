@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.46.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.46.0...@stream-io/video-react-native-sdk-1.46.1) (2026-10-01)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.11.2`
+- `@stream-io/video-client` updated to version `1.61.1`
+- `@stream-io/video-react-bindings` updated to version `1.20.5`
+
+### Bug Fixes
+
+- callingx outgoing calls decline fix ([#2478](https://github.com/GetStream/stream-video-js/issues/2478)) ([d52dfad](https://github.com/GetStream/stream-video-js/commit/d52dfad1d85e2d9d7fc12c973b3d04cdb2e13ea4))
+- **react-native:** iPhone Duo and iOS 27 resizable-window fixes ([#2466](https://github.com/GetStream/stream-video-js/issues/2466)) ([e9079b8](https://github.com/GetStream/stream-video-js/commit/e9079b828984a5d467e145c6fded2e52acfb2d85)), closes [#2467](https://github.com/GetStream/stream-video-js/issues/2467) [#2467](https://github.com/GetStream/stream-video-js/issues/2467)
+
 ## [1.46.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.45.2...@stream-io/video-react-native-sdk-1.46.0) (2026-09-28)
 
 ### Dependency Updates
