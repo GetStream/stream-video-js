@@ -175,15 +175,14 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                     isVideo,
                     preferredStartingEndpoint,
             )
-            actionSource = Channel<CallAction>()
+            actionSource = Channel<CallAction>(Channel.UNLIMITED)
             flags = CallActionFlags()
             actionFlags[callId] = flags
 
             // Add call to the map early so that duplicate registrations are rejected
-            // and listeners are notified immediately. Actions sent via trySend() may arrive
-            // before the call scope starts collecting; in that case, they are dropped
-            // rather than buffered, which is acceptable because we explicitly handle
-            // pending actions in CallService/CallRegistrationStore.
+            // and listeners are notified immediately. Actions are buffered until the Telecom
+            // session starts collecting; CallService only sends actions to a call once
+            // isPending is false, queueing earlier ones in CallRegistrationStore.
             val registeredCall = Call.Registered(
                     id = callId,
                     isPending = true,
@@ -380,7 +379,11 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                 .launchIn(scope)
     }
 
-    /** Collect the action source to handle client actions inside the call scope */
+    /**
+     * Collect the action source to handle client actions inside the call scope. The channel is
+     * unbounded, so an action sent while a previous one is still suspended (for example
+     * `Disconnect` during `answer`) is processed next instead of being dropped.
+     */
     private suspend fun CallControlScope.processCallActions(
             callId: String,
             flags: CallActionFlags,
