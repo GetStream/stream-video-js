@@ -327,6 +327,7 @@ export class DynascaleManager {
     let sourceNode: MediaStreamAudioSourceNode | undefined = undefined;
     let gainNode: GainNode | undefined = undefined;
     let audioWatchdog: MediaPlaybackWatchdog | undefined = undefined;
+    let isUnbound = false;
 
     const clearBlockedAudio = () => {
       if (!this.blockedAudioTracker.isBlocked(audioElement)) return;
@@ -343,6 +344,7 @@ export class DynascaleManager {
         if (audioElement.srcObject === source) return;
 
         setTimeout(() => {
+          if (isUnbound) return;
           audioElement.srcObject = source ?? null;
           audioWatchdog?.dispose();
           audioWatchdog = undefined;
@@ -415,6 +417,7 @@ export class DynascaleManager {
     audioElement.autoplay = true;
 
     return () => {
+      isUnbound = true;
       audioElement.removeEventListener('playing', clearBlockedAudio);
       clearBlockedAudio();
       sinkIdSubscription?.unsubscribe();
