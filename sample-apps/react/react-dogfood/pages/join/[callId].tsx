@@ -32,7 +32,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const callType = (router.query['type'] as string) || 'default';
   const useLocalCoordinator = router.query['use_local_coordinator'] === 'true';
   const coordinatorUrl = useLocalCoordinator
-    ? 'http://localhost:3030/video'
+    ? 'http://localhost:3030'
     : (router.query['coordinator_url'] as string | undefined);
   const useLegacyFilters = router.query['useLegacyFilters'] === 'true';
 

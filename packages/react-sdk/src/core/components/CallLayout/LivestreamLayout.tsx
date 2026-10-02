@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { convertTimestampToDate } from '@stream-io/video-client';
 import { useI18n } from '../../../i18n';
 import { hasScreenShare, humanize } from '@stream-io/video-client';
 import { ParticipantView, useParticipantViewContext } from '../ParticipantView';
@@ -371,10 +372,9 @@ const useUpdateCallDuration = () => {
   const isCallLive = useIsCallLive();
   const session = useCallSession();
   const [duration, setDuration] = useState(() => {
-    if (!session || !session.live_started_at) return 0;
-    const liveStartTime = new Date(session.live_started_at);
-    const now = new Date();
-    return Math.floor((now.getTime() - liveStartTime.getTime()) / 1000);
+    const liveStartTime = convertTimestampToDate(session?.live_started_at);
+    if (!liveStartTime) return 0;
+    return Math.floor((Date.now() - liveStartTime.getTime()) / 1000);
   });
 
   useEffect(() => {

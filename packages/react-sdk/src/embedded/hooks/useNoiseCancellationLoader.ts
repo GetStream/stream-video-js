@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  NoiseCancellationSettingsModeEnum,
-  type Call,
-} from '@stream-io/video-client';
+import { type Call } from '@stream-io/video-client';
 
 type INoiseCancellation =
   import('@stream-io/audio-filters-web').INoiseCancellation;
@@ -22,7 +19,7 @@ export const useNoiseCancellationLoader = (call?: Call) => {
 
   const ncSettings = call?.state.settings?.audio?.noise_cancellation;
   const isNoiseCancellationEnabled = !!(
-    ncSettings && ncSettings.mode !== NoiseCancellationSettingsModeEnum.DISABLED
+    ncSettings && ncSettings.mode !== 'disabled'
   );
 
   useEffect(() => {

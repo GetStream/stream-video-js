@@ -2,7 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { RecordCall } from '../../../assets/RecordCall';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
-import { useCallStateHooks, useTheme } from '@stream-io/video-react-native-sdk';
+import {
+  convertTimestampToDate,
+  useCallStateHooks,
+  useTheme,
+} from '@stream-io/video-react-native-sdk';
 
 const formatTime = (seconds: number) => {
   const date = new Date(0);
@@ -39,8 +43,7 @@ export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
     if (!startedAt) {
       return null;
     }
-    const date = new Date(startedAt).getTime();
-    return isNaN(date) ? null : date;
+    return convertTimestampToDate(startedAt)?.getTime() ?? null;
   }, [startedAt]);
 
   useEffect(() => {

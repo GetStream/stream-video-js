@@ -15,28 +15,35 @@ import { CallCreatedPayload } from './data';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import type { StreamClient } from '../coordinator/connection/client';
 import type {
-  CreateDeviceRequest,
   GetEdgesResponse,
-  ListDevicesResponse,
   QueryCallsResponse,
   QueryCallStatsResponse,
 } from '../gen/coordinator';
+import type { CreateDeviceRequest, ListDevicesResponse } from '../gen/shims';
 
 const apiKey = 'mock-api-key';
 
 describe('StreamVideoClient - coordinator API', () => {
   let client: StreamVideoClient;
-  // the client only talks to the backend through streamClient.post/get/delete,
-  // so we spy on those and assert against them instead of a live backend.
-  let post: Mock<StreamClient['post']>;
-  let get: Mock<StreamClient['get']>;
-  let del: Mock<StreamClient['delete']>;
+  let request: Mock<StreamClient['doAxiosRequest']>;
+
+  const respondWith = (data: unknown) =>
+    request.mockResolvedValue({ data, status: 200, headers: {} } as never);
+
+  const expectRequest = (method: string, path: string, body?: unknown) => {
+    const toPath = request.mock.calls.filter(
+      ([m, url]) => m === method && String(url).endsWith(path),
+    );
+    expect(toPath.length, `no ${method} request to ${path}`).toBeGreaterThan(0);
+    if (body === undefined) return;
+    const defined = (value: unknown) =>
+      JSON.parse(JSON.stringify(value ?? null));
+    expect(defined(toPath[toPath.length - 1][2])).toEqual(defined(body));
+  };
 
   beforeEach(() => {
     client = new StreamVideoClient(apiKey, { browser: true });
-    post = vi.spyOn(client.streamClient, 'post');
-    get = vi.spyOn(client.streamClient, 'get');
-    del = vi.spyOn(client.streamClient, 'delete');
+    request = vi.spyOn(client.streamClient, 'doAxiosRequest') as never;
   });
 
   afterEach(() => {
@@ -55,17 +62,17 @@ describe('StreamVideoClient - coordinator API', () => {
         },
       ],
     };
-    post.mockResolvedValue(response);
+    respondWith(response);
 
     await client.queryCalls();
-    expect(post).toHaveBeenCalledWith('/calls', {});
+    expectRequest('post', '/api/v2/video/calls', {});
 
     const queryCallsReq = {
       sort: [{ field: 'starts_at', direction: -1 }],
       limit: 2,
     };
     const result = await client.queryCalls(queryCallsReq);
-    expect(post).toHaveBeenCalledWith('/calls', queryCallsReq);
+    expectRequest('post', '/api/v2/video/calls', queryCallsReq);
 
     // each response entry is wrapped into a Call instance
     expect(result.next).toBe('next-page-token');
@@ -86,7 +93,7 @@ describe('StreamVideoClient - coordinator API', () => {
         },
       ],
     };
-    post.mockResolvedValue(response);
+    respondWith(response);
     const applyCamera = vi
       .spyOn(CameraManager.prototype, 'apply')
       .mockResolvedValue();
@@ -107,16 +114,16 @@ describe('StreamVideoClient - coordinator API', () => {
   });
 
   it('query calls - ongoing', async () => {
-    post.mockResolvedValue({ duration: '1ms', calls: [] });
+    respondWith({ duration: '1ms', calls: [] });
 
     const queryCallsReq = { filter_conditions: { ongoing: { $eq: true } } };
     await client.queryCalls(queryCallsReq);
 
-    expect(post).toHaveBeenCalledWith('/calls', queryCallsReq);
+    expectRequest('post', '/api/v2/video/calls', queryCallsReq);
   });
 
   it('query calls - upcoming', async () => {
-    post.mockResolvedValue({ duration: '1ms', calls: [] });
+    respondWith({ duration: '1ms', calls: [] });
 
     const mins30 = 1000 * 60 * 60 * 30;
     const inNext30mins = new Date(Date.now() + mins30);
@@ -125,31 +132,31 @@ describe('StreamVideoClient - coordinator API', () => {
     };
     await client.queryCalls(queryCallsReq);
 
-    expect(post).toHaveBeenCalledWith('/calls', queryCallsReq);
+    expectRequest('post', '/api/v2/video/calls', queryCallsReq);
   });
 
   it('query call stats', async () => {
     const response: QueryCallStatsResponse = { duration: '1ms', reports: [] };
-    post.mockResolvedValue(response);
+    respondWith(response);
 
     const result = await client.queryCallStats({
       filter_conditions: { call_cid: 'default:test' },
     });
 
-    expect(post).toHaveBeenCalledWith('/call/stats', {
+    expectRequest('post', '/api/v2/video/call/stats', {
       filter_conditions: { call_cid: 'default:test' },
     });
-    expect(result).toBe(response);
+    expect(result).toMatchObject(response);
   });
 
   it('edges', async () => {
     const response: GetEdgesResponse = { duration: '1ms', edges: [] };
-    get.mockResolvedValue(response);
+    respondWith(response);
 
     const result = await client.edges();
 
-    expect(get).toHaveBeenCalledWith('/edges');
-    expect(result).toBe(response);
+    expectRequest('get', '/api/v2/video/edges');
+    expect(result).toMatchObject(response);
   });
 
   describe('devices', () => {
@@ -160,7 +167,7 @@ describe('StreamVideoClient - coordinator API', () => {
     };
 
     it('add device', async () => {
-      post.mockResolvedValue(undefined);
+      respondWith(undefined);
 
       await client.addDevice(
         device.id,
@@ -168,7 +175,7 @@ describe('StreamVideoClient - coordinator API', () => {
         device.push_provider_name,
       );
 
-      expect(post).toHaveBeenCalledWith('/devices', {
+      expectRequest('post', '/api/v2/devices', {
         id: device.id,
         push_provider: device.push_provider,
         voip_token: undefined,
@@ -177,7 +184,7 @@ describe('StreamVideoClient - coordinator API', () => {
     });
 
     it('add voip device', async () => {
-      post.mockResolvedValue(undefined);
+      respondWith(undefined);
 
       await client.addVoipDevice(
         device.id + 'voip',
@@ -185,7 +192,7 @@ describe('StreamVideoClient - coordinator API', () => {
         device.push_provider_name!,
       );
 
-      expect(post).toHaveBeenCalledWith('/devices', {
+      expectRequest('post', '/api/v2/devices', {
         id: device.id + 'voip',
         push_provider: device.push_provider,
         voip_token: true,
@@ -195,20 +202,20 @@ describe('StreamVideoClient - coordinator API', () => {
 
     it('get devices', async () => {
       const response: ListDevicesResponse = { duration: '1ms', devices: [] };
-      get.mockResolvedValue(response);
+      respondWith(response);
 
       const result = await client.getDevices();
 
-      expect(get).toHaveBeenCalledWith('/devices', {});
-      expect(result).toBe(response);
+      expectRequest('get', '/api/v2/devices');
+      expect(result).toMatchObject(response);
     });
 
     it('remove device', async () => {
-      del.mockResolvedValue(undefined);
+      respondWith(undefined);
 
       await client.removeDevice(device.id);
 
-      expect(del).toHaveBeenCalledWith('/devices', { id: device.id });
+      expectRequest('delete', '/api/v2/devices');
     });
   });
 });

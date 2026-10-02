@@ -201,7 +201,7 @@ When making changes to SDK packages, run them in watch mode for live updates.
 For local/custom coordinator testing:
 
 ```
-?coordinator_url=http://localhost:3030/video
+?coordinator_url=http://localhost:3030
 ?use_local_coordinator=true  (uses env NEXT_PUBLIC_STREAM_API_URL)
 ```
 

@@ -7,8 +7,6 @@ import {
   hasScreenShareAudio,
   hasVideo,
   OwnCapability,
-  UpdateUserPermissionsRequestGrantPermissionsEnum,
-  UpdateUserPermissionsRequestRevokePermissionsEnum,
 } from '@stream-io/video-client';
 import { useParticipantViewContext } from './ParticipantViewContext';
 import {
@@ -45,21 +43,19 @@ export const ParticipantActionsContextMenu = () => {
   const muteScreenShareAudio = () =>
     call?.muteUser(userId, 'screenshare_audio');
 
-  const grantPermission =
-    (permission: UpdateUserPermissionsRequestGrantPermissionsEnum) => () => {
-      call?.updateUserPermissions({
-        user_id: userId,
-        grant_permissions: [permission],
-      });
-    };
+  const grantPermission = (permission: OwnCapability) => () => {
+    call?.updateUserPermissions({
+      user_id: userId,
+      grant_permissions: [permission],
+    });
+  };
 
-  const revokePermission =
-    (permission: UpdateUserPermissionsRequestRevokePermissionsEnum) => () => {
-      call?.updateUserPermissions({
-        user_id: userId,
-        revoke_permissions: [permission],
-      });
-    };
+  const revokePermission = (permission: OwnCapability) => () => {
+    call?.updateUserPermissions({
+      user_id: userId,
+      revoke_permissions: [permission],
+    });
+  };
 
   const toggleParticipantPin = () => {
     if (pin) {

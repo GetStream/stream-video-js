@@ -1,46 +1,42 @@
 #!/bin/bash
 set -euo pipefail
 
-FROM_REPO=$1;
+# Generates the coordinator client with the in-house `chat-manager` generator,
+# the same one stream-chat-js and stream-feeds-js use.
+#
+# Unlike those two, the spec is built here rather than read from
+# releases/v2/*.yaml, so that `-products video` can exclude the `common`
+# operations the SDK does not use. See ai-docs/openapi-v2-migration-plan.md for
+# why, and for what each --opt buys.
+#
+# The output is committed, so CI never needs the chat-manager binary. It is also
+# wiped on every run: hand-written types belong in src/gen/shims.ts, which sits
+# beside the wiped directory, not inside it.
+#
+# Usage: ./generate-openapi.sh [path-to-chat-repo]   (default: ../../../chat)
 
-if  [ "$FROM_REPO" == 'chat' ]; then
-  PROTOCOL_REPO_DIR="../../../chat"
-else
-  PROTOCOL_REPO_DIR="../../../protocol"
-fi
-if  [ "$FROM_REPO" == 'chat' ]; then
-  SCHEMA_FILE="$PROTOCOL_REPO_DIR/releases/video-openapi-clientside.yaml"
-elif [ "$FROM_REPO" == 'protocol' ]; then
-  SCHEMA_FILE="$PROTOCOL_REPO_DIR/openapi/video-openapi-clientside.yaml"
-else
-  SCHEMA_FILE=$FROM_REPO
-fi
+PKG_DIR="$(cd "$(dirname "$0")" && pwd)"
+CHAT_DIR="$(cd "${1:-$PKG_DIR/../../../chat}" && pwd)"
+OUTPUT_DIR="$PKG_DIR/src/gen/coordinator"
+SPEC_DIR="$(mktemp -d)"
+trap 'rm -rf "$SPEC_DIR"' EXIT
 
-if  [ "$FROM_REPO" == 'chat' ]; then
-  # Generate the Coordinator OpenAPI schema
-  make -C $PROTOCOL_REPO_DIR openapi
-fi
+rm -rf "$OUTPUT_DIR"
 
-OUTPUT_DIR="./src/gen/coordinator"
-TEMP_OUTPUT_DIR="./src/gen/openapi-temp"
+[ -x "$CHAT_DIR/build/chat-manager" ] || make -C "$CHAT_DIR/projects/chat-manager" build
 
-# Clean previous output
-rm -rf $TEMP_OUTPUT_DIR
-rm -rf $OUTPUT_DIR
+(
+  cd "$CHAT_DIR"
+  ./build/chat-manager openapi generate-spec \
+    -products video -version v2 -clientside -encode-time-as-unix-timestamp \
+    -output "$SPEC_DIR/video-clientside-api"
+  ./build/chat-manager openapi generate-client \
+    --language ts --spec "$SPEC_DIR/video-clientside-api.yaml" --output "$OUTPUT_DIR" \
+    --opt response_dates_as_number=true \
+    --opt typed_filters=true \
+    --opt separate_path_params=true
+)
 
-# NOTE: https://openapi-generator.tech/docs/generators/typescript-fetch/
-# Generate the Coordinator API models
-yarn openapi-generator-cli generate \
-  -i "$SCHEMA_FILE" \
-  -g typescript-fetch \
-  -o "$TEMP_OUTPUT_DIR" \
-  --additional-properties=supportsES6=true \
-  --additional-properties=modelPropertyNaming=original \
-  --additional-properties=enumPropertyNaming=UPPERCASE \
-  --additional-properties=withoutRuntimeChecks=true
+echo "export * from './models';" >"$OUTPUT_DIR/index.ts"
 
-# Remove the generated API client, just keep the models
-cp -r $TEMP_OUTPUT_DIR/models $OUTPUT_DIR
-rm -rf $TEMP_OUTPUT_DIR
-
-yarn prettier --write $OUTPUT_DIR
+(cd "$PKG_DIR/../.." && yarn lint:gen)
