@@ -34,7 +34,7 @@ export const LobbyContent = ({ landscape = false }: LobbyContentProps) => {
             <LobbyCameraPreview objectFit="cover" />
           ) : (
             <View style={[styles.avatarContainer, lobby.avatarContainer]}>
-              <Avatar user={connectedUser} size="xl" />
+              <Avatar user={connectedUser} size="2xl" />
             </View>
           )}
           <View style={[styles.statusContainer, lobby.statusContainer]}>

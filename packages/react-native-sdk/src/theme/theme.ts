@@ -328,7 +328,7 @@ export const resolveTheme = (colorScheme: ThemeColorScheme): Theme => {
         paddingTop: theme.foundations.spacing.space32,
       },
       topContainer: {
-        gap: theme.foundations.spacing.space24,
+        gap: theme.foundations.spacing.space12,
         paddingBottom: theme.foundations.spacing.space32,
       },
       icon: {
