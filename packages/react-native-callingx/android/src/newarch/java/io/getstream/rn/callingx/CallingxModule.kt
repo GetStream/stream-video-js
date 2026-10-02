@@ -162,6 +162,10 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         impl.stopBackgroundTask(taskName, promise)
     }
 
+    override fun getFcmToken(promise: Promise) {
+        impl.getFcmToken(promise)
+    }
+
     override fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
         impl.fulfillAnswerCallAction(callId, didFail)
     }

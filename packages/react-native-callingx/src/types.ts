@@ -186,6 +186,11 @@ export interface ICallingxModule {
   releaseBackgroundTask(owner: string): Promise<void>;
 
   /**
+   * Returns the current FCM device token (Android). Resolves an empty string on iOS.
+   */
+  getFcmToken(): Promise<string>;
+
+  /**
    * Fulfill or fail a pending CXAnswerCallAction on iOS.
    * Must be called after starting the JS-side joining process (e.g: without awaiting for call.join() to complete)
    * @param callId - The call id.
@@ -379,7 +384,8 @@ export type EventName =
   | 'didActivateAudioSession'
   | 'didDeactivateAudioSession'
   | 'providerReset'
-  | 'ringCallPushReceived';
+  | 'ringCallPushReceived'
+  | 'fcmTokenRefresh';
 
 export type RingCallPushPayload = {
   call_cid?: string;
@@ -432,6 +438,10 @@ export type EventParams = {
     callCids: string[];
   };
   ringCallPushReceived: RingCallPushPayload;
+  /** Fired on Android when Firebase rotates the device's FCM token. */
+  fcmTokenRefresh: {
+    token: string;
+  };
 };
 
 export type VoipEventName =
