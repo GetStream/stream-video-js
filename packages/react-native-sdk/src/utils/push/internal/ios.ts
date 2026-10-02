@@ -37,8 +37,8 @@ export const onVoipNotificationReceived = async (
 
   const sender = notification?.stream?.sender;
   const type = notification?.stream?.type;
-  // do not process any other notifications other than stream.video or ringing
-  if (sender !== 'stream.video' && type !== 'call.ring') {
+  // do not process any other notifications other than stream.video ringing
+  if (sender !== 'stream.video' || type !== 'call.ring') {
     return;
   }
 
