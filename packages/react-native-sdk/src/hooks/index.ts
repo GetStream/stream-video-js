@@ -12,3 +12,4 @@ export * from './useTrackDimensions';
 export * from './useScreenshot';
 export * from './useModeration';
 export * from './useAudioDeviceStatus';
+export * from './useRingtone';
