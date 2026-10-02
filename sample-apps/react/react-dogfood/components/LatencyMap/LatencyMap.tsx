@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { FeatureCollection } from 'geojson';
+import { useSettings } from '../../context/SettingsContext';
+import type { ThemeMode } from '../../hooks';
+
+const ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+const MAP_STYLES: Record<ThemeMode, string | undefined> = {
+  light: process.env.NEXT_PUBLIC_MAPBOX_STYLE_LIGHT,
+  dark: process.env.NEXT_PUBLIC_MAPBOX_STYLE_DARK,
+};
 
 export type Props = {
   sourceData?: FeatureCollection;
@@ -10,6 +18,9 @@ export type Props = {
 export const LatencyMap = ({ sourceData, zoomLevel = 2 }: Props) => {
   const [loading, setLoading] = useState(true);
   const [source, setSource] = useState(sourceData);
+  const {
+    settings: { themeMode },
+  } = useSettings();
 
   const popUpRef = useRef(
     new mapboxgl.Popup({ offset: 15, closeButton: false, closeOnClick: false }),
@@ -17,6 +28,7 @@ export const LatencyMap = ({ sourceData, zoomLevel = 2 }: Props) => {
 
   const mapContainer = useRef<any>(undefined);
   const map = useRef<mapboxgl.Map | null>(null);
+  const appliedStyle = useRef<string | undefined>(undefined);
 
   const [lng] = useState(-38.632571);
   const [lat] = useState(25);
@@ -162,12 +174,13 @@ export const LatencyMap = ({ sourceData, zoomLevel = 2 }: Props) => {
   }, [map, loading, source]);
 
   useEffect(() => {
-    const accessToken = process.env.NEXT_PUBLIC_MAPBOX_GL_TOKEN || '';
-    if (map.current || !accessToken || !isWebGLSupported()) return;
+    const style = MAP_STYLES[themeMode];
+    if (map.current || !ACCESS_TOKEN || !style || !isWebGLSupported()) return;
 
     setLoading(true);
 
-    mapboxgl.accessToken = accessToken;
+    mapboxgl.accessToken = ACCESS_TOKEN;
+    appliedStyle.current = style;
     map.current = new mapboxgl.Map({
       projection: {
         name: 'mercator',
@@ -175,16 +188,23 @@ export const LatencyMap = ({ sourceData, zoomLevel = 2 }: Props) => {
       dragPan: false,
       dragRotate: false,
       container: mapContainer.current,
-      // TODO read it from an ENV variable
-      style: 'mapbox://styles/zwaardje/clhf9caar013j01qt07ib4bea',
+      style,
       center: [lng, lat],
       zoom: zoom,
     });
 
-    map.current.on('load', () => {
+    map.current.on('style.load', () => {
       setLoading(false);
     });
-  }, [lat, lng, zoom]);
+  }, [lat, lng, themeMode, zoom]);
+
+  useEffect(() => {
+    const style = MAP_STYLES[themeMode];
+    if (!map.current || !style || appliedStyle.current === style) return;
+    appliedStyle.current = style;
+    setLoading(true);
+    map.current.setStyle(style);
+  }, [themeMode]);
 
   return (
     <div className="rd__latencymap">
