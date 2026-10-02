@@ -71,6 +71,12 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
     /** Per-call action-source flags, keyed by callId. */
     private val actionFlags = ConcurrentHashMap<String, CallActionFlags>()
 
+    /**
+     * Parent job of the per-session collectors, cancelled when the call disconnects so
+     * core-telecom's addCall can return.
+     */
+    private val sessionJobs = ConcurrentHashMap<String, Job>()
+
     init {
         val capabilities =
                 CallsManager.CAPABILITY_SUPPORTS_CALL_STREAMING or
@@ -154,10 +160,12 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             )
 
             // Check if this specific call is already registered or registration is in progress
-            if (_calls.value.containsKey(callId)) {
+            // release() may have run while the pre-call endpoints were resolving above, so the
+            // check is repeated under the lock
+            if (isReleased || _calls.value.containsKey(callId)) {
                 Log.w(
                         TAG,
-                        "[repository] registerCall: Call $callId already registered, ignoring duplicate"
+                        "[repository] registerCall: Repository released or call $callId already registered, ignoring"
                 )
                 preCallEndpointsJob?.cancel()
                 return
@@ -175,15 +183,14 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                     isVideo,
                     preferredStartingEndpoint,
             )
-            actionSource = Channel<CallAction>()
+            actionSource = Channel<CallAction>(Channel.UNLIMITED)
             flags = CallActionFlags()
             actionFlags[callId] = flags
 
             // Add call to the map early so that duplicate registrations are rejected
-            // and listeners are notified immediately. Actions sent via trySend() may arrive
-            // before the call scope starts collecting; in that case, they are dropped
-            // rather than buffered, which is acceptable because we explicitly handle
-            // pending actions in CallService/CallRegistrationStore.
+            // and listeners are notified immediately. Actions are buffered until the Telecom
+            // session starts collecting; CallService only sends actions to a call once
+            // isPending is false, queueing earlier ones in CallRegistrationStore.
             val registeredCall = Call.Registered(
                     id = callId,
                     isPending = true,
@@ -218,28 +225,30 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                 // Call is now registered in Telecom — mark as no longer pending
                 updateCallById(callId) { copy(isPending = false) }
 
-                // Consume the actions to interact with the call inside the scope
-                launch { processCallActions(callId, flags, actionSource.consumeAsFlow()) }
+                sessionJobs[callId] = launch {
+                    // Consume the actions to interact with the call inside the scope
+                    launch { processCallActions(callId, flags, actionSource.consumeAsFlow()) }
 
-                launch {
-                    currentCallEndpoint.collect {
-                        updateCallById(callId) { copy(currentCallEndpoint = it) }
+                    launch {
+                        currentCallEndpoint.collect {
+                            updateCallById(callId) { copy(currentCallEndpoint = it) }
+                        }
                     }
-                }
-                launch {
-                    availableEndpoints.collect {
-                        updateCallById(callId) { copy(availableCallEndpoints = it) }
+                    launch {
+                        availableEndpoints.collect {
+                            updateCallById(callId) { copy(availableCallEndpoints = it) }
+                        }
                     }
-                }
-                // Once this in-call session has registered its endpoints, the preferred endpoint's
-                // identifier has been reused by it, so the pre-call subscription can be released.
-                launch {
-                    availableEndpoints.first { it.isNotEmpty() }
-                    preCallEndpointsJob?.cancel()
-                }
-                launch {
-                    isMuted.collect {
-                        updateCallById(callId) { copy(isMuted = it) }
+                    // Once this in-call session has registered its endpoints, the preferred endpoint's
+                    // identifier has been reused by it, so the pre-call subscription can be released.
+                    launch {
+                        availableEndpoints.first { it.isNotEmpty() }
+                        preCallEndpointsJob?.cancel()
+                    }
+                    launch {
+                        isMuted.collect {
+                            updateCallById(callId) { copy(isMuted = it) }
+                        }
                     }
                 }
             }
@@ -257,16 +266,14 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             Log.e(TAG, "[repository] registerCall: Error registering call $callId", e)
             throw e
         } finally {
-            // Call lifecycle cleanup:
-            // - processCallActions(...) is launched in the CallControlScope, so its collector is
-            //   cancelled automatically when the Telecom call scope finishes.
-            // - We then remove the call from the repository map and clear per-call flags.
-            // - The Call.actionSource channel is no longer referenced and can be garbage-collected;
-            //   we do not explicitly close it because callers use trySend(), which never suspends.
+            // Call lifecycle cleanup: this runs once addCall has returned, which happens when the
+            // session collectors were cancelled in onIsCallDisconnected (normal end) or when
+            // registration failed. It removes the call from the map and clears per-call state.
             debugLog(TAG, "[repository] registerCall: Cleaning up call $callId")
             preCallEndpointsJob?.cancel()
             removeCall(callId)
             actionFlags.remove(callId)
+            sessionJobs.remove(callId)?.cancel()
         }
     }
 
@@ -380,13 +387,25 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                 .launchIn(scope)
     }
 
-    /** Collect the action source to handle client actions inside the call scope */
+    /**
+     * Collect the action source to handle client actions inside the call scope. The channel is
+     * unbounded, so an action sent while a previous one is still suspended (for example
+     * `Disconnect` during `answer`) is processed next instead of being dropped. Actions other
+     * than `Disconnect` are ignored once the call is no longer registered.
+     */
     private suspend fun CallControlScope.processCallActions(
             callId: String,
             flags: CallActionFlags,
             actionSource: Flow<CallAction>
     ) {
         actionSource.collect { action ->
+            if (action !is CallAction.Disconnect && !_calls.value.containsKey(callId)) {
+                debugLog(
+                        TAG,
+                        "[repository] processCallActions[$callId]: Ignoring ${action::class.simpleName}, call is no longer registered"
+                )
+                return@collect
+            }
             debugLog(TAG, "[repository] processCallActions[$callId]: action: ${action::class.simpleName}")
             when (action) {
                 is CallAction.Answer -> {
@@ -506,15 +525,10 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                         "[repository] doAnswer[$callId]: Answer failed with error code: ${result.errorCode}"
                 )
                 flags.isSelfAnswered.set(false)
-                val call = _calls.value[callId]
-                if (call != null) {
-                    removeCall(callId)
-                    _listener?.onIsCallDisconnected(
-                            callId,
-                            DisconnectCause(DisconnectCause.BUSY),
-                            EventSource.APP
-                    )
-                }
+                // Telecom still holds the call after a failed answer, so disconnect it or it blocks
+                // every later incoming call (MAX_RINGING_CALLS); LOCAL because
+                // CallControl.disconnect only accepts LOCAL/REMOTE/MISSED/REJECTED.
+                doDisconnect(callId, flags, CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL)))
             }
         }
     }
@@ -544,6 +558,9 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         removeCall(callId)
         _listener?.onIsCallDisconnected(callId, cause, source)
         flags.isSelfDisconnected.set(false)
+        // End the session collectors so core-telecom's coroutineScope in addCall can complete;
+        // runs for both app-initiated (doDisconnect) and Telecom-initiated disconnects.
+        sessionJobs.remove(callId)?.cancel()
         debugLog(TAG, "[repository] onIsCallDisconnected[$callId]: Call removed from map")
     }
 
