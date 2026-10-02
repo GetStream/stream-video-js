@@ -35,6 +35,7 @@ import {
 import { applyDisplayName } from '../helpers/client';
 import { applyQueryConfigParams } from '../lib/queryConfigParams';
 import { useAppI18n } from '../hooks/useAppI18n';
+import { useSettings } from '../context/SettingsContext';
 import type { LooseTranslateFunction } from '@stream-io/video-react-sdk';
 
 /**
@@ -166,6 +167,24 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       call.setSortParticipantsBy(defaultSortPreset);
     }
   }, [call, isSortingDisabled]);
+
+  const {
+    settings: { speakingDetectionEnabled },
+  } = useSettings();
+  useEffect(() => {
+    if (!call) return;
+    call.microphone.setSilenceThreshold(speakingDetectionEnabled ? 5000 : 0);
+    if (!speakingDetectionEnabled) {
+      call.microphone
+        .disableSpeakingWhileMutedNotification()
+        .catch((err) => console.error(err));
+      return;
+    }
+    if (callState !== CallingState.JOINED) return;
+    call.microphone
+      .enableSpeakingWhileMutedNotification()
+      .catch((err) => console.error(err));
+  }, [call, callState, speakingDetectionEnabled]);
 
   useKeyboardShortcuts();
   useWakeLock();

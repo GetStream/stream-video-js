@@ -32,6 +32,7 @@ import { useSettings } from '../../context/SettingsContext';
 import { useIsProntoEnvironment } from '../../context/AppEnvironmentContext';
 import { IncomingVideoSettingsDropdown } from '../IncomingVideoSettings';
 import { DeviceSelectionSettingsDropdown } from './DeviceSelection';
+import { OnOffSettingsDropdown } from './OnOffSettingsDropdown';
 import { useAppI18n } from '../../hooks/useAppI18n';
 
 type ToggleSettingsTabModalProps = {
@@ -138,7 +139,12 @@ export const SettingsTabModalMenu = (props: {
   layoutProps: LayoutSelectorProps;
 }) => {
   const {
-    settings: { language, setLanguage },
+    settings: {
+      language,
+      setLanguage,
+      speakingDetectionEnabled,
+      setSpeakingDetectionEnabled,
+    },
   } = useSettings();
   const { t } = useAppI18n();
 
@@ -185,6 +191,17 @@ export const SettingsTabModalMenu = (props: {
             'Default device preference',
           )}
         />
+        <OnOffSettingsDropdown
+          title={t('settings.speakingDetection.title', 'Speaking detection')}
+          enabled={speakingDetectionEnabled}
+          setEnabled={setSpeakingDetectionEnabled}
+        />
+        <div className="rd__tab-panel__note">
+          {t(
+            'settings.speakingDetection.description',
+            'Listens to your microphone to show level meters and the lobby speaking indicator, warn you when you speak while muted, and detect a silent microphone. Turn it off if your audio device misbehaves.',
+          )}
+        </div>
       </TabWrapper>
       <TabWrapper
         icon="video-effects"
