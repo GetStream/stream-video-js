@@ -5,7 +5,7 @@ import {
   TrackType,
 } from '../../gen/video/sfu/models/models';
 import type { RTCCodecStats, RTCMediaSourceStats } from '../types';
-import type { ComputedStats, PendingDelta } from './types';
+import type { PendingDelta } from './types';
 import { withoutConcurrency } from '../../helpers/concurrency';
 
 /**
@@ -60,13 +60,13 @@ export class StatsTracer {
   }
 
   /**
-   * Samples the RTCPeerConnection: returns the current stats report and the
-   * derived performance stats, and appends the delta-compressed sample to the
-   * un-acked delivery chain (retrieved via `getPendingDeltas`).
+   * Samples the RTCPeerConnection: returns the derived performance stats and
+   * appends the delta-compressed sample to the un-acked delivery chain
+   * (retrieved via `getPendingDeltas`).
    *
    * @internal
    */
-  takeSample = (): Promise<ComputedStats> => {
+  takeSample = (): Promise<PerformanceStats[]> => {
     return withoutConcurrency(this.sampleTag, async () => {
       const stats = await this.pc.getStats();
       const now = Date.now();
@@ -98,7 +98,7 @@ export class StatsTracer {
       this.frameTimeHistory = this.frameTimeHistory.slice(-2);
       this.fpsHistory = this.fpsHistory.slice(-2);
 
-      return { performanceStats, stats };
+      return performanceStats;
     });
   };
 
