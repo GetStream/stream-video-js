@@ -155,6 +155,28 @@ describe('BlockedAudioTracker', () => {
     expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(false);
   });
 
+  it('resumeAudio keeps elements that got blocked while it was in flight', async () => {
+    const first = createAudioElement();
+    const late = createAudioElement();
+    let finishPlay!: () => void;
+    vi.spyOn(first, 'play').mockReturnValue(
+      new Promise<void>((resolve) => {
+        finishPlay = resolve;
+      }),
+    );
+
+    tracker.markBlocked(first, true, 'session-id-1');
+    const resuming = tracker.resumeAudio();
+
+    // another element is blocked by the browser while resumeAudio is pending
+    tracker.markBlocked(late, true, 'session-id-2');
+    finishPlay();
+    await resuming;
+
+    expect(tracker.isBlocked(late)).toBe(true);
+    expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(true);
+  });
+
   it('traces resumeAudio', async () => {
     await tracker.resumeAudio();
     expect(tracer.trace).toHaveBeenCalledWith('resumeAudio', null);
