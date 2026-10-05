@@ -29,10 +29,6 @@ export type HostLivestreamTopViewProps = {
    */
   FollowerCount?: React.ComponentType<FollowerCountProps> | null;
   /**
-   * Enable HTTP live streaming
-   */
-  hls?: boolean;
-  /**
    * Disable the published streams to not be stopped if the host ends the livestream.
    */
   disableStopPublishedStreamsOnEndStream?: boolean;
@@ -51,7 +47,6 @@ export const HostLivestreamTopView = ({
   DurationBadge = DefaultDurationBadge,
   onLayout,
   onEndStreamHandler,
-  hls,
   disableStopPublishedStreamsOnEndStream,
 }: HostLivestreamTopViewProps) => {
   const call = useCall();
@@ -70,25 +65,25 @@ export const HostLivestreamTopView = ({
       return;
     }
 
+    setIsAwaitingResponse(true);
     try {
-      setIsAwaitingResponse(true);
       if (!disableStopPublishedStreamsOnEndStream) {
         await call?.stopPublish(SfuModels.TrackType.VIDEO);
         await call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
       }
-      if (hls) {
-        await call?.stopHLS();
-      } else {
+
+      if (isCallLive) {
         await call?.stopLive();
+      } else if (isBroadcasting) {
+        await call?.stopHLS();
       }
 
-      setIsAwaitingResponse(false);
-      if (onEndStreamHandler) {
-        onEndStreamHandler();
-      }
+      onEndStreamHandler?.();
     } catch (error) {
       const logger = videoLoggerSystem.getLogger('HostLivestreamTopView');
       logger.error('Error stopping livestream', error);
+    } finally {
+      setIsAwaitingResponse(false);
     }
   };
 

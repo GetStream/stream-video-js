@@ -122,7 +122,6 @@ export const HostLivestream = ({
           <HostLivestreamTopView
             {...topViewProps}
             onEndStreamHandler={onEndStreamHandler}
-            hls={hls}
             disableStopPublishedStreamsOnEndStream={
               disableStopPublishedStreamsOnEndStream
             }

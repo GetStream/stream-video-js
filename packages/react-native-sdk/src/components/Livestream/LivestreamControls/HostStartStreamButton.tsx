@@ -44,19 +44,17 @@ export const HostStartStreamButton = ({
   const { t } = useI18n();
 
   const onStartStreamButtonPress = async () => {
+    setIsAwaitingResponse(true);
     try {
-      setIsAwaitingResponse(true);
-      await call?.goLive();
-      if (hls) {
-        await call?.startHLS();
-      }
-      setIsAwaitingResponse(false);
+      await call?.goLive({ start_hls: hls });
       if (onStartStreamHandler) {
         onStartStreamHandler();
       }
     } catch (error) {
       const logger = videoLoggerSystem.getLogger('HostStartStreamButton');
       logger.error('Error starting livestream', error);
+    } finally {
+      setIsAwaitingResponse(false);
     }
   };
 
