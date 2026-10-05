@@ -184,7 +184,7 @@
   "settings.onOff.on.label": "Activado",
   "settings.recordingLibrary.label": "Biblioteca de grabaciones",
   "settings.settings.title": "Ajustes",
-  "settings.speakingDetection.description": "Escucha tu micrófono para mostrar los medidores de nivel y el indicador de habla en la sala de espera, avisarte cuando hablas silenciado y detectar un micrófono sin sonido. Desactívalo si tu dispositivo de audio falla.",
+  "settings.speakingDetection.description": "Escucha tu micrófono para mostrar los medidores de nivel y el indicador de habla en la sala de espera, y avisarte cuando hablas silenciado. Desactívalo si tu dispositivo de audio falla.",
   "settings.speakingDetection.title": "Detección de habla",
   "settings.theme.dark.label": "Oscuro",
   "settings.theme.label": "Tema",

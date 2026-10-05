@@ -21,7 +21,11 @@ export const usePersistedToggle = (
   const setEnabled = useCallback(
     (value: boolean) => {
       _setEnabled(value);
-      window.localStorage.setItem(storageKey, String(value));
+      try {
+        window.localStorage.setItem(storageKey, String(value));
+      } catch {
+        // Keep the preference usable for this session if storage is unavailable.
+      }
     },
     [storageKey],
   );

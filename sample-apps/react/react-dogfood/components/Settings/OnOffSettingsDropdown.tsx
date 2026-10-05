@@ -29,7 +29,6 @@ export const OnOffSettingsDropdown = ({
         {title}
       </div>
       <DropDownSelect
-        key={String(enabled)}
         defaultSelectedIndex={onOffOptions.indexOf(enabled)}
         defaultSelectedLabel={onOffLabel(t, enabled)}
         handleSelect={(index) => setEnabled(onOffOptions[index])}

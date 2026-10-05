@@ -184,7 +184,7 @@
   "settings.onOff.on.label": "Ein",
   "settings.recordingLibrary.label": "Aufnahmebibliothek",
   "settings.settings.title": "Einstellungen",
-  "settings.speakingDetection.description": "Hört dein Mikrofon ab, um Pegelanzeigen und die Sprechanzeige in der Lobby zu zeigen, dich zu warnen, wenn du stummgeschaltet sprichst, und ein stummes Mikrofon zu erkennen. Schalte es aus, wenn sich dein Audiogerät fehlerhaft verhält.",
+  "settings.speakingDetection.description": "Hört dein Mikrofon ab, um Pegelanzeigen und die Sprechanzeige in der Lobby zu zeigen und dich zu warnen, wenn du stummgeschaltet sprichst. Schalte es aus, wenn sich dein Audiogerät fehlerhaft verhält.",
   "settings.speakingDetection.title": "Spracherkennung",
   "settings.theme.dark.label": "Dunkel",
   "settings.theme.label": "Design",

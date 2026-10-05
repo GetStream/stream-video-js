@@ -173,7 +173,6 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   } = useSettings();
   useEffect(() => {
     if (!call) return;
-    call.microphone.setSilenceThreshold(speakingDetectionEnabled ? 5000 : 0);
     if (!speakingDetectionEnabled) {
       call.microphone
         .disableSpeakingWhileMutedNotification()

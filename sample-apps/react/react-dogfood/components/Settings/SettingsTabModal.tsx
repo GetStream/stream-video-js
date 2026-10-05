@@ -164,6 +164,7 @@ export const SettingsTabModalMenu = (props: {
         />
         <DeviceSelectorAudioInput
           visualType="dropdown"
+          volumeIndicatorVisible={speakingDetectionEnabled}
           title={t('deviceSettings.selectMic.title', 'Select a Mic')}
         />
         <DeviceSelectorAudioOutput
@@ -199,7 +200,7 @@ export const SettingsTabModalMenu = (props: {
         <div className="rd__tab-panel__note">
           {t(
             'settings.speakingDetection.description',
-            'Listens to your microphone to show level meters and the lobby speaking indicator, warn you when you speak while muted, and detect a silent microphone. Turn it off if your audio device misbehaves.',
+            'Listens to your microphone to show level meters and the lobby speaking indicator, and warn you when you speak while muted. Turn it off if your audio device misbehaves.',
           )}
         </div>
       </TabWrapper>
