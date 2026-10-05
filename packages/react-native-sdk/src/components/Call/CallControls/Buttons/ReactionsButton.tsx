@@ -6,7 +6,7 @@ import { ButtonTestIds } from '../../../../constants/TestIds';
 import { Reaction, ControlButtonIcon } from '../../../../icons';
 import { ReactionsPicker } from '../internal/ReactionsPicker';
 import { type StreamReactionType } from '../../CallContent';
-import { CallControlsButton } from '..';
+import { CallControlsButton } from './CallControlsButton';
 
 /**
  * Props for the Reaction button

@@ -1,11 +1,9 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../contexts';
-import {
-  RejectCallButton,
-  ToggleAudioPreviewButton,
-  ToggleVideoPreviewButton,
-} from '.';
+import { RejectCallButton } from './Buttons/RejectCallButton';
+import { ToggleAudioPreviewButton } from './Buttons/ToggleAudioPreviewButton';
+import { ToggleVideoPreviewButton } from './Buttons/ToggleVideoPreviewButton';
 
 /**
  * Props for the OutgoingCallControls Component.

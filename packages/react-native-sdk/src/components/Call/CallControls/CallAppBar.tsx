@@ -6,9 +6,9 @@ import { CallDurationIndicator } from '../../utility/CallDurationIndicator';
 import {
   HangUpCallButton,
   HangUpCallButtonProps,
-  LayoutSwitchButton,
-  ToggleCameraFaceButton,
-} from '.';
+} from './Buttons/HangupCallButton';
+import { LayoutSwitchButton } from './Buttons/LayoutSwitchButton';
+import { ToggleCameraFaceButton } from './Buttons/ToggleCameraFaceButton';
 
 /**
  * Props for the CallAppBar Component.

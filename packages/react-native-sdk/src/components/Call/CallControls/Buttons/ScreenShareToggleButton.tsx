@@ -7,7 +7,7 @@ import {
   useScreenShareButton,
   type ScreenShareOptions,
 } from '../../../../hooks/useScreenShareButton';
-import { CallControlsButton } from '..';
+import { CallControlsButton } from './CallControlsButton';
 
 /**
  * The props for the Screen Share button in the Call Controls.

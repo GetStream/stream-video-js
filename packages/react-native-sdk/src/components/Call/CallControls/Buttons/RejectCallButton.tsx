@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
-import { CallControlsButton } from '..';
+import { CallControlsButton } from './CallControlsButton';
 import { IconWrapper, PhoneDown } from '../../../../icons';
 import { useTheme } from '../../../../contexts/ThemeContext';
 
