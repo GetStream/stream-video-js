@@ -57,12 +57,12 @@ describe('mergeThemes', () => {
 
   it('clones before merging so the given theme stays clean', () => {
     const dark = resolveTheme('dark');
-    const before = dark.semantics.textPrimary;
-    const merged = mergeThemes({ theme: dark, style: semanticsOverride });
+    const before = dark.callControls.container.backgroundColor;
+    const merged = mergeThemes({ theme: dark, style: componentStyleOverride });
 
     expect(merged).not.toBe(dark);
-    expect(merged.semantics.textPrimary).toBe('#000000');
-    expect(dark.semantics.textPrimary).toBe(before);
+    expect(merged.callControls.container.backgroundColor).toBe('red');
+    expect(dark.callControls.container.backgroundColor).toBe(before);
   });
 
   it('merges an override into the defaults without dropping siblings', () => {
@@ -161,5 +161,117 @@ describe('mergeThemes', () => {
     expect(merged.semantics.textPrimary).toBe(
       defaultTheme.semantics.textPrimary,
     );
+  });
+});
+
+describe('mergeThemes token overrides', () => {
+  const MAGENTA = '#FF00FF';
+
+  it('rebuilds component slots derived from an overridden token', () => {
+    const merged = mergeThemes({
+      style: { semantics: { accentPrimary: MAGENTA } },
+    });
+
+    expect(merged.semantics.accentPrimary).toBe(MAGENTA);
+    expect(merged.lobby.icon?.color).toBe(MAGENTA);
+    expect(merged.liveIndicator.container.backgroundColor).toBe(MAGENTA);
+  });
+
+  it('follows a $name reference chain within semantics', () => {
+    const merged = mergeThemes({
+      style: { semantics: { accentPrimary: MAGENTA } },
+    });
+
+    expect(merged.semantics.buttonPrimaryBg).toBe(MAGENTA);
+    expect(merged.button.primary.container.backgroundColor).toBe(MAGENTA);
+  });
+
+  it('rebuilds slots derived from a foundations token', () => {
+    const merged = mergeThemes({
+      style: { foundations: { layout: { size32: 99 } } },
+    });
+
+    expect(merged.followerCount.container.height).toBe(99);
+  });
+
+  it('does not propagate across token groups', () => {
+    const merged = mergeThemes({
+      style: { foundations: { colors: { blue500: '#FF8800' } } },
+    });
+
+    expect(merged.foundations.colors.blue500).toBe('#FF8800');
+    expect(merged.semantics.brand500).toBe(defaultTheme.semantics.brand500);
+  });
+
+  it('keeps slot overrides winning over token overrides', () => {
+    const merged = mergeThemes({
+      style: {
+        semantics: { accentPrimary: MAGENTA },
+        lobby: { icon: { color: '#00FFFF' } },
+      },
+    });
+
+    expect(merged.lobby.icon?.color).toBe('#00FFFF');
+    expect(merged.liveIndicator.container.backgroundColor).toBe(MAGENTA);
+  });
+
+  it('resolves against the requested color scheme', () => {
+    const merged = mergeThemes({
+      colorScheme: 'dark',
+      style: { semantics: { accentPrimary: MAGENTA } },
+    });
+
+    expect(merged.lobby.icon?.color).toBe(MAGENTA);
+    expect(merged.semantics.textPrimary).toBe(
+      resolveTheme('dark').semantics.textPrimary,
+    );
+  });
+
+  it('ignores token overrides on an already-resolved base', () => {
+    const merged = mergeThemes({
+      theme: resolveTheme('light'),
+      style: { semantics: { accentPrimary: MAGENTA } },
+    });
+
+    expect(merged.semantics.accentPrimary).toBe(
+      defaultTheme.semantics.accentPrimary,
+    );
+    expect(merged.lobby.icon?.color).toBe(defaultTheme.lobby.icon?.color);
+  });
+
+  it('still applies component style overrides on an inherited base', () => {
+    // The escape hatch the limitation points at: component styles always land,
+    // whatever the base was built from.
+    const parent = mergeThemes({
+      colorScheme: 'light',
+      style: { semantics: { accentPrimary: MAGENTA } },
+    });
+
+    const child = mergeThemes({
+      theme: parent,
+      style: { lobby: { icon: { color: '#00FFFF' } } },
+    });
+
+    expect(child.lobby.icon?.color).toBe('#00FFFF');
+    // and the parent's fully-propagated token override survives
+    expect(child.button.primary.container.backgroundColor).toBe(MAGENTA);
+  });
+});
+
+describe('token source isolation', () => {
+  it('never writes an override back into the shared token source', () => {
+    const before = resolveTheme('light').semantics.accentPrimary;
+
+    mergeThemes({ style: { semantics: { accentPrimary: '#FF00FF' } } });
+
+    expect(resolveTheme('light').semantics.accentPrimary).toBe(before);
+    expect(resolveTheme('light').lobby.icon?.color).toBe(before);
+  });
+
+  it('returns a theme the caller can mutate without affecting later ones', () => {
+    const merged = mergeThemes({});
+    merged.semantics.accentPrimary = '#FF00FF';
+
+    expect(resolveTheme('light').semantics.accentPrimary).not.toBe('#FF00FF');
   });
 });

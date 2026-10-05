@@ -13,7 +13,7 @@ export type { IStreamTokens, RNShadowToken } from './StreamTokens.types';
  */
 export type StreamTokens = IStreamTokens;
 
-const buildTokens = (source: IStreamTokens): StreamTokens => ({
+export const buildTokens = (source: IStreamTokens): StreamTokens => ({
   foundations: source.foundations,
   primitives: source.primitives,
   components: source.components,
@@ -40,3 +40,11 @@ export const tokens = {
 } satisfies Record<'light' | 'dark', StreamTokens>;
 
 export type ThemeColorScheme = keyof typeof tokens;
+
+/**
+ * @internal
+ */
+export const tokenSources = {
+  light: lightSource,
+  dark: darkSource,
+} satisfies Record<ThemeColorScheme, IStreamTokens>;

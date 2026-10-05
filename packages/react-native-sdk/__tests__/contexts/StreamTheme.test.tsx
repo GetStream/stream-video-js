@@ -15,22 +15,27 @@ const dark = resolveTheme('dark');
 
 const TEXT_PRIMARY = 'text-primary';
 const BACKGROUND = 'background';
+const CONTROLS_GAP = 'controls-gap';
 
 const ThemeProbe = () => {
   const {
-    theme: { semantics },
+    theme: { semantics, callControls },
   } = useTheme();
 
   return (
     <>
       <Text testID={TEXT_PRIMARY}>{String(semantics.textPrimary)}</Text>
       <Text testID={BACKGROUND}>{String(semantics.backgroundCoreApp)}</Text>
+      <Text testID={CONTROLS_GAP}>
+        {String(callControls?.container?.gap ?? 0)}
+      </Text>
     </>
   );
 };
 
 const textPrimary = () => screen.getByTestId(TEXT_PRIMARY).props.children;
 const background = () => screen.getByTestId(BACKGROUND).props.children;
+const controlsGap = () => screen.getByTestId(CONTROLS_GAP).props.children;
 
 describe('StreamTheme', () => {
   it('resolves the light scheme by default', () => {
@@ -56,14 +61,27 @@ describe('StreamTheme', () => {
   it('inherits the surrounding theme in a nested provider', () => {
     render(
       <StreamTheme colorScheme="dark">
+        <StreamTheme style={{ callControls: { container: { gap: 7 } } }}>
+          <ThemeProbe />
+        </StreamTheme>
+      </StreamTheme>,
+    );
+
+    expect(textPrimary()).toBe(String(dark.semantics.textPrimary));
+    expect(background()).toBe(String(dark.semantics.backgroundCoreApp));
+    expect(controlsGap()).toBe('7');
+  });
+
+  it('ignores a token override in a nested provider', () => {
+    render(
+      <StreamTheme colorScheme="dark">
         <StreamTheme style={{ semantics: { textPrimary: '#ff0000' } }}>
           <ThemeProbe />
         </StreamTheme>
       </StreamTheme>,
     );
 
-    expect(textPrimary()).toBe('#ff0000');
-    expect(background()).toBe(String(dark.semantics.backgroundCoreApp));
+    expect(textPrimary()).toBe(String(dark.semantics.textPrimary));
   });
 
   it('lets a nested provider override the inherited scheme', () => {
@@ -81,7 +99,7 @@ describe('StreamTheme', () => {
   it('carries a nested override further down the tree', () => {
     render(
       <StreamTheme colorScheme="dark">
-        <StreamTheme style={{ semantics: { textPrimary: '#ff0000' } }}>
+        <StreamTheme style={{ callControls: { container: { gap: 7 } } }}>
           <StreamTheme>
             <ThemeProbe />
           </StreamTheme>
@@ -90,7 +108,7 @@ describe('StreamTheme', () => {
     );
 
     // the grandchild sees the scheme from the top and the override from the middle
-    expect(textPrimary()).toBe('#ff0000');
+    expect(controlsGap()).toBe('7');
     expect(background()).toBe(String(dark.semantics.backgroundCoreApp));
   });
 

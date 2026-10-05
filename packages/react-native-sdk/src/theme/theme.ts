@@ -6,9 +6,14 @@ import {
   CallControlsButtonStyle,
   type Insets,
 } from './types';
-import { tokens, type ThemeColorScheme } from './tokens';
+import {
+  buildTokens,
+  tokens,
+  tokenSources,
+  type ThemeColorScheme,
+} from './tokens';
 import { IStreamTokens } from './tokens/StreamTokens.types';
-import { DeepPartial } from '../contexts';
+import { deepMerge, type DeepPartial } from './deepMerge';
 
 export type { ThemeColorScheme };
 
@@ -221,8 +226,22 @@ export type Theme = {
   [component: string]: any;
 };
 
-export const resolveTheme = (colorScheme: ThemeColorScheme): Theme => {
-  const theme = tokens[colorScheme];
+export const TOKEN_GROUPS = [
+  'foundations',
+  'primitives',
+  'semantics',
+  'components',
+] as const satisfies ReadonlyArray<keyof IStreamTokens>;
+
+export const resolveTheme = (
+  colorScheme: ThemeColorScheme,
+  tokenOverrides?: DeepPartial<IStreamTokens>,
+): Theme => {
+  const hasTokenOverrides =
+    !!tokenOverrides && Object.keys(tokenOverrides).length > 0;
+  const theme = hasTokenOverrides
+    ? buildTokens(deepMerge(tokenSources[colorScheme], tokenOverrides))
+    : tokens[colorScheme];
   return {
     foundations: theme.foundations,
     semantics: theme.semantics,

@@ -7,22 +7,14 @@ import React, {
 
 import {
   resolveTheme,
+  TOKEN_GROUPS,
   type Theme,
   type ThemeColorScheme,
 } from '../theme/theme';
+import type { IStreamTokens } from '../theme/tokens';
+import { deepMerge, type DeepPartial } from '../theme/deepMerge';
 
-/**
- * Recursively marks every property of `T` as optional.
- *
- * The `extends object` guard is required, not cosmetic: `Theme` carries a
- * `[component: string]: any` index signature, which the mapped type inherits.
- * Without the guard that index signature becomes `DeepPartial<any>`, an
- * all-object type that no primitive leaf can satisfy, and every theme override
- * fails to typecheck. Guarding short-circuits `any` back to `any`.
- */
-export type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
-};
+export type { DeepPartial };
 
 export type StreamThemeInputValue = {
   mergedStyle?: Theme;
@@ -38,42 +30,53 @@ export type ThemeProviderInputValue = StreamThemeInputValue;
 export type MergedThemesParams = {
   style?: DeepPartial<Theme>;
   theme?: Theme;
+  colorScheme?: ThemeColorScheme;
 };
 
 export type ThemeContextValue = {
   theme: Theme;
 };
 
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
+const TOKEN_GROUP_KEYS: ReadonlySet<string> = new Set(TOKEN_GROUPS);
 
-const merge = <T extends Record<string, unknown>>(
-  target: T,
-  source: DeepPartial<T>,
-) => {
-  for (const key in source) {
-    const sourceValue = source[key];
-    if (sourceValue === undefined) continue;
-
-    const targetValue = target[key as keyof T];
-    if (isObject(sourceValue) && isObject(targetValue)) {
-      merge(targetValue, sourceValue as DeepPartial<Record<string, unknown>>);
-    } else {
-      target[key as keyof T] = sourceValue as T[keyof T];
-    }
-  }
+type SplitStyle = {
+  tokenOverrides: DeepPartial<IStreamTokens>;
+  componentStyleOverrides: DeepPartial<Theme>;
 };
 
+const splitStyle = (style?: DeepPartial<Theme>): SplitStyle => {
+  const tokenOverrides: Record<string, unknown> = {};
+  const componentStyleOverrides: Record<string, unknown> = {};
+
+  for (const key of Object.keys(style ?? {})) {
+    const value = (style as Record<string, unknown>)[key];
+    if (value === undefined) continue;
+
+    const bucket = TOKEN_GROUP_KEYS.has(key)
+      ? tokenOverrides
+      : componentStyleOverrides;
+    bucket[key] = value;
+  }
+
+  return { tokenOverrides, componentStyleOverrides };
+};
+
+/**
+ * Token overrides are folded into the raw tokens before resolution,
+ * so everything derived from them is rebuilt. So when `theme` is given
+ * or inherited they are ignored - override the component style instead.
+ */
 export const mergeThemes = (params: MergedThemesParams) => {
-  const { style, theme } = params;
+  const { style, theme, colorScheme } = params;
+  const { tokenOverrides, componentStyleOverrides } = splitStyle(style);
+
+  const inherited = theme && Object.keys(theme).length > 0 ? theme : undefined;
 
   const base =
-    !theme || Object.keys(theme).length === 0 ? resolveTheme('light') : theme;
+    inherited ?? resolveTheme(colorScheme ?? 'light', tokenOverrides);
 
-  const finalTheme = JSON.parse(JSON.stringify(base)) as Theme;
-  if (style) {
-    merge(finalTheme, style);
-  }
+  let finalTheme = JSON.parse(JSON.stringify(base)) as Theme;
+  finalTheme = deepMerge(finalTheme, componentStyleOverrides);
 
   return finalTheme;
 };
@@ -107,10 +110,9 @@ export const StreamTheme: React.FC<
     //                       nested provider adding a few overrides keeps the
     //                       scheme chosen above.
     //   4. light          - default when all else is undefined.
-    const base =
-      theme ?? (colorScheme ? resolveTheme(colorScheme) : inheritedTheme);
+    const base = theme ?? (colorScheme ? undefined : inheritedTheme);
 
-    return mergeThemes({ style, theme: base });
+    return mergeThemes({ style, theme: base, colorScheme });
   }, [mergedStyle, style, theme, colorScheme, inheritedTheme]);
 
   return (
