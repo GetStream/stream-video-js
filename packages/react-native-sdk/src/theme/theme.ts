@@ -360,7 +360,6 @@ export const resolveTheme = (colorScheme: ThemeColorScheme): Theme => {
     participantView: {
       container: {
         borderRadius: theme.primitives.radius2xl,
-        backgroundColor: theme.semantics.backgroundCoreSurfaceDefault,
       },
       headerContainer: {
         padding: theme.primitives.spacingXs,
@@ -371,6 +370,8 @@ export const resolveTheme = (colorScheme: ThemeColorScheme): Theme => {
         gap: theme.primitives.spacingXxs,
       },
       highlightedContainer: {
+        borderRadius: theme.primitives.radius2xl,
+        borderWidth: theme.foundations.stroke.w200,
         borderColor: theme.semantics.accentPrimary,
       },
     },
@@ -906,6 +907,7 @@ export const resolveTheme = (colorScheme: ThemeColorScheme): Theme => {
     videoRenderer: {
       container: {
         borderRadius: theme.primitives.radius2xl,
+        overflow: 'hidden',
       },
       videoStream: {},
     },

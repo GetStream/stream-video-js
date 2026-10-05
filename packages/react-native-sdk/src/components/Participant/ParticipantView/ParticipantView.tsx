@@ -126,15 +126,11 @@ export const ParticipantView = React.memo(
     const isScreenSharing = trackType === 'screenShareTrack';
     const applySpeakerStyle = isSpeaking && !isScreenSharing;
 
-    const speakerStyle =
-      applySpeakerStyle && participantView.highlightedContainer;
-
     return (
       <View
         style={[
           styles.container,
           participantView.container,
-          speakerStyle,
           style,
           isInPiPMode ? styles.squaredInPiP : null,
         ]}
@@ -177,6 +173,17 @@ export const ParticipantView = React.memo(
             <ParticipantNetworkQualityIndicator participant={participant} />
           )}
         </View>
+        {applySpeakerStyle && (
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              styles.highlight,
+              participantView.highlightedContainer,
+              isInPiPMode ? styles.squaredInPiP : null,
+            ]}
+            pointerEvents="none"
+          />
+        )}
       </View>
     );
   },
@@ -207,5 +214,8 @@ const styles = StyleSheet.create({
   },
   squaredInPiP: {
     borderRadius: 0,
+  },
+  highlight: {
+    zIndex: Z_INDEX.IN_FRONT,
   },
 });
