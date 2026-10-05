@@ -17,14 +17,14 @@ const setup = (createStreamVideoClient: jest.Mock) => {
   const calls: string[] = [];
   const callingx = {
     log: jest.fn(),
-    acquireBackgroundTask: jest.fn().mockResolvedValue(undefined),
+    acquireBackgroundTask: jest.fn(),
     releaseBackgroundTask: jest.fn(() => {
       calls.push('release');
     }),
-    endCallWithReason: jest.fn(async () => {
+    endCallWithReason: jest.fn(() => {
       calls.push('end');
     }),
-    stopService: jest.fn(async () => {
+    stopService: jest.fn(() => {
       calls.push('stop');
     }),
   };
@@ -90,16 +90,36 @@ describe('onRingNotificationReceived — abandoning a push', () => {
   it.each<['endCallWithReason' | 'stopService', string[]]>([
     ['endCallWithReason', ['release', 'stop']],
     ['stopService', ['release', 'end']],
-  ])('finishes the cleanup when %s rejects', async (failing, expected) => {
+  ])('finishes the cleanup when %s throws', async (failing, expected) => {
     const { handler, calls, callingx, subscriptions } = setup(
       jest.fn().mockResolvedValue(undefined),
     );
-    callingx[failing].mockRejectedValue(new Error('boom'));
+    callingx[failing].mockImplementation(() => {
+      throw new Error('boom');
+    });
 
     await handler(RING_DATA);
 
     expect(calls).toEqual(expected);
     // a retained entry would make every later push for this cid look like a duplicate
+    expect(subscriptions.has(CALL_CID)).toBe(false);
+  });
+
+  it('logs a throwing endCallWithReason and still requests the stop', async () => {
+    const { handler, calls, callingx, subscriptions } = setup(
+      jest.fn().mockResolvedValue(undefined),
+    );
+    callingx.endCallWithReason.mockImplementation(() => {
+      throw new Error('boom');
+    });
+
+    await handler(RING_DATA);
+
+    expect(callingx.log).toHaveBeenCalledWith(
+      expect.stringContaining(`Failed to end call ${CALL_CID}`),
+      'error',
+    );
+    expect(calls).toEqual(['release', 'stop']);
     expect(subscriptions.has(CALL_CID)).toBe(false);
   });
 });
