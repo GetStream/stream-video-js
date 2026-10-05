@@ -11,6 +11,7 @@ import androidx.core.telecom.CallAttributesCompat
 import androidx.core.telecom.CallControlResult
 import androidx.core.telecom.CallControlScope
 import androidx.core.telecom.CallEndpointCompat
+import androidx.core.telecom.CallException
 import androidx.core.telecom.CallsManager
 import io.getstream.rn.callingx.AudioEndpointStore
 import io.getstream.rn.callingx.debugLog
@@ -23,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -73,6 +75,9 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
 
         /** Max time to wait for the pre-call endpoints to populate before registering the call. */
         private const val PRE_CALL_ENDPOINTS_TIMEOUT_MS = 1500L
+
+        /** Delay before retrying a disconnect that Telecom rejected. */
+        private const val DISCONNECT_RETRY_DELAY_MS = 500L
     }
 
     @Volatile
@@ -533,10 +538,23 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         }
     }
 
+    private fun CallControlResult.isDisconnectFailure() =
+        this is CallControlResult.Error && errorCode != CallException.ERROR_CALL_IS_NOT_BEING_TRACKED
+
     private suspend fun CallControlScope.doDisconnect(callId: String, flags: CallActionFlags, action: CallAction.Disconnect) {
         flags.isSelfDisconnected.set(true)
         debugLog(TAG, "[repository] doDisconnect[$callId]: Disconnecting call with cause: ${action.cause}")
-        disconnect(action.cause)
+        var result = disconnect(action.cause)
+        if (result.isDisconnectFailure()) {
+            Log.w(TAG, "[repository] doDisconnect[$callId]: Disconnect failed with error code: ${(result as CallControlResult.Error).errorCode}, retrying")
+            // core-telecom keeps the platform CallControl usable while the session collectors are alive,
+            // and this path must not depend on repository state because release() has already cleared it.
+            delay(DISCONNECT_RETRY_DELAY_MS)
+            result = disconnect(action.cause)
+            if (result.isDisconnectFailure()) {
+                Log.e(TAG, "[repository] doDisconnect[$callId]: Disconnect retry failed with error code: ${(result as CallControlResult.Error).errorCode}, Telecom may still hold the call")
+            }
+        }
         debugLog(TAG, "[repository] doDisconnect[$callId]: Disconnect called, triggering onIsCallDisconnected")
         onIsCallDisconnected(callId, flags)(action.cause)
     }
