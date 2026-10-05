@@ -44,9 +44,9 @@ type MoreActionsButtonProps = {
    */
   onPressHandler?: () => void;
   /**
-   * The height of the bottom controls container.
+   * The height of the bottom controls container, undefined until measured.
    */
-  controlsContainerHeight: number;
+  controlsContainerHeight: number | undefined;
 };
 
 /**
@@ -306,7 +306,7 @@ export const MoreActionsButton = ({
       style={moreActionsButton}
       color={buttonColor}
     >
-      {!!controlsContainerHeight && (
+      {controlsContainerHeight !== undefined && (
         <AudioRoutePickerDrawer
           isVisible={isAudioRoutePickerDrawerVisible}
           bottomControlsHeight={controlsContainerHeight}
@@ -315,7 +315,7 @@ export const MoreActionsButton = ({
           }}
         />
       )}
-      {!!controlsContainerHeight && (
+      {controlsContainerHeight !== undefined && (
         <BottomControlsDrawer
           isVisible={isDrawerVisible}
           bottomControlsHeight={controlsContainerHeight}

@@ -45,6 +45,13 @@ const AnimatedFloatingView = ({
     [FloatingViewAlignment.bottomRight]: { x: 0, y: 0 },
   });
 
+  // the corner the view is snapped to, kept across container resizes
+  const currentAlignmentRef = useRef(initialAlignment);
+
+  useEffect(() => {
+    currentAlignmentRef.current = initialAlignment;
+  }, [initialAlignment]);
+
   useEffect(() => {
     if (!rectangle) {
       return;
@@ -59,7 +66,7 @@ const AnimatedFloatingView = ({
         height: rectangle.height,
       },
     });
-    const { x, y } = snapAlignments[initialAlignment];
+    const { x, y } = snapAlignments[currentAlignmentRef.current];
     snapAlignmentsRef.current = snapAlignments;
     translateRef.current.setOffset({ x, y });
     translateRef.current.setValue({ x: 0, y: 0 });
@@ -104,8 +111,9 @@ const AnimatedFloatingView = ({
           position: currentPosition,
           snapAlignments: snapAlignmentsRef.current,
         });
+        currentAlignmentRef.current = closestAlignment;
         Animated.timing(translateRef.current, {
-          toValue: closestAlignment,
+          toValue: snapAlignmentsRef.current[closestAlignment],
           duration: 300,
           useNativeDriver: true, // can pass true since we only use transform animation
           easing: Easing.inOut(Easing.quad),

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { LogLevel, TokenProvider } from '@stream-io/video-client';
+import type { StreamThemeMode } from '../components/StreamTheme';
 
 /**
  * Available layout options.
@@ -62,7 +63,8 @@ export interface EmbeddedClientBaseProps {
   tokenProvider?: TokenProvider;
   logLevel?: LogLevel;
   layout?: LayoutOption;
-  theme?: Record<string, string>;
+  theme?: StreamThemeMode;
+  style?: Record<string, string>;
   onError?: (error: any) => void;
   children?: ReactNode;
 }

@@ -18,6 +18,10 @@
     flex: 1;
   }
 
+  .str-video__notification__line {
+    display: block;
+  }
+
   .str-video__notification__close {
     margin-inline-start: var(--str-video__spacing-xxs);
     display: inline-block;

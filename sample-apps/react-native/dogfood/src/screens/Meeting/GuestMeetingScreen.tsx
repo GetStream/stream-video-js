@@ -11,6 +11,15 @@ import { MeetingUI } from '../../components/MeetingUI';
 import { createToken } from '../../modules/helpers/createToken';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { useCustomTheme } from '../../theme';
+import {
+  LobbyE2EEContext,
+  type LobbyE2EEContextValue,
+} from '../../contexts/LobbyE2EEContext';
+import {
+  E2EE_SETTINGS_OVERRIDE,
+  isE2EEEnvironment,
+  updateE2EESharedKeys,
+} from '../../utils/e2ee';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -27,8 +36,14 @@ export const GuestMeetingScreen = (props: Props) => {
     undefined,
   );
   const {
-    params: { guestUserId, callId, mode },
+    params: { guestUserId, callId, mode, encryptionKey: routeEncryptionKey },
   } = props.route;
+  const allowEncryption = isE2EEEnvironment(appEnvironment);
+  const createEncrypted = allowEncryption && !!routeEncryptionKey;
+  const [editedKey, setEditedKey] = useState<string>();
+  const encryptionKey = allowEncryption
+    ? (editedKey ?? routeEncryptionKey)
+    : undefined;
   const callType = 'default';
 
   useEffect(() => {
@@ -77,10 +92,27 @@ export const GuestMeetingScreen = (props: Props) => {
   }, [callId, callType, videoClient]);
 
   useEffect(() => {
-    call?.getOrCreate().catch((err) => {
-      console.error('Failed to get or create call', err);
-    });
-  }, [call]);
+    call
+      ?.getOrCreate(
+        createEncrypted
+          ? { data: { settings_override: E2EE_SETTINGS_OVERRIDE } }
+          : undefined,
+      )
+      .catch((err) => {
+        console.error('Failed to get or create call', err);
+      });
+  }, [call, createEncrypted]);
+
+  const e2eeControls = useMemo<LobbyE2EEContextValue>(
+    () => ({
+      encryptionKey,
+      updateEncryptionKey: (key: string) => {
+        setEditedKey(key);
+        if (call && key.trim()) updateE2EESharedKeys(call, key);
+      },
+    }),
+    [encryptionKey, call],
+  );
 
   if (!videoClient || !call) {
     return null;
@@ -88,9 +120,11 @@ export const GuestMeetingScreen = (props: Props) => {
 
   return (
     <StreamVideo client={videoClient} style={customTheme}>
-      <StreamCall call={call}>
-        <MeetingUI callId={callId} {...props} />
-      </StreamCall>
+      <LobbyE2EEContext.Provider value={allowEncryption ? e2eeControls : null}>
+        <StreamCall call={call}>
+          <MeetingUI callId={callId} {...props} />
+        </StreamCall>
+      </LobbyE2EEContext.Provider>
     </StreamVideo>
   );
 };

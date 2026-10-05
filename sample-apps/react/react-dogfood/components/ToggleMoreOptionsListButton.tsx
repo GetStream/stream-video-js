@@ -47,7 +47,7 @@ const Menu = () => {
         <DefaultReactionsMenu reactions={defaultReactions} />
       </li>
       {isPronto && (
-        <li className="rd__more-menu__item">
+        <li className="rd__more-menu__item rd__more-menu__item--list">
           <MenuToggle
             ToggleButton={ToggleDevMenuButton}
             visualType={MenuVisualType.PORTAL}
@@ -57,7 +57,7 @@ const Menu = () => {
         </li>
       )}
 
-      <li className="rd__more-menu__item">
+      <li className="rd__more-menu__item rd__more-menu__item--list">
         <MenuToggle
           ToggleButton={ToggleFeedbackButton}
           visualType={MenuVisualType.PORTAL}

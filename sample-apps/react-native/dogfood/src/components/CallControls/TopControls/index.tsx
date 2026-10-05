@@ -8,6 +8,7 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { CallStatusBadge } from './CallStatusBadge';
 import { LayoutSwitcherButton } from './LayoutSwitcherButton';
+import { E2EEBadge } from './E2EEBadge';
 
 export type TopControlsProps = {
   onHangupCallHandler?: () => void;
@@ -47,6 +48,7 @@ export const TopControls = ({
           </View>
         </View>
         <View style={styles.centerElement}>
+          <E2EEBadge />
           <CallStatusBadge
             isCallRecordingInProgress={isCallRecordingInProgress}
             isAwaitingResponse={isAwaitingResponse}
@@ -71,7 +73,10 @@ const useStyles = () => {
           top: 0,
           flexDirection: 'row',
           paddingVertical: 2,
-          paddingHorizontal: theme.variants.spacingSizes.md,
+          paddingLeft:
+            theme.variants.spacingSizes.md + theme.variants.insets.left,
+          paddingRight:
+            theme.variants.spacingSizes.md + theme.variants.insets.right,
           alignItems: 'center',
         },
         leftElement: {
@@ -86,6 +91,9 @@ const useStyles = () => {
         centerElement: {
           flex: 1,
           alignItems: 'center',
+          flexDirection: 'row',
+          gap: 8,
+          justifyContent: 'center',
         },
         rightElement: {
           flex: 1,

@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-2.0.0-beta.0...@stream-io/video-styling-2.0.0-beta.1) (2026-09-28)
+
+### Features
+
+- **react-dogfood:** migrate sample apps to new design system ([#2451](https://github.com/GetStream/stream-video-js/issues/2451)) ([ab2ffb6](https://github.com/GetStream/stream-video-js/commit/ab2ffb64ad79ba7c81d1d43a01698f224f1fa0eb))
+- **react-sdk:** introduce design tokens to the react sdk ([#2389](https://github.com/GetStream/stream-video-js/issues/2389)) ([bd53a13](https://github.com/GetStream/stream-video-js/commit/bd53a13e900b90f8753fec836784d80afb2fce09))
+- **react-sdk:** migrate Button component to design token ([#2408](https://github.com/GetStream/stream-video-js/issues/2408)) ([9b21d19](https://github.com/GetStream/stream-video-js/commit/9b21d199817b46096d1bb62925c499ea6ffa6687))
+- **react-sdk:** Migrate call layouts ([#2434](https://github.com/GetStream/stream-video-js/issues/2434)) ([d615d13](https://github.com/GetStream/stream-video-js/commit/d615d13b5aa8bf2908102a965d59371344fa2f06))
+- **react-sdk:** migrate call participant list to new token design system ([#2442](https://github.com/GetStream/stream-video-js/issues/2442)) ([e09a263](https://github.com/GetStream/stream-video-js/commit/e09a263f7fa4f7fd21d0af5678ea3b190ac59976))
+- **react-sdk:** migrate call recording list to new token design system ([#2435](https://github.com/GetStream/stream-video-js/issues/2435)) ([79db3d8](https://github.com/GetStream/stream-video-js/commit/79db3d820ba0c93bb7efe9e5283506948a61aad5))
+- **react-sdk:** Migrate Embedded components to new token design system ([#2446](https://github.com/GetStream/stream-video-js/issues/2446)) ([adf07fa](https://github.com/GetStream/stream-video-js/commit/adf07fa9f8fc859d3fa7f94f7d9d2e18a267f4ce))
+- **react-sdk:** migrate menu and dropdown select to design token system ([#2426](https://github.com/GetStream/stream-video-js/issues/2426)) ([b3aa81e](https://github.com/GetStream/stream-video-js/commit/b3aa81eda69558446c055957305e85a6f1af2491))
+- **react-sdk:** migrate participant tile to new token design system ([#2433](https://github.com/GetStream/stream-video-js/issues/2433)) ([1ea8193](https://github.com/GetStream/stream-video-js/commit/1ea81937585caefd2e2bff566d6d5f2ff3004243))
+- **react-sdk:** migrate permisison request and notification to new token design system ([#2444](https://github.com/GetStream/stream-video-js/issues/2444)) ([a20b1d3](https://github.com/GetStream/stream-video-js/commit/a20b1d37985d26b2258e5fee9cb9f063614af6ec))
+- **react-sdk:** migrate tooltip and badge components to design token ([#2420](https://github.com/GetStream/stream-video-js/issues/2420)) ([fa23a9d](https://github.com/GetStream/stream-video-js/commit/fa23a9d589b7f462c4e9c543dff081e8a34c70c7)), closes [#1718](https://github.com/GetStream/stream-video-js/issues/1718)
+- **react-sdk:** Move CallStats component from sdk to react-dogfood ([#2445](https://github.com/GetStream/stream-video-js/issues/2445)) ([9e76e33](https://github.com/GetStream/stream-video-js/commit/9e76e33116e48b89f20a28ace47d3f8b72decfdb))
+
+### Bug Fixes
+
+- **styling:** fix participant tile overlay spacing ([#2438](https://github.com/GetStream/stream-video-js/issues/2438)) ([ceeddba](https://github.com/GetStream/stream-video-js/commit/ceeddba432801ecfd4805e84036235869f19ceea))
+
 ## [2.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.15.1...@stream-io/video-styling-2.0.0-beta.0) (2026-09-04)
 
 ## [1.15.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.15.0...@stream-io/video-styling-1.15.1) (2026-08-07)

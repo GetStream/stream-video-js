@@ -16,6 +16,7 @@ import {
   unwireAudioEngineSubscription,
 } from './callingx/callingx';
 import { registerCallMediaEngine } from './registerMediaEngine';
+import { beforeJoin, onJoinFailed, onLeave } from './ringingCallLifecycle';
 import { callManager as publicCallManager } from '../../modules/call-manager';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
@@ -91,6 +92,7 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
     wireAudioEngineSubscription: wireAudioEngineSubscription,
     unwireAudioEngineSubscription: unwireAudioEngineSubscription,
   },
+  ringingCallLifecycle: { beforeJoin, onJoinFailed, onLeave },
   callManager: {
     setup: ({ defaultDevice, isRingingTypeCall, cid }) => {
       const isTelecomManaged = isAndroidTelecomManaged({ cid });
@@ -114,6 +116,11 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       }
     },
     start: ({ isRingingTypeCall, cid }) => {
+      safeNativeCall('stopRingtone', () =>
+        //stop the ringtone if it is playing before audio session setup
+        StreamInCallManagerNativeModule.stopSound(),
+      );
+
       // Apply the audio config a consumer recorded via `callManager.start(config)` at this single
       // join-time start, before the native audio manager is activated.
       const config = publicCallManager.getStoredConfig();

@@ -73,6 +73,11 @@ export type CallContentProps = Pick<
      */
     layout?: 'grid' | 'spotlight';
     /**
+     * If true, the grid layout always uses an even number of columns (2 or 4),
+     * so it splits down the middle, where foldable devices have their hinge.
+     */
+    evenGridColumns?: boolean;
+    /**
      * Reactions that are to be supported in the call
      */
     supportedReactions?: StreamReactionType[];
@@ -114,6 +119,7 @@ export const CallContent = ({
   VideoRenderer,
   mirror,
   layout = 'grid',
+  evenGridColumns,
   landscape = false,
   supportedReactions,
   initialInCallManagerAudioMode = 'video',
@@ -253,6 +259,7 @@ export const CallContent = ({
     mirror,
     CallParticipantsList,
     supportedReactions,
+    evenGridColumns,
   };
 
   const callParticipantsSpotlightProps: CallParticipantsSpotlightProps = {
