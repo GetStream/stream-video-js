@@ -547,8 +547,9 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         var result = disconnect(action.cause)
         if (result.isDisconnectFailure()) {
             Log.w(TAG, "[repository] doDisconnect[$callId]: Disconnect failed with error code: ${(result as CallControlResult.Error).errorCode}, retrying")
-            // core-telecom keeps the platform CallControl usable while the session collectors are alive,
-            // and this path must not depend on repository state because release() has already cleared it.
+            // core-telecom keeps the platform CallControl usable while the session collectors are
+            // alive, and this path must not depend on repository state because release() has
+            // already cleared it.
             delay(DISCONNECT_RETRY_DELAY_MS)
             result = disconnect(action.cause)
             if (result.isDisconnectFailure()) {
