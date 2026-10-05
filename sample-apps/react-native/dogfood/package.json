@@ -12,6 +12,19 @@
     "test-ci": "jest --ci --runInBand",
     "setup": "yarn && yarn build:react-native:deps && npx pod-install"
   },
+  "codegenConfig": {
+    "name": "FoldRegionSpec",
+    "type": "modules",
+    "jsSrcsDir": "src/specs",
+    "android": {
+      "javaPackageName": "io.getstream.rnvideosample.foldregion"
+    },
+    "ios": {
+      "modulesProvider": {
+        "FoldRegion": "RCTFoldRegion"
+      }
+    }
+  },
   "dependencies": {
     "@gorhom/bottom-sheet": "5.2.9",
     "@notifee/react-native": "9.1.8",
@@ -88,19 +101,6 @@
       "USE_COMMIT_HOOK_ONLY_FOR_REACT_COMMITS": true,
       "USE_SYNCHRONIZABLE_FOR_MUTABLES": true,
       "FORCE_REACT_RENDER_FOR_SETTLED_ANIMATIONS": false
-    }
-  },
-  "codegenConfig": {
-    "name": "FoldRegionSpec",
-    "type": "modules",
-    "jsSrcsDir": "src/specs",
-    "android": {
-      "javaPackageName": "io.getstream.rnvideosample.foldregion"
-    },
-    "ios": {
-      "modulesProvider": {
-        "FoldRegion": "RCTFoldRegion"
-      }
     }
   }
 }

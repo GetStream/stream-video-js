@@ -1,5 +1,5 @@
 PODS:
-  - Callingx (1.0.0-beta.0):
+  - Callingx (1.0.0-beta.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2548,7 +2548,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stream-io-noise-cancellation-react-native (1.0.0-beta.0):
+  - stream-io-noise-cancellation-react-native (1.0.0-beta.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2572,7 +2572,7 @@ PODS:
     - stream-react-native-webrtc
     - StreamVideoNoiseCancellation
     - Yoga
-  - stream-io-video-filters-react-native (1.0.0-beta.0):
+  - stream-io-video-filters-react-native (1.0.0-beta.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2598,7 +2598,7 @@ PODS:
   - stream-react-native-webrtc (145.4.1):
     - React-Core
     - StreamWebRTC (= 145.17.0)
-  - stream-video-react-native (2.0.0-beta.1):
+  - stream-video-react-native (2.0.0-beta.2):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3001,7 +3001,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Callingx: 46bb3332e292def34ea06d724b8baf7b57485242
+  Callingx: c73b48cdace78ff0d4d8e87ef6a518a8e4a4de6b
   FBLazyVector: 3c3be9a019176b5699455f7f66c5444b78a411c6
   hermes-engine: bea2770719c59875d56e955d6b155b36f4b5a08e
   MMKVCore: 3d16ce9f7d411e135020915fde98a056859a1efa
@@ -3083,7 +3083,7 @@ SPEC CHECKSUMS:
   React-viewtransitionnativemodule: 8f1d4895e081e0b2f0a98069c098eb40be032138
   React-webperformancenativemodule: 5bddf6c7eecda8a3ce48b82609008965cc9d94c2
   ReactAppDependencyProvider: 0e13d430eadac8a2ef18515a860d5c59df05b475
-  ReactCodegen: b4e2c5f0d9415b8fe2faf163fca6f40c62f9666a
+  ReactCodegen: 36d0baea8c4d7acdb09bcb78bd8ac6d8c05c06a4
   ReactCommon: 9002f006f571256348994183f7d4387aa7cf84e8
   ReactNativeDependencies: 2bd6854ade79bf1b60586d1ab7813a389df1b6bf
   RNCClipboard: 7a7d4557bfd3370b35c99dfecd92ae7b9fc4948a
@@ -3099,10 +3099,10 @@ SPEC CHECKSUMS:
   RNSVG: 394cfd0518613b144c65ffe69045f827b78a7a7c
   RNWorklets: 43af89f696342f91118a2f1f3a879056e2f47331
   stream-chat-react-native: e97f6d3ed0c2828b20610ffc0023ad7f9c90738d
-  stream-io-noise-cancellation-react-native: b4c0401d5663ef11f6b59a6df5e4c157ec307f55
-  stream-io-video-filters-react-native: 7a2c93ed95c7213f44cb8a9a15246f8301d2f67c
+  stream-io-noise-cancellation-react-native: 278bc619b00ca357c423e4ca801ea9b5656bd95e
+  stream-io-video-filters-react-native: 6f6c136dcc4f5dee77a869e7f6b07cedd10b1055
   stream-react-native-webrtc: 5c18524689456e8ad7e7dbc0f05d1ac11f5e7056
-  stream-video-react-native: 177671d5813623f097d311a4d6eb9e59394d693d
+  stream-video-react-native: f99ec653afe75eb71cee8ca3bdad6cfea25e96ed
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
   StreamWebRTC: 8543c52d49cadcbe051582d0b13de01c8085735f
   Teleport: c56b30b08bd20d10da1efb0f21c6bc50c269ee6a

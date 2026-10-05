@@ -7103,8 +7103,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-filters-react-native@workspace:packages/video-filters-react-native"
   dependencies:
+    "@babel/core": "npm:^7.29.7"
+    "@react-native/babel-preset": "npm:0.86.2"
+    "@react-native/jest-preset": "npm:0.86.2"
     "@stream-io/react-native-webrtc": "npm:145.4.1"
     "@stream-io/typescript-config": "workspace:^"
+    "@types/jest": "npm:^29.5.14"
+    "@types/node": "npm:^25.9.5"
+    jest: "npm:^29.7.0"
     react: "npm:19.2.3"
     react-native: "npm:0.86.2"
     react-native-builder-bob: "npm:^0.43.0"
@@ -7112,7 +7118,7 @@ __metadata:
     typescript: "npm:^6.0.3"
   peerDependencies:
     "@stream-io/react-native-webrtc": ^145.3.1
-    react-native: "*"
+    react-native: ">=0.79.0"
   languageName: unknown
   linkType: soft
 
@@ -7410,10 +7416,10 @@ __metadata:
     "@react-native-community/netinfo": ">=9.0.0"
     "@react-native-firebase/app": ">=17.5.0"
     "@react-native-firebase/messaging": ">=17.5.0"
-    "@stream-io/noise-cancellation-react-native": ">=1.0.0-beta.0"
+    "@stream-io/noise-cancellation-react-native": ">=1.0.0-beta.1"
     "@stream-io/react-native-callingx": ">=1.0.0-beta.0"
     "@stream-io/react-native-webrtc": ^145.4.1
-    "@stream-io/video-filters-react-native": ">=1.0.0-beta.0"
+    "@stream-io/video-filters-react-native": ">=1.0.0-beta.1"
     expo: ">=47.0.0"
     expo-notifications: "*"
     react: ">=17.0.0"
@@ -8355,9 +8361,9 @@ __metadata:
   linkType: hard
 
 "@xmldom/xmldom@npm:^0.8.8":
-  version: 0.8.13
-  resolution: "@xmldom/xmldom@npm:0.8.13"
-  checksum: 10/f8f3d56fa91d5026885c0c5c00b07eae47647bda0d742ecbf8e51e06bb287ab30222977b20529ee15c364031606225ebca58907a8ecc76a3add6b3f10e6ddfc6
+  version: 0.8.15
+  resolution: "@xmldom/xmldom@npm:0.8.15"
+  checksum: 10/521d8e5a9798a47dddb28237d112e47637d638e4f3d60ce1eefa1f397d2439af5a00f781c956b5affc251ef8a1bbc1f8325161d32f7b27c89aacf5ff84f14cf7
   languageName: node
   linkType: hard
 
@@ -18215,12 +18221,12 @@ __metadata:
   linkType: hard
 
 "qs@npm:^6.15.2":
-  version: 6.15.3
-  resolution: "qs@npm:6.15.3"
+  version: 6.16.0
+  resolution: "qs@npm:6.16.0"
   dependencies:
     es-define-property: "npm:^1.0.1"
     side-channel: "npm:^1.1.1"
-  checksum: 10/1cbb4b050872a19ba8a311445be29babb8f66ea5d6462b3c48c6efb2c95187cd286b69734cd4caea1878cca3b9d1f0e9b49335336be9e999a7d8d7cf137ba60d
+  checksum: 10/7fbf9c2eb9c9bbd8997700caecc4b057ac259635873deefd5027fb26d06d79426cf468da55da87ffd147a24e93d3641352d8ac6664bd84688ad5b2f0b8d04828
   languageName: node
   linkType: hard
 

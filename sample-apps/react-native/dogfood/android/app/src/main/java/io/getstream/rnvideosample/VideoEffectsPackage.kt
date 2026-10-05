@@ -1,21 +1,29 @@
 package io.getstream.rnvideosample
 
-import com.facebook.react.ReactPackage
+import com.facebook.react.BaseReactPackage
 import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.uimanager.ViewManager
-class VideoEffectsPackage : ReactPackage {
-    override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {
-        return emptyList()
-    }
+import com.facebook.react.module.model.ReactModuleInfo
+import com.facebook.react.module.model.ReactModuleInfoProvider
 
-    override fun createNativeModules(
-        reactContext: ReactApplicationContext
-    ): List<NativeModule> {
-        val modules: MutableList<NativeModule> = ArrayList()
+class VideoEffectsPackage : BaseReactPackage() {
+    override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? =
+        if (name == VideoEffectsModule.NAME) {
+            VideoEffectsModule(reactContext)
+        } else {
+            null
+        }
 
-        modules.add(VideoEffectsModule(reactContext))
-
-        return modules
+    override fun getReactModuleInfoProvider() = ReactModuleInfoProvider {
+        mapOf(
+            VideoEffectsModule.NAME to ReactModuleInfo(
+                name = VideoEffectsModule.NAME,
+                className = VideoEffectsModule.NAME,
+                canOverrideExistingModule = false,
+                needsEagerInit = false,
+                isCxxModule = false,
+                isTurboModule = true
+            )
+        )
     }
 }
