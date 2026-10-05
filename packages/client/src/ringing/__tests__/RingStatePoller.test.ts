@@ -19,7 +19,7 @@ import { dateToNs } from '../../helpers/time';
 import type { StreamResponse } from '../../coordinator/connection/api-client';
 
 const SESSION_ID = 'session-1';
-const START_AFTER_MS = 15_000;
+const START_AFTER_MS = 9_000;
 const INTERVAL_MS = 5_000;
 
 const ringState = (

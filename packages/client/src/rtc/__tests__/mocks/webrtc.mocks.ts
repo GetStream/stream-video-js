@@ -60,6 +60,7 @@ const RTCRtpTransceiverMock = vi.fn(function (): Partial<RTCRtpTransceiver> {
       transform: null,
     },
     setCodecPreferences: vi.fn(),
+    stop: vi.fn(),
     mid: '',
   };
 });

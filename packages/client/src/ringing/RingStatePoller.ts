@@ -39,7 +39,7 @@ export class RingStatePoller {
 
   constructor(call: Call, options: RingStatePollingOptions = {}) {
     this.call = call;
-    this.startAfterMs = options.startAfterMs ?? 15_000;
+    this.startAfterMs = options.startAfterMs ?? 9_000;
     this.intervalMs = options.intervalMs ?? 5_000;
   }
 

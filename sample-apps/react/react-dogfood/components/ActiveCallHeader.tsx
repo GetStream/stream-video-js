@@ -55,14 +55,15 @@ const Elapsed = ({ startedAt }: { startedAt: TimestampNS | undefined }) => {
   );
   useEffect(() => {
     const interval = setInterval(() => {
-      const elapsedSeconds = (Date.now() - startedAtDate) / 1000;
-      const date = new Date(0);
-      date.setSeconds(elapsedSeconds);
-      const format = date.toISOString(); // '1970-01-01T00:00:35.000Z'
-      const hours = format.substring(11, 13);
-      const minutes = format.substring(14, 16);
-      const seconds = format.substring(17, 19);
-      const time = `${hours !== '00' ? hours + ':' : ''}${minutes}:${seconds}`;
+      const elapsedSeconds = Math.max(
+        0,
+        Math.floor((Date.now() - startedAtDate) / 1000),
+      );
+      const hours = Math.floor(elapsedSeconds / 3600);
+      const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+      const seconds = elapsedSeconds % 60;
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const time = `${hours > 0 ? pad(hours) + ':' : ''}${pad(minutes)}:${pad(seconds)}`;
       setElapsed(time);
     }, 1000);
     return () => clearInterval(interval);

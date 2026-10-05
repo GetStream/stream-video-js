@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-1.0.0-beta.0...@stream-io/video-filters-react-native-1.0.0-beta.1) (2026-09-28)
+
+### Bug Fixes
+
+- **android:** skip explicit Kotlin plugin when AGP registers the kotlin extension ([#2417](https://github.com/GetStream/stream-video-js/issues/2417)) ([1bff5e0](https://github.com/GetStream/stream-video-js/commit/1bff5e0f5b4a2f2bbe62ab5eff2a6457251f6350)), closes [RevenueCat/react-native-purchases#1934](https://github.com/RevenueCat/react-native-purchases/issues/1934)
+
 ## [1.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.16.0...@stream-io/video-filters-react-native-1.0.0-beta.0) (2026-09-04)
 
 ## [0.16.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.15.0...@stream-io/video-filters-react-native-0.16.0) (2026-08-18)

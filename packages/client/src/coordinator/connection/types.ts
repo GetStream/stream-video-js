@@ -208,7 +208,7 @@ export type Logger = (
 
 export type RingStatePollingOptions = {
   /**
-   * Quiet time after the ring starts, before the first poll. Defaults to 15_000.
+   * Quiet time after the ring starts, before the first poll. Defaults to 9_000.
    */
   startAfterMs?: number;
 
