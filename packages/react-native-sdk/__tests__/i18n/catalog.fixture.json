@@ -14,6 +14,7 @@
   "livestreamViewer.stillInProgress.text": "Livestream is still in progress",
   "livestreamViewer.willStartIn.text": "Livestream will start in:",
   "livestreamViewer.willStartSoon.text": "Livestream will start soon",
+  "lobby.setUpCall.title": "Set up your call",
   "participantView.screenShare.byUser.text": "{{ userName }} is sharing their screen",
   "participantView.screenShare.byYou.text": "You are sharing your screen",
   "participantView.screenShare.stop.label": "Stop Screen Sharing",
