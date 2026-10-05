@@ -45,9 +45,17 @@ private class CallActionFlags(val actionSource: Channel<CallAction>) {
     val isSelfAnswered = AtomicBoolean(false)
     val isSelfDisconnected = AtomicBoolean(false)
 
-    /** Parent of the session collectors, cancelled on disconnect so core-telecom's addCall can return. */
-    @Volatile
+    /**
+     * Parent of the session collectors, cancelled on disconnect so core-telecom's addCall can
+     * return. Guarded by `synchronized(this)`.
+     */
     var sessionJob: Job? = null
+
+    /**
+     * Set by the first disconnect of this registration; later ones are no-ops. Guarded by
+     * `synchronized(this)`.
+     */
+    var isDisconnected = false
 }
 
 /**
@@ -226,7 +234,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                 // Call is now registered in Telecom — mark as no longer pending
                 updateCallById(callId) { copy(isPending = false) }
 
-                flags.sessionJob = launch {
+                val sessionJob = launch {
                     // Consume the actions to interact with the call inside the scope
                     launch { processCallActions(callId, flags, actionSource.consumeAsFlow()) }
 
@@ -252,6 +260,12 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                         }
                     }
                 }
+                // A disconnect (Telecom-initiated, or processed by the collector above) can run
+                // before the job is published; both sides take the flags lock, so one of them
+                // cancels it.
+                synchronized(flags) {
+                    if (flags.isDisconnected) sessionJob.cancel() else flags.sessionJob = sessionJob
+                }
             }
             debugLog(
                     TAG,
@@ -270,12 +284,13 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             // Call lifecycle cleanup: this runs once addCall has returned, which happens when the
             // session collectors were cancelled in onIsCallDisconnected (normal end) or when
             // registration failed. It removes the call from the map and clears per-call state.
-            // All of this is scoped to this registration, so it cannot affect a newer call with the same id.
+            // All of this is scoped to this registration, so it cannot affect a newer call with
+            // the same id.
             debugLog(TAG, "[repository] registerCall: Cleaning up call $callId")
             preCallEndpointsJob?.cancel()
             removeRegistration(callId, flags)
             actionFlags.remove(callId, flags)
-            flags.sessionJob?.cancel()
+            synchronized(flags) { flags.sessionJob }?.cancel()
         }
     }
 
@@ -411,7 +426,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             if (action !is CallAction.Disconnect && _calls.value[callId]?.actionSource !== flags.actionSource) {
                 debugLog(
                         TAG,
-                        "[repository] processCallActions[$callId]: Ignoring ${action::class.simpleName}, call is no longer registered"
+                        "[repository] processCallActions[$callId]: Ignoring ${action::class.simpleName}, registration no longer owns the call"
                 )
                 return@collect
             }
@@ -557,7 +572,12 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         debugLog(TAG, "[repository] onIsCallAnswered[$callId]: Call state updated to active")
     }
 
-    private fun onIsCallDisconnected(callId: String, flags: CallActionFlags): suspend (cause: DisconnectCause) -> Unit = { cause ->
+    private fun onIsCallDisconnected(callId: String, flags: CallActionFlags): suspend (cause: DisconnectCause) -> Unit = disconnected@{ cause ->
+        val isFirstDisconnect = synchronized(flags) { (!flags.isDisconnected).also { flags.isDisconnected = true } }
+        if (!isFirstDisconnect) {
+            debugLog(TAG, "[repository] onIsCallDisconnected[$callId]: Already handled for this registration, ignoring")
+            return@disconnected
+        }
         debugLog(
                 TAG,
                 "[repository] onIsCallDisconnected[$callId]: Call disconnected, cause: ${cause.reason}, description: ${cause.description}"
@@ -569,7 +589,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         flags.isSelfDisconnected.set(false)
         // End the session collectors so core-telecom's coroutineScope in addCall can complete;
         // runs for both app-initiated (doDisconnect) and Telecom-initiated disconnects.
-        flags.sessionJob?.cancel()
+        synchronized(flags) { flags.sessionJob }?.cancel()
         debugLog(TAG, "[repository] onIsCallDisconnected[$callId]: Call removed from map")
     }
 
