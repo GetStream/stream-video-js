@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
@@ -36,12 +37,18 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Per-call flags tracking whether an action was initiated by the app (self) or by the system.
+ * State owned by one `registerCall` invocation, including whether an action was initiated by the
+ * app (self) or by the system. It is compared by identity, so cleanup of an ended registration
+ * never touches a newer registration that reuses the same callId.
  */
-private data class CallActionFlags(
-    val isSelfAnswered: AtomicBoolean = AtomicBoolean(false),
-    val isSelfDisconnected: AtomicBoolean = AtomicBoolean(false),
-)
+private class CallActionFlags(val actionSource: Channel<CallAction>) {
+    val isSelfAnswered = AtomicBoolean(false)
+    val isSelfDisconnected = AtomicBoolean(false)
+
+    /** Parent of the session collectors, cancelled on disconnect so core-telecom's addCall can return. */
+    @Volatile
+    var sessionJob: Job? = null
+}
 
 /**
  * The central repository that keeps track of calls and allows to register new ones.
@@ -70,12 +77,6 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
 
     /** Per-call action-source flags, keyed by callId. */
     private val actionFlags = ConcurrentHashMap<String, CallActionFlags>()
-
-    /**
-     * Parent job of the per-session collectors, cancelled when the call disconnects so
-     * core-telecom's addCall can return.
-     */
-    private val sessionJobs = ConcurrentHashMap<String, Job>()
 
     init {
         val capabilities =
@@ -184,7 +185,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                     preferredStartingEndpoint,
             )
             actionSource = Channel<CallAction>(Channel.UNLIMITED)
-            flags = CallActionFlags()
+            flags = CallActionFlags(actionSource)
             actionFlags[callId] = flags
 
             // Add call to the map early so that duplicate registrations are rejected
@@ -225,7 +226,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                 // Call is now registered in Telecom — mark as no longer pending
                 updateCallById(callId) { copy(isPending = false) }
 
-                sessionJobs[callId] = launch {
+                flags.sessionJob = launch {
                     // Consume the actions to interact with the call inside the scope
                     launch { processCallActions(callId, flags, actionSource.consumeAsFlow()) }
 
@@ -269,11 +270,19 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             // Call lifecycle cleanup: this runs once addCall has returned, which happens when the
             // session collectors were cancelled in onIsCallDisconnected (normal end) or when
             // registration failed. It removes the call from the map and clears per-call state.
+            // All of this is scoped to this registration, so it cannot affect a newer call with the same id.
             debugLog(TAG, "[repository] registerCall: Cleaning up call $callId")
             preCallEndpointsJob?.cancel()
-            removeCall(callId)
-            actionFlags.remove(callId)
-            sessionJobs.remove(callId)?.cancel()
+            removeRegistration(callId, flags)
+            actionFlags.remove(callId, flags)
+            flags.sessionJob?.cancel()
+        }
+    }
+
+    /** Removes [callId] from the map only while the entry still belongs to this registration. */
+    private fun removeRegistration(callId: String, flags: CallActionFlags) {
+        _calls.update { calls ->
+            if (calls[callId]?.actionSource === flags.actionSource) calls - callId else calls
         }
     }
 
@@ -391,7 +400,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
      * Collect the action source to handle client actions inside the call scope. The channel is
      * unbounded, so an action sent while a previous one is still suspended (for example
      * `Disconnect` during `answer`) is processed next instead of being dropped. Actions other
-     * than `Disconnect` are ignored once the call is no longer registered.
+     * than `Disconnect` are ignored once this registration no longer owns the call.
      */
     private suspend fun CallControlScope.processCallActions(
             callId: String,
@@ -399,7 +408,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             actionSource: Flow<CallAction>
     ) {
         actionSource.collect { action ->
-            if (action !is CallAction.Disconnect && !_calls.value.containsKey(callId)) {
+            if (action !is CallAction.Disconnect && _calls.value[callId]?.actionSource !== flags.actionSource) {
                 debugLog(
                         TAG,
                         "[repository] processCallActions[$callId]: Ignoring ${action::class.simpleName}, call is no longer registered"
@@ -555,12 +564,12 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         )
         val source = if (flags.isSelfDisconnected.get()) EventSource.APP else EventSource.SYS
 
-        removeCall(callId)
+        removeRegistration(callId, flags)
         _listener?.onIsCallDisconnected(callId, cause, source)
         flags.isSelfDisconnected.set(false)
         // End the session collectors so core-telecom's coroutineScope in addCall can complete;
         // runs for both app-initiated (doDisconnect) and Telecom-initiated disconnects.
-        sessionJobs.remove(callId)?.cancel()
+        flags.sessionJob?.cancel()
         debugLog(TAG, "[repository] onIsCallDisconnected[$callId]: Call removed from map")
     }
 
