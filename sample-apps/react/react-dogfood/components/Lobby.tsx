@@ -18,7 +18,7 @@ import { useRouter } from 'next/router';
 import { isAndroid, isIOS, isSafari } from 'mobile-device-detect';
 
 import { DisabledVideoPreview } from './DisabledVideoPreview';
-import { LatencyMap } from './LatencyMap/LatencyMap';
+import { LatencyMap } from './LatencyMap';
 import { MobileAppBanner } from './MobileAppBanner';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { ToggleEffectsButton } from './ToggleEffectsButton';
