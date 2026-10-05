@@ -1,6 +1,6 @@
 import { CallingState } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import React from 'react';
+import React, { useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   CallContent as DefaultCallContent,
@@ -61,20 +61,26 @@ const RingingCallPanel = ({
   onBackPress,
   callingState,
 }: RingingCallContentProps & { callingState: CallingState }) => {
+  const hasJoinedRef = useRef(false);
   const call = useCall();
   const isCallCreatedByMe = call?.isCreatedByMe;
 
-  if (
-    callingState == CallingState.RINGING ||
-    callingState == CallingState.IDLE ||
-    callingState == CallingState.JOINING
-  ) {
+  if (callingState === CallingState.JOINED) {
+    hasJoinedRef.current = true;
+  }
+
+  const isPreJoin =
+    callingState === CallingState.RINGING ||
+    callingState === CallingState.IDLE ||
+    (callingState === CallingState.JOINING && !hasJoinedRef.current);
+
+  if (isPreJoin) {
     return isCallCreatedByMe
       ? OutgoingCall && <OutgoingCall landscape={landscape} />
       : IncomingCall && (
           <IncomingCall
             landscape={landscape}
-            isConnecting={callingState == CallingState.JOINING}
+            isConnecting={callingState === CallingState.JOINING}
           />
         );
   }
