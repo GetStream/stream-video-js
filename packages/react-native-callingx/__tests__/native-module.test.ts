@@ -36,6 +36,10 @@ beforeEach(() => {
   }));
 });
 
+afterEach(() => {
+  jest.useRealTimers();
+});
+
 test('looks the native module up by its registered name on import', () => {
   load();
   expect(getEnforcing).toHaveBeenCalledWith('Callingx');
@@ -49,7 +53,8 @@ test.each([
     ['call-1', '+1', 'Alice', true],
     ['call-1', '+1', 'Alice', { displayTitle: 'Alice' }],
   ],
-  ['endCallWithReason', ['call-1', 'remote'], ['call-1', expect.any(Number)]],
+  // Android maps 'remote' to DisconnectCause.REMOTE (3).
+  ['endCallWithReason', ['call-1', 'remote'], ['call-1', 3]],
   ['setMutedCall', ['call-1', true], ['call-1', true]],
   ['setOnHoldCall', ['call-1', true], ['call-1', true]],
   ['requestAudioEndpointChange', ['call-1', 'e1'], ['call-1', 'e1']],
@@ -94,6 +99,8 @@ describe('getAvailableAudioEndpoints', () => {
 });
 
 test('acquireBackgroundTask rethrows native failures without retaining the owner', () => {
+  // releaseBackgroundTask schedules the debounced stop; keep that timer off the real clock.
+  jest.useFakeTimers();
   const module = load();
   const error = new Error('start failed');
   nativeModule.startBackgroundTask.mockImplementationOnce(() => {

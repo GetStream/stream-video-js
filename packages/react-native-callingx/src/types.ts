@@ -132,8 +132,8 @@ export interface ICallingxModule {
   /**
    * Set the current call active. This method is used to set the current call active.
    * This method is used to activate the call that was registered with {@link startCall}.
-   * @param callId - The call id.
    * Runs synchronously; throws if the native call fails.
+   * @param callId - The call id.
    */
   setCurrentCallActive(callId: string): void;
 
@@ -164,9 +164,9 @@ export interface ICallingxModule {
    * End the call with a reason. This method is used to end the call with a reason.
    * Note: In general invoking this method will trigger the call end event.
    * But, in case of iOS, when the call is ended with the reason 'local', the call end event will not be triggered.
+   * Runs synchronously; throws if the native call fails.
    * @param callId - The call id.
    * @param reason - The reason.
-   * Runs synchronously; throws if the native call fails.
    */
   endCallWithReason(callId: string, reason: EndCallReason): void;
 
@@ -187,16 +187,16 @@ export interface ICallingxModule {
    * the app is backgrounded — is started on the first acquire and stopped only once the last owner
    * releases. Multiple independent owners (e.g. ringing-push handling and the keep-call-alive hook)
    * can hold it simultaneously without tearing down each other's task. No-op on iOS.
-   * @param owner - A stable, unique key identifying the holder (e.g. `push:<cid>`, `keepalive:<cid>`).
    * Runs synchronously; throws if the native call fails.
+   * @param owner - A stable, unique key identifying the holder (e.g. `push:<cid>`, `keepalive:<cid>`).
    */
   acquireBackgroundTask(owner: string): void;
 
   /**
    * Release a keep-alive task previously acquired with [acquireBackgroundTask] for [owner].
    * The native task is stopped only after all owners have released. No-op on iOS.
-   * @param owner - The same key passed to [acquireBackgroundTask].
    * Runs synchronously; never throws.
+   * @param owner - The same key passed to [acquireBackgroundTask].
    */
   releaseBackgroundTask(owner: string): void;
 
@@ -219,7 +219,8 @@ export interface ICallingxModule {
   registerVoipToken(): void;
 
   /**
-   * Asks the Android call service to stop. Android-only; no-op on iOS. Runs synchronously; throws if the native call fails.
+   * Asks the Android call service to stop. Android-only; no-op on iOS.
+   * Runs synchronously; throws if the native call fails.
    *
    * This is a *request*, not a command: the service hosts every call, so it stays alive while any
    * call is registered or in the middle of being registered. Use {@link endCallWithReason} to tear
