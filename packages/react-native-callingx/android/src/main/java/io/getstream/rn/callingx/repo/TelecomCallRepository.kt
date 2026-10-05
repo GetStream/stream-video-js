@@ -31,7 +31,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -79,6 +78,13 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
     @Volatile
     private var isReleased: Boolean = false
 
+    /**
+     * Guards [isReleased] together with publishing a registration into the map, so [release]
+     * either sees a new call (and disconnects it) or the registration sees [isReleased].
+     * Never held across a suspension or the Telecom session.
+     */
+    private val lifecycleLock = Any()
+
     private var observeCallsJob: Job? = null
 
     private val callsManager: CallsManager
@@ -107,18 +113,19 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
     }
 
     override fun release() {
-        if (isReleased) {
-            debugLog(TAG, "[repository] release: Already released, ignoring")
-            return
+        val currentCalls = synchronized(lifecycleLock) {
+            if (isReleased) {
+                debugLog(TAG, "[repository] release: Already released, ignoring")
+                return
+            }
+            isReleased = true
+            _calls.value.also { _calls.value = emptyMap() }
         }
-        isReleased = true
 
         // Disconnect all active calls
-        val currentCalls = _calls.value
         for ((callId, call) in currentCalls) {
             call.processAction(CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL)))
         }
-        _calls.value = emptyMap()
         actionFlags.clear()
 
         observeCallsJob?.cancel()
@@ -157,12 +164,13 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             preCallEndpointsJob = job
         }
 
-        // Hold the mutex only for the dedup check — release before entering the long-lived call scope
+        // Hold the lock (shared with release()) only for the dedup check — release it before
+        // entering the long-lived call scope
         val attributes: CallAttributesCompat
         val actionSource: Channel<CallAction>
         val flags: CallActionFlags
 
-        registrationMutex.withLock {
+        synchronized(lifecycleLock) {
             debugLog(
                     TAG,
                     "[repository] registerCall: Starting registration - CallId: $callId, Name: $displayName, Address: $address, Incoming: $isIncoming"
