@@ -12,8 +12,11 @@ const RING_DATA = {
   type: 'call.ring',
 };
 
-/** Loads the handler with a failing client factory. `calls` records the callingx sequence. */
-const setup = (createStreamVideoClient: jest.Mock) => {
+/** Loads the handler with the given client factory. `calls` records the callingx sequence. */
+const setup = (
+  createStreamVideoClient: jest.Mock,
+  { listenToWS = true, mustEndCall = false } = {},
+) => {
   const calls: string[] = [];
   const callingx = {
     log: jest.fn(),
@@ -50,8 +53,8 @@ const setup = (createStreamVideoClient: jest.Mock) => {
       },
     }));
     jest.doMock('../../src/utils/push/internal/utils', () => ({
-      canListenToWS: () => true,
-      shouldCallBeClosed: () => ({ mustEndCall: false }),
+      canListenToWS: () => listenToWS,
+      shouldCallBeClosed: () => ({ mustEndCall, endCallReason: 'remote' }),
     }));
     handler =
       require('../../src/utils/push/internal/android').onRingNotificationReceived;
@@ -87,10 +90,10 @@ describe('onRingNotificationReceived — abandoning a push', () => {
     },
   );
 
-  it.each<['endCallWithReason' | 'stopService', string[]]>([
-    ['endCallWithReason', ['release', 'stop']],
-    ['stopService', ['release', 'end']],
-  ])('finishes the cleanup when %s throws', async (failing, expected) => {
+  it.each<['endCallWithReason' | 'stopService', string[], string]>([
+    ['endCallWithReason', ['release', 'stop'], 'Failed to end call'],
+    ['stopService', ['release', 'end'], 'Failed to stop the call service for'],
+  ])('finishes the cleanup when %s throws', async (failing, expected, log) => {
     const { handler, calls, callingx, subscriptions } = setup(
       jest.fn().mockResolvedValue(undefined),
     );
@@ -101,26 +104,41 @@ describe('onRingNotificationReceived — abandoning a push', () => {
     await handler(RING_DATA);
 
     expect(calls).toEqual(expected);
+    expect(callingx.log).toHaveBeenCalledWith(
+      expect.stringContaining(`${log} ${CALL_CID}`),
+      'error',
+    );
     // a retained entry would make every later push for this cid look like a duplicate
     expect(subscriptions.has(CALL_CID)).toBe(false);
   });
+});
 
-  it('logs a throwing endCallWithReason and still requests the stop', async () => {
-    const { handler, calls, callingx, subscriptions } = setup(
-      jest.fn().mockResolvedValue(undefined),
-    );
+describe('onRingNotificationReceived — closing an already-ended ring', () => {
+  afterEach(() => {
+    jest.resetModules();
+  });
+
+  it('still leaves the call when the synchronous endCallWithReason throws', async () => {
+    const callFromPush = { leave: jest.fn().mockResolvedValue(undefined) };
+    const client = {
+      onRingingCall: jest.fn().mockResolvedValue(callFromPush),
+    };
+    const { handler, callingx } = setup(jest.fn().mockResolvedValue(client), {
+      listenToWS: false,
+      mustEndCall: true,
+    });
     callingx.endCallWithReason.mockImplementation(() => {
       throw new Error('boom');
     });
 
-    await handler(RING_DATA);
+    await expect(handler(RING_DATA)).resolves.toBeUndefined();
 
+    expect(callingx.endCallWithReason).toHaveBeenCalledWith(CALL_CID, 'remote');
     expect(callingx.log).toHaveBeenCalledWith(
       expect.stringContaining(`Failed to end call ${CALL_CID}`),
       'error',
     );
-    expect(calls).toEqual(['release', 'stop']);
-    expect(subscriptions.has(CALL_CID)).toBe(false);
+    expect(callFromPush.leave).toHaveBeenCalledWith({ reject: false });
   });
 });
 
