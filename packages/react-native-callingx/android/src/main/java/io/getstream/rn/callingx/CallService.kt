@@ -302,8 +302,10 @@ class CallService : Service(), CallRepository.Listener {
         headlessJSManager.release()
 
         // release() above has queued a Disconnect for every call. Completing (not cancelling) the
-        // job rejects new launches but lets each session deliver that disconnect to Telecom and end
-        // on its own; cancelling would leave the call registered in Telecom until the process dies.
+        // job lets each session deliver that disconnect to Telecom and end on its own; cancelling
+        // would leave the call registered in Telecom until the process dies. Completing does not
+        // stop new launches while those sessions run, but the released repository refuses new
+        // registrations.
         serviceJob.complete()
     }
 
