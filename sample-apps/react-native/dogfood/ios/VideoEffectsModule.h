@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import <AppSpecs/AppSpecs.h>
+#import <FoldRegionSpec/FoldRegionSpec.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

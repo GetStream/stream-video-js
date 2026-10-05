@@ -21,7 +21,8 @@
     },
     "ios": {
       "modulesProvider": {
-        "FoldRegion": "RCTFoldRegion"
+        "FoldRegion": "RCTFoldRegion",
+        "VideoEffectsModule": "VideoEffectsModule"
       }
     }
   },
