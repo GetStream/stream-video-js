@@ -1,7 +1,7 @@
 import React from 'react';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { Video, VideoSlash, ControlButtonIcon } from '../../../../icons';
-import { CallControlsButton } from '..';
+import { CallControlsButton } from './CallControlsButton';
 
 /**
  * Props for the Toggle Video preview button

@@ -5,8 +5,9 @@ import { ControlButtonIcon, Maximize } from '../../../icons';
 import { VolumeOff, VolumeOn } from '../../../icons/LivestreamControls';
 import { useTheme } from '../../../contexts';
 import { callManager } from '../../../modules/call-manager';
-import { FollowerCount, LiveIndicator } from '..';
-import { CallControlsButton } from '../../Call';
+import { FollowerCount } from '../LivestreamTopView/FollowerCount';
+import { LiveIndicator } from '../LivestreamTopView/LiveIndicator';
+import { CallControlsButton } from '../../Call/CallControls/Buttons/CallControlsButton';
 
 export type ViewerStatusPanelProps = {
   humanizeFollowerCount?: boolean;

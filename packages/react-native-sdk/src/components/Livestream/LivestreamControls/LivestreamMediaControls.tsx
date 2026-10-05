@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { LivestreamAudioControlButton } from './LivestreamAudioControlButton';
 import { LivestreamVideoControlButton } from './LivestreamVideoControlButton';
-import { CallControlsButton } from '../../Call/CallControls';
+import { CallControlsButton } from '../../Call/CallControls/Buttons/CallControlsButton';
 import { ControlButtonIcon, MoreVert } from '../../../icons';
 
 /**

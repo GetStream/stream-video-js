@@ -3,7 +3,7 @@ import { useCall } from '@stream-io/video-react-bindings';
 import { videoLoggerSystem } from '@stream-io/video-client';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { IconWrapper, Phone } from '../../../../icons';
-import { CallControlsButton } from '..';
+import { CallControlsButton } from './CallControlsButton';
 
 /**
  * The props for the Accept Call button.

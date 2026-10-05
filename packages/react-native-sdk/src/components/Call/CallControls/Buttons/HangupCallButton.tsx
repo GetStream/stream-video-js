@@ -4,7 +4,7 @@ import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import { ButtonTestIds } from '../../../../constants/TestIds';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { PhoneDown, IconWrapper } from '../../../../icons';
-import { CallControlsButton } from '..';
+import { CallControlsButton } from './CallControlsButton';
 
 /**
  * The props for the Hang up call button in the Call Controls.

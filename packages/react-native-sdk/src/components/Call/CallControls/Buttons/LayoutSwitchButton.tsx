@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { ControlButtonIcon, Grid, Spotlight } from '../../../../icons';
-import { CallControlsButton } from '..';
+import { CallControlsButton } from './CallControlsButton';
 
 export type LayoutSwitchButtonProps = {
   /**

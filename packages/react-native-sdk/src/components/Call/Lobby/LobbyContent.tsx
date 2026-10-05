@@ -5,7 +5,8 @@ import {
 } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { LobbyCameraPreview } from './LobbyCameraPreview';
-import { Avatar, PreviewStatusLabel } from '../..';
+import { Avatar } from '../../utility/Avatar';
+import { PreviewStatusLabel } from './PreviewStatusLabel';
 
 export type LobbyContentProps = {
   landscape?: boolean;

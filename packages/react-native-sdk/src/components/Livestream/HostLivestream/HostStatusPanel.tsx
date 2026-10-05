@@ -1,10 +1,8 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import {
-  FollowerCount,
-  LiveIndicator,
-  useCallStateHooks,
-  useTheme,
-} from '../../..';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { FollowerCount } from '../LivestreamTopView/FollowerCount';
+import { LiveIndicator } from '../LivestreamTopView/LiveIndicator';
 
 type HostStatusPanelProps = {
   humanizeFollowerCount?: boolean;

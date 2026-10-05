@@ -1,7 +1,7 @@
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { Mic, MicOff, ControlButtonIcon } from '../../../../icons';
-import { CallControlsButton } from '..';
+import { CallControlsButton } from './CallControlsButton';
 
 /**
  * Props for the Toggle Audio preview button

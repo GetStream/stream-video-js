@@ -3,7 +3,7 @@ import { type ColorValue } from 'react-native';
 import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CameraSwitch, ControlButtonIcon } from '../../../../icons';
-import { CallControlsButton } from '..';
+import { CallControlsButton } from './CallControlsButton';
 
 /**
  * Props for the Toggle Camera face button.

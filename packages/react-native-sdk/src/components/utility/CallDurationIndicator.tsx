@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useCallStateHooks } from '../..';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { DurationIndicator } from './DurationIndicator';
 
 const formatTime = (seconds: number) => {

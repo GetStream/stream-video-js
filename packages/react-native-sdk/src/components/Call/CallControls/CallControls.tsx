@@ -4,11 +4,9 @@ import { Z_INDEX } from '../../../constants';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { MoreVert } from '../../../icons/MoreVert';
 import { MessageBubbles, ControlButtonIcon, Users } from '../../../icons';
-import {
-  CallControlsButton,
-  ToggleAudioPublishingButton,
-  ToggleVideoPublishingButton,
-} from '.';
+import { CallControlsButton } from './Buttons/CallControlsButton';
+import { ToggleAudioPublishingButton } from './Buttons/ToggleAudioPublishingButton';
+import { ToggleVideoPublishingButton } from './Buttons/ToggleVideoPublishingButton';
 
 /**
  * Props for the CallControls Component.

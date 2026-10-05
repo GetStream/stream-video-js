@@ -1,7 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
-import { AcceptCallButton, RejectCallButton } from '.';
+import { AcceptCallButton } from './Buttons/AcceptCallButton';
+import { RejectCallButton } from './Buttons/RejectCallButton';
 
 /**
  * Props for the IncomingCallControls Component.
