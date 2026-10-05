@@ -85,15 +85,16 @@ export interface ICallingxModule {
   getRegisteredCallIds(): string[];
 
   /**
-   * Get the current Telecom audio endpoints for a call (Android). On iOS / unknown call,
-   * resolves an empty snapshot.
+   * Get the current Telecom audio endpoints for a call (Android).
+   * Returns an empty snapshot on iOS, for unknown calls, or on native errors.
    */
-  getAvailableAudioEndpoints(callId: string): Promise<AudioEndpointsSnapshot>;
+  getAvailableAudioEndpoints(callId: string): AudioEndpointsSnapshot;
 
   /**
    * Request a Telecom audio-endpoint change by endpoint id (Android). No-op on iOS.
+   * Runs synchronously; throws if the native call fails.
    */
-  requestAudioEndpointChange(callId: string, endpointId: string): Promise<void>;
+  requestAudioEndpointChange(callId: string, endpointId: string): void;
   /**
    * Get the initial events. This method is used to get the initial events from the app launch.
    * The events are queued and can be retrieved after the module is setup.
@@ -116,7 +117,10 @@ export interface ICallingxModule {
     callerName: string,
     hasVideo: boolean,
   ): Promise<void>;
-  answerIncomingCall(callId: string): Promise<void>;
+  /**
+   * Runs synchronously; throws if the native call fails.
+   */
+  answerIncomingCall(callId: string): void;
 
   startCall(
     callId: string,
@@ -129,16 +133,19 @@ export interface ICallingxModule {
    * Set the current call active. This method is used to set the current call active.
    * This method is used to activate the call that was registered with {@link startCall}.
    * @param callId - The call id.
-   * @returns The promise.
+   * Runs synchronously; throws if the native call fails.
    */
-  setCurrentCallActive(callId: string): Promise<void>;
+  setCurrentCallActive(callId: string): void;
 
+  /**
+   * Runs synchronously; throws if the native call fails.
+   */
   updateDisplay(
     callId: string,
     phoneNumber: string,
     callerName: string,
     incoming: boolean,
-  ): Promise<void>;
+  ): void;
 
   /**
    * Check if the call is tracked in the native calling module.
@@ -159,13 +166,19 @@ export interface ICallingxModule {
    * But, in case of iOS, when the call is ended with the reason 'local', the call end event will not be triggered.
    * @param callId - The call id.
    * @param reason - The reason.
-   * @returns The promise.
+   * Runs synchronously; throws if the native call fails.
    */
-  endCallWithReason(callId: string, reason: EndCallReason): Promise<void>;
+  endCallWithReason(callId: string, reason: EndCallReason): void;
 
-  setMutedCall(callId: string, isMuted: boolean): Promise<void>;
+  /**
+   * Runs synchronously; throws if the native call fails.
+   */
+  setMutedCall(callId: string, isMuted: boolean): void;
 
-  setOnHoldCall(callId: string, isOnHold: boolean): Promise<void>;
+  /**
+   * Runs synchronously; throws if the native call fails.
+   */
+  setOnHoldCall(callId: string, isOnHold: boolean): void;
 
   /**
    * Acquire a ref-counted background keep-alive task identified by [owner].
@@ -175,15 +188,17 @@ export interface ICallingxModule {
    * releases. Multiple independent owners (e.g. ringing-push handling and the keep-call-alive hook)
    * can hold it simultaneously without tearing down each other's task. No-op on iOS.
    * @param owner - A stable, unique key identifying the holder (e.g. `push:<cid>`, `keepalive:<cid>`).
+   * Runs synchronously; throws if the native call fails.
    */
-  acquireBackgroundTask(owner: string): Promise<void>;
+  acquireBackgroundTask(owner: string): void;
 
   /**
    * Release a keep-alive task previously acquired with [acquireBackgroundTask] for [owner].
    * The native task is stopped only after all owners have released. No-op on iOS.
    * @param owner - The same key passed to [acquireBackgroundTask].
+   * Runs synchronously; never throws.
    */
-  releaseBackgroundTask(owner: string): Promise<void>;
+  releaseBackgroundTask(owner: string): void;
 
   /**
    * Fulfill or fail a pending CXAnswerCallAction on iOS.
@@ -204,14 +219,14 @@ export interface ICallingxModule {
   registerVoipToken(): void;
 
   /**
-   * Asks the Android call service to stop. Android-only; resolves as a no-op on iOS.
+   * Asks the Android call service to stop. Android-only; no-op on iOS. Runs synchronously; throws if the native call fails.
    *
    * This is a *request*, not a command: the service hosts every call, so it stays alive while any
    * call is registered or in the middle of being registered. Use {@link endCallWithReason} to tear
    * down an individual call — this method never ends calls, and never dismisses their
    * notifications.
    */
-  stopService(): Promise<void>;
+  stopService(): void;
 
   /**
    * Single entry point for adding event listeners.
