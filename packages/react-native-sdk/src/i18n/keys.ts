@@ -37,5 +37,6 @@ export type TranslationCatalog = {
   'ringingCall.incoming.title': 'Incoming Call...';
   'ringingCall.leftCall.title': 'You have left the call';
   'ringingCall.outgoing.title': 'Calling...';
+  'ringingCall.preparing.title': 'Preparing call';
   'screenShare.sharingWithEveryone.text': 'You are sharing your screen with everyone';
 };

@@ -18,6 +18,10 @@ import {
   CallLeftIndicator as DefaultCallLeftIndicator,
   type CallLeftIndicatorProps,
 } from './CallLeftIndicator';
+import {
+  CallPreparingIndicator as DefaultCallPreparingIndicator,
+  type CallPreparingIndicatorProps,
+} from './CallPreparingIndicator';
 import { useTheme } from '../../../contexts';
 
 /**
@@ -41,6 +45,10 @@ export type RingingCallContentProps = {
    */
   CallLeftIndicator?: React.ComponentType<CallLeftIndicatorProps> | null;
   /**
+   * Prop to override the component shown while the call is being created.
+   */
+  CallPreparingIndicator?: React.ComponentType<CallPreparingIndicatorProps> | null;
+  /**
    * Check if device is in landscape mode.
    * This will apply the landscape mode styles to the component.
    */
@@ -57,6 +65,7 @@ const RingingCallPanel = ({
   OutgoingCall = DefaultOutgoingCall,
   CallContent = DefaultCallContent,
   CallLeftIndicator = DefaultCallLeftIndicator,
+  CallPreparingIndicator = DefaultCallPreparingIndicator,
   landscape,
   onBackPress,
   callingState,
@@ -69,9 +78,16 @@ const RingingCallPanel = ({
     hasJoinedRef.current = true;
   }
 
+  if (callingState === CallingState.IDLE) {
+    return (
+      CallPreparingIndicator && (
+        <CallPreparingIndicator onBackPress={onBackPress} />
+      )
+    );
+  }
+
   const isPreJoin =
     callingState === CallingState.RINGING ||
-    callingState === CallingState.IDLE ||
     (callingState === CallingState.JOINING && !hasJoinedRef.current);
 
   if (isPreJoin) {
