@@ -65,7 +65,7 @@ describe('Call.getRingState', () => {
     // `call.ended` has to name the session it rang on
     const { call, request } = fakeCall('current-session');
 
-    await call.getRingState('ended-session');
+    await call.getRingState({ call_session_id: 'ended-session' });
 
     expect(lastCall(request).params).toMatchObject({
       call_session_id: 'ended-session',

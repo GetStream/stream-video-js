@@ -157,7 +157,9 @@ export class RingStatePoller {
 
     this.inFlight = true;
     try {
-      const ringState = await this.call.getRingState(this.sessionId);
+      const ringState = await this.call.getRingState({
+        call_session_id: this.sessionId,
+      });
       if (this.stopped) return;
       this.call.state.updateFromRingState(ringState);
       if (await reconcileRingState(this.call, 'ring-poll-api')) this.stop();

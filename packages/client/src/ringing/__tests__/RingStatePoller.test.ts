@@ -115,7 +115,7 @@ describe('RingStatePoller', () => {
     expect(getRingState).not.toHaveBeenCalled();
 
     await vi.advanceTimersByTimeAsync(1);
-    expect(getRingState).toHaveBeenCalledWith(SESSION_ID);
+    expect(getRingState).toHaveBeenCalledWith({ call_session_id: SESSION_ID });
   });
 
   it('keeps polling on the configured interval while the ring is pending', async () => {

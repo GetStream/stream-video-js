@@ -169,11 +169,7 @@ describe('StreamVideoClient - coordinator API', () => {
     it('add device', async () => {
       respondWith(undefined);
 
-      await client.addDevice(
-        device.id,
-        device.push_provider,
-        device.push_provider_name,
-      );
+      await client.addDevice(device);
 
       expectRequest('post', '/api/v2/devices', {
         id: device.id,
@@ -183,21 +179,34 @@ describe('StreamVideoClient - coordinator API', () => {
       });
     });
 
+    it('forwards optional device settings', async () => {
+      respondWith(undefined);
+      const data: CreateDeviceRequest = {
+        ...device,
+        hardware_id: 'physical-device-id',
+        voip_token: false,
+      };
+
+      await client.addDevice(data);
+
+      expectRequest('post', '/api/v2/devices', data);
+    });
+
     it('add voip device', async () => {
       respondWith(undefined);
 
-      await client.addVoipDevice(
-        device.id + 'voip',
-        device.push_provider,
-        device.push_provider_name!,
-      );
+      const data = {
+        ...device,
+        id: device.id + 'voip',
+        hardware_id: 'physical-device-id',
+      };
+      await client.addVoipDevice(data);
 
       expectRequest('post', '/api/v2/devices', {
-        id: device.id + 'voip',
-        push_provider: device.push_provider,
+        ...data,
         voip_token: true,
-        push_provider_name: device.push_provider_name,
       });
+      expect(data).not.toHaveProperty('voip_token');
     });
 
     it('get devices', async () => {
@@ -213,9 +222,10 @@ describe('StreamVideoClient - coordinator API', () => {
     it('remove device', async () => {
       respondWith(undefined);
 
-      await client.removeDevice(device.id);
+      await client.removeDevice({ id: device.id });
 
       expectRequest('delete', '/api/v2/devices');
+      expect(request.mock.calls.at(-1)?.[3]?.params).toEqual({ id: device.id });
     });
   });
 });

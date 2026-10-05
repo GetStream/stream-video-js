@@ -543,56 +543,6 @@ export class StreamClient {
     }
   };
 
-  get = async <T>(url: string, params?: AxiosRequestConfig['params']) => {
-    const response = await this.doAxiosRequest<T, unknown>('get', url, null, {
-      params,
-    });
-    return response.data;
-  };
-
-  put = async <T, D = unknown>(
-    url: string,
-    data?: D,
-    params?: AxiosRequestConfig['params'],
-  ) => {
-    const response = await this.doAxiosRequest<T, D>('put', url, data, {
-      params,
-    });
-    return response.data;
-  };
-
-  post = async <T, D = unknown>(
-    url: string,
-    data?: D,
-    params?: AxiosRequestConfig['params'],
-  ) => {
-    const response = await this.doAxiosRequest<T, D>('post', url, data, {
-      params,
-    });
-    return response.data;
-  };
-
-  patch = async <T, D = unknown>(
-    url: string,
-    data?: D,
-    params?: AxiosRequestConfig['params'],
-  ) => {
-    const response = await this.doAxiosRequest<T, D>('patch', url, data, {
-      params,
-    });
-    return response.data;
-  };
-
-  delete = async <T>(url: string, params?: AxiosRequestConfig['params']) => {
-    const response = await this.doAxiosRequest<T, unknown>(
-      'delete',
-      url,
-      null,
-      { params },
-    );
-    return response.data;
-  };
-
   dispatchEvent = (event: StreamVideoEvent) => {
     this.logger.debug(`Dispatching event: ${event.type}`, event);
     if (!this.listeners) return;
@@ -686,14 +636,14 @@ export class StreamClient {
         api_key: this.key,
       },
       headers: {
+        ...axiosConfigHeaders,
+        ...options.headers,
         ...authorization,
         'stream-auth-type':
           options.publicEndpoint && !this.user
             ? 'anonymous'
             : this.getAuthType(),
         'X-Stream-Client': this.getUserAgent(),
-        ...options.headers,
-        ...axiosConfigHeaders,
       },
       ...options.config,
       ...axiosRequestConfig,

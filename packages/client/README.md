@@ -8,6 +8,51 @@ Low-level Video SDK client for browser and Node.js integrations.
 
 - [Register](https://getstream.io/chat/trial/) to get an API key for Stream Video
 
+## Migrating API arguments to v2
+
+In v2, the API operations below accept a request object. This is a breaking
+change: replace positional arguments with the named fields shown here. The same
+methods are available through the React and React Native SDKs.
+
+| Before                                                         | v2                                                                                             |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `call.reject('busy')`                                          | `call.reject({ reason: 'busy' })`                                                              |
+| `call.getRingState(sessionId)`                                 | `call.getRingState({ call_session_id: sessionId })`                                            |
+| `call.blockUser(userId)`                                       | `call.blockUser({ user_id: userId })`                                                          |
+| `call.unblockUser(userId)`                                     | `call.unblockUser({ user_id: userId })`                                                        |
+| `call.startRecording('raw', settings)`                         | `call.startRecording({ ...settings, recording_type: 'raw' })`                                  |
+| `call.stopRecording('raw')`                                    | `call.stopRecording({ recording_type: 'raw' })`                                                |
+| `call.queryParticipants({ filter_conditions }, { limit: 10 })` | `call.queryParticipants({ filter_conditions, limit: 10 })`                                     |
+| `call.getCallStatsMap(params, sessionId)`                      | `call.getCallStatsMap({ ...params, session: sessionId })`                                      |
+| `call.deleteRecording(sessionId, filename)`                    | `call.deleteRecording({ session: sessionId, filename })`                                       |
+| `call.deleteTranscription(sessionId, filename)`                | `call.deleteTranscription({ session: sessionId, filename })`                                   |
+| `call.getCallReport(sessionId)`                                | `call.getCallReport({ session_id: sessionId })`                                                |
+| `call.stopRTMPBroadcast(name)`                                 | `call.stopRTMPBroadcast({ name })`                                                             |
+| `client.addDevice(token, 'firebase', providerName)`            | `client.addDevice({ id: token, push_provider: 'firebase', push_provider_name: providerName })` |
+| `client.addVoipDevice(token, 'apn', providerName)`             | `client.addVoipDevice({ id: token, push_provider: 'apn', push_provider_name: providerName })`  |
+| `client.removeDevice(token)`                                   | `client.removeDevice({ id: token })`                                                           |
+
+`queryParticipants` requires `filter_conditions`; use `{ filter_conditions: {} }`
+to supply an empty filter. Session fields follow the corresponding API operation: `call_session_id` for ring
+state, `session_id` for call reports, and `session` for stats maps and file deletion.
+
+Optional request objects preserve the existing defaults: `reject()` declines,
+`startRecording()` and `stopRecording()` use composite recording,
+`getRingState()` and `getCallStatsMap()` use the current call session, and
+`getCallReport()` includes all sessions.
+
+Device registration applies to the connected user; remove the old `userID`
+argument. Pass `voip_token` as a property of `addDevice` when needed, or use
+`addVoipDevice`, which always sets it to `true`. Both registration methods accept
+the optional `hardware_id` field.
+
+Convenience methods such as `client.call(type, id)`, `call.muteUser(userId, 'audio')`,
+`call.muteSelf('audio')`, `call.muteOthers('audio')`, `call.muteAllUsers('audio')`,
+`call.grantPermissions(userId, permissions)`, `call.revokePermissions(userId, permissions)`,
+`call.submitFeedback(rating, { reason })`, and `call.camera.select(deviceId)`
+keep their positional arguments. `queryCalls` continues to take a request object
+followed by a separate object for local SDK options, such as `withDisabledDevices`.
+
 ## What is Stream?
 
 Stream allows developers to rapidly deploy scalable feeds, chat messaging and video with an industry leading 99.999% uptime SLA guarantee.

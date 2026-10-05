@@ -197,7 +197,7 @@ export class StreamVideoClient {
               // remove the instance from the state store
               await call.leave();
               // explicitly reject the call with busy reason as calling state was not ringing before and leave would not call it therefore
-              await call.reject('busy');
+              await call.reject({ reason: 'busy' });
             } else {
               await call.updateFromRingingEvent(e as CallRingEvent);
               await call.get();
@@ -223,7 +223,7 @@ export class StreamVideoClient {
           if (this.shouldRejectCall(call.cid)) {
             this.logger.info(`Rejecting call ${call.cid} because user is busy`);
             // call is not in the state store yet, so just reject api is enough
-            await call.reject('busy');
+            await call.reject({ reason: 'busy' });
           } else {
             await call.updateFromRingingEvent(e as CallRingEvent);
             await call.get();
@@ -543,59 +543,28 @@ export class StreamVideoClient {
   };
 
   /**
-   * addDevice - Adds a push device for a user.
+   * Adds a push device for the connected user.
    *
-   * @param {string} id the device id
-   * @param {string} push_provider the push provider name (eg. apn, firebase)
-   * @param {string} push_provider_name user provided push provider name
-   * @param {string} [userID] the user id (defaults to current user)
-   * @param {boolean} [voip_token] enables use of VoIP token for push notifications on iOS platform
+   * @param data the device token, push provider, and optional device settings.
    */
-  addDevice = async (
-    id: string,
-    push_provider: CreateDeviceRequest['push_provider'],
-    push_provider_name?: string,
-    userID?: string,
-    voip_token?: boolean,
-  ) => {
-    const body: CreateDeviceRequest = {
-      id,
-      push_provider,
-      voip_token,
-      ...(userID != null ? { user_id: userID } : {}),
-      ...(push_provider_name != null ? { push_provider_name } : {}),
-    };
+  addDevice = async (data: CreateDeviceRequest) => {
     return await this.apiClient.sendRequest<Response>(
       'POST',
       '/api/v2/devices',
       undefined,
       undefined,
-      body,
+      data,
       'application/json',
     );
   };
 
   /**
-   * addDevice - Adds a push device for a user.
+   * Adds a VoIP push device for the connected user.
    *
-   * @param {string} id the device id
-   * @param {string} push_provider the push provider name (eg. apn, firebase)
-   * @param {string} push_provider_name user provided push provider name
-   * @param {string} [userID] the user id (defaults to current user)
+   * @param data the device token, push provider, and optional device settings.
    */
-  addVoipDevice = async (
-    id: string,
-    push_provider: CreateDeviceRequest['push_provider'],
-    push_provider_name: string,
-    userID?: string,
-  ) => {
-    return await this.addDevice(
-      id,
-      push_provider,
-      push_provider_name,
-      userID,
-      true,
-    );
+  addVoipDevice = async (data: Omit<CreateDeviceRequest, 'voip_token'>) => {
+    return await this.addDevice({ ...data, voip_token: true });
   };
 
   /**
@@ -611,9 +580,9 @@ export class StreamVideoClient {
   /**
    * removeDevice - Removes the device with the given id.
    *
-   * @param {string} id The device id
+   * @param data.id the device id.
    */
-  removeDevice = async (id: string) => {
+  removeDevice = async ({ id }: Pick<CreateDeviceRequest, 'id'>) => {
     return await this.apiClient.sendRequest<Response>(
       'DELETE',
       '/api/v2/devices',

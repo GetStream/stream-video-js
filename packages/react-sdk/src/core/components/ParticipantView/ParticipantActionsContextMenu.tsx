@@ -35,7 +35,7 @@ export const ParticipantActionsContextMenu = () => {
   const hasScreenShareTrack = hasScreenShare(participant);
   const hasScreenShareAudioTrack = hasScreenShareAudio(participant);
 
-  const blockUser = () => call?.blockUser(userId);
+  const blockUser = () => call?.blockUser({ user_id: userId });
   const kickUser = () => call?.kickUser({ user_id: userId });
   const muteAudio = () => call?.muteUser(userId, 'audio');
   const muteVideo = () => call?.muteUser(userId, 'video');

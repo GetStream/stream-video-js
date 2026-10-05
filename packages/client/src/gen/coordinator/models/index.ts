@@ -6,18 +6,12 @@ declare const timestampNsBrand: unique symbol;
  * NOT milliseconds. `new Date(t)` is out of range and yields an Invalid Date, whose
  * `.toISOString()` then throws; `models/timestamp-guard.ts` turns that into a
  * compile error. Comparing or sorting two timestamps is fine -- same unit, plain
- * numbers. Everything else should go through this SDK's time helpers:
+ * numbers. For anything else -- a `Date`, epoch ms for arithmetic against
+ * `Date.now()`, a timestamp from the local clock -- use the SDK's time helpers
+ * instead of converting by hand.
  *
- *   nsToDate(t)               a Date
- *   convertTimestampToDate(t) a Date, or undefined when the value is absent or NaN
- *   nsToMs(t)                 epoch ms, for arithmetic against Date.now()
- *   nsToRfc3339(t)            an RFC3339 string keeping sub-millisecond precision
- *   dateToNs(d), msToNs(ms)   back to a wire timestamp
- *   nowNs()                   the local clock, wire-comparable
- *   asTimestampNS(n)          brand a number already in ns (DB rows, fixtures) -- no conversion
- *
- * A request date field is typed `Date`, not this -- pass `nsToDate(t)` when handing a
- * server-sent timestamp back to the API, or `nsToRfc3339(t)` where precision matters.
+ * A request date field is typed `Date`, not this -- convert a server-sent timestamp
+ * to a `Date` before handing it back to the API.
  *
  * Values above `Number.MAX_SAFE_INTEGER` are quantised to ~256ns, so ordering holds
  * but exact equality after a JSON round-trip does not.

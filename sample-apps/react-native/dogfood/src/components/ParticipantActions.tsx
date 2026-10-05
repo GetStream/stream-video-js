@@ -87,7 +87,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   };
 
   const blockUser = async () => {
-    await call?.blockUser(participant.userId);
+    await call?.blockUser({ user_id: participant.userId });
   };
 
   const toggleParticipantPinnedAt = () => {

@@ -45,7 +45,9 @@ import {
   GetOrCreateCallRequest,
   GoLiveRequest,
   JoinCallResponse,
+  BlockUserRequest,
   KickUserRequest,
+  UnblockUserRequest,
   PinRequest,
   QueryCallMembersRequest,
   QueryCallParticipantsRequest,
@@ -702,14 +704,14 @@ export class Call {
             reasonToEndCallReason[
               rejectReason as keyof typeof reasonToEndCallReason
             ] ?? 'rejected';
-          await this.reject(rejectReason);
+          await this.reject({ reason: rejectReason });
           globalThis.streamRNVideoSDK?.callingX?.endCall(this, endCallReason);
         } else {
           // if reject was undefined, we still have to cancel the call automatically
           // when I am the creator and everyone else left the call
           const hasOtherParticipants = this.state.remoteParticipants.length > 0;
           if (this.isCreatedByMe && !hasOtherParticipants) {
-            await this.reject('cancel');
+            await this.reject({ reason: 'cancel' });
             globalThis.streamRNVideoSDK?.callingX?.endCall(this, 'canceled');
           }
         }
@@ -1001,12 +1003,14 @@ export class Call {
    * Returns who accepted, rejected or missed the ring for a call session.
    * Safe to poll: it performs no writes and emits no events.
    *
-   * @param callSessionId the call session to read. Defaults to the current one.
+   * @param data.call_session_id the call session to read, the current one by default.
    * Pass it explicitly to read a session that has already ended, as ending a
    * call clears its current session.
    */
-  getRingState = async (callSessionId?: string) => {
-    const sessionId = callSessionId ?? this.state.session?.id;
+  getRingState = async ({
+    call_session_id = this.state.session?.id,
+  }: { call_session_id?: string } = {}) => {
+    const sessionId = call_session_id;
     if (!sessionId) {
       throw new Error('Cannot read the ring state: the call has no session');
     }
@@ -1017,7 +1021,7 @@ export class Call {
    * A shortcut for {@link Call.get} with `notify` parameter set to `true`.
    * Will send a `call.notification` event to the call members.
    */
-  notify = async (): Promise<GetCallResponse> => {
+  notify = async (): Promise<StreamResponse<GetCallResponse>> => {
     return await this.get({ notify: true });
   };
 
@@ -1042,9 +1046,9 @@ export class Call {
    * {@link Call.leave} invokes this method automatically for you when you leave or reject this call.
    * Unless you are implementing a custom "ringing" flow, you should not use this method.
    *
-   * @param reason the reason for rejecting the call.
+   * @param data.reason the reason for rejecting the call, `'decline'` by default.
    */
-  reject = async (reason: RejectReason = 'decline') => {
+  reject = async ({ reason = 'decline' }: { reason?: RejectReason } = {}) => {
     return withoutConcurrency(this.acceptRejectConcurrencyTag, () => {
       this.tracer.trace('call.reject', reason);
       return this.api.reject({ reason });
@@ -2694,23 +2698,24 @@ export class Call {
   /**
    * Starts recording the call.
    *
-   * @param recordingType the kind of recording to start.
-   * @param request optional recording settings.
+   * @param data.recording_type the kind of recording to start, `'composite'` by default.
    */
-  startRecording = (
-    recordingType: CallRecordingType = 'composite',
-    request?: StartRecordingRequest,
-  ) => {
-    return this.api.startRecording({ recording_type: recordingType }, request);
+  startRecording = ({
+    recording_type = 'composite',
+    ...request
+  }: StartRecordingRequest & { recording_type?: CallRecordingType } = {}) => {
+    return this.api.startRecording({ recording_type }, request);
   };
 
   /**
    * Stops recording the call.
    *
-   * @param recordingType the kind of recording to stop.
+   * @param data.recording_type the kind of recording to stop, `'composite'` by default.
    */
-  stopRecording = (recordingType: CallRecordingType = 'composite') => {
-    return this.api.stopRecording({ recording_type: recordingType });
+  stopRecording = ({
+    recording_type = 'composite',
+  }: { recording_type?: CallRecordingType } = {}) => {
+    return this.api.stopRecording({ recording_type });
   };
 
   /**
@@ -2757,7 +2762,7 @@ export class Call {
     data: Omit<RequestPermissionRequest, 'permissions'> & {
       permissions: OwnCapability[];
     },
-  ): Promise<RequestPermissionResponse> => {
+  ): Promise<StreamResponse<RequestPermissionResponse>> => {
     const { permissions } = data;
     const canRequestPermissions = permissions.every((permission) =>
       this.permissionsContext.canRequest(permission),
@@ -2912,16 +2917,18 @@ export class Call {
   };
 
   /**
-   * Query call participants with optional filters.
+   * Queries the call participants that match the filter.
    *
-   * @param data the request data.
-   * @param params optional query parameters.
+   * @param data.filter_conditions which participants to return (required by the API).
+   * @param data.limit the maximum number of participants to return.
    */
   queryParticipants = async (
-    data: QueryCallParticipantsRequest = {},
-    params: { limit?: number } = {},
+    data: QueryCallParticipantsRequest &
+      Required<Pick<QueryCallParticipantsRequest, 'filter_conditions'>> & {
+        limit?: number;
+      },
   ) => {
-    return this.api.queryCallParticipants({ ...data, ...params });
+    return this.api.queryCallParticipants(data);
   };
 
   /**
@@ -2974,9 +2981,9 @@ export class Call {
     userSessionId?: string;
     kind?: 'timeline' | 'details';
   }): Promise<
-    | QueryCallSessionParticipantStatsResponse
-    | GetCallSessionParticipantStatsDetailsResponse
-    | QueryCallSessionParticipantStatsTimelineResponse
+    | StreamResponse<QueryCallSessionParticipantStatsResponse>
+    | StreamResponse<GetCallSessionParticipantStatsDetailsResponse>
+    | StreamResponse<QueryCallSessionParticipantStatsTimelineResponse>
     | undefined
   > => {
     const {
@@ -3018,7 +3025,7 @@ export class Call {
       reason,
       custom,
     }: Pick<CollectUserFeedbackRequest, 'reason' | 'custom'> = {},
-  ): Promise<CollectUserFeedbackResponse> => {
+  ): Promise<StreamResponse<CollectUserFeedbackResponse>> => {
     const { sdkName, sdkVersion, ...platform } = getSdkSignature(
       await getClientDetails(),
     );
@@ -3038,20 +3045,23 @@ export class Call {
   /**
    * Retrieves the call stats for the current call session in a format suitable
    * for displaying in map-like UIs.
+   *
+   * @param data.session the call session, the current one by default.
    */
-  getCallStatsMap = async (
-    params: {
-      start_time?: Date;
-      end_time?: Date;
-      exclude_publishers?: boolean;
-      exclude_subscribers?: boolean;
-      exclude_sfus?: boolean;
-    } = {},
-    callSessionId: string | undefined = this.state.session?.id,
-  ): Promise<StreamResponse<QueryCallStatsMapResponse>> => {
-    if (!callSessionId) throw new Error('callSessionId is required');
+  getCallStatsMap = async ({
+    session = this.state.session?.id,
+    ...params
+  }: {
+    session?: string;
+    start_time?: Date;
+    end_time?: Date;
+    exclude_publishers?: boolean;
+    exclude_subscribers?: boolean;
+    exclude_sfus?: boolean;
+  } = {}): Promise<StreamResponse<QueryCallStatsMapResponse>> => {
+    if (!session) throw new Error('session is required');
     return this.videoApi.getCallStatsMap(
-      { call_type: this.type, call_id: this.id, session: callSessionId },
+      { call_type: this.type, call_id: this.id, session },
       params,
     );
   };
@@ -3173,58 +3183,56 @@ export class Call {
   /**
    * Blocks a user from the call.
    *
-   * @param userId the id of the user to block.
+   * @param data.user_id the id of the user to block.
    */
-  blockUser = (userId: string) => {
-    return this.api.blockUser({ user_id: userId });
+  blockUser = (data: BlockUserRequest) => {
+    return this.api.blockUser(data);
   };
 
   /**
    * Unblocks a previously blocked user.
    *
-   * @param userId the id of the user to unblock.
+   * @param data.user_id the id of the user to unblock.
    */
-  unblockUser = (userId: string) => {
-    return this.api.unblockUser({ user_id: userId });
+  unblockUser = (data: UnblockUserRequest) => {
+    return this.api.unblockUser(data);
   };
 
   /**
    * Deletes a recording of the call.
    *
-   * @param callSessionId the session the recording belongs to.
-   * @param filename the name of the recording to delete.
+   * @param data.session the session the recording belongs to.
+   * @param data.filename the name of the recording to delete.
    */
-  deleteRecording = (callSessionId: string, filename: string) => {
-    return this.api.deleteRecording({ session: callSessionId, filename });
+  deleteRecording = (data: { session: string; filename: string }) => {
+    return this.api.deleteRecording(data);
   };
 
   /**
    * Deletes a transcription of the call.
    *
-   * @param callSessionId the session the transcription belongs to.
-   * @param filename the name of the transcription to delete.
+   * @param data.session the session the transcription belongs to.
+   * @param data.filename the name of the transcription to delete.
    */
-  deleteTranscription = (callSessionId: string, filename: string) => {
-    return this.api.deleteTranscription({ session: callSessionId, filename });
+  deleteTranscription = (data: { session: string; filename: string }) => {
+    return this.api.deleteTranscription(data);
   };
 
   /**
    * Returns the report of the call, optionally scoped to one session.
    *
-   * @param callSessionID the session to report on; all sessions when omitted.
+   * @param data.session_id the session to report on; all sessions when omitted.
    */
-  getCallReport = (callSessionID: string = '') => {
-    return this.api.getCallReport(
-      callSessionID !== '' ? { session_id: callSessionID } : {},
-    );
+  getCallReport = (data: { session_id?: string } = {}) => {
+    return this.api.getCallReport(data);
   };
 
   /**
    * Stops a single RTMP broadcast of the call.
    *
-   * @param name the name of the broadcast to stop.
+   * @param data.name the name of the broadcast to stop.
    */
-  stopRTMPBroadcast = (name: string) => {
+  stopRTMPBroadcast = ({ name }: { name: string }) => {
     return this.api.stopRTMPBroadcast({ name });
   };
 
