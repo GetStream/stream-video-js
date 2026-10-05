@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
+import { useI18n } from '../../../i18n';
 import { AcceptCallButton, RejectCallButton } from '.';
 
 /**
@@ -27,6 +28,7 @@ export const IncomingCallControls = ({
   const {
     theme: { incomingCall },
   } = useTheme();
+  const { t } = useI18n();
   return (
     <View style={[styles.buttonGroup, incomingCall.buttonGroup]}>
       <View style={incomingCall.button}>
@@ -35,14 +37,18 @@ export const IncomingCallControls = ({
           rejectReason="decline"
           disabled={disabled}
         />
-        <Text style={[incomingCall.buttonText]}>Decline</Text>
+        <Text style={[incomingCall.buttonText]}>
+          {t('incomingCall.decline.label', 'Decline')}
+        </Text>
       </View>
       <View style={incomingCall.button}>
         <AcceptCallButton
           onAcceptCallHandler={onAcceptCallHandler}
           disabled={disabled}
         />
-        <Text style={[incomingCall.buttonText]}>Accept</Text>
+        <Text style={[incomingCall.buttonText]}>
+          {t('incomingCall.accept.label', 'Accept')}
+        </Text>
       </View>
     </View>
   );

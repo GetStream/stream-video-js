@@ -5,8 +5,8 @@ import {
   useConnectedUser,
 } from '@stream-io/video-react-bindings';
 import { type UserResponse } from '@stream-io/video-client';
-import { generateCallTitle } from '../../../utils';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useI18n } from '../../../i18n';
 import { AvatarGroup } from '../../utility/AvatarGroup';
 
 export type UserInfoType = {
@@ -35,6 +35,7 @@ export const UserInfo = ({
   const {
     theme: { userInfo },
   } = useTheme();
+  const { t } = useI18n();
   const connectedUser = useConnectedUser();
   const { useCallMembers } = useCallStateHooks();
   const members = useCallMembers();
@@ -61,8 +62,26 @@ export const UserInfo = ({
     }
   }
 
-  const memberUserIds = visibleMembers.map(({ user }) => user.name ?? user.id);
-  const callTitle = generateCallTitle(memberUserIds);
+  const names = visibleMembers.map(({ user }) => user.name ?? user.id);
+  const [first = '', second = ''] = names;
+
+  let callTitle = '';
+  if (names.length === 1) {
+    callTitle = first;
+  } else if (names.length === 2) {
+    callTitle = t('callTitle.two.text', '{{ first }} and {{ second }}', {
+      first,
+      second,
+    });
+  } else if (names.length > 2) {
+    callTitle = t('callTitle.others.text', {
+      first,
+      second,
+      count: names.length - 2,
+      defaultValue_one: '{{ first }}, {{ second }} and {{ count }} other',
+      defaultValue_other: '{{ first }}, {{ second }} and {{ count }} others',
+    });
+  }
 
   return (
     <View style={[styles.container, userInfo.container]}>

@@ -1,20 +1,3 @@
-// Utility to join member names: one name, two names with "and",
-// or the first two plus the remaining count.
-export const generateCallTitle = (memberUserIds: string[]) => {
-  if (memberUserIds.length === 0) {
-    return '';
-  }
-  if (memberUserIds.length === 1) {
-    return memberUserIds[0];
-  }
-  if (memberUserIds.length === 2) {
-    return `${memberUserIds[0]} and ${memberUserIds[1]}`;
-  }
-
-  const remaining = memberUserIds.length - 2;
-  return `${memberUserIds[0]}, ${memberUserIds[1]} and ${remaining} other`;
-};
-
 // Utility to truncate long strings
 export const generateParticipantTitle = (memberUserId: string) => {
   return memberUserId.length > 15

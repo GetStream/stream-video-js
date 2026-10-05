@@ -10,12 +10,17 @@
  * pass `count`.
  */
 export type TranslationCatalog = {
+  'callTitle.others.text_one': '{{ first }}, {{ second }} and {{ count }} other';
+  'callTitle.others.text_other': '{{ first }}, {{ second }} and {{ count }} others';
+  'callTitle.two.text': '{{ first }} and {{ second }}';
   'common.connecting.text': 'Connecting...';
   'common.join.label': 'Join';
   'common.joining.text': 'Joining...';
   'common.live.label': 'LIVE';
   'common.loading.text': 'Loading...';
   'common.you.label': 'You';
+  'incomingCall.accept.label': 'Accept';
+  'incomingCall.decline.label': 'Decline';
   'livestreamControls.start.label': 'Start';
   'livestreamPlayer.ended.title': 'The livestream has ended.';
   'livestreamPlayer.ended.watchRecordings.title': 'Watch recordings:';
