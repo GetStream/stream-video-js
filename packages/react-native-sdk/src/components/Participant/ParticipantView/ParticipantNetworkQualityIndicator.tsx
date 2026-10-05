@@ -66,7 +66,7 @@ export const ParticipantNetworkQualityIndicator = ({
     >
       <Svg width={24} height={24} viewBox="0 0 24 24" fill={'none'}>
         <Path
-          d="M12 16L12 11"
+          d="M7 16L7 14"
           strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -74,7 +74,7 @@ export const ParticipantNetworkQualityIndicator = ({
           fill={connectionQualityColors[0]}
         />
         <Path
-          d="M7 16L7 14"
+          d="M12 16L12 11"
           strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
