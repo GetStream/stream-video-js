@@ -22,7 +22,7 @@ const VALID_SEGMENTATION_MODELS: SegmentationModel[] = [
 const defaultState: Settings = {
   deviceSelectionPreference: 'recent',
   setDeviceSelectionPreference: () => {},
-  speakingDetectionEnabled: false,
+  speakingDetectionEnabled: true,
   setSpeakingDetectionEnabled: () => {},
   segmentationModel: 'selfie_segmenter_landscape',
   setSegmentationModel: () => {},
@@ -56,7 +56,7 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
   const { deviceSelectionPreference, setDeviceSelectionPreference } =
     useDeviceSelectionPreference();
   const [speakingDetectionEnabled, setSpeakingDetectionEnabled] =
-    usePersistedToggle('@pronto/speaking-detection-enabled', false);
+    usePersistedToggle('@pronto/speaking-detection-enabled', true);
   const { themeMode, setThemeMode } = useThemeMode();
 
   const [segmentationModel, setSegmentationModel] = useState<SegmentationModel>(
