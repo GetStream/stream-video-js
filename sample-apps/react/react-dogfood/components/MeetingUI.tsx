@@ -173,16 +173,14 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   } = useSettings();
   useEffect(() => {
     if (!call) return;
-    if (!speakingDetectionEnabled) {
-      call.microphone
-        .disableSpeakingWhileMutedNotification()
-        .catch((err) => console.error(err));
-      return;
-    }
-    if (callState !== CallingState.JOINED) return;
-    call.microphone
-      .enableSpeakingWhileMutedNotification()
-      .catch((err) => console.error(err));
+    if (speakingDetectionEnabled && callState !== CallingState.JOINED) return;
+
+    const { microphone } = call;
+    const update = speakingDetectionEnabled
+      ? microphone.enableSpeakingWhileMutedNotification()
+      : microphone.disableSpeakingWhileMutedNotification();
+
+    update.catch(console.error);
   }, [call, callState, speakingDetectionEnabled]);
 
   useKeyboardShortcuts();

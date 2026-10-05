@@ -57,7 +57,6 @@ export const ToggleMicButton = () => {
   const {
     settings: { speakingDetectionEnabled },
   } = useSettings();
-  // 'preview' opens every listed microphone to show its level
   const inputVisualType =
     !speakingDetectionEnabled || isMobile() || Browsers.isSafari()
       ? 'list'
