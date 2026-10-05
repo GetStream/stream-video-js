@@ -13,7 +13,6 @@
         "aps-environment": "production"
       },
       "supportsTablet": true,
-      "googleServicesFile": "./GoogleService-Info.plist",
       "bundleIdentifier": "io.getstream.reactnative.ringingtutorial",
       "bitcode": false,
       "appleTeamId": "EHV7XZLAHA"
@@ -27,19 +26,6 @@
       "package": "io.getstream.reactnative.ringingtutorial"
     },
     "plugins": [
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "useFrameworks": "static",
-            "forceStaticLinking": [
-              "RNFBApp",
-              "RNFBMessaging",
-              "stream-react-native-webrtc"
-            ]
-          }
-        }
-      ],
       "expo-router",
       [
         "expo-splash-screen",
@@ -53,7 +39,6 @@
       [
         "@stream-io/video-react-native-sdk",
         {
-          "androidMessagingServiceBaseClass": "io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService",
           "ringing": true
         }
       ],
@@ -64,8 +49,6 @@
           "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
         }
       ],
-      "@react-native-firebase/app",
-      "@react-native-firebase/messaging",
       "expo-font",
       "expo-web-browser"
     ],

@@ -8,14 +8,11 @@ import withAndroidMessagingService, {
   validateBaseClass,
   resolveBaseClass,
   isExpoNotificationsInstalled,
+  isRNFirebaseMessagingInstalled,
   getGeneratedServiceFqcn,
-  addFirebaseMessagingDependency,
-  resolveFirebaseBomVersion,
   EXPO_NOTIFICATIONS_SERVICE,
+  RNFIREBASE_MESSAGING_SERVICE,
   STREAM_DEFAULT_SERVICE,
-  FIREBASE_MESSAGING_ARTIFACT,
-  FIREBASE_BOM_FALLBACK_VERSION,
-  FIREBASE_DEP_MARKER,
 } from '../src/withAndroidMessagingService';
 
 type Manifest = AndroidConfig.Manifest.AndroidManifest;
@@ -75,6 +72,120 @@ describe('resolveBaseClass', () => {
     expect(
       resolveBaseClass(undefined, '/definitely/not/a/real/path'),
     ).toBeUndefined();
+  });
+
+  const withTempProject = (
+    files: Record<string, string>,
+    assertion: (projectRoot: string) => void,
+  ) => {
+    const projectRoot = fs.mkdtempSync(path.join(tmpdir(), 'stream-plugin-'));
+    try {
+      for (const [relativePath, contents] of Object.entries(files)) {
+        const target = path.join(projectRoot, relativePath);
+        fs.mkdirSync(path.dirname(target), { recursive: true });
+        fs.writeFileSync(target, contents);
+      }
+      assertion(projectRoot);
+    } finally {
+      fs.rmSync(projectRoot, { recursive: true, force: true });
+    }
+  };
+
+  it('auto-detects @react-native-firebase/messaging when only that is installed', () => {
+    withTempProject(
+      {
+        'package.json': JSON.stringify({
+          dependencies: { '@react-native-firebase/messaging': '^24.1.1' },
+        }),
+      },
+      (projectRoot) =>
+        expect(resolveBaseClass(undefined, projectRoot)).toBe(
+          RNFIREBASE_MESSAGING_SERVICE,
+        ),
+    );
+  });
+
+  it('prefers expo-notifications when both known libraries are installed', () => {
+    withTempProject(
+      {
+        'package.json': JSON.stringify({
+          dependencies: {
+            'expo-notifications': '~57.0.8',
+            '@react-native-firebase/messaging': '^24.1.1',
+          },
+        }),
+      },
+      (projectRoot) =>
+        expect(resolveBaseClass(undefined, projectRoot)).toBe(
+          EXPO_NOTIFICATIONS_SERVICE,
+        ),
+    );
+  });
+
+  it('honours an explicit RNFB string even when expo-notifications is also installed', () => {
+    withTempProject(
+      {
+        'package.json': JSON.stringify({
+          dependencies: {
+            'expo-notifications': '~57.0.8',
+            '@react-native-firebase/messaging': '^24.1.1',
+          },
+        }),
+      },
+      (projectRoot) =>
+        expect(
+          resolveBaseClass(RNFIREBASE_MESSAGING_SERVICE, projectRoot),
+        ).toBe(RNFIREBASE_MESSAGING_SERVICE),
+    );
+  });
+});
+
+describe('isRNFirebaseMessagingInstalled', () => {
+  const withTempProject = (
+    files: Record<string, string>,
+    assertion: (projectRoot: string) => void,
+  ) => {
+    const projectRoot = fs.mkdtempSync(path.join(tmpdir(), 'stream-plugin-'));
+    try {
+      for (const [relativePath, contents] of Object.entries(files)) {
+        const target = path.join(projectRoot, relativePath);
+        fs.mkdirSync(path.dirname(target), { recursive: true });
+        fs.writeFileSync(target, contents);
+      }
+      assertion(projectRoot);
+    } finally {
+      fs.rmSync(projectRoot, { recursive: true, force: true });
+    }
+  };
+
+  it('is true when @react-native-firebase/messaging is a runtime dependency', () => {
+    withTempProject(
+      {
+        'package.json': JSON.stringify({
+          dependencies: { '@react-native-firebase/messaging': '^24.1.1' },
+        }),
+      },
+      (projectRoot) =>
+        expect(isRNFirebaseMessagingInstalled(projectRoot)).toBe(true),
+    );
+  });
+
+  it('ignores a devDependency, which is not linked into the build', () => {
+    withTempProject(
+      {
+        'package.json': JSON.stringify({
+          devDependencies: { '@react-native-firebase/messaging': '^24.1.1' },
+        }),
+      },
+      (projectRoot) =>
+        expect(isRNFirebaseMessagingInstalled(projectRoot)).toBe(false),
+    );
+  });
+
+  it('is false when nothing is installed and package.json is empty', () => {
+    withTempProject({ 'package.json': '{}' }, (projectRoot) =>
+      expect(isRNFirebaseMessagingInstalled(projectRoot)).toBe(false),
+    );
   });
 });
 
@@ -218,20 +329,23 @@ describe('buildServiceSource', () => {
     );
   });
 
-  it('forwards onNewToken via StreamMessagingHelper when base is not RN Firebase', () => {
+  it('forwards onNewToken via StreamMessagingHelper', () => {
     expect(source).toContain('override fun onNewToken(token: String)');
+    expect(source).toContain('super.onNewToken(token)');
     expect(source).toContain('StreamMessagingHelper.forwardNewToken(token)');
     // no direct coupling to RN Firebase internals in the generated code
     expect(source).not.toContain('ReactNativeFirebaseEventEmitter');
   });
 
-  it('omits the onNewToken override when base already is RN Firebase', () => {
+  it('always emits the onNewToken override regardless of base class', () => {
     const rnfbSource = buildServiceSource(
       APP_PACKAGE,
       'io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService',
     );
-    expect(rnfbSource).not.toContain('override fun onNewToken');
-    expect(rnfbSource).not.toContain('forwardNewToken');
+    expect(rnfbSource).toContain('override fun onNewToken(token: String)');
+    expect(rnfbSource).toContain(
+      'StreamMessagingHelper.forwardNewToken(token)',
+    );
   });
 });
 
@@ -263,7 +377,7 @@ describe('updateManifest', () => {
     ).toBe('com.google.firebase.MESSAGING_EVENT');
   });
 
-  it('removes both competing services, leaving only the generated handler', () => {
+  it('removes callingx + the chosen base + every known FCM competitor, leaving only the generated handler', () => {
     const services = servicesOf(
       updateManifest(emptyManifest(), generatedFqcn, baseClass),
     );
@@ -271,6 +385,12 @@ describe('updateManifest', () => {
       true,
     );
     expect(services.some((s) => isRemoval(s, baseClass))).toBe(true);
+    // Always-strip: the other known FCM competitor (RNFB) is removed too,
+    // even though the chosen base is expo-notifications. This prevents a
+    // manifest-merge tie when both packages are installed.
+    expect(
+      services.some((s) => isRemoval(s, RNFIREBASE_MESSAGING_SERVICE)),
+    ).toBe(true);
 
     // exactly one live MESSAGING_EVENT service (the generated one) remains
     const liveHandlers = services.filter(
@@ -280,12 +400,45 @@ describe('updateManifest', () => {
     expect(liveHandlers[0].$?.['android:name']).toBe(generatedFqcn);
   });
 
+  it('strips expo-notifications too when the chosen base is RNFB', () => {
+    const services = servicesOf(
+      updateManifest(
+        emptyManifest(),
+        generatedFqcn,
+        RNFIREBASE_MESSAGING_SERVICE,
+      ),
+    );
+    expect(
+      services.some((s) => isRemoval(s, RNFIREBASE_MESSAGING_SERVICE)),
+    ).toBe(true);
+    expect(services.some((s) => isRemoval(s, EXPO_NOTIFICATIONS_SERVICE))).toBe(
+      true,
+    );
+    expect(services.some((s) => isRemoval(s, STREAM_DEFAULT_SERVICE))).toBe(
+      true,
+    );
+  });
+
   it('does not emit a duplicate removal when base class is the Stream default', () => {
     const services = servicesOf(
       updateManifest(emptyManifest(), generatedFqcn, STREAM_DEFAULT_SERVICE),
     );
     const removals = services.filter((s) =>
       isRemoval(s, STREAM_DEFAULT_SERVICE),
+    );
+    expect(removals).toHaveLength(1);
+  });
+
+  it('does not emit a duplicate removal when base class is expo-notifications (in the always-strip list)', () => {
+    const services = servicesOf(
+      updateManifest(
+        emptyManifest(),
+        generatedFqcn,
+        EXPO_NOTIFICATIONS_SERVICE,
+      ),
+    );
+    const removals = services.filter((s) =>
+      isRemoval(s, EXPO_NOTIFICATIONS_SERVICE),
     );
     expect(removals).toHaveLength(1);
   });
@@ -308,6 +461,8 @@ describe('updateManifest', () => {
     expect(count(generatedFqcn)).toBe(1);
     expect(count(STREAM_DEFAULT_SERVICE)).toBe(1);
     expect(count(baseClass)).toBe(1);
+    // The always-strip competitor entry stays de-duplicated too.
+    expect(count(RNFIREBASE_MESSAGING_SERVICE)).toBe(1);
   });
 
   it('preserves unrelated services', () => {
@@ -333,64 +488,5 @@ describe('updateManifest', () => {
         baseClass,
       ),
     ).toThrow();
-  });
-});
-
-describe('addFirebaseMessagingDependency', () => {
-  const gradle = `
-android {
-    namespace "io.getstream.expovideosample"
-}
-
-dependencies {
-    implementation "com.facebook.react:react-android"
-}
-`;
-
-  it('uses the resolved Firebase BOM (version-less artifact) when a BOM version is given', () => {
-    const updated = addFirebaseMessagingDependency(gradle, '34.10.0');
-    expect(updated).toContain(
-      'compileOnly(platform("com.google.firebase:firebase-bom:34.10.0"))',
-    );
-    expect(updated).toContain(`compileOnly("${FIREBASE_MESSAGING_ARTIFACT}")`);
-    // artifact declared version-less under the BOM
-    expect(updated).not.toContain(`${FIREBASE_MESSAGING_ARTIFACT}:`);
-  });
-
-  it('falls back to the minimum-supported BOM when no BOM version is available', () => {
-    const updated = addFirebaseMessagingDependency(gradle);
-    expect(updated).toContain(
-      `compileOnly(platform("com.google.firebase:firebase-bom:${FIREBASE_BOM_FALLBACK_VERSION}"))`,
-    );
-    expect(updated).toContain(`compileOnly("${FIREBASE_MESSAGING_ARTIFACT}")`);
-    // still version-less artifact, never a pinned artifact version
-    expect(updated).not.toContain(`${FIREBASE_MESSAGING_ARTIFACT}:`);
-  });
-
-  it('is idempotent (guarded by the marker comment)', () => {
-    const once = addFirebaseMessagingDependency(gradle, '34.10.0');
-    const twice = addFirebaseMessagingDependency(once, '34.10.0');
-    const occurrences = twice.split(FIREBASE_DEP_MARKER).length - 1;
-    expect(occurrences).toBe(1);
-  });
-
-  it('throws when there is no dependencies block to inject into', () => {
-    expect(() =>
-      addFirebaseMessagingDependency('android {\n  namespace = "x"\n}\n'),
-    ).toThrow(/dependencies/);
-  });
-});
-
-describe('resolveFirebaseBomVersion', () => {
-  it('returns undefined when @react-native-firebase/app cannot be resolved', () => {
-    expect(
-      resolveFirebaseBomVersion('/definitely/not/a/real/path'),
-    ).toBeUndefined();
-  });
-
-  it('reads a semver BOM string from the installed package', () => {
-    // @react-native-firebase/app is installed in the monorepo.
-    const bom = resolveFirebaseBomVersion();
-    expect(bom).toMatch(/^\d+\.\d+\.\d+$/);
   });
 });

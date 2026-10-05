@@ -2,7 +2,6 @@ import {
   AndroidConfig,
   type ConfigPlugin,
   withAndroidManifest,
-  withAppBuildGradle,
   withDangerousMod,
 } from '@expo/config-plugins';
 import * as fs from 'fs';
@@ -12,34 +11,34 @@ import { type ConfigProps } from './common/types';
 const GENERATED_SERVICE_CLASS_NAME = 'StreamVideoMessagingService';
 const STREAM_DEFAULT_SERVICE =
   'io.getstream.rn.callingx.StreamMessagingService';
-/** React Native Firebase's own FCM service. */
-const RN_FIREBASE_SERVICE =
-  'io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService';
-/** expo-notifications' FCM service — the default base auto-detected when installed. */
+/** expo-notifications' FCM service — auto-detected when the package is installed. */
 const EXPO_NOTIFICATIONS_SERVICE =
   'expo.modules.notifications.service.ExpoFirebaseMessagingService';
 const EXPO_NOTIFICATIONS_PACKAGE = 'expo-notifications';
+/** @react-native-firebase/messaging's FCM service — auto-detected when the package is installed. */
+const RNFIREBASE_MESSAGING_SERVICE =
+  'io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService';
+const RNFIREBASE_MESSAGING_PACKAGE = '@react-native-firebase/messaging';
+
+/**
+ * Third-party FCM services we always strip from the merged manifest when a base
+ * class is chosen. Android delivers FCM messages to a single service; if any of
+ * these is left declared alongside our generated service (both at priority 0)
+ * the manifest merger picks non-deterministically. Stripping them all guarantees
+ * our generated subclass is the only MESSAGING_EVENT handler — the chosen base
+ * class's logic still runs via `super.onMessageReceived`, since we only remove
+ * the manifest ENTRY, not the class itself from the classpath.
+ *
+ * A `tools:node="remove"` for a service that isn't declared in any lower-
+ * priority manifest is a harmless no-op, so listing everything unconditionally
+ * is safe.
+ */
+const KNOWN_FCM_COMPETITOR_SERVICES = [
+  EXPO_NOTIFICATIONS_SERVICE,
+  RNFIREBASE_MESSAGING_SERVICE,
+];
 
 const MESSAGING_EVENT_ACTION = 'com.google.firebase.MESSAGING_EVENT';
-/**
- * The generated service lives in the `:app` module, which only has
- * firebase-messaging on its *runtime* classpath (via callingx / RNFB /
- * expo-notifications `implementation` deps). We add it as `compileOnly` so the
- * app can compile a `FirebaseMessagingService` subclass. The runtime artifact is
- * still supplied by those modules, so this avoids a version conflict.
- */
-const FIREBASE_MESSAGING_ARTIFACT = 'com.google.firebase:firebase-messaging';
-/**
- * Fallback Firebase BOM version, used only when the live BOM cannot be resolved
- * from @react-native-firebase/app. This is the BOM shipped by the minimum RNFB
- * version we support: @stream-io/react-native-callingx declares a
- * `@react-native-firebase/* >= 23.0.0` peer dependency, and RNFB `23.0.0` pins
- * firebase-bom `34.0.0`. Keep in sync with that peer floor.
- */
-const FIREBASE_BOM_FALLBACK_VERSION = '34.0.0';
-/** Stable comment used to detect (and avoid duplicating) our gradle injection. */
-const FIREBASE_DEP_MARKER =
-  '// Added by @stream-io/video-react-native-sdk for the generated FCM messaging service';
 
 type ManifestService = NonNullable<
   AndroidConfig.Manifest.ManifestApplication['service']
@@ -82,6 +81,10 @@ function validateBaseClass(baseClass: string): void {
 
 function isExpoNotificationsInstalled(projectRoot?: string): boolean {
   return isPackageUsedByApp(EXPO_NOTIFICATIONS_PACKAGE, projectRoot);
+}
+
+function isRNFirebaseMessagingInstalled(projectRoot?: string): boolean {
+  return isPackageUsedByApp(RNFIREBASE_MESSAGING_PACKAGE, projectRoot);
 }
 
 /**
@@ -134,9 +137,17 @@ function resolveBaseClass(
     validateBaseClass(value);
     return value;
   }
-  return isExpoNotificationsInstalled(projectRoot)
-    ? EXPO_NOTIFICATIONS_SERVICE
-    : undefined;
+  // Auto-detect known FCM base classes when the consumer didn't specify one.
+  // Order matters: if both are installed (unusual but possible), we silently
+  // prefer expo-notifications. Consumers can override with an explicit
+  // `androidMessagingServiceBaseClass` string.
+  if (isExpoNotificationsInstalled(projectRoot)) {
+    return EXPO_NOTIFICATIONS_SERVICE;
+  }
+  if (isRNFirebaseMessagingInstalled(projectRoot)) {
+    return RNFIREBASE_MESSAGING_SERVICE;
+  }
+  return undefined;
 }
 
 /** Kotlin source for the generated messaging service. */
@@ -146,20 +157,8 @@ function buildServiceSource(
 ): string {
   const simpleName = baseClassFqcn.split('.').pop();
 
-  const shouldForwardNewToken = baseClassFqcn !== RN_FIREBASE_SERVICE;
-  const onNewToken = shouldForwardNewToken
-    ? `
-  override fun onNewToken(token: String) {
-    super.onNewToken(token)
-    // Keep Stream's device registration working under a non-RNFirebase base.
-    StreamMessagingHelper.forwardNewToken(token)
-  }
-`
-    : '';
-
   return `package ${androidPackage}
 
-import android.annotation.SuppressLint
 import com.google.firebase.messaging.RemoteMessage
 import io.getstream.rn.callingx.StreamMessagingHelper
 import ${baseClassFqcn}
@@ -173,7 +172,6 @@ import ${baseClassFqcn}
  * ${STREAM_DEFAULT_SERVICE} is removed from the merged manifest so this class is
  * the single FirebaseMessagingService for the app.
  */
-@SuppressLint("MissingFirebaseInstanceTokenRefresh")
 class ${GENERATED_SERVICE_CLASS_NAME} : ${simpleName}() {
   override fun onMessageReceived(remoteMessage: RemoteMessage) {
     if (StreamMessagingHelper.isStreamCallRing(remoteMessage)) {
@@ -182,7 +180,13 @@ class ${GENERATED_SERVICE_CLASS_NAME} : ${simpleName}() {
     }
     super.onMessageReceived(remoteMessage)
   }
-${onNewToken}}
+
+  override fun onNewToken(token: String) {
+    super.onNewToken(token)
+    // Forward the rotated FCM token to Stream so the SDK's device-registration flow runs.
+    StreamMessagingHelper.forwardNewToken(token)
+  }
+}
 `;
 }
 
@@ -207,10 +211,23 @@ function updateManifest(
     manifest.$['xmlns:tools'] ?? 'http://schemas.android.com/tools';
 
   // Services whose registration we strip so the generated service is the only
-  // MESSAGING_EVENT handler: Stream's default (from react-native-callingx) and
-  // the base class (its logic still runs — the generated service subclasses it).
+  // MESSAGING_EVENT handler:
+  //   1. Stream's default (from react-native-callingx).
+  //   2. The chosen base class (its logic still runs via `super` — we only
+  //      remove the manifest entry, not the class from the classpath).
+  //   3. Every KNOWN_FCM_COMPETITOR_SERVICES entry, unconditionally. If a
+  //      consumer has both expo-notifications and @react-native-firebase/messaging
+  //      installed, whichever wasn't picked as the base would otherwise collide
+  //      with our generated service at the manifest merge (both at priority 0).
+  //      `tools:node="remove"` for a service that isn't declared elsewhere is a
+  //      no-op, so this is safe for setups where the "other" competitor isn't
+  //      installed.
   const servicesToRemove = [
-    ...new Set([STREAM_DEFAULT_SERVICE, baseClassFqcn]),
+    ...new Set([
+      STREAM_DEFAULT_SERVICE,
+      baseClassFqcn,
+      ...KNOWN_FCM_COMPETITOR_SERVICES,
+    ]),
   ];
 
   const application = manifest.application[0];
@@ -309,69 +326,6 @@ const withMessagingServiceManifest: ConfigPlugin<string | null | undefined> = (
   });
 };
 
-function resolveFirebaseBomVersion(projectRoot?: string): string | undefined {
-  try {
-    const pkgPath = require.resolve(
-      '@react-native-firebase/app/package.json',
-      projectRoot ? { paths: [projectRoot] } : undefined,
-    );
-    const pkg = require(pkgPath);
-    const bom = pkg?.sdkVersions?.android?.firebase;
-    return typeof bom === 'string' && bom.length > 0 ? bom : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-const DEPENDENCIES_BLOCK = /dependencies\s*\{/;
-
-function addFirebaseMessagingDependency(
-  contents: string,
-  bomVersion?: string,
-): string {
-  if (contents.includes(FIREBASE_DEP_MARKER)) {
-    return contents;
-  }
-
-  if (!DEPENDENCIES_BLOCK.test(contents)) {
-    throw new Error(
-      '[StreamVideo] Could not find a "dependencies { }" block in the app build.gradle ' +
-        'to add the firebase-messaging compile dependency for the generated FCM service.',
-    );
-  }
-
-  const lines =
-    `    ${FIREBASE_DEP_MARKER}\n` +
-    `    compileOnly(platform("com.google.firebase:firebase-bom:${
-      bomVersion ?? FIREBASE_BOM_FALLBACK_VERSION
-    }"))\n` +
-    `    compileOnly("${FIREBASE_MESSAGING_ARTIFACT}")`;
-  return contents.replace(DEPENDENCIES_BLOCK, (match) => `${match}\n${lines}`);
-}
-
-const withMessagingServiceGradle: ConfigPlugin<string | null | undefined> = (
-  config,
-  value,
-) => {
-  return withAppBuildGradle(config, (gradleConfig) => {
-    const baseClassFqcn = resolveBaseClass(
-      value,
-      gradleConfig.modRequest.projectRoot,
-    );
-    if (!baseClassFqcn) {
-      return gradleConfig;
-    }
-    const bomVersion = resolveFirebaseBomVersion(
-      gradleConfig.modRequest.projectRoot,
-    );
-    gradleConfig.modResults.contents = addFirebaseMessagingDependency(
-      gradleConfig.modResults.contents,
-      bomVersion,
-    );
-    return gradleConfig;
-  });
-};
-
 const withAndroidMessagingService: ConfigPlugin<ConfigProps> = (
   config,
   props,
@@ -385,7 +339,6 @@ const withAndroidMessagingService: ConfigPlugin<ConfigProps> = (
 
   let updated = withGeneratedMessagingServiceFile(config, value);
   updated = withMessagingServiceManifest(updated, value);
-  updated = withMessagingServiceGradle(updated, value);
   return updated;
 };
 
@@ -396,13 +349,10 @@ export {
   validateBaseClass,
   resolveBaseClass,
   isExpoNotificationsInstalled,
+  isRNFirebaseMessagingInstalled,
   getGeneratedServiceFqcn,
-  addFirebaseMessagingDependency,
-  resolveFirebaseBomVersion,
   EXPO_NOTIFICATIONS_SERVICE,
+  RNFIREBASE_MESSAGING_SERVICE,
   GENERATED_SERVICE_CLASS_NAME,
   STREAM_DEFAULT_SERVICE,
-  FIREBASE_MESSAGING_ARTIFACT,
-  FIREBASE_BOM_FALLBACK_VERSION,
-  FIREBASE_DEP_MARKER,
 };

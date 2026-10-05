@@ -89,6 +89,8 @@ export interface Spec extends TurboModule {
       receiver_id?: string;
       video?: string;
       version?: string;
+      // `fcmTokenRefresh` — rotated FCM device token (Android)
+      token?: string;
     };
   }>;
 
@@ -171,6 +173,8 @@ export interface Spec extends TurboModule {
 
   stopBackgroundTask(taskName: string): Promise<void>;
 
+  getFcmToken(): Promise<string>;
+
   fulfillAnswerCallAction(callId: string, didFail: boolean): void;
 
   fulfillEndCallAction(callId: string, didFail: boolean): void;
@@ -200,6 +204,8 @@ export interface Spec extends TurboModule {
       receiver_id?: string;
       video?: string;
       version?: string;
+      // `fcmTokenRefresh` — rotated FCM device token (Android)
+      token?: string;
     };
   }>;
 

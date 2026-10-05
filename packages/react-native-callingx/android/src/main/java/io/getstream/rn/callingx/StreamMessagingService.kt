@@ -1,32 +1,40 @@
 package io.getstream.rn.callingx
 
-import android.annotation.SuppressLint
+import android.os.Bundle
+import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService
 
 /**
- * Extends React Native Firebase's messaging service to start [CallService] when a
- * data message contains "stream" (e.g. incoming call push), then delegates to the
- * parent so setBackgroundMessageHandler() still runs in JS.
+ * Handles Stream Video FCM messages. Extends Google's [FirebaseMessagingService] directly (no
+ * React Native Firebase dependency).
  *
- * Only compiled when the app has @react-native-firebase/app and @react-native-firebase/messaging
- * as dependencies. The app must remove the default [io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService] from
- * the merged manifest so this service is the single FCM handler
+ * Two responsibilities:
+ * - `onMessageReceived`: pass `call.ring` payloads through [StreamMessagingHelper.handleMessage],
+ *   which publishes to [CallEventBus] (buffered while JS is booting) and starts [CallService].
+ * - `onNewToken`: publish the rotated FCM token to [CallEventBus] on
+ *   [CALL_FCM_TOKEN_REFRESH_ACTION] so the SDK can re-register the device.
+ *
+ * Consumers who ship their own `FirebaseMessagingService` can either remove ours in their
+ * manifest (`tools:node="remove"`) or bump their intent-filter priority above `0`. Both winning
+ * services must delegate ring payloads to [StreamMessagingHelper.handleMessage] and forward
+ * token refreshes via [StreamMessagingHelper.forwardNewToken].
  */
-@SuppressLint("MissingFirebaseInstanceTokenRefresh")
-open class StreamMessagingService : ReactNativeFirebaseMessagingService() {
+open class StreamMessagingService : FirebaseMessagingService() {
 
   companion object {
     const val TAG = "[Callingx] StreamMessagingService"
+    
+    const val EXTRA_TOKEN = "token"
   }
 
   override fun onMessageReceived(remoteMessage: RemoteMessage) {
     debugLog(TAG, "onMessageReceived data=${remoteMessage.data}")
-
     StreamMessagingHelper.handleMessage(applicationContext, remoteMessage)
+  }
 
-    // Let React Native Firebase continue its normal processing so
-    // setBackgroundMessageHandler() still runs in JS.
-    super.onMessageReceived(remoteMessage)
+  override fun onNewToken(token: String) {
+    debugLog(TAG, "onNewToken")
+    val extras = Bundle().apply { putString(EXTRA_TOKEN, token) }
+    CallEventBus.publish(CallEvent(CallingxModuleImpl.CALL_FCM_TOKEN_REFRESH_ACTION, extras))
   }
 }

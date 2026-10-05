@@ -702,4 +702,20 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(canPostNotifications) {
 }
 #endif
 
+#pragma mark - getFcmToken
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (void)getFcmToken:(RCTPromiseResolveBlock)resolve
+             reject:(RCTPromiseRejectBlock)reject {
+  // Android-only feature; iOS uses VoIP push and has no FCM token to return.
+  resolve(@"");
+}
+#else
+RCT_EXPORT_METHOD(getFcmToken:(RCTPromiseResolveBlock)resolve
+                       reject:(RCTPromiseRejectBlock)reject) {
+  // Android-only feature; iOS uses VoIP push and has no FCM token to return.
+  resolve(@"");
+}
+#endif
+
 @end
