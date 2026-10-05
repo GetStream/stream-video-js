@@ -4,8 +4,15 @@ import { UserInfo } from './UserInfo';
 import { Z_INDEX } from '../../../constants';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { CallControls, type OutgoingCallControlsProps } from '../CallControls';
-import { CallAppBar } from '../CallControls/CallAppBar';
+import {
+  CallControls as DefaultCallControls,
+  type CallControlProps,
+  type OutgoingCallControlsProps,
+} from '../CallControls';
+import {
+  CallAppBar as DefaultCallAppBar,
+  type CallAppBarProps,
+} from '../CallControls/CallAppBar';
 import { LobbyCameraPreview } from '../Lobby';
 import { useI18n } from '../../../i18n';
 
@@ -14,9 +21,13 @@ import { useI18n } from '../../../i18n';
  */
 export type OutgoingCallProps = OutgoingCallControlsProps & {
   /**
-   * Prop to customize the OutgoingCall controls.
+   * Component to customize the top bar of the outgoing call.
    */
-  OutgoingCallControls?: React.ComponentType<OutgoingCallControlsProps> | null;
+  CallAppBar?: React.ComponentType<CallAppBarProps> | null;
+  /**
+   * Component to customize the controls of the outgoing call.
+   */
+  CallControls?: React.ComponentType<CallControlProps> | null;
   /**
    * Check if device is in landscape mode.
    * This will apply the landscape mode styles to the component.
@@ -30,14 +41,13 @@ export type OutgoingCallProps = OutgoingCallControlsProps & {
  */
 export const OutgoingCall = ({
   onHangupCallHandler,
-  landscape,
+  CallAppBar = DefaultCallAppBar,
+  CallControls = DefaultCallControls,
 }: OutgoingCallProps) => {
   const {
     theme: { outgoingCall, insets },
   } = useTheme();
   const { t } = useI18n();
-
-  void landscape;
 
   const insetStyles: ViewStyle = {
     paddingTop: insets.top,
@@ -56,14 +66,14 @@ export const OutgoingCall = ({
           insetStyles,
         ]}
       >
-        <CallAppBar onHangupCallHandler={onHangupCallHandler} />
+        {CallAppBar && <CallAppBar onHangupCallHandler={onHangupCallHandler} />}
         <View style={[styles.content, outgoingCall.content]}>
           <UserInfo color="accent" />
           <Text style={[styles.callingText, outgoingCall.callingText]}>
             {t('ringingCall.outgoing.title', 'Calling...')}
           </Text>
         </View>
-        <CallControls />
+        {CallControls && <CallControls />}
       </View>
 
       <Background />
