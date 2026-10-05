@@ -426,7 +426,7 @@ export const components: IStreamTokens['components'] = {
   iconStrokeDefault: foundations.stroke.w150,
   iconStrokeEmphasis: foundations.stroke.w200,
   iconStrokeSubtle: foundations.stroke.w120,
-  inputRadiusOptionCard: primitives.radiusLg,
+  inputRadiusOptionCard: primitives.radius2xl,
   inputRadiusPollOptionInput: primitives.radiusLg,
   inputRadiusSearchInput: foundations.radius.radiusFull,
   inputRadiusSelectInput: primitives.radiusLg,
