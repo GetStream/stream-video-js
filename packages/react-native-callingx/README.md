@@ -45,7 +45,7 @@ await CallingxModule.displayIncomingCall(
 
 ## Main APIs
 
-`displayIncomingCall` and `startCall` return a Promise. Every other call control below runs synchronously: it returns `void` and throws synchronously if the native call fails.
+`displayIncomingCall` and `startCall` return a Promise. The other call controls run synchronously and throw synchronously if the native call fails; `getAvailableAudioEndpoints` and `releaseBackgroundTask` never throw.
 
 - `setup(options)` - required before any call action.
 - `displayIncomingCall(callId, phoneNumber, callerName, hasVideo)` (async).
