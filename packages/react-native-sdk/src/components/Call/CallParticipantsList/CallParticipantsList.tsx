@@ -27,6 +27,7 @@ import {
 } from '../../Participant/ParticipantView';
 import type { CallContentProps } from '../CallContent';
 import { useTheme } from '../../../contexts';
+import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant>
@@ -98,6 +99,7 @@ export const CallParticipantsList = ({
   const {
     theme: { callParticipantsList },
   } = useTheme();
+  const isInPiPMode = useIsInPiPMode();
   const [containerLayout, setContainerLayout] = useState({
     width: 0,
     height: 0,
@@ -278,7 +280,10 @@ export const CallParticipantsList = ({
             ParticipantView && (
               <ParticipantView
                 participant={participant}
-                style={[styles.flexed, callParticipantsList.participantNoGrid]}
+                style={[
+                  styles.flexed,
+                  isInPiPMode ? null : callParticipantsList.participantNoGrid,
+                ]}
                 trackType="videoTrack"
                 key={keyExtractor(participant, index)}
                 supportedReactions={supportedReactions}

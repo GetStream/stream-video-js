@@ -266,10 +266,10 @@ export const CallContent = ({
   };
 
   const participantViewProps: ParticipantViewComponentProps = {
-    ParticipantLabel: isInPiPMode ? null : ParticipantLabel,
-    ParticipantNetworkQualityIndicator: isInPiPMode
-      ? null
-      : ParticipantNetworkQualityIndicator,
+    // kept in picture-in-picture to match iOS, whose native PiP view draws its
+    // own participant overlay
+    ParticipantLabel,
+    ParticipantNetworkQualityIndicator,
     ParticipantReaction,
     ParticipantVideoFallback,
     VideoRenderer,
@@ -297,12 +297,14 @@ export const CallContent = ({
 
   return (
     <View style={[styles.container, callContent?.container, style]}>
-      <CallAppBar
-        layout={layout}
-        onLayoutToggleHandler={onLayoutToggleHandler}
-        onHangupPressHandler={onHangupPressHandler}
-        onHangupCallHandler={onHangupCallHandler}
-      />
+      {!isInPiPMode && (
+        <CallAppBar
+          layout={layout}
+          onLayoutToggleHandler={onLayoutToggleHandler}
+          onHangupPressHandler={onHangupPressHandler}
+          onHangupCallHandler={onHangupCallHandler}
+        />
+      )}
       {!disablePictureInPicture && (
         <RTCViewPipIOS
           includeLocalParticipantVideo={iOSPiPIncludeLocalParticipantVideo}

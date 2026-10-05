@@ -187,6 +187,7 @@ export const FloatingParticipantView = ({
                     width: floatingVideoDimensions.width,
                     height: floatingVideoDimensions.height,
                     marginHorizontal: primitives.spacingMd,
+                    borderRadius: primitives.radius2xl,
                   },
                   participantViewStyle,
                   primitives.darkElevation1,

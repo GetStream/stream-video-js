@@ -25,6 +25,7 @@ import {
   type VideoRendererProps,
 } from './VideoRenderer';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
 import type { CallContentProps } from '../../Call';
 import { Z_INDEX } from '../../../constants';
 
@@ -120,6 +121,7 @@ export const ParticipantView = React.memo(
     const {
       theme: { participantView },
     } = useTheme();
+    const isInPiPMode = useIsInPiPMode();
     const { isSpeaking, userId } = participant;
     const isScreenSharing = trackType === 'screenShareTrack';
     const applySpeakerStyle = isSpeaking && !isScreenSharing;
@@ -134,6 +136,7 @@ export const ParticipantView = React.memo(
           participantView.container,
           speakerStyle,
           style,
+          isInPiPMode ? styles.squaredInPiP : null,
         ]}
         testID={
           isSpeaking
@@ -201,5 +204,8 @@ const styles = StyleSheet.create({
   },
   networkIndicatorOnly: {
     justifyContent: 'flex-end',
+  },
+  squaredInPiP: {
+    borderRadius: 0,
   },
 });

@@ -360,6 +360,7 @@ export const resolveTheme = (colorScheme: ThemeColorScheme): Theme => {
     participantView: {
       container: {
         borderRadius: theme.primitives.radius2xl,
+        backgroundColor: theme.semantics.backgroundCoreSurfaceDefault,
       },
       headerContainer: {
         padding: theme.primitives.spacingXs,
