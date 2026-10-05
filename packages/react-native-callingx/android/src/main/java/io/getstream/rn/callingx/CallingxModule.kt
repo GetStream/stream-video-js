@@ -5,14 +5,12 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.module.annotations.ReactModule
 
-@ReactModule(name = CallingxModule.NAME)
 class CallingxModule(reactContext: ReactApplicationContext) :
         NativeCallingxSpec(reactContext), CallingxEventEmitterAdapter {
 
     companion object {
-        const val NAME = CallingxModuleImpl.NAME
+        const val NAME = NativeCallingxSpec.NAME
     }
 
     private val impl = CallingxModuleImpl(reactContext, this)
@@ -20,8 +18,6 @@ class CallingxModule(reactContext: ReactApplicationContext) :
     override fun emitNewEvent(value: WritableMap) {
         emitOnNewEvent(value)
     }
-
-    override fun getName(): String = NAME
 
     override fun initialize() {
         super.initialize()
@@ -33,12 +29,14 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         super.invalidate()
     }
 
-    override fun setupiOS(options: ReadableMap) {
+    override fun setupiOS(options: ReadableMap): Boolean {
         // leave empty
+        return true
     }
 
-    override fun setDefaultAudioDeviceEndpointType(endpointType: String?) {
+    override fun setDefaultAudioDeviceEndpointType(endpointType: String?): Boolean {
         impl.setDefaultAudioDeviceEndpointType(endpointType)
+        return true
     }
 
     override fun isTelecomBacked(): Boolean {
@@ -49,32 +47,36 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         return impl.getRegisteredCallIds()
     }
 
-    override fun getAvailableAudioEndpoints(callId: String, promise: Promise) {
-        impl.getAvailableAudioEndpoints(callId, promise)
+    override fun getAvailableAudioEndpoints(callId: String): String =
+            impl.getAvailableAudioEndpoints(callId)
+
+    override fun requestAudioEndpointChange(callId: String, endpointId: String): Boolean {
+        impl.requestAudioEndpointChange(callId, endpointId)
+        return true
     }
 
-    override fun requestAudioEndpointChange(callId: String, endpointId: String, promise: Promise) {
-        impl.requestAudioEndpointChange(callId, endpointId, promise)
-    }
-
-    override fun wireAudioEngineSubscription() {
+    override fun wireAudioEngineSubscription(): Boolean {
         // leave empty
+        return true
     }
 
-    override fun unwireAudioEngineSubscription() {
+    override fun unwireAudioEngineSubscription(): Boolean {
         // leave empty
+        return true
     }
 
-    override fun setupAndroid(options: ReadableMap) {
+    override fun setupAndroid(options: ReadableMap): Boolean {
         impl.setupAndroid(options)
+        return true
     }
 
     override fun canPostNotifications(): Boolean {
         return impl.canPostNotifications()
     }
 
-    override fun setShouldRejectCallWhenBusy(shouldReject: Boolean) {
+    override fun setShouldRejectCallWhenBusy(shouldReject: Boolean): Boolean {
         impl.setShouldRejectCallWhenBusy(shouldReject)
+        return true
     }
 
     override fun getInitialVoipEvents(): WritableArray {
@@ -82,16 +84,18 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         return com.facebook.react.bridge.Arguments.createArray()
     }
 
-    override fun registerVoipToken() {
+    override fun registerVoipToken(): Boolean {
         // leave empty
+        return true
     }
 
     override fun getInitialEvents(): WritableArray {
         return impl.getInitialEvents()
     }
 
-    override fun setCurrentCallActive(callId: String, promise: Promise) {
-        impl.setCurrentCallActive(callId, promise)
+    override fun setCurrentCallActive(callId: String): Boolean {
+        impl.setCurrentCallActive(callId)
+        return true
     }
 
     override fun displayIncomingCall(
@@ -105,8 +109,9 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         impl.displayIncomingCall(callId, phoneNumber, callerName, hasVideo, displayOptions, promise)
     }
 
-    override fun answerIncomingCall(callId: String, promise: Promise) {
-        impl.answerIncomingCall(callId, promise)
+    override fun answerIncomingCall(callId: String): Boolean {
+        impl.answerIncomingCall(callId)
+        return true
     }
 
     override fun startCall(
@@ -124,18 +129,20 @@ class CallingxModule(reactContext: ReactApplicationContext) :
             callId: String,
             phoneNumber: String,
             callerName: String,
-            displayOptions: ReadableMap?,
-            promise: Promise
-    ) {
-        impl.updateDisplay(callId, phoneNumber, callerName, displayOptions, promise)
+            displayOptions: ReadableMap?
+    ): Boolean {
+        impl.updateDisplay(callId, phoneNumber, callerName, displayOptions)
+        return true
     }
 
-    override fun endCallWithReason(callId: String, reason: Double, promise: Promise) {
-        impl.endCallWithReason(callId, reason, promise)
+    override fun endCallWithReason(callId: String, reason: Double): Boolean {
+        impl.endCallWithReason(callId, reason)
+        return true
     }
 
-    override fun endCall(callId: String, promise: Promise) {
-        impl.endCall(callId, promise)
+    override fun endCall(callId: String): Boolean {
+        impl.endCall(callId)
+        return true
     }
 
     override fun isCallTracked(callId: String): Boolean {
@@ -146,35 +153,43 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         return impl.hasRegisteredCall()
     }
 
-    override fun setMutedCall(callId: String, isMuted: Boolean, promise: Promise) {
-        impl.setMutedCall(callId, isMuted, promise)
+    override fun setMutedCall(callId: String, isMuted: Boolean): Boolean {
+        impl.setMutedCall(callId, isMuted)
+        return true
     }
 
-    override fun setOnHoldCall(callId: String, isOnHold: Boolean, promise: Promise) {
-        impl.setOnHoldCall(callId, isOnHold, promise)
+    override fun setOnHoldCall(callId: String, isOnHold: Boolean): Boolean {
+        impl.setOnHoldCall(callId, isOnHold)
+        return true
     }
 
-    override fun startBackgroundTask(taskName: String, timeout: Double, promise: Promise) {
-        impl.startBackgroundTask(taskName, timeout, promise)
+    override fun startBackgroundTask(taskName: String, timeout: Double): Boolean {
+        impl.startBackgroundTask(taskName, timeout)
+        return true
     }
 
-    override fun stopBackgroundTask(taskName: String, promise: Promise) {
-        impl.stopBackgroundTask(taskName, promise)
+    override fun stopBackgroundTask(taskName: String): Boolean {
+        impl.stopBackgroundTask(taskName)
+        return true
     }
 
-    override fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
+    override fun fulfillAnswerCallAction(callId: String, didFail: Boolean): Boolean {
         impl.fulfillAnswerCallAction(callId, didFail)
+        return true
     }
 
-    override fun fulfillEndCallAction(callId: String, didFail: Boolean) {
+    override fun fulfillEndCallAction(callId: String, didFail: Boolean): Boolean {
         impl.fulfillEndCallAction(callId, didFail)
+        return true
     }
 
-    override fun log(message: String, level: String) {
+    override fun log(message: String, level: String): Boolean {
         impl.log(message, level)
+        return true
     }
 
-    override fun stopService(promise: Promise) {
-        impl.stopService(promise)
+    override fun stopService(): Boolean {
+        impl.stopService()
+        return true
     }
 }
