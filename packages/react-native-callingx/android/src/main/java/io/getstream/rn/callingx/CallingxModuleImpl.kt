@@ -27,7 +27,6 @@ class CallingxModuleImpl(
 
     companion object {
         const val TAG = "[Callingx] CallingxModule"
-        const val NAME = "Callingx"
 
         const val EXTRA_CALL_ID = "call_id"
         const val EXTRA_MUTED = "is_muted"
