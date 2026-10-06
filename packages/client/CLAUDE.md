@@ -173,7 +173,7 @@ Device management abstraction for:
 - Collects WebRTC stats from Publisher and Subscriber peer connections
 - Aggregates trace data from multiple sources (SFU client, publisher, subscriber, tracer)
 - Periodic reporting via intervals (configurable `reporting_interval_ms`)
-- Sends both legacy stats and new coordinator stats formats
+- Sends delta-compressed `getStats()` samples inside `rtc_stats`, plus encode/decode `PerformanceStats`
 - Supports rollback mechanism on failure to prevent data loss
 
 **Tracer** (`stats/rtc/`):
@@ -494,7 +494,7 @@ src/
 ### Stats Reporting Flow
 
 1. SfuStatsReporter started with configurable interval
-2. Periodically calls `Publisher.stats.get()` and `Subscriber.stats.get()`
+2. Periodically calls `Publisher.stats.takeSample()` and `Subscriber.stats.takeSample()`
 3. Collects trace data from multiple tracers (SFU, publisher, subscriber)
 4. Aggregates WebRTC stats (encode/decode stats, connection quality)
 5. Sends to SFU via `sendStats()` or to Coordinator via HTTP

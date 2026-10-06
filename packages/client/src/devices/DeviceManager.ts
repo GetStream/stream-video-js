@@ -837,10 +837,29 @@ export abstract class DeviceManager<
     const devices = getCurrentValue(this.listDevices()) || [];
     const currentDevice =
       this.findDevice(devices, selectedDevice) ??
-      createSyntheticDevice(selectedDevice, deviceKind);
+      createSyntheticDevice(
+        selectedDevice,
+        deviceKind,
+        this.getActiveTrackLabel(selectedDevice),
+      );
 
     writePreferences(currentDevice, deviceKey, muted, storageKey);
   }
+
+  /**
+   * Returns the label of the active track if it was captured from the given
+   * device. Used as a fallback when the device list hasn't been enumerated yet,
+   * so the persisted preference still carries the device label.
+   */
+  private getActiveTrackLabel = (deviceId: string) => {
+    const stream = this.state.rootMediaStream;
+    const tracks =
+      this.trackType === TrackType.AUDIO
+        ? stream?.getAudioTracks()
+        : stream?.getVideoTracks();
+    const track = tracks?.find((t) => t.getSettings().deviceId === deviceId);
+    return track?.label;
+  };
 
   protected async applyPersistedPreferences(
     enabledInCallType: boolean,
