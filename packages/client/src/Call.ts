@@ -1007,14 +1007,17 @@ export class Call {
   /**
    * Returns who accepted, rejected or missed the ring for a call session.
    * Safe to poll: it performs no writes and emits no events.
-   *
-   * @param data.call_session_id the call session to read, the current one by default.
-   * Pass it explicitly to read a session that has already ended, as ending a
-   * call clears its current session.
    */
   getRingState = async ({
     call_session_id = this.state.session?.id,
-  }: { call_session_id?: string } = {}) => {
+  }: {
+    /**
+     * The call session to read, the current one by default. Pass it explicitly
+     * to read a session that has already ended, as ending a call clears its
+     * current session.
+     */
+    call_session_id?: string;
+  } = {}) => {
     const sessionId = call_session_id;
     if (!sessionId) {
       throw new Error('Cannot read the ring state: the call has no session');
@@ -1050,10 +1053,13 @@ export class Call {
    * This method should be used only for "ringing" call flows.
    * {@link Call.leave} invokes this method automatically for you when you leave or reject this call.
    * Unless you are implementing a custom "ringing" flow, you should not use this method.
-   *
-   * @param data.reason the reason for rejecting the call, `'decline'` by default.
    */
-  reject = async ({ reason = 'decline' }: { reason?: RejectReason } = {}) => {
+  reject = async ({
+    reason = 'decline',
+  }: {
+    /** The reason for rejecting the call, `'decline'` by default. */
+    reason?: RejectReason;
+  } = {}) => {
     return withoutConcurrency(this.acceptRejectConcurrencyTag, () => {
       this.tracer.trace('call.reject', reason);
       return this.api.reject({ reason });
@@ -2729,24 +2735,26 @@ export class Call {
 
   /**
    * Starts recording the call.
-   *
-   * @param data.recording_type the kind of recording to start, `'composite'` by default.
    */
   startRecording = ({
     recording_type = 'composite',
     ...request
-  }: StartRecordingRequest & { recording_type?: CallRecordingType } = {}) => {
+  }: StartRecordingRequest & {
+    /** The kind of recording to start, `'composite'` by default. */
+    recording_type?: CallRecordingType;
+  } = {}) => {
     return this.api.startRecording({ recording_type }, request);
   };
 
   /**
    * Stops recording the call.
-   *
-   * @param data.recording_type the kind of recording to stop, `'composite'` by default.
    */
   stopRecording = ({
     recording_type = 'composite',
-  }: { recording_type?: CallRecordingType } = {}) => {
+  }: {
+    /** The kind of recording to stop, `'composite'` by default. */
+    recording_type?: CallRecordingType;
+  } = {}) => {
     return this.api.stopRecording({ recording_type });
   };
 
@@ -3046,18 +3054,19 @@ export class Call {
 
   /**
    * Submit user feedback for the call
-   *
-   * @param rating Rating between 1 and 5 denoting the experience of the user in the call
-   * @param reason The reason/description for the rating
-   * @param custom Custom data
    */
-  submitFeedback = async (
-    rating: number,
-    {
-      reason,
-      custom,
-    }: Pick<CollectUserFeedbackRequest, 'reason' | 'custom'> = {},
-  ): Promise<StreamResponse<CollectUserFeedbackResponse>> => {
+  submitFeedback = async ({
+    rating,
+    reason,
+    custom,
+  }: {
+    /** Rating between 1 and 5 denoting the experience of the user in the call. */
+    rating: CollectUserFeedbackRequest['rating'];
+    /** The reason/description for the rating. */
+    reason?: CollectUserFeedbackRequest['reason'];
+    /** Custom data. */
+    custom?: CollectUserFeedbackRequest['custom'];
+  }): Promise<StreamResponse<CollectUserFeedbackResponse>> => {
     const { sdkName, sdkVersion, ...platform } = getSdkSignature(
       await getClientDetails(),
     );
@@ -3077,8 +3086,6 @@ export class Call {
   /**
    * Retrieves the call stats for the current call session in a format suitable
    * for displaying in map-like UIs.
-   *
-   * @param data.session the call session, the current one by default.
    */
   getCallStatsMap = async ({
     session = this.state.session?.id,
@@ -3261,8 +3268,6 @@ export class Call {
 
   /**
    * Stops a single RTMP broadcast of the call.
-   *
-   * @param data.name the name of the broadcast to stop.
    */
   stopRTMPBroadcast = ({ name }: { name: string }) => {
     return this.api.stopRTMPBroadcast({ name });

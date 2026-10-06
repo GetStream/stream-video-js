@@ -31,6 +31,7 @@ methods are available through the React and React Native SDKs.
 | `client.addDevice(token, 'firebase', providerName)`            | `client.addDevice({ id: token, push_provider: 'firebase', push_provider_name: providerName })` |
 | `client.addVoipDevice(token, 'apn', providerName)`             | `client.addVoipDevice({ id: token, push_provider: 'apn', push_provider_name: providerName })`  |
 | `client.removeDevice(token)`                                   | `client.removeDevice({ id: token })`                                                           |
+| `call.submitFeedback(rating, { reason })`                      | `call.submitFeedback({ rating, reason })`                                                      |
 
 `queryParticipants` requires `filter_conditions`; use `{ filter_conditions: {} }`
 to supply an empty filter. Session fields follow the corresponding API operation: `call_session_id` for ring
@@ -49,7 +50,7 @@ the optional `hardware_id` field.
 Convenience methods such as `client.call(type, id)`, `call.muteUser(userId, 'audio')`,
 `call.muteSelf('audio')`, `call.muteOthers('audio')`, `call.muteAllUsers('audio')`,
 `call.grantPermissions(userId, permissions)`, `call.revokePermissions(userId, permissions)`,
-`call.submitFeedback(rating, { reason })`, and `call.camera.select(deviceId)`
+and `call.camera.select(deviceId)`
 keep their positional arguments. `queryCalls` continues to take a request object
 followed by a separate object for local SDK options, such as `withDisabledDevices`.
 

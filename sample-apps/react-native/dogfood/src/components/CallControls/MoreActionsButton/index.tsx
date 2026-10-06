@@ -103,7 +103,8 @@ export const MoreActionsButton = ({
 
   const handleRating = async (rating: number) => {
     await call
-      ?.submitFeedback(Math.min(Math.max(1, rating), 5), {
+      ?.submitFeedback({
+        rating: Math.min(Math.max(1, rating), 5),
         reason: '<no-message-provided>',
       })
       .catch((err) => console.warn('Failed to submit call feedback', err));

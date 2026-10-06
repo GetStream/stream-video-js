@@ -579,8 +579,6 @@ export class StreamVideoClient {
 
   /**
    * removeDevice - Removes the device with the given id.
-   *
-   * @param data.id the device id.
    */
   removeDevice = async ({ id }: Pick<CreateDeviceRequest, 'id'>) => {
     return await this.apiClient.sendRequest<Response>(
