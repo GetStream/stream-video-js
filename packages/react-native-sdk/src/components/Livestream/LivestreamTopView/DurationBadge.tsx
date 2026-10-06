@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { DurationIndicator } from '../../utility/DurationIndicator';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { convertTimestampToDate } from '@stream-io/video-client';
 import {
+  convertTimestampToDate,
   type CallSessionResponse,
   type StreamCallEvent,
 } from '@stream-io/video-client';

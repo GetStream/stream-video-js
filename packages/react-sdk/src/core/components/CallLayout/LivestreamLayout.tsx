@@ -7,9 +7,12 @@ import {
   useState,
 } from 'react';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { convertTimestampToDate } from '@stream-io/video-client';
+import {
+  convertTimestampToDate,
+  hasScreenShare,
+  humanize,
+} from '@stream-io/video-client';
 import { useI18n } from '../../../i18n';
-import { hasScreenShare, humanize } from '@stream-io/video-client';
 import { ParticipantView, useParticipantViewContext } from '../ParticipantView';
 import { ParticipantsAudio } from '../Audio';
 import { Icon, IconButton } from '../../../components';

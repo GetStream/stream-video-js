@@ -324,13 +324,20 @@ export class StreamClient {
     this.resolveConnectionId = undefined;
   };
 
+  /**
+   * Creates a guest user. Public endpoint: it needs no connected user.
+   */
+  createGuestUser = (data: CreateGuestRequest) => {
+    return this.doAxiosRequest<CreateGuestResponse, CreateGuestRequest>(
+      'post',
+      '/api/v2/guest',
+      data,
+      { publicEndpoint: true },
+    ).then((response) => response.data);
+  };
+
   connectGuestUser = async (user: User & { type: 'guest' }) => {
-    this.guestUserCreatePromise = this.doAxiosRequest<
-      CreateGuestResponse,
-      CreateGuestRequest
-    >('post', '/api/v2/guest', { user }, { publicEndpoint: true }).then(
-      (response) => response.data,
-    );
+    this.guestUserCreatePromise = this.createGuestUser({ user });
 
     const response = await this.guestUserCreatePromise;
     this.guestUserCreatePromise.finally(

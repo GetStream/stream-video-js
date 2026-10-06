@@ -1018,11 +1018,10 @@ export class Call {
      */
     call_session_id?: string;
   } = {}) => {
-    const sessionId = call_session_id;
-    if (!sessionId) {
+    if (!call_session_id) {
       throw new Error('Cannot read the ring state: the call has no session');
     }
-    return this.api.getCallRingState({ call_session_id: sessionId });
+    return this.api.getCallRingState({ call_session_id });
   };
 
   /**

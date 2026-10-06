@@ -14,7 +14,6 @@ import type {
 import type {
   CreateDeviceRequest,
   CreateGuestRequest,
-  CreateGuestResponse,
   ListDevicesResponse,
   Response,
 } from './gen/shims';
@@ -43,6 +42,8 @@ import { ClientEventReporter } from './reporting';
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
  */
+const DEVICES_PATH = '/api/v2/devices';
+
 export class StreamVideoClient {
   /**
    * The reactive state of this client.
@@ -485,11 +486,7 @@ export class StreamVideoClient {
    * @param data the data for the guest user.
    */
   createGuestUser = async (data: CreateGuestRequest) => {
-    const response = await this.streamClient.doAxiosRequest<
-      CreateGuestResponse,
-      CreateGuestRequest
-    >('post', '/api/v2/guest', data, { publicEndpoint: true });
-    return response.data;
+    return this.streamClient.createGuestUser(data);
   };
 
   /**
@@ -550,11 +547,10 @@ export class StreamVideoClient {
   addDevice = async (data: CreateDeviceRequest) => {
     return await this.apiClient.sendRequest<Response>(
       'POST',
-      '/api/v2/devices',
+      DEVICES_PATH,
       undefined,
       undefined,
       data,
-      'application/json',
     );
   };
 
@@ -573,7 +569,7 @@ export class StreamVideoClient {
   getDevices = async () => {
     return await this.apiClient.sendRequest<ListDevicesResponse>(
       'GET',
-      '/api/v2/devices',
+      DEVICES_PATH,
     );
   };
 
@@ -583,7 +579,7 @@ export class StreamVideoClient {
   removeDevice = async ({ id }: Pick<CreateDeviceRequest, 'id'>) => {
     return await this.apiClient.sendRequest<Response>(
       'DELETE',
-      '/api/v2/devices',
+      DEVICES_PATH,
       undefined,
       { id },
     );
