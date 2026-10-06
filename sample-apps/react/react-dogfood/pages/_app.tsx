@@ -1,5 +1,6 @@
 import '@stream-io/video-styling/dist/css/embedded.css';
 import 'stream-chat-react/dist/css/index.css';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import '../style/index.scss';
 import { ComponentType } from 'react';
 import { Session } from 'next-auth';
