@@ -6,12 +6,18 @@ declare const timestampNsBrand: unique symbol;
  * NOT milliseconds. `new Date(t)` is out of range and yields an Invalid Date, whose
  * `.toISOString()` then throws; `models/timestamp-guard.ts` turns that into a
  * compile error. Comparing or sorting two timestamps is fine -- same unit, plain
- * numbers. For anything else -- a `Date`, epoch ms for arithmetic against
- * `Date.now()`, a timestamp from the local clock -- use the SDK's time helpers
- * instead of converting by hand.
+ * numbers. Everything else should go through this SDK's time helpers:
  *
- * A request date field is typed `Date`, not this -- convert a server-sent timestamp
- * to a `Date` before handing it back to the API.
+ *   nsToDate(t)               a Date
+ *   convertTimestampToDate(t) a Date, or undefined when the value is absent or NaN
+ *   nsToMs(t)                 epoch ms, for arithmetic against Date.now()
+ *   nsToRfc3339(t)            an RFC3339 string keeping sub-millisecond precision
+ *   dateToNs(d), msToNs(ms)   back to a wire timestamp
+ *   nowNs()                   the local clock, wire-comparable
+ *   asTimestampNS(n)          brand a number already in ns (DB rows, fixtures) -- no conversion
+ *
+ * A request date field is typed `Date`, not this -- pass `nsToDate(t)` when handing a
+ * server-sent timestamp back to the API, or `nsToRfc3339(t)` where precision matters.
  *
  * Values above `Number.MAX_SAFE_INTEGER` are quantised to ~256ns, so ordering holds
  * but exact equality after a JSON round-trip does not.
@@ -1667,7 +1673,7 @@ export interface ConnectionErrorEvent {
   created_at: TimestampNS;
   error: APIError;
   /**
-   * The type of event: "connection.ok" in this case
+   * The type of event: "connection.error" in this case
    */
   type: string;
 }
@@ -1790,11 +1796,11 @@ export interface DeliveryZoneSegment {
 
 export interface DeviceResponse {
   /**
-   * Date/time of creation
+   * The date when the device was created.
    */
   created_at: TimestampNS;
   /**
-   * Device ID
+   * The device identifier.
    */
   id: string;
   /**
@@ -2618,7 +2624,13 @@ export interface OwnUserResponse {
   name?: string;
   revoke_tokens_issued_before?: TimestampNS;
   blocked_user_ids?: Array<string>;
+  /**
+   * The privacy settings of the user.
+   */
   privacy_settings?: PrivacySettingsResponse;
+  /**
+   * The push preference details.
+   */
   push_preferences?: PushPreferencesResponse;
   teams_role?: Record<string, string>;
 }
@@ -2811,7 +2823,13 @@ export interface PublisherStatsResponse {
 
 export interface PushPreferencesResponse {
   call_level?: string;
+  /**
+   * The scope level of the push notifications.
+   */
   chat_level?: string;
+  /**
+   * If provided the notifications will be disabled until the set date.
+   */
   disabled_until?: TimestampNS;
   feeds_level?: string;
   chat_preferences?: ChatPreferencesResponse;
@@ -4690,6 +4708,9 @@ export interface UserResponsePrivacyFields {
   last_active?: TimestampNS;
   name?: string;
   revoke_tokens_issued_before?: TimestampNS;
+  /**
+   * The privacy settings of the user.
+   */
   privacy_settings?: PrivacySettingsResponse;
   teams_role?: Record<string, string>;
 }
