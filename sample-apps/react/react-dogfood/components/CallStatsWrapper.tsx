@@ -1,9 +1,6 @@
-import {
-  CallStats,
-  CompositeButton,
-  Icon,
-  WithTooltip,
-} from '@stream-io/video-react-sdk';
+import { CompositeButton, Icon, WithTooltip } from '@stream-io/video-react-sdk';
+
+import { CallStats } from './CallStats';
 import { useAppI18n } from '../hooks/useAppI18n';
 
 export const ToggleStatsButton = (props: {

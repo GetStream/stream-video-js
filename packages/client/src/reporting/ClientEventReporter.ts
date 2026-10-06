@@ -597,11 +597,16 @@ export class ClientEventReporter {
     }
 
     if (event.state === 'failed') {
+      const iceConnected =
+        event.iceConnectionState === 'connected' ||
+        event.iceConnectionState === 'completed';
       this.emitPeerConnectionFailure(
         cid,
         role,
-        'DTLS_CONNECTIVITY_FAILED',
-        'DTLS connectivity checks failed',
+        iceConnected ? 'DTLS_CONNECTIVITY_FAILED' : 'ICE_CONNECTIVITY_FAILED',
+        iceConnected
+          ? 'DTLS connectivity checks failed'
+          : 'ICE connectivity checks failed',
       );
       return;
     }

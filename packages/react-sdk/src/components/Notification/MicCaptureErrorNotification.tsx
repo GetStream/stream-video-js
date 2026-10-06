@@ -27,16 +27,27 @@ export const MicCaptureErrorNotification = ({
     });
   }, [call]);
 
-  const message =
-    text ??
-    t(
-      'notification.micCaptureError.text',
-      'Your microphone is not capturing audio. Please check your setup.',
-    );
+  const message = text ?? (
+    <>
+      <span className="str-video__notification__line">
+        {t(
+          'notification.micCaptureError.title',
+          'Your microphone is not capturing audio.',
+        )}
+      </span>
+      <span className="str-video__notification__line">
+        {t(
+          'notification.micCaptureError.description',
+          'Please check your setup.',
+        )}
+      </span>
+    </>
+  );
 
   return (
     <Notification
       message={message}
+      state="error"
       isVisible={isVisible}
       placement={placement}
       close={() => setIsVisible(false)}

@@ -13,6 +13,7 @@ import { createToken } from '../modules/helpers/createToken';
 import axios, { AxiosResponseTransformer } from 'axios';
 import { Alert } from 'react-native';
 import { useRegisterNonRingingPushToken } from '../hooks/useRegisterNonRingingPushToken';
+import { useEncryptedDeepLinkEffect } from '../hooks/useDeepLinkEffect';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
@@ -37,6 +38,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
     undefined,
   );
+  useEncryptedDeepLinkEffect(videoClient);
 
   const user = useMemo(
     () => ({

@@ -3,25 +3,36 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: var(--str-video__spacing-sm);
   height: 100%;
-  padding: var(--str-video__spacing-md);
+  padding: var(--str-video__spacing-3xl) var(--str-video__spacing-xl);
   text-align: center;
 
   &__icon {
-    height: 100px;
-    width: 100px;
+    height: 32px;
+    width: 32px;
+    color: var(--str-video__text-tertiary);
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--str-video__spacing-xxs);
+    max-width: 320px;
+    font-size: var(--str-video__typography-font-size-sm);
+    line-height: var(--str-video__typography-line-height-normal);
   }
 
   &__title {
-    font-size: var(--str-video__font-size-md);
-    font-weight: 600;
-    margin-bottom: 0;
+    margin: 0;
+    font-weight: var(--str-video__typography-font-weight-semi-bold);
+    color: var(--str-video__text-primary);
   }
 
   &__description {
-    font-size: var(--str-video__font-size-sm);
+    margin: 0;
     font-weight: 400;
-    color: var(--str-video__text-color3);
+    color: var(--str-video__text-secondary);
   }
 }
 
@@ -30,29 +41,36 @@
   justify-content: space-between;
   align-items: center;
 
-  padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
+  gap: var(--str-video__spacing-sm);
+  padding: var(--str-video__spacing-md);
 
   .rd__chat-header__title {
     flex: 1;
-    font-size: var(--str-video__font-size-sm);
-    font-weight: 500;
+    margin: 0;
+    font-size: var(--str-video__typography-font-size-md);
+    font-weight: var(--str-video__typography-font-weight-semi-bold);
+    line-height: var(--str-video__typography-line-height-normal);
   }
 }
 
 .str-chat {
-  --str-chat__primary-color: var(--str-video__primary-color);
-  --str-chat__active-primary-color: var(--str-video__secondary-color);
-  --str-chat__background-color: var(--str-video__base-color7);
-  --str-chat__primary-surface-color: var(--str-video__background-color2);
-  --str-chat__primary-surface-color-low-emphasis: var(
-    --str-video__background-color2
+  --str-chat__primary-color: var(--str-video__accent-primary);
+  --str-chat__active-primary-color: var(--str-video__accent-primary);
+  --str-chat__background-core-app: var(
+    --str-video__background-core-elevation-1
   );
-  --str-chat__secondary-background-color: var(--str-video__background-color4);
+  --str-chat__background-core-elevation-1: var(
+    --str-video__background-core-elevation-1
+  );
   --str-chat__channel-border-radius: 8px;
 
   .str-video__icon {
     height: 18px;
     width: 18px;
+  }
+
+  .str-chat__attachment-selector__menu-button .str-video__icon {
+    background-color: currentColor;
   }
 }
 
@@ -72,10 +90,10 @@
   min-width: 16px;
   height: 16px;
   padding: 0 5px;
-  border-radius: var(--str-video__border-radius-circle);
-  background: var(--str-video__brand-color3);
+  border-radius: var(--str-video__radius-max);
+  background: var(--str-video__accent-success);
   color: var(--str-video__text-on-inverse);
-  font-size: 10px;
+  font-size: var(--str-video__typography-font-size-xxs);
   font-weight: 600;
   line-height: 1;
   display: flex;
@@ -90,9 +108,9 @@
   bottom: 96px;
   max-width: 280px;
   padding: var(--str-video__spacing-sm);
-  background: var(--str-video__background-color1);
-  border-radius: var(--str-video__border-radius-md);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  background: var(--str-video__background-core-surface-default);
+  border-radius: var(--str-video__radius-2xl);
+  box-shadow: var(--str-video__box-shadow-2);
   z-index: 100;
   animation: rd-chat__new-message-toast-in 0.18s ease-out;
 }
@@ -116,7 +134,7 @@
 }
 
 .rd-chat__new-message-notification__sender {
-  font-size: var(--str-video__font-size-sm);
+  font-size: var(--str-video__typography-font-size-sm);
   font-weight: 600;
   color: var(--str-video__text-primary);
   overflow: hidden;
@@ -125,8 +143,8 @@
 }
 
 .rd-chat__new-message-notification__text {
-  font-size: var(--str-video__font-size-sm);
-  color: var(--str-video__text-color3);
+  font-size: var(--str-video__typography-font-size-sm);
+  color: var(--str-video__text-tertiary);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;

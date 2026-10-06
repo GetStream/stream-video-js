@@ -46,3 +46,10 @@
     }
   }
 }
+
+.str-video__accept-call-button {
+  --str-video__button-bg: var(--str-video__control-accept-call-button-bg);
+  --str-video__button-fg-on-fill: var(
+    --str-video__control-accept-call-button-text
+  );
+}

@@ -1,9 +1,7 @@
 import {
-  ButtonHTMLAttributes,
   ComponentProps,
   forwardRef,
   Fragment,
-  PropsWithChildren,
   useEffect,
   useState,
 } from 'react';
@@ -14,8 +12,8 @@ import {
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { StreamTFunction, useI18n } from '../../i18n';
-import clsx from 'clsx';
 
+import { Button } from '../Button';
 import { useFloatingUIPreset } from '../../hooks';
 
 const byNameOrId = (a: UserResponse, b: UserResponse) => {
@@ -89,7 +87,10 @@ export const PermissionRequests = () => {
           {permissionRequests.length} pending permission requests
         </span>
         <Button
-          type="button"
+          variant="secondary"
+          appearance="outline"
+          size="sm"
+          className="str-video__permission-request__button"
           onClick={() => {
             setExpanded((e) => !e);
           }}
@@ -139,22 +140,28 @@ export const PermissionRequestList = forwardRef<
                   {messageForPermission(user.name || user.id, permission, t)}
                 </div>
                 <Button
-                  className="str-video__permission-request__button--allow"
-                  type="button"
+                  variant="primary"
+                  appearance="solid"
+                  size="sm"
+                  className="str-video__permission-request__button str-video__permission-request__button--allow"
                   onClick={handleUpdatePermission(request, 'grant')}
                 >
                   {t('common.allow.label', 'Allow')}
                 </Button>
                 <Button
-                  className="str-video__permission-request__button--reject"
-                  type="button"
+                  variant="secondary"
+                  appearance="outline"
+                  size="sm"
+                  className="str-video__permission-request__button str-video__permission-request__button--reject"
                   onClick={handleUpdatePermission(request, 'revoke')}
                 >
                   {t('common.revoke.label', 'Revoke')}
                 </Button>
                 <Button
-                  className="str-video__permission-request__button--reject"
-                  type="button"
+                  variant="secondary"
+                  appearance="outline"
+                  size="sm"
+                  className="str-video__permission-request__button str-video__permission-request__button--reject"
                   onClick={handleUpdatePermission(request, 'dismiss')}
                 >
                   {t('common.dismiss.label', 'Dismiss')}
@@ -167,18 +174,6 @@ export const PermissionRequestList = forwardRef<
     </div>
   );
 });
-
-const Button = (
-  props: PropsWithChildren<ButtonHTMLAttributes<HTMLButtonElement>>,
-) => {
-  const { className, ...rest } = props;
-  return (
-    <button
-      className={clsx('str-video__permission-request__button', className)}
-      {...rest}
-    />
-  );
-};
 
 const messageForPermission = (
   userName: string,

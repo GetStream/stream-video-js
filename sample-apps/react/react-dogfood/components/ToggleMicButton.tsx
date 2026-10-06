@@ -13,6 +13,7 @@ import {
   useI18n,
 } from '@stream-io/video-react-sdk';
 import { isMobile } from '../helpers/isMobile';
+import { useSettings } from '../context/SettingsContext';
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButtonRender(props, ref) {
@@ -53,8 +54,13 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
 
 export const ToggleMicButton = () => {
   const { t } = useI18n();
+  const {
+    settings: { speakingDetectionEnabled },
+  } = useSettings();
   const inputVisualType =
-    isMobile() || Browsers.isSafari() ? 'list' : 'preview';
+    !speakingDetectionEnabled || isMobile() || Browsers.isSafari()
+      ? 'list'
+      : 'preview';
 
   return (
     <MenuToggle
@@ -64,6 +70,7 @@ export const ToggleMicButton = () => {
     >
       <DeviceSelectorAudioInput
         visualType={inputVisualType}
+        volumeIndicatorVisible={speakingDetectionEnabled}
         title={t('common.microphone.label', 'Microphone')}
       />
       <DeviceSelectorAudioOutput

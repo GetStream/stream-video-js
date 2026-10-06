@@ -50,6 +50,7 @@ export const DegradedPerformanceNotification = ({
 
   return (
     <Notification
+      state="error"
       isVisible={performance?.degraded}
       placement={placement || 'top-start'}
       message={message}

@@ -3,11 +3,11 @@ button.rd__button,
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--str-video__border-radius-md);
+  border-radius: var(--str-video__radius-2xl);
   padding: calc(var(--str-video__space-6) - 1px) var(--str-video__spacing-md);
   text-align: center;
   width: 100%;
-  font-size: var(--str-video__font-size-sm);
+  font-size: var(--str-video__typography-font-size-sm);
   line-height: var(--str-video__spacing-md);
   font-weight: 500;
   border: 1px solid transparent;
@@ -15,17 +15,21 @@ button.rd__button,
   background: none;
 
   &:hover {
-    background-color: var(--str-video__button-default-hover);
+    background-image: linear-gradient(
+      var(--str-video__background-utility-hover),
+      var(--str-video__background-utility-hover)
+    );
     cursor: pointer;
   }
 
   &__icon {
     margin-right: var(--str-video__space-6);
-    background-color: var(--str-video__text-primary);
+    background-color: currentColor;
   }
 
   &:disabled {
-    background-color: var(--str-video__button-default-disabled);
+    background-color: var(--str-video__background-utility-disabled);
+    color: var(--str-video__text-disabled);
     cursor: not-allowed;
   }
 
@@ -35,32 +39,32 @@ button.rd__button,
   }
 
   &--primary {
-    background-color: var(--str-video__button-primary-active);
+    background-color: var(--str-video__accent-primary);
+    color: var(--str-video__button-primary-text-on-accent);
 
     &:hover {
-      background-color: var(--str-video__button-primary-hover);
+      background-image: linear-gradient(
+        var(--str-video__background-utility-hover),
+        var(--str-video__background-utility-hover)
+      );
       cursor: pointer;
     }
 
     &:disabled {
-      background-color: var(--str-video__button-default-disabled);
+      background-color: var(--str-video__background-utility-disabled);
       cursor: not-allowed;
-    }
-
-    .rd__button__icon {
-      background-color: white;
     }
   }
 
   &--large {
-    font-size: var(--str-video__font-size-md);
+    font-size: var(--str-video__typography-font-size-md);
     padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
-    border-radius: var(--str-video__border-radius-md);
+    border-radius: var(--str-video__radius-2xl);
   }
 
   &--secondary {
     background-color: transparent;
-    border-color: var(--str-video__button-default-hover);
+    border-color: var(--str-video__border-core-default);
 
     &:disabled {
       background-color: transparent;

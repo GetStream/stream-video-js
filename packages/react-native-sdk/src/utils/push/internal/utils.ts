@@ -91,18 +91,18 @@ export const processCallFromPushInBackground = async (
     return;
   }
 
-  let callFromPush: Call;
-  try {
-    callFromPush = await videoClient.onRingingCall(call_cid);
-  } catch (e) {
-    logger.error(
-      'processCallFromPushInBackground: failed to fetch call from push notification',
-      e,
-    );
-    onIOSActionCanBeFulfilled(true);
-    return;
-  }
   if (action === 'accept') {
+    let callFromPush: Call;
+    try {
+      callFromPush = await videoClient.onRingingCall(call_cid);
+    } catch (e) {
+      logger.error(
+        'processCallFromPushInBackground: failed to fetch call from push notification',
+        e,
+      );
+      onIOSActionCanBeFulfilled(true);
+      return;
+    }
     if (pushConfig.publishOptions) {
       callFromPush.updatePublishOptions(pushConfig.publishOptions);
     }
@@ -128,8 +128,30 @@ export const processCallFromPushInBackground = async (
         'processCallFromPushInBackground: failed to join call from push notification',
         e,
       );
+      // Cleanup is not repeated here: `join()`'s own failure boundary already
+      // released whatever the pre-join hook installed, and a second call would
+      // invoke a release-only registration twice.
+      onIOSActionCanBeFulfilled(true);
     }
   } else if (action === 'decline') {
+    let callFromPush: Call;
+    try {
+      // decline must act on the live instance if one exists (e.g. an active non-ringing call),
+      // onRingingCall only matches ringing calls and would create a duplicate instance otherwise
+      const existingCall = videoClient.state.calls.find(
+        (c) => c.cid === call_cid && c.state.callingState !== CallingState.LEFT,
+      );
+      callFromPush =
+        existingCall ?? (await videoClient.onRingingCall(call_cid));
+    } catch (e) {
+      logger.error(
+        'processCallFromPushInBackground: failed to fetch call from push notification',
+        e,
+      );
+      onIOSActionCanBeFulfilled(true);
+      return;
+    }
+
     const alreadyLeft = callFromPush.state.callingState === CallingState.LEFT;
     if (alreadyLeft) {
       onIOSActionCanBeFulfilled(false);

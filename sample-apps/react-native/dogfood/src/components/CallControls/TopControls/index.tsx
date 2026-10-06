@@ -7,6 +7,8 @@ import {
   ToggleCameraFaceButton,
 } from '@stream-io/video-react-native-sdk';
 import { LayoutSwitcherButton } from './LayoutSwitcherButton';
+import { E2EEBadge } from './E2EEBadge';
+import { CallDurationIndicator } from '@stream-io/video-react-native-sdk/src/components/utility/CallDurationIndicator';
 
 export type TopControlsProps = {
   onHangupCallHandler?: () => void;
@@ -14,11 +16,7 @@ export type TopControlsProps = {
   isAwaitingResponse: boolean;
 };
 
-export const TopControls = ({
-  onHangupCallHandler,
-  isCallRecordingInProgress,
-  isAwaitingResponse,
-}: TopControlsProps) => {
+export const TopControls = ({ onHangupCallHandler }: TopControlsProps) => {
   const [topControlsHeight, setTopControlsHeight] = useState<number>(0);
   const [topControlsWidth, setTopControlsWidth] = useState<number>(0);
   const styles = useStyles();
@@ -47,7 +45,10 @@ export const TopControls = ({
             />
           </View>
         </View>
-        <View style={styles.centerElement}></View>
+        <View style={styles.centerElement}>
+          <E2EEBadge />
+          <CallDurationIndicator />
+        </View>
         <View style={styles.rightElement}>
           <HangUpCallButton onPressHandler={onHangupCallHandler} />
         </View>
@@ -84,6 +85,9 @@ const useStyles = () => {
         centerElement: {
           flex: 1,
           alignItems: 'center',
+          flexDirection: 'row',
+          gap: 8,
+          justifyContent: 'center',
         },
         rightElement: {
           flex: 1,

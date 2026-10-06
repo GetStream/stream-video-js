@@ -1,22 +1,5 @@
-import { NativeModules, Platform } from 'react-native';
+import NoiseCancellationReactNative from './NativeNoiseCancellationReactNative';
 import type { Events, INoiseCancellation } from './types';
-
-const LINKING_ERROR =
-  `The package '@stream-io/noise-cancellation-react-native' doesn't seem to be linked. Make sure: \n\n` +
-  Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
-  '- You rebuilt the app after installing the package\n' +
-  '- You are not using Expo Go\n';
-
-const NoiseCancellationReactNative = NativeModules.NoiseCancellationReactNative
-  ? NativeModules.NoiseCancellationReactNative
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      },
-    );
 
 /**
  * A wrapper around the native stream noise cancellation SDK.
@@ -34,7 +17,7 @@ export class NoiseCancellation implements INoiseCancellation {
    * Checks if the noise cancellation can be automatically enabled for the current device.
    * In react native, it will be auto enabled only if the device supports advanced audio processing.
    */
-  canAutoEnable = deviceSupportsAdvancedAudioProcessing;
+  canAutoEnable = async () => deviceSupportsAdvancedAudioProcessing();
 
   init = () => Promise.resolve();
 
@@ -120,25 +103,26 @@ export class NoiseCancellation implements INoiseCancellation {
 
 /**
  * Checks if noise cancellation is currently enabled.
- * @returns A promise that resolves with a boolean indicating if noise cancellation is enabled.
+ * @returns Whether noise cancellation is enabled.
  */
-export const isEnabled = (): Promise<boolean> => {
+export const isEnabled = (): boolean => {
   return NoiseCancellationReactNative.isEnabled();
 };
 
 /**
  * Enables or disables noise cancellation.
  * @param enabled - Whether to enable or disable noise cancellation.
- * @returns A promise that resolves when the operation is complete.
+ * @returns `true` when the enabled state has been updated.
+ * @throws If the native processor has not been registered.
  */
-export const setEnabled = (enabled: boolean): Promise<boolean> => {
+export const setEnabled = (enabled: boolean): boolean => {
   return NoiseCancellationReactNative.setEnabled(enabled);
 };
 
 /**
  * Checks if the device supports advanced audio processing required for noise cancellation.
- * @returns A promise that resolves with a boolean indicating if the device supports advanced audio processing.
+ * @returns Whether the device supports advanced audio processing.
  */
-export const deviceSupportsAdvancedAudioProcessing = (): Promise<boolean> => {
+export const deviceSupportsAdvancedAudioProcessing = (): boolean => {
   return NoiseCancellationReactNative.deviceSupportsAdvancedAudioProcessing();
 };

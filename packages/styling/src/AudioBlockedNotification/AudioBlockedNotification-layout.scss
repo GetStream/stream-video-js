@@ -1,7 +1,7 @@
 .str-video__audio-blocked-notification {
   position: absolute;
   inset: 0;
-  z-index: 4;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,13 +12,13 @@
   .str-video__audio-blocked-notification__message {
     display: inline-flex;
     align-items: center;
-    gap: 0.625rem;
-    padding: 0.625rem;
+    gap: var(--str-video__spacing-xs);
+    padding: var(--str-video__spacing-xs);
     max-width: calc(100% - 1.6rem);
 
     .str-video__icon {
-      width: 1.5rem;
-      height: 1.5rem;
+      width: var(--str-video__size-24);
+      height: var(--str-video__size-24);
       flex-shrink: 0;
     }
   }
@@ -32,8 +32,8 @@
   }
 
   .str-video__audio-blocked-notification__title {
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: var(--str-video__typography-font-size-xs);
+    font-weight: var(--str-video__typography-font-weight-semi-bold);
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
@@ -41,8 +41,8 @@
   }
 
   .str-video__audio-blocked-notification__subtitle {
-    font-size: 0.75rem;
-    font-weight: 400;
+    font-size: var(--str-video__typography-font-size-xs);
+    font-weight: var(--str-video__typography-font-weight-regular);
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;

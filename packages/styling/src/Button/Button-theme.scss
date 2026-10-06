@@ -5,6 +5,9 @@
   --str-video__button-fg-on-fill: var(
     --str-video__button-primary-text-on-accent
   );
+  --str-video__button-border-disabled: var(
+    --str-video__border-utility-disabled
+  );
 
   &--primary {
     --str-video__button-bg: var(--str-video__button-primary-bg);
@@ -100,7 +103,7 @@
 
     &.str-video__button--outline {
       box-shadow: inset 0 0 0 var(--str-video__w100)
-        var(--str-video__border-utility-disabled);
+        var(--str-video__button-border-disabled);
     }
   }
 

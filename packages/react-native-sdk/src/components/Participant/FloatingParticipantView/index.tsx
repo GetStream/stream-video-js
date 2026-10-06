@@ -122,6 +122,7 @@ export const FloatingParticipantView = ({
   }>();
 
   const floatingVideoDimensions = useFloatingVideoDimensions(
+    containerDimensions,
     participant,
     'videoTrack',
   );

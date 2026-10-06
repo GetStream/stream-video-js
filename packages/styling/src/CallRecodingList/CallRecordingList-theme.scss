@@ -7,33 +7,6 @@
   color: var(--str-video__text-primary);
 }
 
-.str-video__call-recordings__toggle-button--active {
-  background-color: var(--str-video__background-color7);
-}
-
-.str-video__refresh-button {
-  background-color: transparent;
-  cursor: pointer;
-  border-radius: 4px;
-
-  &:hover {
-    background-color: var(--str-video__background-color7);
-  }
-
-  &:active {
-    background-color: var(--str-video__background-color5);
-    transition: background-color 0.2s ease-out;
-  }
-
-  .str-video__refresh-button--icon {
-    @include utils.apply-mask-image(
-      var(--str-video__icon--refresh),
-      var(--str-video__text-color1),
-      contain
-    );
-  }
-}
-
 .str-video__call-recording-list__listing--empty {
   display: flex;
   flex-direction: column;

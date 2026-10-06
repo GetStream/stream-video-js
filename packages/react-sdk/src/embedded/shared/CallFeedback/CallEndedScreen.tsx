@@ -1,5 +1,5 @@
 import { useI18n } from '../../../i18n';
-import { Icon } from '../../../components';
+import { Button, Icon } from '../../../components';
 
 interface CallEndedScreenProps {
   onJoin?: () => void;
@@ -27,8 +27,9 @@ export const CallEndedScreen = ({
                   'Left by mistake?',
                 )}
               </p>
-              <button
-                type="button"
+              <Button
+                variant="secondary"
+                appearance="outline"
                 className="str-video__embedded-call-feedback__ended-button"
                 onClick={onJoin}
               >
@@ -37,7 +38,7 @@ export const CallEndedScreen = ({
                   'callFeedback.callEndedScreen.rejoinCall.label',
                   'Rejoin call',
                 )}
-              </button>
+              </Button>
             </div>
             <div className="str-video__embedded-call-feedback__ended-divider" />
           </>
@@ -49,8 +50,9 @@ export const CallEndedScreen = ({
               'Help us improve',
             )}
           </p>
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            appearance="outline"
             className="str-video__embedded-call-feedback__ended-button"
             onClick={onFeedback}
           >
@@ -59,7 +61,7 @@ export const CallEndedScreen = ({
               'callFeedback.callEndedScreen.leaveFeedback.label',
               'Leave feedback',
             )}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

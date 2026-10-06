@@ -458,7 +458,7 @@ export const resolveTheme = (
         margin: theme.primitives.spacingXxs,
       },
       participantNoGrid: {
-        marginHorizontal: theme.primitives.spacingXxs,
+        margin: theme.primitives.spacingXxs,
       },
     },
     callParticipantsSpotlight: {

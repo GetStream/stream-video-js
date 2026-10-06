@@ -11,9 +11,9 @@ $scope-name: 'str-video__speaker-layout';
   justify-content: center;
   height: 100%;
   width: 100%;
-  gap: 1rem;
-  padding-inline: 2px; // to see "speaking" outline
-  padding: 2px;
+  gap: var(--str-video__spacing-md);
+  padding-inline: var(--str-video__spacing-xxxs);
+  padding: var(--str-video__spacing-xxxs);
 
   .str-video__participant-view {
     aspect-ratio: 16/9;
@@ -50,26 +50,26 @@ $scope-name: 'str-video__speaker-layout';
 
     & > .str-video__button {
       .str-video__icon {
-        width: 1rem;
-        height: 1rem;
+        width: var(--str-video__icon-size-sm);
+        height: var(--str-video__icon-size-sm);
       }
     }
 
     .str-video__speaker-layout__participants-bar--button-left {
       position: absolute;
-      left: 0.5rem;
+      left: var(--str-video__space-8);
     }
     .str-video__speaker-layout__participants-bar--button-right {
       position: absolute;
-      right: 0.5rem;
+      right: var(--str-video__space-8);
     }
     .str-video__speaker-layout__participants-bar--button-top {
       position: absolute;
-      top: 0.5rem;
+      top: var(--str-video__space-8);
     }
     .str-video__speaker-layout__participants-bar--button-bottom {
       position: absolute;
-      bottom: 0.5rem;
+      bottom: var(--str-video__space-8);
     }
   }
 

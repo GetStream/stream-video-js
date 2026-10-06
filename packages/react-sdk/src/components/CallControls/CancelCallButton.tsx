@@ -5,7 +5,7 @@ import { useI18n } from '../../i18n';
 
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
 
-import { Button, IconButton } from '../Button';
+import { Button, ButtonProps, IconButton } from '../Button';
 import { Icon } from '../Icon';
 import { WithTooltip } from '../Tooltip';
 
@@ -68,6 +68,7 @@ const CancelCallToggleMenuButton = forwardRef<
 export type CancelCallButtonProps = {
   disabled?: boolean;
   caption?: string;
+  size?: ButtonProps['size'];
   onClick?: MouseEventHandler<HTMLButtonElement>;
   onLeave?: (err?: Error) => void;
 };
@@ -122,6 +123,7 @@ export const CancelCallConfirmButton = ({
 export const CancelCallButton = ({
   disabled,
   caption,
+  size,
   onClick,
   onLeave,
 }: CancelCallButtonProps) => {
@@ -145,6 +147,7 @@ export const CancelCallButton = ({
   );
   return (
     <IconButton
+      size={size}
       disabled={disabled}
       icon="call-end"
       variant="destructive"

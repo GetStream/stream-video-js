@@ -12,6 +12,7 @@ import com.streamvideo.reactnative.audio.AudioDeviceManager
 import com.streamvideo.reactnative.audio.utils.CallAudioRole
 import com.streamvideo.reactnative.audio.utils.WebRtcAudioUtils
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint
+import com.streamvideo.reactnative.util.SoundPlayer
 import java.util.Locale
 
 
@@ -21,6 +22,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     private var audioManagerActivated = false
 
     private val mAudioDeviceManager = AudioDeviceManager(reactContext)
+
+    private val mSoundPlayer = SoundPlayer(reactContext)
 
     override fun getName(): String {
         return TAG
@@ -42,6 +45,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     override fun invalidate() {
         // Ensure we cleanup proximity and screen flags too
         stop()
+        mSoundPlayer.stopSound()
         mAudioDeviceManager.close()
         super.invalidate()
     }
@@ -72,6 +76,18 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
             }
             Log.d(TAG, "setTelecomManagedMode(): $enabled")
             mAudioDeviceManager.telecomManagedMode = enabled
+        }
+    }
+
+    @ReactMethod
+    fun setDisableCommunicationModeWorkaround(disabled: Boolean) {
+        AudioDeviceManager.runInAudioThread {
+            if (audioManagerActivated) {
+                Log.e(TAG, "setDisableCommunicationModeWorkaround(): AudioManager is already activated and so it cannot be changed")
+                return@runInAudioThread
+            }
+            Log.d(TAG, "setDisableCommunicationModeWorkaround(): $disabled")
+            mAudioDeviceManager.disableCommunicationModeWorkaround = disabled
         }
     }
 
@@ -129,10 +145,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         AudioDeviceManager.runInAudioThread {
             if (audioManagerActivated) {
                 Log.d(TAG, "stop() mAudioDeviceManager")
-                reactApplicationContext.currentActivity?.let {
-                    mAudioDeviceManager.stop(it)
-                    audioManagerActivated = false
-                }
+                mAudioDeviceManager.stop(reactApplicationContext.currentActivity)
+                audioManagerActivated = false
                 setMicrophoneMute(false)
                 setKeepScreenOn(false)
             }
@@ -185,7 +199,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod(isBlockingSynchronousMethod = true)
     fun getAudioStateLog(): String {
-        return WebRtcAudioUtils.getAudioStateLog(reactApplicationContext)
+        return WebRtcAudioUtils.getAudioStateLog(reactApplicationContext) +
+            "Communication mode keep-alive: ${mAudioDeviceManager.communicationModeKeepAliveState()}\n"
     }
 
     @Suppress("unused")
@@ -203,6 +218,16 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
                 deviceId
             )
         }
+    }
+
+    @ReactMethod
+    fun playSound(soundName: String?, playIfMuted: Boolean) {
+        mSoundPlayer.playSound(soundName, playIfMuted)
+    }
+
+    @ReactMethod
+    fun stopSound() {
+        mSoundPlayer.stopSound()
     }
 
     @ReactMethod

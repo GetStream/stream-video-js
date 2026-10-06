@@ -1,5 +1,8 @@
 import type { LooseTranslationDictionary } from '@stream-io/video-react-sdk';
 
+import 'dayjs/locale/de';
+import 'dayjs/locale/es';
+
 import { runtimeDefaults } from '../i18n/runtimeDefaults';
 
 import appDe from './app/de.json';

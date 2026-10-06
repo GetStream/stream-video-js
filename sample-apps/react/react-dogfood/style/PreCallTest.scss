@@ -36,21 +36,21 @@
   grid-column: 2;
   margin: 0;
   text-align: center;
-  font-size: var(--str-video__font-size-lg);
+  font-size: var(--str-video__typography-font-size-lg);
 }
 
 .rd__pre-call-test__stage {
   position: relative;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border-radius: var(--str-video__border-radius-md);
-  background-color: var(--str-video__background-color2);
+  border-radius: var(--str-video__radius-2xl);
+  background-color: var(--str-video__background-core-surface-default);
   --str-video__video-preview-container--border-block-start: none;
   --str-video__video-preview-container--border-block-end: none;
   --str-video__video-preview-container--border-inline-start: none;
   --str-video__video-preview-container--border-inline-end: none;
   --str-video__video-preview-container--border-radius: var(
-    --str-video__border-radius-md
+    --str-video__radius-2xl
   );
   .str-video__video-preview-container,
   .rd__pre-call-test__video {
@@ -75,8 +75,8 @@
   display: flex;
   gap: var(--str-video__spacing-sm);
   padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
-  border-start-start-radius: var(--str-video__border-radius-md);
-  background-color: var(--str-video__background-color5);
+  border-start-start-radius: var(--str-video__radius-2xl);
+  background-color: var(--str-video__background-core-surface-subtle);
 }
 
 .rd__pre-call-test__loopback-badge {
@@ -96,7 +96,7 @@
   opacity: 1;
 
   .rd__pre-call-test__loopback-dot {
-    background-color: var(--str-video__alert-success);
+    background-color: var(--str-video__accent-success);
   }
 }
 
@@ -104,7 +104,7 @@
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background-color: var(--str-video__icon-disabled);
+  background-color: var(--str-video__text-disabled);
 }
 .rd__pre-call-test__devices {
   display: flex;
@@ -120,24 +120,12 @@
   align-self: center;
 }
 .rd__pre-call-test__stats {
-  background: none;
-  padding: 0;
-  .str-video__call-stats__card-container {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--str-video__spacing-xs);
-  }
+  --rd__stat-card-columns: 3;
+  --rd__stat-card-gap: var(--str-video__spacing-xs);
 
-  .str-video__call-stats__card {
-    width: auto;
-    min-width: 0;
-    gap: var(--str-video__space-6);
-  }
-
-  .str-video__call-stats__card-content {
-    min-width: 0;
-  }
-  .str-video__call-stats__card-value {
+  // Values here are live-updating numbers in a narrow track, so they get one line and an ellipsis
+  // rather than reflowing the row on every tick.
+  .rd__stat-card__value {
     overflow: hidden;
     font-variant-numeric: tabular-nums;
     text-overflow: ellipsis;
@@ -148,15 +136,19 @@
 .rd__pre-call-test__status {
   margin: 0;
   text-align: center;
-  font-size: var(--str-video__font-size-sm);
-  color: var(--str-video__text-color2);
+  font-size: var(--str-video__typography-font-size-sm);
+  color: var(--str-video__text-secondary);
 }
 
 .rd__pre-call-test__error {
   margin: 0;
   padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
-  border-radius: var(--str-video__border-radius-xs);
-  font-size: var(--str-video__font-size-sm);
-  background-color: var(--str-video__alert-warning-background);
-  color: var(--str-video__alert-warning);
+  border-radius: var(--str-video__radius-md);
+  font-size: var(--str-video__typography-font-size-sm);
+  background-color: color-mix(
+    in srgb,
+    var(--str-video__accent-error) 50%,
+    transparent
+  );
+  color: var(--str-video__accent-error);
 }

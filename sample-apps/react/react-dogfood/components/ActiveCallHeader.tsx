@@ -4,7 +4,6 @@ import {
   CancelCallConfirmButton,
   humanize,
   Icon,
-  LoadingIndicator,
   Notification,
   useCallStateHooks,
   WithTooltip,
@@ -37,7 +36,10 @@ const LatencyIndicator = () => {
           'rd__header__latency-indicator--bad': latency && latency > 400,
         })}
       ></div>
-      {latency} ms
+      <span>
+        {latency}
+        <span className="rd__header__latency-unit"> ms</span>
+      </span>
     </div>
   );
 };
@@ -51,14 +53,15 @@ const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
   );
   useEffect(() => {
     const interval = setInterval(() => {
-      const elapsedSeconds = (Date.now() - startedAtDate) / 1000;
-      const date = new Date(0);
-      date.setSeconds(elapsedSeconds);
-      const format = date.toISOString(); // '1970-01-01T00:00:35.000Z'
-      const hours = format.substring(11, 13);
-      const minutes = format.substring(14, 16);
-      const seconds = format.substring(17, 19);
-      const time = `${hours !== '00' ? hours + ':' : ''}${minutes}:${seconds}`;
+      const elapsedSeconds = Math.max(
+        0,
+        Math.floor((Date.now() - startedAtDate) / 1000),
+      );
+      const hours = Math.floor(elapsedSeconds / 3600);
+      const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+      const seconds = elapsedSeconds % 60;
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const time = `${hours > 0 ? pad(hours) + ':' : ''}${pad(minutes)}:${pad(seconds)}`;
       setElapsed(time);
     }, 1000);
     return () => clearInterval(interval);
@@ -67,7 +70,12 @@ const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
   return (
     <div className="rd__header__elapsed">
       <Icon className="rd__header__elapsed-icon" icon="verified" />
-      <div className="rd__header__elapsed-time">{elapsed}</div>
+      <div className="rd__header__elapsed-time">
+        <span className="rd__header__elapsed-time__lead">
+          {elapsed?.slice(0, elapsed.lastIndexOf(':') + 1)}
+        </span>
+        {elapsed?.slice(elapsed.lastIndexOf(':') + 1)}
+      </div>
     </div>
   );
 };
@@ -200,6 +208,7 @@ export const ActiveCallHeader = ({
           if (isOffline || hasFailedToRecover) {
             return (
               <Notification
+                state="error"
                 isVisible
                 placement="bottom"
                 message={
@@ -216,18 +225,14 @@ export const ActiveCallHeader = ({
           return (
             <Notification
               isVisible={isJoining || isReconnecting || isMigrating}
-              iconClassName={null}
+              state="loading"
               placement="bottom"
               message={
-                <LoadingIndicator
-                  text={
-                    isMigrating
-                      ? 'Migrating...'
-                      : isJoining
-                        ? 'Joining...'
-                        : 'Reconnecting...'
-                  }
-                />
+                isMigrating
+                  ? 'Migrating...'
+                  : isJoining
+                    ? 'Joining...'
+                    : 'Reconnecting...'
               }
             >
               <span />

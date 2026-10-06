@@ -5,6 +5,7 @@ import { debounceTime } from 'rxjs';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
   type CallParticipantsListComponentProps,
+  type CallParticipantsListProps,
 } from '../CallParticipantsList/CallParticipantsList';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -18,7 +19,8 @@ import { StreamVideoParticipant } from '@stream-io/video-client';
  */
 export type CallParticipantsGridProps = ParticipantViewComponentProps &
   Pick<CallContentProps, 'supportedReactions' | 'CallParticipantsList'> &
-  Pick<CallParticipantsListComponentProps, 'ParticipantView' | 'mirror'> & {
+  Pick<CallParticipantsListComponentProps, 'ParticipantView' | 'mirror'> &
+  Pick<CallParticipantsListProps, 'evenGridColumns'> & {
     /**
      * Boolean to decide if local participant will be visible in the grid when there is 1:1 call.
      */
@@ -45,6 +47,7 @@ export const CallParticipantsGrid = ({
   showLocalParticipant = false,
   supportedReactions,
   landscape,
+  evenGridColumns,
 }: CallParticipantsGridProps) => {
   const {
     theme: { callParticipantsGrid },
@@ -131,6 +134,7 @@ export const CallParticipantsGrid = ({
           participants={participants}
           supportedReactions={supportedReactions}
           landscape={landscape}
+          evenGridColumns={evenGridColumns}
           {...participantViewProps}
         />
       )}

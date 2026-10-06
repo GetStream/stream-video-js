@@ -1,7 +1,7 @@
 .str-video__reaction {
   position: absolute;
-  right: var(--str-video__size-14);
-  top: var(--str-video__size-14);
+  right: var(--str-video__space-8);
+  top: var(--str-video__space-8);
 
   .str-video__reaction__emoji {
     display: flex;

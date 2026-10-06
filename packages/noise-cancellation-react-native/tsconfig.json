@@ -3,5 +3,6 @@
   "compilerOptions": {
     "rootDir": "./src",
     "verbatimModuleSyntax": true
-  }
+  },
+  "include": ["src"]
 }

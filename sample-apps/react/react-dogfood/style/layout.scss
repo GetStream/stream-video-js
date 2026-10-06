@@ -35,7 +35,7 @@
 
 .rd__sidebar {
   position: absolute;
-  border-radius: var(--str-video__radius-3xl);
+  border-radius: var(--str-video__radius-lg);
   height: calc(100vh - 60px);
   height: calc(100dvh - 60px);
 
@@ -46,12 +46,13 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+    box-shadow: var(--str-video__box-shadow-3);
   }
 
   .rd__sidebar__container {
     flex-grow: 1;
     padding: var(--str-video__spacing-md) 0;
-    border-radius: var(--str-video__radius-3xl);
+    border-radius: var(--str-video__radius-lg);
     background-color: var(--str-video__background-core-elevation-1);
   }
 
@@ -64,8 +65,9 @@
   .str-video__chat {
     display: flex;
     flex-direction: column;
-    background-color: var(--str-video__base-color7);
-    border-radius: var(--str-video__radius-3xl);
+    background-color: var(--str-video__background-core-elevation-1);
+    border-radius: var(--str-video__radius-lg);
+    overflow: hidden;
     height: 100%;
     width: 100%;
   }
@@ -75,13 +77,14 @@
   display: flex;
   height: 100%;
   overflow-y: scroll;
+  border-radius: inherit;
 }
 
 .rd__participants {
   display: flex;
   flex-direction: column;
   background-color: var(--str-video__background-core-elevation-1);
-  border-radius: var(--str-video__radius-3xl);
+  border-radius: var(--str-video__radius-lg);
   padding: var(--str-video__spacing-md);
   height: 100%;
   width: 100%;
@@ -97,12 +100,12 @@
     transition-duration: 0.3s;
 
     &.rd__sidebar--open {
-      width: 350px;
+      width: 324px;
     }
 
     .rd__sidebar__container {
-      max-width: 350px;
-      min-width: 350px;
+      max-width: 324px;
+      min-width: 324px;
       display: flex;
       gap: var(--str-video__spacing-sm);
       height: 100%;
@@ -129,7 +132,7 @@
 }
 
 .rd__highlight {
-  box-shadow: 0px 0px 16px 4px #005fff;
+  box-shadow: 0px 0px 16px 4px var(--str-video__accent-primary);
 }
 
 @include breakpoints.respond-above(sm) {

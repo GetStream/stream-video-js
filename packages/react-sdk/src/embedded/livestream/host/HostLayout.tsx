@@ -5,6 +5,7 @@ import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 import { useLayout } from '../../hooks';
 import {
+  Button,
   CallParticipantsList,
   CancelCallConfirmButton,
   CompositeButton,
@@ -166,27 +167,29 @@ export const HostLayout = ({
                 <WithTooltip
                   title={t('livestreamHost.endStream.title', 'End Stream')}
                 >
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     className="str-video__embedded-end-stream-button"
                     onClick={onStopLive}
                   >
                     <Icon icon="call-end" />
                     <span>{t('livestreamHost.endLive.label', 'End Live')}</span>
-                  </button>
+                  </Button>
                 </WithTooltip>
               ) : (
                 <WithTooltip
                   title={t('livestreamHost.startStream.title', 'Start Stream')}
                 >
-                  <button
-                    type="button"
+                  <Button
+                    variant="primary"
+                    size="sm"
                     className="str-video__embedded-go-live-button"
                     onClick={onGoLive}
                   >
                     <Icon icon="streaming" />
                     <span>{t('livestreamHost.goLive.label', 'Go Live')}</span>
-                  </button>
+                  </Button>
                 </WithTooltip>
               )}
             </Restricted>

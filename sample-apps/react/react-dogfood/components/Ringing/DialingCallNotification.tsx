@@ -61,7 +61,7 @@ export function DialingCallNotification(props: {
                 defaultValue_other: 'Ringing {{ count }} members',
               })}
             </div>
-            <CancelCallButton onClick={handleReject} />
+            <CancelCallButton size="sm" onClick={handleReject} />
           </div>
         }
       />

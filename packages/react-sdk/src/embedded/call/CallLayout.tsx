@@ -35,7 +35,7 @@ export const CallLayout = () => {
           requiredGrants={[OwnCapability.SEND_AUDIO]}
           hasPermissionsOnly
         >
-          <SpeakingWhileMutedNotification />
+          <SpeakingWhileMutedNotification placement="top" />
         </Restricted>
       </div>
       <CallHeader />

@@ -1,7 +1,7 @@
 import { CallingState } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
-import { LoadingIndicator, Notification } from '../../../components';
+import { Notification } from '../../../components';
 
 export const ConnectionNotification = () => {
   const { t } = useI18n();
@@ -22,6 +22,7 @@ export const ConnectionNotification = () => {
       <div className="str-video__embedded-connection-notification">
         <Notification
           isVisible
+          state="error"
           placement="bottom"
           message={
             isOffline
@@ -44,21 +45,17 @@ export const ConnectionNotification = () => {
       <div className="str-video__embedded-connection-notification">
         <Notification
           isVisible
+          state="loading"
           placement="bottom"
-          iconClassName={null}
           message={
-            <LoadingIndicator
-              text={
-                isMigrating
-                  ? t('connectionNotification.migrating.text', 'Migrating...')
-                  : isJoining
-                    ? t('connectionNotification.joining.text', 'Joining')
-                    : t(
-                        'connectionNotification.reconnecting.text',
-                        'Reconnecting...',
-                      )
-              }
-            />
+            isMigrating
+              ? t('connectionNotification.migrating.text', 'Migrating...')
+              : isJoining
+                ? t('connectionNotification.joining.text', 'Joining')
+                : t(
+                    'connectionNotification.reconnecting.text',
+                    'Reconnecting...',
+                  )
           }
         />
       </div>

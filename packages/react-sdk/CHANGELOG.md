@@ -2,6 +2,30 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-2.0.0-beta.0...@stream-io/video-react-sdk-2.0.0-beta.1) (2026-09-28)
+
+### ⚠ BREAKING CHANGES
+
+- **i18n:** adopt the shared @stream-io/i18n runtime (#2436)
+
+### Features
+
+- **i18n:** adopt the shared @stream-io/i18n runtime ([#2436](https://github.com/GetStream/stream-video-js/issues/2436)) ([2fcd426](https://github.com/GetStream/stream-video-js/commit/2fcd4269227d5db8f46342c597d17f2c7d835f88)), closes [stream-chat-react#3261](https://github.com/GetStream/stream-chat-react/issues/3261)
+- **react-sdk:** introduce design tokens to the react sdk ([#2389](https://github.com/GetStream/stream-video-js/issues/2389)) ([bd53a13](https://github.com/GetStream/stream-video-js/commit/bd53a13e900b90f8753fec836784d80afb2fce09))
+- **react-sdk:** migrate Button component to design token ([#2408](https://github.com/GetStream/stream-video-js/issues/2408)) ([9b21d19](https://github.com/GetStream/stream-video-js/commit/9b21d199817b46096d1bb62925c499ea6ffa6687))
+- **react-sdk:** Migrate call layouts ([#2434](https://github.com/GetStream/stream-video-js/issues/2434)) ([d615d13](https://github.com/GetStream/stream-video-js/commit/d615d13b5aa8bf2908102a965d59371344fa2f06))
+- **react-sdk:** migrate call participant list to new token design system ([#2442](https://github.com/GetStream/stream-video-js/issues/2442)) ([e09a263](https://github.com/GetStream/stream-video-js/commit/e09a263f7fa4f7fd21d0af5678ea3b190ac59976))
+- **react-sdk:** Migrate Embedded components to new token design system ([#2446](https://github.com/GetStream/stream-video-js/issues/2446)) ([adf07fa](https://github.com/GetStream/stream-video-js/commit/adf07fa9f8fc859d3fa7f94f7d9d2e18a267f4ce))
+- **react-sdk:** migrate menu and dropdown select to design token system ([#2426](https://github.com/GetStream/stream-video-js/issues/2426)) ([b3aa81e](https://github.com/GetStream/stream-video-js/commit/b3aa81eda69558446c055957305e85a6f1af2491))
+- **react-sdk:** migrate participant tile to new token design system ([#2433](https://github.com/GetStream/stream-video-js/issues/2433)) ([1ea8193](https://github.com/GetStream/stream-video-js/commit/1ea81937585caefd2e2bff566d6d5f2ff3004243))
+- **react-sdk:** migrate permisison request and notification to new token design system ([#2444](https://github.com/GetStream/stream-video-js/issues/2444)) ([a20b1d3](https://github.com/GetStream/stream-video-js/commit/a20b1d37985d26b2258e5fee9cb9f063614af6ec))
+- **react-sdk:** migrate tooltip and badge components to design token ([#2420](https://github.com/GetStream/stream-video-js/issues/2420)) ([fa23a9d](https://github.com/GetStream/stream-video-js/commit/fa23a9d589b7f462c4e9c543dff081e8a34c70c7)), closes [#1718](https://github.com/GetStream/stream-video-js/issues/1718)
+- **react-sdk:** Move CallStats component from sdk to react-dogfood ([#2445](https://github.com/GetStream/stream-video-js/issues/2445)) ([9e76e33](https://github.com/GetStream/stream-video-js/commit/9e76e33116e48b89f20a28ace47d3f8b72decfdb))
+
+### Bug Fixes
+
+- **react-sdk:** break circular import in BaseVideoPlaceholder ([#2440](https://github.com/GetStream/stream-video-js/issues/2440)) ([57f23a1](https://github.com/GetStream/stream-video-js/commit/57f23a19424c6da410533a27ea3aa112534248d2))
+
 ## [2.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.42.0...@stream-io/video-react-sdk-2.0.0-beta.0) (2026-09-04)
 
 ### Features

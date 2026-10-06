@@ -17,7 +17,7 @@ import {
 } from '../../components';
 
 import { useCallDuration } from '../hooks';
-import { CameraMenuWithBlur } from '../shared';
+import { CallDuration, CameraMenuWithBlur } from '../shared';
 
 interface CallControlsProps {
   showParticipants: boolean;
@@ -46,14 +46,8 @@ export const CallControls = ({
           </div>
         </Restricted>
         {startedAt && (
-          <div className="str-video__embedded-call-duration str-video__embedded-desktop">
-            <Icon
-              icon="verified"
-              className="str-video__embedded-call-duration__icon"
-            />
-            <span className="str-video__embedded-call-duration__time">
-              {elapsed}
-            </span>
+          <div className="str-video__embedded-desktop">
+            <CallDuration elapsed={elapsed} />
           </div>
         )}
       </div>

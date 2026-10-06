@@ -77,6 +77,7 @@ export const PermissionNotification = (props: PermissionNotificationProps) => {
   if (isAwaitingApproval) {
     return (
       <Notification
+        state="loading"
         isVisible={isAwaitingApproval && !hasPermission}
         message={messageAwaitingApproval}
       >
@@ -87,6 +88,7 @@ export const PermissionNotification = (props: PermissionNotificationProps) => {
 
   return (
     <Notification
+      state={showNotification === 'granted' ? 'success' : 'error'}
       isVisible={!!showNotification}
       visibilityTimeout={visibilityTimeout}
       resetIsVisible={resetIsVisible}

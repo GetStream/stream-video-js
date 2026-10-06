@@ -9,8 +9,8 @@
   display: flex;
   width: 100%;
   padding: var(--str-video__spacing-md);
-  font-size: var(--str-video__font-size-sm);
-  color: var(--str-video__danger-color);
+  font-size: var(--str-video__typography-font-size-sm);
+  color: var(--str-video__accent-error);
 }
 
 .rd__livestream__credentials {
@@ -18,7 +18,7 @@
   padding: var(--str-video__spacing-md);
   background-color: #1d29380f;
   backdrop-filter: blur(4px);
-  border-radius: var(--str-video__border-radius-xl);
+  border-radius: var(--str-video__radius-4xl);
 
   .rd__livestream__credentials_row {
     flex: 1;
@@ -33,7 +33,7 @@
     justify-content: flex-end;
     padding-right: var(--str-video__spacing-sm);
     width: 120px;
-    font-size: var(--str-video__font-size-sm);
+    font-size: var(--str-video__typography-font-size-sm);
   }
 
   .rd__livestream__credentials__join {
@@ -42,6 +42,6 @@
 }
 
 .rd__livestream__privacy-note {
-  font-size: var(--str-video__font-size-sm);
-  color: var(--str-video__text-color3);
+  font-size: var(--str-video__typography-font-size-sm);
+  color: var(--str-video__text-tertiary);
 }

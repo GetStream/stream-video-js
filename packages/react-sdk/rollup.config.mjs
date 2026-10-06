@@ -7,9 +7,6 @@ import pkg from './package.json' with { type: 'json' };
  * @type {import('rollup').OutputOptions['chunkFileNames']}
  */
 const chunkFileNames = (chunkInfo) => {
-  if (chunkInfo.name.includes('CallStatsLatencyChart')) {
-    return 'latency-chart-[hash].[format].js';
-  }
   if (chunkInfo.name.includes('BackgroundFilters')) {
     return 'background-filters-[hash].[format].js';
   }
