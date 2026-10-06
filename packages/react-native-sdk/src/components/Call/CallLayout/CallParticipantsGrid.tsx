@@ -50,7 +50,7 @@ export const CallParticipantsGrid = ({
   evenGridColumns,
 }: CallParticipantsGridProps) => {
   const {
-    theme: { colors, callParticipantsGrid },
+    theme: { callParticipantsGrid },
   } = useTheme();
   const call = useCall();
   const { useLocalParticipant, useDominantSpeaker } = useCallStateHooks();
@@ -125,8 +125,7 @@ export const CallParticipantsGrid = ({
       style={[
         styles.container,
         landscape ? styles.row : styles.column,
-        { backgroundColor: colors.sheetPrimary },
-        callParticipantsGrid.container,
+        callParticipantsGrid?.container,
       ]}
       testID={ComponentTestIds.CALL_PARTICIPANTS_GRID}
     >
@@ -144,7 +143,13 @@ export const CallParticipantsGrid = ({
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  row: { flexDirection: 'row' },
-  column: { flexDirection: 'column' },
+  container: {
+    flex: 1,
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  column: {
+    flexDirection: 'column',
+  },
 });

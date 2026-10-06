@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
 import { defaultEmojiReactions, Z_INDEX } from '../../../constants';
@@ -32,9 +32,8 @@ export const ParticipantReaction = ({
 }: ParticipantReactionProps) => {
   const { reaction, sessionId } = participant;
   const call = useCall();
-  const styles = useStyles();
   const {
-    theme: { typefaces, participantReaction },
+    theme: { participantReaction },
   } = useTheme();
 
   useEffect(() => {
@@ -58,38 +57,19 @@ export const ParticipantReaction = ({
 
   return (
     currentReaction?.icon != null && (
-      <View style={[styles.container, participantReaction.container]}>
-        <View style={styles.reaction}>
-          <Text style={[participantReaction.reaction, typefaces.heading6]}>
-            {currentReaction?.icon}
-          </Text>
-        </View>
+      <View style={[styler.container, participantReaction.container]}>
+        <Text style={participantReaction.reaction}>
+          {currentReaction?.icon}
+        </Text>
       </View>
     )
   );
 };
 
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          flex: 1,
-          zIndex: Z_INDEX.IN_FRONT,
-        },
-        reaction: {
-          borderRadius: theme.variants.borderRadiusSizes.sm,
-          backgroundColor: theme.colors.sheetOverlay,
-          alignSelf: 'flex-end',
-          marginRight: theme.variants.spacingSizes.md,
-          marginTop: theme.variants.spacingSizes.md,
-          height: theme.variants.roundButtonSizes.md,
-          width: theme.variants.roundButtonSizes.md,
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-      }),
-    [theme],
-  );
-};
+const styler = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: Z_INDEX.IN_FRONT,
+  },
+});

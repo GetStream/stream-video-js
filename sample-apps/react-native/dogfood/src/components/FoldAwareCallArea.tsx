@@ -137,17 +137,6 @@ export const FoldAwareCallArea = ({ children }: React.PropsWithChildren) => {
     };
   });
 
-  const zeroSideInsetsTheme = useMemo(
-    () => ({
-      ...theme,
-      variants: {
-        ...theme.variants,
-        insets: { ...theme.variants.insets, left: 0, right: 0 },
-      },
-    }),
-    [theme],
-  );
-
   return (
     <Animated.View
       ref={containerRef}
@@ -155,7 +144,7 @@ export const FoldAwareCallArea = ({ children }: React.PropsWithChildren) => {
       style={[styles.container, animatedStyle]}
     >
       <BarLayoutContext.Provider value={barLayout}>
-        <StreamTheme theme={zeroSideInsetsTheme}>{children}</StreamTheme>
+        <StreamTheme theme={theme}>{children}</StreamTheme>
       </BarLayoutContext.Provider>
     </Animated.View>
   );

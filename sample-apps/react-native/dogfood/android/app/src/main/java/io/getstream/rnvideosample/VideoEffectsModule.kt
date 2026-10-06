@@ -2,6 +2,7 @@ package io.getstream.rnvideosample
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.oney.WebRTCModule.videoEffects.ProcessorProvider
+import io.getstream.rnvideosample.foldregion.NativeVideoEffectsModuleSpec
 import io.getstream.rnvideosample.videofilters.GrayScaleVideoFilterFactory
 
 class VideoEffectsModule(reactContext: ReactApplicationContext) :

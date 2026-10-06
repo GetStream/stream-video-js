@@ -21,7 +21,8 @@
     "copy-version": "echo \"export const version = '$npm_package_version';\" > ./src/version.ts",
     "build-translations": "node scripts/generate-i18n-keys.mts && yarn run -T prettier --write --log-level warn src/i18n/keys.ts",
     "validate-translations": "yarn build-translations && git diff --exit-code -- src/i18n/keys.ts __tests__/i18n/catalog.fixture.json",
-    "i18n:export": "node scripts/generate-i18n-keys.mts --json en.json"
+    "i18n:export": "node scripts/generate-i18n-keys.mts --json en.json",
+    "sync:tokens": "node scripts/sync-design-tokens.mts"
   },
   "repository": {
     "type": "git",
