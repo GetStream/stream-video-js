@@ -12,7 +12,6 @@ import { PerformanceStats } from '../models/models';
 import { RTMPIngress } from '../models/models';
 import { AppleState } from '../models/models';
 import { AndroidState } from '../models/models';
-import { InputDevices } from '../models/models';
 import { RemoteOutboundRtp } from '../models/models';
 import { RemoteInboundRtp } from '../models/models';
 import { OutboundRtp } from '../models/models';
@@ -136,14 +135,6 @@ export interface SendStatsRequest {
    */
   sessionId: string;
   /**
-   * @generated from protobuf field: string subscriber_stats = 2;
-   */
-  subscriberStats: string;
-  /**
-   * @generated from protobuf field: string publisher_stats = 3;
-   */
-  publisherStats: string;
-  /**
    * @generated from protobuf field: string webrtc_version = 4;
    */
   webrtcVersion: string;
@@ -155,14 +146,6 @@ export interface SendStatsRequest {
    * @generated from protobuf field: string sdk_version = 6;
    */
   sdkVersion: string;
-  /**
-   * @generated from protobuf field: stream.video.sfu.models.InputDevices audio_devices = 7;
-   */
-  audioDevices?: InputDevices;
-  /**
-   * @generated from protobuf field: stream.video.sfu.models.InputDevices video_devices = 8;
-   */
-  videoDevices?: InputDevices;
   /**
    * @generated from protobuf oneof: device_state
    */
@@ -192,16 +175,6 @@ export interface SendStatsRequest {
    * @generated from protobuf field: stream.video.sfu.models.RTMPIngress rtmp = 12;
    */
   rtmp?: RTMPIngress;
-  /**
-   * @deprecated
-   * @generated from protobuf field: string subscriber_rtc_stats = 13 [deprecated = true];
-   */
-  subscriberRtcStats: string;
-  /**
-   * @deprecated
-   * @generated from protobuf field: string publisher_rtc_stats = 14 [deprecated = true];
-   */
-  publisherRtcStats: string;
   /**
    * @generated from protobuf field: string rtc_stats = 15;
    */
@@ -601,18 +574,6 @@ class SendStatsRequest$Type extends MessageType<SendStatsRequest> {
     super('stream.video.sfu.signal.SendStatsRequest', [
       { no: 1, name: 'session_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       {
-        no: 2,
-        name: 'subscriber_stats',
-        kind: 'scalar',
-        T: 9 /*ScalarType.STRING*/,
-      },
-      {
-        no: 3,
-        name: 'publisher_stats',
-        kind: 'scalar',
-        T: 9 /*ScalarType.STRING*/,
-      },
-      {
         no: 4,
         name: 'webrtc_version',
         kind: 'scalar',
@@ -625,8 +586,6 @@ class SendStatsRequest$Type extends MessageType<SendStatsRequest> {
         kind: 'scalar',
         T: 9 /*ScalarType.STRING*/,
       },
-      { no: 7, name: 'audio_devices', kind: 'message', T: () => InputDevices },
-      { no: 8, name: 'video_devices', kind: 'message', T: () => InputDevices },
       {
         no: 9,
         name: 'android',
@@ -643,18 +602,6 @@ class SendStatsRequest$Type extends MessageType<SendStatsRequest> {
       },
       { no: 11, name: 'telemetry', kind: 'message', T: () => Telemetry },
       { no: 12, name: 'rtmp', kind: 'message', T: () => RTMPIngress },
-      {
-        no: 13,
-        name: 'subscriber_rtc_stats',
-        kind: 'scalar',
-        T: 9 /*ScalarType.STRING*/,
-      },
-      {
-        no: 14,
-        name: 'publisher_rtc_stats',
-        kind: 'scalar',
-        T: 9 /*ScalarType.STRING*/,
-      },
       { no: 15, name: 'rtc_stats', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       {
         no: 16,
