@@ -15,6 +15,7 @@ import { SfuEvent } from '../../gen/video/sfu/event/events';
 import { CallEndedReason } from '../../gen/video/sfu/models/models';
 import type { StreamResponse } from '../../coordinator/connection/api-client';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { msToNs } from '../../helpers/time';
 
 describe('Call lifecycle events', () => {
   describe(`call.ended`, () => {
@@ -173,8 +174,8 @@ const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
   const store = new ClientState();
   store.setConnectedUser({
     id: currentUserId,
-    created_at: 0,
-    updated_at: 0,
+    created_at: msToNs(0),
+    updated_at: msToNs(0),
     role: '',
     custom: {},
     teams: [],

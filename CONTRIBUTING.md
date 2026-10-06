@@ -56,7 +56,7 @@ To update SFU models and API endpoints [generate ts client](https://github.com/G
 #### Coordinator API changes (internal)
 
 We have a shell script which will generate the Coordinator client from the
-OpenAPI spec, using the in-house `chat-manager` generator. The spec is built
+OpenAPI spec, using the in-house generator (`chat/tools/openapi`). The spec is built
 from a local `chat` checkout rather than the published `protocol` repository, so
 the client can never drift from a stale published file.
 
@@ -73,7 +73,7 @@ Pass a path if your `chat` checkout is elsewhere:
 `./generate-openapi.sh /path/to/chat`.
 
 The output under `src/gen/coordinator` is committed, so CI never needs the
-`chat-manager` binary. Do not hand-edit it - the script wipes that directory on
+generator. Do not hand-edit it - the script wipes that directory on
 every run. Hand-written types belong in `src/gen/shims.ts`, which sits beside
 it.
 

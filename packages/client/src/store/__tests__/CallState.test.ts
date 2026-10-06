@@ -1,5 +1,5 @@
 import '../../rtc/__tests__/mocks/webrtc.mocks';
-import { dateToNs } from '../../helpers/time';
+import { dateToNs, msToNs } from '../../helpers/time';
 import { describe, expect, it, vi } from 'vitest';
 import { anyNumber } from 'vitest-mock-extended';
 import { fromPartial } from '@total-typescript/shoehorn';
@@ -534,7 +534,7 @@ describe('CallState', () => {
 
         state.updateFromEvent({
           type: 'call.permissions_updated',
-          created_at: 0,
+          created_at: msToNs(0),
           call_cid: 'development:12345',
           own_capabilities: [OwnCapability.SEND_VIDEO],
           // @ts-expect-error incomplete data

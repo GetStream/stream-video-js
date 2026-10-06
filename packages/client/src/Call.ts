@@ -3259,7 +3259,8 @@ export class Call {
   /**
    * Returns the report of the call, optionally scoped to one session.
    *
-   * @param data.session_id the session to report on; all sessions when omitted.
+   * @param data.session_id the session to report on; the current session, or
+   * the most recent one, when omitted.
    */
   getCallReport = (data: { session_id?: string } = {}) => {
     return this.api.getCallReport(data);

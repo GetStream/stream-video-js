@@ -80,17 +80,15 @@ yarn lint:all
 
 ## Code Generation
 
-This package uses OpenAPI code generation for the Coordinator API models:
+The Coordinator API client (models, `VideoApi`, `CallApi`) is generated from a
+local `chat` checkout with the in-house generator (`chat/tools/openapi`):
 
 ```bash
-# Generate from protocol repo (production)
-./generate-openapi.sh protocol
-
-# Generate from chat repo (development)
-./generate-openapi.sh chat
+# expects ../../../chat; pass a path otherwise
+./generate-openapi.sh [path-to-chat-repo]
 ```
 
-Generated files are placed in `src/gen/coordinator/` and should not be manually edited. The SFU protocol buffer types are in `src/gen/video/sfu/`.
+Generated files are placed in `src/gen/coordinator/` and should not be manually edited (the script wipes the directory). Hand-written types belong in `src/gen/shims.ts`. Response dates are unix-nanosecond `TimestampNS` numbers; convert them with the helpers in `src/helpers/time.ts`. The SFU protocol buffer types are in `src/gen/video/sfu/`.
 
 ## Architecture
 
@@ -398,7 +396,7 @@ src/
 ├── permissions/               # Permissions handling
 ├── sorting/                   # Participant sorting
 └── gen/                       # Generated code (do not edit)
-    ├── coordinator/           # OpenAPI generated models
+    ├── coordinator/           # Generated Coordinator client (models, VideoApi, CallApi)
     ├── video/sfu/             # Protobuf generated code
     └── google/protobuf/       # Protobuf runtime models
 ```
@@ -446,7 +444,7 @@ src/
 
 - `src/gen/` directory contains auto-generated code from OpenAPI and Protocol Buffers (`coordinator/`, `video/sfu/`, and `google/protobuf/`)
 - Do not manually edit these files
-- Regenerate using `./generate-openapi.sh protocol`
+- Regenerate the Coordinator client using `./generate-openapi.sh`
 - Types from generated code are re-exported through `index.ts`
 
 ### Build Artifacts
