@@ -68,7 +68,7 @@
 
     .rd__display-name {
       background-color: #1d29380f;
-      border: 1px solid #ffffff08;
+      border: 1px solid var(--str-video__border-core-default);
       border-radius: var(--str-video__radius-4xl);
       padding: var(--str-video__spacing-md);
       width: 100%;
@@ -104,7 +104,7 @@
     display: flex;
     flex-direction: column;
     font-size: var(--str-video__typography-font-size-xl);
-    font-weight: 500;
+    font-weight: 600;
     margin-bottom: var(--str-video__space-6);
     text-align: center;
   }
@@ -268,6 +268,14 @@
     inline-size: var(--str-video__icon-size-sm);
   }
 }
+
+.str-video__theme-light {
+  .rd__lobby__camera-button.rd__button,
+  .rd__lobby__mic-button.rd__button {
+    border-color: var(--str-video__border-core-strong);
+  }
+}
+
 .rd__lobby__camera-button__device,
 .rd__lobby__mic-button__device {
   width: 120px;
@@ -291,12 +299,6 @@
   }
 }
 
-.mapboxgl-ctrl-bottom-right,
-.mapboxgl-ctrl-attrib a,
-a.mapboxgl-ctrl-logo {
-  display: none;
-}
-
 // End-to-end encryption lobby control (pronto only). Sits below the join
 // button; a compact switch that reveals the shared-key row when enabled.
 .rd__lobby-encryption {
@@ -305,7 +307,7 @@ a.mapboxgl-ctrl-logo {
   margin-top: var(--str-video__spacing-sm);
   // Frosted-glass card, matching the "Choose display name" panel.
   background-color: #1d29380f;
-  border: 1px solid #ffffff08;
+  border: 1px solid var(--str-video__border-core-default);
   border-radius: var(--str-video__radius-4xl);
   backdrop-filter: blur(10px);
   transition:

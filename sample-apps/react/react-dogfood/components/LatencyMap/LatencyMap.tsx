@@ -1,6 +1,75 @@
 import { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { type GeoJSONSource } from 'mapbox-gl';
 import { FeatureCollection } from 'geojson';
+import { useSettings } from '../../context/SettingsContext';
+import type { ThemeMode } from '../../hooks';
+
+const ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+
+const MAP_STYLE = 'mapbox://styles/mapbox/standard';
+const BASEMAP_CONFIG = {
+  theme: 'monochrome',
+  showPlaceLabels: false,
+  showRoadLabels: false,
+  showPointOfInterestLabels: false,
+  showTransitLabels: false,
+  show3dObjects: false,
+};
+const THEMES: Record<
+  ThemeMode,
+  { lightPreset: 'day' | 'dusk'; water: string; land: string }
+> = {
+  light: { lightPreset: 'day', water: '#dbdbdc', land: '#f8f8f9' },
+  dark: { lightPreset: 'dusk', water: '#212326', land: '#171717' },
+};
+const WORLD: GeoJSON.Feature = {
+  type: 'Feature',
+  properties: {},
+  geometry: {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [-180, -85],
+        [180, -85],
+        [180, 85],
+        [-180, 85],
+        [-180, -85],
+      ],
+    ],
+  },
+};
+
+const addFlatBasemap = (instance: mapboxgl.Map, themeMode: ThemeMode) => {
+  const { water, land } = THEMES[themeMode];
+  instance.addSource('flat-water', { type: 'geojson', data: WORLD });
+  instance.addLayer({
+    id: 'flat-water',
+    type: 'fill',
+    source: 'flat-water',
+    slot: 'bottom',
+    paint: {
+      'fill-color': water,
+      'fill-emissive-strength': 1,
+      'fill-antialias': false,
+    },
+  });
+  instance.addSource('flat-land', {
+    type: 'vector',
+    url: 'mapbox://mapbox.country-boundaries-v1',
+  });
+  instance.addLayer({
+    id: 'flat-land',
+    type: 'fill',
+    source: 'flat-land',
+    'source-layer': 'country_boundaries',
+    slot: 'bottom',
+    paint: {
+      'fill-color': land,
+      'fill-emissive-strength': 1,
+      'fill-antialias': false,
+    },
+  });
+};
 
 export type Props = {
   sourceData?: FeatureCollection;
@@ -10,181 +79,116 @@ export type Props = {
 export const LatencyMap = ({ sourceData, zoomLevel = 2 }: Props) => {
   const [loading, setLoading] = useState(true);
   const [source, setSource] = useState(sourceData);
-
-  const popUpRef = useRef(
-    new mapboxgl.Popup({ offset: 15, closeButton: false, closeOnClick: false }),
-  );
+  const {
+    settings: { themeMode },
+  } = useSettings();
 
   const mapContainer = useRef<any>(undefined);
   const map = useRef<mapboxgl.Map | null>(null);
+  const addedFeatureIds = useRef(new Set<string | number>());
 
   const [lng] = useState(-38.632571);
   const [lat] = useState(25);
   const [zoom] = useState(zoomLevel);
-
-  const [hoverId, setHoverId] = useState(undefined);
 
   useEffect(() => {
     setSource(sourceData);
   }, [sourceData]);
 
   useEffect(() => {
-    if (map.current && !loading) {
-      map.current.on('mouseenter', 'servers-visualise', (e: any) => {
-        if (map.current) {
-          if (e.features?.length > 0) {
-            const [point] = e.features;
+    const instance = map.current;
+    if (!instance || loading || !source) return;
 
-            map.current.getCanvas().style.cursor = 'pointer';
-
-            if (hoverId === undefined) {
-              map.current.setFeatureState(
-                {
-                  source: 'servers',
-                  id: point.id,
-                },
-                { hover: true },
-              );
-
-              setHoverId(point.id);
-            }
-          }
-        }
+    if (!instance.getSource('servers')) {
+      instance.addSource('servers', {
+        type: 'geojson',
+        dynamic: true,
+        data: { ...source, features: [] },
+      });
+      instance.addLayer({
+        id: 'servers-visualise',
+        type: 'circle',
+        source: 'servers',
+        slot: 'top',
+        paint: {
+          'circle-color': '#2F7DEB',
+          'circle-radius': 4,
+          'circle-emissive-strength': 1,
+        },
       });
     }
-  }, [loading, map, popUpRef, hoverId]);
+    const serverSource = instance.getSource<GeoJSONSource>('servers');
 
-  useEffect(() => {
-    if (map.current && !loading) {
-      map.current.on('mouseleave', 'servers-visualise', () => {
-        if (map.current) {
-          map.current.getCanvas().style.cursor = '';
+    const pendingFeatures = source.features
+      .filter((f) => f.id !== undefined && !addedFeatureIds.current.has(f.id))
+      .sort(() => Math.random() - 0.5);
 
-          if (hoverId) {
-            map.current.setFeatureState(
-              {
-                source: 'servers',
-                id: hoverId,
-              },
-              { hover: false },
-            );
-            setHoverId(undefined);
-          }
-        }
-      });
-    }
-  }, [loading, map, hoverId, popUpRef]);
-
-  useEffect(() => {
     let appendMarkerTimer: ReturnType<typeof setTimeout>;
+    const appendMarker = () => {
+      const feature = pendingFeatures.shift();
+      if (!feature || !serverSource) return;
+      addedFeatureIds.current.add(feature.id!);
+      serverSource.updateData({
+        type: 'FeatureCollection',
+        features: [feature],
+      });
+      appendMarkerTimer = setTimeout(appendMarker, Math.random() * 150);
+    };
 
-    if (map.current && !loading) {
-      const serverSource = map.current.getSource('servers');
+    appendMarker();
 
-      if (serverSource) {
-        return;
-      }
-
-      if (source) {
-        map.current.addSource('servers', {
-          type: 'geojson',
-          data: {
-            ...source,
-            features: [],
-          },
-        });
-
-        let lazyloadFeatures = source.features.sort(() => Math.random() - 0.5);
-
-        if (map.current.getSource('servers')) {
-          const mapSource: any = map.current.getSource('servers');
-
-          function appendMarker() {
-            if (lazyloadFeatures.length > 0) {
-              const [feature, ...rest] = lazyloadFeatures;
-              lazyloadFeatures = rest;
-              mapSource.setData({
-                type: 'FeatureCollection',
-                features: [...mapSource._data.features, feature],
-              });
-              appendMarkerTimer = setTimeout(appendMarker, Math.random() * 150);
-            }
-          }
-
-          appendMarker();
-        }
-      }
-
-      return () => {
-        clearTimeout(appendMarkerTimer);
-      };
-    }
+    return () => {
+      clearTimeout(appendMarkerTimer);
+    };
   }, [map, loading, source]);
 
   useEffect(() => {
-    if (map.current && !loading) {
-      const serverSource = map.current.getSource('servers');
-      const layerSource = map.current.getLayer('servers-visualise');
-
-      if (layerSource) {
-        return;
-      }
-
-      if (source && serverSource) {
-        map.current.addLayer({
-          id: 'servers-visualise',
-          type: 'circle',
-          source: 'servers',
-          paint: {
-            'circle-color': [
-              'case',
-              ['boolean', ['feature-state', 'hover'], false],
-              '#20E070',
-              '#2F7DEB',
-            ],
-            'circle-radius': 4,
-            'circle-stroke-width': [
-              'case',
-              ['boolean', ['feature-state', 'hover'], false],
-              8,
-              0,
-            ],
-            'circle-stroke-color': [
-              'case',
-              ['boolean', ['feature-state', 'hover'], false],
-              'rgba(30, 177, 20, 0.2)',
-              'transparent',
-            ],
-          },
-        });
-      }
-    }
-  }, [map, loading, source]);
-
-  useEffect(() => {
-    const accessToken = process.env.NEXT_PUBLIC_MAPBOX_GL_TOKEN || '';
-    if (map.current || !accessToken || !isWebGLSupported()) return;
+    if (map.current || !ACCESS_TOKEN || !isWebGLSupported()) return;
 
     setLoading(true);
 
-    mapboxgl.accessToken = accessToken;
-    map.current = new mapboxgl.Map({
+    const instance = new mapboxgl.Map({
+      accessToken: ACCESS_TOKEN,
+      container: mapContainer.current,
+      style: MAP_STYLE,
+      config: {
+        basemap: {
+          ...BASEMAP_CONFIG,
+          lightPreset: THEMES[themeMode].lightPreset,
+        },
+      },
       projection: {
         name: 'mercator',
       },
-      dragPan: false,
-      dragRotate: false,
-      container: mapContainer.current,
-      // TODO read it from an ENV variable
-      style: 'mapbox://styles/zwaardje/clhf9caar013j01qt07ib4bea',
+      interactive: false,
       center: [lng, lat],
       zoom: zoom,
     });
+    map.current = instance;
 
-    map.current.on('load', () => {
+    instance.on('style.load', () => {
+      addFlatBasemap(instance, themeMode);
       setLoading(false);
     });
-  }, [lat, lng, zoom]);
+  }, [lat, lng, themeMode, zoom]);
+
+  useEffect(() => {
+    const instance = map.current;
+    if (!instance || loading) return;
+    const { lightPreset, water, land } = THEMES[themeMode];
+    instance.setConfigProperty('basemap', 'lightPreset', lightPreset);
+    instance.setPaintProperty('flat-water', 'fill-color', water);
+    instance.setPaintProperty('flat-land', 'fill-color', land);
+  }, [loading, themeMode]);
+
+  useEffect(() => {
+    const addedIds = addedFeatureIds.current;
+    return () => {
+      map.current?.remove();
+      map.current = null;
+      addedIds.clear();
+    };
+  }, []);
 
   return (
     <div className="rd__latencymap">
@@ -193,14 +197,10 @@ export const LatencyMap = ({ sourceData, zoomLevel = 2 }: Props) => {
   );
 };
 
-// https://stackoverflow.com/a/22953053/1270325
 const isWebGLSupported = () => {
   try {
     const canvas = document.createElement('canvas');
-    return (
-      !!window.WebGLRenderingContext &&
-      (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
-    );
+    return !!window.WebGL2RenderingContext && !!canvas.getContext('webgl2');
   } catch {
     return false;
   }
