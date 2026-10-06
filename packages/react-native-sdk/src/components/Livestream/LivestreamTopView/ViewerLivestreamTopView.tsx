@@ -33,9 +33,7 @@ export type ViewerLivestreamTopViewProps = {
    * Handler to be called when the layout of the component changes.
    */
   onLayout?: ViewProps['onLayout'];
-  /**
-   * Style to be applied to the component.
-   */
+
   style?: StyleProp<ViewStyle>;
 };
 
@@ -50,7 +48,7 @@ export const ViewerLivestreamTopView = ({
   style,
 }: ViewerLivestreamTopViewProps) => {
   const {
-    theme: { viewerLivestreamTopView, insets },
+    theme: { viewerLivestreamTopView },
   } = useTheme();
 
   return (
@@ -58,7 +56,7 @@ export const ViewerLivestreamTopView = ({
       style={[
         styles.container,
         viewerLivestreamTopView.container,
-        { opacity: showControls ? 1 : 0, paddingTop: insets.top },
+        { opacity: showControls ? 1 : 0 },
         style,
       ]}
       pointerEvents={showControls ? 'auto' : 'none'}

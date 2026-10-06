@@ -15,6 +15,7 @@ import {
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import { Z_INDEX } from '../../constants';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
  * Dev-only pane for inspecting the ring outcome of the active ringing call:
@@ -117,8 +118,9 @@ const formatMap = (map?: { [key: string]: string }) => {
 
 const useStyles = () => {
   const {
-    theme: { semantics, primitives, insets },
+    theme: { semantics, primitives },
   } = useTheme();
+  const insets = useSafeAreaInsets();
 
   return useMemo(() => {
     return StyleSheet.create({

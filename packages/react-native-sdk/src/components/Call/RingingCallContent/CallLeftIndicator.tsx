@@ -7,7 +7,7 @@ import {
 
 export type CallLeftIndicatorProps = Pick<
   TextBasedIndicatorProps,
-  'onBackPress'
+  'onBackPress' | 'style'
 >;
 
 export const CallLeftIndicator = (props: CallLeftIndicatorProps) => {
@@ -17,6 +17,7 @@ export const CallLeftIndicator = (props: CallLeftIndicatorProps) => {
     <TextBasedIndicator
       text={t('ringingCall.leftCall.title', 'You have left the call')}
       onBackPress={props.onBackPress}
+      style={props.style}
     />
   );
 };

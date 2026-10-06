@@ -11,6 +11,7 @@ import { useTheme } from '@stream-io/video-react-native-sdk';
 import { Grid } from '../../../assets/Grid';
 import { SpotLight } from '../../../assets/Spotlight';
 import { Layout, useLayout } from '../../../contexts/LayoutContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface AnchorPosition {
   x: number;
@@ -30,8 +31,9 @@ const LayoutSwitcherModal: React.FC<PopupComponentProps> = ({
   anchorPosition,
 }) => {
   const {
-    theme: { semantics, components, insets },
+    theme: { semantics, components },
   } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = useStyles();
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const { selectedLayout, onLayoutSelection } = useLayout();

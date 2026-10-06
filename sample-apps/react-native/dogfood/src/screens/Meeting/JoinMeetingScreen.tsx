@@ -20,6 +20,7 @@ import { useTheme } from '@stream-io/video-react-native-sdk';
 import { useAppI18n } from '../../hooks/useAppI18n';
 import { useOrientation } from '../../hooks/useOrientation';
 import { Button } from '@stream-io/video-react-native-sdk/src/components/utility/Button';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const StreamLogo = require('../../assets/images/stream_placeholder.png');
 
@@ -133,8 +134,9 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
 
 const useStyles = () => {
   const {
-    theme: { primitives, semantics, insets },
+    theme: { primitives, semantics },
   } = useTheme();
+  const insets = useSafeAreaInsets();
   return useMemo(
     () =>
       StyleSheet.create({

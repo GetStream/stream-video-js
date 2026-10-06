@@ -25,6 +25,7 @@ import {
 } from './ViewerStatusPanel';
 import { Z_INDEX } from '../../../constants';
 import { ViewerLivestreamOverlay } from './ViewerLivestreamOverlay';
+import type { Insets } from '../../../theme/types';
 
 /**
  * Props for the ViewerLivestream component.
@@ -58,6 +59,11 @@ export type ViewerLivestreamProps = Omit<
      * has a the capability to join backstage).
      */
     joinBehavior?: 'asap' | 'live';
+    /**
+     * Safe-area insets, applied per child rather than to this component's container:
+     * the video fills the screen, so padding an enclosing view would letterbox it.
+     */
+    insets?: Insets;
   };
 
 /**
@@ -71,10 +77,11 @@ export const ViewerLivestream = ({
   DurationBadge,
   onLeaveStreamHandler,
   joinBehavior,
+  insets,
 }: ViewerLivestreamProps) => {
   const call = useCall();
   const {
-    theme: { viewerLivestream, primitives, insets },
+    theme: { viewerLivestream, primitives },
   } = useTheme();
   const {
     useHasOngoingScreenShare,
@@ -157,7 +164,7 @@ export const ViewerLivestream = ({
   }
 
   const statusPanelStyle = {
-    bottom: insets.bottom + primitives.spacingXxs,
+    bottom: (insets?.bottom ?? 0) + primitives.spacingXxs,
   };
 
   return (
@@ -175,7 +182,7 @@ export const ViewerLivestream = ({
             setTopViewHeight(event.nativeEvent.layout.height);
           }}
           onLeaveStreamHandler={onLeaveStreamHandler}
-          style={styles.topView}
+          style={[styles.topView, { paddingTop: insets?.top }]}
         />
       )}
       {FloatingParticipantView && floatingParticipant && topViewHeight && (
@@ -193,6 +200,7 @@ export const ViewerLivestream = ({
       <ViewerLivestreamOverlay
         showControls={showControls}
         setShowControls={(value) => setShowControls(value)}
+        bottomInset={insets?.bottom}
       />
       {ViewerStatusPanel && (
         <ViewerStatusPanel

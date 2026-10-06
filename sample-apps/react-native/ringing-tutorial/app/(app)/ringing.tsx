@@ -6,9 +6,11 @@ import {
   useCalls,
 } from '@stream-io/video-react-native-sdk';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Ringing() {
   const calls = useCalls().filter((c) => c.ringing);
+  const insets = useSafeAreaInsets();
   const call = calls[0];
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export default function Ringing() {
   return (
     <StreamCall call={call}>
       <View style={styles.container}>
-        <RingingCallContent />
+        <RingingCallContent insets={insets} />
       </View>
     </StreamCall>
   );

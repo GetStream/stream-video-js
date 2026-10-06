@@ -10,7 +10,6 @@ import {
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/createToken';
-import { useCustomTheme } from '../theme';
 import axios, { AxiosResponseTransformer } from 'axios';
 import { Alert } from 'react-native';
 import { useRegisterNonRingingPushToken } from '../hooks/useRegisterNonRingingPushToken';
@@ -33,7 +32,6 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const disableRingStatePolling = useAppGlobalStoreValue(
     (store) => store.disableRingStatePolling,
   );
-  const customTheme = useCustomTheme();
   const setState = useAppGlobalStoreSetState();
 
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
@@ -129,11 +127,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   }
 
   return (
-    <StreamVideo
-      client={videoClient}
-      style={customTheme}
-      colorScheme={themeMode}
-    >
+    <StreamVideo client={videoClient} colorScheme={themeMode}>
       <NonRingingPushTokenRegistration />
       {children}
     </StreamVideo>

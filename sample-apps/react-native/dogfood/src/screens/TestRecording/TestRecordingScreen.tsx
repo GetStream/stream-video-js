@@ -18,6 +18,7 @@ import {
   RecordingControls,
   InlineCallStats,
 } from './components';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = NativeStackScreenProps<
   TestRecordingStackParamList,
@@ -144,8 +145,9 @@ const TestRecordingContent = ({
 
 const useStyles = () => {
   const {
-    theme: { primitives, semantics, insets },
+    theme: { primitives, semantics },
   } = useTheme();
+  const insets = useSafeAreaInsets();
   return useMemo(
     () =>
       StyleSheet.create({

@@ -1,7 +1,7 @@
 import { CallingState } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import React, { useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 import {
   CallContent as DefaultCallContent,
   type CallContentProps,
@@ -23,6 +23,7 @@ import {
   type CallPreparingIndicatorProps,
 } from './CallPreparingIndicator';
 import { useTheme } from '../../../contexts';
+import type { Insets } from '../../../theme/types';
 
 /**
  * Props for the RingingCallContent component
@@ -58,6 +59,11 @@ export type RingingCallContentProps = {
    * in CallLeftIndicator component.
    */
   onBackPress?: () => void;
+  /**
+   * Safe-area insets, applied as padding to whichever ringing screen is
+   * showing.
+   */
+  insets?: Insets;
 };
 
 const RingingCallPanel = ({
@@ -68,8 +74,16 @@ const RingingCallPanel = ({
   CallPreparingIndicator = DefaultCallPreparingIndicator,
   landscape,
   onBackPress,
+  insets,
   callingState,
 }: RingingCallContentProps & { callingState: CallingState }) => {
+  const insetStyle: ViewStyle | undefined = insets && {
+    paddingTop: insets.top,
+    paddingBottom: insets.bottom,
+    paddingLeft: insets.left,
+    paddingRight: insets.right,
+  };
+
   const hasJoinedRef = useRef(false);
   const call = useCall();
   const isCallCreatedByMe = call?.isCreatedByMe;
@@ -81,7 +95,7 @@ const RingingCallPanel = ({
   if (callingState === CallingState.IDLE) {
     return (
       CallPreparingIndicator && (
-        <CallPreparingIndicator onBackPress={onBackPress} />
+        <CallPreparingIndicator onBackPress={onBackPress} style={insetStyle} />
       )
     );
   }
@@ -92,17 +106,24 @@ const RingingCallPanel = ({
 
   if (isPreJoin) {
     return isCallCreatedByMe
-      ? OutgoingCall && <OutgoingCall landscape={landscape} />
+      ? OutgoingCall && (
+          <OutgoingCall landscape={landscape} style={insetStyle} />
+        )
       : IncomingCall && (
           <IncomingCall
             landscape={landscape}
             isConnecting={callingState === CallingState.JOINING}
+            style={insetStyle}
           />
         );
   }
 
   if (callingState == CallingState.LEFT) {
-    return CallLeftIndicator && <CallLeftIndicator onBackPress={onBackPress} />;
+    return (
+      CallLeftIndicator && (
+        <CallLeftIndicator onBackPress={onBackPress} style={insetStyle} />
+      )
+    );
   }
 
   return CallContent && <CallContent landscape={landscape} />;

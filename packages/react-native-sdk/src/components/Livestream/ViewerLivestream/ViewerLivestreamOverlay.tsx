@@ -25,6 +25,10 @@ export type ViewerLivestreamOverlayProps = {
    * Sets the visibility of the controls.
    */
   setShowControls: (show: boolean) => void;
+  /**
+   * Bottom safe-area inset.
+   */
+  bottomInset?: number;
 };
 
 /**
@@ -33,9 +37,10 @@ export type ViewerLivestreamOverlayProps = {
 export const ViewerLivestreamOverlay = ({
   showControls,
   setShowControls,
+  bottomInset = 0,
 }: ViewerLivestreamOverlayProps) => {
   const {
-    theme: { viewerLivestreamOverlay, semantics, primitives, insets },
+    theme: { viewerLivestreamOverlay, semantics, primitives },
   } = useTheme();
 
   const playPauseTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -137,7 +142,7 @@ export const ViewerLivestreamOverlay = ({
         {size.width > 0 && size.height > 0 && showControls && (
           <RoundedHoleOverlay
             size={size}
-            inset={insets.bottom}
+            inset={bottomInset}
             style={viewerLivestreamOverlay.frame}
           />
         )}

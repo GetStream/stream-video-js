@@ -10,7 +10,6 @@ import { MeetingStackParamList } from '../../../types';
 import { MeetingUI } from '../../components/MeetingUI';
 import { createToken } from '../../modules/helpers/createToken';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
-import { useCustomTheme } from '../../theme';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -22,7 +21,6 @@ export const GuestMeetingScreen = (props: Props) => {
     (store) => store.appEnvironment,
   );
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
-  const customTheme = useCustomTheme();
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
     undefined,
   );
@@ -87,11 +85,7 @@ export const GuestMeetingScreen = (props: Props) => {
   }
 
   return (
-    <StreamVideo
-      client={videoClient}
-      style={customTheme}
-      colorScheme={themeMode}
-    >
+    <StreamVideo client={videoClient} colorScheme={themeMode}>
       <StreamCall call={call}>
         <MeetingUI callId={callId} {...props} />
       </StreamCall>

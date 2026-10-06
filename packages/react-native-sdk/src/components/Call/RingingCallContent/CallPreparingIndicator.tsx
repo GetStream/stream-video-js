@@ -7,7 +7,7 @@ import {
 
 export type CallPreparingIndicatorProps = Pick<
   TextBasedIndicatorProps,
-  'onBackPress'
+  'onBackPress' | 'style'
 >;
 
 /**
@@ -22,6 +22,7 @@ export const CallPreparingIndicator = (props: CallPreparingIndicatorProps) => {
     <TextBasedIndicator
       text={t('ringingCall.preparing.title', 'Preparing call')}
       onBackPress={props.onBackPress}
+      style={props.style}
     />
   );
 };

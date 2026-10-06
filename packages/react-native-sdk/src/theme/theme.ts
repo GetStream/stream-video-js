@@ -4,7 +4,6 @@ import {
   AvatarStyle,
   BaseButtonStyle,
   CallControlsButtonStyle,
-  type Insets,
 } from './types';
 import {
   buildTokens,
@@ -221,7 +220,6 @@ export type Theme = {
     buttonText: TextStyle;
   };
 
-  insets: Insets;
   // Index signature for additional dynamic properties
   [component: string]: any;
 };
@@ -967,13 +965,6 @@ export const resolveTheme = (
         fontWeight: theme.primitives.typographyFontWeightSemiBold,
         color: theme.semantics.textPrimary,
       },
-    },
-
-    insets: {
-      top: theme.foundations.spacing.space0,
-      right: theme.foundations.spacing.space0,
-      bottom: theme.foundations.spacing.space0,
-      left: theme.foundations.spacing.space0,
     },
   };
 };

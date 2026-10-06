@@ -1,5 +1,11 @@
 import React from 'react';
-import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import {
+  StyleSheet,
+  type StyleProp,
+  Text,
+  View,
+  type ViewStyle,
+} from 'react-native';
 import { UserInfo } from './UserInfo';
 import { Z_INDEX } from '../../../constants';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
@@ -33,6 +39,8 @@ export type OutgoingCallProps = OutgoingCallControlsProps & {
    * This will apply the landscape mode styles to the component.
    */
   landscape?: boolean;
+
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -43,18 +51,12 @@ export const OutgoingCall = ({
   onHangupCallHandler,
   CallAppBar = DefaultCallAppBar,
   CallControls = DefaultCallControls,
+  style,
 }: OutgoingCallProps) => {
   const {
-    theme: { outgoingCall, insets },
+    theme: { outgoingCall },
   } = useTheme();
   const { t } = useI18n();
-
-  const insetStyles: ViewStyle = {
-    paddingTop: insets.top,
-    paddingBottom: insets.bottom,
-    paddingLeft: insets.left,
-    paddingRight: insets.right,
-  };
 
   return (
     <>
@@ -63,7 +65,7 @@ export const OutgoingCall = ({
           StyleSheet.absoluteFill,
           styles.container,
           outgoingCall.container,
-          insetStyles,
+          style,
         ]}
       >
         {CallAppBar && <CallAppBar onHangupCallHandler={onHangupCallHandler} />}

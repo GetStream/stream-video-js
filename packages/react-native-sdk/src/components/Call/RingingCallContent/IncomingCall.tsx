@@ -1,5 +1,11 @@
 import React from 'react';
-import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import {
+  StyleSheet,
+  type StyleProp,
+  Text,
+  View,
+  type ViewStyle,
+} from 'react-native';
 import { UserInfo } from './UserInfo';
 import {
   IncomingCallControls as DefaultIncomingCallControls,
@@ -23,6 +29,8 @@ export type IncomingCallProps = IncomingCallControlsProps & {
   landscape?: boolean;
 
   isConnecting?: boolean;
+
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -35,21 +43,15 @@ export const IncomingCall = ({
   IncomingCallControls = DefaultIncomingCallControls,
   landscape,
   isConnecting = false,
+  style,
 }: IncomingCallProps) => {
   const { t } = useI18n();
   const {
-    theme: { incomingCall, insets },
+    theme: { incomingCall },
   } = useTheme();
 
   const landscapeContentStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
-  };
-
-  const insetStyles: ViewStyle = {
-    paddingTop: insets.top,
-    paddingBottom: insets.bottom,
-    paddingLeft: insets.left,
-    paddingRight: insets.right,
   };
 
   return (
@@ -57,8 +59,8 @@ export const IncomingCall = ({
       style={[
         styles.content,
         landscapeContentStyles,
-        insetStyles,
         incomingCall.content,
+        style,
       ]}
     >
       <View style={[styles.topContainer, incomingCall.topContainer]}>

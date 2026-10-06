@@ -1,5 +1,12 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  type StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  type ViewStyle,
+} from 'react-native';
 import { useTheme } from '../../../contexts';
 import { Back } from '../../../icons';
 
@@ -13,6 +20,8 @@ export type TextBasedIndicatorProps = {
    * which matters for states the call may sit in indefinitely.
    */
   onBackPress?: () => void;
+
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -22,11 +31,12 @@ export type TextBasedIndicatorProps = {
 export const TextBasedIndicator = ({
   text,
   onBackPress,
+  style,
 }: TextBasedIndicatorProps) => {
   const styles = useStyles();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       {onBackPress && (
         <View style={styles.backContainer}>
           <Pressable
@@ -49,17 +59,13 @@ export const TextBasedIndicator = ({
 
 const useStyles = () => {
   const {
-    theme: { foundations, components, semantics, insets },
+    theme: { foundations, components, semantics },
   } = useTheme();
 
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: semantics.backgroundCoreApp,
-      paddingTop: insets.top,
-      paddingBottom: insets.bottom,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
     },
     buttonContainer: {
       height: components.iconSizeMd,
