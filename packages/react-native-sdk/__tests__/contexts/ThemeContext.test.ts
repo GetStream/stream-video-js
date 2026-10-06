@@ -57,12 +57,12 @@ describe('mergeThemes', () => {
 
   it('clones before merging so the given theme stays clean', () => {
     const dark = resolveTheme('dark');
-    const before = dark.callControls?.container.backgroundColor;
+    const before = dark.callControls?.container?.backgroundColor;
     const merged = mergeThemes({ theme: dark, style: componentStyleOverride });
 
     expect(merged).not.toBe(dark);
-    expect(merged.callControls?.container.backgroundColor).toBe('red');
-    expect(dark.callControls?.container.backgroundColor).toBe(before);
+    expect(merged.callControls?.container?.backgroundColor).toBe('red');
+    expect(dark.callControls?.container?.backgroundColor).toBe(before);
   });
 
   it('merges an override into the defaults without dropping siblings', () => {
