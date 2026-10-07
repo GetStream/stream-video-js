@@ -174,6 +174,25 @@ describe('RingStatePoller', () => {
     });
   });
 
+  it('leaves when the creator rejected, for a callee', async () => {
+    // @ts-expect-error mocking only what we need for the test
+    call.state['createdBySubject'].next({ id: 'john' });
+    startPolling(
+      ringState({
+        rejected_by: { john: dateToNs(new Date('2026-08-24T10:00:09Z')) },
+      }),
+    );
+
+    await vi.advanceTimersByTimeAsync(START_AFTER_MS + 3 * INTERVAL_MS);
+
+    expect(call.leave).toHaveBeenCalledTimes(1);
+    expect(call.leave).toHaveBeenCalledWith({
+      reason: 'ended',
+      message: 'ring: creator rejected',
+    });
+    expect(poller['stopped']).toBe(true);
+  });
+
   it('keeps the ring deadline across a pause', async () => {
     startPolling();
     const deadlineAt = poller['deadlineAt'];
@@ -463,8 +482,17 @@ describe('Call ring state polling', () => {
     expect(call['ringStatePoller']).toBeDefined();
   });
 
-  it('does not poll for the callee', () => {
+  it('polls for the callee', () => {
     const call = createRingingCall();
+    // @ts-expect-error mocking only what we need for the test
+    call.state['createdBySubject'].next({ id: 'not-' + userId });
+
+    call['handleRingingCall']();
+    expect(call['ringStatePoller']).toBeDefined();
+  });
+
+  it('does not poll for the callee when disabled through the client options', () => {
+    const call = createRingingCall({ ringStatePolling: false });
     // @ts-expect-error mocking only what we need for the test
     call.state['createdBySubject'].next({ id: 'not-' + userId });
 
