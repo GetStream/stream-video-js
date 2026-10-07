@@ -80,8 +80,15 @@ const reconcileAsCaller = async (
 };
 
 // the current user's own accept or reject, on this or another device, is
-// handled by `resolveOwnRingOutcome`, and `call.ended` by `watchCallEnded`.
+// handled by `resolveOwnRingOutcome`, and a live `call.ended` by
+// `watchCallEnded`. An end missed while offline is handled here.
 const reconcileAsCallee = async (call: Call): Promise<boolean> => {
+  const { session, endedAt } = call.state;
+  if (endedAt || session?.ended_at) {
+    call.logger.info('ring: the call has ended, leaving');
+    return leave(call, { reason: 'ended', message: 'ring: call ended' });
+  }
+
   const createdById = call.state.createdBy?.id;
   const rejectedBy = call.state.session?.rejected_by ?? {};
   if (createdById && rejectedBy[createdById]) {

@@ -191,6 +191,28 @@ describe('StreamVideoClient re-watching calls on reconnect', () => {
       expect(leave).not.toHaveBeenCalled();
     });
 
+    it('callee leaves when the call ended while offline', async () => {
+      const call = await setupRingingCall();
+      const leave = vi.spyOn(call, 'leave').mockResolvedValue(undefined);
+      const post = vi
+        .spyOn(client.streamClient, 'doAxiosRequest')
+        .mockResolvedValue({
+          data: queryCallsResponse({
+            ...CallRingPayload.call,
+            created_by: call.state.createdBy as UserResponse,
+            ended_at: dateToNs(new Date('2025-08-14T14:49:00Z')),
+          }),
+        } as never);
+      reconnect();
+      await vi.waitFor(() => expect(post).toHaveBeenCalled());
+      await vi.waitFor(() =>
+        expect(leave).toHaveBeenCalledWith({
+          reason: 'ended',
+          message: 'ring: call ended',
+        }),
+      );
+    });
+
     it('does not reconcile a call that is not in RINGING state', async () => {
       const call = await setupRingingCall();
       call.state.setCallingState(CallingState.JOINED);
