@@ -64,7 +64,6 @@ export type VideoProps = ComponentPropsWithoutRef<'video'> & {
    */
   PictureInPicturePlaceholder?: ComponentType<PictureInPicturePlaceholderProps> | null;
   /**
-  /**
    * An object with setRef functions
    * meant for exposing some of the internal elements of this component.
    */
@@ -79,9 +78,6 @@ export type VideoProps = ComponentPropsWithoutRef<'video'> & {
      * @param element the video placeholder element.
      */
     setVideoPlaceholderElement?: (element: HTMLDivElement | null) => void;
-    setPictureInPicturePlaceholderElement?: (
-      element: HTMLDivElement | null,
-    ) => void;
   };
 };
 
