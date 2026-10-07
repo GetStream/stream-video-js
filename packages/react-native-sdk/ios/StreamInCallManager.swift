@@ -413,9 +413,6 @@ class StreamInCallManager: RCTEventEmitter {
 
     @objc(showAudioRoutePicker)
     public func showAudioRoutePicker() {
-        guard #available(iOS 11.0, tvOS 11.0, macOS 10.15, *) else {
-            return
-        }
         DispatchQueue.main.async {
             // AVRoutePickerView is the default UI with a
             // button that users tap to stream audio/video content to a media receiver
@@ -952,8 +949,7 @@ class StreamInCallManager: RCTEventEmitter {
     /// Best-effort name for the iOS 14.5+ `AVAudioSessionInterruptionReasonKey`.
     /// Names the iOS 17 cases we care about and falls back to the raw value otherwise.
     private func interruptionReason(_ info: [AnyHashable: Any]) -> String? {
-        guard #available(iOS 14.5, *),
-              let reasonRaw = info[AVAudioSessionInterruptionReasonKey] as? UInt,
+        guard let reasonRaw = info[AVAudioSessionInterruptionReasonKey] as? UInt,
               let reason = AVAudioSession.InterruptionReason(rawValue: reasonRaw) else {
             return nil
         }

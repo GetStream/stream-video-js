@@ -461,10 +461,8 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
             return
         }
         
-        if #available(iOS 14.0, *) {
-            if contentView.renderingComponent.requiresFlushToResumeDecoding == true {
-                contentView.renderingComponent.flush()
-            }
+        if contentView.renderingComponent.requiresFlushToResumeDecoding {
+            contentView.renderingComponent.flush()
         }
         
         if contentView.renderingComponent.isReadyForMoreMediaData {
