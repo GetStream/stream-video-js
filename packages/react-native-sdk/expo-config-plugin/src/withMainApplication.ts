@@ -9,17 +9,19 @@ const withStreamVideoReactNativeSDKMainApplication: ConfigPlugin<
   ConfigProps
 > = (configuration, props) => {
   return withMainApplication(configuration, (config) => {
-    const isMainActivityJava = config.modResults.language === 'java';
-
     if (props?.addNoiseCancellation) {
+      if (config.modResults.language !== 'kt') {
+        throw new Error(
+          `Cannot setup StreamVideoReactNativeSDK: a Kotlin MainApplication is required (the default since Expo SDK 50), found ${config.modResults.language}`,
+        );
+      }
       config.modResults.contents = addImports(
         config.modResults.contents,
         ['io.getstream.rn.noisecancellation.NoiseCancellationReactNative'],
-        isMainActivityJava,
+        false,
       );
       config.modResults.contents = addNoiseCancellationInsideOnCreate(
         config.modResults.contents,
-        isMainActivityJava,
       );
     }
 
@@ -27,10 +29,8 @@ const withStreamVideoReactNativeSDKMainApplication: ConfigPlugin<
   });
 };
 
-function addNoiseCancellationInsideOnCreate(contents: string, isJava: boolean) {
-  const addBlock = isJava
-    ? `NoiseCancellationReactNative.registerProcessor(getApplicationContext());`
-    : `NoiseCancellationReactNative.registerProcessor(applicationContext)`;
+function addNoiseCancellationInsideOnCreate(contents: string) {
+  const addBlock = `NoiseCancellationReactNative.registerProcessor(applicationContext)`;
   if (!contents.includes(addBlock)) {
     contents = appendContentsInsideDeclarationBlock(
       contents,
