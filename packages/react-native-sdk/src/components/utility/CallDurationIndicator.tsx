@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { convertTimestampToDate } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { DurationIndicator } from './DurationIndicator';
 
@@ -25,13 +26,10 @@ export const CallDurationIndicator = () => {
 
   const session = useCallSession();
   const startedAt = session?.started_at;
-  const startedAtMs = useMemo(() => {
-    if (!startedAt) {
-      return null;
-    }
-    const date = new Date(startedAt).getTime();
-    return isNaN(date) ? null : date;
-  }, [startedAt]);
+  const startedAtMs = useMemo(
+    () => convertTimestampToDate(startedAt)?.getTime() ?? null,
+    [startedAt],
+  );
 
   useEffect(() => {
     const start = startedAtMs ?? Date.now();

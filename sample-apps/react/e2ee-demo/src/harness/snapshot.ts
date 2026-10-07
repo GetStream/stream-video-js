@@ -1,7 +1,7 @@
 import type {
   StreamVideoClient,
   Call,
-  EncryptionSettingsResponseModeEnum,
+  EncryptionSettingsResponse,
   KeyStateReport,
   PerfReport,
 } from '@stream-io/video-react-sdk';
@@ -87,7 +87,7 @@ export interface Snapshot {
    * requests a mode - this is purely whatever the call type is configured with
    * server-side.
    */
-  resolvedEncryptionMode: EncryptionSettingsResponseModeEnum | undefined;
+  resolvedEncryptionMode: EncryptionSettingsResponse['mode'] | undefined;
   /**
    * Whether the SFU reports E2EE as actually active for this call, from the join
    * response. Unlike {@link Snapshot.resolvedEncryptionMode} - which is only what

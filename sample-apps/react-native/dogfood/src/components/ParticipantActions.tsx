@@ -4,8 +4,6 @@ import {
   hasVideo,
   OwnCapability,
   StreamVideoParticipant,
-  UpdateUserPermissionsRequestGrantPermissionsEnum,
-  UpdateUserPermissionsRequestRevokePermissionsEnum,
   useCall,
   useCallStateHooks,
   useTheme,
@@ -62,18 +60,14 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
     return null;
   }
 
-  const grantPermission = async (
-    permission: UpdateUserPermissionsRequestGrantPermissionsEnum,
-  ) => {
+  const grantPermission = async (permission: OwnCapability) => {
     await call?.updateUserPermissions({
       user_id: participant.userId,
       grant_permissions: [permission],
     });
   };
 
-  const revokePermission = async (
-    permission: UpdateUserPermissionsRequestRevokePermissionsEnum,
-  ) => {
+  const revokePermission = async (permission: OwnCapability) => {
     await call?.updateUserPermissions({
       user_id: participant.userId,
       revoke_permissions: [permission],
@@ -93,7 +87,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   };
 
   const blockUser = async () => {
-    await call?.blockUser(participant.userId);
+    await call?.blockUser({ user_id: participant.userId });
   };
 
   const toggleParticipantPinnedAt = () => {

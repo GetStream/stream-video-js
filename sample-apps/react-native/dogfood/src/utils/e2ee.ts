@@ -2,8 +2,6 @@ import { pbkdf2Sync } from 'react-native-quick-crypto';
 import {
   Call,
   EncryptionManager,
-  EncryptionSettingsRequestModeEnum,
-  EncryptionSettingsResponseModeEnum,
   type CallSettingsResponse,
   type EncryptionSettingsRequest,
 } from '@stream-io/video-react-native-sdk';
@@ -19,7 +17,7 @@ import { mmkvStorage } from '../contexts/createStoreContext';
  * indicator would be claiming more than the call guarantees.
  */
 const ENCRYPTION_OVERRIDE: EncryptionSettingsRequest = {
-  mode: EncryptionSettingsRequestModeEnum.AUTO_ON,
+  mode: 'auto-on',
 };
 
 /**
@@ -33,8 +31,7 @@ const ENCRYPTION_OVERRIDE: EncryptionSettingsRequest = {
  */
 export const isCallEncrypted = (
   settings: CallSettingsResponse | undefined,
-): boolean =>
-  settings?.encryption?.mode === EncryptionSettingsResponseModeEnum.AUTO_ON;
+): boolean => settings?.encryption?.mode === 'auto-on';
 
 /**
  * E2EE is limited to the `pronto` / `pronto-staging` environments, matching the

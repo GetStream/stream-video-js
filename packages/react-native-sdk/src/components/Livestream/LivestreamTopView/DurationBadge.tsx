@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { DurationIndicator } from '../../utility/DurationIndicator';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
+  convertTimestampToDate,
   type CallSessionResponse,
   type StreamCallEvent,
 } from '@stream-io/video-client';
@@ -21,12 +22,11 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
   const session = useCallSession();
 
   const [duration, setDuration] = useState(() => {
-    if (!session || !session.live_started_at) {
+    const liveStartTime = convertTimestampToDate(session?.live_started_at);
+    if (!liveStartTime) {
       return 0;
     }
-    const liveStartTime = new Date(session.live_started_at);
-    const now = new Date();
-    return Math.floor((now.getTime() - liveStartTime.getTime()) / 1000);
+    return Math.floor((Date.now() - liveStartTime.getTime()) / 1000);
   });
 
   const call = useCall();

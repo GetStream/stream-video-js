@@ -40,12 +40,15 @@ const createCall = (kind: Kind = 'ring-option') => {
           streamClient: client.streamClient,
           clientEventReporter: client['clientEventReporter'],
           clientState: client.state,
+          videoApi: client.api,
         });
   if (kind === 'outgoing') {
     jest.spyOn(call, 'isCreatedByMe', 'get').mockReturnValue(true);
   }
   // stop short of the network; the join flow up to that point is the subject
-  jest.spyOn(client.streamClient, 'post').mockResolvedValue({ duration: '0' });
+  jest
+    .spyOn(client.streamClient, 'doAxiosRequest')
+    .mockResolvedValue({ data: { duration: '0' } } as any);
   jest.spyOn(call as any, 'setup').mockResolvedValue(undefined);
   jest.spyOn(call as any, 'doJoin').mockImplementation(async () => {
     // a real join reaches JOINED, which is what refuses a later duplicate

@@ -1,7 +1,23 @@
 import 'webrtc-adapter';
 
 export * from './src/gen/coordinator';
+export type {} from './src/gen/coordinator/models/timestamp-guard';
+export type {
+  ConnectUserDetailsRequest,
+  CreateDeviceRequest,
+  CreateGuestRequest,
+  CreateGuestResponse,
+  ListDevicesResponse,
+  Response,
+  UserRequest,
+  WSAuthMessage,
+} from './src/gen/shims';
 export * from './src/coordinator/connection/types';
+export type {
+  RateLimit,
+  RequestMetadata,
+  StreamResponse,
+} from './src/coordinator/connection/api-client';
 
 export * as SfuEvents from './src/gen/video/sfu/event/events';
 export * as SfuModels from './src/gen/video/sfu/models/models';
@@ -32,3 +48,4 @@ export * from './src/rtc/e2ee/EncryptionManager';
 export * as Browsers from './src/helpers/browsers';
 
 export * from './src/logger';
+export * from './src/helpers/time';
