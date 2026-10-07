@@ -78,8 +78,9 @@
     @"maximumCallsPerCallGroup" : @(options.maximumCallsPerCallGroup()),
     @"maximumCallGroups" : @(options.maximumCallGroups()),
     @"handleType" : options.handleType(),
-    @"ringtoneSound" : options.sound(),
-    @"imageName" : options.imageName(),
+    // Nullable in the spec; a nil value in a dictionary literal throws.
+    @"ringtoneSound" : options.sound() ?: @"",
+    @"imageName" : options.imageName() ?: @"",
     @"includesCallsInRecents" : @(options.callsHistory()),
     @"displayCallTimeout" : @(options.displayCallTimeout()),
     @"skipIncomingPushInForeground" : @(options.skipIncomingPushInForeground())
