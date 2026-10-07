@@ -10,10 +10,6 @@
 #endif
 
 @interface CallingxModule () <CallingxEventEmitter, VoipNotificationsEventEmitter>
-
-@property (nonatomic, strong) CXCallController *callKeepCallController;
-@property (nonatomic, strong) CXProvider *callKeepProvider;
-
 @end
 
 @implementation CallingxModule {
@@ -74,21 +70,6 @@
   [self emitOnNewVoipEvent:dictionary];
 }
 
-#pragma mark - Internal Helpers
-
-- (void)_setupiOSWithOptions:(NSDictionary *)optionsDict {
-  [_moduleImpl setupWithOptions:optionsDict];
-
-  // Resolve WebRTCModule via the injected RCTModuleRegistry so CallingxImpl can
-  // access its AudioDeviceModule. Works in bridgeless mode, where
-  // [RCTBridge currentBridge] is a stub that returns nil.
-  WebRTCModule *webrtcModule = [self.moduleRegistry moduleForName:"WebRTCModule"];
-  _moduleImpl.webRTCModule = webrtcModule;
-
-  self.callKeepCallController = _moduleImpl.callKeepCallController;
-  self.callKeepProvider = _moduleImpl.callKeepProvider;
-}
-
 #pragma mark - Setup
 
 - (NSNumber *)setupiOS:(JS::NativeCallingx::SpecSetupiOSOptions &)options {
@@ -104,7 +85,9 @@
     @"skipIncomingPushInForeground" : @(options.skipIncomingPushInForeground())
   };
 
-  [self _setupiOSWithOptions:optionsDict];
+  [_moduleImpl setupWithOptions:optionsDict];
+  // CallingxImpl reaches the AudioDeviceModule through WebRTCModule.
+  _moduleImpl.webRTCModule = [self.moduleRegistry moduleForName:"WebRTCModule"];
   return @YES;
 }
 
