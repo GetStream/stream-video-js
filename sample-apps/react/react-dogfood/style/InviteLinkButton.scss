@@ -1,0 +1,19 @@
+.str-video__invite-link-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  width: 100%;
+  position: relative;
+  padding-block: 0.5rem;
+
+  .str-video__invite-link-tooltip {
+    position: absolute;
+    bottom: 110%;
+  }
+
+  .str-video__invite-participant-icon {
+    height: 20px;
+    width: 20px;
+  }
+}

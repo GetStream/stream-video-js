@@ -14,12 +14,6 @@
     @include utils.ellipsis-text();
   }
 
-  .str-video__participant-avatar {
-    display: flex;
-    align-items: center;
-    gap: var(--str-video__spacing-sm);
-  }
-
   .str-video__participant-listing-item__media-indicator-group {
     display: flex;
     align-items: center;
