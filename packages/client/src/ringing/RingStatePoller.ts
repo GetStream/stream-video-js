@@ -16,15 +16,12 @@ const ringIsOver = (callingState: CallingState) =>
   callingState !== CallingState.JOINING;
 
 /**
- * Polls the coordinator for the outcome of a ring, for both the caller and the
- * callee.
+ * Polls the coordinator for the outcome of a ring the current user started.
  *
  * `call.accepted`, `call.rejected` and `call.missed` are delivered best-effort,
  * with no store-and-forward, so a caller that drops one is left on a ringing
- * screen while the callee is already in the call, and a callee that drops the
- * caller's cancel or the end of the call keeps ringing. After a quiet period
- * this reads the ring state until a terminal outcome or the end of the ring
- * window.
+ * screen while the callee is already in the call. After a quiet period this
+ * reads the ring state until a terminal outcome or the end of the ring window.
  */
 export class RingStatePoller {
   private readonly logger = videoLoggerSystem.getLogger('RingStatePoller');

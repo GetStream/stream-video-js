@@ -2989,11 +2989,13 @@ export class Call {
   };
 
   /**
-   * Starts polling for the ring outcome, for both the caller and the callee.
+   * Starts polling for the ring outcome. Applicable only to ringing calls the
+   * current user created.
    */
   private scheduleRingStatePolling = () => {
     this.cancelRingStatePolling();
 
+    if (!this.isCreatedByMe) return;
     const options = this.streamClient.options.ringStatePolling;
     if (options === false) return;
 

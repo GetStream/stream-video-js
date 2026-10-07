@@ -324,9 +324,8 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
   rejectCallWhenBusy?: boolean;
 
   /**
-   * Polling for the ring outcome, for both caller and callee, used when the
-   * `call.accepted`, `call.rejected` or `call.missed` event never arrives. For a
-   * callee, it recovers a dropped caller cancel or call end. Enabled by default;
+   * Caller-side polling for the ring outcome, used when the `call.accepted`,
+   * `call.rejected` or `call.missed` event never arrives. Enabled by default;
    * set to `false` to disable, or pass an object to tune the timings.
    */
   ringStatePolling?: false | RingStatePollingOptions;
