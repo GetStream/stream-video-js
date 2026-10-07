@@ -298,6 +298,7 @@ export abstract class DeviceManager<
         : (forceStopOrOptions?.forceStop ?? false);
 
     this.state.prevStatus = this.state.optimisticStatus;
+    this.state.setError(undefined);
     if (!forceStop && this.state.optimisticStatus === 'disabled') {
       return;
     }
@@ -310,6 +311,7 @@ export abstract class DeviceManager<
           forceStop || this.state.disableMode === 'stop-tracks';
         await this.muteStream(stopTracks);
         this.state.setStatus('disabled');
+        this.state.setError(undefined);
       } finally {
         if (!signal.aborted) {
           this.state.setPendingStatus(this.state.status);
@@ -638,7 +640,11 @@ export abstract class DeviceManager<
 
       // the rootStream represents the stream coming from the actual device
       // e.g. camera or microphone stream
+      this.state.setError(undefined);
       rootStreamPromise = this.getSelectedStream(constraints as C);
+      rootStreamPromise.catch((error) => {
+        this.state.setError(error);
+      });
       // we publish the last MediaStream of the chain
       stream = await this.filters.reduce(
         (parent, entry) =>

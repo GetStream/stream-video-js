@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import {
+  CameraUnavailableNotification,
   Icon,
   MicCaptureErrorNotification,
   ToggleAudioPreviewButton,
@@ -186,7 +187,9 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                       <MicCaptureErrorNotification placement="top">
                         <ToggleAudioPreviewButton Menu={null} />
                         {settings?.video.enabled && (
-                          <ToggleVideoPreviewButton Menu={null} />
+                          <CameraUnavailableNotification>
+                            <ToggleVideoPreviewButton Menu={null} />
+                          </CameraUnavailableNotification>
                         )}
                       </MicCaptureErrorNotification>
                     </div>

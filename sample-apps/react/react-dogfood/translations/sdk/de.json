@@ -95,6 +95,8 @@
   "lobby.join.label": "Teilnehmen",
   "lobby.setUpYourCall.title": "Richte deinen Anruf vor dem Beitreten ein",
   "lobby.videoPreviewFallbacks.grantBrowserPermission.text": "Bitte erteile deinem Browser die Berechtigung, auf Kamera und Mikrofon zuzugreifen.",
+  "notification.cameraUnavailable.description": "Schließe andere Apps, die deine Kamera verwenden könnten, und versuche es erneut.",
+  "notification.cameraUnavailable.title": "Kamera nicht verfügbar",
   "notification.micCaptureError.description": "Bitte überprüfe deine Einrichtung.",
   "notification.micCaptureError.title": "Dein Mikrofon nimmt kein Audio auf.",
   "notification.recordingInProgress.text": "Aufnahme läuft...",

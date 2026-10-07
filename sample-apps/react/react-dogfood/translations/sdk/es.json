@@ -95,6 +95,8 @@
   "lobby.join.label": "Únete",
   "lobby.setUpYourCall.title": "Configura tu llamada antes de unirte",
   "lobby.videoPreviewFallbacks.grantBrowserPermission.text": "Concede a tu navegador permiso para acceder a tu cámara y micrófono.",
+  "notification.cameraUnavailable.description": "Cierra otras aplicaciones que puedan estar usando tu cámara e inténtalo de nuevo.",
+  "notification.cameraUnavailable.title": "Cámara no disponible",
   "notification.micCaptureError.description": "Comprueba tu configuración.",
   "notification.micCaptureError.title": "Tu micrófono no está capturando audio.",
   "notification.recordingInProgress.text": "Grabación en curso...",

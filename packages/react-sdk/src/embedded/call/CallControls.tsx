@@ -2,6 +2,7 @@ import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../i18n';
 import {
+  CameraUnavailableNotification,
   CancelCallConfirmButton,
   CompositeButton,
   DeviceSelectorAudioInput,
@@ -78,10 +79,12 @@ export const CallControls = ({
           requiredGrants={[OwnCapability.SEND_VIDEO]}
           hasPermissionsOnly
         >
-          <ToggleVideoPublishingButton
-            Menu={<CameraMenuWithBlur />}
-            menuPlacement="top"
-          />
+          <CameraUnavailableNotification>
+            <ToggleVideoPublishingButton
+              Menu={<CameraMenuWithBlur />}
+              menuPlacement="top"
+            />
+          </CameraUnavailableNotification>
         </Restricted>
         <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
           <div className="str-video__embedded-desktop">

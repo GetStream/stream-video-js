@@ -389,6 +389,7 @@ export const useCameraState = ({
   const isPromptingPermission = useObservableValue(
     state.isPromptingPermission$,
   );
+  const error = useObservableValue(state.error$);
 
   return {
     camera,
@@ -401,6 +402,7 @@ export const useCameraState = ({
     hasBrowserPermission,
     isPromptingPermission,
     selectedDevice,
+    error,
     ...getComputedStatus(
       useObservableValue(state.status$),
       useObservableValue(state.optimisticStatus$),
@@ -428,6 +430,7 @@ export const useMicrophoneState = ({
   );
   const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
   const audioBitrateProfile = useObservableValue(state.audioBitrateProfile$);
+  const error = useObservableValue(state.error$);
 
   return {
     microphone,
@@ -440,6 +443,7 @@ export const useMicrophoneState = ({
     isPromptingPermission,
     isSpeakingWhileMuted,
     audioBitrateProfile,
+    error,
     ...getComputedStatus(
       useObservableValue(state.status$),
       useObservableValue(state.optimisticStatus$),
