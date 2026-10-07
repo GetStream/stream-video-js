@@ -202,6 +202,39 @@ describe('reconcileRingState', () => {
         message: 'ring: call ended',
       });
     });
+
+    describe('as the callee', () => {
+      const ended = { reason: 'ended', message: 'ring: call ended' };
+
+      it('leaves when the session has ended', async () => {
+        const call = ringingCall({ currentUserId: 'm2', createdById: 'm1' });
+        setSession(call, { ended_at: timestamp() });
+
+        expect(await reconcile(call)).toBe(true);
+        expect(call.leave).toHaveBeenCalledWith(ended);
+      });
+
+      it('leaves when the call itself has ended', async () => {
+        const call = ringingCall({ currentUserId: 'm2', createdById: 'm1' });
+        setSession(call, {});
+        call.state.setEndedAt(new Date());
+
+        expect(await reconcile(call)).toBe(true);
+        expect(call.leave).toHaveBeenCalledWith(ended);
+      });
+
+      it('leaves once with the ended message when the creator also rejected', async () => {
+        const call = ringingCall({ currentUserId: 'm2', createdById: 'm1' });
+        setSession(call, {
+          ended_at: timestamp(),
+          rejected_by: { m1: timestamp() },
+        });
+
+        expect(await reconcile(call)).toBe(true);
+        expect(call.leave).toHaveBeenCalledTimes(1);
+        expect(call.leave).toHaveBeenCalledWith(ended);
+      });
+    });
   });
 
   it('is terminal once the call is no longer ringing', async () => {
