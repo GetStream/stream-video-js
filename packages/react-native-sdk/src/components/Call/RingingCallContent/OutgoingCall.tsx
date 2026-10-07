@@ -1,29 +1,46 @@
 import React from 'react';
-import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import {
+  StyleSheet,
+  type StyleProp,
+  Text,
+  View,
+  type ViewStyle,
+} from 'react-native';
 import { UserInfo } from './UserInfo';
 import { Z_INDEX } from '../../../constants';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { useI18n } from '../../../i18n';
 import { useTheme } from '../../../contexts/ThemeContext';
 import {
-  OutgoingCallControls as DefaultOutgoingCallControls,
+  CallControls as DefaultCallControls,
+  type CallControlProps,
   type OutgoingCallControlsProps,
 } from '../CallControls';
+import {
+  CallAppBar as DefaultCallAppBar,
+  type CallAppBarProps,
+} from '../CallControls/CallAppBar';
 import { LobbyCameraPreview } from '../Lobby';
+import { useI18n } from '../../../i18n';
 
 /**
  * Props for the OutgoingCall Component.
  */
 export type OutgoingCallProps = OutgoingCallControlsProps & {
   /**
-   * Prop to customize the OutgoingCall controls.
+   * Component to customize the top bar of the outgoing call.
    */
-  OutgoingCallControls?: React.ComponentType<OutgoingCallControlsProps> | null;
+  CallAppBar?: React.ComponentType<CallAppBarProps> | null;
+  /**
+   * Component to customize the controls of the outgoing call.
+   */
+  CallControls?: React.ComponentType<CallControlProps> | null;
   /**
    * Check if device is in landscape mode.
    * This will apply the landscape mode styles to the component.
    */
   landscape?: boolean;
+
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -32,24 +49,14 @@ export type OutgoingCallProps = OutgoingCallControlsProps & {
  */
 export const OutgoingCall = ({
   onHangupCallHandler,
-  OutgoingCallControls = DefaultOutgoingCallControls,
-  landscape,
+  CallAppBar = DefaultCallAppBar,
+  CallControls = DefaultCallControls,
+  style,
 }: OutgoingCallProps) => {
   const {
-    theme: { colors, typefaces, outgoingCall, variants },
+    theme: { outgoingCall },
   } = useTheme();
   const { t } = useI18n();
-
-  const landscapeContentStyles: ViewStyle = {
-    flexDirection: landscape ? 'row' : 'column',
-  };
-
-  const insetStyles: ViewStyle = {
-    paddingTop: variants.insets.top,
-    paddingBottom: variants.insets.bottom,
-    paddingLeft: variants.insets.left,
-    paddingRight: variants.insets.right,
-  };
 
   return (
     <>
@@ -58,44 +65,17 @@ export const OutgoingCall = ({
           StyleSheet.absoluteFill,
           styles.container,
           outgoingCall.container,
+          style,
         ]}
       >
-        <View
-          style={[
-            styles.content,
-            landscapeContentStyles,
-            insetStyles,
-            outgoingCall.content,
-          ]}
-        >
-          <View style={[styles.topContainer, outgoingCall.topContainer]}>
-            <UserInfo />
-            <Text
-              style={[
-                styles.callingText,
-                { color: colors.textPrimary },
-                typefaces.heading6,
-                outgoingCall.callingText,
-              ]}
-            >
-              {t('ringingCall.outgoing.title', 'Calling...')}
-            </Text>
-          </View>
-          <View style={[styles.bottomContainer, outgoingCall.bottomContainer]}>
-            <View
-              style={[
-                styles.outgoingCallControls,
-                outgoingCall.outgoingCallControls,
-              ]}
-            >
-              {OutgoingCallControls && (
-                <OutgoingCallControls
-                  onHangupCallHandler={onHangupCallHandler}
-                />
-              )}
-            </View>
-          </View>
+        {CallAppBar && <CallAppBar onHangupCallHandler={onHangupCallHandler} />}
+        <View style={[styles.content, outgoingCall.content]}>
+          <UserInfo color="accent" />
+          <Text style={[styles.callingText, outgoingCall.callingText]}>
+            {t('ringingCall.outgoing.title', 'Calling...')}
+          </Text>
         </View>
+        {CallControls && <CallControls />}
       </View>
 
       <Background />
@@ -105,30 +85,17 @@ export const OutgoingCall = ({
 
 const Background = () => {
   const {
-    theme: { colors, outgoingCall },
+    theme: { outgoingCall },
   } = useTheme();
   const { useCameraState } = useCallStateHooks();
   const { optimisticIsMute } = useCameraState();
 
   if (optimisticIsMute) {
-    return (
-      <View
-        style={[
-          styles.background,
-          { backgroundColor: colors.sheetSecondary },
-          outgoingCall.background,
-        ]}
-      />
-    );
+    return <View style={[styles.background, outgoingCall.background]} />;
   }
+
   return (
-    <View
-      style={[
-        styles.background,
-        { backgroundColor: colors.sheetSecondary },
-        outgoingCall.background,
-      ]}
-    >
+    <View style={[styles.background, outgoingCall.background]}>
       <LobbyCameraPreview />
     </View>
   );
@@ -141,15 +108,14 @@ const styles = StyleSheet.create({
   container: {
     zIndex: Z_INDEX.IN_MIDDLE,
   },
-  topContainer: { flex: 1, justifyContent: 'center' },
   content: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   callingText: {
-    marginTop: 16,
     textAlign: 'center',
   },
-  bottomContainer: { flex: 1, alignSelf: 'center', justifyContent: 'center' },
   outgoingCallControls: {
     justifyContent: 'center',
   },

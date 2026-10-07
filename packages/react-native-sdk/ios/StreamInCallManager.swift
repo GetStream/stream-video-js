@@ -83,7 +83,10 @@ class StreamInCallManager: RCTEventEmitter {
     /// Wired in `setup()`; torn down in `stop()`.
     private var engineSubscription: AnyCancellable?
 
+    private let soundPlayer = SoundPlayer()
+
     override func invalidate() {
+        stopSound()
         stop()
         super.invalidate()
     }
@@ -883,6 +886,21 @@ class StreamInCallManager: RCTEventEmitter {
         }
     }
 
+    // MARK: - Call Sounds
+
+    /// Starts the looping ringing tone. See `SoundPlayer`.
+    /// - Parameter playIfMuted: Android-only, accepted so the bridge signature matches across
+    ///   platforms; iOS playback follows the call's audio session.
+    @objc(playSound:playIfMuted:)
+    func playSound(soundName: String?, playIfMuted: Bool) {
+        soundPlayer.playSound(soundName)
+    }
+
+    @objc(stopSound)
+    func stopSound() {
+        soundPlayer.stopSound()
+    }
+
     // MARK: - RCTEventEmitter
 
     override func supportedEvents() -> [String]! {
@@ -904,14 +922,13 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     private func getCurrentWindow() -> UIWindow? {
-        if #available(iOS 13.0, *) {
-            return UIApplication.shared.connectedScenes
-                .compactMap({ $0 as? UIWindowScene })
-                .first?.windows
-                .first(where: { $0.isKeyWindow })
-        } else {
-            return UIApplication.shared.keyWindow
-        }
+        // With multiple connected scenes the first one may be in the background,
+        // so prefer the key window of a foreground-active scene that has windows.
+        let windowScenes = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .filter { !$0.windows.isEmpty }
+        let scene = windowScenes.first { $0.activationState == .foregroundActive } ?? windowScenes.first
+        return scene?.windows.first { $0.isKeyWindow } ?? scene?.windows.first
     }
 
     private func routeChangeReasonDescription(_ reason: AVAudioSession.RouteChangeReason) -> String {

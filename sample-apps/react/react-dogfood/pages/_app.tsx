@@ -1,12 +1,12 @@
 import '@stream-io/video-styling/dist/css/embedded.css';
 import 'stream-chat-react/dist/css/index.css';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import '../style/index.scss';
 import { ComponentType } from 'react';
 import { Session } from 'next-auth';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import { SessionProvider } from 'next-auth/react';
-import { StreamTheme } from '@stream-io/video-react-sdk';
 import { SettingsProvider } from '../context/SettingsContext';
 import { AppEnvironmentProvider } from '../context/AppEnvironmentContext';
 
@@ -45,9 +45,7 @@ export default function App({
       </Head>
       <AppEnvironmentProvider>
         <SettingsProvider>
-          <StreamTheme>
-            <Component {...pageProps} />
-          </StreamTheme>
+          <Component {...pageProps} />
         </SettingsProvider>
       </AppEnvironmentProvider>
       {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}

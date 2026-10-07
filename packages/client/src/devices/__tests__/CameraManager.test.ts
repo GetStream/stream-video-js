@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
@@ -17,7 +19,8 @@ import {
 import { createVideoStreamForDevice } from './mediaStreamTestHelpers';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { CameraManager } from '../CameraManager';
-import { of } from 'rxjs';
+import { getVideoDevices } from '../devices';
+import { NEVER, of } from 'rxjs';
 import { PermissionsContext } from '../../permissions';
 import { Tracer } from '../../stats';
 import {
@@ -88,6 +91,7 @@ describe('CameraManager', () => {
       id: '',
       type: '',
       streamClient,
+      videoApi: new VideoApi(new ApiClient(streamClient)),
       clientEventReporter: new ClientEventReporter({ streamClient }),
       clientState: new ClientState(),
     });
@@ -592,6 +596,54 @@ describe('CameraManager', () => {
         });
       } finally {
         stressManager.dispose();
+        Object.defineProperty(globalThis, 'window', {
+          configurable: true,
+          value: originalWindow,
+        });
+      }
+    });
+
+    it('persists the label from the active track when the device list is not enumerated yet', async () => {
+      const storageKey = '@test/device-preferences-camera-cold-list';
+      const localStorageMock = createLocalStorageMock();
+      const originalWindow = globalThis.window;
+      Object.defineProperty(globalThis, 'window', {
+        configurable: true,
+        value: { localStorage: localStorageMock },
+      });
+
+      const device = mockVideoDevices[1];
+      vi.mocked(getVideoDevices).mockReturnValue(NEVER);
+      vi.mocked(getVideoStream).mockResolvedValue(
+        createVideoStreamForDevice(device.deviceId, 'user', device.label),
+      );
+      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+        of('granted'),
+      );
+
+      const coldListManager = new CameraManager(call, {
+        enabled: true,
+        storageKey,
+      });
+
+      try {
+        await coldListManager.enable();
+        await coldListManager.statusChangeSettled();
+
+        expect(coldListManager.state.selectedDevice).toBe(device.deviceId);
+        const [persisted] = toPreferenceList(
+          readPreferences(storageKey).camera,
+        );
+        expect(persisted).toEqual({
+          selectedDeviceId: device.deviceId,
+          selectedDeviceLabel: device.label,
+          muted: false,
+        });
+      } finally {
+        coldListManager.dispose();
+        vi.mocked(getVideoDevices).mockImplementation(() =>
+          of(mockVideoDevices),
+        );
         Object.defineProperty(globalThis, 'window', {
           configurable: true,
           value: originalWindow,

@@ -9,7 +9,6 @@ import {
 } from '../contexts/AppContext';
 import { useLobbyE2EE } from '../contexts/LobbyE2EEContext';
 import { updateE2EESharedKeys } from '../utils/e2ee';
-import { appTheme } from '../theme';
 import { TextInput } from './TextInput';
 
 /**
@@ -117,55 +116,57 @@ export const E2EEKeyNotification = () => {
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics, primitives },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          backgroundColor: theme.colors.sheetSecondary,
+          backgroundColor: semantics.backgroundCoreApp,
           borderRadius: 8,
-          marginHorizontal: appTheme.spacing.md,
-          marginTop: appTheme.spacing.sm,
-          padding: appTheme.spacing.md,
+          marginHorizontal: primitives.spacingMd,
+          marginTop: primitives.spacingSm,
+          padding: primitives.spacingMd,
         },
         row: {
           flexDirection: 'row',
           alignItems: 'flex-start',
         },
         message: {
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           flex: 1,
           fontSize: 13,
         },
         dismiss: {
-          color: appTheme.colors.light_gray,
+          color: semantics.textSecondary,
           fontSize: 16,
-          marginLeft: appTheme.spacing.md,
+          marginLeft: primitives.spacingMd,
         },
         form: {
           alignItems: 'center',
           flexDirection: 'row',
-          marginTop: appTheme.spacing.sm,
+          marginTop: primitives.spacingSm,
         },
         input: {
           flex: 1,
           marginVertical: 0,
         },
         apply: {
-          backgroundColor: theme.colors.buttonPrimary,
+          backgroundColor: semantics.accentPrimary,
           borderRadius: 8,
-          marginLeft: appTheme.spacing.md,
-          paddingHorizontal: appTheme.spacing.lg,
-          paddingVertical: appTheme.spacing.sm,
+          marginLeft: primitives.spacingMd,
+          paddingHorizontal: primitives.spacingLg,
+          paddingVertical: primitives.spacingSm,
         },
         applyDisabled: {
-          backgroundColor: theme.colors.buttonDisabled,
+          backgroundColor: semantics.borderCoreDefault,
         },
         applyText: {
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           fontWeight: '600',
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };

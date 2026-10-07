@@ -4,11 +4,11 @@ import {
   RTCView,
   type MediaStream as RNMediaStream,
 } from '@stream-io/react-native-webrtc';
-import { appTheme } from '../../../theme';
 import {
   useCallStateHooks,
   ToggleCameraFaceButton,
   LobbyCameraPreview,
+  useTheme,
 } from '@stream-io/video-react-native-sdk';
 import { Mic } from '../../../assets/Mic';
 import { Video } from '../../../assets/Video';
@@ -51,7 +51,7 @@ export const LoopbackPanel = ({
             ]}
           />
           <View style={styles.iconContainer}>
-            <Mic color={appTheme.colors.static_white} />
+            <Mic color={styles.icon.color} />
           </View>
         </View>
         <View style={styles.badge}>
@@ -62,7 +62,7 @@ export const LoopbackPanel = ({
             ]}
           />
           <View style={styles.iconContainer}>
-            <Video color={appTheme.colors.static_white} />
+            <Video color={styles.icon.color} />
           </View>
         </View>
       </View>
@@ -71,34 +71,37 @@ export const LoopbackPanel = ({
 };
 
 const useStyles = () => {
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         panelContainer: {
           flex: 1,
-          gap: appTheme.spacing.md,
+          gap: primitives.spacingMd,
         },
         statusRow: {
           position: 'absolute',
-          right: 0,
-          bottom: 0,
-          paddingHorizontal: appTheme.spacing.md,
-          paddingVertical: appTheme.spacing.sm,
-          borderTopLeftRadius: appTheme.spacing.md,
-          backgroundColor: appTheme.colors.static_overlay,
+          right: primitives.spacingMd,
+          bottom: primitives.spacingXs,
+          paddingHorizontal: primitives.spacingMd,
+          paddingVertical: primitives.spacingSm,
+          borderRadius: primitives.spacingSm,
+          backgroundColor: semantics.backgroundCoreScrim,
           flexDirection: 'row',
-          gap: appTheme.spacing.md,
+          gap: primitives.spacingMd,
         },
         badge: {
           flexDirection: 'row',
           alignItems: 'center',
-          gap: appTheme.spacing.xs,
+          gap: primitives.spacingXs,
         },
         dot: {
           width: 8,
           height: 8,
           borderRadius: 4,
-          backgroundColor: appTheme.colors.disabled,
+          backgroundColor: semantics.backgroundUtilityDisabled,
         },
         iconContainer: {
           width: 12,
@@ -108,8 +111,8 @@ const useStyles = () => {
         },
         videoPanel: {
           flex: 1,
-          borderRadius: 8,
-          backgroundColor: appTheme.colors.dark_gray,
+          borderRadius: primitives.radiusLg,
+          backgroundColor: semantics.backgroundCoreApp,
           overflow: 'hidden',
           justifyContent: 'center',
           alignItems: 'center',
@@ -120,7 +123,7 @@ const useStyles = () => {
           alignItems: 'center',
         },
         placeholderText: {
-          color: appTheme.colors.light_gray,
+          color: semantics.textSecondary,
           fontSize: 13,
         },
         videoPanelLabelContainer: {
@@ -128,12 +131,12 @@ const useStyles = () => {
           bottom: 0,
           left: 0,
           right: 0,
-          backgroundColor: appTheme.colors.static_overlay,
-          paddingHorizontal: appTheme.spacing.sm,
-          paddingVertical: appTheme.spacing.xs,
+          backgroundColor: semantics.backgroundCoreApp,
+          paddingHorizontal: primitives.spacingSm,
+          paddingVertical: primitives.spacingXs,
         },
         videoPanelLabel: {
-          color: appTheme.colors.static_white,
+          color: semantics.textPrimary,
           fontSize: 12,
         },
         toggleCameraFaceButton: {
@@ -141,7 +144,10 @@ const useStyles = () => {
           bottom: 12,
           left: 16,
         },
+        icon: {
+          color: semantics.textOnAccent,
+        },
       }),
-    [],
+    [primitives, semantics],
   );
 };

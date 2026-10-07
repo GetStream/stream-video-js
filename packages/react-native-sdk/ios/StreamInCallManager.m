@@ -36,6 +36,11 @@ RCT_EXTERN_METHOD(logAudioState)
 
 RCT_EXTERN__BLOCKING_SYNCHRONOUS_METHOD(getAudioStateLog)
 
+RCT_EXTERN_METHOD(playSound:(NSString *)soundName
+                  playIfMuted:(BOOL)playIfMuted)
+
+RCT_EXTERN_METHOD(stopSound)
+
 RCT_EXTERN_METHOD(muteAudioOutput)
 
 RCT_EXTERN_METHOD(unmuteAudioOutput)

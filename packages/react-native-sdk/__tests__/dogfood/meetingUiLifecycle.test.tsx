@@ -31,8 +31,6 @@ jest.mock('@stream-io/video-react-native-sdk', () => {
   }
   return {
     EncryptionManager: Manager,
-    EncryptionSettingsRequestModeEnum: { AUTO_ON: 'auto-on' },
-    EncryptionSettingsResponseModeEnum: { AUTO_ON: 'auto-on' },
     CallingState: { LEFT: 'left', JOINED: 'joined', IDLE: 'idle' },
     useCall: () => mockCall,
     useI18n: () => ({ t: (key: string) => key }),

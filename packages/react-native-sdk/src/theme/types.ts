@@ -1,75 +1,4 @@
-import { type ColorValue, type TextStyle } from 'react-native';
-
-/**
- * ColorScheme defines the complete color palette for the application's theme.
- * It provides a centralized type definition for maintaining consistent colors
- * across different UI components and contexts.
- */
-export type ColorScheme = {
-  primary: ColorValue;
-  secondary: ColorValue;
-  success: ColorValue;
-  warning: ColorValue;
-
-  buttonPrimary: ColorValue;
-  buttonSecondary: ColorValue;
-  buttonSuccess: ColorValue;
-  buttonWarning: ColorValue;
-  buttonDisabled: ColorValue;
-
-  iconPrimary: ColorValue;
-  iconSecondary: ColorValue;
-  iconSuccess: ColorValue;
-  iconWarning: ColorValue;
-
-  sheetPrimary: ColorValue;
-  sheetSecondary: ColorValue;
-  sheetTertiary: ColorValue;
-  sheetOverlay: ColorValue;
-
-  textPrimary: ColorValue;
-  textSecondary: ColorValue;
-
-  // allow any other color
-  [key: string]: ColorValue;
-};
-
-export type FontTypes =
-  | 'heading4'
-  | 'heading5'
-  | 'heading6'
-  | 'subtitle'
-  | 'subtitleBold'
-  | 'caption'
-  | 'bodyBold';
-export type FontStyle = {
-  fontSize: TextStyle['fontSize'];
-  fontWeight: TextStyle['fontWeight'];
-};
-
-/**
- * DimensionType defines a set of standardized size values for component scaling.
- * Each property represents a size tier from extra small (xs) to extra large (xl).
- *
- * @property xs - Extra small size (typically used for minimal spacing or compact elements)
- * @property sm - Small size (used for tight but readable spacing)
- * @property md - Medium size (default size for most components)
- * @property lg - Large size (used for emphasized or prominent elements)
- * @property xl - Extra large size (used for maximum emphasis or touch targets)
- *
- * Common use cases:
- * - Padding and margin values
- * - Icon sizes
- * - Button dimensions
- * - Component spacing
- */
-export type DimensionType = {
-  xs: number;
-  sm: number;
-  md: number;
-  lg: number;
-  xl: number;
-};
+import { TextStyle, ViewStyle } from 'react-native';
 
 /**
  * Insets represent spacing measurements for the four edges of a component or screen.
@@ -91,4 +20,54 @@ export type Insets = {
   left: number;
 };
 
-export type FontsScheme = Record<FontTypes, FontStyle>;
+export type BaseButtonSizes = 'small' | 'medium' | 'large';
+export type BaseButtonVariants =
+  'primary' | 'secondary' | 'destructive' | 'disabled';
+type ButtonVariantStyle = {
+  container: ViewStyle;
+  text: TextStyle;
+};
+
+export type BaseButtonStyle = {
+  container: ViewStyle;
+  content: ViewStyle;
+  accessory: ViewStyle;
+} & {
+  [key in BaseButtonVariants]: ButtonVariantStyle;
+} & {
+  [key in BaseButtonSizes]: ViewStyle;
+};
+
+export type AvatarSize = '3xl' | '2xl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs';
+export type AvatarStyle = {
+  container: {
+    base: ViewStyle;
+  } & { [key in AvatarSize]: ViewStyle };
+  text: {
+    base: TextStyle;
+  } & { [key in AvatarSize]: TextStyle };
+};
+
+export type AvatarGroupSize = '3xl' | '2xl' | 'xl' | 'lg';
+export type AvatarGroupPosition =
+  | 'top-left'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-right'
+  | 'center-top'
+  | 'center-bottom';
+
+export type AvatarGroupStyle = {
+  container: { [key in AvatarGroupSize]: ViewStyle };
+  item: { [key in AvatarGroupSize]: ViewStyle };
+  text: {
+    base: TextStyle;
+  } & { [key in AvatarGroupSize]: TextStyle };
+} & {
+  [key in AvatarGroupPosition]: ViewStyle;
+};
+
+export type CallControlsButtonStyle = {
+  container: ViewStyle;
+  badge: ViewStyle;
+};

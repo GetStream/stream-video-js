@@ -5,11 +5,17 @@ import { IconTestIds } from '../constants/TestIds';
 
 type Props = {
   color: ColorValue;
+  size: number;
 };
 
-export const ScreenShareIndicator = ({ color }: Props) => {
+export const ScreenShareIndicator = ({ color, size }: Props) => {
   return (
-    <Svg viewBox="0 0 24 24" testID={IconTestIds.SCREEN_SHARE_INDICATOR}>
+    <Svg
+      viewBox={`0 0 ${size} ${size}`}
+      width={size}
+      height={size}
+      testID={IconTestIds.SCREEN_SHARE_INDICATOR}
+    >
       <Mask id="path-1-inside-1_1396_84816">
         <Path
           fillRule="evenodd"

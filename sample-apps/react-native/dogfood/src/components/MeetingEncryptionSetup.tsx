@@ -4,7 +4,6 @@ import { useTheme } from '@stream-io/video-react-native-sdk';
 import { LockIcon } from './LockIcon';
 import { TextInput } from './TextInput';
 import { useAppI18n } from '../hooks/useAppI18n';
-import { appTheme } from '../theme';
 
 type Props = {
   enabled: boolean;
@@ -30,7 +29,9 @@ export const MeetingEncryptionSetup = ({
   onRefresh,
 }: Props) => {
   const { t } = useAppI18n();
-  const { theme } = useTheme();
+  const {
+    theme: { semantics },
+  } = useTheme();
   const styles = useStyles();
 
   return (
@@ -41,7 +42,7 @@ export const MeetingEncryptionSetup = ({
         onPress={() => onToggle(!enabled)}
         style={styles.switchRow}
       >
-        <LockIcon color={theme.colors.iconPrimary} size={18} />
+        <LockIcon color={semantics.textPrimary} size={18} />
         <View style={styles.text}>
           <Text style={styles.title}>
             {t(
@@ -112,67 +113,69 @@ export const MeetingEncryptionSetup = ({
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics, primitives },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          backgroundColor: theme.colors.sheetSecondary,
-          borderColor: theme.colors.buttonDisabled,
+          backgroundColor: semantics.backgroundCoreApp,
+          borderColor: semantics.borderCoreDefault,
           borderRadius: 12,
           borderWidth: 1,
-          marginTop: appTheme.spacing.lg,
-          padding: appTheme.spacing.md,
+          marginTop: primitives.spacingLg,
+          padding: primitives.spacingMd,
         },
         containerOn: {
-          borderColor: theme.colors.buttonPrimary,
+          borderColor: semantics.accentPrimary,
         },
         switchRow: {
           alignItems: 'center',
           flexDirection: 'row',
-          gap: appTheme.spacing.md,
+          gap: primitives.spacingMd,
         },
         text: {
           flex: 1,
         },
         title: {
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           fontSize: 15,
           fontWeight: '600',
         },
         subtitle: {
-          color: appTheme.colors.light_gray,
+          color: semantics.textSecondary,
           fontSize: 13,
           marginTop: 2,
         },
         details: {
-          marginTop: appTheme.spacing.md,
+          marginTop: primitives.spacingMd,
         },
         keyLabel: {
-          color: appTheme.colors.light_gray,
+          color: semantics.textSecondary,
           fontSize: 12,
           fontWeight: '500',
         },
         keyRow: {
           alignItems: 'center',
           flexDirection: 'row',
-          gap: appTheme.spacing.sm,
+          gap: primitives.spacingSm,
         },
         iconButton: {
           alignItems: 'center',
           justifyContent: 'center',
-          paddingHorizontal: appTheme.spacing.sm,
+          paddingHorizontal: primitives.spacingSm,
         },
         iconButtonText: {
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           fontSize: 22,
         },
         hint: {
-          color: appTheme.colors.light_gray,
+          color: semantics.textSecondary,
           fontSize: 12,
-          marginTop: appTheme.spacing.xs,
+          marginTop: primitives.spacingXs,
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };

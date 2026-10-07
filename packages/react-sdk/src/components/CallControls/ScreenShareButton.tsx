@@ -1,7 +1,4 @@
-import {
-  OwnCapability,
-  RequestPermissionRequestPermissionsEnum,
-} from '@stream-io/video-client';
+import { OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
   useCallStateHooks,
@@ -32,7 +29,7 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
     useCallStateHooks();
   const isSomeoneScreenSharing = useHasOngoingScreenShare();
   const { hasPermission, requestPermission, isAwaitingPermission } =
-    useRequestPermission(RequestPermissionRequestPermissionsEnum.SCREENSHARE);
+    useRequestPermission('screenshare');
 
   const callSettings = useCallSettings();
   const isScreenSharingAllowed = callSettings?.screensharing.enabled;

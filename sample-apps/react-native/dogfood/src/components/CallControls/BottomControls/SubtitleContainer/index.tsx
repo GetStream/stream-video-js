@@ -1,5 +1,5 @@
-import { useTheme } from '@stream-io/video-react-native-sdk';
 import { View, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ClosedCaptions } from './ClosedCaptions';
 import { SpeakingLabel } from './SpeakingLabel';
 
@@ -17,11 +17,7 @@ export const SubtitleContainer = ({
 }: {
   controlsContainerHeight: number;
 }) => {
-  const {
-    theme: {
-      variants: { insets },
-    },
-  } = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <View

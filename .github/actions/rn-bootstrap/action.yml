@@ -52,7 +52,7 @@ runs:
       if: ${{ env.INSTALL_JAVA == 'true' }}
       with:
         distribution: 'zulu'
-        java-version: '17'
+        java-version: '21'
         check-latest: true
 
     - name: Install pods

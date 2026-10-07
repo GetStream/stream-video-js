@@ -48,7 +48,7 @@ export default function Home({
   const router = useRouter();
   const useLocalCoordinator = router.query['use_local_coordinator'] === 'true';
   const coordinatorUrl = useLocalCoordinator
-    ? 'http://localhost:3030/video'
+    ? 'http://localhost:3030'
     : (router.query['coordinator_url'] as string | undefined);
 
   useEffect(() => {

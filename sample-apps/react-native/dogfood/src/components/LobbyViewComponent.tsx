@@ -1,28 +1,25 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   JoinCallButton,
-  type JoinCallButtonProps,
   Lobby,
+  useTheme,
+} from '@stream-io/video-react-native-sdk';
+import React, { useMemo } from 'react';
+import { Pressable, StyleSheet, Text } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  type JoinCallButtonProps,
   useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
-import React from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { MeetingStackParamList } from '../../types';
-import { appTheme } from '../theme';
 import { useOrientation } from '../hooks/useOrientation';
-import { useAppI18n } from '../hooks/useAppI18n';
 import { isCallEncrypted } from '../utils/e2ee';
 import { useLobbyE2EE } from '../contexts/LobbyE2EEContext';
 import { LobbyEncryption } from './LobbyEncryption';
 import { Button } from './Button';
+import { useAppI18n } from '../hooks/useAppI18n';
+import { NavigationHeader } from './NavigationHeader';
 
 type LobbyViewComponentType = NativeStackScreenProps<
   MeetingStackParamList,
@@ -30,6 +27,7 @@ type LobbyViewComponentType = NativeStackScreenProps<
 > & {
   callId: string;
   onJoinCallHandler: () => void;
+  onCloseHandler: () => void;
 };
 
 type LobbyNavigation = LobbyViewComponentType['navigation'];
@@ -50,6 +48,7 @@ const LobbyJoinSection = ({ onJoinCallHandler }: JoinCallButtonProps) => {
   const { useCallSettings } = useCallStateHooks();
   const settings = useCallSettings();
   const e2ee = useLobbyE2EE();
+  const styles = useStyles();
   // An `auto-on` call requires E2EE of every participant, so the backend rejects
   // a non-e2ee join: gate the Join button until a key is provided.
   const needsEncryptionKey =
@@ -93,19 +92,24 @@ const LobbyJoinSection = ({ onJoinCallHandler }: JoinCallButtonProps) => {
 
 export const LobbyViewComponent = ({
   onJoinCallHandler,
+  route,
+  navigation,
 }: LobbyViewComponentType) => {
   const orientation = useOrientation();
+  const styles = useStyles();
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
     >
+      <NavigationHeader route={route} navigation={navigation} options={{}} />
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
         <Lobby
+          style={styles.lobby}
           onJoinCallHandler={onJoinCallHandler}
           JoinCallButton={LobbyJoinSection}
           landscape={orientation === 'landscape'}
@@ -115,21 +119,55 @@ export const LobbyViewComponent = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: appTheme.colors.static_grey,
-  },
-  content: {
-    flexGrow: 1,
-  },
-  anonymousButton: {
-    marginTop: 8,
-  },
-  anonymousButtonText: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: appTheme.colors.primary,
-    textAlign: 'center',
-  },
-});
+const useStyles = () => {
+  const {
+    theme: { foundations, semantics, primitives },
+  } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: semantics.backgroundCoreApp,
+        },
+        content: {
+          flexGrow: 1,
+        },
+        lobby: {
+          paddingHorizontal: 16,
+        },
+        header: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          padding: primitives.spacingSm,
+          gap: primitives.spacingXs,
+        },
+        closeButton: {
+          width: foundations.layout.size40,
+          height: foundations.layout.size40,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        userNameText: {
+          flex: 1,
+          paddingLeft: primitives.spacingXs,
+          fontSize: primitives.typographyFontSizeSm,
+          fontWeight: primitives.typographyFontWeightSemiBold,
+          color: semantics.textPrimary,
+        },
+        closeIcon: {
+          color: semantics.buttonSecondaryText,
+        },
+        anonymousButton: {
+          marginTop: 8,
+        },
+        anonymousButtonText: {
+          fontSize: 20,
+          fontWeight: '500',
+          color: semantics.buttonPrimaryText,
+          textAlign: 'center',
+        },
+      }),
+    [semantics, primitives, foundations],
+  );
+};

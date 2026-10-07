@@ -6,9 +6,10 @@ import {
 } from '../resolveOwnRingOutcome';
 import { CallingState } from '../../store';
 import { CallSessionResponse } from '../../gen/coordinator';
+import { nowNs } from '../../helpers/time';
 
 const ME = 'm1';
-const timestamp = () => new Date().toISOString();
+const timestamp = () => nowNs();
 
 describe('resolveOwnRingOutcome', () => {
   const resolve = (overrides: Partial<OwnRingOutcomeInput> = {}) =>

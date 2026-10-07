@@ -69,7 +69,7 @@ describe('withAndroidRingtone', () => {
     };
 
     expect(() => withAndroidRingtone(baseConfig, props)).toThrow(
-      /Android ringtone file not found/,
+      /Android sound file not found/,
     );
   });
 
@@ -79,7 +79,7 @@ describe('withAndroidRingtone', () => {
     };
 
     expect(() => withAndroidRingtone(baseConfig, props)).toThrow(
-      /Invalid Android ringtone format/,
+      /Invalid Android sound format/,
     );
   });
 
