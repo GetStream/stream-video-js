@@ -143,6 +143,7 @@ describe('StreamVideoClient re-watching calls on reconnect', () => {
       extra: {
         accepted_by?: Record<string, TimestampNS>;
         members?: MemberResponse[];
+        ended_at?: TimestampNS;
       } = {},
     ) => {
       const leave = vi.spyOn(call, 'leave').mockResolvedValue(undefined);
@@ -151,6 +152,7 @@ describe('StreamVideoClient re-watching calls on reconnect', () => {
         ...CallRingPayload.call,
         // keep the creator the call was set up with
         created_by: call.state.createdBy as UserResponse,
+        ended_at: extra.ended_at,
         session: {
           ...session,
           rejected_by,
@@ -193,24 +195,11 @@ describe('StreamVideoClient re-watching calls on reconnect', () => {
 
     it('callee leaves when the call ended while offline', async () => {
       const call = await setupRingingCall();
-      const leave = vi.spyOn(call, 'leave').mockResolvedValue(undefined);
-      const post = vi
-        .spyOn(client.streamClient, 'doAxiosRequest')
-        .mockResolvedValue({
-          data: queryCallsResponse({
-            ...CallRingPayload.call,
-            created_by: call.state.createdBy as UserResponse,
-            ended_at: dateToNs(new Date('2025-08-14T14:49:00Z')),
-          }),
-        } as never);
-      reconnect();
-      await vi.waitFor(() => expect(post).toHaveBeenCalled());
-      await vi.waitFor(() =>
-        expect(leave).toHaveBeenCalledWith({
-          reason: 'ended',
-          message: 'ring: call ended',
-        }),
-      );
+      const leave = await rewatchWith(call, {}, { ended_at: rejectedAt() });
+      expect(leave).toHaveBeenCalledWith({
+        reason: 'ended',
+        message: 'ring: call ended',
+      });
     });
 
     it('does not reconcile a call that is not in RINGING state', async () => {
