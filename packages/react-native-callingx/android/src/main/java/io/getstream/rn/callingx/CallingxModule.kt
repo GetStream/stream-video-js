@@ -4,20 +4,15 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
-import com.facebook.react.bridge.WritableMap
 
 class CallingxModule(reactContext: ReactApplicationContext) :
-        NativeCallingxSpec(reactContext), CallingxEventEmitterAdapter {
+        NativeCallingxSpec(reactContext) {
 
     companion object {
         const val NAME = NativeCallingxSpec.NAME
     }
 
-    private val impl = CallingxModuleImpl(reactContext, this)
-
-    override fun emitNewEvent(value: WritableMap) {
-        emitOnNewEvent(value)
-    }
+    private val impl = CallingxModuleImpl(reactContext) { emitOnNewEvent(it) }
 
     override fun initialize() {
         super.initialize()

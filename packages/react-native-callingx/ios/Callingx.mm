@@ -12,7 +12,7 @@
 @interface Callingx ()
 
 // Returns the persisted `skipIncomingPushInForeground` setting.
-// Dispatched from StreamVideoReactNative via runtime lookup.
+// Called by VoipPushHandler; not part of the public CallingxPublic.h API.
 + (BOOL)shouldSkipIncomingPushInForeground;
 
 @end

@@ -22,7 +22,7 @@ import io.getstream.rn.callingx.utils.SettingsStore
 
 class CallingxModuleImpl(
         private val reactApplicationContext: ReactApplicationContext,
-        private val eventEmitter: CallingxEventEmitterAdapter
+        private val emitNewEvent: (WritableMap) -> Unit
 ) : CallEventBus.Listener {
 
     companion object {
@@ -443,7 +443,7 @@ class CallingxModuleImpl(
                         putString("eventName", eventName)
                         putMap("params", paramsMap)
                     }
-            eventEmitter.emitNewEvent(value)
+            emitNewEvent(value)
         } else {
             debugLog(TAG, "[module] sendJSEvent: Queueing event: $eventName, $params")
             Arguments.createMap()
