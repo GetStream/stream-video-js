@@ -448,11 +448,6 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
 
-    @objc(setMicrophoneMute:)
-    func setMicrophoneMute(enable: Bool) {
-        log("iOS does not support setMicrophoneMute()")
-    }
-
     // MARK: - Audio Device Picker
 
     @objc(getAudioDeviceStatus:reject:)

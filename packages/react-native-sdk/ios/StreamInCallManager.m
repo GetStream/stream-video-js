@@ -30,8 +30,6 @@ RCT_EXTERN_METHOD(reapplyAudioRoute)
 
 RCT_EXTERN_METHOD(setForceSpeakerphoneOn:(BOOL)enable)
 
-RCT_EXTERN_METHOD(setMicrophoneMute:(BOOL)enable)
-
 RCT_EXTERN_METHOD(logAudioState)
 
 RCT_EXTERN__BLOCKING_SYNCHRONOUS_METHOD(getAudioStateLog)
