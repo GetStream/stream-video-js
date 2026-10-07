@@ -36,7 +36,6 @@ on:
       - 'packages/react-native-sdk/**'
       - 'packages/noise-cancellation-react-native/**'
       - 'packages/video-filters-react-native/**'
-      - '!**.md'
   workflow_dispatch:
     inputs:
       platform:
