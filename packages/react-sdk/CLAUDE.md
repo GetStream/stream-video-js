@@ -166,7 +166,6 @@ Styling is managed by `@stream-io/video-styling` package:
 **SDK-Specific Hooks** (this package):
 
 - `useDeviceList` - List available cameras, microphones, speakers
-- `usePersistedDevicePreferences` - Persist device selection to localStorage
 - `useRequestPermission` - Request media permissions
 - `useScrollPosition` - Track scroll position (for pagination)
 - `useFilteredParticipants` - Filter participants based on predicate
@@ -380,26 +379,25 @@ useEffect(() => {
 
 #### 10. Device Management Pattern
 
-Device selection is handled through persisted preferences:
+Device preference persistence lives in the client (`@stream-io/video-client`), not in this package.
+It is on by default on web and is configured through the `devicePersistence` client option:
 
 ```tsx
-// At app level - automatically applies and persists device choices
-usePersistedDevicePreferences('@stream-io/device-prefs');
+const client = new StreamVideoClient({
+  apiKey,
+  user,
+  token,
+  options: {
+    devicePersistence: { enabled: true, storageKey: '@my-app/devices' },
+  },
+});
 
 // In components - get current devices
-const { useDeviceList } = useCallStateHooks();
-const { devices, selectedDevice } = useDeviceList(devices, selectedDeviceId);
+const { useMicrophoneState } = useCallStateHooks();
+const { devices, selectedDevice } = useMicrophoneState();
 ```
 
-**Flow:**
-
-1. `usePersistedDevicePreferences` reads from localStorage on mount
-2. Applies saved device IDs via `call.camera.select()`, `call.microphone.select()`
-3. Maintains fallback strategy if saved device unavailable (tries label match, then default)
-4. Persists changes back to localStorage when devices change
-5. Stores history of last 3 devices per type
-
-**Located in:** `src/hooks/usePersistedDevicePreferences.ts`
+**Located in:** `packages/client/src/devices/devicePersistence.ts`
 
 #### 11. Background Filters Integration
 
@@ -829,9 +827,9 @@ useEffect(() => {
 #### 8. Device Selection State
 
 ```tsx
-// ❌ WRONG - doesn't wait for devices to be available
-usePersistedDevicePreferences();
-// Immediately try to use devices - might not be ready!
+// ❌ WRONG - assumes devices are enumerated on first render
+const { devices } = useMicrophoneState();
+const [first] = devices; // might be undefined!
 
 // ✅ CORRECT - check if devices are available
 const { useMicrophoneState } = useCallStateHooks();
@@ -1043,7 +1041,6 @@ When adding public APIs:
 ### Important Hooks
 
 - `src/core/hooks/useTrackElementVisibility.ts` - Dynascale viewport tracking
-- `src/hooks/usePersistedDevicePreferences.ts` - Device persistence
 - `src/hooks/useDeviceList.tsx` - Device enumeration helper
 - `src/hooks/useScrollPosition.ts` - Scroll position tracking for pagination
 
@@ -1102,7 +1099,7 @@ When adding public APIs:
 
 1. **Simple component:** Check `Button.tsx` or `Icon.tsx`
 2. **Complex component:** Check `ParticipantView.tsx` or `SpeakerLayout.tsx`
-3. **Hook pattern:** Check `useTrackElementVisibility.ts` or `usePersistedDevicePreferences.ts`
+3. **Hook pattern:** Check `useTrackElementVisibility.ts` or `useRequestPermission.ts`
 4. **Integration:** Check dogfood sample app at `sample-apps/react/react-dogfood/`
 
 ## Architecture Decision Records

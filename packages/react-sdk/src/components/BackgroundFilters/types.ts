@@ -5,32 +5,6 @@ import type {
   SegmentationOptions,
 } from '@stream-io/video-filters-web';
 
-/**
- * Configuration for performance metric thresholds.
- */
-export type BackgroundFiltersPerformanceThresholds = {
-  /**
-   * The lower FPS threshold for triggering a performance warning.
-   * When the EMA FPS falls below this value, a warning is shown.
-   * @default 23
-   */
-  fpsWarningThresholdLower?: number;
-
-  /**
-   * The upper FPS threshold for clearing a performance warning.
-   * When the EMA FPS rises above this value, the warning is cleared.
-   * @default 25
-   */
-  fpsWarningThresholdUpper?: number;
-
-  /**
-   * The default FPS value used as the initial value for the EMA (Exponential Moving Average)
-   * calculation and when stats are unavailable or when resetting the filter.
-   * @default 30
-   */
-  defaultFps?: number;
-};
-
 export type BackgroundFiltersProps = PlatformSupportFlags & {
   /**
    * A list of URLs to use as background images.
@@ -90,13 +64,6 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
    * or to try registering the filter again.
    */
   onError?: (error: any) => void;
-
-  /**
-   * `@deprecated` Performance tuning is now handled internally by the SDK, so
-   * this prop is ignored. Remove this prop; there is no replacement
-   * configuration. Degradation is derived from the processed/source FPS ratio.
-   */
-  performanceThresholds?: BackgroundFiltersPerformanceThresholds;
 
   /**
    * Options for controlling the segmentation mask smoothing in the WebGL shader.
