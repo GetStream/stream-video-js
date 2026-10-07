@@ -219,10 +219,6 @@ export type RingStatePollingOptions = {
 };
 
 export type StreamClientOptions = Partial<AxiosRequestConfig> & {
-  /**
-   * Used to disable warnings that are triggered by using connectUser or connectAnonymousUser server-side.
-   */
-  allowServerSideConnect?: boolean;
   axiosRequestConfig?: AxiosRequestConfig;
   /**
    * Base url to use for API
@@ -264,11 +260,6 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * persist even if connectUser call fails.
    */
   persistUserOnConnectionFailure?: boolean;
-
-  /**
-   * The secret key for the API key. This is only needed for server side authentication.
-   */
-  secret?: string;
 
   /**
    * The WebSocket implementation to use. This is mainly useful for testing.
