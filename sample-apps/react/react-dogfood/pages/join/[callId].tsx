@@ -34,7 +34,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const coordinatorUrl = useLocalCoordinator
     ? 'http://localhost:3030'
     : (router.query['coordinator_url'] as string | undefined);
-  const useLegacyFilters = router.query['useLegacyFilters'] === 'true';
 
   const { apiKey, userToken, user, gleapApiKey } = props;
 
@@ -135,7 +134,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         <CallScope
           call={call}
           chatClient={chatClient}
-          useLegacyFilters={useLegacyFilters}
           segmentationModel={segmentationModel}
         />
       </LobbyE2EEContext.Provider>

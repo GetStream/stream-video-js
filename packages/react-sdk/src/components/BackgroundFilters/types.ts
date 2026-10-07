@@ -29,18 +29,10 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
   backgroundBlurLevel?: BackgroundBlurLevel;
 
   /**
-   * The base path for the TensorFlow Lite files.
+   * The base path for the MediaPipe files.
    * @default 'https://unpkg.com/@stream-io/video-filters-web/mediapipe'.
    */
   basePath?: string;
-
-  /**
-   * The path to the TensorFlow Lite WebAssembly file.
-   *
-   * Override this prop to use a custom path to the TensorFlow Lite WebAssembly file
-   * (e.g., if you choose to host it yourself).
-   */
-  tfFilePath?: string;
 
   /**
    * The path to the MediaPipe model file.
@@ -48,14 +40,6 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
    * (e.g., if you choose to host it yourself).
    */
   modelFilePath?: string;
-
-  /**
-   * When true, the filter uses the legacy TensorFlow-based segmentation model.
-   * When false, it uses the default MediaPipe Tasks Vision model.
-   *
-   * Only enable this if you need to mimic the behavior of older SDK versions.
-   */
-  useLegacyFilter?: boolean;
 
   /**
    * When a started filter encounters an error, this callback will be executed.

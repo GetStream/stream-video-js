@@ -407,7 +407,7 @@ Background blur/replacement uses a separate filter pipeline:
 <BackgroundFiltersProvider
   backgroundFilter="blur"
   backgroundBlurLevel="high"
-  basePath="https://unpkg.com/@stream-io/video-filters-web/tf"
+  basePath="https://unpkg.com/@stream-io/video-filters-web/mediapipe"
 >
   <MyVideoApp />
 </BackgroundFiltersProvider>;
@@ -418,10 +418,9 @@ const { applyBackgroundBlurFilter, isReady } = useBackgroundFilters();
 
 **Architecture:**
 
-- Provider loads TensorFlow Lite WASM + models
+- Provider checks MediaPipe support and preloads the segmentation model
 - Registers filter via `call.camera.registerFilter()`
-- Filter receives MediaStream, renders to canvas, returns filtered stream
-- Uses hidden video element + canvas + optional background image element
+- Filter wraps the camera track in a `VirtualBackground` processor (from `@stream-io/video-filters-web`) and returns the processed track
 - Client automatically uses filtered stream instead of raw camera
 
 **Located in:** `src/components/BackgroundFilters/BackgroundFilters.tsx`
