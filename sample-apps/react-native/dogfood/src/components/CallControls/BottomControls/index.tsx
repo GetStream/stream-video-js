@@ -18,16 +18,12 @@ export type BottomControlsProps = Pick<
   CallContentProps,
   'supportedReactions'
 > & {
-  /**
-   * Stacks the controls vertically for the landscape layout,
-   * where they sit beside the video instead of below it.
-   */
-  landscape?: boolean;
-  onChatOpenHandler: (() => void) | null;
+  onChatOpenHandler?: () => void;
   onParticipantInfoPress: () => void;
   toggleCallRecording: () => Promise<void>;
   isAwaitingResponse: boolean;
   isCallRecordingInProgress: boolean;
+  landscape?: boolean;
 };
 
 export const BottomControls = ({
@@ -36,7 +32,7 @@ export const BottomControls = ({
   toggleCallRecording,
   isAwaitingResponse,
   isCallRecordingInProgress,
-  landscape,
+  landscape = false,
 }: BottomControlsProps) => {
   const styles = useStyles();
   const [measuredHeight, setMeasuredHeight] = useState<number>();
@@ -105,15 +101,16 @@ export const BottomControls = ({
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
-
+  const {
+    theme: { primitives },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          paddingTop: theme.variants.spacingSizes.sm,
-          paddingBottom: theme.variants.spacingSizes.md,
-          paddingHorizontal: theme.variants.spacingSizes.md,
+          paddingTop: primitives.spacingSm,
+          paddingBottom: primitives.spacingMd,
+          paddingHorizontal: primitives.spacingMd,
           flexDirection: 'row',
           justifyContent: 'flex-start',
         },
@@ -121,21 +118,21 @@ const useStyles = () => {
           flex: 2.5,
           flexDirection: 'row',
           alignItems: 'flex-start',
-          gap: theme.variants.spacingSizes.xs,
+          gap: primitives.spacingXs,
         },
         right: {
           flex: 1,
           flexDirection: 'row',
           justifyContent: 'flex-end',
-          gap: theme.variants.spacingSizes.xs,
+          gap: primitives.spacingXs,
         },
         containerLandscape: {
           flexDirection: 'column',
           justifyContent: 'space-between',
-          paddingTop: theme.variants.spacingSizes.sm,
-          paddingBottom: theme.variants.spacingSizes.sm,
+          paddingTop: primitives.spacingSm,
+          paddingBottom: primitives.spacingSm,
           // matches the top controls' horizontal padding so hang-up lines up
-          paddingHorizontal: theme.variants.spacingSizes.md,
+          paddingHorizontal: primitives.spacingMd,
         },
         // a ScrollView grows by default and would take width from the video
         landscapeScroll: {
@@ -152,6 +149,6 @@ const useStyles = () => {
           justifyContent: 'flex-start',
         },
       }),
-    [theme],
+    [primitives],
   );
 };

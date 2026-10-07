@@ -2,11 +2,10 @@ import { useTheme } from '@stream-io/video-react-native-sdk';
 import { useAppI18n } from '../../hooks/useAppI18n';
 import React, { useMemo } from 'react';
 import { Image, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { Button } from '../../components/Button';
-import { appTheme } from '../../theme';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LiveStreamParamList } from '../../../types';
 import { useOrientation } from '../../hooks/useOrientation';
+import { Button } from '@stream-io/video-react-native-sdk/src/components';
 
 type LiveStreamScreenProps = NativeStackScreenProps<
   LiveStreamParamList,
@@ -46,39 +45,35 @@ export const LiveStreamChooseScreen = ({
         </View>
       </View>
       <View style={styles.bottomContainer}>
-        <View>
-          <Button
-            title={t('livestreamChoose.hosts.label', 'Hosts')}
-            onPress={onHostViewSelect}
-          />
-          <Button
-            title={t('livestreamChoose.viewers.label', 'Viewers')}
-            onPress={onViewerViewSelect}
-            buttonStyle={styles.viewerButton}
-          />
-        </View>
+        <Button
+          text={t('livestreamChoose.hosts.label', 'Hosts')}
+          onPress={onHostViewSelect}
+        />
+        <Button
+          text={t('livestreamChoose.viewers.label', 'Viewers')}
+          onPress={onViewerViewSelect}
+        />
       </View>
     </View>
   );
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics, primitives },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
           flex: 1,
           justifyContent: 'space-evenly',
-          backgroundColor: theme.colors.sheetPrimary,
-          padding: appTheme.spacing.lg,
+          backgroundColor: semantics.backgroundCoreApp,
+          padding: primitives.spacingLg,
         },
         topContainer: {
           flex: 1,
           justifyContent: 'center',
-        },
-        viewerButton: {
-          marginTop: appTheme.spacing.md,
         },
         logo: {
           height: 100,
@@ -89,21 +84,22 @@ const useStyles = () => {
         bottomContainer: {
           flex: 1,
           justifyContent: 'center',
+          gap: primitives.spacingSm,
         },
         title: {
           fontSize: 30,
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           fontWeight: '500',
           textAlign: 'center',
-          marginTop: appTheme.spacing.lg,
+          marginTop: primitives.spacingLg,
         },
         subTitle: {
-          color: theme.colors.textSecondary,
+          color: semantics.textSecondary,
           fontSize: 16,
           textAlign: 'center',
-          marginHorizontal: appTheme.spacing.xl,
+          marginHorizontal: primitives.spacingXl,
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };

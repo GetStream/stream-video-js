@@ -1,3 +1,5 @@
+import { VideoApi } from '../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../coordinator/connection/api-client';
 import '../rtc/__tests__/mocks/webrtc.mocks';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,6 +23,7 @@ describe('Publishing and Unpublishing tracks', () => {
       type: 'test',
       id: generateUUIDv4(),
       streamClient,
+      videoApi: new VideoApi(new ApiClient(streamClient)),
       clientEventReporter: new ClientEventReporter({ streamClient }),
       clientState: new ClientState(),
     });

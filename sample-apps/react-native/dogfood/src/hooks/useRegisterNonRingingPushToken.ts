@@ -34,7 +34,11 @@ export const useRegisterNonRingingPushToken = () => {
         return;
       }
       try {
-        await client.addDevice(token, 'apn', PUSH_PROVIDER_NAME);
+        await client.addDevice({
+          id: token,
+          push_provider: 'apn',
+          push_provider_name: PUSH_PROVIDER_NAME,
+        });
         lastToken.current = { token, userId };
       } catch (err) {
         console.warn(
@@ -64,7 +68,7 @@ export const useRegisterNonRingingPushToken = () => {
       // Remove device token from Stream backend on cleanup
       const { token } = lastToken.current;
       if (token) {
-        client.removeDevice(token).catch((err: unknown) => {
+        client.removeDevice({ id: token }).catch((err: unknown) => {
           console.warn(
             '[useRegisterNonRingingPushToken] Failed to remove APN token',
             err,

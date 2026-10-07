@@ -7,7 +7,13 @@ jest.mock(
   '@stream-io/video-react-native-sdk',
   () => ({
     useTheme: () => ({
-      theme: { variants: { spacingSizes: { xs: 4, sm: 8, md: 16 } } },
+      theme: {
+        primitives: {
+          spacingXs: 4,
+          spacingSm: 8,
+          spacingMd: 16,
+        },
+      },
     }),
     ScreenShareToggleButton: () => null,
     ToggleAudioPublishingButton: () => null,

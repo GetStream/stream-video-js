@@ -41,7 +41,7 @@ export const CallRecordingSearchForm = ({
       try {
         setLoading(true);
         setEnabled(false);
-        const { recordings } = await call.queryRecordings();
+        const { recordings } = await call.listRecordings();
         setResult(recordings);
         setResultError(undefined);
       } catch (err) {

@@ -10,7 +10,7 @@ import {
   getCallingxLib,
   getCallingxLibIfAvailable,
 } from '../libs';
-import { StreamVideoRN } from '../../StreamVideoRN';
+import type { StreamVideoConfig } from '../../StreamVideoRN/types';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { canListenToWS, shouldCallBeClosed } from './utils';
 
@@ -21,6 +21,7 @@ import { canListenToWS, shouldCallBeClosed } from './utils';
  */
 export const onRingNotificationReceived = async (
   data: FirebaseRemoteMessage['data'],
+  pushConfig: NonNullable<StreamVideoConfig['push']>,
 ) => {
   /* Example data from firebase
     "message": {
@@ -48,13 +49,7 @@ export const onRingNotificationReceived = async (
       level,
     );
 
-  const pushConfig = StreamVideoRN.getConfig().push;
-  if (
-    !pushConfig ||
-    !data ||
-    data.sender !== 'stream.video' ||
-    data.type !== 'call.ring'
-  ) {
+  if (!data || data.sender !== 'stream.video' || data.type !== 'call.ring') {
     return;
   }
 

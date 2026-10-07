@@ -59,7 +59,7 @@ export const MoreActionsButton = ({
   controlsContainerHeight,
 }: MoreActionsButtonProps) => {
   const {
-    theme: { colors, variants, moreActionsButton, defaults },
+    theme: { moreActionsButton, components, primitives, semantics },
   } = useTheme();
   const {
     isSupported,
@@ -103,7 +103,8 @@ export const MoreActionsButton = ({
 
   const handleRating = async (rating: number) => {
     await call
-      ?.submitFeedback(Math.min(Math.max(1, rating), 5), {
+      ?.submitFeedback({
+        rating: Math.min(Math.max(1, rating), 5),
         reason: '<no-message-provided>',
       })
       .catch((err) => console.warn('Failed to submit call feedback', err));
@@ -169,8 +170,8 @@ export const MoreActionsButton = ({
       icon: (
         <IconWrapper>
           <Feedback
-            color={colors.iconPrimary}
-            size={variants.roundButtonSizes.sm}
+            color={semantics.accentNeutral}
+            size={components.iconSizeMd}
           />
         </IconWrapper>
       ),
@@ -187,10 +188,7 @@ export const MoreActionsButton = ({
       label: 'Call stats',
       icon: (
         <IconWrapper>
-          <Stats
-            color={colors.iconPrimary}
-            size={variants.roundButtonSizes.sm}
-          />
+          <Stats color={semantics.accentNeutral} size={components.iconSizeMd} />
         </IconWrapper>
       ),
       onPress: () => {
@@ -204,8 +202,8 @@ export const MoreActionsButton = ({
       icon: (
         <IconWrapper>
           <LightDark
-            color={colors.iconPrimary}
-            size={variants.roundButtonSizes.sm}
+            color={semantics.accentNeutral}
+            size={components.iconSizeMd}
           />
         </IconWrapper>
       ),
@@ -224,8 +222,8 @@ export const MoreActionsButton = ({
       icon: (
         <IconWrapper>
           <Screenshot
-            color={colors.iconPrimary}
-            size={variants.roundButtonSizes.sm}
+            color={semantics.accentNeutral}
+            size={components.iconSizeMd}
           />
         </IconWrapper>
       ),
@@ -237,8 +235,8 @@ export const MoreActionsButton = ({
       icon: (
         <IconWrapper>
           <AudioOutput
-            color={colors.iconPrimary}
-            size={variants.roundButtonSizes.sm}
+            color={semantics.accentNeutral}
+            size={components.iconSizeMd}
           />
         </IconWrapper>
       ),
@@ -256,8 +254,8 @@ export const MoreActionsButton = ({
             icon: (
               <IconWrapper>
                 <Hearing
-                  color={colors.iconPrimary}
-                  size={variants.roundButtonSizes.sm}
+                  color={semantics.accentNeutral}
+                  size={components.iconSizeMd}
                 />
               </IconWrapper>
             ),
@@ -273,8 +271,8 @@ export const MoreActionsButton = ({
             icon: (
               <IconWrapper>
                 <ClosedCaptions
-                  color={colors.iconPrimary}
-                  size={variants.roundButtonSizes.sm}
+                  color={semantics.accentNeutral}
+                  size={components.iconSizeMd}
                 />
               </IconWrapper>
             ),
@@ -292,8 +290,8 @@ export const MoreActionsButton = ({
   ];
 
   const buttonColor = isDrawerVisible
-    ? colors.buttonPrimary
-    : colors.buttonSecondary;
+    ? semantics.accentPrimary
+    : semantics.accentNeutral;
 
   return (
     <CallControlsButton
@@ -360,7 +358,10 @@ export const MoreActionsButton = ({
         </View>
       </Modal>
       <IconWrapper>
-        <MoreActions color={colors.iconPrimary} size={defaults.iconSize} />
+        <MoreActions
+          color={semantics.accentNeutral}
+          size={components.iconSizeMd}
+        />
       </IconWrapper>
     </CallControlsButton>
   );

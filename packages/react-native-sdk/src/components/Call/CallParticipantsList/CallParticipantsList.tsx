@@ -32,6 +32,7 @@ import {
   DEFAULT_NUMBER_OF_COLUMNS,
   getAutoNumberOfColumns,
 } from './gridSizing';
+import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant>
@@ -108,7 +109,10 @@ export const CallParticipantsList = ({
   landscape,
   mirror,
 }: CallParticipantsListProps) => {
-  const styles = useStyles();
+  const {
+    theme: { callParticipantsList },
+  } = useTheme();
+  const isInPiPMode = useIsInPiPMode();
   const [containerLayout, setContainerLayout] = useState({
     width: 0,
     height: 0,
@@ -216,24 +220,33 @@ export const CallParticipantsList = ({
     participantsLength: participants.length,
     numberOfColumns,
     horizontal,
-    margin: styles.participant.margin,
-    horizontalMargin: styles.participantWrapperHorizontal.marginHorizontal,
+    margin: Number(callParticipantsList.participant.margin ?? 0),
+    horizontalMargin: Number(
+      callParticipantsList.participantWrapperHorizontal.margin ?? 0,
+    ),
   });
 
   const itemContainerStyle = useMemo<StyleProp<ViewStyle>>(() => {
     const style = {
       width: itemWidth,
       height: itemHeight,
-      margin: styles.participant.margin,
+      ...callParticipantsList.participant,
     };
     if (horizontal) {
-      return [styles.participantWrapperHorizontal, style];
+      return [callParticipantsList.participantWrapperHorizontal, style];
     }
     if (landscape) {
-      return [styles.landScapeStyle, style];
+      return [style];
     }
     return style;
-  }, [itemWidth, itemHeight, horizontal, landscape, styles]);
+  }, [
+    itemWidth,
+    itemHeight,
+    horizontal,
+    landscape,
+    callParticipantsList.participant,
+    callParticipantsList.participantWrapperHorizontal,
+  ]);
 
   const participantProps = useMemo<ParticipantViewComponentProps>(
     () => ({
@@ -294,7 +307,10 @@ export const CallParticipantsList = ({
             ParticipantView && (
               <ParticipantView
                 participant={participant}
-                style={styles.flexed}
+                style={[
+                  styles.flexed,
+                  isInPiPMode ? null : callParticipantsList.participantNoGrid,
+                ]}
                 trackType="videoTrack"
                 key={keyExtractor(participant, index)}
                 supportedReactions={supportedReactions}
@@ -310,6 +326,7 @@ export const CallParticipantsList = ({
 
   return (
     <FlatList
+      contentContainerStyle={callParticipantsList.container}
       onLayout={onLayout}
       key={!horizontal ? numberOfColumns : undefined} // setting numColumns as key is a strict requirement of react-native to support changing numColumns on the fly
       data={participants}
@@ -326,23 +343,8 @@ export const CallParticipantsList = ({
   );
 };
 
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        flexed: { flex: 1 },
-        participantWrapperHorizontal: {
-          marginHorizontal: theme.variants.spacingSizes.sm,
-          borderRadius: theme.variants.borderRadiusSizes.sm,
-        },
-        landScapeStyle: {
-          borderRadius: theme.variants.borderRadiusSizes.sm,
-        },
-        participant: {
-          margin: theme.variants.spacingSizes.xs,
-        },
-      }),
-    [theme],
-  );
-};
+const styles = StyleSheet.create({
+  flexed: {
+    flex: 1,
+  },
+});

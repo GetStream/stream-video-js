@@ -9,9 +9,11 @@ import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { CallId } from '../components/CallId';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function JoinRingingCallScreen() {
   const calls = useCalls().filter((c) => c.ringing);
+  const insets = useSafeAreaInsets();
 
   const firstCall = calls[0];
 
@@ -29,7 +31,7 @@ export default function JoinRingingCallScreen() {
     <StreamCall call={firstCall}>
       <CallLeaveOnUnmount call={firstCall} />
       <View style={styles.flexedContainer}>
-        <RingingCallContent />
+        <RingingCallContent insets={insets} />
         <CallId />
       </View>
     </StreamCall>

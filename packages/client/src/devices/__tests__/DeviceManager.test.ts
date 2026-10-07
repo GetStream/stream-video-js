@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 /* @vitest-environment happy-dom */
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
@@ -98,6 +100,7 @@ describe('Device Manager', () => {
         id: '',
         type: '',
         streamClient,
+        videoApi: new VideoApi(new ApiClient(streamClient)),
         clientEventReporter: new ClientEventReporter({ streamClient }),
         clientState: new ClientState(),
       }),

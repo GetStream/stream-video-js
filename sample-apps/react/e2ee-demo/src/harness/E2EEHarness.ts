@@ -3,7 +3,7 @@ import {
   EncryptionManager,
   StreamVideoClient,
   type Call,
-  type EncryptionSettingsResponseModeEnum,
+  type EncryptionSettingsResponse,
   type KeyStateReport,
   type PerfReport,
 } from '@stream-io/video-react-sdk';
@@ -114,7 +114,7 @@ export class E2EEHarness {
   private activeSharedKeyIndex = -1;
   private sharedKeyBytes: ArrayBuffer | null = null;
   private resolvedEncryptionMode:
-    EncryptionSettingsResponseModeEnum | undefined;
+    EncryptionSettingsResponse['mode'] | undefined;
   private e2eeEnabled = false;
 
   constructor(

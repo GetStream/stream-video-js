@@ -11,13 +11,14 @@ import {
   type UseStreami18nParams,
 } from '../i18n';
 import { type DeepPartial, StreamTheme } from '../contexts/ThemeContext';
-import { type Theme } from '../theme/theme';
+import { type Theme, type ThemeColorScheme } from '../theme/theme';
 import { ScreenshotIosContextProvider } from '../contexts/internal/ScreenshotIosContext';
 import BusyTonePlayer from './BusyTonePlayer';
 
 export type StreamVideoProps = StreamVideoProviderProps &
   UseStreami18nParams & {
     style?: DeepPartial<Theme>;
+    colorScheme?: ThemeColorScheme;
   };
 
 /**
@@ -39,8 +40,15 @@ export type StreamVideoProps = StreamVideoProviderProps &
  * @category Client State
  */
 export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
-  const { client, children, i18nInstance, language, translations, style } =
-    props;
+  const {
+    client,
+    children,
+    i18nInstance,
+    language,
+    translations,
+    style,
+    colorScheme,
+  } = props;
 
   const translationContext = useStreami18n({
     i18nInstance,
@@ -70,7 +78,7 @@ export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
       <TranslationProvider value={translationContext}>
         <PushRegister />
         <BusyTonePlayer />
-        <StreamTheme style={style}>
+        <StreamTheme style={style} colorScheme={colorScheme}>
           <ScreenshotIosContextProvider>
             {children}
           </ScreenshotIosContextProvider>

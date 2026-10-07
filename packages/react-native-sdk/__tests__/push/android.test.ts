@@ -47,17 +47,15 @@ const setup = (
       getCallingxLib: () => callingx,
       getCallingxLibIfAvailable: () => callingx,
     }));
-    jest.doMock('../../src/utils/StreamVideoRN', () => ({
-      StreamVideoRN: {
-        getConfig: () => ({ push: { createStreamVideoClient } }),
-      },
-    }));
     jest.doMock('../../src/utils/push/internal/utils', () => ({
       canListenToWS: () => listenToWS,
       shouldCallBeClosed: () => ({ mustEndCall, endCallReason: 'remote' }),
     }));
-    handler =
-      require('../../src/utils/push/internal/android').onRingNotificationReceived;
+    const {
+      onRingNotificationReceived,
+    } = require('../../src/utils/push/internal/android');
+    handler = (data) =>
+      onRingNotificationReceived(data, { createStreamVideoClient });
     subscriptions =
       require('../../src/utils/push/internal/constants').pushUnsubscriptionCallbacks;
   });
