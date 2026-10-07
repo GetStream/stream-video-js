@@ -48,7 +48,7 @@ export type JoinReason =
 /**
  * What triggered an automatic join, reported as `source` on the call's
  * CoordinatorJoin events. `ring-ws` is a ring WebSocket event, `ring-poll-api`
- * is the ring state poller.
+ * is the ring state poller, or the call refresh after a WS reconnect.
  */
 export type JoinSource = 'ring-ws' | 'ring-poll-api';
 
