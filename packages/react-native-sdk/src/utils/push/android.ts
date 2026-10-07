@@ -38,14 +38,18 @@ export async function initAndroidPushToken(
       lastFirebaseToken = { token: '', userId: '' };
       try {
         logger.debug(`Logout removeDeviceToken: ${token}`);
-        await client.removeDevice(token);
+        await client.removeDevice({ id: token });
       } catch (err) {
         logger.warn('Failed to remove firebase token from stream', err);
       }
     });
     const push_provider_name = pushConfig.android?.pushProviderName;
     logger.debug(`sending firebase token: ${token} for userId: ${userId}`);
-    await client.addDevice(token, 'firebase', push_provider_name);
+    await client.addDevice({
+      id: token,
+      push_provider: 'firebase',
+      push_provider_name,
+    });
   };
 
   const messaging = getFirebaseMessagingLib();

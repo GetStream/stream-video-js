@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-2.0.0-beta.0...@stream-io/video-react-bindings-2.0.0-beta.1) (2026-09-28)
+
+### ⚠ BREAKING CHANGES
+
+- **i18n:** adopt the shared @stream-io/i18n runtime (#2436)
+
+### Features
+
+- **i18n:** adopt the shared @stream-io/i18n runtime ([#2436](https://github.com/GetStream/stream-video-js/issues/2436)) ([2fcd426](https://github.com/GetStream/stream-video-js/commit/2fcd4269227d5db8f46342c597d17f2c7d835f88)), closes [stream-chat-react#3261](https://github.com/GetStream/stream-chat-react/issues/3261)
+
 ## [2.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.20.1...@stream-io/video-react-bindings-2.0.0-beta.0) (2026-09-04)
 
 ## [1.20.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.20.0...@stream-io/video-react-bindings-1.20.1) (2026-08-28)

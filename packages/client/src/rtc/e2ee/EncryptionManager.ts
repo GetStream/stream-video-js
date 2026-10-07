@@ -263,9 +263,9 @@ export class EncryptionManager
     }
 
     if ((this.piped ??= new WeakSet()).has(target)) return;
-    this.piped.add(target);
     // @ts-expect-error createEncodedStreams is not in the standard typedefs
     const { readable, writable } = target.createEncodedStreams();
+    this.piped.add(target);
     this.worker.postMessage(
       { type: 'cmd.setup_transform', ...options, readable, writable },
       [readable, writable],

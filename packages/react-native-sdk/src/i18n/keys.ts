@@ -10,13 +10,18 @@
  * pass `count`.
  */
 export type TranslationCatalog = {
+  'callTitle.others.text_one': '{{ first }}, {{ second }} and {{ count }} other';
+  'callTitle.others.text_other': '{{ first }}, {{ second }} and {{ count }} others';
+  'callTitle.two.text': '{{ first }} and {{ second }}';
+  'common.connecting.text': 'Connecting...';
   'common.join.label': 'Join';
   'common.joining.text': 'Joining...';
-  'common.live.label': 'Live';
+  'common.live.label': 'LIVE';
   'common.loading.text': 'Loading...';
   'common.you.label': 'You';
-  'livestreamControls.start.label': 'Start Livestream';
-  'livestreamControls.stop.label': 'Stop Livestream';
+  'incomingCall.accept.label': 'Accept';
+  'incomingCall.decline.label': 'Decline';
+  'livestreamControls.start.label': 'Start';
   'livestreamPlayer.ended.title': 'The livestream has ended.';
   'livestreamPlayer.ended.watchRecordings.title': 'Watch recordings:';
   'livestreamViewer.earlyParticipants.text_one': '{{ count }} participant has joined early';
@@ -25,12 +30,7 @@ export type TranslationCatalog = {
   'livestreamViewer.stillInProgress.text': 'Livestream is still in progress';
   'livestreamViewer.willStartIn.text': 'Livestream will start in:';
   'livestreamViewer.willStartSoon.text': 'Livestream will start soon';
-  'lobby.beforeJoining.title': 'Before joining';
-  'lobby.footer.aboutToJoin.text': 'You are about to join a call.';
-  'lobby.footer.noOtherParticipants.text': 'Currently there are no other participants in the call.';
-  'lobby.footer.otherParticipants.text_one': 'There is {{ count }} more person in the call.';
-  'lobby.footer.otherParticipants.text_other': 'There are {{ count }} more people in the call.';
-  'lobby.setupAudioVideo.description': 'Setup your audio and video';
+  'lobby.setUpCall.title': 'Set up your call';
   'participantView.screenShare.byUser.text': '{{ userName }} is sharing their screen';
   'participantView.screenShare.byYou.text': 'You are sharing your screen';
   'participantView.screenShare.stop.label': 'Stop Screen Sharing';

@@ -178,14 +178,16 @@ test('unpublished packages stay off the beta line', () => {
 // A prerelease only satisfies a range carrying a prerelease at the same version
 // tuple, so the old `>=0.1.0` peers silently excluded every 1.0.0-beta.N
 // satellite and would have left consumers with unmet peer dependencies.
+// Probe beta.1: the SDK may require it, as noise-cancellation and video-filters
+// helpers became synchronous in their New Architecture migrations.
 test('the RN SDK peer ranges admit the satellite beta line', () => {
   const peers = readManifest('react-native-sdk').peerDependencies ?? {};
   for (const dep of RN_SATELLITE_PEERS) {
     const range = peers[dep];
     assert.ok(range, `react-native-sdk must declare a peer range for ${dep}`);
     assert.ok(
-      semver.satisfies('1.0.0-beta.0', range),
-      `react-native-sdk peer range "${range}" for ${dep} excludes 1.0.0-beta.0`,
+      semver.satisfies('1.0.0-beta.1', range),
+      `react-native-sdk peer range "${range}" for ${dep} excludes 1.0.0-beta.1`,
     );
     // Must keep working once the satellites graduate to stable.
     assert.ok(

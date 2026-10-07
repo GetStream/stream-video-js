@@ -1,22 +1,22 @@
 import { Call } from './Call';
+import { VideoApi } from './gen/coordinator/video/VideoApi';
+import { ApiClient } from './coordinator/connection/api-client';
 import { StreamClient } from './coordinator/connection/client';
 import { CallingState, ClientState } from './store';
 import type {
   CallCreatedEvent,
   CallRingEvent,
   ConnectedEvent,
+  QueryAggregateCallStatsRequest,
+  QueryCallStatsRequest,
+  QueryCallsRequest,
+} from './gen/coordinator';
+import type {
   CreateDeviceRequest,
   CreateGuestRequest,
-  CreateGuestResponse,
-  GetEdgesResponse,
   ListDevicesResponse,
-  QueryAggregateCallStatsRequest,
-  QueryAggregateCallStatsResponse,
-  QueryCallsRequest,
-  QueryCallsResponse,
-  QueryCallStatsRequest,
-  QueryCallStatsResponse,
-} from './gen/coordinator';
+  Response,
+} from './gen/shims';
 import {
   AllClientEvents,
   ClientEventListener,
@@ -42,6 +42,8 @@ import { ClientEventReporter } from './reporting';
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
  */
+const DEVICES_PATH = '/api/v2/devices';
+
 export class StreamVideoClient {
   /**
    * The reactive state of this client.
@@ -50,7 +52,13 @@ export class StreamVideoClient {
   readonly state = new ClientState();
   readonly logger: ScopedLogger;
 
+  /**
+   * The generated API for all coordinator operations.
+   */
+  readonly api: VideoApi;
+
   readonly streamClient: StreamClient;
+  private readonly apiClient: ApiClient;
   private readonly clientEventReporter: ClientEventReporter;
 
   private effectsRegistered = false;
@@ -85,10 +93,14 @@ export class StreamVideoClient {
       ...clientOptions?.logOptions,
     });
 
+    const streamClient = createCoordinatorClient(apiKey, clientOptions);
+    this.streamClient = streamClient;
+    this.apiClient = new ApiClient(streamClient);
+    this.api = new VideoApi(this.apiClient);
+
     this.logger = videoLoggerSystem.getLogger('client');
     this.rejectCallWhenBusy = clientOptions?.rejectCallWhenBusy ?? false;
 
-    this.streamClient = createCoordinatorClient(apiKey, clientOptions);
     this.clientEventReporter = new ClientEventReporter({
       streamClient: this.streamClient,
       enabled: clientOptions?.clientEventsReportingEnabled ?? true,
@@ -186,7 +198,7 @@ export class StreamVideoClient {
               // remove the instance from the state store
               await call.leave();
               // explicitly reject the call with busy reason as calling state was not ringing before and leave would not call it therefore
-              await call.reject('busy');
+              await call.reject({ reason: 'busy' });
             } else {
               await call.updateFromRingingEvent(e as CallRingEvent);
               await call.get();
@@ -198,6 +210,7 @@ export class StreamVideoClient {
         }
 
         call = new Call({
+          videoApi: this.api,
           streamClient: this.streamClient,
           clientEventReporter: this.clientEventReporter,
           type: e.call.type,
@@ -211,7 +224,7 @@ export class StreamVideoClient {
           if (this.shouldRejectCall(call.cid)) {
             this.logger.info(`Rejecting call ${call.cid} because user is busy`);
             // call is not in the state store yet, so just reject api is enough
-            await call.reject('busy');
+            await call.reject({ reason: 'busy' });
           } else {
             await call.updateFromRingingEvent(e as CallRingEvent);
             await call.get();
@@ -228,14 +241,29 @@ export class StreamVideoClient {
   };
 
   /**
+   * Queries per-call stats.
+   *
+   * @param data the query data.
+   */
+  queryCallStats = (data: QueryCallStatsRequest = {}) => {
+    return this.api.queryCallStats(data);
+  };
+
+  /**
+   * Queries aggregated call stats.
+   *
+   * @param data the query data.
+   */
+  queryAggregateCallStats = (data: QueryAggregateCallStatsRequest = {}) => {
+    return this.api.queryAggregateCallStats(data);
+  };
+
+  /**
    * Queries the API for calls matching the given filters.
    * @param data the query data.
    */
   private doQueryCalls = (data: QueryCallsRequest) => {
-    return this.streamClient.post<QueryCallsResponse, QueryCallsRequest>(
-      '/calls',
-      data,
-    );
+    return this.api.queryCalls(data);
   };
 
   /**
@@ -442,6 +470,7 @@ export class StreamVideoClient {
     return (
       call ??
       new Call({
+        videoApi: this.api,
         streamClient: this.streamClient,
         clientEventReporter: this.clientEventReporter,
         id: id,
@@ -457,14 +486,12 @@ export class StreamVideoClient {
    * @param data the data for the guest user.
    */
   createGuestUser = async (data: CreateGuestRequest) => {
-    return this.streamClient.doAxiosRequest<
-      CreateGuestResponse,
-      CreateGuestRequest
-    >('post', '/guest', data, { publicEndpoint: true });
+    return this.streamClient.createGuestUser(data);
   };
 
   /**
-   * Will query the API for calls matching the given filters.
+   * Queries calls and returns them as live {@link Call} instances, applying the
+   * device config and, with `watch: true`, setting up and registering each one.
    *
    * @param data the query data.
    * @param opts additional options, for tweaking the API behavior.
@@ -478,6 +505,7 @@ export class StreamVideoClient {
     const calls = [];
     for (const c of response.calls) {
       const call = new Call({
+        videoApi: this.api,
         streamClient: this.streamClient,
         clientEventReporter: this.clientEventReporter,
         id: c.call.id,
@@ -505,110 +533,56 @@ export class StreamVideoClient {
   };
 
   /**
-   * Retrieve the list of available call statistics reports matching a particular condition.
-   *
-   * @param data Filter and sort conditions for retrieving available call report summaries.
-   * @returns List with summary of available call reports matching the condition.
-   */
-  queryCallStats = async (data: QueryCallStatsRequest = {}) => {
-    return this.streamClient.post<
-      QueryCallStatsResponse,
-      QueryCallStatsRequest
-    >(`/call/stats`, data);
-  };
-
-  /**
-   * Retrieve the list of available reports aggregated from the call stats.
-   *
-   * @param data Specify filter conditions like from and to (within last 30 days) and the report types
-   * @returns Requested reports with (mostly) raw daily data for each report type requested
-   */
-  queryAggregateCallStats = async (
-    data: QueryAggregateCallStatsRequest = {},
-  ) => {
-    return this.streamClient.post<
-      QueryAggregateCallStatsResponse,
-      QueryAggregateCallStatsRequest
-    >(`/stats`, data);
-  };
-
-  /**
    * Returns a list of available data centers available for hosting calls.
    */
   edges = async () => {
-    return this.streamClient.get<GetEdgesResponse>(`/edges`);
+    return this.api.getEdges();
   };
 
   /**
-   * addDevice - Adds a push device for a user.
+   * Adds a push device for the connected user.
    *
-   * @param {string} id the device id
-   * @param {string} push_provider the push provider name (eg. apn, firebase)
-   * @param {string} push_provider_name user provided push provider name
-   * @param {string} [userID] the user id (defaults to current user)
-   * @param {boolean} [voip_token] enables use of VoIP token for push notifications on iOS platform
+   * @param data the device token, push provider, and optional device settings.
    */
-  addDevice = async (
-    id: string,
-    push_provider: string,
-    push_provider_name?: string,
-    userID?: string,
-    voip_token?: boolean,
-  ) => {
-    return await this.streamClient.post<CreateDeviceRequest>('/devices', {
-      id,
-      push_provider,
-      voip_token,
-      ...(userID != null ? { user_id: userID } : {}),
-      ...(push_provider_name != null ? { push_provider_name } : {}),
-    });
-  };
-
-  /**
-   * addDevice - Adds a push device for a user.
-   *
-   * @param {string} id the device id
-   * @param {string} push_provider the push provider name (eg. apn, firebase)
-   * @param {string} push_provider_name user provided push provider name
-   * @param {string} [userID] the user id (defaults to current user)
-   */
-  addVoipDevice = async (
-    id: string,
-    push_provider: string,
-    push_provider_name: string,
-    userID?: string,
-  ) => {
-    return await this.addDevice(
-      id,
-      push_provider,
-      push_provider_name,
-      userID,
-      true,
+  addDevice = async (data: CreateDeviceRequest) => {
+    return await this.apiClient.sendRequest<Response>(
+      'POST',
+      DEVICES_PATH,
+      undefined,
+      undefined,
+      data,
     );
   };
 
   /**
-   * getDevices - Returns the devices associated with a current user
-   * @param {string} [userID] User ID. Only works on serverside
+   * Adds a VoIP push device for the connected user.
+   *
+   * @param data the device token, push provider, and optional device settings.
    */
-  getDevices = async (userID?: string) => {
-    return await this.streamClient.get<ListDevicesResponse>(
-      '/devices',
-      userID ? { user_id: userID } : {},
+  addVoipDevice = async (data: Omit<CreateDeviceRequest, 'voip_token'>) => {
+    return await this.addDevice({ ...data, voip_token: true });
+  };
+
+  /**
+   * getDevices - Returns the devices associated with the current user.
+   */
+  getDevices = async () => {
+    return await this.apiClient.sendRequest<ListDevicesResponse>(
+      'GET',
+      DEVICES_PATH,
     );
   };
 
   /**
    * removeDevice - Removes the device with the given id.
-   *
-   * @param {string} id The device id
-   * @param {string} [userID] The user id. Only specify this for serverside requests
    */
-  removeDevice = async (id: string, userID?: string) => {
-    return await this.streamClient.delete('/devices', {
-      id,
-      ...(userID ? { user_id: userID } : {}),
-    });
+  removeDevice = async ({ id }: Pick<CreateDeviceRequest, 'id'>) => {
+    return await this.apiClient.sendRequest<Response>(
+      'DELETE',
+      DEVICES_PATH,
+      undefined,
+      { id },
+    );
   };
 
   /**
@@ -625,6 +599,7 @@ export class StreamVideoClient {
         // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
         const [callType, callId] = call_cid.split(':');
         call = new Call({
+          videoApi: this.api,
           streamClient: this.streamClient,
           clientEventReporter: this.clientEventReporter,
           type: callType,

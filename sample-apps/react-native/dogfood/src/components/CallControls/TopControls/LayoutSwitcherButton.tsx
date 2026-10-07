@@ -37,7 +37,7 @@ export const LayoutSwitcherButton = ({
   onPressHandler,
 }: LayoutSwitcherButtonProps) => {
   const {
-    theme: { colors, variants },
+    theme: { components, semantics },
   } = useTheme();
 
   const { selectedLayout } = useLayout();
@@ -50,8 +50,8 @@ export const LayoutSwitcherButton = ({
   } | null>(null);
 
   const buttonColor = isModalVisible
-    ? colors.iconSecondary
-    : colors.iconPrimary;
+    ? semantics.accentNeutral
+    : semantics.accentPrimary;
 
   const handleOpenModal = () => setIsModalVisible(true);
   const handleCloseModal = () => setIsModalVisible(false);
@@ -63,7 +63,6 @@ export const LayoutSwitcherButton = ({
 
   return (
     <CallControlsButton
-      size={variants.roundButtonSizes.md}
       onLayout={handleLayout}
       onPress={() => {
         handleOpenModal();
@@ -72,10 +71,9 @@ export const LayoutSwitcherButton = ({
         }
         setIsModalVisible(!isModalVisible);
       }}
-      color={colors.sheetPrimary}
     >
       <IconWrapper>
-        {getIcon(selectedLayout, buttonColor, variants.iconSizes.lg)}
+        {getIcon(selectedLayout, buttonColor, components.iconSizeLg)}
       </IconWrapper>
       <LayoutSwitcherModal
         isVisible={isModalVisible}

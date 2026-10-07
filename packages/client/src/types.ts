@@ -4,15 +4,14 @@ import type {
   VideoDimension,
 } from './gen/video/sfu/models/models';
 import type {
-  AudioSettingsRequestDefaultDeviceEnum,
-  CallRecordingStartedEventRecordingTypeEnum,
+  AudioSettingsRequest,
+  CallRecordingStartedEvent,
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
   VideoReactionResponse,
-  StartRecordingRequest,
-  StartRecordingResponse,
 } from './gen/coordinator';
+import type { VideoApi } from './gen/coordinator/video/VideoApi';
 import type { StreamClient } from './coordinator/connection/client';
 import type { ClientEventReporter } from './reporting';
 import type {
@@ -315,6 +314,11 @@ export type CallConstructor = {
   clientEventReporter: ClientEventReporter;
 
   /**
+   * The shared generated API client, owned by `StreamVideoClient`.
+   */
+  videoApi: VideoApi;
+
+  /**
    * The Call type.
    */
   type: string;
@@ -404,16 +408,7 @@ export type StreamVideoClientOptions =
   | StreamVideoClientOptionsWithAnonymousUser
   | StreamVideoClientOptionsWithAuthenticatedUser;
 
-export type CallRecordingType = CallRecordingStartedEventRecordingTypeEnum;
-export type StartCallRecordingFnType = {
-  (): Promise<StartRecordingResponse>;
-  (type: CallRecordingType): Promise<StartRecordingResponse>;
-  (request: StartRecordingRequest): Promise<StartRecordingResponse>;
-  (
-    request: StartRecordingRequest,
-    type: CallRecordingType,
-  ): Promise<StartRecordingResponse>;
-};
+export type CallRecordingType = CallRecordingStartedEvent['recording_type'];
 
 type StreamRNVideoSDKCallManagerRingingParams = {
   isRingingTypeCall: boolean;
@@ -422,7 +417,7 @@ type StreamRNVideoSDKCallManagerRingingParams = {
 type StreamRNVideoSDKCallManagerSetupParams =
   StreamRNVideoSDKCallManagerRingingParams & {
     cid: string;
-    defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
+    defaultDevice: AudioSettingsRequest['default_device'];
   };
 
 type StreamRNVideoSDKCallManagerStartParams =
@@ -458,7 +453,17 @@ type StreamRNVideoSDKEndCallReason =
   | 'unknown';
 
 type StreamRNVideoSDKCallingX = {
-  joinCall: (call: Call, activeCalls: Call[]) => Promise<void>;
+  /**
+   * @param isCancelled - polled around the bridge's waits: registration is
+   *   skipped, or undone, when it returns true. Supplied by the join attempt
+   *   because the call's own state cannot distinguish a fresh join starting
+   *   from `LEFT` from an abandoned one that reached `LEFT` while waiting.
+   */
+  joinCall: (
+    call: Call,
+    activeCalls: Call[],
+    isCancelled?: () => boolean,
+  ) => Promise<void>;
   endCall: (
     call: Call,
     reason?: StreamRNVideoSDKEndCallReason,
@@ -468,8 +473,34 @@ type StreamRNVideoSDKCallingX = {
   unwireAudioEngineSubscription: () => void;
 };
 
+/**
+ * React Native's preparation and cleanup for a ringing call's join.
+ *
+ * A ringing call is joined by the SDK rather than by app code, so there is no
+ * point at which the app holds the call and can still set it up. These are that
+ * point, and the matching release.
+ */
+type StreamRNVideoSDKRingingCallLifecycle = {
+  /**
+   * Runs the app's pre-join setup and resolves once it is done, bounded by a
+   * deadline. Rejecting fails the join closed rather than joining with nothing
+   * installed.
+   */
+  beforeJoin: (call: Call) => Promise<void>;
+
+  /**
+   * The join failed terminally. Ends the ringing flow and releases what the
+   * setup installed. Never rejects, so the original join error survives.
+   */
+  onJoinFailed: (call: Call) => Promise<void>;
+
+  /** The call has ended; release whatever the pre-join hook installed. */
+  onLeave: (call: Call) => void;
+};
+
 export type StreamRNVideoSDKGlobals = {
   callingX: StreamRNVideoSDKCallingX;
+  ringingCallLifecycle: StreamRNVideoSDKRingingCallLifecycle;
   callManager: {
     /**
      * Sets up the in call manager.

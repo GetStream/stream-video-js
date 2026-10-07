@@ -18,17 +18,21 @@ import {
   useStreamVideoClient,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { useAppI18n } from '../../hooks/useAppI18n';
-import { appTheme } from '../../theme';
-import { Button } from '../../components/Button';
 import { TextInput } from '../../components/TextInput';
 import { KnownUsers } from '../../constants/KnownUsers';
 import { randomId } from '../../modules/helpers/randomId';
 import { useOrientation } from '../../hooks/useOrientation';
+import { getE2EESettingsOverride, isE2EEEnvironment } from '../../utils/e2ee';
+import { E2EEKeyInput } from '../../components/E2EEKeyInput';
+import { Button } from '@stream-io/video-react-native-sdk/src/components/utility/Button';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 const ENABLE_RING_PINNING = __DEV__;
 
 const JoinCallScreen = () => {
+  const allowEncryption = isE2EEEnvironment(
+    useAppGlobalStoreValue((store) => store.appEnvironment),
+  );
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
   const [callType, setCallType] = useState<string>('default');
   const [pinnedCallId, setPinnedCallId] = useState<string>('');
@@ -67,6 +71,10 @@ const JoinCallScreen = () => {
               incoming_call_timeout_ms: 30000,
               missed_call_timeout_ms: 30000,
             },
+            // Merged rather than assigned: the ring timeouts above are what make the
+            // callee's quit-state case work, and encryption mode is frozen at
+            // creation, so it has to be requested here or not at all.
+            ...getE2EESettingsOverride(),
           },
           members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
             return {
@@ -150,29 +158,38 @@ const JoinCallScreen = () => {
           })}
         </View>
         <View style={styles.bottomContainer}>
-          <Text style={styles.orText}>{t('joinCall.or.label', 'OR')}</Text>
-          <TextInput
-            autoCapitalize="none"
-            autoCorrect={false}
-            placeholder={t(
-              'joinCall.userIds.label',
-              'Enter comma separated User ids',
-            )}
-            value={ringingUserIdsText}
-            onChangeText={(value) => {
-              setRingingUserIdsText(value);
-            }}
-            style={styles.textInputStyle}
-          />
-          <Button
-            title={
-              isLoading
-                ? t('joinCall.calling.label', 'Calling...')
-                : t('joinCall.startNewCall.label', 'Start a New Call')
-            }
-            disabled={startCallDisabled}
-            onPress={startCallHandler}
-          />
+          <View style={styles.orContainer}>
+            <View style={styles.orSeparator} />
+            <Text style={styles.orText}>{t('joinCall.or.label', 'OR')}</Text>
+            <View style={styles.orSeparator} />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder={t(
+                'joinCall.userIds.label',
+                'Enter comma separated User ids',
+              )}
+              value={ringingUserIdsText}
+              onChangeText={(value) => {
+                setRingingUserIdsText(value);
+              }}
+              style={styles.textInputStyle}
+            />
+            <Button
+              text={
+                isLoading
+                  ? t('joinCall.calling.label', 'Calling...')
+                  : t('joinCall.startNewCall.label', 'Start a New Call')
+              }
+              disabled={startCallDisabled}
+              onPress={startCallHandler}
+              size="large"
+            />
+          </View>
+          {allowEncryption && <E2EEKeyInput />}
           {(ENABLE_RING_PINNING || devMode) && (
             <View style={styles.pinningContainer}>
               <Text style={styles.pinningText}>
@@ -203,24 +220,25 @@ const JoinCallScreen = () => {
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics, primitives },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
           flex: 1,
-          backgroundColor: theme.colors.sheetPrimary,
+          backgroundColor: semantics.backgroundCoreApp,
         },
         scrollContent: {
           flexGrow: 1,
-          paddingHorizontal: appTheme.spacing.lg,
+          paddingHorizontal: primitives.spacingMd,
         },
         topContainer: {
-          paddingTop: appTheme.spacing.lg,
-          paddingHorizontal: appTheme.spacing.lg,
+          padding: primitives.spacingMd,
         },
         participant: {
-          paddingVertical: appTheme.spacing.sm,
+          paddingVertical: primitives.spacingSm,
           borderBottomColor: 'gray',
           borderBottomWidth: 1,
           display: 'flex',
@@ -228,48 +246,61 @@ const useStyles = () => {
           alignItems: 'center',
         },
         selectedParticipant: {
-          color: appTheme.colors.primary,
+          color: semantics.buttonPrimaryBg,
           fontWeight: 'bold',
         },
         headerText: {
           fontSize: 16,
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           fontWeight: 'bold',
-          marginBottom: appTheme.spacing.lg,
+          marginBottom: primitives.spacingLg,
         },
         avatar: {
           height: 40,
           width: 40,
           borderRadius: 20,
         },
+        inputContainer: {
+          gap: primitives.spacingSm,
+        },
         text: {
-          color: theme.colors.textPrimary,
-          marginLeft: appTheme.spacing.md,
+          color: semantics.textPrimary,
+          marginLeft: primitives.spacingMd,
           fontSize: 16,
           fontWeight: '500',
         },
         bottomContainer: {
-          paddingVertical: appTheme.spacing.lg,
-        },
-        orText: {
-          fontSize: 17,
-          color: theme.colors.textPrimary,
-          fontWeight: '500',
-          marginVertical: appTheme.spacing.lg,
-          textAlign: 'center',
+          paddingVertical: primitives.spacingLg,
+          gap: primitives.spacingXl,
         },
         textInputStyle: {
           flex: 0,
         },
+        orContainer: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: primitives.spacingSm,
+        },
+        orSeparator: {
+          flex: 1,
+          height: 1,
+          backgroundColor: semantics.backgroundUtilityDisabled,
+        },
+        orText: {
+          color: semantics.textDisabled,
+          fontSize: primitives.typographyFontSizeXs,
+          fontWeight: primitives.typographyFontWeightSemiBold,
+        },
         pinningContainer: {
-          marginTop: appTheme.spacing.lg,
+          marginTop: primitives.spacingLg,
         },
         pinningText: {
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           fontSize: 13,
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };
 export default JoinCallScreen;

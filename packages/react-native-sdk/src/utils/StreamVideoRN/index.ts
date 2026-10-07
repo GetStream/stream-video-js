@@ -1,4 +1,5 @@
-import type { StreamVideoConfig } from './types';
+import type { RingingCallLifecycleHooks, StreamVideoConfig } from './types';
+import { setRingingCallLifecycleHooks as storeRingingCallLifecycleHooks } from '../internal/ringingCallLifecycle';
 import pushLogoutCallbacks from '../internal/pushLogoutCallback';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
 import { setupAndroidPushEvents } from '../push/setupAndroidPushEvents';
@@ -137,6 +138,28 @@ export class StreamVideoRN {
     setupAndroidPushEvents(pushConfig);
   }
 
+  /**
+   * Register hooks that run around a ringing call's join, for every ringing path:
+   * accepted from the CallKit/Telecom UI, accepted inside the app, and outgoing.
+   *
+   * Call this at your application's entry point, alongside
+   * {@link StreamVideoRN.setPushConfig} and **outside** the React tree. A call
+   * accepted from a push notification can be created and joined before any
+   * component mounts, so hooks registered from inside React would be missed on
+   * exactly the path that most needs them.
+   *
+   * Calling it again replaces the previously registered hooks.
+   *
+   * @example // in index.js
+   * StreamVideoRN.setRingingCallLifecycleHooks({
+   *   onBeforeCallJoin: (call) => attachE2EEIfConfigured(call),
+   *   onAfterCallLeave: (call) => disposeE2EEManager(call),
+   * });
+   */
+  static setRingingCallLifecycleHooks = (hooks: RingingCallLifecycleHooks) => {
+    storeRingingCallLifecycleHooks(hooks);
+  };
+
   static getConfig() {
     return this.config;
   }
@@ -156,6 +179,33 @@ export class StreamVideoRN {
 
   static clearPushLogoutCallbacks() {
     pushLogoutCallbacks.current = [];
+  }
+
+  /**
+   * Android only. Opt out of the Android 11+ communication-mode keep-alive.
+   *
+   * By default the SDK plays a silent voice-communication track for the duration of a
+   * communicator-role call, so Android does not reset `MODE_IN_COMMUNICATION` ~6s after it is
+   * set (which breaks audio routing and echo cancellation).
+   * See {@link https://issuetracker.google.com/issues/209493718}
+   *
+   * Call this at app start, alongside {@link setPushConfig} — the native audio manager
+   * rejects the change once it has been activated for a call. No-op on iOS and on
+   * Android below API 30.
+   */
+  static setDisableCommunicationModeWorkaround(disabled: boolean) {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+    try {
+      NativeModules.StreamInCallManager?.setDisableCommunicationModeWorkaround(
+        disabled,
+      );
+    } catch (error) {
+      videoLoggerSystem
+        .getLogger('StreamVideoRN')
+        .warn('setDisableCommunicationModeWorkaround failed', error);
+    }
   }
 
   /**

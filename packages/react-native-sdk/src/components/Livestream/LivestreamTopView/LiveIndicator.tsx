@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { useI18n } from '../../../i18n';
@@ -6,56 +6,33 @@ import { useI18n } from '../../../i18n';
 /**
  * Props for the LiveIndicator component.
  */
-export type LiveIndicatorProps = {};
+export type LiveIndicatorProps = {
+  isLive: boolean;
+};
 
 /**
  * The LiveIndicator component displays whether the live stream is live or not.
  */
-export const LiveIndicator = ({}: LiveIndicatorProps) => {
-  const styles = useStyles();
+export const LiveIndicator = ({ isLive }: LiveIndicatorProps) => {
   const {
-    theme: { colors, typefaces, liveIndicator },
+    theme: { liveIndicator },
   } = useTheme();
   const { t } = useI18n();
+  if (!isLive) {
+    return null;
+  }
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: colors.buttonPrimary },
-        liveIndicator.container,
-      ]}
-    >
-      <Text
-        style={[
-          styles.label,
-          { color: colors.textPrimary },
-          typefaces.subtitleBold,
-          liveIndicator.label,
-        ]}
-      >
-        {t('common.live.label', 'Live')}
-      </Text>
+    <View style={[styles.container, liveIndicator.container]}>
+      <View style={liveIndicator.indicator} />
+      <Text style={liveIndicator.label}>{t('common.live.label', 'LIVE')}</Text>
     </View>
   );
 };
 
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          paddingHorizontal: theme.variants.spacingSizes.sm,
-          paddingVertical: theme.variants.spacingSizes.sm,
-          borderTopLeftRadius: theme.variants.borderRadiusSizes.sm,
-          borderBottomLeftRadius: theme.variants.borderRadiusSizes.sm,
-          justifyContent: 'center',
-        },
-        label: {
-          textAlign: 'center',
-          includeFontPadding: false,
-        },
-      }),
-    [theme],
-  );
-};
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

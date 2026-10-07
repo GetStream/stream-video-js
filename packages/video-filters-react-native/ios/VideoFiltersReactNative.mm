@@ -1,23 +1,61 @@
-#import <React/RCTBridgeModule.h>
+#import "VideoFiltersReactNative.h"
 
-@interface RCT_EXTERN_MODULE(VideoFiltersReactNative, NSObject)
+// The generated Swift header declares a VideoFrameProcessorDelegate conformance, and this
+// translation unit is compiled without modules, so its @import lines are skipped.
+// ProcessorProvider.h declares that protocol and imports the WebRTC types it uses.
+#import "ProcessorProvider.h"
 
-RCT_EXTERN_METHOD(registerBackgroundBlurVideoFilters:(RCTPromiseResolveBlock)resolve
-                  withRejecter:(RCTPromiseRejectBlock)reject)
+#if __has_include("stream_io_video_filters_react_native/stream_io_video_filters_react_native-Swift.h")
+#import "stream_io_video_filters_react_native/stream_io_video_filters_react_native-Swift.h"
+#else
+#import "stream_io_video_filters_react_native-Swift.h"
+#endif
 
-RCT_EXTERN_METHOD(registerVirtualBackgroundFilter:(NSString *)backgroundImageUrlString
-                  withResolver:(RCTPromiseResolveBlock)resolve
-                  withRejecter:(RCTPromiseRejectBlock)reject)
+@implementation VideoFiltersReactNative {
+  VideoFiltersReactNativeImpl *_impl;
+}
 
-RCT_EXTERN_METHOD(registerBlurVideoFilters:(RCTPromiseResolveBlock)resolve
-                  withRejecter:(RCTPromiseRejectBlock)reject)
-
-RCT_EXTERN_METHOD(unregisterAllFilters:(RCTPromiseResolveBlock)resolve
-                  withRejecter:(RCTPromiseRejectBlock)reject)
-
-+ (BOOL)requiresMainQueueSetup
+- (instancetype)init
 {
-  return NO;
+  if (self = [super init]) {
+    _impl = [VideoFiltersReactNativeImpl new];
+  }
+  return self;
+}
+
+- (NSNumber *)registerBackgroundBlurVideoFilters
+{
+  [_impl registerBackgroundBlurVideoFilters];
+  return @YES;
+}
+
+- (NSNumber *)registerVirtualBackgroundFilter:(NSString *)backgroundImageUrlString
+{
+  [_impl registerVirtualBackgroundFilter:backgroundImageUrlString];
+  return @YES;
+}
+
+- (NSNumber *)registerBlurVideoFilters
+{
+  [_impl registerBlurVideoFilters];
+  return @YES;
+}
+
+- (NSNumber *)unregisterAllFilters
+{
+  [_impl unregisterAllFilters];
+  return @YES;
+}
+
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+    (const facebook::react::ObjCTurboModule::InitParams &)params
+{
+  return std::make_shared<facebook::react::NativeVideoFiltersReactNativeSpecJSI>(params);
+}
+
++ (NSString *)moduleName
+{
+  return @"VideoFiltersReactNative";
 }
 
 @end

@@ -10,10 +10,10 @@ import {
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/createToken';
-import { useCustomTheme } from '../theme';
 import axios, { AxiosResponseTransformer } from 'axios';
 import { Alert } from 'react-native';
 import { useRegisterNonRingingPushToken } from '../hooks/useRegisterNonRingingPushToken';
+import { useEncryptedDeepLinkEffect } from '../hooks/useDeepLinkEffect';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
@@ -33,12 +33,12 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const disableRingStatePolling = useAppGlobalStoreValue(
     (store) => store.disableRingStatePolling,
   );
-  const customTheme = useCustomTheme(themeMode);
   const setState = useAppGlobalStoreSetState();
 
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
     undefined,
   );
+  useEncryptedDeepLinkEffect(videoClient);
 
   const user = useMemo(
     () => ({
@@ -129,7 +129,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   }
 
   return (
-    <StreamVideo client={videoClient} style={customTheme}>
+    <StreamVideo client={videoClient} colorScheme={themeMode}>
       <NonRingingPushTokenRegistration />
       {children}
     </StreamVideo>

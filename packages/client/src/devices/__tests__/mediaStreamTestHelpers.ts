@@ -43,13 +43,17 @@ export const createAudioStreamForDevice = (
 export const createVideoStreamForDevice = (
   deviceId: string,
   facingMode: 'user' | 'environment' = 'user',
+  label = '',
 ): MediaStream => {
-  const track = createTrack({
-    deviceId,
-    width: 1280,
-    height: 720,
-    facingMode,
-  });
+  const track = createTrack(
+    {
+      deviceId,
+      width: 1280,
+      height: 720,
+      facingMode,
+    },
+    { label },
+  );
 
   return {
     getTracks: () => [track],

@@ -30,7 +30,8 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
 
     try {
       await call
-        ?.submitFeedback(Math.min(Math.max(1, rating.current), 5), {
+        ?.submitFeedback({
+          rating: Math.min(Math.max(1, rating.current), 5),
           reason: message,
           custom: {
             message,

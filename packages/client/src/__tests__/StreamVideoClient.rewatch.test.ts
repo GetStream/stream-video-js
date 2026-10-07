@@ -7,6 +7,7 @@ import { CallRingPayload } from './data';
 import { settled, withoutConcurrency } from '../helpers/concurrency';
 import { getCallInitConcurrencyTag } from '../helpers/clientUtils';
 import { CallingState } from '../store';
+import { dateToNs } from '../helpers/time';
 import type { StreamVideoEvent } from '../coordinator/connection/types';
 import type {
   CallResponse,
@@ -52,12 +53,14 @@ describe('StreamVideoClient re-watching calls on reconnect', () => {
   });
 
   const setupRingingCall = async () => {
-    vi.spyOn(client.streamClient, 'get').mockResolvedValue({
-      duration: '1ms',
-      call: CallRingPayload.call,
-      members: CallRingPayload.members,
-      own_capabilities: [],
-    } as GetCallResponse);
+    vi.spyOn(client.streamClient, 'doAxiosRequest').mockResolvedValue({
+      data: {
+        duration: '1ms',
+        call: CallRingPayload.call,
+        members: CallRingPayload.members,
+        own_capabilities: [],
+      } as GetCallResponse,
+    } as never);
 
     client.streamClient.dispatchEvent(CallRingPayload as StreamVideoEvent);
     await settled(getCallInitConcurrencyTag(CallRingPayload.call_cid));
@@ -81,15 +84,19 @@ describe('StreamVideoClient re-watching calls on reconnect', () => {
     const listenerCountBeforeReconnect = countListeners(client);
 
     const post = vi
-      .spyOn(client.streamClient, 'post')
-      .mockResolvedValue(
-        queryCallsResponse({ ...CallRingPayload.call, recording: true }),
-      );
+      .spyOn(client.streamClient, 'doAxiosRequest')
+      .mockResolvedValue({
+        data: queryCallsResponse({ ...CallRingPayload.call, recording: true }),
+      } as never);
 
     reconnect();
 
-    await vi.waitFor(() => expect(post).toHaveBeenCalled());
-    expect(post).toHaveBeenCalledWith('/calls', {
+    const queryCallsRequest = () =>
+      post.mock.calls.find(
+        ([method, url]) => method === 'post' && String(url).endsWith('/calls'),
+      );
+    await vi.waitFor(() => expect(queryCallsRequest()).toBeDefined());
+    expect(queryCallsRequest()?.[2]).toMatchObject({
       watch: true,
       filter_conditions: { cid: { $in: [call.cid] } },
     });
@@ -110,15 +117,15 @@ describe('StreamVideoClient re-watching calls on reconnect', () => {
     const leave = vi.spyOn(call, 'leave').mockResolvedValue(undefined);
 
     const session = CallRingPayload.call.session!;
-    vi.spyOn(client.streamClient, 'post').mockResolvedValue(
-      queryCallsResponse({
+    vi.spyOn(client.streamClient, 'doAxiosRequest').mockResolvedValue({
+      data: queryCallsResponse({
         ...CallRingPayload.call,
         session: {
           ...session,
-          accepted_by: { [userId]: '2025-08-14T14:49:00Z' },
+          accepted_by: { [userId]: dateToNs(new Date('2025-08-14T14:49:00Z')) },
         },
       }),
-    );
+    } as never);
 
     reconnect();
 
@@ -130,9 +137,9 @@ describe('StreamVideoClient re-watching calls on reconnect', () => {
     // e.g. being on a call while watching a dashboard of calls:
     // leaving the joined instance must not silence the dashboard instance
     const joinedCall = await setupRingingCall();
-    vi.spyOn(client.streamClient, 'post').mockResolvedValue(
-      queryCallsResponse(CallRingPayload.call),
-    );
+    vi.spyOn(client.streamClient, 'doAxiosRequest').mockResolvedValue({
+      data: queryCallsResponse(CallRingPayload.call),
+    } as never);
 
     const result = await client.queryCalls({ watch: true });
     const [dashboardCall] = result.calls;
@@ -144,17 +151,18 @@ describe('StreamVideoClient re-watching calls on reconnect', () => {
     client.streamClient.dispatchEvent({
       type: 'call.updated',
       call_cid: joinedCall.cid,
-      created_at: '2025-08-14T14:50:00Z',
+      created_at: dateToNs(new Date('2025-08-14T14:50:00Z')),
       call: { ...CallRingPayload.call, recording: true },
+      capabilities_by_role: {},
     } as StreamVideoEvent);
 
     await vi.waitFor(() => expect(dashboardCall.state.recording).toBe(true));
   });
 
   it('creates and registers a new instance for unknown cids', async () => {
-    vi.spyOn(client.streamClient, 'post').mockResolvedValue(
-      queryCallsResponse(CallRingPayload.call),
-    );
+    vi.spyOn(client.streamClient, 'doAxiosRequest').mockResolvedValue({
+      data: queryCallsResponse(CallRingPayload.call),
+    } as never);
 
     const result = await client.queryCalls({ watch: true });
 
@@ -169,8 +177,10 @@ describe('StreamVideoClient re-watching calls on reconnect', () => {
     const listenersBeforeRing = countListeners(client);
     const call = await setupRingingCall();
     const post = vi
-      .spyOn(client.streamClient, 'post')
-      .mockResolvedValue(queryCallsResponse(CallRingPayload.call));
+      .spyOn(client.streamClient, 'doAxiosRequest')
+      .mockResolvedValue({
+        data: queryCallsResponse(CallRingPayload.call),
+      } as never);
 
     // hold the call's join/leave queue so leave() is still in flight
     // while the re-watch response is being processed
@@ -196,8 +206,10 @@ describe('StreamVideoClient re-watching calls on reconnect', () => {
   it('creates a fresh instance when the previous one has left', async () => {
     const call = await setupRingingCall();
     const post = vi
-      .spyOn(client.streamClient, 'post')
-      .mockResolvedValue(queryCallsResponse(CallRingPayload.call));
+      .spyOn(client.streamClient, 'doAxiosRequest')
+      .mockResolvedValue({
+        data: queryCallsResponse(CallRingPayload.call),
+      } as never);
 
     // leaving unregisters the call from the client store
     await call.leave({ reject: false });

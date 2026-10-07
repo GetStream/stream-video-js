@@ -755,7 +755,7 @@ describe('ClientEventReporter', () => {
     });
   });
 
-  it('reports a DTLS failure with the real ICE state (never connected)', async () => {
+  it('reports an ICE failure when the peer connection fails before ICE connected', async () => {
     reporter.startCorrelation(cid, 'first-attempt');
     reportPeerConnectionState(
       PeerType.PUBLISHER_UNSPECIFIED,
@@ -779,7 +779,7 @@ describe('ClientEventReporter', () => {
     expect(completed[0]).toMatchObject({
       outcome: 'failure',
       peer_connection: 'publish',
-      retry_failure_code: 'DTLS_CONNECTIVITY_FAILED',
+      retry_failure_code: 'ICE_CONNECTIVITY_FAILED',
       ice_state: 'NOT_CONNECTED',
     });
   });

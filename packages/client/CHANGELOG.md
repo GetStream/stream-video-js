@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-2.0.0-beta.0...@stream-io/video-client-2.0.0-beta.1) (2026-09-28)
+
+### Features
+
+- **client:** identify the SDK and version on SFU RPCs ([#2425](https://github.com/GetStream/stream-video-js/issues/2425)) ([2312002](https://github.com/GetStream/stream-video-js/commit/2312002e455ecb0060c5393a0b0845eb16057322))
+- **client:** poll ring state to reconcile a dropped ring outcome ([#2393](https://github.com/GetStream/stream-video-js/issues/2393)) ([73bfc98](https://github.com/GetStream/stream-video-js/commit/73bfc980560786790597dfb1b512e3835e316bfc))
+- **client:** replace the two client state stores with a single ClientState ([#2422](https://github.com/GetStream/stream-video-js/issues/2422)) ([cd24816](https://github.com/GetStream/stream-video-js/commit/cd2481659483430af529042cc5603c9cd1fd0e44)), closes [#2419](https://github.com/GetStream/stream-video-js/issues/2419) [#2419](https://github.com/GetStream/stream-video-js/issues/2419)
+- **rn:** add end-to-end encryption support ([#2427](https://github.com/GetStream/stream-video-js/issues/2427)) ([fd70b35](https://github.com/GetStream/stream-video-js/commit/fd70b3597beb5867b21f254c76fd6d4e6e2e731b))
+
+### Bug Fixes
+
+- **client:** abandon retries when leave supersedes join ([#2441](https://github.com/GetStream/stream-video-js/issues/2441)) ([1936cb5](https://github.com/GetStream/stream-video-js/commit/1936cb5dc0b9a5e81ebb2a1f92ff9ac57231c583))
+- **client:** never publish unencrypted media before the E2EE transform is attached ([#2460](https://github.com/GetStream/stream-video-js/issues/2460)) ([2419b01](https://github.com/GetStream/stream-video-js/commit/2419b016341f345c8eff960f49bf7dee3b4e5a4e))
+
+### Performance Improvements
+
+- **client:** one declaration site per CallState field, faster state reads ([#2419](https://github.com/GetStream/stream-video-js/issues/2419)) ([4c720ee](https://github.com/GetStream/stream-video-js/commit/4c720eea177e458c8a9e4f67906d286c4ec68c4b)), closes [#1095](https://github.com/GetStream/stream-video-js/issues/1095)
+
 ## [2.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.59.0...@stream-io/video-client-2.0.0-beta.0) (2026-09-04)
 
 ### Bug Fixes

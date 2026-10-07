@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Button } from './Button';
-import { appTheme } from '../theme';
+import { useTheme } from '@stream-io/video-react-native-sdk';
 import { useAppI18n } from '../hooks/useAppI18n';
 
 type Props = {
   title: string;
   message: string;
   returnToHomeHandler: () => void;
-  backToLobbyHandler: () => void;
+  /** Omit when the call this error belongs to must not be joined again. */
+  backToLobbyHandler?: () => void;
 };
 
 export const CallErrorComponent = ({
@@ -18,6 +19,7 @@ export const CallErrorComponent = ({
   backToLobbyHandler,
 }: Props) => {
   const { t } = useAppI18n();
+  const styles = useStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.errorHeading}>{title}</Text>
@@ -26,38 +28,49 @@ export const CallErrorComponent = ({
         title={t('callError.returnToHome.label', 'Return to Home')}
         onPress={returnToHomeHandler}
       />
-      <Button
-        title={t('callError.backToLobby.label', 'Back to Lobby')}
-        onPress={backToLobbyHandler}
-        buttonStyle={styles.backToLobbyButton}
-      />
+      {backToLobbyHandler && (
+        <Button
+          title={t('callError.backToLobby.label', 'Back to Lobby')}
+          onPress={backToLobbyHandler}
+          buttonStyle={styles.backToLobbyButton}
+        />
+      )}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: appTheme.colors.static_grey,
-    padding: appTheme.spacing.lg,
-  },
-  wrapper: {
-    flex: 1,
-    backgroundColor: appTheme.colors.static_grey,
-  },
-  errorHeading: {
-    fontSize: 30,
-    color: appTheme.colors.static_white,
-    textAlign: 'center',
-  },
-  errorText: {
-    fontSize: 15,
-    color: appTheme.colors.error,
-    textAlign: 'center',
-    marginVertical: appTheme.spacing.md,
-  },
-  backToLobbyButton: {
-    marginTop: appTheme.spacing.lg,
-  },
-});
+const useStyles = () => {
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          justifyContent: 'center',
+          backgroundColor: semantics.backgroundCoreApp,
+          padding: primitives.spacingMd,
+        },
+        wrapper: {
+          flex: 1,
+          backgroundColor: semantics.backgroundCoreApp,
+        },
+        errorHeading: {
+          fontSize: 30,
+          color: semantics.textPrimary,
+          textAlign: 'center',
+        },
+        errorText: {
+          fontSize: 15,
+          color: semantics.textPrimary,
+          textAlign: 'center',
+          marginVertical: primitives.spacingMd,
+        },
+        backToLobbyButton: {
+          marginTop: primitives.spacingLg,
+        },
+      }),
+    [primitives, semantics],
+  );
+};

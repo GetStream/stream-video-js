@@ -1,5 +1,6 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
+import { ConnectedEvent, TimestampNS, VideoEvent } from '../../gen/coordinator';
+import type { UserRequest } from '../../gen/shims';
 import { AllSfuEvents } from '../../rtc';
 import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
 import type { DevicePersistenceOptions } from '../../devices/devicePersistence';
@@ -171,7 +172,12 @@ export type StreamVideoEvent = (
   | ConnectionRecoveredEvent
   | MicCaptureReportEvent
   | DeviceDisconnectedEvent
-) & { received_at?: string | Date };
+) & {
+  /**
+   * When this client received the frame, as a unix-nanosecond timestamp.
+   */
+  received_at?: TimestampNS;
+};
 
 // TODO: we should use WSCallEvent here but that needs fixing
 export type StreamCallEvent = Extract<StreamVideoEvent, { call_cid: string }>;
@@ -202,7 +208,7 @@ export type Logger = (
 
 export type RingStatePollingOptions = {
   /**
-   * Quiet time after the ring starts, before the first poll. Defaults to 15_000.
+   * Quiet time after the ring starts, before the first poll. Defaults to 9_000.
    */
   startAfterMs?: number;
 

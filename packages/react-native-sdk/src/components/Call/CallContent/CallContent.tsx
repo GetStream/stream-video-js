@@ -1,5 +1,14 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { NativeModules, Platform, StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  NativeModules,
+  Platform,
+  StyleProp,
+  StyleSheet,
+  ViewStyle,
+  View,
+} from 'react-native';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { debounceTime } from 'rxjs';
 import {
   CallParticipantsGrid,
   type CallParticipantsGridProps,
@@ -7,19 +16,17 @@ import {
   type CallParticipantsSpotlightProps,
 } from '../CallLayout';
 import {
+  CallAppBar,
+  CallAppBarProps,
   type CallControlProps,
   CallControls as DefaultCallControls,
-  type HangUpCallButtonProps,
 } from '../CallControls';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
   CallingState,
   type StreamReaction,
   type StreamVideoParticipant,
   videoLoggerSystem,
 } from '@stream-io/video-client';
-import { debounceTime } from 'rxjs';
-
 import { Z_INDEX } from '../../../constants';
 import {
   FloatingParticipantView as DefaultFloatingParticipantView,
@@ -64,14 +71,26 @@ type CallContentComponentProps = ParticipantViewComponentProps &
   };
 
 export type CallContentProps = Pick<
-  HangUpCallButtonProps,
-  'onHangupCallHandler'
+  CallAppBarProps,
+  'onHangupCallHandler' | 'onHangupPressHandler'
 > &
+  Pick<
+    CallControlProps,
+    | 'onMorePress'
+    | 'onUsersPress'
+    | 'onMessageBubblesPress'
+    | 'onControlsHeightChange'
+  > &
   CallContentComponentProps & {
     /**
      * This switches the participant's layout between the grid and the spotlight mode.
      */
     layout?: 'grid' | 'spotlight';
+    /**
+     * If true, the grid layout always uses an even number of columns (2 or 4),
+     * so it splits down the middle, where foldable devices have their hinge.
+     */
+    evenGridColumns?: boolean;
     /**
      * Reactions that are to be supported in the call
      */
@@ -98,10 +117,26 @@ export type CallContentProps = Pick<
      * @default 'video'
      */
     initialInCallManagerAudioMode?: 'video' | 'audio';
+    /**
+     * Handler to be called when the layout toggle button is pressed.
+     * @param newLayout - The new layout to be set.
+     * @returns void
+     */
+    onLayoutToggleHandler?: (newLayout: 'grid' | 'spotlight') => void;
+    /**
+     * Style applied to the CallContent component.
+     */
+    style?: StyleProp<ViewStyle>;
   };
 
 export const CallContent = ({
+  onHangupPressHandler,
   onHangupCallHandler,
+  onLayoutToggleHandler,
+  onMorePress,
+  onUsersPress,
+  onMessageBubblesPress,
+  onControlsHeightChange,
   CallParticipantsList,
   CallControls = DefaultCallControls,
   FloatingParticipantView = DefaultFloatingParticipantView,
@@ -114,17 +149,18 @@ export const CallContent = ({
   VideoRenderer,
   mirror,
   layout = 'grid',
+  evenGridColumns,
   landscape = false,
   supportedReactions,
   initialInCallManagerAudioMode = 'video',
   iOSPiPIncludeLocalParticipantVideo,
   disablePictureInPicture,
+  style,
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
     setShowRemoteParticipantInFloatingView,
   ] = useState<boolean>(false);
-  const styles = useStyles();
   const {
     theme: { callContent },
   } = useTheme();
@@ -236,10 +272,10 @@ export const CallContent = ({
   };
 
   const participantViewProps: ParticipantViewComponentProps = {
-    ParticipantLabel: isInPiPMode ? null : ParticipantLabel,
-    ParticipantNetworkQualityIndicator: isInPiPMode
-      ? null
-      : ParticipantNetworkQualityIndicator,
+    // kept in picture-in-picture to match iOS, whose native PiP view draws its
+    // own participant overlay
+    ParticipantLabel,
+    ParticipantNetworkQualityIndicator,
     ParticipantReaction,
     ParticipantVideoFallback,
     VideoRenderer,
@@ -253,6 +289,7 @@ export const CallContent = ({
     mirror,
     CallParticipantsList,
     supportedReactions,
+    evenGridColumns,
   };
 
   const callParticipantsSpotlightProps: CallParticipantsSpotlightProps = {
@@ -266,87 +303,75 @@ export const CallContent = ({
   };
 
   return (
-    <>
+    <View style={[styles.container, callContent?.container, style]}>
+      {!isInPiPMode && (
+        <CallAppBar
+          layout={layout}
+          onLayoutToggleHandler={onLayoutToggleHandler}
+          onHangupPressHandler={onHangupPressHandler}
+          onHangupCallHandler={onHangupCallHandler}
+        />
+      )}
       {Platform.OS === 'ios' && !disablePictureInPicture && (
         <RTCViewPipIOS
           includeLocalParticipantVideo={iOSPiPIncludeLocalParticipantVideo}
           mirror={mirror}
         />
       )}
-      <View
-        style={[
-          styles.container,
-          landscape ? landscapeStyles.row : landscapeStyles.column,
-          callContent.container,
-        ]}
-      >
-        <View style={[styles.content, callContent.callParticipantsContainer]}>
-          <View
-            style={[
-              StyleSheet.absoluteFill,
-              styles.view,
-              callContent.topContainer,
-            ]}
-            // "box-none" disallows the container view to be not take up touches
-            // and allows only the top and floating view (its child views) to take up the touches
-            pointerEvents="box-none"
-          >
-            {showFloatingView && FloatingParticipantView && (
-              <FloatingParticipantView
-                participant={
-                  isRemoteParticipantInFloatingView
-                    ? firstRemoteParticipant
-                    : localParticipant
-                }
-                onPressHandler={handleFloatingViewParticipantSwitch}
-                supportedReactions={supportedReactions}
-                objectFit="cover"
-                mirror={mirror}
-                {...participantViewProps}
-              />
-            )}
-          </View>
-          {showSpotlightLayout ? (
-            <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
-          ) : (
-            <CallParticipantsGrid {...callParticipantsGridProps} />
+      <View style={[styles.content, callContent?.callParticipantsContainer]}>
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            styles.view,
+            callContent?.topContainer,
+          ]}
+          // "box-none" disallows the container view to be not take up touches
+          // and allows only the top and floating view (its child views) to take up the touches
+          pointerEvents="box-none"
+        >
+          {showFloatingView && FloatingParticipantView && (
+            <FloatingParticipantView
+              participant={
+                isRemoteParticipantInFloatingView
+                  ? firstRemoteParticipant
+                  : localParticipant
+              }
+              onPressHandler={handleFloatingViewParticipantSwitch}
+              supportedReactions={supportedReactions}
+              objectFit="cover"
+              mirror={mirror}
+              {...participantViewProps}
+            />
           )}
         </View>
-
-        {!isInPiPMode && CallControls && (
-          <CallControls
-            onHangupCallHandler={onHangupCallHandler}
-            landscape={landscape}
-          />
+        {showSpotlightLayout ? (
+          <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
+        ) : (
+          <CallParticipantsGrid {...callParticipantsGridProps} />
         )}
       </View>
-    </>
+
+      {!isInPiPMode && CallControls && (
+        <CallControls
+          landscape={landscape}
+          onMorePress={onMorePress}
+          onUsersPress={onUsersPress}
+          onMessageBubblesPress={onMessageBubblesPress}
+          onControlsHeightChange={onControlsHeightChange}
+        />
+      )}
+    </View>
   );
 };
 
-const landscapeStyles = StyleSheet.create({
-  row: { flexDirection: 'row' },
-  column: { flexDirection: 'column' },
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+  },
+  view: {
+    zIndex: Z_INDEX.IN_FRONT,
+  },
 });
-
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          flex: 1,
-          paddingBottom: theme.variants.insets.bottom,
-          paddingLeft: theme.variants.insets.left,
-          paddingRight: theme.variants.insets.right,
-          paddingTop: theme.variants.insets.top,
-          backgroundColor: theme.colors.sheetPrimary,
-        },
-        content: { flex: 1 },
-        view: {
-          zIndex: Z_INDEX.IN_FRONT,
-        },
-      }),
-    [theme],
-  );
-};
