@@ -537,7 +537,7 @@ When tracks arrive before participant join events:
 const client = new StreamVideoClient({
   apiKey: 'key',
   options: {
-    logLevel: 'debug', // or 'info', 'warn', 'error'
+    logOptions: { default: { level: 'debug' } }, // or 'info', 'warn', 'error'
   },
 });
 ```

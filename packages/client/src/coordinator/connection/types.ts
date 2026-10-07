@@ -239,20 +239,6 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
   clientEventsReportingEnabled?: boolean;
 
   /**
-   *  @deprecated Use `logOptions` instead.
-   *  Custom logger instance used to handle log messages.
-   *  Will be removed in a future release.
-   */
-  logger?: Logger;
-
-  /**
-   *  @deprecated Use `logOptions` instead.
-   *  Sets the minimum log level for all logs.
-   *  Will be removed in a future release.
-   */
-  logLevel?: LogLevel;
-
-  /**
    * Configuration options where keys are logger scopes.
    * The `default` scope is reserved is used to set defaults for all loggers.
    *

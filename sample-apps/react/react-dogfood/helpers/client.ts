@@ -35,8 +35,9 @@ export const getClient = (
   if (!client) {
     const options: StreamClientOptions = {
       baseURL: creds.coordinatorUrl || process.env.NEXT_PUBLIC_STREAM_API_URL,
-      logLevel: 'debug' as const,
-      logger: customSentryLogger(),
+      logOptions: {
+        default: { level: 'debug', sink: customSentryLogger() },
+      },
       transformRequest: defaultRequestTransformers,
       transformResponse: defaultResponseTransformers,
       clientAppIdentifier: { app: environment },

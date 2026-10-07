@@ -47,7 +47,10 @@ const createCall = () => {
   const client = new StreamVideoClient({
     apiKey: 'abc',
     // no network from these fixtures - see ringingJoinIntegration.test.ts
-    options: { clientEventsReportingEnabled: false, logLevel: 'error' },
+    options: {
+      clientEventsReportingEnabled: false,
+      logOptions: { default: { level: 'error' } },
+    },
   });
   const call = client.call(
     'test',
