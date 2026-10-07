@@ -291,17 +291,12 @@ export class StreamVideoClient {
           if (call) {
             call.updateFromCallStateResponse(c);
             // ring events missed while the WS was down aren't replayed
-            if (
-              call.ringing &&
-              call.state.callingState === CallingState.RINGING
-            ) {
-              reconcileRingState(call, 'ring-poll-api').catch((err) => {
-                call.logger.error(
-                  'Failed to reconcile the ring state after rewatch',
-                  err,
-                );
-              });
-            }
+            reconcileRingState(call, 'ring-poll-api').catch((err) => {
+              call.logger.error(
+                'Failed to reconcile the ring state after rewatch',
+                err,
+              );
+            });
           }
         }
 
