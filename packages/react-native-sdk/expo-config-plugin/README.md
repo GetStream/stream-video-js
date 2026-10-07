@@ -18,28 +18,6 @@ The plugin adds the following native changes to the code.
 
 ### Android
 
-#### `MainApplication.java`
-
-Adds the import and setup for StreamVideoReactNative in your `MainApplication.java` file:
-
-Read more about it [here](https://getstream.io/video/docs/reactnative/setup/installation/react-native/#add-stream-video-sdks-setup-method).
-
-```java
-// Adds this
-import com.streamvideo.reactnative.StreamVideoReactNative;
-
-public class MainApplication extends Application implements ReactApplication {
-
-  @Override
-  public void onCreate() {
-    super.onCreate();
-    // Adds this
-    StreamVideoReactNative.setup();
-    // the rest..
-  }
-}
-```
-
 #### `AndroidManifest.xml`
 
 Add service named `app.notifee.core.ForegroundService`.
@@ -51,27 +29,6 @@ Add service named `app.notifee.core.ForegroundService`.
 The `@stream-io/video-react-native-sdk` also adds the appropriate android permissions such as `POST_NOTIFICATIONS`, `FOREGROUND_SERVICE`, `BLUETOOTH`, `BLUETOOTH_ADMIN` and `BLUETOOTH_CONNECT` to the `AndroidManifest.xml`.
 
 ### iOS
-
-#### `AppDelegate.mm`
-
-Adds the import and setup for StreamVideoReactNative in your `AppDelegate.mm` file:
-
-Read more about it [here](https://getstream.io/video/docs/reactnative/setup/installation/react-native/#add-stream-video-sdks-setup-method).
-
-```c
-// Adds this
-#import "StreamVideoReactNative.h"
-
-@implementation AppDelegate
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-  // Adds this
-  [StreamVideoReactNative setup];
-
-  // the rest..
-}
-```
 
 ### `Info.plist`
 
