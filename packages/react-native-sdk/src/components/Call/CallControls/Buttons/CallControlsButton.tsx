@@ -41,11 +41,6 @@ interface CallControlsButtonProps {
    */
   style?: Partial<Theme['callControlsButton']>;
   /**
-   * Sets the height, width and border-radius (half the value) of the button.
-   * @deprecated Use the `style` prop instead.
-   */
-  size?: number;
-  /**
    * Accessibility label for the button.
    */
   testID?: string;
