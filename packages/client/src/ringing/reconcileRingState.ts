@@ -6,15 +6,16 @@ import type { CallLeaveOptions } from '../types';
 /**
  * Decides what a ringing call should do next, based on the current call state.
  *
- * The `call.accepted`, `call.rejected` and `call.missed` handlers and the ring
- * state poller both run this. They differ only in how the state got there: the
- * handlers rely on `CallState.updateFromEvent`, which runs before them, and the
- * poller applies the polled ring state itself.
+ * The `call.accepted`, `call.rejected` and `call.missed` handlers, the ring
+ * state poller and the rewatch after a WS reconnect all run this. They differ
+ * only in how the state got there: the handlers rely on
+ * `CallState.updateFromEvent`, which runs before them, while the poller applies
+ * the polled ring state itself and the rewatch applies the queried call state.
  *
  * @param call the call to reconcile.
  * @param joinSource which of the two triggered this run, reported on the
  * caller's join: `ring-ws` for the event handlers, `ring-poll-api` for the
- * poller.
+ * poller and the rewatch (both come from an API response).
  * @returns whether the ring reached a terminal state. A failed join is not
  * terminal: the caller should keep trying while the ring is open.
  */

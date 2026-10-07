@@ -133,6 +133,76 @@ describe('StreamVideoClient re-watching calls on reconnect', () => {
     await vi.waitFor(() => expect(leave).toHaveBeenCalled());
   });
 
+  describe('ring reconciliation after a rewatch', () => {
+    const rewatchWith = async (
+      call: Call,
+      rejected_by: Record<string, ReturnType<typeof dateToNs>>,
+    ) => {
+      const leave = vi.spyOn(call, 'leave').mockResolvedValue(undefined);
+      const session = CallRingPayload.call.session!;
+      const post = vi
+        .spyOn(client.streamClient, 'doAxiosRequest')
+        .mockResolvedValue({
+          data: queryCallsResponse({
+            ...CallRingPayload.call,
+            session: { ...session, rejected_by },
+          }),
+        } as never);
+      const updated = vi.spyOn(call, 'updateFromCallStateResponse');
+      reconnect();
+      await vi.waitFor(() => expect(post).toHaveBeenCalled());
+      await vi.waitFor(() => expect(updated).toHaveBeenCalled());
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+      return leave;
+    };
+    const rejectedAt = () => dateToNs(new Date('2025-08-14T14:49:00Z'));
+
+    it('callee leaves when the creator cancelled while offline', async () => {
+      const call = await setupRingingCall();
+      const leave = vi.spyOn(call, 'leave').mockResolvedValue(undefined);
+      const session = CallRingPayload.call.session!;
+      vi.spyOn(client.streamClient, 'doAxiosRequest').mockResolvedValue({
+        data: queryCallsResponse({
+          ...CallRingPayload.call,
+          session: { ...session, rejected_by: { oliver_1: rejectedAt() } },
+        }),
+      } as never);
+      reconnect();
+      await vi.waitFor(() =>
+        expect(leave).toHaveBeenCalledWith({
+          reason: 'ended',
+          message: 'ring: creator rejected',
+        }),
+      );
+    });
+
+    it('callee keeps ringing without a rejection', async () => {
+      const call = await setupRingingCall();
+      const leave = await rewatchWith(call, {});
+      expect(leave).not.toHaveBeenCalled();
+    });
+
+    it('callee keeps ringing when only another member rejected', async () => {
+      const call = await setupRingingCall();
+      const leave = await rewatchWith(call, { someone_else: rejectedAt() });
+      expect(leave).not.toHaveBeenCalled();
+    });
+
+    it('does not reconcile a call that is not in RINGING state', async () => {
+      const call = await setupRingingCall();
+      call.state.setCallingState(CallingState.JOINED);
+      const leave = await rewatchWith(call, { oliver_1: rejectedAt() });
+      expect(leave).not.toHaveBeenCalled();
+    });
+
+    it('does not reconcile a non-ringing call', async () => {
+      const call = await setupRingingCall();
+      call['ringingSubject'].next(false);
+      const leave = await rewatchWith(call, { oliver_1: rejectedAt() });
+      expect(leave).not.toHaveBeenCalled();
+    });
+  });
+
   it('queryCalls returns an independent instance for registered calls', async () => {
     // e.g. being on a call while watching a dashboard of calls:
     // leaving the joined instance must not silence the dashboard instance
