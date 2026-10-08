@@ -166,6 +166,24 @@ describe('MediaPlaybackWatchdog', () => {
     expect(play).toHaveBeenCalledTimes(2);
   });
 
+  it('keeps the settle window running through a routine suspend', async () => {
+    el.dispatchEvent(new Event('pause'));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(play).toHaveBeenCalledTimes(1);
+
+    setPaused(el, false);
+    el.dispatchEvent(new Event('playing'));
+    await vi.advanceTimersByTimeAsync(500);
+    el.dispatchEvent(new Event('suspend'));
+    await vi.advanceTimersByTimeAsync(500);
+
+    // settled, so the next pause recovers immediately instead of backing off
+    setPaused(el, true);
+    el.dispatchEvent(new Event('pause'));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(play).toHaveBeenCalledTimes(2);
+  });
+
   it('stops fighting an element that re-pauses after every successful play', async () => {
     setup({ kind: 'video' });
     // Safari re-pauses the element right after play() resolves. This used to

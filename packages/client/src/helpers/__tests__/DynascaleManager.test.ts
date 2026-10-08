@@ -1111,9 +1111,9 @@ describe('DynascaleManager', () => {
       audioElement.paused = true;
       // @ts-expect-error simulate paused, ready-to-play element
       audioElement.readyState = 4;
-      vi.spyOn(audioElement, 'play').mockRejectedValue(
-        new DOMException('', 'NotAllowedError'),
-      );
+      const play = vi
+        .spyOn(audioElement, 'play')
+        .mockRejectedValue(new DOMException('', 'NotAllowedError'));
 
       // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {
@@ -1136,14 +1136,11 @@ describe('DynascaleManager', () => {
 
       expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(true);
 
-      const traceSpy = vi.spyOn(call.tracer, 'trace');
+      play.mockClear();
       audioElement.dispatchEvent(new Event('pause'));
-      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(60_000);
 
-      expect(traceSpy).toHaveBeenCalledWith('mediaPlayback.recover.skipped', {
-        kind: 'audio',
-        reason: 'blocked',
-      });
+      expect(play).not.toHaveBeenCalled();
 
       cleanup?.();
     });

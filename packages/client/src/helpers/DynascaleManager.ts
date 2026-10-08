@@ -259,6 +259,8 @@ export class DynascaleManager {
       element: videoElement,
       kind: 'video',
       tracer: this.tracer,
+      sessionId,
+      trackType,
     });
 
     const trackKey = isVideoTrack ? 'videoStream' : 'screenShareStream';
@@ -405,6 +407,8 @@ export class DynascaleManager {
               element: audioElement,
               kind: 'audio',
               tracer: this.tracer,
+              sessionId,
+              trackType,
               // only an autoplay-policy block needs a user gesture; a give-up
               // block is for the UI and must not stop a re-armed cycle
               isBlocked: () =>
