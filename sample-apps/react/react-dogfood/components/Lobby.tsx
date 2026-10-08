@@ -228,7 +228,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                   width={36}
                   height={24}
                 />
-                <p className="rd__lobby-edge-network__description">
+                <p>
                   You are about to {hasOtherParticipants ? 'join' : 'start '} a
                   private test call via Stream. Once you{' '}
                   {hasOtherParticipants ? 'join' : 'start '} the call, you can
@@ -254,10 +254,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
               call.type === 'restricted' &&
               !isCurrentUserCallMember ? (
                 <button
-                  className={clsx(
-                    'rd__button rd__button--primary rd__button--large rd__lobby-join',
-                    isRequestToJoinCallSent && 'rd__button--disabled',
-                  )}
+                  className="rd__button rd__button--primary rd__button--large rd__lobby-join"
                   type="button"
                   data-testid="request-join-call-button"
                   disabled={isRequestToJoinCallSent}

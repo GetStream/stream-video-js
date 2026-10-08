@@ -267,9 +267,7 @@ export const DialerPage = ({
               state="error"
               isVisible={!!error}
               close={handleClearError}
-              message={
-                <div className="rd__dialer-notification">{error?.message}</div>
-              }
+              message={<div>{error?.message}</div>}
               placement="top-end"
             />
           </div>

@@ -129,7 +129,6 @@ export const LobbyEncryption = () => {
       className={clsx(
         'rd__lobby-encryption',
         isOn && 'rd__lobby-encryption--on',
-        locked && 'rd__lobby-encryption--banner',
       )}
     >
       {locked ? (
