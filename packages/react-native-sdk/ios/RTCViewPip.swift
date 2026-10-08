@@ -6,21 +6,23 @@
 //
 
 import Foundation
-import React
 import WebRTC
 import stream_react_native_webrtc
 
+/// Hosted by the `RTCViewPipComponentView` Fabric component view.
 @objc(RTCViewPip)
-class RTCViewPip: UIView {
+public class RTCViewPip: UIView {
 
     private var pictureInPictureController: StreamPictureInPictureController? = StreamPictureInPictureController()
-    private var webRtcModule: WebRTCModule?
-    // Back-reference set by RTCViewPipManager
-    weak var manager: RTCViewPipManager?
+    /// Resolves the WebRTCModule lazily, it may not exist yet when the view is created.
+    @objc public var webRtcModuleProvider: (() -> WebRTCModule?)?
+    private var webRtcModule: WebRTCModule? { webRtcModuleProvider?() }
+    /// A preferred size that arrived while there was no controller, applied once one is created.
+    private var pendingPreferredContentSize: CGSize?
 
-    @objc var onPiPChange: RCTBubblingEventBlock?
+    @objc public var onPiPChange: ((Bool) -> Void)?
     /// Actual PiP window bounds in logical points.
-    @objc var onPiPBoundsChange: RCTBubblingEventBlock?
+    @objc public var onPiPBoundsChange: ((CGFloat, CGFloat) -> Void)?
     private var lastEmittedBounds: CGSize?
 
     // MARK: - Avatar Placeholder Properties
@@ -111,10 +113,6 @@ class RTCViewPip: UIView {
         )
     }
     
-    func setWebRtcModule(_ module: WebRTCModule) {
-        webRtcModule = module
-    }
-    
     @objc public var streamURL: NSString? = nil {
         didSet {
             // https://github.com/react-native-webrtc/react-native-webrtc/blob/8dfc9c394b4bf627c0214255466ebd3b160ca563/ios/RCTWebRTC/RTCVideoViewManager.m#L405-L418
@@ -159,7 +157,7 @@ class RTCViewPip: UIView {
     
     
     @objc
-    func onCallClosed() {
+    public func onCallClosed() {
         PictureInPictureLogger.log("pictureInPictureController cleanup called")
         self.pictureInPictureController?.onPiPStateChange = nil
         self.pictureInPictureController?.onSizeUpdate = nil
@@ -169,12 +167,18 @@ class RTCViewPip: UIView {
     }
     
     @objc
-    func setPreferredContentSize(_ size: CGSize) {
+    public func setPreferredContentSize(_ size: CGSize) {
         PictureInPictureLogger.log("RTCViewPip setPreferredContentSize \(size)")
-        self.pictureInPictureController?.setPreferredContentSize(size)
+        guard let controller = self.pictureInPictureController else {
+            // this happens when the size arrives before the controller is (re)created
+            PictureInPictureLogger.log("No controller yet, caching size.")
+            pendingPreferredContentSize = size
+            return
+        }
+        controller.setPreferredContentSize(size)
     }
     
-    override func didMoveToSuperview() {
+    override public func didMoveToSuperview() {
         super.didMoveToSuperview()
         if self.superview == nil {
             PictureInPictureLogger.log("RTCViewPip has been removed from its superview.")
@@ -202,9 +206,9 @@ class RTCViewPip: UIView {
                 if let controller = self.pictureInPictureController {
                     self.installCallbacks(on: controller)
                 }
-                if let reactTag = self.reactTag,
-                   let size = self.manager?.getCachedSize(for: reactTag) {
-                    PictureInPictureLogger.log("Applying cached size \(size) for reactTag \(reactTag)")
+                if let size = self.pendingPreferredContentSize {
+                    PictureInPictureLogger.log("Applying cached size \(size)")
+                    self.pendingPreferredContentSize = nil
                     self.setPreferredContentSize(size)
                 }
             }
@@ -291,7 +295,7 @@ class RTCViewPip: UIView {
         controller.onPiPStateChange = { [weak self, weak controller] isActive in
             guard let self, let controller,
                   self.pictureInPictureController === controller else { return }
-            self.onPiPChange?(["active": isActive])
+            self.onPiPChange?(isActive)
         }
         controller.onSizeUpdate = { [weak self, weak controller] size in
             guard let self, let controller,
@@ -310,6 +314,6 @@ class RTCViewPip: UIView {
         guard bounds.width > 0, bounds.height > 0 else { return }
         guard let onPiPBoundsChange, lastEmittedBounds != bounds else { return }
         lastEmittedBounds = bounds
-        onPiPBoundsChange(["width": bounds.width, "height": bounds.height])
+        onPiPBoundsChange(bounds.width, bounds.height)
     }
 }

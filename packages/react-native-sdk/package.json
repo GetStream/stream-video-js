@@ -150,7 +150,7 @@
   },
   "codegenConfig": {
     "name": "StreamVideoReactNativeSpec",
-    "type": "modules",
+    "type": "all",
     "jsSrcsDir": "src/native",
     "android": {
       "javaPackageName": "com.streamvideo.reactnative"
@@ -159,6 +159,9 @@
       "modulesProvider": {
         "StreamInCallManager": "StreamInCallManagerModule",
         "StreamVideoReactNative": "StreamVideoReactNativeModule"
+      },
+      "componentProvider": {
+        "RTCViewPip": "RTCViewPipComponentView"
       }
     }
   },

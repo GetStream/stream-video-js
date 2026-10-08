@@ -1,5 +1,4 @@
 import React from 'react';
-import { UIManager } from 'react-native';
 import { act } from '@testing-library/react-native';
 import {
   type Call,
@@ -12,6 +11,7 @@ import { StreamCallProvider } from '@stream-io/video-react-bindings';
 import { render, screen } from '../utils/RNTLTools';
 import { RTCViewPipIOS } from '../../src/components/Call/CallContent/RTCViewPipIOS';
 import { RTCViewPipNative } from '../../src/components/Call/CallContent/RTCViewPipNative';
+import { Commands } from '../../src/native/RTCViewPipNativeComponent';
 import TrackSubscriber from '../../src/components/Participant/ParticipantView/VideoRenderer/TrackSubscriber';
 import { isInPiPMode$ } from '../../src/utils/internal/rxSubjects';
 import mockParticipant from '../mocks/participant';
@@ -19,12 +19,6 @@ import { mockCall } from '../mocks/call';
 import { mockClientWithUser } from '../mocks/client';
 
 jest.useFakeTimers();
-
-// the view manager only exists in a real app; the commands the component
-// dispatches to it are irrelevant to the subscription demand under test.
-jest.spyOn(UIManager, 'getViewManagerConfig').mockReturnValue({
-  Commands: { onCallClosed: 1, setPreferredContentSize: 2 },
-} as any);
 
 const sessionId = 'remote-session-1';
 const otherSessionId = 'remote-session-2';
@@ -273,10 +267,14 @@ describe('RTCViewPipIOS', () => {
     settle();
     expect(dimensionOf(call)).toEqual(pipBounds);
 
+    (Commands.onCallClosed as jest.Mock).mockClear();
     rerender(<>{inlineSubscriber(call, inline$)}</>);
     settle();
     expect(dimensionOf(call)).toEqual(inlineLayout);
     expect(isInPiPMode$.getValue()).toBe(false);
+    // the view captured on mount is closed although its ref is detached.
+    expect(Commands.onCallClosed).toHaveBeenCalledTimes(1);
+    expect(Commands.onCallClosed).toHaveBeenCalledWith(expect.anything());
   });
 
   it.each(['call.ended event', 'LEFT calling state'])(

@@ -121,3 +121,15 @@ jest.mock('./src/native/NativeStreamVideoReactNative', () => ({
     onChargingStateChanged: jest.fn(() => ({ remove: jest.fn() })),
   },
 }));
+
+jest.mock('./src/native/RTCViewPipNativeComponent', () => {
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: View,
+    Commands: {
+      onCallClosed: jest.fn(),
+      setPreferredContentSize: jest.fn(),
+    },
+  };
+});
