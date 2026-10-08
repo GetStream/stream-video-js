@@ -157,7 +157,8 @@
     },
     "ios": {
       "modulesProvider": {
-        "StreamInCallManager": "StreamInCallManagerModule"
+        "StreamInCallManager": "StreamInCallManagerModule",
+        "StreamVideoReactNative": "StreamVideoReactNativeModule"
       }
     }
   },
