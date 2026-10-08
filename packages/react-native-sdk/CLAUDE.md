@@ -231,7 +231,6 @@ The public `callManager` (`src/modules/call-manager/CallManager.ts`) is a **conf
 
 **Files:**
 
-- `src/utils/enterPiPAndroid.ts` - Android PiP helper
 - `android/src/main/java/com/streamvideo/reactnative/util/PiPHelper.kt`
 - `ios/PictureInPicture/` - iOS PiP implementation
 

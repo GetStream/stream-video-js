@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { NativeModules } from 'react-native';
 import {
   CallingState,
   DEFAULT_LOOPBACK_RECORDING_DURATION_MS,
@@ -14,9 +13,7 @@ import {
 } from '@stream-io/video-client';
 
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-
-/** @internal */
-const { StreamVideoReactNative } = NativeModules;
+import NativeStreamVideoReactNative from '../native/NativeStreamVideoReactNative';
 
 export type LoopbackRecordingState = 'idle' | 'awaiting-streams' | 'recording';
 
@@ -90,7 +87,7 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
     }
 
     try {
-      await StreamVideoReactNative.stopTrackRecording();
+      await NativeStreamVideoReactNative.stopTrackRecording();
     } catch (error) {
       videoLoggerSystem
         .getLogger('useLoopbackRecording')
@@ -147,7 +144,7 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
           return await withLoopbackAudioEnabled(
             streams,
             (): Promise<string | null> =>
-              StreamVideoReactNative.startTrackRecording({
+              NativeStreamVideoReactNative.startTrackRecording({
                 videoTrackId: streams.videoTrack?.id,
                 maxDurationMs: clampLoopbackRecordingDuration(maxDurationMs),
                 targetWidth: publishMaxDim?.width,
@@ -170,7 +167,7 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
 
   const clearRecordings = useCallback(async (): Promise<void> => {
     try {
-      await StreamVideoReactNative.clearStreamRecordings();
+      await NativeStreamVideoReactNative.clearStreamRecordings();
     } catch (error) {
       videoLoggerSystem
         .getLogger('useLoopbackRecording')
@@ -182,7 +179,7 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
   const getRecordings = useCallback(async (): Promise<string[]> => {
     try {
       const list: string[] | null | undefined =
-        await StreamVideoReactNative.getStreamRecordings();
+        await NativeStreamVideoReactNative.getStreamRecordings();
       return list ?? [];
     } catch (error) {
       videoLoggerSystem

@@ -10,9 +10,8 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { NativeModules, findNodeHandle, Platform } from 'react-native';
-
-const { StreamVideoReactNative } = NativeModules;
+import { findNodeHandle, Platform } from 'react-native';
+import NativeStreamVideoReactNative from '../../native/NativeStreamVideoReactNative';
 
 type ScreenshotIosContextType = {
   register: (
@@ -103,7 +102,10 @@ export const ScreenshotIosContextProvider = ({
         }
 
         // Take the snapshot using our native module
-        const base64Image = await StreamVideoReactNative.captureRef(tag, {});
+        const base64Image = await NativeStreamVideoReactNative.captureRef(
+          tag,
+          {},
+        );
 
         return base64Image;
       } catch (error) {

@@ -4,7 +4,6 @@ import { StreamVideoRN } from '../utils';
 import {
   AppState,
   type AppStateStatus,
-  NativeModules,
   PermissionsAndroid,
   Platform,
 } from 'react-native';
@@ -14,11 +13,12 @@ import {
   keepCallAliveCallRef,
 } from '../utils/keepCallAliveHeadlessTask';
 import { getCallingxLibIfAvailable } from '../utils/push/libs';
+import NativeStreamVideoReactNative from '../native/NativeStreamVideoReactNative';
 
 async function stopForegroundServiceNoThrow() {
   const logger = videoLoggerSystem.getLogger('stopForegroundServiceNoThrow');
   try {
-    await NativeModules.StreamVideoReactNative.stopKeepCallAliveService();
+    await NativeStreamVideoReactNative.stopKeepCallAliveService();
   } catch (e) {
     logger.warn('Failed to stop keep-call-alive foreground service', e);
   }
@@ -29,9 +29,9 @@ async function stopForegroundServiceNoThrow() {
  */
 async function startForegroundService(call_cid: string): Promise<boolean> {
   const logger = videoLoggerSystem.getLogger('startForegroundService');
-  const isCallAliveConfigured = await (async () => {
+  const isCallAliveConfigured = (() => {
     try {
-      return await NativeModules.StreamVideoReactNative.isCallAliveConfigured();
+      return NativeStreamVideoReactNative.isCallAliveConfigured();
     } catch (e) {
       logger.warn('Failed to check whether KeepCallAlive is configured', e);
       return false;
@@ -82,7 +82,7 @@ async function startForegroundService(call_cid: string): Promise<boolean> {
         return;
       }
       try {
-        await NativeModules.StreamVideoReactNative.startKeepCallAliveService(
+        await NativeStreamVideoReactNative.startKeepCallAliveService(
           call_cid,
           channel.id,
           channel.name,

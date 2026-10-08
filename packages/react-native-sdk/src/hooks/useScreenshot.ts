@@ -1,14 +1,13 @@
 import { useCallback } from 'react';
 import { useScreenshotIosContext } from '../contexts/internal/ScreenshotIosContext';
-import { NativeModules, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import {
   StreamVideoParticipant,
   videoLoggerSystem,
   type VideoTrackType,
 } from '@stream-io/video-client';
-
-const { StreamVideoReactNative } = NativeModules;
+import NativeStreamVideoReactNative from '../native/NativeStreamVideoReactNative';
 
 /**
  * Hook that provides functionality to take screenshots of participant video streams.
@@ -45,7 +44,7 @@ export function useScreenshot(): UseScreenshotResult {
 
         if (videoStreamForScreenshot) {
           try {
-            return await StreamVideoReactNative.takeScreenshot(
+            return await NativeStreamVideoReactNative.takeScreenshot(
               videoStreamForScreenshot.toURL(),
             );
           } catch (error) {

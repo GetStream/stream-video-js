@@ -8,8 +8,9 @@ import {
   extractCallingExpOptions,
   getCallingxLib,
 } from '../push/libs/callingx';
-import { NativeModules, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import NativeStreamInCallManager from '../../native/NativeStreamInCallManager';
+import NativeStreamVideoReactNative from '../../native/NativeStreamVideoReactNative';
 import { videoLoggerSystem } from '@stream-io/video-client';
 
 // Utility type for deep partial
@@ -211,49 +212,49 @@ export class StreamVideoRN {
    * Play native busy tone for call rejection
    */
   static async playBusyTone() {
-    return NativeModules.StreamVideoReactNative.playBusyTone();
+    return NativeStreamVideoReactNative.playBusyTone();
   }
 
   /**
    * Stop native busy tone
    */
   static async stopBusyTone() {
-    return NativeModules.StreamVideoReactNative.stopBusyTone();
+    return NativeStreamVideoReactNative.stopBusyTone();
   }
 
   /**
    * Check if the device has audio output hardware
    * @returns True if the device has audio output hardware
    */
-  static async androidHasAudioOutputHardware(): Promise<boolean> {
+  static androidHasAudioOutputHardware(): boolean {
     if (Platform.OS !== 'android')
       throw new Error(
         'androidHasAudioOutputHardware function is only available on Android',
       );
-    return NativeModules.StreamVideoReactNative.hasAudioOutputHardware();
+    return NativeStreamVideoReactNative.hasAudioOutputHardware();
   }
 
   /**
    * Check if the device has microphone hardware
    * @returns True if the device has microphone hardware
    */
-  static async androidHasMicrophoneHardware(): Promise<boolean> {
+  static androidHasMicrophoneHardware(): boolean {
     if (Platform.OS !== 'android')
       throw new Error(
         'androidHasMicrophoneHardware function is only available on Android',
       );
-    return NativeModules.StreamVideoReactNative.hasMicrophoneHardware();
+    return NativeStreamVideoReactNative.hasMicrophoneHardware();
   }
 
   /**
    * Check if the device has camera hardware
    * @returns True if the device has camera hardware
    */
-  static async androidHasCameraHardware(): Promise<boolean> {
+  static androidHasCameraHardware(): boolean {
     if (Platform.OS !== 'android')
       throw new Error(
         'androidHasCameraHardware function is only available on Android',
       );
-    return NativeModules.StreamVideoReactNative.hasCameraHardware();
+    return NativeStreamVideoReactNative.hasCameraHardware();
   }
 }

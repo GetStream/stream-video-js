@@ -20,9 +20,6 @@ const loadStreamVideoRN = ({
   jest.isolateModules(() => {
     jest.doMock('react-native', () => ({
       Platform: { OS: os, select: (o: any) => o[os] },
-      NativeModules: {
-        StreamVideoReactNative: {},
-      },
       NativeEventEmitter: class {
         addListener() {
           return { remove: jest.fn() };

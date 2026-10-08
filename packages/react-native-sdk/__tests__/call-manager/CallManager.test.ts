@@ -57,9 +57,6 @@ const loadCallManager = ({
   jest.isolateModules(() => {
     jest.doMock('react-native', () => ({
       Platform: { OS: os, select: (o: any) => o[os] },
-      NativeModules: {
-        StreamVideoReactNative: {},
-      }, // mock to avoid pulling the video-client / react-native-webrtc runtime into the test
       NativeEventEmitter: class {
         addListener() {
           return { remove: jest.fn() };
