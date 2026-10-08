@@ -223,8 +223,9 @@ export class StreamVideoRN {
   }
 
   /**
-   * Check if the device has audio output hardware
+   * Check if the device has audio output hardware (Android only, synchronous)
    * @returns True if the device has audio output hardware
+   * @throws If called on a platform other than Android
    */
   static androidHasAudioOutputHardware(): boolean {
     if (Platform.OS !== 'android')
@@ -235,8 +236,9 @@ export class StreamVideoRN {
   }
 
   /**
-   * Check if the device has microphone hardware
+   * Check if the device has microphone hardware (Android only, synchronous)
    * @returns True if the device has microphone hardware
+   * @throws If called on a platform other than Android
    */
   static androidHasMicrophoneHardware(): boolean {
     if (Platform.OS !== 'android')
@@ -247,8 +249,9 @@ export class StreamVideoRN {
   }
 
   /**
-   * Check if the device has camera hardware
+   * Check if the device has camera hardware (Android only, synchronous)
    * @returns True if the device has camera hardware
+   * @throws If called on a platform other than Android
    */
   static androidHasCameraHardware(): boolean {
     if (Platform.OS !== 'android')

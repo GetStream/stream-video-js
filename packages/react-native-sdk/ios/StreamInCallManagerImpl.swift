@@ -899,8 +899,10 @@ private enum AudioDeviceId {
 
     // MARK: - Helper Methods
     private func getAudioDeviceModule() -> AudioDeviceModule? {
+        // nil while the TurboModule manager is invalidating (JS reload/teardown); callers handle a nil ADM
         guard let webrtcModule = webRTCModuleProvider?() else {
-            fatalError("WebRTCModule is required but not registered with the module registry")
+            log("getAudioDeviceModule(): WebRTCModule is not available")
+            return nil
         }
 
         // Follow the live call's ADM; fall back to the default only when no call factory is

@@ -310,7 +310,7 @@ private let broadcastNotificationCallback: CFNotificationCallback = { _, observe
     ) {
         let webRTCModule = webRTCModuleProvider?()
         let options = WebRTCModuleOptions.sharedInstance()
-        let mixer = webRTCModule?.audioDeviceModule.screenShareAudioMixer
+        let mixer = webRTCModule?.audioDeviceModule?.screenShareAudioMixer
 
         // Wire mixer as capturePostProcessingDelegate on the audio processing module.
         if let apm = options.audioProcessingModule as? RTCDefaultAudioProcessingModule {
@@ -352,7 +352,7 @@ private let broadcastNotificationCallback: CFNotificationCallback = { _, observe
             capture.stop()
         }
 
-        webRTCModule?.audioDeviceModule.screenShareAudioMixer.stopMixing()
+        webRTCModule?.audioDeviceModule?.screenShareAudioMixer.stopMixing()
 
         // Clear capturePostProcessingDelegate
         if let apm = options.audioProcessingModule as? RTCDefaultAudioProcessingModule {
