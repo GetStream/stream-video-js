@@ -1,4 +1,4 @@
-import { TurboModuleRegistry, type TurboModule } from 'react-native';
+import { Platform, TurboModuleRegistry, type TurboModule } from 'react-native';
 
 import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
 
@@ -9,4 +9,6 @@ export interface Spec extends TurboModule {
 }
 
 // Android-only: there is no iOS implementation of this module.
-export default TurboModuleRegistry.get<Spec>('StreamVideoAppLifecycle');
+export default Platform.OS === 'android'
+  ? TurboModuleRegistry.get<Spec>('StreamVideoAppLifecycle')
+  : null;

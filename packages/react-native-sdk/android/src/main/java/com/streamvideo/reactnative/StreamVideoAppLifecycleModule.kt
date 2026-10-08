@@ -26,8 +26,8 @@ class StreamVideoAppLifecycleModule(reactContext: ReactApplicationContext) :
         val lifecycle = ProcessLifecycleOwner.get().lifecycle
         val lifecycleObserver = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_START -> emitOnAppStateChanged("active")
-                Lifecycle.Event.ON_STOP -> emitOnAppStateChanged("background")
+                Lifecycle.Event.ON_START -> emitAppState("active")
+                Lifecycle.Event.ON_STOP -> emitAppState("background")
                 else -> Unit
             }
         }
@@ -45,6 +45,13 @@ class StreamVideoAppLifecycleModule(reactContext: ReactApplicationContext) :
         }
         observer = null
         super.invalidate()
+    }
+
+    private fun emitAppState(appState: String) {
+        // addObserver replays the current state right away, which can run before the JSI wrapper sets the
+        // emitter callback (it is set after initialize()); JS reads the initial state via getCurrentAppState
+        if (mEventEmitterCallback == null) return
+        emitOnAppStateChanged(appState)
     }
 
     override fun getCurrentAppState(): String {
