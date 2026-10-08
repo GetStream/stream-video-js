@@ -361,20 +361,6 @@ class CallingxModuleImpl(
         }
     }
 
-    fun stopBackgroundTask(taskName: String) {
-        try {
-            Intent(reactApplicationContext, CallService::class.java)
-                    .apply {
-                        this.action = CallService.ACTION_STOP_BACKGROUND_TASK
-                        putExtra(CallService.EXTRA_TASK_NAME, taskName)
-                    }
-                    .also { reactApplicationContext.startService(it) }
-        } catch (e: Exception) {
-            Log.e(TAG, "[module] stopBackgroundTask: Failed to start service: ${e.message}", e)
-            throw IllegalStateException("START_SERVICE_ERROR: ${e.message}", e)
-        }
-    }
-
     fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
         // no-op: Android Telecom doesn't require explicit action fulfillment
     }
