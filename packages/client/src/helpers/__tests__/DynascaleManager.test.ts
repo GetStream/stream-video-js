@@ -900,6 +900,47 @@ describe('DynascaleManager', () => {
         cleanup?.();
       });
 
+      it('does not apply a queued source change after the element is unbound', async () => {
+        vi.useFakeTimers();
+        setVisibility('visible');
+        const audioElement = document.createElement('audio');
+        Object.defineProperties(audioElement, {
+          srcObject: { writable: true },
+          paused: { writable: true, configurable: true },
+          readyState: { writable: true, configurable: true },
+        });
+        // @ts-expect-error simulate paused, ready-to-play element
+        audioElement.paused = true;
+        // @ts-expect-error simulate paused, ready-to-play element
+        audioElement.readyState = 4;
+        const play = vi.spyOn(audioElement, 'play').mockResolvedValue();
+
+        // @ts-expect-error incomplete data
+        call.state.updateOrAddParticipant('session-id', {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          publishedTracks: [],
+        });
+        const cleanup = dynascaleManager.bindAudioElement(
+          audioElement,
+          'session-id',
+          'audioTrack',
+        );
+        call.state.updateParticipant('session-id', {
+          audioStream: new MediaStream(),
+        });
+        cleanup?.();
+        await vi.runAllTimersAsync();
+
+        expect(audioElement.srcObject).toBeNull();
+        expect(play).not.toHaveBeenCalled();
+
+        setVisibility('hidden');
+        setVisibility('visible');
+        await vi.advanceTimersByTimeAsync(0);
+        expect(play).not.toHaveBeenCalled();
+      });
+
       it('stops re-arming after the element is unbound', async () => {
         vi.useFakeTimers();
         setVisibility('visible');

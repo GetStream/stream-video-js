@@ -348,13 +348,16 @@ export class DynascaleManager {
 
     const isAudioTrack = trackType === 'audioTrack';
     const trackKey = isAudioTrack ? 'audioStream' : 'screenShareAudioStream';
+    let sourceChangeTimer: ReturnType<typeof setTimeout> | undefined;
     const updateMediaStreamSubscription = participant$
       .pipe(distinctUntilKeyChanged(trackKey))
       .subscribe((p) => {
         const source = isAudioTrack ? p.audioStream : p.screenShareAudioStream;
         if (audioElement.srcObject === source) return;
 
-        setTimeout(() => {
+        clearTimeout(sourceChangeTimer);
+        sourceChangeTimer = setTimeout(() => {
+          sourceChangeTimer = undefined;
           audioElement.srcObject = source ?? null;
           this.disposePlaybackWatchdog(audioWatchdog);
           audioWatchdog = undefined;
@@ -439,6 +442,7 @@ export class DynascaleManager {
       sinkIdSubscription?.unsubscribe();
       volumeSubscription.unsubscribe();
       updateMediaStreamSubscription.unsubscribe();
+      clearTimeout(sourceChangeTimer);
       audioElement.srcObject = null;
       sourceNode?.disconnect();
       gainNode?.disconnect();
