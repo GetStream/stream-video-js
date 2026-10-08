@@ -29,10 +29,15 @@ private let broadcastNotificationCallback: CFNotificationCallback = { _, observe
     @objc public weak var eventEmitter: StreamVideoReactNativeEventEmitter?
     /// The view registry is assigned to the adapter after init, so it is resolved lazily.
     @objc public var viewRegistryProvider: (() -> RCTViewRegistry?)?
+    /// The module registry is assigned to the adapter after init, so WebRTCModule is resolved lazily.
+    @objc public var webRTCModuleProvider: (() -> WebRTCModule?)?
 
     private let notificationCenter = CFNotificationCenterGetDarwinNotifyCenter()
     private var hasScreenshareObserver = false
     private var hasDeviceStateObservers = false
+    private let busyTonePlayer = BusyTonePlayer()
+    /// Broadcast screen-share audio receiver.
+    private var screenAudioCapture: ScreenAudioCapture?
 
     @objc public override init() {
         super.init()
@@ -49,6 +54,7 @@ private let broadcastNotificationCallback: CFNotificationCallback = { _, observe
     @objc public func invalidate() {
         clearScreenshareEventObserver()
         clearDeviceStateObservers()
+        busyTonePlayer.invalidate()
     }
 
     // MARK: - Screen share (Darwin broadcast notifications)
@@ -250,5 +256,172 @@ private let broadcastNotificationCallback: CFNotificationCallback = { _, observe
                 }
             }
         }
+    }
+
+    // MARK: - Busy tone
+
+    @objc(playBusyTone:reject:)
+    public func playBusyTone(
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        busyTonePlayer.play(resolve: resolve, reject: reject)
+    }
+
+    @objc(stopBusyTone:reject:)
+    public func stopBusyTone(
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        busyTonePlayer.stop(resolve: resolve)
+    }
+
+    // MARK: - In-app screen capture
+
+    @objc(startInAppScreenCapture:resolve:reject:)
+    public func startInAppScreenCapture(
+        _ includeAudio: Bool,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let options = WebRTCModuleOptions.sharedInstance()
+        options.useInAppScreenCapture = true
+        options.includeScreenShareAudio = includeAudio
+        resolve(nil)
+    }
+
+    @objc(stopInAppScreenCapture:reject:)
+    public func stopInAppScreenCapture(
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let options = WebRTCModuleOptions.sharedInstance()
+        options.useInAppScreenCapture = false
+        options.includeScreenShareAudio = false
+        resolve(nil)
+    }
+
+    // MARK: - Screen share audio mixing
+
+    @objc(startScreenShareAudioMixing:reject:)
+    public func startScreenShareAudioMixing(
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let webRTCModule = webRTCModuleProvider?()
+        let options = WebRTCModuleOptions.sharedInstance()
+        let mixer = webRTCModule?.audioDeviceModule.screenShareAudioMixer
+
+        // Wire mixer as capturePostProcessingDelegate on the audio processing module.
+        if let apm = options.audioProcessingModule as? RTCDefaultAudioProcessingModule {
+            apm.capturePostProcessingDelegate = mixer
+        } else {
+            NSLog("[SSAudio][Native] WARNING: No RTCDefaultAudioProcessingModule available, screen-share audio mixing will not work")
+        }
+
+        mixer?.startMixing()
+
+        if let capturer = options.activeInAppScreenCapturer {
+            capturer.audioBufferHandler = { sampleBuffer in
+                mixer?.enqueue(sampleBuffer)
+            }
+        } else {
+            let capture = screenAudioCapture ?? ScreenAudioCapture()
+            screenAudioCapture = capture
+            capture.onAudioBuffer = { pcmBuffer in
+                mixer?.enqueuePCM(pcmBuffer)
+            }
+            capture.start()
+        }
+
+        resolve(nil)
+    }
+
+    @objc(stopScreenShareAudioMixing:reject:)
+    public func stopScreenShareAudioMixing(
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let webRTCModule = webRTCModuleProvider?()
+        let options = WebRTCModuleOptions.sharedInstance()
+
+        options.activeInAppScreenCapturer?.audioBufferHandler = nil
+
+        if let capture = screenAudioCapture {
+            capture.onAudioBuffer = nil
+            capture.stop()
+        }
+
+        webRTCModule?.audioDeviceModule.screenShareAudioMixer.stopMixing()
+
+        // Clear capturePostProcessingDelegate
+        if let apm = options.audioProcessingModule as? RTCDefaultAudioProcessingModule {
+            apm.capturePostProcessingDelegate = nil
+        }
+
+        resolve(nil)
+    }
+
+    // MARK: - Track recording
+
+    @objc(startTrackRecordingWithVideoTrackId:maxDurationMs:targetWidth:targetHeight:resolve:reject:)
+    public func startTrackRecording(
+        videoTrackId: String?,
+        maxDurationMs: Int,
+        targetWidth: Int,
+        targetHeight: Int,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard let webRTCModule = webRTCModuleProvider?() else {
+            reject("recording_error", "WebRTCModule not available", nil)
+            return
+        }
+
+        TracksRecorderManager.shared.startRecording(
+            videoTrackId: videoTrackId,
+            maxDurationMs: maxDurationMs,
+            targetWidth: targetWidth,
+            targetHeight: targetHeight,
+            webRTCModule: webRTCModule
+        ) { fileURL, error in
+            if let error {
+                reject("recording_error", error.localizedDescription, error)
+            } else {
+                resolve(fileURL?.absoluteString ?? NSNull())
+            }
+        }
+    }
+
+    @objc(stopTrackRecording:reject:)
+    public func stopTrackRecording(
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        TracksRecorderManager.shared.stopRecording {
+            resolve(nil)
+        }
+    }
+
+    @objc(clearStreamRecordings:reject:)
+    public func clearStreamRecordings(
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        TracksRecorderManager.shared.clearRecordingsDirectory { error in
+            if let error {
+                reject("clear_error", error.localizedDescription, error)
+            } else {
+                resolve(nil)
+            }
+        }
+    }
+
+    @objc(getStreamRecordings:reject:)
+    public func getStreamRecordings(
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(TracksRecorderManager.shared.listRecordings().map { $0.absoluteString })
     }
 }

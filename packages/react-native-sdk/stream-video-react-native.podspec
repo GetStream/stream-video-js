@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/GetStream/stream-video-js/tree/main/packages/react-native-sdk.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,swift}"
-  s.private_header_files = ["ios/StreamInCallManagerModule.h", "ios/StreamVideoReactNativeModule.h", "ios/StreamVideoReactNativeLegacyImpl.h"]
+  s.private_header_files = ["ios/StreamInCallManagerModule.h", "ios/StreamVideoReactNativeModule.h"]
   s.dependency "stream-react-native-webrtc"
 
   install_modules_dependencies(s)
