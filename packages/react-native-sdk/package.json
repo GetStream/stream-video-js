@@ -155,7 +155,11 @@
     "android": {
       "javaPackageName": "com.streamvideo.reactnative"
     },
-    "ios": {}
+    "ios": {
+      "modulesProvider": {
+        "StreamInCallManager": "StreamInCallManagerModule"
+      }
+    }
   },
   "react-native-builder-bob": {
     "source": "src",

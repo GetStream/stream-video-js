@@ -212,7 +212,7 @@ The public `callManager` (`src/modules/call-manager/CallManager.ts`) is a **conf
 - `src/modules/call-manager/index.ts` — exports the `callManager` singleton.
 - `src/utils/internal/registerSDKGlobals.ts` — internal, native-owning call manager wired to `globalThis.streamRNVideoSDK.callManager`.
 - `android/src/main/java/com/streamvideo/reactnative/callmanager/` — Android native module.
-- `ios/StreamInCallManager.swift` — iOS native module.
+- `ios/StreamInCallManagerModule.{h,mm}` (TurboModule adapter) + `ios/StreamInCallManagerImpl.swift` — iOS native module.
 
 **Public API surface:**
 
