@@ -4,6 +4,7 @@
 
 import Combine
 import Foundation
+import WebRTC
 
 /// StreamPictureInPictureTrackStateAdapter serves as an adapter for managing the state of a video track
 /// used for picture-in-picture functionality. It can enable or disable observers based on its isEnabled property

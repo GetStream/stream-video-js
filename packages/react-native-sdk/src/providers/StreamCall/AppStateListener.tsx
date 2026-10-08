@@ -10,10 +10,9 @@ import {
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 import { disablePiPMode$, isInPiPMode$ } from '../../utils/internal/rxSubjects';
 import { RxUtils, videoLoggerSystem } from '@stream-io/video-client';
+import NativeStreamVideoAppLifecycle from '../../native/NativeStreamVideoAppLifecycle';
 
 const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
-const ANDROID_APP_STATE_CHANGED_EVENT =
-  'StreamVideoAppLifecycle_APP_STATE_CHANGED';
 
 const isAndroid8OrAbove = Platform.OS === 'android' && Platform.Version >= 26;
 
@@ -196,25 +195,22 @@ export const AppStateListener = () => {
     // for Android use our custom native module to listen to app state changes
     // because the default react-native AppState listener works for activity and ours works for application process
     if (Platform.OS === 'android') {
-      const nativeModule = NativeModules.StreamVideoAppLifecycle;
-      const eventEmitter = new NativeEventEmitter(nativeModule);
-      let cancelled = false;
+      if (!NativeStreamVideoAppLifecycle) {
+        logger.warn('StreamVideoAppLifecycle native module is not available');
+        return;
+      }
 
-      nativeModule
-        .getCurrentAppState()
-        .then((initialState: AppStateStatus | null | undefined) => {
-          if (cancelled) return;
-          if (initialState === 'active' || initialState === 'background') {
-            appState.current = initialState;
-          }
-        })
-        .catch(() => {
-          logger.warn('Failed to get current app state from native module');
-        });
+      try {
+        const initialState = NativeStreamVideoAppLifecycle.getCurrentAppState();
+        if (initialState === 'active' || initialState === 'background') {
+          appState.current = initialState;
+        }
+      } catch {
+        logger.warn('Failed to get current app state from native module');
+      }
 
-      const subscription = eventEmitter.addListener(
-        ANDROID_APP_STATE_CHANGED_EVENT,
-        (nextAppState: AppStateStatus) => {
+      const subscription = NativeStreamVideoAppLifecycle.onAppStateChanged(
+        (nextAppState: string) => {
           if (nextAppState === 'active' || nextAppState === 'background') {
             handleAppStateChange(nextAppState);
           }
@@ -222,7 +218,6 @@ export const AppStateListener = () => {
       );
 
       return () => {
-        cancelled = true;
         subscription.remove();
       };
     }

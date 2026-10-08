@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import React
+import stream_react_native_webrtc
 
 @objc(RTCViewPipManager)
 class RTCViewPipManager: RCTViewManager {

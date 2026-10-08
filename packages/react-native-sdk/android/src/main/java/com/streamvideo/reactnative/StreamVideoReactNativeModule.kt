@@ -685,7 +685,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     companion object {
-        private const val NAME = "StreamVideoReactNative"
+        const val NAME = "StreamVideoReactNative"
         private const val SAMPLE_RATE = 22050
         private const val DEFAULT_RECORDING_DURATION_MS = 5000L
         private const val RECORDING_ERROR_CODE = "recording_error"

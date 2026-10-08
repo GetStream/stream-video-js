@@ -7,6 +7,8 @@
 
 import Foundation
 import React
+import WebRTC
+import stream_react_native_webrtc
 
 @objc(RTCViewPip)
 class RTCViewPip: UIView {

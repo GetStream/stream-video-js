@@ -5,6 +5,8 @@
 import Accelerate
 import CoreVideo
 import Foundation
+import CoreMedia
+import WebRTC
 
 /// A class that encapsulates the conversion of RTC video frame buffers from YUV to ARGB format.
 final class StreamRTCYUVBuffer: NSObject, RTCVideoFrameBuffer {
