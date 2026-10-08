@@ -1,12 +1,7 @@
-import {
-  TurboModuleRegistry,
-  NativeModules,
-  type TurboModule,
-} from 'react-native';
+import { TurboModuleRegistry, type TurboModule } from 'react-native';
 
 // @ts-expect-error - CodegenTypes is not properly typed
 import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
-import { isTurboModuleEnabled } from '../utils/utils';
 
 export interface Spec extends TurboModule {
   setupiOS(options: {
@@ -19,7 +14,7 @@ export interface Spec extends TurboModule {
     callsHistory: boolean;
     displayCallTimeout: number;
     skipIncomingPushInForeground: boolean;
-  }): void;
+  }): boolean;
 
   setupAndroid(options: {
     incomingChannel: {
@@ -37,15 +32,15 @@ export interface Spec extends TurboModule {
       rejecting?: string;
     };
     skipIncomingPushInForeground: boolean;
-  }): void;
+  }): boolean;
 
-  wireAudioEngineSubscription(): void;
+  wireAudioEngineSubscription(): boolean;
 
-  unwireAudioEngineSubscription(): void;
+  unwireAudioEngineSubscription(): boolean;
 
-  setShouldRejectCallWhenBusy(shouldReject: boolean): void;
+  setShouldRejectCallWhenBusy(shouldReject: boolean): boolean;
 
-  setDefaultAudioDeviceEndpointType(endpointType: string): void;
+  setDefaultAudioDeviceEndpointType(endpointType: string): boolean;
 
   canPostNotifications(): boolean;
 
@@ -59,14 +54,14 @@ export interface Spec extends TurboModule {
   getRegisteredCallIds(): Array<string>;
 
   /**
-   * Resolves a JSON string snapshot `{ endpoints: [{id,name,type}], currentEndpoint }`
-   * of the Telecom audio endpoints for the given call (Android). Resolves an empty
+   * Returns a JSON string snapshot `{ endpoints: [{id,name,type}], currentEndpoint }`
+   * of the Telecom audio endpoints for the given call (Android). Returns an empty
    * snapshot on iOS / when the call is unknown.
    */
-  getAvailableAudioEndpoints(callId: string): Promise<string>;
+  getAvailableAudioEndpoints(callId: string): string;
 
   /** Requests a Telecom audio-endpoint change by endpoint id (Android). */
-  requestAudioEndpointChange(callId: string, endpointId: string): Promise<void>;
+  requestAudioEndpointChange(callId: string, endpointId: string): boolean;
 
   getInitialEvents(): Array<{
     eventName: string;
@@ -121,7 +116,7 @@ export interface Spec extends TurboModule {
     };
   }>;
 
-  setCurrentCallActive(callId: string): Promise<void>;
+  setCurrentCallActive(callId: string): boolean;
 
   displayIncomingCall(
     callId: string,
@@ -134,7 +129,7 @@ export interface Spec extends TurboModule {
   ): Promise<void>;
 
   //use when need to answer an incoming call withing app UI
-  answerIncomingCall(callId: string): Promise<void>;
+  answerIncomingCall(callId: string): boolean;
 
   startCall(
     callId: string,
@@ -153,31 +148,31 @@ export interface Spec extends TurboModule {
     displayOptions?: {
       displayTitle?: string;
     },
-  ): Promise<void>;
+  ): boolean;
 
   isCallTracked(callId: string): boolean;
 
   hasRegisteredCall(): boolean;
 
-  endCallWithReason(callId: string, reason: number): Promise<void>;
+  endCallWithReason(callId: string, reason: number): boolean;
 
-  endCall(callId: string): Promise<void>;
+  endCall(callId: string): boolean;
 
-  setMutedCall(callId: string, isMuted: boolean): Promise<void>;
+  setMutedCall(callId: string, isMuted: boolean): boolean;
 
-  setOnHoldCall(callId: string, isOnHold: boolean): Promise<void>;
+  setOnHoldCall(callId: string, isOnHold: boolean): boolean;
 
-  startBackgroundTask(taskName: string, timeout: number): Promise<void>;
+  startBackgroundTask(taskName: string, timeout: number): boolean;
 
-  stopBackgroundTask(taskName: string): Promise<void>;
+  stopBackgroundTask(taskName: string): boolean;
 
-  fulfillAnswerCallAction(callId: string, didFail: boolean): void;
+  fulfillAnswerCallAction(callId: string, didFail: boolean): boolean;
 
-  fulfillEndCallAction(callId: string, didFail: boolean): void;
+  fulfillEndCallAction(callId: string, didFail: boolean): boolean;
 
-  registerVoipToken(): void;
+  registerVoipToken(): boolean;
 
-  stopService(): Promise<void>;
+  stopService(): boolean;
 
   readonly onNewEvent: EventEmitter<{
     eventName: string;
@@ -232,11 +227,7 @@ export interface Spec extends TurboModule {
     };
   }>;
 
-  log(message: string, level: 'debug' | 'info' | 'warn' | 'error'): void;
+  log(message: string, level: 'debug' | 'info' | 'warn' | 'error'): boolean;
 }
 
-const CallingxModule: Spec = isTurboModuleEnabled
-  ? TurboModuleRegistry.getEnforcing<Spec>('Callingx')
-  : (NativeModules.Callingx as Spec);
-
-export default CallingxModule;
+export default TurboModuleRegistry.getEnforcing<Spec>('Callingx');

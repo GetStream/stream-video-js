@@ -16,8 +16,8 @@ const mockCallingxModule = {
   displayIncomingCall: jest.fn(async (cid: string) => {
     mockTracked.add(cid);
   }),
-  answerIncomingCall: jest.fn().mockResolvedValue(undefined),
-  endCallWithReason: jest.fn(async (cid: string) => {
+  answerIncomingCall: jest.fn(),
+  endCallWithReason: jest.fn((cid: string) => {
     mockTracked.delete(cid);
   }),
   startCall: jest.fn(async (cid: string) => {
@@ -166,7 +166,7 @@ describe('joinCallingxCall', () => {
         mockTracked.add(cid);
       },
     );
-    mockCallingxModule.answerIncomingCall.mockImplementationOnce(async () => {
+    mockCallingxModule.answerIncomingCall.mockImplementationOnce(() => {
       cancelled = true;
       throw new Error('answer failed');
     });

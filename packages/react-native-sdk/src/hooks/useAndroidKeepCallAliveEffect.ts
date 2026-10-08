@@ -137,7 +137,7 @@ export const useAndroidKeepCallAliveEffect = () => {
     if (callingxKeepAliveOwnerRef.current && isCallEnded) {
       const currentOwner = callingxKeepAliveOwnerRef.current;
       callingxKeepAliveOwnerRef.current = undefined;
-      callingx?.releaseBackgroundTask(currentOwner).catch(() => {});
+      callingx?.releaseBackgroundTask(currentOwner);
       return undefined;
     }
 
@@ -151,14 +151,16 @@ export const useAndroidKeepCallAliveEffect = () => {
       ) {
         const owner = `keepalive:${activeCallCid}`;
         callingxKeepAliveOwnerRef.current = owner;
-        callingx.acquireBackgroundTask(owner).catch((e) => {
+        try {
+          callingx.acquireBackgroundTask(owner);
+        } catch (e) {
           if (callingxKeepAliveOwnerRef.current === owner) {
             callingxKeepAliveOwnerRef.current = undefined;
           }
           videoLoggerSystem
             .getLogger('useAndroidKeepCallAliveEffect')
             .warn('Failed to acquire callingx keep-alive background task', e);
-        });
+        }
       }
       return undefined;
     }
@@ -232,16 +234,7 @@ export const useAndroidKeepCallAliveEffect = () => {
       if (callingxKeepAliveOwnerRef.current) {
         const owner = callingxKeepAliveOwnerRef.current;
         callingxKeepAliveOwnerRef.current = undefined;
-        getCallingxLibIfAvailable()
-          ?.releaseBackgroundTask(owner)
-          .catch(() => {
-            videoLoggerSystem
-              .getLogger('useAndroidKeepCallAliveEffect')
-              .warn(
-                'Failed to release callingx keep-alive background task',
-                owner,
-              );
-          });
+        getCallingxLibIfAvailable()?.releaseBackgroundTask(owner);
       }
     };
   }, []);

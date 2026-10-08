@@ -6739,12 +6739,17 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/react-native-callingx@workspace:packages/react-native-callingx"
   dependencies:
+    "@babel/core": "npm:^7.29.7"
     "@react-native-community/cli": "npm:20.2.0"
     "@react-native/babel-preset": "npm:0.86.2"
+    "@react-native/jest-preset": "npm:0.86.2"
     "@stream-io/react-native-webrtc": "npm:145.4.1"
     "@stream-io/typescript-config": "workspace:^"
+    "@types/jest": "npm:^29.5.14"
+    "@types/node": "npm:^25.9.5"
     "@types/react": "npm:^19.2.18"
     del-cli: "npm:^6.0.0"
+    jest: "npm:^29.7.0"
     react: "npm:19.2.3"
     react-native: "npm:0.86.2"
     react-native-builder-bob: "npm:^0.43.0"
@@ -6754,7 +6759,7 @@ __metadata:
     "@react-native-firebase/messaging": ">=23.0.0"
     "@stream-io/react-native-webrtc": ^145.3.1
     react: "*"
-    react-native: "*"
+    react-native: ">=0.79.0"
   languageName: unknown
   linkType: soft
 
@@ -7190,7 +7195,7 @@ __metadata:
     "@react-native-firebase/app": ">=23.0.0"
     "@react-native-firebase/messaging": ">=23.0.0"
     "@stream-io/noise-cancellation-react-native": ">=1.0.0-beta.1"
-    "@stream-io/react-native-callingx": ">=1.0.0-beta.0"
+    "@stream-io/react-native-callingx": ">=1.0.0-beta.2"
     "@stream-io/react-native-webrtc": ^145.4.1
     "@stream-io/video-filters-react-native": ">=1.0.0-beta.1"
     expo: ">=53.0.0"

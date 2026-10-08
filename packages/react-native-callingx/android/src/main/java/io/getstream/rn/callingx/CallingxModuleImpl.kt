@@ -14,7 +14,6 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeArray
-import com.facebook.react.modules.core.DeviceEventManagerModule
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.getstream.rn.callingx.notifications.NotificationsConfig
@@ -23,12 +22,11 @@ import io.getstream.rn.callingx.utils.SettingsStore
 
 class CallingxModuleImpl(
         private val reactApplicationContext: ReactApplicationContext,
-        private val eventEmitter: CallingxEventEmitterAdapter
+        private val emitNewEvent: (WritableMap) -> Unit
 ) : CallEventBus.Listener {
 
     companion object {
         const val TAG = "[Callingx] CallingxModule"
-        const val NAME = "Callingx"
 
         const val EXTRA_CALL_ID = "call_id"
         const val EXTRA_MUTED = "is_muted"
@@ -137,14 +135,13 @@ class CallingxModuleImpl(
         return notificationChannelsManager.getNotificationStatus().canPost
     }
 
-    fun stopService(promise: Promise) {
+    fun stopService() {
         debugLog(TAG, "[module] stopService: Stopping CallService explicitly from JS")
 
         if (!CallService.isRunning) {
             // Starting the service just to stop it would construct (and immediately release) a
             // whole CallRepository, and `startService` from the background can throw on API 26+.
             debugLog(TAG, "[module] stopService: Service is not running, nothing to stop")
-            promise.resolve(true)
             return
         }
 
@@ -152,11 +149,9 @@ class CallingxModuleImpl(
             Intent(reactApplicationContext, CallService::class.java)
                     .apply { action = CallService.ACTION_STOP_SERVICE }
                     .also { reactApplicationContext.startService(it) }
-
-            promise.resolve(true)
         } catch (e: Exception) {
             Log.e(TAG, "[module] stopService: Failed to stop service: ${e.message}", e)
-            promise.reject("STOP_SERVICE_ERROR", e.message, e)
+            throw IllegalStateException("STOP_SERVICE_ERROR: ${e.message}", e)
         }
     }
 
@@ -172,9 +167,9 @@ class CallingxModuleImpl(
         return events
     }
 
-    fun setCurrentCallActive(callId: String, promise: Promise) {
+    fun setCurrentCallActive(callId: String) {
         debugLog(TAG, "[module] activateCall: Activating call: $callId")
-        executeServiceAction(callId, CallAction.Activate, promise)
+        executeServiceAction(callId, CallAction.Activate)
     }
 
     fun displayIncomingCall(
@@ -216,9 +211,9 @@ class CallingxModuleImpl(
         }
     }
 
-    fun answerIncomingCall(callId: String, promise: Promise) {
+    fun answerIncomingCall(callId: String) {
         debugLog(TAG, "[module] answerIncomingCall: Answering call: $callId")
-        executeServiceAction(callId, CallAction.Answer, promise)
+        executeServiceAction(callId, CallAction.Answer)
     }
 
     fun startCall(
@@ -264,13 +259,11 @@ class CallingxModuleImpl(
             callId: String,
             phoneNumber: String,
             callerName: String,
-            displayOptions: ReadableMap?,
-            promise: Promise
+            displayOptions: ReadableMap?
     ) {
         debugLog(TAG, "[module] updateDisplay: Updating display: $callId, $phoneNumber, $callerName")
         if (!notificationChannelsManager.getNotificationStatus().canPost) {
-            promise.reject("ERROR", "Cannot post notifications")
-            return
+            throw IllegalStateException("ERROR: Cannot post notifications")
         }
 
         try {
@@ -284,25 +277,24 @@ class CallingxModuleImpl(
                         putExtra(CallService.EXTRA_DISPLAY_OPTIONS, Arguments.toBundle(displayOptions))
                     }
                     .also { reactApplicationContext.startService(it) }
-            promise.resolve(true)
         } catch (e: Exception) {
             Log.e(TAG, "[module] updateDisplay: Failed to start service: ${e.message}", e)
-            promise.reject("START_SERVICE_ERROR", e.message, e)
+            throw IllegalStateException("START_SERVICE_ERROR: ${e.message}", e)
         }
     }
 
-    fun endCallWithReason(callId: String, reason: Double, promise: Promise) {
+    fun endCallWithReason(callId: String, reason: Double) {
         debugLog(TAG, "[module] endCallWithReason: Ending call: $callId, $reason")
         CallRegistrationStore.removeTrackedCall(callId)
         val action = CallAction.Disconnect(DisconnectCause(reason.toInt()))
-        executeServiceAction(callId, action, promise)
+        executeServiceAction(callId, action)
     }
 
-    fun endCall(callId: String, promise: Promise) {
+    fun endCall(callId: String) {
         debugLog(TAG, "[module] endCall: Ending call: $callId")
         CallRegistrationStore.removeTrackedCall(callId)
         val action = CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL))
-        executeServiceAction(callId, action, promise)
+        executeServiceAction(callId, action)
     }
 
     fun isCallTracked(callId: String): Boolean {
@@ -316,20 +308,19 @@ class CallingxModuleImpl(
     /** Android backs Telecom audio routing only when the Jetpack Telecom repository is used (API 26+). */
     fun isTelecomBacked(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
 
-    fun getAvailableAudioEndpoints(callId: String, promise: Promise) {
-        promise.resolve(AudioEndpointStore.getSnapshot(callId))
+    fun getAvailableAudioEndpoints(callId: String): String {
+        return AudioEndpointStore.getSnapshot(callId)
     }
 
-    fun requestAudioEndpointChange(callId: String, endpointId: String, promise: Promise) {
+    fun requestAudioEndpointChange(callId: String, endpointId: String) {
         debugLog(TAG, "[module] requestAudioEndpointChange: $callId -> $endpointId")
         val parcelUuid =
                 try {
                     ParcelUuid.fromString(endpointId)
                 } catch (e: IllegalArgumentException) {
-                    promise.reject("INVALID_ENDPOINT_ID", "Invalid endpoint id: $endpointId", e)
-                    return
+                    throw IllegalArgumentException("INVALID_ENDPOINT_ID: Invalid endpoint id: $endpointId", e)
                 }
-        executeServiceAction(callId, CallAction.SwitchAudioEndpoint(parcelUuid), promise)
+        executeServiceAction(callId, CallAction.SwitchAudioEndpoint(parcelUuid))
     }
 
     fun setDefaultAudioDeviceEndpointType(endpointType: String?) {
@@ -342,19 +333,19 @@ class CallingxModuleImpl(
         return Arguments.fromList(CallRegistrationStore.getTrackedCallIds())
     }
 
-    fun setMutedCall(callId: String, isMuted: Boolean, promise: Promise) {
+    fun setMutedCall(callId: String, isMuted: Boolean) {
         debugLog(TAG, "[module] setMutedCall: Setting muted call: $callId, $isMuted")
         val action = CallAction.ToggleMute(isMuted)
-        executeServiceAction(callId, action, promise)
+        executeServiceAction(callId, action)
     }
 
-    fun setOnHoldCall(callId: String, isOnHold: Boolean, promise: Promise) {
+    fun setOnHoldCall(callId: String, isOnHold: Boolean) {
         debugLog(TAG, "[module] setOnHoldCall: Setting on hold call: $callId, $isOnHold")
         val action = if (isOnHold) CallAction.Hold else CallAction.Activate
-        executeServiceAction(callId, action, promise)
+        executeServiceAction(callId, action)
     }
 
-    fun startBackgroundTask(taskName: String, timeout: Double, promise: Promise) {
+    fun startBackgroundTask(taskName: String, timeout: Double) {
         try {
             Intent(reactApplicationContext, CallService::class.java)
                     .apply {
@@ -364,15 +355,13 @@ class CallingxModuleImpl(
                         putExtra(CallService.EXTRA_TASK_TIMEOUT, timeout.toLong())
                     }
                     .also { reactApplicationContext.startService(it) }
-
-            promise.resolve(true)
         } catch (e: Exception) {
             Log.e(TAG, "[module] startBackgroundTask: Failed to start service: ${e.message}", e)
-            promise.reject("START_SERVICE_ERROR", e.message, e)
+            throw IllegalStateException("START_SERVICE_ERROR: ${e.message}", e)
         }
     }
 
-    fun stopBackgroundTask(taskName: String, promise: Promise) {
+    fun stopBackgroundTask(taskName: String) {
         try {
             Intent(reactApplicationContext, CallService::class.java)
                     .apply {
@@ -380,11 +369,9 @@ class CallingxModuleImpl(
                         putExtra(CallService.EXTRA_TASK_NAME, taskName)
                     }
                     .also { reactApplicationContext.startService(it) }
-
-            promise.resolve(true)
         } catch (e: Exception) {
             Log.e(TAG, "[module] stopBackgroundTask: Failed to start service: ${e.message}", e)
-            promise.reject("START_SERVICE_ERROR", e.message, e)
+            throw IllegalStateException("START_SERVICE_ERROR: ${e.message}", e)
         }
     }
 
@@ -425,7 +412,7 @@ class CallingxModuleImpl(
                 .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
     }
 
-    private fun executeServiceAction(callId: String, action: CallAction, promise: Promise) {
+    private fun executeServiceAction(callId: String, action: CallAction) {
         debugLog(TAG, "[module] executeServiceAction: Executing service action: $action")
         Intent(reactApplicationContext, CallService::class.java)
                 .apply {
@@ -434,7 +421,6 @@ class CallingxModuleImpl(
                     putExtra(CallService.EXTRA_ACTION, action)
                 }
                 .also { reactApplicationContext.startService(it) }
-                .also { promise.resolve(true) }
     }
 
     private fun sendJSEvent(eventName: String, params: WritableMap? = null) {
@@ -452,16 +438,12 @@ class CallingxModuleImpl(
                             }
                         }
                     }
-            reactApplicationContext
-                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                    .emit(eventName, params)
-
             val value =
                     Arguments.createMap().apply {
                         putString("eventName", eventName)
                         putMap("params", paramsMap)
                     }
-            eventEmitter.emitNewEvent(value)
+            emitNewEvent(value)
         } else {
             debugLog(TAG, "[module] sendJSEvent: Queueing event: $eventName, $params")
             Arguments.createMap()
