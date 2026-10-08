@@ -352,7 +352,7 @@ RCT_EXPORT_METHOD(checkPermission:(NSString *)permission
     
     for(CXCall *call in callObserver.calls){
         if(call.hasConnected){
-            NSLog(@"[RNCallKeep] Found active call with UUID: %@", call.UUID);
+            NSLog(@"[StreamVideoReactNative] Found active call with UUID: %@", call.UUID);
             return YES;
         }
     }

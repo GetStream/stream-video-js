@@ -13,7 +13,6 @@ import Vision
 /// completed mask and only kicks a new Vision request if one isn't already in flight.
 /// This keeps the capture thread unblocked at the cost of ≤1–2 frames of mask staleness,
 /// which is imperceptible in practice (Android uses the same pattern with ML Kit).
-@available(iOS 15.0, *)
 final class BackgroundImageFilterProcessor {
     private static let segmentationTargetHeight: CGFloat = 540
 

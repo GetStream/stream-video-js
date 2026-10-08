@@ -1,6 +1,5 @@
 import Foundation
 
-@available(iOS 15.0, *)
 final class BlurBackgroundVideoFrameProcessor: VideoFilter {
 
     @available(*, unavailable)

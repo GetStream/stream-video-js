@@ -16,7 +16,7 @@ type CanAddPushWSSubscriptionsRef = { current: boolean };
 
 /**
  * This function is used to check if the call should be ended based on the push notification
- * Useful for callkeep management to end the call if necessary (with reportEndCallWithUUID)
+ * Used to end the CallKit/Telecom call (through callingx) if necessary.
  */
 export const shouldCallBeEnded = (
   callFromPush: Call,
@@ -59,7 +59,7 @@ export const shouldCallBeEnded = (
   return { mustEndCall, endCallReason };
 };
 
-/* An action for the notification or callkeep and app does not have JS context setup yet, so we need to do two steps:
+/* An action from the incoming-call UI arrived before the app has its JS context set up, so we need to do two steps:
   1. we need to create a new client and connect the user to decline the call
   2. this is because the app is in background state and we don't have a client to get the call and do an action
 */
