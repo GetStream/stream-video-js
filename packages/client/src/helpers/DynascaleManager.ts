@@ -14,7 +14,11 @@ import {
   takeWhile,
 } from 'rxjs';
 import type { BlockedAudioTracker } from './BlockedAudioTracker';
-import { MediaPlaybackWatchdog } from './MediaPlaybackWatchdog';
+import {
+  MediaPlaybackWatchdog,
+  type MediaPlaybackWatchdogOptions,
+} from './MediaPlaybackWatchdog';
+import { watchMediaInterruptions } from './mediaInterruptions';
 import type { TrackSubscriptionManager } from './TrackSubscriptionManager';
 import { isFirefox, isSafari } from './browsers';
 import { hasScreenShare, hasVideo } from './participantUtils';
@@ -37,6 +41,9 @@ export class DynascaleManager {
   private readonly tracer: Tracer;
   private useWebAudio = false;
   private audioContext: AudioContext | undefined;
+  private playbackWatchdogs = new Set<MediaPlaybackWatchdog>();
+  private stopWatchingInterruptions: (() => void) | undefined;
+  private stopTracingAudioSession: (() => void) | undefined;
 
   private trackSubscriptionManager: TrackSubscriptionManager;
   private blockedAudioTracker: BlockedAudioTracker;
@@ -62,6 +69,10 @@ export class DynascaleManager {
    * Closes the audio context if it was created.
    */
   dispose = async () => {
+    this.stopWatchingInterruptions?.();
+    this.stopWatchingInterruptions = undefined;
+    this.stopTracingAudioSession?.();
+    this.stopTracingAudioSession = undefined;
     const context = this.audioContext;
     if (context && context.state !== 'closed') {
       document.removeEventListener('click', this.resumeAudioContext);
@@ -244,7 +255,7 @@ export class DynascaleManager {
     // https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
     videoElement.muted = true;
 
-    const playbackWatchdog = new MediaPlaybackWatchdog({
+    const playbackWatchdog = this.createPlaybackWatchdog({
       element: videoElement,
       kind: 'video',
       tracer: this.tracer,
@@ -275,7 +286,7 @@ export class DynascaleManager {
       publishedTracksSubscription?.unsubscribe();
       streamSubscription.unsubscribe();
       resizeObserver?.disconnect();
-      playbackWatchdog.dispose();
+      this.disposePlaybackWatchdog(playbackWatchdog);
     };
   };
 
@@ -297,6 +308,7 @@ export class DynascaleManager {
   ) => {
     const participant = this.callState.findParticipantBySessionId(sessionId);
     if (!participant || participant.isLocalParticipant) return;
+    this.traceAudioSessionState();
 
     const participant$ = this.callState.participants$.pipe(
       map((ps) => ps.find((p) => p.sessionId === sessionId)),
@@ -344,7 +356,7 @@ export class DynascaleManager {
 
         setTimeout(() => {
           audioElement.srcObject = source ?? null;
-          audioWatchdog?.dispose();
+          this.disposePlaybackWatchdog(audioWatchdog);
           audioWatchdog = undefined;
           if (!source) {
             clearBlockedAudio();
@@ -383,11 +395,18 @@ export class DynascaleManager {
               }
               this.logger.warn(`Failed to play audio stream`, e);
             });
-            audioWatchdog = new MediaPlaybackWatchdog({
+            audioWatchdog = this.createPlaybackWatchdog({
               element: audioElement,
               kind: 'audio',
               tracer: this.tracer,
               isBlocked: () => this.blockedAudioTracker.isBlocked(audioElement),
+              onGiveUp: () => {
+                this.blockedAudioTracker.markBlocked(
+                  audioElement,
+                  true,
+                  sessionId,
+                );
+              },
             });
           }
 
@@ -423,8 +442,49 @@ export class DynascaleManager {
       audioElement.srcObject = null;
       sourceNode?.disconnect();
       gainNode?.disconnect();
-      audioWatchdog?.dispose();
+      this.disposePlaybackWatchdog(audioWatchdog);
       audioWatchdog = undefined;
+    };
+  };
+
+  /**
+   * Creates a playback watchdog that is re-armed whenever a media
+   * interruption (backgrounding, phone call, Siri) ends.
+   */
+  private createPlaybackWatchdog = (opts: MediaPlaybackWatchdogOptions) => {
+    const watchdog = new MediaPlaybackWatchdog(opts);
+    this.playbackWatchdogs.add(watchdog);
+    this.stopWatchingInterruptions ??= watchMediaInterruptions(
+      this.rearmPlayback,
+    );
+    return watchdog;
+  };
+
+  private disposePlaybackWatchdog = (watchdog?: MediaPlaybackWatchdog) => {
+    if (!watchdog) return;
+    watchdog.dispose();
+    this.playbackWatchdogs.delete(watchdog);
+  };
+
+  private rearmPlayback = () => {
+    this.tracer.trace('mediaPlayback.rearm', this.playbackWatchdogs.size);
+    this.playbackWatchdogs.forEach((watchdog) => watchdog.rearm());
+  };
+
+  /**
+   * Traces the WebKit audio session state (initial value and changes) in
+   * both playback modes, as it explains most iOS playback interruptions.
+   */
+  private traceAudioSessionState = () => {
+    const audioSession = navigator.audioSession;
+    if (!audioSession || this.stopTracingAudioSession) return;
+    const trace = () => {
+      this.tracer.trace('audioSession.state', audioSession.state);
+    };
+    trace();
+    audioSession.addEventListener('statechange', trace);
+    this.stopTracingAudioSession = () => {
+      audioSession.removeEventListener('statechange', trace);
     };
   };
 
@@ -450,7 +510,6 @@ export class DynascaleManager {
 
       let isSessionInterrupted = false;
       audioSession.addEventListener('statechange', () => {
-        this.tracer.trace('audioSession.state', audioSession.state);
         if (audioSession.state === 'interrupted') {
           isSessionInterrupted = true;
         } else if (isSessionInterrupted) {

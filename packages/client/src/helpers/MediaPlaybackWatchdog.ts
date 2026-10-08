@@ -9,6 +9,7 @@ export type MediaPlaybackWatchdogOptions = {
   kind: MediaKind;
   tracer: Tracer;
   isBlocked?: () => boolean;
+  onGiveUp?: () => void;
 };
 
 /**
@@ -19,6 +20,7 @@ export class MediaPlaybackWatchdog {
   private logger = videoLoggerSystem.getLogger('MediaPlaybackWatchdog');
   private readonly kind: MediaKind;
   private readonly isBlocked: () => boolean;
+  private readonly onGiveUp: () => void;
   private element: HTMLMediaElement;
   private tracer: Tracer;
   private controller = new AbortController();
@@ -33,6 +35,7 @@ export class MediaPlaybackWatchdog {
     this.kind = opts.kind;
     this.tracer = opts.tracer;
     this.isBlocked = opts.isBlocked ?? (() => false);
+    this.onGiveUp = opts.onGiveUp ?? (() => {});
     this.attach();
   }
 
@@ -49,6 +52,22 @@ export class MediaPlaybackWatchdog {
     this.disposed = true;
     this.controller.abort();
     this.clearTimers();
+  };
+
+  /**
+   * Starts a fresh recovery cycle, e.g. after a media interruption ended.
+   * Unlike a regular pause-triggered recovery, it also tries elements that
+   * were skipped as blocked or not ready, since those conditions may have
+   * cleared together with the interruption.
+   */
+  rearm = () => {
+    if (this.disposed) return;
+    this.clearTimers();
+    this.attempt = 0;
+    this.stopped = false;
+    const { paused, srcObject, ended } = this.element;
+    if (!paused || !srcObject || ended) return;
+    this.pendingTimer = setTimeout(this.attemptPlay, 0);
   };
 
   private clearTimers = () => {
@@ -105,6 +124,7 @@ export class MediaPlaybackWatchdog {
         kind: this.kind,
         attempts: this.attempt,
       });
+      this.onGiveUp();
       return;
     }
     const delay = this.attempt === 0 ? 0 : retryInterval(this.attempt);
