@@ -69,7 +69,7 @@
     "@react-native-firebase/app": ">=17.5.0",
     "@react-native-firebase/messaging": ">=17.5.0",
     "@stream-io/noise-cancellation-react-native": ">=1.0.0-beta.1",
-    "@stream-io/react-native-callingx": ">=1.0.0-beta.0",
+    "@stream-io/react-native-callingx": ">=1.0.0-beta.2",
     "@stream-io/react-native-webrtc": "^145.4.1",
     "@stream-io/video-filters-react-native": ">=1.0.0-beta.1",
     "expo": ">=47.0.0",

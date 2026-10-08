@@ -62,7 +62,14 @@ export const useCallingExpWithCallingStateEffect = () => {
         // then subscription completes and is automatically unsubscribed
       )
       .subscribe(() => {
-        callingx.setCurrentCallActive(activeCall.cid);
+        try {
+          callingx.setCurrentCallActive(activeCall.cid);
+        } catch (error) {
+          logger.error(
+            `useCallingExpWithCallingStateEffect: Error setting call active in callingx: ${activeCall.cid}`,
+            error,
+          );
+        }
       });
     return () => {
       subscription.unsubscribe();
@@ -87,14 +94,14 @@ export const useCallingExpWithCallingStateEffect = () => {
       logger.debug(
         `useCallingExpWithCallingStateEffect: Ending call in callingx: ${activeCallCid}`,
       );
-      callingx
-        .endCallWithReason(activeCallCid, 'local')
-        .catch((error: unknown) => {
-          logger.error(
-            `useCallingExpWithCallingStateEffect: Error ending call in callingx: ${activeCallCid}`,
-            error,
-          );
-        });
+      try {
+        callingx.endCallWithReason(activeCallCid, 'local');
+      } catch (error) {
+        logger.error(
+          `useCallingExpWithCallingStateEffect: Error ending call in callingx: ${activeCallCid}`,
+          error,
+        );
+      }
     };
   }, [activeCallCid]);
 
@@ -112,19 +119,19 @@ export const useCallingExpWithCallingStateEffect = () => {
       return;
     }
 
-    callingx
-      .updateDisplay(
+    try {
+      callingx.updateDisplay(
         activeCallCid,
         createdByUserId ?? callDisplayName,
         callDisplayName,
         isIncoming,
-      )
-      .catch((error: unknown) => {
-        logger.debug(
-          `useCallingExpWithCallingStateEffect: Error updating display in callingx: ${activeCallCid}`,
-          error,
-        );
-      });
+      );
+    } catch (error) {
+      logger.debug(
+        `useCallingExpWithCallingStateEffect: Error updating display in callingx: ${activeCallCid}`,
+        error,
+      );
+    }
   }, [activeCallCid, createdByUserId, callDisplayName, isIncoming]);
 
   // Sync microphone mute state from app → CallKit
@@ -148,7 +155,14 @@ export const useCallingExpWithCallingStateEffect = () => {
       );
       return;
     }
-    callingx.setMutedCall(activeCallCid, optimisticStatus === 'disabled');
+    try {
+      callingx.setMutedCall(activeCallCid, optimisticStatus === 'disabled');
+    } catch (error) {
+      logger.error(
+        `useCallingExpWithCallingStateEffect: Error setting muted state in callingx: ${activeCallCid}`,
+        error,
+      );
+    }
   }, [activeCallCid, optimisticStatus]);
 
   // Sync mute state from CallKit → app (only for system-initiated mute actions)

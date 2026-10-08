@@ -17,11 +17,11 @@ const mockCallingxModule = {
   displayIncomingCall: jest.fn(async (cid: string) => {
     mockTracked.add(cid);
   }),
-  answerIncomingCall: jest.fn().mockResolvedValue(undefined),
+  answerIncomingCall: jest.fn(),
   startCall: jest.fn(async (cid: string) => {
     mockTracked.add(cid);
   }),
-  endCallWithReason: jest.fn(async (cid: string) => {
+  endCallWithReason: jest.fn((cid: string) => {
     mockTracked.delete(cid);
   }),
 };

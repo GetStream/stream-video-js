@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import NativeCallingModule from './spec/NativeCallingx';
+import NativeCallingModule from './NativeCallingx';
 import {
   HEADLESS_TASK_NAME,
   registerHeadlessTask,
@@ -178,9 +178,7 @@ class CallingxModule implements ICallingxModule {
     return NativeCallingModule.getRegisteredCallIds();
   };
 
-  getAvailableAudioEndpoints = async (
-    callId: string,
-  ): Promise<AudioEndpointsSnapshot> => {
+  getAvailableAudioEndpoints = (callId: string): AudioEndpointsSnapshot => {
     const empty: AudioEndpointsSnapshot = {
       endpoints: [],
       currentEndpoint: null,
@@ -189,21 +187,19 @@ class CallingxModule implements ICallingxModule {
       return empty;
     }
     try {
-      const json = await NativeCallingModule.getAvailableAudioEndpoints(callId);
-      return JSON.parse(json) as AudioEndpointsSnapshot;
+      return JSON.parse(
+        NativeCallingModule.getAvailableAudioEndpoints(callId),
+      ) as AudioEndpointsSnapshot;
     } catch {
       return empty;
     }
   };
 
-  requestAudioEndpointChange = (
-    callId: string,
-    endpointId: string,
-  ): Promise<void> => {
+  requestAudioEndpointChange = (callId: string, endpointId: string): void => {
     if (Platform.OS !== 'android') {
-      return Promise.resolve();
+      return;
     }
-    return NativeCallingModule.requestAudioEndpointChange(callId, endpointId);
+    NativeCallingModule.requestAudioEndpointChange(callId, endpointId);
   };
 
   getInitialEvents = (): EventData[] => {
@@ -215,8 +211,8 @@ class CallingxModule implements ICallingxModule {
   };
 
   //activates call that was registered with the telecom stack
-  setCurrentCallActive = (callId: string): Promise<void> => {
-    return NativeCallingModule.setCurrentCallActive(callId);
+  setCurrentCallActive = (callId: string): void => {
+    NativeCallingModule.setCurrentCallActive(callId);
   };
 
   displayIncomingCall = (
@@ -237,8 +233,8 @@ class CallingxModule implements ICallingxModule {
     );
   };
 
-  answerIncomingCall = (callId: string): Promise<void> => {
-    return NativeCallingModule.answerIncomingCall(callId);
+  answerIncomingCall = (callId: string): void => {
+    NativeCallingModule.answerIncomingCall(callId);
   };
 
   //registers call with the telecom stack
@@ -265,11 +261,11 @@ class CallingxModule implements ICallingxModule {
     phoneNumber: string,
     callerName: string,
     incoming: boolean,
-  ): Promise<void> => {
+  ): void => {
     const displayOptions: InfoDisplayOptions = {
       displayTitle: this.titleTransformer(callerName, incoming),
     };
-    return NativeCallingModule.updateDisplay(
+    NativeCallingModule.updateDisplay(
       callId,
       phoneNumber,
       callerName,
@@ -277,18 +273,16 @@ class CallingxModule implements ICallingxModule {
     );
   };
 
-  endCallWithReason = (
-    callId: string,
-    reason: EndCallReason,
-  ): Promise<void> => {
+  endCallWithReason = (callId: string, reason: EndCallReason): void => {
     const reasons =
       Platform.OS === 'ios' ? iosEndCallReasonMap : androidEndCallReasonMap;
 
     if (Platform.OS === 'ios' && reason === 'local') {
-      return NativeCallingModule.endCall(callId);
+      NativeCallingModule.endCall(callId);
+      return;
     }
 
-    return NativeCallingModule.endCallWithReason(callId, reasons[reason]);
+    NativeCallingModule.endCallWithReason(callId, reasons[reason]);
   };
 
   isCallTracked = (callId: string): boolean => {
@@ -299,12 +293,12 @@ class CallingxModule implements ICallingxModule {
     return NativeCallingModule.hasRegisteredCall();
   };
 
-  setMutedCall = (callId: string, isMuted: boolean): Promise<void> => {
-    return NativeCallingModule.setMutedCall(callId, isMuted);
+  setMutedCall = (callId: string, isMuted: boolean): void => {
+    NativeCallingModule.setMutedCall(callId, isMuted);
   };
 
-  setOnHoldCall = (callId: string, isOnHold: boolean): Promise<void> => {
-    return NativeCallingModule.setOnHoldCall(callId, isOnHold);
+  setOnHoldCall = (callId: string, isOnHold: boolean): void => {
+    NativeCallingModule.setOnHoldCall(callId, isOnHold);
   };
 
   private keepAliveHoldTask = (): Promise<void> =>
@@ -322,7 +316,7 @@ class CallingxModule implements ICallingxModule {
       };
     });
 
-  acquireBackgroundTask = async (owner: string): Promise<void> => {
+  acquireBackgroundTask = (owner: string): void => {
     if (Platform.OS !== 'android') {
       return;
     }
@@ -338,7 +332,7 @@ class CallingxModule implements ICallingxModule {
     try {
       // Native start is idempotent for running tasks, so we call in unconditionally, avoiding
       // potential stale owner leaks.
-      await NativeCallingModule.startBackgroundTask(HEADLESS_TASK_NAME, 0);
+      NativeCallingModule.startBackgroundTask(HEADLESS_TASK_NAME, 0);
     } catch (e) {
       this._keepAliveOwners.delete(owner);
       if (this._keepAliveOwners.size === 0) {
@@ -350,7 +344,7 @@ class CallingxModule implements ICallingxModule {
     }
   };
 
-  releaseBackgroundTask = async (owner: string): Promise<void> => {
+  releaseBackgroundTask = (owner: string): void => {
     if (Platform.OS !== 'android') {
       return;
     }
@@ -385,8 +379,8 @@ class CallingxModule implements ICallingxModule {
     NativeCallingModule.registerVoipToken();
   };
 
-  stopService = (): Promise<void> => {
-    return NativeCallingModule.stopService();
+  stopService = (): void => {
+    NativeCallingModule.stopService();
   };
 
   addEventListener = <T extends EventName | VoipEventName>(
