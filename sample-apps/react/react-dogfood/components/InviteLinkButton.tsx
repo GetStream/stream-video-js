@@ -11,11 +11,11 @@ export const InviteLinkButton = forwardRef(function InviteLinkButtonRender(
   return (
     <button
       {...props}
-      className={clsx('str-video__invite-link-button', className)}
+      className={clsx('rd__invite-link-button', className)}
       ref={ref}
     >
-      <div className="str-video__invite-participant-icon" />
-      <div className="str-video__invite-link-button__text">
+      <div className="rd__invite-participant-icon" />
+      <div className="rd__invite-link-button__text">
         {t('invite.inviteLink.label', 'Invite Link')}
       </div>
     </button>
@@ -32,7 +32,7 @@ export const IconInviteLinkButton = forwardRef(
         {...props}
         size="sm"
         variant="secondary"
-        className={clsx('str-video__invite-link-button', className)}
+        className={clsx('rd__invite-link-button', className)}
         ref={ref}
         icon="user-plus"
       />

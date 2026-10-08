@@ -1,4 +1,4 @@
-.str-video__invite-link-button {
+.rd__invite-link-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7,12 +7,12 @@
   position: relative;
   padding-block: 0.5rem;
 
-  .str-video__invite-link-tooltip {
+  .rd__invite-link-tooltip {
     position: absolute;
     bottom: 110%;
   }
 
-  .str-video__invite-participant-icon {
+  .rd__invite-participant-icon {
     height: 20px;
     width: 20px;
   }
