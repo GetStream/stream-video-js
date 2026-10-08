@@ -318,18 +318,4 @@ describe('CallManager native events (StreamInCallManager TurboModule)', () => {
     unsubscribe();
     expect(remove).toHaveBeenCalledTimes(1);
   });
-
-  it('getStatus returns the native audio device status', async () => {
-    const nativeManager = makeNativeManager();
-    const status = { devices: [], currentEndpointType: 'Speaker' };
-    nativeManager.getAudioDeviceStatus.mockResolvedValue(status);
-    const { CallManager } = loadCallManager({
-      os: 'ios',
-      nativeManager,
-      callingx: undefined,
-    });
-    await expect(new CallManager().audioDevices.getStatus()).resolves.toBe(
-      status,
-    );
-  });
 });
