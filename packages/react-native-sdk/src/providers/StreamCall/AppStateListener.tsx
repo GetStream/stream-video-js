@@ -7,7 +7,8 @@ import { RxUtils, videoLoggerSystem } from '@stream-io/video-client';
 import NativeStreamVideoAppLifecycle from '../../native/NativeStreamVideoAppLifecycle';
 import NativeStreamVideoReactNative from '../../native/NativeStreamVideoReactNative';
 
-const isAndroid8OrAbove = Platform.OS === 'android' && Platform.Version >= 26;
+const isAndroid8OrAbove = () =>
+  Platform.OS === 'android' && Platform.Version >= 26;
 
 // Does 2 functionalities:
 // 1. Resume/Disable video stream tracks when app goes to background/foreground - To save on CPU resources
@@ -19,7 +20,7 @@ export const AppStateListener = () => {
 
   // on mount: set initial PiP mode and listen to PiP events
   useEffect(() => {
-    if (!isAndroid8OrAbove) {
+    if (!isAndroid8OrAbove()) {
       return;
     }
 
@@ -144,7 +145,7 @@ export const AppStateListener = () => {
         if (Platform.OS === 'android') {
           // in Android, we need to check if we are in PiP mode
           // in PiP mode, we don't want to disable the camera
-          if (isAndroid8OrAbove) {
+          if (isAndroid8OrAbove()) {
             // set with an assumption that its enabled so that UI disabling happens faster
             const disablePiP = RxUtils.getCurrentValue(disablePiPMode$);
             isInPiPMode$.next(!disablePiP);

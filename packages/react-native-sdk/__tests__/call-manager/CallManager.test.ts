@@ -57,11 +57,6 @@ const loadCallManager = ({
   jest.isolateModules(() => {
     jest.doMock('react-native', () => ({
       Platform: { OS: os, select: (o: any) => o[os] },
-      NativeEventEmitter: class {
-        addListener() {
-          return { remove: jest.fn() };
-        }
-      },
     }));
     jest.doMock('../../src/native/NativeStreamInCallManager', () => ({
       __esModule: true,

@@ -34,7 +34,7 @@ type Listener<T> = (value: T) => void;
 const captureEvent = <T,>(emitter: unknown) => {
   const remove = jest.fn();
   let listener!: Listener<T>;
-  (emitter as jest.Mock).mockImplementation((l: Listener<T>) => {
+  (emitter as jest.Mock).mockImplementationOnce((l: Listener<T>) => {
     listener = l;
     return { remove };
   });
@@ -45,6 +45,7 @@ describe('StreamVideoReactNative spec consumers', () => {
   const originalOS = Platform.OS;
 
   beforeEach(() => {
+    // overrides below use the *Once variants, so the jest-setup defaults are never replaced across tests
     jest.clearAllMocks();
   });
 
@@ -55,9 +56,12 @@ describe('StreamVideoReactNative spec consumers', () => {
 
   describe('DeviceStats', () => {
     it('reads the initial device state synchronously', () => {
-      mockNative.isLowPowerModeEnabled.mockReturnValue(true);
-      mockNative.currentThermalState.mockReturnValue('LIGHT');
-      mockNative.getBatteryState.mockReturnValue({ charging: true, level: 50 });
+      mockNative.isLowPowerModeEnabled.mockReturnValueOnce(true);
+      mockNative.currentThermalState.mockReturnValueOnce('LIGHT');
+      mockNative.getBatteryState.mockReturnValueOnce({
+        charging: true,
+        level: 50,
+      });
       render(<DeviceStats />);
       expect(mockSetPowerState).toHaveBeenCalledWith(true);
       expect(mockSetThermalState).toHaveBeenCalledWith('LIGHT');
@@ -94,13 +98,13 @@ describe('StreamVideoReactNative spec consumers', () => {
     });
 
     it('swallows errors thrown by the sync getters', () => {
-      mockNative.isLowPowerModeEnabled.mockImplementation(() => {
+      mockNative.isLowPowerModeEnabled.mockImplementationOnce(() => {
         throw new Error('boom');
       });
-      mockNative.currentThermalState.mockImplementation(() => {
+      mockNative.currentThermalState.mockImplementationOnce(() => {
         throw new Error('boom');
       });
-      mockNative.getBatteryState.mockImplementation(() => {
+      mockNative.getBatteryState.mockImplementationOnce(() => {
         throw new Error('boom');
       });
       expect(() => render(<DeviceStats />)).not.toThrow();
@@ -149,7 +153,9 @@ describe('StreamVideoReactNative spec consumers', () => {
   describe('getAndroidDefaultRingtoneUrl', () => {
     it('returns the url synchronously resolved by native', async () => {
       Platform.OS = 'android';
-      mockNative.getDefaultRingtoneUrl.mockReturnValue('content://ringtone');
+      mockNative.getDefaultRingtoneUrl.mockReturnValueOnce(
+        'content://ringtone',
+      );
       await expect(getAndroidDefaultRingtoneUrl()).resolves.toBe(
         'content://ringtone',
       );
@@ -157,9 +163,9 @@ describe('StreamVideoReactNative spec consumers', () => {
 
     it('resolves undefined when native returns null or throws', async () => {
       Platform.OS = 'android';
-      mockNative.getDefaultRingtoneUrl.mockReturnValue(null);
+      mockNative.getDefaultRingtoneUrl.mockReturnValueOnce(null);
       await expect(getAndroidDefaultRingtoneUrl()).resolves.toBeUndefined();
-      mockNative.getDefaultRingtoneUrl.mockImplementation(() => {
+      mockNative.getDefaultRingtoneUrl.mockImplementationOnce(() => {
         throw new Error('boom');
       });
       await expect(getAndroidDefaultRingtoneUrl()).resolves.toBeUndefined();
@@ -174,9 +180,9 @@ describe('StreamVideoReactNative spec consumers', () => {
   describe('StreamVideoRN hardware checks', () => {
     it('return plain booleans (not Promises) on Android', () => {
       Platform.OS = 'android';
-      mockNative.hasAudioOutputHardware.mockReturnValue(true);
-      mockNative.hasMicrophoneHardware.mockReturnValue(false);
-      mockNative.hasCameraHardware.mockReturnValue(true);
+      mockNative.hasAudioOutputHardware.mockReturnValueOnce(true);
+      mockNative.hasMicrophoneHardware.mockReturnValueOnce(false);
+      mockNative.hasCameraHardware.mockReturnValueOnce(true);
       expect(StreamVideoRN.androidHasAudioOutputHardware()).toBe(true);
       expect(StreamVideoRN.androidHasMicrophoneHardware()).toBe(false);
       expect(StreamVideoRN.androidHasCameraHardware()).toBe(true);
