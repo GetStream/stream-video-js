@@ -97,6 +97,7 @@ packages/react-native-sdk/
 │   ├── hooks/             # React Native-specific hooks
 │   ├── icons/             # SVG icon components
 │   ├── modules/           # Native module interfaces (call-manager)
+│   ├── native/            # Codegen specs (TurboModules + Fabric component)
 │   ├── providers/         # Providers (StreamVideo, StreamCall, NoiseCancellation, BusyTonePlayer)
 │   ├── theme/             # Theming system
 │   ├── translations/      # i18n translations
@@ -201,6 +202,15 @@ Wraps `StreamCallProvider` from bindings with React Native lifecycle management:
 Uses renderless child components for side effects - keeps logic separated and testable.
 
 ### Native Modules
+
+SDK-owned natives use the New Architecture (codegen) only. `codegenConfig` in `package.json` uses `jsSrcsDir: "src/native"`; generated output is never committed (codegen runs app-side).
+
+- Specs in `src/native/`: `NativeStreamVideoReactNative.ts`, `NativeStreamInCallManager.ts`, `NativeStreamVideoAppLifecycle.ts` (Android-only, `TurboModuleRegistry.get`), `RTCViewPipNativeComponent.ts` (iOS Fabric component, `excludedPlatforms: ['android']`). One spec per module shared by both platforms; platform-only methods are stubs on the other side. Events use codegen `EventEmitter`.
+- Android: Kotlin modules extend the generated `Native<Name>Spec`; registered by `StreamVideoReactNativePackage` (`BaseReactPackage`). `StreamVideoReactNative.kt` is a static helper for app `MainActivity` (unchanged API).
+- iOS: thin ObjC++ adapters `ios/StreamVideoReactNativeModule.{h,mm}` and `ios/StreamInCallManagerModule.{h,mm}` (registered via `codegenConfig.ios.modulesProvider`) forward to Swift `StreamVideoReactNativeImpl` / `StreamInCallManagerImpl`. `ios/RTCViewPipComponentView.{h,mm}` hosts the Swift `RTCViewPip` (registered via `componentProvider`). `StreamVideoReactNative.{h,m}` keeps only the public class methods for AppDelegates (`+voipRegistration`, `+hasAnyActiveCall`, deprecated `+setup`).
+- Emit events only through each module's guarded helper (generated `emitOn*` crashes if the event emitter callback isn't set yet).
+- Jest: `src/native/*` modules are mocked in `jest-setup.ts`.
+- Not SDK-owned (still legacy, keep): `NativeModules.WebRTCModule`, `NativeModules.ScreenCapturePickerViewManager` from `@stream-io/react-native-webrtc`.
 
 #### CallManager (Android/iOS)
 
