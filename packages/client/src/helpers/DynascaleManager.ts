@@ -339,8 +339,10 @@ export class DynascaleManager {
     let sourceNode: MediaStreamAudioSourceNode | undefined = undefined;
     let gainNode: GainNode | undefined = undefined;
     let audioWatchdog: MediaPlaybackWatchdog | undefined = undefined;
+    let blockedByGiveUp = false;
 
     const clearBlockedAudio = () => {
+      blockedByGiveUp = false;
       if (!this.blockedAudioTracker.isBlocked(audioElement)) return;
       this.blockedAudioTracker.markBlocked(audioElement, false);
     };
@@ -390,6 +392,7 @@ export class DynascaleManager {
               this.tracer.trace('audioPlaybackError', e.message);
               if (e.name === 'NotAllowedError') {
                 this.tracer.trace('audioPlaybackBlocked', null);
+                blockedByGiveUp = false;
                 this.blockedAudioTracker.markBlocked(
                   audioElement,
                   true,
@@ -402,8 +405,13 @@ export class DynascaleManager {
               element: audioElement,
               kind: 'audio',
               tracer: this.tracer,
-              isBlocked: () => this.blockedAudioTracker.isBlocked(audioElement),
+              // only an autoplay-policy block needs a user gesture; a give-up
+              // block is for the UI and must not stop a re-armed cycle
+              isBlocked: () =>
+                !blockedByGiveUp &&
+                this.blockedAudioTracker.isBlocked(audioElement),
               onGiveUp: () => {
+                blockedByGiveUp = true;
                 this.blockedAudioTracker.markBlocked(
                   audioElement,
                   true,

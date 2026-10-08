@@ -816,7 +816,9 @@ describe('DynascaleManager', () => {
     });
 
     describe('audio: playback recovery', () => {
-      const bindPausedAudioElement = () => {
+      const bindPausedAudioElement = (
+        opts: { blockedByAutoplay?: boolean } = {},
+      ) => {
         const audioElement = document.createElement('audio');
         Object.defineProperties(audioElement, {
           srcObject: { writable: true },
@@ -828,6 +830,9 @@ describe('DynascaleManager', () => {
         // @ts-expect-error simulate paused, ready-to-play element
         audioElement.readyState = 4;
         const play = vi.spyOn(audioElement, 'play');
+        if (opts.blockedByAutoplay) {
+          play.mockRejectedValue(new DOMException('', 'NotAllowedError'));
+        }
 
         // @ts-expect-error incomplete data
         call.state.updateOrAddParticipant('session-id', {
@@ -877,6 +882,56 @@ describe('DynascaleManager', () => {
         expect(
           getCurrentValue(call.blockedAudioTracker.blockedSessionIds$),
         ).toEqual(['session-id']);
+
+        cleanup?.();
+      });
+
+      it('keeps retrying when the first re-armed attempt after a give-up fails', async () => {
+        vi.useFakeTimers();
+        setVisibility('visible');
+        const { audioElement, play, cleanup } = bindPausedAudioElement();
+        play.mockRejectedValue(new Error('playback failed'));
+        await vi.advanceTimersByTimeAsync(0);
+        audioElement.dispatchEvent(new Event('pause'));
+        for (let i = 0; i < 20; i++) {
+          await vi.advanceTimersByTimeAsync(6000);
+        }
+        expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(true);
+        const callsBeforeRearm = play.mock.calls.length;
+
+        play.mockRejectedValueOnce(new Error('still interrupted'));
+        play.mockResolvedValue();
+        setVisibility('hidden');
+        setVisibility('visible');
+        await vi.advanceTimersByTimeAsync(6000);
+
+        expect(play.mock.calls.length).toBe(callsBeforeRearm + 2);
+        // the prompt stays up until audio actually plays
+        expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(true);
+        audioElement.dispatchEvent(new Event('playing'));
+        expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(false);
+
+        cleanup?.();
+      });
+
+      it('tries an autoplay-blocked element only once per re-arm', async () => {
+        vi.useFakeTimers();
+        setVisibility('visible');
+        const { audioElement, play, cleanup } = bindPausedAudioElement({
+          blockedByAutoplay: true,
+        });
+        await vi.advanceTimersByTimeAsync(0);
+        expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(true);
+        const callsBeforeRearm = play.mock.calls.length;
+
+        setVisibility('hidden');
+        setVisibility('visible');
+        for (let i = 0; i < 20; i++) {
+          await vi.advanceTimersByTimeAsync(6000);
+        }
+
+        expect(play.mock.calls.length).toBe(callsBeforeRearm + 1);
+        expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(true);
 
         cleanup?.();
       });
