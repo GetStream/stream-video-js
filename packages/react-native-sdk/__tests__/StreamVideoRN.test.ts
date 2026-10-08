@@ -21,7 +21,6 @@ const loadStreamVideoRN = ({
     jest.doMock('react-native', () => ({
       Platform: { OS: os, select: (o: any) => o[os] },
       NativeModules: {
-        StreamInCallManager: inCallManager,
         StreamVideoReactNative: {},
       },
       NativeEventEmitter: class {
@@ -29,6 +28,10 @@ const loadStreamVideoRN = ({
           return { remove: jest.fn() };
         }
       },
+    }));
+    jest.doMock('../src/native/NativeStreamInCallManager', () => ({
+      __esModule: true,
+      default: inCallManager,
     }));
     // keep the push/callingx runtime out of this test
     jest.doMock('../src/utils/push/setupIosVoipPushEvents', () => ({

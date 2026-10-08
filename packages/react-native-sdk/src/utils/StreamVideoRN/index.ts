@@ -9,6 +9,7 @@ import {
   getCallingxLib,
 } from '../push/libs/callingx';
 import { NativeModules, Platform } from 'react-native';
+import NativeStreamInCallManager from '../../native/NativeStreamInCallManager';
 import { videoLoggerSystem } from '@stream-io/video-client';
 
 // Utility type for deep partial
@@ -198,9 +199,7 @@ export class StreamVideoRN {
       return;
     }
     try {
-      NativeModules.StreamInCallManager?.setDisableCommunicationModeWorkaround(
-        disabled,
-      );
+      NativeStreamInCallManager.setDisableCommunicationModeWorkaround(disabled);
     } catch (error) {
       videoLoggerSystem
         .getLogger('StreamVideoRN')

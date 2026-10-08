@@ -12,15 +12,15 @@ class StreamVideoReactNativePackage : BaseReactPackage() {
         when (name) {
             StreamVideoReactNativeModule.NAME -> StreamVideoReactNativeModule(reactContext)
             NativeStreamVideoAppLifecycleSpec.NAME -> StreamVideoAppLifecycleModule(reactContext)
-            StreamInCallManagerModule.TAG -> StreamInCallManagerModule(reactContext)
+            NativeStreamInCallManagerSpec.NAME -> StreamInCallManagerModule(reactContext)
             else -> null
         }
 
     override fun getReactModuleInfoProvider(): ReactModuleInfoProvider = ReactModuleInfoProvider {
-        // TODO: StreamVideoReactNative and StreamInCallManager are flipped to TurboModules as they are migrated
+        // TODO: StreamVideoReactNative is flipped to a TurboModule once it is migrated
         mapOf(
             StreamVideoReactNativeModule.NAME to moduleInfo(StreamVideoReactNativeModule.NAME, isTurboModule = false),
-            StreamInCallManagerModule.TAG to moduleInfo(StreamInCallManagerModule.TAG, isTurboModule = false),
+            NativeStreamInCallManagerSpec.NAME to moduleInfo(NativeStreamInCallManagerSpec.NAME, isTurboModule = true),
             NativeStreamVideoAppLifecycleSpec.NAME to moduleInfo(NativeStreamVideoAppLifecycleSpec.NAME, isTurboModule = true),
         )
     }
