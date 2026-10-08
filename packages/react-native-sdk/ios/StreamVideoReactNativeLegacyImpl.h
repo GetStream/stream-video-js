@@ -5,38 +5,12 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@protocol StreamVideoReactNativeEventEmitter <NSObject>
-- (void)emitScreenShareEvent:(NSDictionary *)payload;
-- (void)emitLowPowerModeChanged:(BOOL)enabled;
-- (void)emitThermalStateChanged:(NSString *)state;
-- (void)emitChargingStateChanged:(NSDictionary *)payload;
-@end
+@interface StreamVideoReactNativeLegacyImpl : NSObject
 
-@interface StreamVideoReactNativeImpl : NSObject
-
-@property (nonatomic, weak, nullable) id<StreamVideoReactNativeEventEmitter> eventEmitter;
-/// The module registry is assigned after init, so the adapter resolves these lazily.
+/// The module registry is assigned after init, so the adapter resolves it lazily.
 @property (nonatomic, copy, nullable) WebRTCModule * _Nullable (^webRTCModuleProvider)(void);
-@property (nonatomic, copy, nullable) RCTViewRegistry * _Nullable (^viewRegistryProvider)(void);
 
 - (void)invalidate;
-
-#pragma mark - Device State (sync)
-
-- (BOOL)isLowPowerModeEnabled;
-- (NSString *)currentThermalState;
-- (NSDictionary *)getBatteryState;
-
-#pragma mark - Async
-
-- (void)captureRef:(NSNumber *)reactTag
-           options:(NSDictionary *)options
-           resolve:(RCTPromiseResolveBlock)resolve
-            reject:(RCTPromiseRejectBlock)reject;
-
-- (void)checkPermission:(NSString *)permission
-                resolve:(RCTPromiseResolveBlock)resolve
-                 reject:(RCTPromiseRejectBlock)reject;
 
 - (void)playBusyTone:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject;
 - (void)stopBusyTone:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject;

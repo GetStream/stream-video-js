@@ -2,7 +2,15 @@
 
 #import <React/RCTInvalidating.h>
 
-#import "StreamVideoReactNativeImpl.h"
+#import "StreamVideoReactNativeLegacyImpl.h"
+// Compiled without modules, so the Swift header's @imports are skipped; import its dependencies first.
+#import <WebRTC/WebRTC.h>
+
+#if __has_include("stream_video_react_native-Swift.h")
+#import "stream_video_react_native-Swift.h"
+#else
+#import <stream_video_react_native/stream_video_react_native-Swift.h>
+#endif
 
 static NSString *const kUnsupportedPlatform = @"UNSUPPORTED_PLATFORM";
 
@@ -13,6 +21,7 @@ static __weak StreamVideoReactNativeModule *sCurrentModule = nil;
 
 @implementation StreamVideoReactNativeModule {
   StreamVideoReactNativeImpl *_impl;
+  StreamVideoReactNativeLegacyImpl *_legacyImpl;
 }
 
 @synthesize moduleRegistry = _moduleRegistry;
@@ -45,11 +54,12 @@ static __weak StreamVideoReactNativeModule *sCurrentModule = nil;
     _impl.eventEmitter = self;
     // moduleRegistry and viewRegistry_DEPRECATED are assigned after init, so resolve them lazily.
     __weak StreamVideoReactNativeModule *weakSelf = self;
-    _impl.webRTCModuleProvider = ^WebRTCModule * {
-      return [weakSelf.moduleRegistry moduleForName:"WebRTCModule"];
-    };
     _impl.viewRegistryProvider = ^RCTViewRegistry * {
       return weakSelf.viewRegistry_DEPRECATED;
+    };
+    _legacyImpl = [StreamVideoReactNativeLegacyImpl new];
+    _legacyImpl.webRTCModuleProvider = ^WebRTCModule * {
+      return [weakSelf.moduleRegistry moduleForName:"WebRTCModule"];
     };
     sCurrentModule = self;
   }
@@ -58,12 +68,13 @@ static __weak StreamVideoReactNativeModule *sCurrentModule = nil;
 
 - (void)invalidate {
   [_impl invalidate];
+  [_legacyImpl invalidate];
 }
 
 #pragma mark - Event Emission
 
 // The generated emitOn* calls _eventEmitterCallback without a check, and it is only set after init.
-- (void)emitScreenShareEvent:(NSDictionary *)payload {
+- (void)emitScreenShareEvent:(NSDictionary<NSString *, id> *)payload {
   if (!_eventEmitterCallback) {
     return;
   }
@@ -84,7 +95,7 @@ static __weak StreamVideoReactNativeModule *sCurrentModule = nil;
   [self emitOnThermalStateChanged:state];
 }
 
-- (void)emitChargingStateChanged:(NSDictionary *)payload {
+- (void)emitChargingStateChanged:(NSDictionary<NSString *, id> *)payload {
   if (!_eventEmitterCallback) {
     return;
   }
@@ -187,11 +198,11 @@ static __weak StreamVideoReactNativeModule *sCurrentModule = nil;
 #pragma mark - Busy Tone
 
 - (void)playBusyTone:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
-  [_impl playBusyTone:resolve reject:reject];
+  [_legacyImpl playBusyTone:resolve reject:reject];
 }
 
 - (void)stopBusyTone:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
-  [_impl stopBusyTone:resolve reject:reject];
+  [_legacyImpl stopBusyTone:resolve reject:reject];
 }
 
 #pragma mark - Screen Share
@@ -199,21 +210,21 @@ static __weak StreamVideoReactNativeModule *sCurrentModule = nil;
 - (void)startInAppScreenCapture:(BOOL)includeAudio
                         resolve:(RCTPromiseResolveBlock)resolve
                          reject:(RCTPromiseRejectBlock)reject {
-  [_impl startInAppScreenCapture:includeAudio resolve:resolve reject:reject];
+  [_legacyImpl startInAppScreenCapture:includeAudio resolve:resolve reject:reject];
 }
 
 - (void)stopInAppScreenCapture:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
-  [_impl stopInAppScreenCapture:resolve reject:reject];
+  [_legacyImpl stopInAppScreenCapture:resolve reject:reject];
 }
 
 - (void)startScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
                              reject:(RCTPromiseRejectBlock)reject {
-  [_impl startScreenShareAudioMixing:resolve reject:reject];
+  [_legacyImpl startScreenShareAudioMixing:resolve reject:reject];
 }
 
 - (void)stopScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
                             reject:(RCTPromiseRejectBlock)reject {
-  [_impl stopScreenShareAudioMixing:resolve reject:reject];
+  [_legacyImpl stopScreenShareAudioMixing:resolve reject:reject];
 }
 
 #pragma mark - Track Recording
@@ -221,7 +232,7 @@ static __weak StreamVideoReactNativeModule *sCurrentModule = nil;
 - (void)startTrackRecording:(JS::NativeStreamVideoReactNative::SpecStartTrackRecordingOptions &)options
                     resolve:(RCTPromiseResolveBlock)resolve
                      reject:(RCTPromiseRejectBlock)reject {
-  [_impl startTrackRecordingWithVideoTrackId:options.videoTrackId()
+  [_legacyImpl startTrackRecordingWithVideoTrackId:options.videoTrackId()
                                maxDurationMs:(NSInteger)options.maxDurationMs().value_or(5000)
                                  targetWidth:(NSInteger)options.targetWidth().value_or(0)
                                 targetHeight:(NSInteger)options.targetHeight().value_or(0)
@@ -230,15 +241,15 @@ static __weak StreamVideoReactNativeModule *sCurrentModule = nil;
 }
 
 - (void)stopTrackRecording:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
-  [_impl stopTrackRecording:resolve reject:reject];
+  [_legacyImpl stopTrackRecording:resolve reject:reject];
 }
 
 - (void)clearStreamRecordings:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
-  [_impl clearStreamRecordings:resolve reject:reject];
+  [_legacyImpl clearStreamRecordings:resolve reject:reject];
 }
 
 - (void)getStreamRecordings:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
-  [_impl getStreamRecordings:resolve reject:reject];
+  [_legacyImpl getStreamRecordings:resolve reject:reject];
 }
 
 @end
