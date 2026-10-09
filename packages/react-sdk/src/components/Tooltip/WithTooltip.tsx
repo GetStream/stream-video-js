@@ -7,7 +7,6 @@ type WithPopupProps = ComponentProps<'div'> &
     tooltipDisabled?: boolean;
   };
 
-// todo: duplicate of CallParticipantList.tsx#MediaIndicator - refactor to a single component
 export const WithTooltip = ({
   title,
   tooltipClassName,

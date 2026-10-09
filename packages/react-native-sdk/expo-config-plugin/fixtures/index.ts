@@ -3,11 +3,9 @@ import fs from 'fs';
 
 type FileName =
   | 'AppDelegate.swift'
-  | 'AppDelegate.mm'
-  | 'MainActivity.java'
-  | 'MainApplication.java'
-  | 'AndroidManifest.xml'
-  | 'app-build.gradle';
+  | 'MainActivity.kt'
+  | 'MainApplication.kt'
+  | 'AndroidManifest.xml';
 
 export function getFixture(name: FileName): string {
   const filepath = path.join(__dirname, name);

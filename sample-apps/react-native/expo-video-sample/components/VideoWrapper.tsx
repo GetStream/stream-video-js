@@ -33,14 +33,14 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
         _videoClient = StreamVideoClient.getOrCreateInstance({
           apiKey,
           user,
-          options: { logLevel: 'warn' },
+          options: { logOptions: { default: { level: 'warn' } } },
         });
       } else if (user.type === 'anonymous') {
         _videoClient = StreamVideoClient.getOrCreateInstance({
           apiKey,
           user,
           token,
-          options: { logLevel: 'warn' },
+          options: { logOptions: { default: { level: 'warn' } } },
         });
       } else {
         const tokenProvider = () =>
@@ -50,7 +50,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
           user,
           token,
           tokenProvider,
-          options: { logLevel: 'warn' },
+          options: { logOptions: { default: { level: 'warn' } } },
         });
       }
       setVideoClient(_videoClient);

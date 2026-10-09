@@ -22,11 +22,6 @@ export type StreamThemeInputValue = {
   colorScheme?: ThemeColorScheme;
 };
 
-/**
- * @deprecated Use StreamThemeInputValue instead.
- */
-export type ThemeProviderInputValue = StreamThemeInputValue;
-
 export type MergedThemesParams = {
   style?: DeepPartial<Theme>;
   theme?: Theme;
@@ -121,11 +116,6 @@ export const StreamTheme: React.FC<
     </ThemeContext.Provider>
   );
 };
-
-/**
- * @deprecated Use StreamTheme instead of ThemeProvider.
- */
-export const ThemeProvider = StreamTheme;
 
 export const useTheme = () => {
   const theme = useContext(ThemeContext);

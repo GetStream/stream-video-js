@@ -2395,30 +2395,6 @@ export class Call {
   };
 
   /**
-   * Starts publishing the given video stream to the call.
-   * @deprecated use `call.publish()`.
-   */
-  publishVideoStream = async (videoStream: MediaStream) => {
-    await this.publish(videoStream, TrackType.VIDEO);
-  };
-
-  /**
-   * Starts publishing the given audio stream to the call.
-   * @deprecated use `call.publish()`
-   */
-  publishAudioStream = async (audioStream: MediaStream) => {
-    await this.publish(audioStream, TrackType.AUDIO);
-  };
-
-  /**
-   * Starts publishing the given screen-share stream to the call.
-   * @deprecated use `call.publish()`
-   */
-  publishScreenShareStream = async (screenShareStream: MediaStream) => {
-    await this.publish(screenShareStream, TrackType.SCREEN_SHARE);
-  };
-
-  /**
    * Publishes the given media stream.
    *
    * @param mediaStream the media stream to publish.

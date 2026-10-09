@@ -74,7 +74,6 @@ protocol StreamAVPictureInPictureViewControlling: AnyObject {
     var content: PictureInPictureContent { get set }
 }
 
-@available(iOS 15.0, *)
 final class StreamAVPictureInPictureVideoCallViewController: AVPictureInPictureVideoCallViewController,
                                                              StreamAVPictureInPictureViewControlling {
 

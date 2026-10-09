@@ -173,13 +173,8 @@ import Foundation
             return nil
         }
 
-        let contentViewController: StreamAVPictureInPictureViewControlling? = {
-            if #available(iOS 15.0, *) {
-                return StreamAVPictureInPictureVideoCallViewController()
-            } else {
-                return nil
-            }
-        }()
+        let contentViewController: StreamAVPictureInPictureViewControlling? =
+            StreamAVPictureInPictureVideoCallViewController()
         // Set a default preferred content size to avoid iOS PGPegasus code:-1003 error
         // This will be updated later when track dimensions become available
         contentViewController?.preferredContentSize = .init(width: 640, height: 480)
@@ -318,9 +313,7 @@ import Foundation
                 makePictureInPictureController(with: sourceView)
             }
         } else {
-            if #available(iOS 15.0, *) {
-                pictureInPictureController?.contentSource = nil
-            }
+            pictureInPictureController?.contentSource = nil
         }
     }
     
@@ -341,16 +334,13 @@ import Foundation
         sourceView = nil
         contentViewController?.track = nil
         contentViewController = nil
-        if #available(iOS 15.0, *) {
-            pictureInPictureController?.contentSource = nil
-        }
+        pictureInPictureController?.contentSource = nil
         pictureInPictureController?.delegate = nil
         pictureInPictureController = nil
     }
     
     private func makePictureInPictureController(with sourceView: UIView) {
-        if #available(iOS 15.0, *),
-           let contentViewController = contentViewController as? StreamAVPictureInPictureVideoCallViewController {
+        if let contentViewController = contentViewController as? StreamAVPictureInPictureVideoCallViewController {
             pictureInPictureController = .init(
                 contentSource: .init(
                     activeVideoCallSourceView: sourceView,
@@ -359,10 +349,8 @@ import Foundation
             )
         }
 
-        if #available(iOS 14.2, *) {
-            pictureInPictureController?
-                .canStartPictureInPictureAutomaticallyFromInline = canStartPictureInPictureAutomaticallyFromInline
-        }
+        pictureInPictureController?
+            .canStartPictureInPictureAutomaticallyFromInline = canStartPictureInPictureAutomaticallyFromInline
 
         // Use the delegate proxy for reactive event handling
         pictureInPictureController?.delegate = delegateProxy

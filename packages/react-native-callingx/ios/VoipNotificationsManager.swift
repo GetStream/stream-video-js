@@ -7,8 +7,6 @@ import React
     public static let newNotification = "voipNotificationReceived"
 }
 
-typealias RNVoipPushNotificationCompletion = () -> Void
-
 @objc public protocol VoipNotificationsEventEmitter {
     func emitVoipEvent(_ dictionary: [String: Any])
 }

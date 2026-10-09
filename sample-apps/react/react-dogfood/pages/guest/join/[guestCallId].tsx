@@ -57,7 +57,6 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const callType = (router.query['type'] as string) || 'default';
   const mode = (router.query['mode'] as UserMode) || 'anon';
   const guestUserId = (router.query['guest_user_id'] as string) || 'Guest';
-  const useLegacyFilters = router.query['useLegacyFilters'] === 'true';
 
   const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {
@@ -131,7 +130,6 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
         <StreamCall call={call}>
           <HeadComponent callId={callId} />
           <BackgroundFiltersProvider
-            useLegacyFilter={useLegacyFilters}
             modelFilePath={getSegmentationModelUrl(segmentationModel)}
             backgroundImages={[
               `${basePath}/backgrounds/amsterdam-1.jpg`,
