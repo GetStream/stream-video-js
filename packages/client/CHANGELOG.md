@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.61.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.61.1...@stream-io/video-client-1.61.2) (2026-10-09)
+
+### Bug Fixes
+
+- **client:** reconcile ringing calls after a WS rewatch ([#2497](https://github.com/GetStream/stream-video-js/issues/2497)) ([91b8f36](https://github.com/GetStream/stream-video-js/commit/91b8f3633f2261673a287d3c9ef73fc1e8aefb39)), closes [#2493](https://github.com/GetStream/stream-video-js/issues/2493) [#2454](https://github.com/GetStream/stream-video-js/issues/2454)
+- **client:** recover remote playback after media interruptions ([#2500](https://github.com/GetStream/stream-video-js/issues/2500)) ([95232f0](https://github.com/GetStream/stream-video-js/commit/95232f029b14a8fc74394dbe546a9079dd825bfe))
+- **client:** remove deprecated SendStats fields ([#2488](https://github.com/GetStream/stream-video-js/issues/2488)) ([aefa694](https://github.com/GetStream/stream-video-js/commit/aefa694467bf255888085972b857524144ecc294))
+- **client:** start ring state polling after 9s instead of 15s ([#2492](https://github.com/GetStream/stream-video-js/issues/2492)) ([8d3a89f](https://github.com/GetStream/stream-video-js/commit/8d3a89fbcaa7c447356b2e1a48b4d9c7a1ef44a1))
+
 ## [1.61.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.61.0...@stream-io/video-client-1.61.1) (2026-10-01)
 
 ### Bug Fixes
