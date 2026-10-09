@@ -111,7 +111,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
             <br />
             It may have already ended, or the call ID is incorrect.
             <button
-              className="rd__button rd__button--secondary rd__button--large rd__call-not-found-button"
+              className="rd__button rd__button--secondary rd__button--large"
               onClick={() => {
                 router.push('/');
               }}

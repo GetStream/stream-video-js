@@ -95,13 +95,12 @@ export const ChatUI = ({
     >
       <Channel>
         <Window>
-          <div className="rd__chat-wrapper">
+          <div>
             <div className="rd__chat-header">
               <h2 className="rd__chat-header__title">
                 {t('chat.panel.title', 'Chat')}
               </h2>
               <IconButton
-                className="rd__chat-header__icon"
                 onClick={onClose}
                 size="sm"
                 variant="secondary"

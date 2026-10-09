@@ -5,7 +5,6 @@ import {
   WithTooltip,
   type Call,
 } from '@stream-io/video-react-sdk';
-import clsx from 'clsx';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import { inspectorUserId, meetingId } from '../../lib/idGenerators';
@@ -109,7 +108,7 @@ export function InspectorCall(props: {
                 />
               </div>
               <div className="rd__join-call-form-or">or</div>
-              <div className="rd__join-call-form-demo-call">
+              <div>
                 <button
                   className="rd__join-call-form-join"
                   type="button"
@@ -152,14 +151,7 @@ function CallJoinLog(props: { log: { message: string; error: boolean }[] }) {
     >
       <summary>{props.log.at(-1)?.message}</summary>
       {props.log.map((record, index) => (
-        <div
-          key={index}
-          className={clsx({
-            'rd__log-record': true,
-            'rd__log-record_error': record.error,
-          })}
-          data-copyable
-        >
+        <div key={index} data-copyable>
           {record.message}
         </div>
       ))}

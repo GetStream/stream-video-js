@@ -59,7 +59,7 @@ export function ValuePoller(props: {
   }, [lastPollTimestamp]);
 
   if (typeof value === 'undefined') {
-    return <div className="rd__value-poller">-</div>;
+    return <div>-</div>;
   }
 
   const animationDuration =
@@ -71,7 +71,6 @@ export function ValuePoller(props: {
 
   return (
     <Container
-      className="rd__value-poller"
       style={
         {
           '--rd-value-poller-animation-duration': animationDuration,

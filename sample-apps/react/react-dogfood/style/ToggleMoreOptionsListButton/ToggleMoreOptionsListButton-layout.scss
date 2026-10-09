@@ -1,5 +1,3 @@
-@use '../breakpoints';
-
 .rd__more-menu {
   display: flex;
   list-style: none;
@@ -9,10 +7,6 @@
   margin: 0;
 
   max-width: calc(100vw - var(--str-video__spacing-md) * 2);
-
-  &--developer-setttings {
-    margin-top: 24px;
-  }
 }
 
 .rd__more-menu__item {
@@ -41,18 +35,5 @@
         margin-right: 0;
       }
     }
-  }
-}
-
-.rd__more-menu__button {
-  display: flex;
-  align-items: center;
-  background-color: transparent;
-  color: var(--str-video__text-primary);
-}
-
-@include breakpoints.respond-above(sm) {
-  .str-video__more-option--screen-share {
-    display: none;
   }
 }

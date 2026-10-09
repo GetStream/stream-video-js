@@ -34,7 +34,6 @@ export const InvitePopup = ({
           {t('invite.meetingLive.title', 'Your meeting is live!')}
         </h2>
         <IconButton
-          className="rd__invite-popup__close"
           icon="close"
           onClick={close}
           size="sm"
@@ -43,7 +42,7 @@ export const InvitePopup = ({
       </div>
 
       <button
-        className="rd__button rd__button--primary rd__invite-popup__button"
+        className="rd__button rd__button--primary"
         onClick={copyInviteLink}
       >
         <Icon className="rd__button__icon" icon="person-add" />
@@ -61,7 +60,7 @@ export const InvitePopup = ({
           {t('invite.callId.label', 'Call ID:')}
           <span className="rd__invite-popup__id-text">{callId}</span>
         </div>
-        <Icon className="rd__invite-popup__id-button" icon="copy" />
+        <Icon icon="copy" />
       </div>
       <div className="rd__invite-popup__qr-container" title={qrCodeContent}>
         <p className="rd__invite-popup__qr-description">

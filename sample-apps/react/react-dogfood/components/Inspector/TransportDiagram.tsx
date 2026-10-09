@@ -33,10 +33,7 @@ export function TransportDiagram(props: {
         return (
           <>
             <div className="rd__transport-diagram">
-              <dl
-                className="rd__ice-candidate rd__transport-diagram-local"
-                data-copy="Local"
-              >
+              <dl className="rd__ice-candidate" data-copy="Local">
                 <dt data-copyable>{pair.local.address}</dt>
                 <dd data-copyable>{pair.local.candidateType}</dd>
               </dl>
