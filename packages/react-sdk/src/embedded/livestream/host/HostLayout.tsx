@@ -7,6 +7,7 @@ import { useLayout } from '../../hooks';
 import {
   Button,
   CallParticipantsList,
+  CameraUnavailableNotification,
   CancelCallConfirmButton,
   CompositeButton,
   DeviceSelectorAudioInput,
@@ -145,10 +146,12 @@ export const HostLayout = ({
             requiredGrants={[OwnCapability.SEND_VIDEO]}
             hasPermissionsOnly
           >
-            <ToggleVideoPublishingButton
-              Menu={<CameraMenuWithBlur />}
-              menuPlacement="top"
-            />
+            <CameraUnavailableNotification>
+              <ToggleVideoPublishingButton
+                Menu={<CameraMenuWithBlur />}
+                menuPlacement="top"
+              />
+            </CameraUnavailableNotification>
           </Restricted>
           <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
             <div className="str-video__embedded-desktop">

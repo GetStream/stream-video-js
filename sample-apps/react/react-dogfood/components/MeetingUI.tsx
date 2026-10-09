@@ -134,6 +134,12 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   }, [callState, onLeave]);
 
   useEffect(() => {
+    if (show === 'loading' && callState === CallingState.JOINED) {
+      setShow('active-call');
+    }
+  }, [show, callState]);
+
+  useEffect(() => {
     if (!call) return;
     return call.on('call.ended', async (e) => {
       if (!e.user || e.user.id === call.currentUserId) return;

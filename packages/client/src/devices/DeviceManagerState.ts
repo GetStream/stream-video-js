@@ -28,6 +28,7 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
   protected defaultConstraintsSubject = new BehaviorSubject<C | undefined>(
     undefined,
   );
+  protected errorSubject = new BehaviorSubject<Error | undefined>(undefined);
 
   /**
    * @internal
@@ -69,6 +70,14 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
    * The default constraints for the device.
    */
   defaultConstraints$ = this.defaultConstraintsSubject.asObservable();
+
+  /**
+   * An Observable that emits the error of the last failed attempt to start
+   * the device (e.g. the device is in use by another app), or `undefined`.
+   * For screen share, this includes the user dismissing the picker.
+   * Cleared when the device is started again or disabled.
+   */
+  error$ = this.errorSubject.asObservable().pipe(distinctUntilChanged());
 
   /**
    * An observable that will emit `true` if browser/system permission
@@ -150,6 +159,21 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
    */
   get rootMediaStream() {
     return RxUtils.getCurrentValue(this.rootMediaStream$);
+  }
+
+  /**
+   * The error of the last failed attempt to start the device, or `undefined`.
+   */
+  get error() {
+    return RxUtils.getCurrentValue(this.error$);
+  }
+
+  /**
+   * @internal
+   * @param error the error to set.
+   */
+  setError(error: Error | undefined) {
+    RxUtils.setCurrentValue(this.errorSubject, error);
   }
 
   /**

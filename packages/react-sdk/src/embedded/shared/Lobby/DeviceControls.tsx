@@ -4,6 +4,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 import {
+  CameraUnavailableNotification,
   ToggleAudioPreviewButton,
   ToggleVideoPreviewButton,
   VideoPreview,
@@ -42,7 +43,11 @@ export const DeviceControls = ({ isVideoEnabled }: DeviceControlsProps) => {
         )}
         <div className="str-video__embedded-lobby__media-toggle">
           <ToggleAudioPreviewButton Menu={null} />
-          {isVideoEnabled && <ToggleVideoPreviewButton Menu={null} />}
+          {isVideoEnabled && (
+            <CameraUnavailableNotification>
+              <ToggleVideoPreviewButton Menu={null} />
+            </CameraUnavailableNotification>
+          )}
         </div>
       </div>
 

@@ -1,6 +1,9 @@
 import { OwnCapability } from '@stream-io/video-client';
 import { Restricted } from '@stream-io/video-react-bindings';
-import { SpeakingWhileMutedNotification } from '../Notification';
+import {
+  CameraUnavailableNotification,
+  SpeakingWhileMutedNotification,
+} from '../Notification';
 import { RecordCallButton } from './RecordCallButton';
 import { ReactionsButton } from './ReactionsButton';
 import { ScreenShareButton } from './ScreenShareButton';
@@ -20,7 +23,9 @@ export const CallControls = ({ onLeave }: CallControlsProps) => (
       </SpeakingWhileMutedNotification>
     </Restricted>
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
-      <ToggleVideoPublishingButton />
+      <CameraUnavailableNotification>
+        <ToggleVideoPublishingButton />
+      </CameraUnavailableNotification>
     </Restricted>
     <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
       <ReactionsButton />
