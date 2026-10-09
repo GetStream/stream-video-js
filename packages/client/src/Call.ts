@@ -316,7 +316,10 @@ export class Call {
    */
   private readonly leaveCallHooks: Set<Function> = new Set();
 
-  private streamClientEventHandlers = new Map<Function, () => void>();
+  private streamClientEventHandlers = new Map<
+    string,
+    Map<Function, () => void>
+  >();
 
   /**
    * A list of capabilities that the client supports and are enabled.
@@ -629,7 +632,12 @@ export class Call {
     });
 
     // keep the 'off' reference returned by the stream client
-    this.streamClientEventHandlers.set(fn, offHandler);
+    let handlers = this.streamClientEventHandlers.get(eventName);
+    if (!handlers) {
+      handlers = new Map();
+      this.streamClientEventHandlers.set(eventName, handlers);
+    }
+    handlers.set(fn, offHandler);
     return () => {
       this.off(eventName, fn);
     };
@@ -650,9 +658,13 @@ export class Call {
     }
 
     // unsubscribe from the stream client event by using the 'off' reference
-    const registeredOffHandler = this.streamClientEventHandlers.get(fn);
+    const handlers = this.streamClientEventHandlers.get(eventName);
+    const registeredOffHandler = handlers?.get(fn);
     if (registeredOffHandler) {
       registeredOffHandler();
+      handlers!.delete(fn);
+      if (handlers!.size === 0)
+        this.streamClientEventHandlers.delete(eventName);
     }
   };
 
