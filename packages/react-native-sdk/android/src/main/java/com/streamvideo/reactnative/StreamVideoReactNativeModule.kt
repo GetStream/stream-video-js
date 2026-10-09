@@ -11,7 +11,6 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
 import android.media.projection.MediaProjectionManager
-import android.net.Uri
 import android.os.BatteryManager
 import android.os.Build
 import android.os.PowerManager
@@ -30,7 +29,6 @@ import com.streamvideo.reactnative.screenshare.ScreenAudioCapture
 import com.streamvideo.reactnative.keepalive.StreamCallKeepAliveHeadlessService
 import com.streamvideo.reactnative.util.CallAlivePermissionsHelper
 import com.streamvideo.reactnative.util.PiPHelper
-import com.streamvideo.reactnative.util.RingtoneUtil
 import com.streamvideo.reactnative.util.YuvFrame
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -110,15 +108,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     private fun emitThermalState(thermalState: String) {
         if (mEventEmitterCallback == null) return
         emitOnThermalStateChanged(thermalState)
-    }
-
-    override fun getDefaultRingtoneUrl(): String? {
-        val defaultRingtoneUri: Uri? =
-            RingtoneUtil.getActualDefaultRingtoneUri(reactApplicationContext)
-        if (defaultRingtoneUri == null) {
-            Log.w(NAME, "Cannot get default ringtone in Android - check native logs for more info")
-        }
-        return defaultRingtoneUri?.toString()
     }
 
     override fun isInPiPMode(): Boolean {

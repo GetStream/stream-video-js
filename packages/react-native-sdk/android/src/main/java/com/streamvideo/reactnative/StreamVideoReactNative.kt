@@ -18,12 +18,6 @@ object StreamVideoReactNative {
 
     private var isInPictureInPictureMode: Boolean = false
 
-    @Deprecated("No need to use setup() anymore")
-    @JvmStatic
-    fun setup() {
-        // Do nothing
-    }
-
     @JvmStatic
     fun addPipListener(listener: (isInPip: Boolean, newConfig: Configuration) -> Unit) {
         pipListeners.add(listener)

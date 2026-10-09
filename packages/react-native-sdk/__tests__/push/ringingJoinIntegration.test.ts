@@ -26,7 +26,10 @@ const createCall = (kind: Kind = 'ring-option') => {
     apiKey: 'abc',
     // no network from these fixtures: the reporter would otherwise post call
     // telemetry after the test has finished and fail the run on a late log
-    options: { clientEventsReportingEnabled: false, logLevel: 'error' },
+    options: {
+      clientEventsReportingEnabled: false,
+      logOptions: { default: { level: 'error' } },
+    },
   });
   const call =
     kind === 'ring-option'

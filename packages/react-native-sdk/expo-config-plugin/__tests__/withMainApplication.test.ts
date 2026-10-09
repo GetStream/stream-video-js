@@ -26,7 +26,7 @@ jest.mock('@expo/config-plugins', () => {
   };
 });
 
-const ExpoModulesMainApplication = getFixture('MainApplication.java');
+const ExpoModulesMainApplication = getFixture('MainApplication.kt');
 
 describe('withStreamVideoReactNativeSDKMainApplication', () => {
   it('should modify config as per props', () => {
@@ -35,7 +35,7 @@ describe('withStreamVideoReactNativeSDKMainApplication', () => {
       name: 'test-app',
       slug: 'test-app',
       modResults: {
-        language: 'java',
+        language: 'kt',
         contents: ExpoModulesMainApplication,
       },
     };
@@ -50,7 +50,7 @@ describe('withStreamVideoReactNativeSDKMainApplication', () => {
     ) as CustomExpoConfig;
 
     expect(updatedConfig.modResults.contents).toMatch(
-      /NoiseCancellationReactNative.registerProcessor/,
+      /NoiseCancellationReactNative.registerProcessor\(applicationContext\)/,
     );
 
     const props2: ConfigProps = {
@@ -61,7 +61,7 @@ describe('withStreamVideoReactNativeSDKMainApplication', () => {
       name: 'test-app',
       slug: 'test-app',
       modResults: {
-        language: 'java',
+        language: 'kt',
         contents: ExpoModulesMainApplication,
       },
     };
@@ -74,5 +74,19 @@ describe('withStreamVideoReactNativeSDKMainApplication', () => {
     expect(updatedConfig2.modResults.contents).not.toMatch(
       /NoiseCancellationReactNative.registerProcessor/,
     );
+  });
+
+  it('should throw a descriptive error for a Java MainApplication', () => {
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        language: 'java',
+        contents: ExpoModulesMainApplication,
+      },
+    };
+    expect(() =>
+      withMainApplication(config, { addNoiseCancellation: true }),
+    ).toThrow(/Kotlin/);
   });
 });

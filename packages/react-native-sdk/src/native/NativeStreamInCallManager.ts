@@ -43,9 +43,6 @@ export interface Spec extends TurboModule {
 
   setForceSpeakerphoneOn(enable: boolean): void;
 
-  /** Android only, no-op on iOS. */
-  setMicrophoneMute(enable: boolean): void;
-
   logAudioState(): void;
 
   getAudioStateLog(): string;

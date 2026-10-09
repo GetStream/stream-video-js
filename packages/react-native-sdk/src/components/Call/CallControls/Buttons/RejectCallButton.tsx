@@ -21,10 +21,6 @@ type RejectCallButtonProps = {
    */
   onRejectCallHandler?: (err?: Error) => void;
   /**
-   * Sets the height, width and border-radius (half the value) of the button.
-   */
-  size?: React.ComponentProps<typeof CallControlsButton>['size'];
-  /**
    * Optional: Reason for rejecting the call.
    * Pass a predefined or a custom reason.
    * There are four predefined reasons for rejecting the call:

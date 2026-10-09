@@ -100,67 +100,67 @@ export const DevMenu = () => {
   };
   return (
     <ul className="rd__dev-menu">
-      <li className="rd__dev-menu__item">
+      <li>
         <RestartPublisher />
       </li>
-      <li className="rd__dev-menu__item">
+      <li>
         <RestartSubscriber />
       </li>
 
-      <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
-      <li className="rd__dev-menu__item">
+      <li className="rd__dev-menu__item--divider" />
+      <li>
         <CodecSelector kind="video" />
       </li>
-      <li className="rd__dev-menu__item">
+      <li>
         <CodecSelector kind="audio" />
       </li>
 
-      <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
+      <li className="rd__dev-menu__item--divider" />
 
-      <li className="rd__dev-menu__item">
+      <li>
         <ConnectToLocalSfu sfuId="SFU-1" port={3031} />
       </li>
-      <li className="rd__dev-menu__item">
+      <li>
         <ConnectToLocalSfu sfuId="SFU-2" port={3033} />
       </li>
-      <li className="rd__dev-menu__item">
+      <li>
         <ConnectToLocalSfu sfuId="SFU-3" port={3036} />
       </li>
-      <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
-      <li className="rd__dev-menu__item">
+      <li className="rd__dev-menu__item--divider" />
+      <li>
         <SfuCallStats />
       </li>
-      <li className="rd__dev-menu__item">
+      <li>
         <TraceStats />
       </li>
 
-      <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
+      <li className="rd__dev-menu__item--divider" />
 
-      <li className="rd__dev-menu__item">
+      <li>
         <LogPublisherStats />
       </li>
-      <li className="rd__dev-menu__item">
+      <li>
         <LogSubscriberStats />
       </li>
-      <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
+      <li className="rd__dev-menu__item--divider" />
 
-      <li className="rd__dev-menu__item">
+      <li>
         <StartStopBroadcasting />
       </li>
-      <li className="rd__dev-menu__item">
+      <li>
         <StartStopCompositeRecording />
       </li>
-      <li className="rd__dev-menu__item">
+      <li>
         <StartStopIndividualRecording />
       </li>
-      <li className="rd__dev-menu__item">
+      <li>
         <StartStopRawRecording />
       </li>
-      <li className="rd__dev-menu__item">
+      <li>
         <GoOrStopLive />
       </li>
-      <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
-      <li className="rd__dev-menu__item">
+      <li className="rd__dev-menu__item--divider" />
+      <li>
         <a
           className="rd__link rd__link--faux-button rd__link--align-left"
           href="https://www.notion.so/stream-wiki/Usage-guide-and-known-limitations-603b12af2dff43d69119be4dae462b19"
@@ -171,7 +171,7 @@ export const DevMenu = () => {
           Usage guide
         </a>
       </li>
-      <li className="rd__dev-menu__item">
+      <li>
         <a
           className="rd__link rd__link--faux-button rd__link--align-left"
           href={withParams(
@@ -185,7 +185,7 @@ export const DevMenu = () => {
         </a>
       </li>
 
-      <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
+      <li className="rd__dev-menu__item--divider" />
       <a
         className="rd__link rd__link--faux-button rd__link--align-left"
         href={`https://pronto-staging.getstream.io/join/${call?.id}?type=${call?.type}`}
@@ -220,7 +220,7 @@ export const DevMenu = () => {
       >
         Pre-call test
       </a>
-      <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
+      <li className="rd__dev-menu__item--divider" />
       {call && (
         <a
           className="rd__link rd__link--faux-button rd__link--align-left"

@@ -139,10 +139,6 @@
   [_impl setForceSpeakerphoneOn:enable];
 }
 
-- (void)setMicrophoneMute:(BOOL)enable {
-  [_impl setMicrophoneMute:enable];
-}
-
 #pragma mark - Debug
 
 - (void)logAudioState {

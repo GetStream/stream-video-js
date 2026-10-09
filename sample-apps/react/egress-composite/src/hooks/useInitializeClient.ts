@@ -91,7 +91,7 @@ export const useInitializeClientAndCall = () => {
   const client = useMemo<StreamVideoClient>(() => {
     return new StreamVideoClient(apiKey, {
       baseURL,
-      logLevel,
+      logOptions: { default: { level: logLevel } },
       maxConnectUserRetries: 25,
       clientEventsReportingEnabled: false,
     });

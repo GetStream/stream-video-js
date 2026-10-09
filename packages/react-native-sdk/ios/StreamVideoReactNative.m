@@ -3,13 +3,6 @@
 
 @implementation StreamVideoReactNative
 
-+(void)setup {
-    // RTCDefaultVideoEncoderFactory *videoEncoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
-    // RTCVideoEncoderFactorySimulcast *simulcastVideoEncoderFactory = [[RTCVideoEncoderFactorySimulcast alloc] initWithPrimary:videoEncoderFactory fallback:videoEncoderFactory];
-    // WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
-    // options.videoEncoderFactory = simulcastVideoEncoderFactory;
-}
-
 +(void)voipRegistration {
     Class voipManagerClass = NSClassFromString(@"Callingx.VoipNotificationsManager");
     if (!voipManagerClass) {
@@ -42,7 +35,7 @@
 
     for(CXCall *call in callObserver.calls){
         if(call.hasConnected){
-            NSLog(@"[RNCallKeep] Found active call with UUID: %@", call.UUID);
+            NSLog(@"[StreamVideoReactNative] Found active call with UUID: %@", call.UUID);
             return YES;
         }
     }

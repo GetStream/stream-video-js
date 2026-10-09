@@ -72,7 +72,7 @@ const Elapsed = ({ startedAt }: { startedAt: TimestampNS | undefined }) => {
   return (
     <div className="rd__header__elapsed">
       <Icon className="rd__header__elapsed-icon" icon="verified" />
-      <div className="rd__header__elapsed-time">
+      <div>
         <span className="rd__header__elapsed-time__lead">
           {elapsed?.slice(0, elapsed.lastIndexOf(':') + 1)}
         </span>

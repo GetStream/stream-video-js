@@ -12,7 +12,6 @@ export {
   useHorizontalScrollPosition,
   useVerticalScrollPosition,
   useRequestPermission,
-  usePersistedDevicePreferences,
   useDeviceList,
   useModeration,
   useLoopbackRecording,

@@ -2,8 +2,6 @@
 
 @interface StreamVideoReactNative : NSObject
 
-+ (void)setup DEPRECATED_MSG_ATTRIBUTE("No need to use setup() anymore");
-
 + (BOOL)hasAnyActiveCall;
 
 /**

@@ -88,17 +88,17 @@ export class StreamVideoRN {
    * import { AppRegistry } from 'react-native';
    * import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
    * import App from './App';
-   * // Set push config
-   * const pushConfig = {}; // construct your config
-   * // Set CallKit/Android Telecom API integration options. All params are optional. If not provided, the default values will be used.
-   * const callingExpOptions = {
+   * // CallKit/Android Telecom options are part of the push config. Unset options use their defaults.
+   * StreamVideoRN.setPushConfig({
    *   ios: {
+   *     pushProviderName: 'my-apn-provider',
    *     callsHistory: true,
    *     displayCallTimeout: 60000,
    *     sound: 'ringtone',
    *     imageName: 'callkit_icon',
    *   },
    *   android: {
+   *     pushProviderName: 'my-fcm-provider',
    *     incomingChannel: {
    *       id: 'stream_incoming_call_notifications',
    *       name: 'Call notifications',
@@ -110,8 +110,10 @@ export class StreamVideoRN {
    *         ? `${memberName} is calling you`
    *         : `You are calling ${memberName}`,
    *   },
-   * };
-   * StreamVideoRN.setPushConfig(pushConfig, callingExpOptions);
+   *   createStreamVideoClient: async () => {
+   *     // return a StreamVideoClient for the logged-in user, or undefined
+   *   },
+   * });
    * AppRegistry.registerComponent('app', () => App);
    */
   static setPushConfig(pushConfig: NonNullable<StreamVideoConfig['push']>) {

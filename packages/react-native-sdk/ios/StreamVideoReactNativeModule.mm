@@ -122,10 +122,6 @@ static __weak StreamVideoReactNativeModule *sCurrentModule = nil;
 
 #pragma mark - Android-only Stubs
 
-- (NSString *)getDefaultRingtoneUrl {
-  return nil;
-}
-
 - (NSNumber *)isInPiPMode {
   return @NO;
 }

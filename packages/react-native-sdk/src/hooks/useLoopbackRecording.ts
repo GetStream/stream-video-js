@@ -9,15 +9,12 @@ import {
   waitForLoopbackStreams,
   withLoopbackAudioEnabled,
   type LoopbackStreams,
-  type LoopbackTracks,
 } from '@stream-io/video-client';
 
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import NativeStreamVideoReactNative from '../native/NativeStreamVideoReactNative';
 
 export type LoopbackRecordingState = 'idle' | 'awaiting-streams' | 'recording';
-
-export type ResolvedStreams = LoopbackTracks;
 
 export interface StartLoopbackRecordingOptions {
   /** Whether to include loopback video. Audio is always recorded. */

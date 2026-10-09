@@ -96,14 +96,6 @@ import CallKit
         }
     }
     
-    // MARK: - Legacy API (preserved for backward compatibility)
-
-    public func allUUIDs() -> [UUID] {
-        return queue.sync {
-            return callsByCid.values.map { $0.uuid }
-        }
-    }
-
     /// Returns the existing UUID for the given cid, or creates a new CallingxCall and returns its UUID.
     public func getOrCreateUUID(forCid cid: String) -> UUID {
         return queue.sync {
@@ -134,19 +126,6 @@ import CallKit
             let cid = callsByUUID[uuidString]?.cid
             CallingxLog.uuid.debugPublic("getCidForUUID: UUID \(uuidString) -> cid \(cid ?? "(not found)")")
             return cid
-        }
-    }
-
-    public func removeCid(forUUID uuid: UUID) {
-        queue.sync {
-            let uuidString = uuid.uuidString.lowercased()
-            if let call = callsByUUID[uuidString] {
-                callsByCid.removeValue(forKey: call.cid)
-                callsByUUID.removeValue(forKey: uuidString)
-                CallingxLog.uuid.debugPublic("removeCidForUUID: removed cid \(call.cid) for UUID \(uuidString)")
-            } else {
-                CallingxLog.uuid.debugPublic("removeCidForUUID: no cid found for UUID \(uuidString)")
-            }
         }
     }
 
@@ -181,12 +160,6 @@ import CallKit
     public func containsCid(_ cid: String) -> Bool {
         return queue.sync {
             return callsByCid[cid] != nil
-        }
-    }
-
-    public func containsUUID(_ uuid: UUID) -> Bool {
-        return queue.sync {
-            return callsByUUID[uuid.uuidString.lowercased()] != nil
         }
     }
 

@@ -258,8 +258,8 @@ const ErrorPage = ({
   return (
     <div className="rd__error">
       <div className="rd__error__container">
-        <h1 className="rd__error__header">{heading}</h1>
-        <div className="rd__error__content">
+        <h1>{heading}</h1>
+        <div>
           {error?.stack && (
             <div className="rd__error__message">
               <pre>{error.stack}</pre>

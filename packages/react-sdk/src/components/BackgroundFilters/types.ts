@@ -5,32 +5,6 @@ import type {
   SegmentationOptions,
 } from '@stream-io/video-filters-web';
 
-/**
- * Configuration for performance metric thresholds.
- */
-export type BackgroundFiltersPerformanceThresholds = {
-  /**
-   * The lower FPS threshold for triggering a performance warning.
-   * When the EMA FPS falls below this value, a warning is shown.
-   * @default 23
-   */
-  fpsWarningThresholdLower?: number;
-
-  /**
-   * The upper FPS threshold for clearing a performance warning.
-   * When the EMA FPS rises above this value, the warning is cleared.
-   * @default 25
-   */
-  fpsWarningThresholdUpper?: number;
-
-  /**
-   * The default FPS value used as the initial value for the EMA (Exponential Moving Average)
-   * calculation and when stats are unavailable or when resetting the filter.
-   * @default 30
-   */
-  defaultFps?: number;
-};
-
 export type BackgroundFiltersProps = PlatformSupportFlags & {
   /**
    * A list of URLs to use as background images.
@@ -55,18 +29,10 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
   backgroundBlurLevel?: BackgroundBlurLevel;
 
   /**
-   * The base path for the TensorFlow Lite files.
+   * The base path for the MediaPipe files.
    * @default 'https://unpkg.com/@stream-io/video-filters-web/mediapipe'.
    */
   basePath?: string;
-
-  /**
-   * The path to the TensorFlow Lite WebAssembly file.
-   *
-   * Override this prop to use a custom path to the TensorFlow Lite WebAssembly file
-   * (e.g., if you choose to host it yourself).
-   */
-  tfFilePath?: string;
 
   /**
    * The path to the MediaPipe model file.
@@ -76,27 +42,12 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
   modelFilePath?: string;
 
   /**
-   * When true, the filter uses the legacy TensorFlow-based segmentation model.
-   * When false, it uses the default MediaPipe Tasks Vision model.
-   *
-   * Only enable this if you need to mimic the behavior of older SDK versions.
-   */
-  useLegacyFilter?: boolean;
-
-  /**
    * When a started filter encounters an error, this callback will be executed.
    * The default behavior (not overridable) is unregistering a failed filter.
    * Use this callback to display UI error message, disable the corresponding stream,
    * or to try registering the filter again.
    */
   onError?: (error: any) => void;
-
-  /**
-   * `@deprecated` Performance tuning is now handled internally by the SDK, so
-   * this prop is ignored. Remove this prop; there is no replacement
-   * configuration. Degradation is derived from the processed/source FPS ratio.
-   */
-  performanceThresholds?: BackgroundFiltersPerformanceThresholds;
 
   /**
    * Options for controlling the segmentation mask smoothing in the WebGL shader.

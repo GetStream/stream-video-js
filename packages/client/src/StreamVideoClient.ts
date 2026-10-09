@@ -87,11 +87,11 @@ export class StreamVideoClient {
 
     if (clientOptions?.enableTimerWorker) enableTimerWorker();
 
-    const rootLogger = clientOptions?.logger || logToConsole;
-
+    const { default: defaultLogOptions, ...scopedLogOptions } =
+      clientOptions?.logOptions ?? {};
     videoLoggerSystem.configureLoggers({
-      default: { sink: rootLogger, level: clientOptions?.logLevel || 'warn' },
-      ...clientOptions?.logOptions,
+      ...scopedLogOptions,
+      default: { sink: logToConsole, level: 'warn', ...defaultLogOptions },
     });
 
     const streamClient = createCoordinatorClient(apiKey, clientOptions);

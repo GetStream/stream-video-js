@@ -76,7 +76,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
 
   if (feedbackSent) {
     return (
-      <div className="rd__feedback rd__feedback--sent">
+      <div className="rd__feedback">
         <img
           className="rd__feedback-image"
           src={`${basePath}/feedback.png`}
@@ -134,12 +134,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
           ? t('feedback.form.howWasYourCall.title', 'How was your call?')
           : t('feedback.form.youLeftTheCall.title', 'You left the call.')}
       </h4>
-      <p
-        className={clsx(
-          'rd__feedback-description',
-          errorMessage && 'rd__feedback-error',
-        )}
-      >
+      <p className="rd__feedback-description">
         {errorMessage && errorMessage}
         {inMeeting &&
           !errorMessage &&

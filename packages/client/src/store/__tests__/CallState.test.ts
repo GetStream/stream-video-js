@@ -672,21 +672,41 @@ describe('CallState', () => {
     describe('recording and broadcasting events', () => {
       it('handles call.recording_started events', () => {
         const state = new CallState();
-        state.updateFromEvent(fromPartial({ type: 'call.recording_started' }));
+        state.updateFromEvent(
+          fromPartial({
+            type: 'call.recording_started',
+            recording_type: 'composite',
+          }),
+        );
         expect(state.recording).toBe(true);
       });
 
       it('handles call.recording_stopped events', () => {
         const state = new CallState();
-        state.updateFromEvent(fromPartial({ type: 'call.recording_stopped' }));
+        state.updateFromEvent(
+          fromPartial({
+            type: 'call.recording_stopped',
+            recording_type: 'composite',
+          }),
+        );
         expect(state.recording).toBe(false);
       });
 
       it('handles call.recording_failed events', () => {
         const state = new CallState();
-        state.updateFromEvent(fromPartial({ type: 'call.recording_started' }));
+        state.updateFromEvent(
+          fromPartial({
+            type: 'call.recording_started',
+            recording_type: 'composite',
+          }),
+        );
         expect(state.recording).toBe(true);
-        state.updateFromEvent(fromPartial({ type: 'call.recording_failed' }));
+        state.updateFromEvent(
+          fromPartial({
+            type: 'call.recording_failed',
+            recording_type: 'composite',
+          }),
+        );
         expect(state.recording).toBe(false);
       });
 
@@ -899,59 +919,6 @@ describe('CallState', () => {
             }),
           );
           expect(state.rawRecording).toBe(false);
-        });
-      });
-
-      describe('Legacy (undefined) recording type', () => {
-        it('should set recording to true when recording starts with undefined type (legacy)', () => {
-          const state = new CallState();
-          state.updateFromEvent(
-            fromPartial({
-              type: 'call.recording_started',
-              recording_type: undefined,
-            }),
-          );
-          expect(state.recording).toBe(true);
-          expect(state.individualRecording).toBe(false);
-          expect(state.rawRecording).toBe(false);
-        });
-
-        it('should set recording to false when recording stops with undefined type (legacy)', () => {
-          const state = new CallState();
-          state.updateFromEvent(
-            fromPartial({
-              type: 'call.recording_started',
-              recording_type: undefined,
-            }),
-          );
-          expect(state.recording).toBe(true);
-
-          state.updateFromEvent(
-            fromPartial({
-              type: 'call.recording_stopped',
-              recording_type: undefined,
-            }),
-          );
-          expect(state.recording).toBe(false);
-        });
-
-        it('should set recording to false when recording fails with undefined type (legacy)', () => {
-          const state = new CallState();
-          state.updateFromEvent(
-            fromPartial({
-              type: 'call.recording_started',
-              recording_type: undefined,
-            }),
-          );
-          expect(state.recording).toBe(true);
-
-          state.updateFromEvent(
-            fromPartial({
-              type: 'call.recording_failed',
-              recording_type: undefined,
-            }),
-          );
-          expect(state.recording).toBe(false);
         });
       });
 

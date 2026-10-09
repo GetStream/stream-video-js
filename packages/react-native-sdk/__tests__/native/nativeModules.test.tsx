@@ -13,7 +13,6 @@ import {
   type RTCViewPipNativeRef,
 } from '../../src/components/Call/CallContent/RTCViewPipNative';
 import { useIsIosScreenshareBroadcastStarted } from '../../src/hooks/useIsIosScreenshareBroadcastStarted';
-import { getAndroidDefaultRingtoneUrl } from '../../src/utils/getAndroidDefaultRingtoneUrl';
 import { StreamVideoRN } from '../../src/utils/StreamVideoRN';
 import { isInPiPMode$ } from '../../src/utils/internal/rxSubjects';
 
@@ -91,20 +90,6 @@ describe('native module consumers', () => {
     expect(result.current).toBe(true);
     unmount();
     expect(screenShare.remove).toHaveBeenCalledTimes(1);
-  });
-
-  it('getAndroidDefaultRingtoneUrl swallows a null or throwing native getter', async () => {
-    setPlatform('android', 33);
-    mockNative.getDefaultRingtoneUrl.mockReturnValueOnce('content://ringtone');
-    await expect(getAndroidDefaultRingtoneUrl()).resolves.toBe(
-      'content://ringtone',
-    );
-    mockNative.getDefaultRingtoneUrl.mockReturnValueOnce(null);
-    await expect(getAndroidDefaultRingtoneUrl()).resolves.toBeUndefined();
-    mockNative.getDefaultRingtoneUrl.mockImplementationOnce(() => {
-      throw new Error('boom');
-    });
-    await expect(getAndroidDefaultRingtoneUrl()).resolves.toBeUndefined();
   });
 
   it('StreamVideoRN hardware checks are sync on Android and throw elsewhere', () => {

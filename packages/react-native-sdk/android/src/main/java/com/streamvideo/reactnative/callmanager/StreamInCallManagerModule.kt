@@ -135,7 +135,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
                 Log.d(TAG, "stop() mAudioDeviceManager")
                 mAudioDeviceManager.stop(reactApplicationContext.currentActivity)
                 audioManagerActivated = false
-                setMicrophoneMute(false)
+                mAudioDeviceManager.setMicrophoneMute(false)
                 setKeepScreenOn(false)
             }
         }
@@ -166,10 +166,6 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
             }
             mAudioDeviceManager.setSpeakerphoneOn(enable)
         }
-    }
-
-    override fun setMicrophoneMute(enable: Boolean) {
-        mAudioDeviceManager.setMicrophoneMute(enable)
     }
 
     override fun getAudioDeviceStatus(promise: Promise) {

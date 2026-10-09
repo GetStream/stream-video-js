@@ -10,7 +10,6 @@ import Foundation
 /// This filter uses a provided image taken from `backgroundImageUrl` as the background and combines it with
 /// the foreground objects using a filter processor. It caches processed background images to optimize
 /// performance for matching input sizes and orientations.
-@available(iOS 15.0, *)
 final class ImageBackgroundVideoFrameProcessor: VideoFilter {
     
     private struct CacheValue: Hashable {

@@ -103,7 +103,6 @@ async function startForegroundService(call_cid: string): Promise<boolean> {
  * This hook is used to keep the call alive in the background for Android.
  * It starts a foreground service to keep the call alive as soon as the call is joined
  * and stops the foreground Service when the call is left.
- * Additionally: also responsible for cancelling any notifee displayed notification when the call has transitioned out of ringing
  */
 export const useAndroidKeepCallAliveEffect = () => {
   const foregroundServiceStartedRef = useRef(false);

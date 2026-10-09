@@ -6,9 +6,6 @@ import type {
 } from 'react-native/Libraries/Types/CodegenTypes';
 
 export interface Spec extends TurboModule {
-  /** Android only, returns `null` when the default ringtone can't be resolved. */
-  getDefaultRingtoneUrl(): string | null;
-
   /** Android only. */
   isInPiPMode(): boolean;
 
