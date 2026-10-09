@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import {
   DropDownSelect,
   DropDownSelectOption,
+  hasAudio,
   Icon,
   useCall,
   useCallStateHooks,
@@ -100,6 +101,10 @@ export const DevMenu = () => {
   };
   return (
     <ul className="rd__dev-menu">
+      <li>
+        <ReportCannotHear />
+      </li>
+      <li className="rd__dev-menu__item--divider" />
       <li>
         <RestartPublisher />
       </li>
@@ -580,6 +585,157 @@ const CodecSelector = ({ kind }: { kind: 'video' | 'audio' }) => {
         />
       ))}
     </DropDownSelect>
+  );
+};
+
+/**
+ * Marks the moment a user can't hear the others in the call trace,
+ * together with the state of every audio element and the audio devices,
+ * so the report can be lined up with the stats.
+ */
+const ReportCannotHear = () => {
+  const call = useCall();
+  return (
+    <button
+      className="rd__button rd__button--align-left"
+      disabled={!call}
+      onClick={async () => {
+        if (!call) return;
+        // mediaDevices is missing in insecure contexts (plain HTTP)
+        const devices =
+          (await navigator.mediaDevices?.enumerateDevices().catch(() => [])) ??
+          [];
+        const elements = Array.from(document.querySelectorAll('audio'));
+        // an empty device id follows the system default, which browsers
+        // list as a "default" entry labeled after the actual device
+        const nameOf = (kind: MediaDeviceKind, deviceId?: string) => {
+          const id = deviceId || 'default';
+          const device = devices.find(
+            (d) => d.kind === kind && d.deviceId === id,
+          );
+          if (device?.label) return device.label;
+          return id === 'default' ? 'system default' : `unknown (${id})`;
+        };
+        const speaker = nameOf(
+          'audiooutput',
+          call.speaker.state.selectedDevice,
+        );
+        const participants = call.state.remoteParticipants.map((p) => ({
+          sessionId: p.sessionId,
+          name: p.name || p.userId,
+          publishingAudio: hasAudio(p),
+        }));
+        const players = elements.map((element) => {
+          const stream = element.srcObject as MediaStream | null;
+          const [track] = stream?.getAudioTracks() ?? [];
+          const participant = participants.find(
+            (p) => p.sessionId === element.dataset.sessionId,
+          );
+          return {
+            name: participant?.name ?? element.dataset.sessionId ?? '?',
+            sessionId: element.dataset.sessionId,
+            trackType: element.dataset.trackType,
+            publishingAudio: participant?.publishingAudio ?? false,
+            paused: element.paused,
+            muted: element.muted,
+            volume: element.volume,
+            readyState: element.readyState,
+            autoplayBlocked: call.blockedAudioTracker.isBlocked(element),
+            // browsers without output selection have no sinkId
+            output:
+              'sinkId' in element
+                ? nameOf('audiooutput', element.sinkId)
+                : 'not supported',
+            track: track && {
+              enabled: track.enabled,
+              muted: track.muted,
+              readyState: track.readyState,
+            },
+          };
+        });
+
+        const problems: string[] = [];
+        if (document.visibilityState === 'hidden') {
+          problems.push('The tab was in the background');
+        }
+        for (const p of participants) {
+          if (!p.publishingAudio) continue;
+          const count = players.filter(
+            (player) =>
+              player.sessionId === p.sessionId &&
+              player.trackType !== 'screenShareAudioTrack',
+          ).length;
+          if (count === 0) problems.push(`${p.name}: no audio player`);
+          if (count > 1) problems.push(`${p.name}: ${count} audio players`);
+        }
+        for (const player of players) {
+          const who = player.name;
+          if (player.paused) problems.push(`${who}: player is paused`);
+          if (player.muted) problems.push(`${who}: player is muted`);
+          if (player.volume === 0) problems.push(`${who}: volume is 0`);
+          if (player.autoplayBlocked) {
+            problems.push(`${who}: blocked by the browser autoplay policy`);
+          }
+          if (!player.track) {
+            problems.push(`${who}: player has no audio track`);
+          } else if (player.track.readyState === 'ended') {
+            problems.push(`${who}: audio track has ended`);
+          } else if (player.publishingAudio && player.track.muted) {
+            problems.push(`${who}: no audio data is arriving`);
+          }
+          if (player.output.startsWith('unknown')) {
+            problems.push(`${who}: plays to a device that no longer exists`);
+          } else if (
+            player.output !== 'not supported' &&
+            call.speaker.state.selectedDevice &&
+            player.output !== speaker
+          ) {
+            problems.push(
+              `${who}: speaker is set to "${speaker}" but audio goes to "${player.output}"`,
+            );
+          }
+        }
+        if (problems.length === 0) {
+          const outputs = [
+            ...new Set(
+              players
+                .map((p) => p.output)
+                .filter((output) => output !== 'not supported'),
+            ),
+          ];
+          problems.push(
+            `Nothing wrong is visible in the page. Audio plays to ` +
+              `"${outputs.join('", "') || speaker}". Check whether other ` +
+              `audio (e.g. a YouTube tab) plays on that device.`,
+          );
+        }
+
+        call.tracer.trace('user.cannotHear', {
+          problems,
+          speaker,
+          microphone: nameOf(
+            'audioinput',
+            call.microphone.state.selectedDevice,
+          ),
+          microphoneInUse:
+            call.microphone.state.rootMediaStream?.getAudioTracks()[0]?.label,
+          visibility: document.visibilityState,
+          focused: document.hasFocus(),
+          audioSession: (
+            navigator as Navigator & { audioSession?: { state: string } }
+          ).audioSession?.state,
+          participants,
+          players,
+          devices: devices
+            .filter((d) => d.kind !== 'videoinput')
+            .map(({ kind, label, deviceId }) => ({ kind, label, deviceId })),
+        });
+        console.log('[cannotHear] reported:\n- ' + problems.join('\n- '));
+      }}
+    >
+      <Icon className="rd__button__icon" icon="speaker" />
+      Report
+    </button>
   );
 };
 
