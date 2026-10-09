@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.46.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.46.1...@stream-io/video-react-native-sdk-1.46.2) (2026-10-09)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.11.2`
+- `@stream-io/video-client` updated to version `1.61.2`
+- `@stream-io/video-react-bindings` updated to version `1.20.6`
+
+### Bug Fixes
+
+- **react-native:** only process stream.video call.ring VoIP pushes on iOS ([#2486](https://github.com/GetStream/stream-video-js/issues/2486)) ([b730d22](https://github.com/GetStream/stream-video-js/commit/b730d22d92897db402e9162136c9abf682cb3b7a))
+
 ## [1.46.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.46.0...@stream-io/video-react-native-sdk-1.46.1) (2026-10-01)
 
 ### Dependency Updates
