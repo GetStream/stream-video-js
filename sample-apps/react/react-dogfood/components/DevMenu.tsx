@@ -601,9 +601,10 @@ const ReportCannotHear = () => {
       disabled={!call}
       onClick={async () => {
         if (!call) return;
-        const devices = await navigator.mediaDevices
-          .enumerateDevices()
-          .catch(() => []);
+        // mediaDevices is missing in insecure contexts (plain HTTP)
+        const devices =
+          (await navigator.mediaDevices?.enumerateDevices().catch(() => [])) ??
+          [];
         const elements = Array.from(document.querySelectorAll('audio'));
         // an empty device id follows the system default, which browsers
         // list as a "default" entry labeled after the actual device
@@ -640,7 +641,11 @@ const ReportCannotHear = () => {
             volume: element.volume,
             readyState: element.readyState,
             autoplayBlocked: call.blockedAudioTracker.isBlocked(element),
-            output: nameOf('audiooutput', element.sinkId),
+            // browsers without output selection have no sinkId
+            output:
+              'sinkId' in element
+                ? nameOf('audiooutput', element.sinkId)
+                : 'not supported',
             track: track && {
               enabled: track.enabled,
               muted: track.muted,
@@ -681,6 +686,7 @@ const ReportCannotHear = () => {
           if (player.output.startsWith('unknown')) {
             problems.push(`${who}: plays to a device that no longer exists`);
           } else if (
+            player.output !== 'not supported' &&
             call.speaker.state.selectedDevice &&
             player.output !== speaker
           ) {
@@ -690,7 +696,13 @@ const ReportCannotHear = () => {
           }
         }
         if (problems.length === 0) {
-          const outputs = [...new Set(players.map((p) => p.output))];
+          const outputs = [
+            ...new Set(
+              players
+                .map((p) => p.output)
+                .filter((output) => output !== 'not supported'),
+            ),
+          ];
           problems.push(
             `Nothing wrong is visible in the page. Audio plays to ` +
               `"${outputs.join('", "') || speaker}". Check whether other ` +
