@@ -1,25 +1,28 @@
 import {
+  Avatar,
   StreamVideoRN,
-  useI18n,
+  useConnectedUser,
   useStreamVideoClient,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../hooks/useAppI18n';
 import React, { useMemo } from 'react';
-import { Alert, StyleSheet, Text } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text } from 'react-native';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackHeaderProps } from '@react-navigation/native-stack';
-import { appTheme } from '../theme';
 import { AVATAR_SIZE } from '../constants';
-import { Button } from './Button';
 import { ButtonTestIds } from '../constants/TestIds';
+import Close from '../assets/Close';
+import { Leave } from '../assets/Leave';
 
 export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   const videoClient = useStreamVideoClient();
-  const { t } = useI18n();
+  const user = useConnectedUser();
+  const { t } = useAppI18n();
   const styles = useStyles();
   const userName = useAppGlobalStoreValue((store) => store.userName);
   const environment = useAppGlobalStoreValue((store) => store.appEnvironment);
@@ -31,7 +34,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
       'Are you sure you want to sign out?',
       [
         {
-          text: t('Cancel'),
+          text: t('navigationHeader.logout.cancel.label', 'Cancel'),
           onPress: () => {},
           style: 'cancel',
         },
@@ -66,72 +69,70 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
       route.name === 'TestRecordingScreen');
 
   return (
-    <SafeAreaView style={styles.header} edges={['top']}>
-      <Text style={styles.headerText} numberOfLines={1}>
-        {userName}
-      </Text>
+    <SafeAreaView style={styles.header} edges={['top', 'left', 'right']}>
+      {user && <Avatar user={user} size="lg" />}
+      <Text style={styles.userNameText}>{userName}</Text>
+
       {!showChooseModeButton ? (
-        <Button
-          onPress={logoutHandler}
-          title={t('Logout')}
+        <Pressable
+          style={styles.button}
           testID={ButtonTestIds.LOG_OUT}
-        />
+          onPress={logoutHandler}
+        >
+          <Leave color={styles.icon.color} size={24} />
+        </Pressable>
       ) : (
-        <Button
+        <Pressable
+          style={styles.button}
+          testID={ButtonTestIds.CHOOSE_MODE}
           onPress={() => {
             appStoreSetState({ appMode: 'None' });
           }}
-          title={t('Choose Mode')}
-          titleStyle={styles.buttonText}
-          testID={ButtonTestIds.CHOOSE_MODE}
-        />
+        >
+          <Close color={styles.icon.color} size={24} />
+        </Pressable>
       )}
     </SafeAreaView>
   );
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics, primitives },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         header: {
-          width: '100%',
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          paddingHorizontal: appTheme.spacing.lg,
-          paddingVertical: appTheme.spacing.lg,
-          backgroundColor: theme.colors.sheetSecondary,
-          shadowColor: '#000',
-          shadowOffset: {
-            width: 0,
-            height: 2,
-          },
-          shadowOpacity: 0.23,
-          shadowRadius: 2.62,
-
-          elevation: 4,
-        },
-        headerText: {
-          flexShrink: 1,
-          fontSize: 20,
-          fontWeight: '500',
-          color: theme.colors.textPrimary,
-          marginRight: appTheme.spacing.lg,
+          padding: primitives.spacingSm,
+          gap: primitives.spacingXs,
+          backgroundColor: semantics.backgroundCoreApp,
         },
         avatar: {
           height: AVATAR_SIZE,
           width: AVATAR_SIZE,
           borderRadius: 50,
         },
-        chooseAppMode: {
-          fontWeight: 'bold',
+        userNameText: {
+          flex: 1,
+          paddingLeft: primitives.spacingXs,
+          fontSize: primitives.typographyFontSizeSm,
+          fontWeight: primitives.typographyFontWeightSemiBold,
+          color: semantics.textPrimary,
         },
-        buttonText: {
-          fontSize: 12,
+        icon: {
+          color: semantics.buttonSecondaryText,
+        },
+        button: {
+          width: 40,
+          height: 40,
+          alignItems: 'center',
+          justifyContent: 'center',
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };

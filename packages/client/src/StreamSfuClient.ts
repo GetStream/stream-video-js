@@ -39,7 +39,8 @@ import {
 } from './helpers/promise';
 import { withoutConcurrency } from './helpers/concurrency';
 import { getTimers } from './timers';
-import { Tracer, TraceSlice } from './stats';
+import { getSdkInfo } from './helpers/client-details';
+import { getStreamClientId, Tracer, TraceSlice } from './stats';
 import { SfuJoinError, SfuTimeoutError } from './errors';
 
 export type StreamSfuClientConstructor = {
@@ -271,7 +272,10 @@ export class StreamSfuClient {
     this.rpc = createSignalClient({
       baseUrl: server.url,
       interceptors: [
-        withHeaders({ Authorization: `Bearer ${token}` }),
+        withHeaders({
+          Authorization: `Bearer ${token}`,
+          'X-Stream-Client': getStreamClientId(getSdkInfo()),
+        }),
         this.tracer && withRequestTracer(this.tracer.trace),
         this.logger.getLogLevel() === 'trace' && withRequestLogger(this.logger),
         withTimeout(rpcRequestTimeout, this.tracer?.trace),

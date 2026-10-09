@@ -1,0 +1,52 @@
+.str-video__badge {
+  --str-video__badge-size: var(--str-video__size-20);
+  --str-video__badge-glyph: var(--str-video__size-16);
+  --str-video__badge-font-size: var(--str-video__typography-font-size-sm);
+
+  &--size-xs {
+    --str-video__badge-size: var(--str-video__size-16);
+    --str-video__badge-glyph: var(--str-video__size-12);
+    --str-video__badge-font-size: var(--str-video__typography-font-size-xxs);
+  }
+
+  &--size-sm {
+    --str-video__badge-size: var(--str-video__size-20);
+    --str-video__badge-glyph: var(--str-video__size-16);
+    --str-video__badge-font-size: var(--str-video__typography-font-size-sm);
+  }
+
+  &--size-md {
+    --str-video__badge-size: var(--str-video__size-24);
+    --str-video__badge-glyph: var(--str-video__size-20);
+    --str-video__badge-font-size: var(--str-video__typography-font-size-sm);
+  }
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+
+  min-inline-size: var(--str-video__badge-size);
+  block-size: var(--str-video__badge-size);
+  padding-inline: var(--str-video__spacing-xxs);
+  border-radius: var(--str-video__radius-max);
+  border: var(--str-video__w100) solid;
+  white-space: nowrap;
+
+  font-size: var(--str-video__badge-font-size);
+  font-weight: var(--str-video__typography-font-weight-bold);
+  line-height: 1;
+
+  &--icon {
+    inline-size: var(--str-video__badge-size);
+    padding-inline: 0;
+    overflow: hidden;
+  }
+
+  .str-video__icon {
+    background-color: currentColor;
+    inline-size: var(--str-video__badge-glyph);
+    block-size: var(--str-video__badge-glyph);
+  }
+}

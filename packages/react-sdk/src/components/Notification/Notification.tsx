@@ -3,6 +3,14 @@ import clsx from 'clsx';
 import { Placement } from '@floating-ui/react';
 import { useFloatingUIPreset } from '../../hooks';
 
+export type NotificationState = 'success' | 'error' | 'loading';
+
+const ICON_BY_STATE: Record<NotificationState, string> = {
+  success: 'checkmark',
+  error: 'exclamation-circle-fill',
+  loading: 'loading',
+};
+
 export type NotificationProps = {
   message?: ReactNode;
   isVisible?: boolean;
@@ -10,7 +18,7 @@ export type NotificationProps = {
   resetIsVisible?: () => void;
   placement?: Placement;
   className?: string;
-  iconClassName?: string | null;
+  state?: NotificationState;
   close?: () => void;
 };
 
@@ -23,7 +31,7 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
     resetIsVisible,
     placement = 'top',
     className,
-    iconClassName = 'str-video__notification__icon',
+    state,
     close,
   } = props;
 
@@ -42,11 +50,19 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
     return () => clearTimeout(timeout);
   }, [isVisible, resetIsVisible, visibilityTimeout]);
 
+  const icon =
+    state && `str-video__icon str-video__icon--${ICON_BY_STATE[state]}`;
+
   return (
     <div className="str-video__notification-wrapper" ref={refs.setReference}>
       {isVisible && (
         <div
-          className={clsx('str-video__notification', className)}
+          className={clsx(
+            'str-video__notification',
+            state && `str-video__notification--${state}`,
+            close && 'str-video__notification--dismissible',
+            className,
+          )}
           ref={refs.setFloating}
           style={{
             position: strategy,
@@ -55,7 +71,7 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
             overflowY: 'auto',
           }}
         >
-          {iconClassName && <i className={iconClassName} />}
+          {icon && <i className={icon} />}
           <span className="str-video__notification__message">{message}</span>
           {close ? (
             <i

@@ -1,8 +1,5 @@
-import {
-  useCall,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -21,7 +18,9 @@ type LobbyProps = {
 
 export const ViewerLobby = ({ isLive }: LobbyProps) => {
   const styles = useStyles();
-  const { theme } = useTheme();
+  const {
+    theme: { livestreamViewerLobby },
+  } = useTheme();
   const { t } = useI18n();
   const { useCallStartsAt, useParticipants, useCallCallingState } =
     useCallStateHooks();
@@ -78,7 +77,7 @@ export const ViewerLobby = ({ isLive }: LobbyProps) => {
 
   if (error) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, livestreamViewerLobby.container]}>
         <Text style={styles.text}>
           Error joining the livestream. Please try again later.
         </Text>
@@ -89,40 +88,70 @@ export const ViewerLobby = ({ isLive }: LobbyProps) => {
   const isJoiningLiveCall = callingState === CallingState.JOINING;
   if (isJoiningLiveCall) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color={theme.colors.textPrimary} />
+      <View style={[styles.container, livestreamViewerLobby.container]}>
+        <ActivityIndicator
+          size="large"
+          color={livestreamViewerLobby.text.color}
+        />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>
+    <View style={[styles.container, livestreamViewerLobby.container]}>
+      <Text style={[styles.text, livestreamViewerLobby.text]}>
         {isLive
-          ? t('Livestream is still in progress')
+          ? t(
+              'livestreamViewer.stillInProgress.text',
+              'Livestream is still in progress',
+            )
           : startsAt
-            ? t('Livestream will start in:')
-            : t('Livestream will start soon')}
+            ? t(
+                'livestreamViewer.willStartIn.text',
+                'Livestream will start in:',
+              )
+            : t(
+                'livestreamViewer.willStartSoon.text',
+                'Livestream will start soon',
+              )}
       </Text>
       {startsAt && !isLive && (
-        <Text style={styles.countdownText}>{countdown}</Text>
+        <Text
+          style={[styles.countdownText, livestreamViewerLobby.countdownText]}
+        >
+          {countdown}
+        </Text>
       )}
       {!isLive && participants.length > 0 && (
         <>
-          <Text style={styles.participantsText}>
-            {`${participants.length} ${t('participants have joined early')}`}
+          <Text
+            style={[
+              styles.participantsText,
+              livestreamViewerLobby.participantsText,
+            ]}
+          >
+            {t('livestreamViewer.earlyParticipants.text', {
+              count: participants.length,
+              defaultValue_one: '{{ count }} participant has joined early',
+              defaultValue_other: '{{ count }} participants have joined early',
+            })}
           </Text>
         </>
       )}
       {isLive && (
-        <Button title={t('Join Livestream')} onPress={() => call?.join()} />
+        <Button
+          title={t('livestreamViewer.join.label', 'Join Livestream')}
+          onPress={() => call?.join()}
+        />
       )}
     </View>
   );
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
@@ -130,29 +159,27 @@ const useStyles = () => {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: theme.colors.sheetPrimary,
-          padding: theme.variants.spacingSizes.lg,
         },
         text: {
-          color: theme.colors.textPrimary,
-          fontSize: theme.variants.fontSizes.lg,
-          margin: theme.variants.spacingSizes.md,
+          color: semantics.textPrimary,
+          fontSize: primitives.typographyFontSizeLg,
+          margin: primitives.spacingMd,
           textAlign: 'center',
         },
         countdownText: {
-          color: theme.colors.textPrimary,
-          fontSize: theme.variants.fontSizes.xl,
-          fontWeight: 'bold',
-          marginBottom: theme.variants.spacingSizes.md,
+          color: semantics.textPrimary,
+          fontSize: primitives.typographyFontSizeXl,
+          fontWeight: primitives.typographyFontWeightBold,
+          marginBottom: primitives.spacingMd,
           textAlign: 'center',
         },
         participantsText: {
-          color: theme.colors.textSecondary,
-          fontSize: theme.variants.fontSizes.md,
-          marginBottom: theme.variants.spacingSizes.sm,
+          color: semantics.textSecondary,
+          fontSize: primitives.typographyFontSizeMd,
+          marginBottom: primitives.spacingSm,
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };
 

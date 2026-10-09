@@ -8,7 +8,6 @@ import {
 import clsx from 'clsx';
 
 import {
-  CallStats,
   CompositeButton,
   DeviceSelectorAudioInput,
   DeviceSelectorAudioOutput,
@@ -18,20 +17,23 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
-  useI18n,
   useMenuContext,
   WithTooltip,
 } from '@stream-io/video-react-sdk';
 
+import { CallStats } from '../CallStats';
 import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
 import { VideoEffectsSettings } from './VideoEffects';
 import { TranscriptionSettings } from './Transcriptions';
 import { LanguageMenu } from './LanguageMenu';
+import { ThemeMenu } from './ThemeMenu';
 import { CallRecordings } from '../CallRecordings';
 import { useSettings } from '../../context/SettingsContext';
 import { useIsProntoEnvironment } from '../../context/AppEnvironmentContext';
 import { IncomingVideoSettingsDropdown } from '../IncomingVideoSettings';
 import { DeviceSelectionSettingsDropdown } from './DeviceSelection';
+import { OnOffSettingsDropdown } from './OnOffSettingsDropdown';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 type ToggleSettingsTabModalProps = {
   inMeeting: boolean;
@@ -70,11 +72,13 @@ const Tab = ({ children, active, setActive }: PropsWithChildren<TabProps>) => {
 
 const TabPanel = ({ children }: PropsWithChildren) => {
   const { close } = useMenuContext();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   return (
     <div className="rd__tab-panel">
       <div className="rd__tab-panel__header">
-        <h2 className="rd__tab-panel__heading">{t('Settings')}</h2>
+        <h2 className="rd__tab-panel__heading">
+          {t('settings.settings.title', 'Settings')}
+        </h2>
         <IconButton
           className="rd__tab-panel__close"
           icon="close"
@@ -93,11 +97,13 @@ const SettingsTabModal = ({
   activeTab = 0,
 }: SettingsTabModalProps) => {
   const [active, setActive] = useState(activeTab);
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   return (
     <div className="rd__tabmodal-container">
       <div className="rd__tabmodal-sidebar">
-        <h2 className="rd__tabmodal-header">{t('Settings')}</h2>
+        <h2 className="rd__tabmodal-header">
+          {t('settings.settings.title', 'Settings')}
+        </h2>
         {Children.map(children, (child, index) => {
           if (!child || !child.props.inMeeting || child.props.hidden) {
             return null;
@@ -133,42 +139,83 @@ export const SettingsTabModalMenu = (props: {
   layoutProps: LayoutSelectorProps;
 }) => {
   const {
-    settings: { language, setLanguage },
+    settings: {
+      language,
+      setLanguage,
+      speakingDetectionEnabled,
+      setSpeakingDetectionEnabled,
+    },
   } = useSettings();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   const { tabModalProps, layoutProps } = props;
   const isPronto = useIsProntoEnvironment();
 
   return (
     <SettingsTabModal {...tabModalProps}>
-      <TabWrapper icon="device-settings" label={t('Device settings')} inMeeting>
+      <TabWrapper
+        icon="device-settings"
+        label={t('settings.deviceSettings.label', 'Device settings')}
+        inMeeting
+      >
         <DeviceSelectorVideo
           visualType="dropdown"
-          title={t('Select a Camera')}
+          title={t('deviceSettings.selectCamera.title', 'Select a Camera')}
         />
         <DeviceSelectorAudioInput
           visualType="dropdown"
-          title={t('Select a Mic')}
+          volumeIndicatorVisible={speakingDetectionEnabled}
+          title={t('deviceSettings.selectMic.title', 'Select a Mic')}
         />
         <DeviceSelectorAudioOutput
           visualType="dropdown"
-          title={t('Select a Speaker')}
+          title={t(
+            'settings.deviceSettings.selectSpeaker.title',
+            'Select a Speaker',
+          )}
         />
-        <IncomingVideoSettingsDropdown title={t('Incoming video quality')} />
+        <IncomingVideoSettingsDropdown
+          title={t(
+            'settings.incomingVideoQuality.title',
+            'Incoming video quality',
+          )}
+        />
         <div className="rd__tab-panel__note">
           {t(
+            'settings.incomingVideoQuality.description',
             'Actual incoming video quality depends on a number of factors, such as the quality of the source video, and network conditions.',
           )}
         </div>
         <DeviceSelectionSettingsDropdown
-          title={t('Default device preference')}
+          title={t(
+            'settings.deviceSelection.title',
+            'Default device preference',
+          )}
         />
+        <OnOffSettingsDropdown
+          title={t('settings.speakingDetection.title', 'Speaking detection')}
+          enabled={speakingDetectionEnabled}
+          setEnabled={setSpeakingDetectionEnabled}
+        />
+        <div className="rd__tab-panel__note">
+          {t(
+            'settings.speakingDetection.description',
+            'Listens to your microphone to show level meters and the lobby speaking indicator, and warn you when you speak while muted. Turn it off if your audio device misbehaves.',
+          )}
+        </div>
       </TabWrapper>
-      <TabWrapper icon="video-effects" label={t('Effects')} inMeeting>
+      <TabWrapper
+        icon="video-effects"
+        label={t('settings.effects.label', 'Effects')}
+        inMeeting
+      >
         <VideoEffectsSettings />
       </TabWrapper>
-      <TabWrapper icon="grid" label={t('Layout')} inMeeting>
+      <TabWrapper
+        icon="grid"
+        label={t('settings.layout.label', 'Layout')}
+        inMeeting
+      >
         <LayoutSelector
           onMenuItemClick={layoutProps.onMenuItemClick}
           selectedLayout={layoutProps.selectedLayout}
@@ -176,7 +223,7 @@ export const SettingsTabModalMenu = (props: {
       </TabWrapper>
       <TabWrapper
         icon="stats"
-        label={t('Statistics')}
+        label={t('callControls.callStatsButton.statistics.title', 'Statistics')}
         inMeeting={tabModalProps.inMeeting}
       >
         <CallStats />
@@ -184,20 +231,32 @@ export const SettingsTabModalMenu = (props: {
 
       <TabWrapper
         icon="transcriptions"
-        label={t('Transcriptions')}
+        label={t('settings.transcriptions.label', 'Transcriptions')}
         inMeeting
         hidden={!isPronto}
       >
         <TranscriptionSettings />
       </TabWrapper>
 
-      <TabWrapper icon="language" label={t('Language')} inMeeting>
+      <TabWrapper
+        icon="language"
+        label={t('common.language.label', 'Language')}
+        inMeeting
+      >
         <LanguageMenu language={language} setLanguage={setLanguage!} />
       </TabWrapper>
 
       <TabWrapper
+        icon="theme"
+        label={t('settings.theme.label', 'Theme')}
+        inMeeting
+      >
+        <ThemeMenu />
+      </TabWrapper>
+
+      <TabWrapper
         icon="film-roll"
-        label={t('Recording library')}
+        label={t('settings.recordingLibrary.label', 'Recording library')}
         inMeeting={tabModalProps.inMeeting}
       >
         <CallRecordings />
@@ -210,9 +269,9 @@ const ToggleSettingsMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
 >(function ToggleSettingsMenuButtonRender(props, ref) {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   return (
-    <WithTooltip title={t('Settings')}>
+    <WithTooltip title={t('settings.settings.title', 'Settings')}>
       <CompositeButton ref={ref} active={props.menuShown}>
         <Icon icon="device-settings" />
       </CompositeButton>

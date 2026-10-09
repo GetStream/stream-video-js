@@ -1,4 +1,4 @@
-import { test, type TestContext } from 'node:test';
+import { describe, expect, it } from 'vitest';
 import { applyFilter } from './filter';
 
 const obj = {
@@ -7,133 +7,141 @@ const obj = {
   array: ['apples', 'bananas'],
 };
 
-test('checks single $eq condition', (t: TestContext) => {
-  t.assert.ok(applyFilter(obj, { num: { $eq: 42 } }));
-  t.assert.ok(!applyFilter(obj, { num: { $eq: 43 } }));
-});
+describe('applyFilter', () => {
+  it('checks single $eq condition', () => {
+    expect(applyFilter(obj, { num: { $eq: 42 } })).toBe(true);
+    expect(applyFilter(obj, { num: { $eq: 43 } })).toBe(false);
+  });
 
-test('checks single $neq condition', (t: TestContext) => {
-  t.assert.ok(applyFilter(obj, { num: { $neq: 43 } }));
-  t.assert.ok(!applyFilter(obj, { num: { $neq: 42 } }));
-});
+  it('checks single $neq condition', () => {
+    expect(applyFilter(obj, { num: { $neq: 43 } })).toBe(true);
+    expect(applyFilter(obj, { num: { $neq: 42 } })).toBe(false);
+  });
 
-test('checks single $gt condition', (t: TestContext) => {
-  t.assert.ok(applyFilter(obj, { num: { $gt: 41 } }));
-  t.assert.ok(!applyFilter(obj, { num: { $gt: 42 } }));
-});
+  it('checks single $gt condition', () => {
+    expect(applyFilter(obj, { num: { $gt: 41 } })).toBe(true);
+    expect(applyFilter(obj, { num: { $gt: 42 } })).toBe(false);
+  });
 
-test('checks single $gte condition', (t: TestContext) => {
-  t.assert.ok(applyFilter(obj, { num: { $gte: 42 } }));
-  t.assert.ok(!applyFilter(obj, { num: { $gte: 43 } }));
-});
+  it('checks single $gte condition', () => {
+    expect(applyFilter(obj, { num: { $gte: 42 } })).toBe(true);
+    expect(applyFilter(obj, { num: { $gte: 43 } })).toBe(false);
+  });
 
-test('checks single $lt condition', (t: TestContext) => {
-  t.assert.ok(applyFilter(obj, { num: { $lt: 43 } }));
-  t.assert.ok(!applyFilter(obj, { num: { $lt: 42 } }));
-});
+  it('checks single $lt condition', () => {
+    expect(applyFilter(obj, { num: { $lt: 43 } })).toBe(true);
+    expect(applyFilter(obj, { num: { $lt: 42 } })).toBe(false);
+  });
 
-test('checks single $lte condition', (t: TestContext) => {
-  t.assert.ok(applyFilter(obj, { num: { $lte: 42 } }));
-  t.assert.ok(!applyFilter(obj, { num: { $lte: 41 } }));
-});
+  it('checks single $lte condition', () => {
+    expect(applyFilter(obj, { num: { $lte: 42 } })).toBe(true);
+    expect(applyFilter(obj, { num: { $lte: 41 } })).toBe(false);
+  });
 
-test('checks single $in condition', (t: TestContext) => {
-  t.assert.ok(applyFilter(obj, { num: { $in: [41, 42, 43] } }));
-  t.assert.ok(!applyFilter(obj, { num: { $in: [1, 2, 3] } }));
-});
+  it('checks single $in condition', () => {
+    expect(applyFilter(obj, { num: { $in: [41, 42, 43] } })).toBe(true);
+    expect(applyFilter(obj, { num: { $in: [1, 2, 3] } })).toBe(false);
+  });
 
-test('checks single $contains condition', (t: TestContext) => {
-  t.assert.ok(applyFilter(obj, { array: { $contains: 'apples' } }));
-  t.assert.ok(!applyFilter(obj, { array: { $contains: 'cherries' } }));
-});
+  it('checks single $contains condition', () => {
+    expect(applyFilter(obj, { array: { $contains: 'apples' } })).toBe(true);
+    expect(applyFilter(obj, { array: { $contains: 'cherries' } })).toBe(false);
+  });
 
-test('fails $contains condition if value is not array', (t: TestContext) => {
-  // This case is not permitted by types, but can still happen in runtime
-  t.assert.ok(!applyFilter(obj as any, { str: { $contains: 'apples' } }));
-});
+  it('fails $contains condition if value is not array', () => {
+    // This case is not permitted by types, but can still happen in runtime
+    expect(applyFilter(obj as any, { str: { $contains: 'apples' } })).toBe(
+      false,
+    );
+  });
 
-test('conditions without operator are treated as $eq', (t: TestContext) => {
-  t.assert.ok(applyFilter(obj, { num: 42 }));
-  t.assert.ok(!applyFilter(obj, { num: 43 }));
-});
+  it('conditions without operator are treated as $eq', () => {
+    expect(applyFilter(obj, { num: 42 })).toBe(true);
+    expect(applyFilter(obj, { num: 43 })).toBe(false);
+  });
 
-test('checks multiple conditions', (t: TestContext) => {
-  t.assert.ok(applyFilter(obj, { num: 42, array: { $contains: 'bananas' } }));
-  t.assert.ok(!applyFilter(obj, { num: 42, array: { $contains: 'cherries' } }));
-});
+  it('checks multiple conditions', () => {
+    expect(applyFilter(obj, { num: 42, array: { $contains: 'bananas' } })).toBe(
+      true,
+    );
+    expect(
+      applyFilter(obj, { num: 42, array: { $contains: 'cherries' } }),
+    ).toBe(false);
+  });
 
-test('applies $and filter', (t: TestContext) => {
-  t.assert.ok(
-    applyFilter(obj, {
-      $and: [
-        { num: 42, array: { $contains: 'bananas' } },
-        { str: 'hello, world', array: { $contains: 'apples' } },
-      ],
-    }),
-  );
+  it('applies $and filter', () => {
+    expect(
+      applyFilter(obj, {
+        $and: [
+          { num: 42, array: { $contains: 'bananas' } },
+          { str: 'hello, world', array: { $contains: 'apples' } },
+        ],
+      }),
+    ).toBe(true);
 
-  t.assert.ok(
-    !applyFilter(obj, {
-      $and: [
-        { num: 42, array: { $contains: 'bananas' } },
-        { str: 'hello, world', array: { $contains: 'cherries' } },
-      ],
-    }),
-  );
-});
+    expect(
+      applyFilter(obj, {
+        $and: [
+          { num: 42, array: { $contains: 'bananas' } },
+          { str: 'hello, world', array: { $contains: 'cherries' } },
+        ],
+      }),
+    ).toBe(false);
+  });
 
-test('applies $or filter', (t: TestContext) => {
-  t.assert.ok(
-    applyFilter(obj, {
-      $or: [
-        { str: 'hello, world', array: { $contains: 'cherries' } },
-        { num: 42, array: { $contains: 'bananas' } },
-      ],
-    }),
-  );
-
-  t.assert.ok(
-    !applyFilter(obj, {
-      $or: [
-        { str: 'hello, world', array: { $contains: 'cherries' } },
-        { num: 43, array: { $contains: 'bananas' } },
-      ],
-    }),
-  );
-});
-
-test('applies $not filter', (t: TestContext) => {
-  t.assert.ok(
-    applyFilter(obj, {
-      $not: { str: 'hello, world', array: { $contains: 'cherries' } },
-    }),
-  );
-});
-
-test('applies nested filters', (t: TestContext) => {
-  t.assert.ok(
-    applyFilter(obj, {
-      $or: [
-        { str: 'hello, world', array: { $contains: 'cherries' } },
-        { $and: [{ num: 42 }, { array: { $contains: 'bananas' } }] },
-      ],
-    }),
-  );
-
-  t.assert.ok(
-    applyFilter(obj, {
-      $not: {
+  it('applies $or filter', () => {
+    expect(
+      applyFilter(obj, {
         $or: [
           { str: 'hello, world', array: { $contains: 'cherries' } },
-          {
-            $and: [
-              { num: 42 },
-              { array: { $contains: 'bananas' } },
-              { str: 'bye, world' },
-            ],
-          },
+          { num: 42, array: { $contains: 'bananas' } },
         ],
-      },
-    }),
-  );
+      }),
+    ).toBe(true);
+
+    expect(
+      applyFilter(obj, {
+        $or: [
+          { str: 'hello, world', array: { $contains: 'cherries' } },
+          { num: 43, array: { $contains: 'bananas' } },
+        ],
+      }),
+    ).toBe(false);
+  });
+
+  it('applies $not filter', () => {
+    expect(
+      applyFilter(obj, {
+        $not: { str: 'hello, world', array: { $contains: 'cherries' } },
+      }),
+    ).toBe(true);
+  });
+
+  it('applies nested filters', () => {
+    expect(
+      applyFilter(obj, {
+        $or: [
+          { str: 'hello, world', array: { $contains: 'cherries' } },
+          { $and: [{ num: 42 }, { array: { $contains: 'bananas' } }] },
+        ],
+      }),
+    ).toBe(true);
+
+    expect(
+      applyFilter(obj, {
+        $not: {
+          $or: [
+            { str: 'hello, world', array: { $contains: 'cherries' } },
+            {
+              $and: [
+                { num: 42 },
+                { array: { $contains: 'bananas' } },
+                { str: 'bye, world' },
+              ],
+            },
+          ],
+        },
+      }),
+    ).toBe(true);
+  });
 });

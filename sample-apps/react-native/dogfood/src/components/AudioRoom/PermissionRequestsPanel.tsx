@@ -3,14 +3,14 @@ import {
   PermissionRequestEvent,
   useCall,
   useCallStateHooks,
-  useI18n,
 } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 import React, { useEffect, useState } from 'react';
 import { Button, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export const PermissionRequestsPanel = () => {
   const call = useCall();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   const { useHasPermissions } = useCallStateHooks();
   const canUpdatePermissions = useHasPermissions(
@@ -58,17 +58,21 @@ export const PermissionRequestsPanel = () => {
       {speakingRequests.map((request) => (
         <View style={styles.itemContainer} key={request.user.id}>
           <Text style={styles.text} numberOfLines={2} ellipsizeMode="tail">
-            {t('{{ user }} requested to {{ permissions }}', {
-              user: request.user.name,
-              permissions: request.permissions.join(','),
-            })}
+            {t(
+              'permissionRequests.request.text',
+              '{{ user }} requested to {{ permissions }}',
+              {
+                user: request.user.name,
+                permissions: request.permissions.join(','),
+              },
+            )}
           </Text>
           <Button
-            title={t('Approve')}
+            title={t('permissionRequests.approve.label', 'Approve')}
             onPress={() => handlePermissionRequest(request, true)}
           />
           <Button
-            title={t('Deny')}
+            title={t('permissionRequests.deny.label', 'Deny')}
             onPress={() => handlePermissionRequest(request, false)}
           />
         </View>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 import { CompositeButton } from '../Button';
 import { Icon } from '../Icon';
 
@@ -62,12 +63,16 @@ export const SpeakerTest = (props: { audioUrl?: string }) => {
       />
       <CompositeButton
         className="str-video__speaker-test__button"
+        appearance="outline"
+        size="sm"
         onClick={handleStartTest}
         type="button"
       >
         <div className="str-video__speaker-test__button-content">
           <Icon icon="speaker" />
-          {isPlaying ? t('Stop test') : t('Test speaker')}
+          {isPlaying
+            ? t('deviceSettings.speakerTest.stopTest.label', 'Stop test')
+            : t('deviceSettings.speakerTest.testSpeaker.label', 'Test speaker')}
         </div>
       </CompositeButton>
     </div>

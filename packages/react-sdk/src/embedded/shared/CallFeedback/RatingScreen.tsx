@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useI18n } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { Button } from '../../../components';
 import { StarRating } from './StarRating';
 
@@ -19,15 +19,24 @@ export const RatingScreen = ({ onSubmit }: RatingScreenProps) => {
   return (
     <div className="str-video__embedded-call-feedback__container">
       <h2 className="str-video__embedded-call-feedback__title">
-        {t('Share your feedback')}
+        {t(
+          'callFeedback.ratingScreen.shareYourFeedback.title',
+          'Share your feedback',
+        )}
       </h2>
 
       <StarRating value={rating} onChange={setRating} />
 
       <textarea
-        aria-label={t('Feedback message')}
+        aria-label={t(
+          'callFeedback.ratingScreen.feedbackMessage.ariaLabel',
+          'Feedback message',
+        )}
         className="str-video__embedded-call-feedback__textarea"
-        placeholder={t('Tell us about your experience...')}
+        placeholder={t(
+          'callFeedback.ratingScreen.tellUsAboutExperience.placeholder',
+          'Tell us about your experience...',
+        )}
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         rows={3}
@@ -35,7 +44,10 @@ export const RatingScreen = ({ onSubmit }: RatingScreenProps) => {
 
       <div className="str-video__embedded-call-feedback__actions">
         <Button size="sm" onClick={handleSubmit} disabled={rating === 0}>
-          {t('Submit feedback')}
+          {t(
+            'callFeedback.ratingScreen.submitFeedback.label',
+            'Submit feedback',
+          )}
         </Button>
       </div>
     </div>

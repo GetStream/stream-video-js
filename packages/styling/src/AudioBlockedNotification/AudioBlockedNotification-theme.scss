@@ -1,23 +1,18 @@
 .str-video__audio-blocked-notification {
-  background: var(--str-video__audio-blocked-overlay-color);
+  background: var(--str-video__background-core-overlay-dark);
   border-radius: inherit;
-  transition: background-color 0.15s ease;
-
-  &:hover {
-    background: var(--str-video__audio-blocked-overlay-color-hovered);
-  }
 
   .str-video__audio-blocked-notification__message {
-    background-color: var(--str-video__background-color1);
-    border-radius: var(--str-video__border-radius-xs);
-    color: var(--str-video__text-color1);
+    background-color: var(--str-video__background-core-overlay-dark-strong);
+    border-radius: var(--str-video__radius-md);
+    color: var(--str-video__text-on-accent);
 
     .str-video__icon {
-      background-color: var(--str-video__text-color1);
+      background-color: var(--str-video__text-on-accent);
     }
   }
 
   .str-video__audio-blocked-notification__subtitle {
-    color: var(--str-video__text-color2);
+    color: var(--str-video__text-on-accent);
   }
 }

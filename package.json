@@ -41,6 +41,7 @@
     "build:libs": "yarn workspaces foreach --all -v --topological-dev --no-private run build",
     "measure:bundle-size": "node scripts/bundle-size/measure.mts --out bundle-sizes.json",
     "clean:all": "yarn workspaces foreach --all -vt run clean",
+    "lint:gen": "eslint --fix 'packages/client/src/gen/coordinator/**/*.ts' && prettier --log-level=warn --write 'packages/client/src/gen/coordinator/**/*.ts'",
     "lint:all": "yarn lint:packages && yarn lint:sample-apps",
     "lint:packages": "eslint --cache --fix 'packages/**/*.{ts,tsx}' && prettier --check 'packages/**/*.{ts,tsx}'",
     "lint:sample-apps": "eslint --cache --fix 'sample-apps/**/*.{ts,tsx}' && prettier --check 'sample-apps/**/*.{ts,tsx}'",
@@ -80,6 +81,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-compiler": "^19.1.0-rc.2",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-unused-imports": "^4.4.1",
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
@@ -101,9 +103,6 @@
       "built": true
     },
     "@nestjs/core": {
-      "built": true
-    },
-    "@openapitools/openapi-generator-cli": {
       "built": true
     },
     "@parcel/watcher": {

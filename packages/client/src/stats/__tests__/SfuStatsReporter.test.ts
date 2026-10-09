@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-import { BehaviorSubject } from 'rxjs';
 import { SfuStatsReporter } from '../SfuStatsReporter';
 import { promiseWithResolvers } from '../../helpers/promise';
 
@@ -9,10 +8,7 @@ const okResponse = { response: {} };
 const makeSlice = () => ({ snapshot: [] as unknown[], rollback: vi.fn() });
 
 const makeStats = (pending: Array<{ delta: object; ts: number }>) => ({
-  takeSample: vi.fn().mockResolvedValue({
-    performanceStats: [],
-    stats: new Map(),
-  }),
+  takeSample: vi.fn().mockResolvedValue([]),
   getPendingDeltas: vi.fn(() => pending),
   commitDeltas: vi.fn(),
   clearPendingDeltas: vi.fn(),
@@ -49,23 +45,11 @@ const build = (
   const sfuClient = { sendStats, getTrace: vi.fn(() => undefined) };
   const callTracer = { take: vi.fn(makeSlice), setEnabled: vi.fn() };
 
-  // device permission is 'denied' so observeDevice() doesn't reach listDevices()
-  const microphone = {
-    state: { browserPermissionState$: new BehaviorSubject('denied') },
-  };
-  const camera = {
-    state: { browserPermissionState$: new BehaviorSubject('denied') },
-  };
-  const state = { ownCapabilities$: new BehaviorSubject([]) };
-
   const reporter = new SfuStatsReporter(sfuClient as never, {
     options: { reporting_interval_ms: 1000, enable_rtc_stats: true } as never,
     clientDetails: { sdk: undefined, browser: undefined } as never,
     subscriber: subscriber as never,
     publisher: publisher as never,
-    microphone: microphone as never,
-    camera: camera as never,
-    state: state as never,
     tracer: callTracer as never,
     unifiedSessionId: 'unified',
   });
@@ -143,7 +127,7 @@ describe('SfuStatsReporter delta delivery', () => {
     await Promise.resolve();
     expect(resolved).toBe(false); // still sampling -> flush not resolved
 
-    dGet.resolve({ delta: {}, performanceStats: [], stats: new Map() });
+    dGet.resolve([]);
     await flushed;
     expect(resolved).toBe(true); // resolves after the sample, not the send
   });

@@ -1,8 +1,8 @@
 .str-video__embedded-join-error {
-  background: var(--str-video__base-color4);
-  color: var(--str-video__text-color1);
+  background: var(--str-video__background-core-app);
+  color: var(--str-video__text-primary);
 }
 
 .str-video__embedded-join-error__message {
-  color: var(--str-video__text-color2);
+  color: var(--str-video__text-secondary);
 }

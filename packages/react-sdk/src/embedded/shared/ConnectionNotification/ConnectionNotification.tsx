@@ -1,6 +1,7 @@
 import { CallingState } from '@stream-io/video-client';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
-import { LoadingIndicator, Notification } from '../../../components';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
+import { Notification } from '../../../components';
 
 export const ConnectionNotification = () => {
   const { t } = useI18n();
@@ -21,11 +22,18 @@ export const ConnectionNotification = () => {
       <div className="str-video__embedded-connection-notification">
         <Notification
           isVisible
+          state="error"
           placement="bottom"
           message={
             isOffline
-              ? t('You are offline. Check your internet connection.')
-              : t('Failed to restore connection. Please try again.')
+              ? t(
+                  'connectionNotification.offline.text',
+                  'You are offline. Check your internet connection.',
+                )
+              : t(
+                  'connectionNotification.failedToRestore.text',
+                  'Failed to restore connection. Please try again.',
+                )
           }
         />
       </div>
@@ -37,18 +45,17 @@ export const ConnectionNotification = () => {
       <div className="str-video__embedded-connection-notification">
         <Notification
           isVisible
+          state="loading"
           placement="bottom"
-          iconClassName={null}
           message={
-            <LoadingIndicator
-              text={
-                isMigrating
-                  ? t('Migrating...')
-                  : isJoining
-                    ? t('Joining')
-                    : t('Reconnecting...')
-              }
-            />
+            isMigrating
+              ? t('connectionNotification.migrating.text', 'Migrating...')
+              : isJoining
+                ? t('connectionNotification.joining.text', 'Joining')
+                : t(
+                    'connectionNotification.reconnecting.text',
+                    'Reconnecting...',
+                  )
           }
         />
       </div>

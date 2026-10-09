@@ -2,36 +2,43 @@
 
 .str-video {
   /* The font color applied inside the component */
-  --str-video__video-preview-container--color: var(--str-video__text-color1);
+  --str-video__video-preview-container--color: var(--str-video__text-primary);
 
   /* The background color of the component */
   --str-video__video-preview-container--background-color: var(
-    --str-video__background-color5
+    --str-video__background-core-surface-subtle
   );
 
   /* The border radius used for the borders of the component */
   --str-video__video-preview-container--border-radius: var(
-    --str-video__border-radius-xs
+    --str-video__radius-2xl
   );
-
   /* The border used for the borders of the component */
-  --str-video__video-preview-container--border-block-start: 4px solid
-    var(--str-video__primary-color);
-
+  --str-video__video-preview-container--border-block-start: var(
+      --str-video__w100
+    )
+    solid var(--str-video__border-core-default);
   /* The border used for the borders of the component */
-  --str-video__video-preview-container--border-block-end: 4px solid
-    var(--str-video__primary-color);
-
+  --str-video__video-preview-container--border-block-end: var(--str-video__w100)
+    solid var(--str-video__border-core-default);
   /* The border used for the borders of the component */
-  --str-video__video-preview-container--border-inline-start: 4px solid
-    var(--str-video__primary-color);
-
+  --str-video__video-preview-container--border-inline-start: var(
+      --str-video__w100
+    )
+    solid var(--str-video__border-core-default);
   /* The border used for the borders of the component */
-  --str-video__video-preview-container--border-inline-end: 4px solid
-    var(--str-video__primary-color);
+  --str-video__video-preview-container--border-inline-end: var(
+      --str-video__w100
+    )
+    solid var(--str-video__border-core-default);
 }
 
 .str-video__video-preview-container {
   @include utils.component-layer-overrides('video-preview-container');
   overflow: hidden;
+
+  &--speaking {
+    outline: var(--str-video__w200) solid var(--str-video__accent-primary);
+    outline-offset: calc(var(--str-video__w200) * -1);
+  }
 }

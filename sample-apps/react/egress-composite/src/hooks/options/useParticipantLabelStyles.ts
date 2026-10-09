@@ -9,7 +9,8 @@ export const useParticipantLabelStyles = () => {
   const {
     options: {
       'participant_label.display': participantLabelDisplay = true,
-      'participant_label.text_color': participantLabelTextColor,
+      'participant_label.text_color':
+        participantLabelTextColor = 'var(--str-video__text-on-accent)',
       'participant_label.background_color': participantLabelBackgroundColor,
       'participant_label.border_width': participantLabelBorderWidth = '0',
       'participant_label.border_radius': participantLabelBorderRadius,
@@ -36,7 +37,7 @@ export const useParticipantLabelStyles = () => {
     css`
       @layer overrides-layer {
         & .str-video__participant-details {
-          color: ${participantLabelTextColor};
+          --str-video__participant-label--color: ${participantLabelTextColor};
         }
 
         & .str-video__participant-details {

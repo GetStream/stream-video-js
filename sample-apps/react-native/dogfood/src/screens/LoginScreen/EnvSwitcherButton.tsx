@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { Modal, Pressable, StyleSheet } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Modal, Pressable, StyleSheet, Text, TextInput } from 'react-native';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { View } from 'react-native';
-import { defaultTheme } from '@stream-io/video-react-native-sdk';
-import { Button } from '../../components/Button';
+import { Button } from '@stream-io/video-react-native-sdk/src/components';
+import { useTheme } from '@stream-io/video-react-native-sdk';
 
 const appEnvironments: AppEnvironment[] = [
   'pronto',
@@ -18,6 +18,7 @@ const appEnvironments: AppEnvironment[] = [
 export default function EnvSwitcherButton() {
   const [modalVisible, setModalVisible] = useState(false);
   const closeModal = () => setModalVisible(false);
+  const styles = useStyles();
 
   return (
     <>
@@ -43,11 +44,13 @@ export default function EnvSwitcherButton() {
               closeModal={closeModal}
               useLocalSfu
             />
+            <RingStateOptions />
           </View>
         </Pressable>
       </Modal>
       <Button
-        title={'Switch Environment'}
+        style={{ alignSelf: 'flex-end' }}
+        text={'Switch Environment'}
         onPress={() => {
           setModalVisible(true);
         }}
@@ -55,6 +58,47 @@ export default function EnvSwitcherButton() {
     </>
   );
 }
+
+/**
+ * Ring state options, used to dogfood the pollable ring state (VID-1444):
+ * a coordinator override for reaching an edge that serves the `ring_state`
+ * endpoint, and a switch to compare the ringing experience with polling off.
+ *
+ * Both are persisted, so the client created for a push in the background picks
+ * them up too.
+ */
+const RingStateOptions = () => {
+  const coordinatorBaseUrl = useAppGlobalStoreValue(
+    (store) => store.coordinatorBaseUrl,
+  );
+  const disableRingStatePolling = useAppGlobalStoreValue(
+    (store) => store.disableRingStatePolling,
+  );
+  const setState = useAppGlobalStoreSetState();
+  const styles = useStyles();
+  return (
+    <>
+      <Text style={styles.modalSectionText}>{'Ring state'}</Text>
+      <TextInput
+        placeholder={'Coordinator URL (blank = default)'}
+        defaultValue={coordinatorBaseUrl}
+        onEndEditing={(e) =>
+          setState({ coordinatorBaseUrl: e.nativeEvent.text.trim() })
+        }
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="url"
+        style={styles.modalInput}
+      />
+      <Button
+        text={`Polling: ${disableRingStatePolling ? 'off' : 'on'}`}
+        onPress={() =>
+          setState({ disableRingStatePolling: !disableRingStatePolling })
+        }
+      />
+    </>
+  );
+};
 
 const SwitcherButton = ({
   environment,
@@ -67,13 +111,7 @@ const SwitcherButton = ({
   closeModal: () => void;
   useLocalSfu?: boolean;
 }) => {
-  const appEnvironment = useAppGlobalStoreValue(
-    (store) => store.appEnvironment,
-  );
-  const useLocalSfuState = useAppGlobalStoreValue((store) => store.useLocalSfu);
   const setState = useAppGlobalStoreSetState();
-  const isSelected =
-    appEnvironment === environment && useLocalSfuState === useLocalSfu;
   const onPress = () => {
     setState({ appEnvironment: environment, useLocalSfu });
   };
@@ -81,13 +119,7 @@ const SwitcherButton = ({
   return (
     <>
       <Button
-        title={label}
-        buttonStyle={[
-          styles.modalButton,
-          isSelected
-            ? styles.selectedModalButton
-            : styles.unselectedModalButton,
-        ]}
+        text={label}
         onPress={() => {
           onPress();
           closeModal();
@@ -97,50 +129,73 @@ const SwitcherButton = ({
   );
 };
 
-const styles = StyleSheet.create({
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: defaultTheme.colors.sheetOverlay,
-  },
-  row: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  modalView: {
-    backgroundColor: defaultTheme.colors.sheetTertiary,
-    borderRadius: 20,
-    padding: defaultTheme.variants.spacingSizes.md,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  modalButton: {
-    margin: defaultTheme.variants.spacingSizes.sm,
-  },
-  selectedModalButton: {
-    borderWidth: 4,
-    borderColor: defaultTheme.colors.iconPrimary,
-  },
-  unselectedModalButton: {
-    borderWidth: 4,
-    borderColor: 'transparent',
-  },
-  modalHeaderText: {
-    color: defaultTheme.colors.textPrimary,
-    fontSize: 24,
-    fontWeight: 'bold',
-    alignSelf: 'center',
-    marginVertical: 8,
-  },
-  modalText: {
-    fontSize: 20,
-  },
-});
+const useStyles = () => {
+  const {
+    theme: { semantics, primitives },
+  } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        centeredView: {
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: semantics.backgroundCoreScrim,
+        },
+        row: {
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+        },
+        modalView: {
+          backgroundColor: semantics.backgroundCoreElevation2,
+          borderRadius: 20,
+          padding: 8,
+          gap: 8,
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.25,
+          shadowRadius: 4,
+          elevation: 5,
+        },
+        modalButton: {
+          margin: 8,
+        },
+        selectedModalButton: {
+          borderWidth: 4,
+          borderColor: '#eff0f1',
+        },
+        unselectedModalButton: {
+          borderWidth: 4,
+          borderColor: 'transparent',
+        },
+        modalHeaderText: {
+          color: '#eff0f1',
+          fontSize: 24,
+          fontWeight: 'bold',
+          alignSelf: 'center',
+          marginVertical: 8,
+        },
+        modalText: {
+          fontSize: 20,
+        },
+        modalSectionText: {
+          color: semantics.textPrimary,
+          fontSize: 16,
+          fontWeight: 'bold',
+          marginTop: primitives.spacingMd,
+          marginHorizontal: primitives.spacingSm,
+        },
+        modalInput: {
+          // the shared input is `flex: 1`, which would stretch it in this column
+          flex: 0,
+          minWidth: 260,
+          marginHorizontal: primitives.spacingSm,
+        },
+      }),
+    [semantics, primitives],
+  );
+};

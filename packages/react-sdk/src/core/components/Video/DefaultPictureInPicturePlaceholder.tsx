@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { useI18n } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import {
   BaseVideoPlaceholder,
   type BaseVideoPlaceholderProps,
@@ -14,7 +14,10 @@ export const DefaultPictureInPicturePlaceholder = forwardRef<
   const { t } = useI18n();
   return (
     <BaseVideoPlaceholder ref={ref} {...props}>
-      {t('Video is playing in a popup')}
+      {t(
+        'videoPlaceholder.videoPlayingInPopup.text',
+        'Video is playing in a popup',
+      )}
     </BaseVideoPlaceholder>
   );
 });

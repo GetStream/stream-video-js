@@ -3,9 +3,10 @@ import {
   CallStatsReport,
   useCall,
   useCallStateHooks,
-  useI18n,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../hooks/useAppI18n';
+import type { LooseTranslateFunction } from '@stream-io/video-react-native-sdk';
 
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
@@ -38,7 +39,7 @@ export const CallStats = (props: CallStatsProps) => {
     showCodecInfo = false,
   } = props;
   const styles = useStyles();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const call = useCall();
   const [publishBitrate, setPublishBitrate] = useState('-');
   const [subscribeBitrate, setSubscribeBitrate] = useState('-');
@@ -116,16 +117,22 @@ export const CallStats = (props: CallStatsProps) => {
       {callStatsReport && (
         <>
           <View style={styles.row}>
-            <StatCard label={t('Region')} value={callStatsReport.datacenter} />
             <StatCard
-              label={t('Latency')}
+              label={t('callStats.region.label', 'Region')}
+              value={callStatsReport.datacenter}
+            />
+            <StatCard
+              label={t('callStats.latency.label', 'Latency')}
               value={`${callStatsReport.publisherStats.averageRoundTripTimeInMs} ms.`}
               comparison={latencyComparison}
             />
           </View>
           <View style={styles.row}>
             <StatCard
-              label={t('Receive video jitter')}
+              label={t(
+                'callStats.receiveVideoJitter.label',
+                'Receive video jitter',
+              )}
               value={`${callStatsReport.subscriberStats.averageJitterInMs} ms.`}
               comparison={{
                 ...videoJitterComparison,
@@ -133,7 +140,10 @@ export const CallStats = (props: CallStatsProps) => {
               }}
             />
             <StatCard
-              label={t('Publish video jitter')}
+              label={t(
+                'callStats.publishVideoJitter.label',
+                'Publish video jitter',
+              )}
               value={`${callStatsReport.publisherStats.averageJitterInMs} ms.`}
               comparison={{
                 ...videoJitterComparison,
@@ -143,7 +153,10 @@ export const CallStats = (props: CallStatsProps) => {
           </View>
           <View style={styles.row}>
             <StatCard
-              label={t('Receive audio jitter')}
+              label={t(
+                'callStats.receiveAudioJitter.label',
+                'Receive audio jitter',
+              )}
               value={`${callStatsReport.subscriberAudioStats.averageJitterInMs} ms.`}
               comparison={{
                 ...audioJitterComparison,
@@ -151,7 +164,10 @@ export const CallStats = (props: CallStatsProps) => {
               }}
             />
             <StatCard
-              label={t('Publish audio jitter')}
+              label={t(
+                'callStats.publishAudioJitter.label',
+                'Publish audio jitter',
+              )}
               value={`${callStatsReport.publisherStats.averageJitterInMs} ms.`}
               comparison={{
                 ...audioJitterComparison,
@@ -161,40 +177,64 @@ export const CallStats = (props: CallStatsProps) => {
           </View>
           <View style={styles.row}>
             <StatCard
-              label={`${t('Publish resolution')}${showCodecInfo ? formatCodec(callStatsReport) : ''}`}
+              label={`${t('callStats.publishResolution.label', 'Publish resolution')}${showCodecInfo ? formatCodec(callStatsReport) : ''}`}
               value={toFrameSize(callStatsReport.publisherStats)}
             />
             <StatCard
-              label={t('Publish quality drop reason')}
+              label={t(
+                'callStats.publishQualityDropReason.label',
+                'Publish quality drop reason',
+              )}
               value={callStatsReport.publisherStats.qualityLimitationReasons}
             />
           </View>
           <View style={styles.row}>
             <StatCard
-              label={t('Receiving resolution')}
+              label={t(
+                'callStats.receivingResolution.label',
+                'Receiving resolution',
+              )}
               value={toFrameSize(callStatsReport.subscriberStats)}
             />
             <StatCard
-              label={t('Receive quality drop reason')}
+              label={t(
+                'callStats.receiveQualityDropReason.label',
+                'Receive quality drop reason',
+              )}
               value={callStatsReport.subscriberStats.qualityLimitationReasons}
             />
           </View>
         </>
       )}
       <View style={styles.row}>
-        <StatCard label={t('Publish video bitrate')} value={publishBitrate} />
         <StatCard
-          label={t('Receiving video bitrate')}
+          label={t(
+            'callStats.publishVideoBitrate.label',
+            'Publish video bitrate',
+          )}
+          value={publishBitrate}
+        />
+        <StatCard
+          label={t(
+            'callStats.receivingVideoBitrate.label',
+            'Receiving video bitrate',
+          )}
           value={subscribeBitrate}
         />
       </View>
       <View style={styles.row}>
         <StatCard
-          label={t('Publish audio bitrate')}
+          label={t(
+            'callStats.publishAudioBitrate.label',
+            'Publish audio bitrate',
+          )}
           value={publishAudioBitrate}
         />
         <StatCard
-          label={t('Receiving audio bitrate')}
+          label={t(
+            'callStats.receivingAudioBitrate.label',
+            'Receiving audio bitrate',
+          )}
           value={subscribeAudioBitrate}
         />
       </View>
@@ -206,21 +246,21 @@ const StatsTag = (props: { children: ReactNode; status: Status }) => {
   const { children, status } = props;
   const styles = useStyles();
   const {
-    theme: { colors },
+    theme: { semantics },
   } = useTheme();
   let color;
   switch (status) {
     case Status.GOOD:
-      color = colors.iconSuccess;
+      color = semantics.accentSuccess;
       break;
     case Status.OK:
       color = '#ffd646';
       break;
     case Status.BAD:
-      color = colors.warning;
+      color = semantics.accentWarning;
       break;
     default:
-      color = colors.iconSuccess;
+      color = semantics.accentSuccess;
   }
   return (
     <View
@@ -249,17 +289,38 @@ interface StatCardProps {
 const StatCard: React.FC<StatCardProps> = ({ label, value, comparison }) => {
   const styles = useStyles();
   const status = comparison ? toStatus(comparison) : undefined;
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   return (
     <View style={styles.card}>
       <Text style={styles.label}>{label}</Text>
       <Text style={styles.value}>{value}</Text>
       {comparison && (
-        <>{status && <StatsTag status={status}>{t(status)}</StatsTag>}</>
+        <>
+          {status && (
+            <StatsTag status={status}>{toStatusLabel(t, status)}</StatsTag>
+          )}
+        </>
       )}
     </View>
   );
+};
+
+/**
+ * One literal `t()` per status.
+ *
+ * The previous `t(status)` fed the enum's English value straight in as the key, which hides
+ * every key from the compile-time check and from any catalog tooling.
+ */
+const toStatusLabel = (t: LooseTranslateFunction, status: Status) => {
+  switch (status) {
+    case Status.GOOD:
+      return t('callStats.status.good.label', 'Good');
+    case Status.OK:
+      return t('callStats.status.ok.label', 'Ok');
+    case Status.BAD:
+      return t('callStats.status.bad.label', 'Bad');
+  }
 };
 
 const toStatus = (config: {
@@ -375,86 +436,86 @@ const calculateSubscribeAudioBitrate = (
 
 const useStyles = () => {
   const {
-    theme: { colors, variants },
+    theme: { primitives, semantics },
   } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          backgroundColor: colors.sheetSecondary,
-          borderRadius: variants.borderRadiusSizes.md,
-          padding: variants.spacingSizes.sm,
+          backgroundColor: semantics.backgroundCoreApp,
+          borderRadius: primitives.radiusMd,
+          padding: primitives.spacingSm,
           maxWidth: 500,
         },
         titleContainer: {
-          marginBottom: variants.spacingSizes.sm,
-          marginLeft: variants.spacingSizes.sm,
+          marginBottom: primitives.spacingSm,
+          marginLeft: primitives.spacingSm,
         },
         title: {
-          fontSize: 20,
-          fontWeight: 'bold',
-          color: colors.textPrimary,
+          fontSize: primitives.typographyFontSizeLg,
+          fontWeight: primitives.typographyFontWeightBold,
+          color: semantics.textPrimary,
         },
         infoContainer: {
           flexDirection: 'row',
           alignItems: 'center',
-          marginBottom: variants.spacingSizes.sm,
+          marginBottom: primitives.spacingSm,
         },
         logo: {
           height: 50,
           width: 50,
           borderRadius: 50,
           alignSelf: 'center',
-          marginLeft: variants.spacingSizes.xs,
+          marginLeft: primitives.spacingXs,
         },
         textContainer: {
           flexDirection: 'column',
-          marginLeft: variants.spacingSizes.md,
+          marginLeft: primitives.spacingMd,
         },
         topText: {
-          fontSize: 16,
-          fontWeight: 'bold',
-          color: colors.textPrimary,
+          fontSize: primitives.typographyFontSizeMd,
+          fontWeight: primitives.typographyFontWeightBold,
+          color: semantics.textPrimary,
         },
         bottomText: {
-          fontSize: 14,
-          color: colors.textSecondary,
+          fontSize: primitives.typographyFontSizeMd,
+          color: semantics.textSecondary,
         },
         row: {
           flexDirection: 'row',
           justifyContent: 'space-between',
-          marginBottom: variants.spacingSizes.sm,
+          marginBottom: primitives.spacingSm,
         },
         card: {
           width: '48%',
-          padding: variants.spacingSizes.sm,
-          borderRadius: variants.borderRadiusSizes.md,
-          backgroundColor: colors.sheetPrimary,
+          padding: primitives.spacingSm,
+          borderRadius: primitives.radiusMd,
+          backgroundColor: semantics.backgroundCoreApp,
           alignItems: 'center',
         },
         label: {
-          color: colors.textSecondary,
-          fontSize: 14,
-          marginBottom: variants.spacingSizes.xs,
+          color: semantics.textSecondary,
+          fontSize: primitives.typographyFontSizeMd,
+          marginBottom: primitives.spacingXs,
           textAlign: 'center',
         },
         value: {
-          color: colors.textPrimary,
-          fontSize: 16,
-          fontWeight: 'bold',
+          color: semantics.textPrimary,
+          fontSize: primitives.typographyFontSizeLg,
+          fontWeight: primitives.typographyFontWeightBold,
           textAlign: 'center',
         },
         tag: {
-          paddingVertical: variants.spacingSizes.xs,
-          paddingHorizontal: variants.spacingSizes.md,
-          borderRadius: variants.borderRadiusSizes.sm,
+          paddingVertical: primitives.spacingXs,
+          paddingHorizontal: primitives.spacingMd,
+          borderRadius: primitives.radiusSm,
           alignItems: 'center',
           justifyContent: 'center',
-          marginVertical: variants.spacingSizes.xs,
+          marginVertical: primitives.spacingXs,
         },
         text: {
-          fontSize: 14,
-          fontWeight: 600,
+          fontSize: primitives.typographyFontSizeMd,
+          fontWeight: primitives.typographyFontWeightSemiBold,
         },
         good: {
           backgroundColor: '#1B393A',
@@ -466,6 +527,6 @@ const useStyles = () => {
           backgroundColor: '#442C31',
         },
       }),
-    [variants, colors],
+    [primitives, semantics],
   );
 };

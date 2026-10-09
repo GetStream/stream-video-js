@@ -1,3 +1,11 @@
+.str-video__call-recording-list__header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--str-video__spacing-md);
+}
+
 .str-video__call-recording-list__list {
   display: flex;
   flex-direction: column;
@@ -7,7 +15,11 @@
 
   &:first-of-type {
     .str-video__call-recording-list__item {
-      font-weight: 600;
+      background-color: var(--str-video__background-core-surface-card);
+      font-size: var(--str-video__typography-font-size-xs);
+      line-height: var(--str-video__typography-line-height-tight);
+      font-weight: var(--str-video__typography-font-weight-semi-bold);
+      color: var(--str-video__text-secondary);
     }
   }
 }
@@ -15,46 +27,53 @@
 .str-video__call-recording-list__item {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
-  font-size: var(--str-video__font-size-xs);
-  border-bottom: 1px solid var(--str-video__base-color2);
-  padding: var(--str-video__spacing-xs) 0;
+  padding: var(--str-video__spacing-sm);
   gap: var(--str-video__spacing-xs);
-
-  &:last-of-type {
-    border-bottom: none;
-  }
-}
-.str-video__call-recording-list__filename {
-  width: 200px;
+  border-radius: var(--str-video__radius-lg);
+  font-size: var(--str-video__typography-font-size-sm);
+  line-height: var(--str-video__typography-line-height-normal);
+  font-weight: var(--str-video__typography-font-weight-regular);
+  color: var(--str-video__text-primary);
 }
 
+.str-video__call-recording-list__filename,
 .str-video__call-recording-list__time {
-  width: 100px;
+  flex: 0 1 120px;
+  min-width: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .str-video__call-recording-list__download {
   display: flex;
   justify-content: flex-end;
-  width: 100px;
-}
-
-.str-video__call-recording-list__filename,
-.str-video__call-recording-list__time {
-  text-overflow: ellipsis;
-  overflow: hidden;
+  flex: 0 0 var(--str-video__button-visual-height-xs);
+  margin-inline-start: auto;
 }
 
 .str-video__call-recording-list-item__action-button--download {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--str-video__button-visual-height-xs);
+  block-size: var(--str-video__button-visual-height-xs);
+  padding: var(--str-video__button-padding-y-xs)
+    var(--str-video__button-padding-x-icon-only-xs);
+  border-radius: var(--str-video__button-radius-full);
+
   .str-video__icon--download {
-    height: 32px;
-    width: 32px;
+    height: var(--str-video__icon-size-sm);
+    width: var(--str-video__icon-size-sm);
+    background-color: var(--str-video__button-secondary-text);
   }
+
   &:hover {
-    .str-video__icon--download {
-      cursor: pointer;
-      background-color: var(--str-video__brand-color1);
-    }
+    cursor: pointer;
+    background-color: var(--str-video__background-utility-hover);
+  }
+
+  &:active {
+    background-color: var(--str-video__background-utility-pressed);
   }
 }

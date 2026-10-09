@@ -6,15 +6,16 @@ import {
   useEffect,
   useState,
 } from 'react';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
-  useCall,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-bindings';
-import { hasScreenShare, humanize } from '@stream-io/video-client';
+  convertTimestampToDate,
+  hasScreenShare,
+  humanize,
+} from '@stream-io/video-client';
+import { useI18n } from '../../../i18n';
 import { ParticipantView, useParticipantViewContext } from '../ParticipantView';
 import { ParticipantsAudio } from '../Audio';
-import { Icon } from '../../../components';
+import { Icon, IconButton } from '../../../components';
 import {
   usePaginatedLayoutSortPreset,
   useRawRemoteParticipants,
@@ -219,22 +220,40 @@ export const BackstageLayout = (props: BackstageLayoutProps) => {
         {startsAt && (
           <span className="str-video__livestream-layout__starts-at">
             {startsAtPassed
-              ? t('Livestream starts soon')
-              : t('Livestream starts at {{ time }}', {
-                  time: startsAt.toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  }),
-                })}
+              ? t(
+                  'livestream.backstage.startsSoon.text',
+                  'Livestream starts soon',
+                )
+              : t(
+                  'livestream.backstage.startsAt.text',
+                  'Livestream starts at {{ time }}',
+                  {
+                    time: startsAt.toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }),
+                  },
+                )}
           </span>
         )}
         {showEarlyParticipantCount && (
           <span className="str-video__livestream-layout__early-viewers-count">
             <Icon icon="livestream-viewers" />
-            {t('{{ count }} participants joined early', {
-              count: humanizeParticipantCount
+            {/*
+              `count` stays the raw number so i18next can pick a plural form;
+              `formattedCount` carries the (possibly humanized) display string.
+              Behaviour change: with humanizing on, a count of 1 now renders the
+              singular - previously the humanized string defeated plural
+              selection and `_other` always won.
+            */}
+            {t('livestream.backstage.participantsJoinedEarly.text', {
+              count: participantCount,
+              formattedCount: humanizeParticipantCount
                 ? humanize(participantCount)
                 : participantCount,
+              defaultValue_one: '{{ formattedCount }} participant joined early',
+              defaultValue_other:
+                '{{ formattedCount }} participants joined early',
             })}
           </span>
         )}
@@ -285,7 +304,11 @@ const ParticipantOverlay = (props: {
           <div className="str-video__livestream-layout__overlay__bar-left">
             {showLiveBadge && (
               <span className="str-video__livestream-layout__live-badge">
-                {t('Live')}
+                <span
+                  className="str-video__livestream-layout__live-badge__dot"
+                  aria-hidden="true"
+                />
+                {t('common.live.label', 'Live')}
               </span>
             )}
             {showParticipantCount && (
@@ -301,7 +324,7 @@ const ParticipantOverlay = (props: {
                 className="str-video__livestream-layout__speaker-name"
                 title={participant.name || participant.userId || ''}
               >
-                {participant.name || participant.userId || ''}
+                <span>{participant.name || participant.userId || ''}</span>
               </span>
             )}
           </div>
@@ -314,27 +337,31 @@ const ParticipantOverlay = (props: {
           </div>
           <div className="str-video__livestream-layout__overlay__bar-right">
             {showMuteButton && (
-              <span
+              <IconButton
+                icon={isSpeakerMuted ? 'speaker-off' : 'speaker'}
+                variant="secondary"
+                appearance="solid"
+                size="sm"
                 className={clsx(
                   'str-video__livestream-layout__mute-button',
                   isSpeakerMuted &&
                     'str-video__livestream-layout__mute-button--muted',
                 )}
                 onClick={() => speaker.setVolume(isSpeakerMuted ? 1 : 0)}
-              >
-                <Icon icon={isSpeakerMuted ? 'speaker-off' : 'speaker'} />
-              </span>
+              />
             )}
             {enableFullScreen &&
               participantViewElement &&
               typeof participantViewElement.requestFullscreen !==
                 'undefined' && (
-                <span
+                <IconButton
+                  icon="fullscreen"
+                  variant="secondary"
+                  appearance="solid"
+                  size="sm"
                   className="str-video__livestream-layout__go-fullscreen"
                   onClick={toggleFullScreen}
-                >
-                  <Icon icon="fullscreen" />
-                </span>
+                />
               )}
           </div>
         </div>
@@ -348,10 +375,9 @@ const useUpdateCallDuration = () => {
   const isCallLive = useIsCallLive();
   const session = useCallSession();
   const [duration, setDuration] = useState(() => {
-    if (!session || !session.live_started_at) return 0;
-    const liveStartTime = new Date(session.live_started_at);
-    const now = new Date();
-    return Math.floor((now.getTime() - liveStartTime.getTime()) / 1000);
+    const liveStartTime = convertTimestampToDate(session?.live_started_at);
+    if (!liveStartTime) return 0;
+    return Math.floor((Date.now() - liveStartTime.getTime()) / 1000);
   });
 
   useEffect(() => {

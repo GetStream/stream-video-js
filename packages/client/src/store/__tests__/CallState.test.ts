@@ -1,4 +1,5 @@
 import '../../rtc/__tests__/mocks/webrtc.mocks';
+import { dateToNs, msToNs } from '../../helpers/time';
 import { describe, expect, it, vi } from 'vitest';
 import { anyNumber } from 'vitest-mock-extended';
 import { fromPartial } from '@total-typescript/shoehorn';
@@ -27,6 +28,7 @@ import {
   MemberResponse,
   OwnCapability,
 } from '../../gen/coordinator';
+import type { GetCallRingStateResponse } from '../../gen/coordinator';
 import * as TestData from '../../sorting/__tests__/participant-data';
 
 describe('CallState', () => {
@@ -47,7 +49,7 @@ describe('CallState', () => {
           getter,
           `A getter for ${observable} is missing. Please define it like this:
           get ${key}() {
-            return this.getCurrentValue(this.${observable});
+            return getCurrentValue(this.${observable});
           }
           `,
         ).toBeDefined();
@@ -532,7 +534,7 @@ describe('CallState', () => {
 
         state.updateFromEvent({
           type: 'call.permissions_updated',
-          created_at: '',
+          created_at: msToNs(0),
           call_cid: 'development:12345',
           own_capabilities: [OwnCapability.SEND_VIDEO],
           // @ts-expect-error incomplete data
@@ -1180,7 +1182,7 @@ describe('CallState', () => {
             session: {
               participants: [
                 {
-                  joined_at: '2021-01-01T00:00:00.000Z',
+                  joined_at: dateToNs(new Date('2021-01-01T00:00:00.000Z')),
                   user: { id: 'user-id', role: 'user' },
                   user_session_id: '123',
                 },
@@ -1383,8 +1385,8 @@ describe('CallState', () => {
         closed_caption: {
           speaker_id: '123',
           text: 'Hello world',
-          start_time: '2021-01-01T00:00:00.000Z',
-          end_time: '2021-01-01T00:02:00.000Z',
+          start_time: dateToNs(new Date('2021-01-01T00:00:00.000Z')),
+          end_time: dateToNs(new Date('2021-01-01T00:02:00.000Z')),
         },
       });
       expect(state.closedCaptions.length).toBe(1);
@@ -1400,8 +1402,8 @@ describe('CallState', () => {
           closed_caption: {
             speaker_id: `123-${i}`,
             text: `Hello world ${i}`,
-            start_time: '2021-01-01T00:00:00.000Z',
-            end_time: '2021-01-01T00:02:00.000Z',
+            start_time: dateToNs(new Date('2021-01-01T00:00:00.000Z')),
+            end_time: dateToNs(new Date('2021-01-01T00:02:00.000Z')),
           },
         });
       }
@@ -1422,8 +1424,8 @@ describe('CallState', () => {
         closed_caption: {
           speaker_id: `123`,
           text: `Hello world`,
-          start_time: '2021-01-01T00:00:00.000Z',
-          end_time: '2021-01-01T00:02:00.000Z',
+          start_time: dateToNs(new Date('2021-01-01T00:00:00.000Z')),
+          end_time: dateToNs(new Date('2021-01-01T00:02:00.000Z')),
         },
       });
       expect(state.closedCaptions.length).toBe(1);
@@ -1444,8 +1446,8 @@ describe('CallState', () => {
         closed_caption: {
           speaker_id: `123`,
           text: `Hello world`,
-          start_time: '2021-01-01T00:00:00.000Z',
-          end_time: '2021-01-01T00:02:00.000Z',
+          start_time: dateToNs(new Date('2021-01-01T00:00:00.000Z')),
+          end_time: dateToNs(new Date('2021-01-01T00:02:00.000Z')),
         },
       });
       expect(state.closedCaptions.length).toBe(1);
@@ -1464,7 +1466,7 @@ describe('CallState', () => {
         closed_caption: {
           speaker_id: `123`,
           text: `Hello world`,
-          start_time: '2021-01-01T00:00:00.000Z',
+          start_time: dateToNs(new Date('2021-01-01T00:00:00.000Z')),
         },
       });
       expect(state.closedCaptions.length).toBe(1);
@@ -1472,6 +1474,72 @@ describe('CallState', () => {
 
       state.dispose();
       expect(state['closedCaptionsTasks'].size).toBe(0);
+    });
+  });
+
+  describe('updateFromRingState', () => {
+    const ringState = fromPartial<GetCallRingStateResponse>({
+      session_id: 'session-1',
+      accepted_by: { bob: dateToNs(new Date('2026-08-24T10:00:04Z')) },
+      rejected_by: { carol: dateToNs(new Date('2026-08-24T10:00:09Z')) },
+      missed_by: { dave: dateToNs(new Date('2026-08-24T10:00:35Z')) },
+    });
+
+    const withSession = (id: string) => {
+      const state = new CallState();
+      state['sessionSubject'].next(
+        fromPartial({
+          id,
+          accepted_by: {},
+          rejected_by: {},
+          missed_by: {},
+          participants: [fromPartial({ user_session_id: 'p1' })],
+        }),
+      );
+      return state;
+    };
+
+    it('merges the ring maps into the current session', () => {
+      const state = withSession('session-1');
+      state.updateFromRingState(ringState);
+
+      expect(state.session?.accepted_by).toEqual({
+        bob: dateToNs(new Date('2026-08-24T10:00:04Z')),
+      });
+      expect(state.session?.rejected_by).toEqual({
+        carol: dateToNs(new Date('2026-08-24T10:00:09Z')),
+      });
+      expect(state.session?.missed_by).toEqual({
+        dave: dateToNs(new Date('2026-08-24T10:00:35Z')),
+      });
+    });
+
+    it('leaves the session roster untouched', () => {
+      const state = withSession('session-1');
+      state.updateFromRingState(ringState);
+
+      expect(state.session?.participants).toHaveLength(1);
+    });
+
+    it('ignores a ring state that belongs to another session', () => {
+      const state = withSession('session-2');
+      state.updateFromRingState(ringState);
+
+      expect(state.session?.accepted_by).toEqual({});
+    });
+
+    it('applies the end timestamps', () => {
+      const state = withSession('session-1');
+      state.updateFromRingState({
+        ...ringState,
+        session_ended_at: dateToNs(new Date('2026-08-24T10:01:00Z')),
+        call_ended_at: dateToNs(new Date('2026-08-24T10:01:00Z')),
+      });
+
+      expect(state.session?.ended_at).toBe(
+        dateToNs(new Date('2026-08-24T10:01:00Z')),
+      );
+      expect(state.endedAt).toEqual(new Date('2026-08-24T10:01:00Z'));
     });
   });
 });

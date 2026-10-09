@@ -1,5 +1,5 @@
 import { CompositeButton, CompositeButtonProps } from '../Button';
-import { useI18n } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 import { Icon } from '../Icon';
 import { DeviceSelectorAudioOutput } from '../DeviceSettings';
 import { WithTooltip } from '../Tooltip';
@@ -24,7 +24,10 @@ export const ToggleAudioOutputButton = (
 
   return (
     <WithTooltip
-      title={caption || t('Speakers')}
+      title={
+        caption ||
+        t('callControls.toggleAudioOutputButton.speakers.title', 'Speakers')
+      }
       tooltipDisabled={tooltipDisabled}
     >
       <CompositeButton

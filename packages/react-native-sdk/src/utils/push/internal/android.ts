@@ -10,7 +10,7 @@ import {
   getCallingxLib,
   getCallingxLibIfAvailable,
 } from '../libs';
-import { StreamVideoRN } from '../../StreamVideoRN';
+import type { StreamVideoConfig } from '../../StreamVideoRN/types';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { canListenToWS, shouldCallBeClosed } from './utils';
 
@@ -21,6 +21,7 @@ import { canListenToWS, shouldCallBeClosed } from './utils';
  */
 export const onRingNotificationReceived = async (
   data: FirebaseRemoteMessage['data'],
+  pushConfig: NonNullable<StreamVideoConfig['push']>,
 ) => {
   /* Example data from firebase
     "message": {
@@ -48,13 +49,7 @@ export const onRingNotificationReceived = async (
       level,
     );
 
-  const pushConfig = StreamVideoRN.getConfig().push;
-  if (
-    !pushConfig ||
-    !data ||
-    data.sender !== 'stream.video' ||
-    data.type !== 'call.ring'
-  ) {
+  if (!data || data.sender !== 'stream.video' || data.type !== 'call.ring') {
     return;
   }
 
@@ -93,12 +88,12 @@ export const onRingNotificationReceived = async (
     // request, and neither may skip the unsubscription cleanup — a stale entry makes every later
     // push for this cid look like a duplicate and get discarded.
     try {
-      await callingx.endCallWithReason(call_cid, 'error');
+      callingx.endCallWithReason(call_cid, 'error');
     } catch (error) {
       nativeLog(`Failed to end call ${call_cid}: ${error}`, 'error');
     }
     try {
-      await callingx.stopService();
+      callingx.stopService();
     } catch (error) {
       nativeLog(
         `Failed to stop the call service for ${call_cid}: ${error}`,
@@ -111,15 +106,15 @@ export const onRingNotificationReceived = async (
   if (asForegroundService) {
     // initialize the callback array immediately to avoid race condition
     pushUnsubscriptionCallbacks.set(call_cid, []);
-    // The owner is added synchronously inside acquireBackgroundTask (before its own await), so it
-    // is registered immediately even though we don't await the returned promise here.
     nativeLog(`acquiring background task for callCid: ${call_cid}`);
-    callingx.acquireBackgroundTask(backgroundTaskOwner).catch((e) => {
+    try {
+      callingx.acquireBackgroundTask(backgroundTaskOwner);
+    } catch (e) {
       nativeLog(
         `Failed to acquire background task for callCid: ${call_cid} error: ${e}`,
         'error',
       );
-    });
+    }
   }
 
   let client: StreamVideoClient | undefined;
@@ -151,7 +146,11 @@ export const onRingNotificationReceived = async (
           nativeLog(
             `Closing fg service callCid: ${call_cid} endCallReason: ${endCallReason}`,
           );
-          callingx.endCallWithReason(call_cid, endCallReason);
+          try {
+            callingx.endCallWithReason(call_cid, endCallReason);
+          } catch (error) {
+            nativeLog(`Failed to end call ${call_cid}: ${error}`, 'error');
+          }
           callFromPush.leave({ reject: false }).catch((error) => {
             nativeLog(
               `Failed to leave already-ended ringing call ${call_cid}: ${error}`,
@@ -194,7 +193,11 @@ export const onRingNotificationReceived = async (
               nativeLog(
                 `Closing fg service from event ${event.type} callCid: ${call_cid} shouldCallBeClosed`,
               );
-              callingx.endCallWithReason(call_cid, endCallReasonFromEvent);
+              try {
+                callingx.endCallWithReason(call_cid, endCallReasonFromEvent);
+              } catch (error) {
+                nativeLog(`Failed to end call ${call_cid}: ${error}`, 'error');
+              }
               unsubscribeFunctions.forEach((fn) => fn());
             }
           },
@@ -262,7 +265,11 @@ export const onRingNotificationReceived = async (
     nativeLog(
       `Removing incoming call notification immediately with callCid: ${call_cid} as it should be closed`,
     );
-    callingx.endCallWithReason(call_cid, endCallReason);
+    try {
+      callingx.endCallWithReason(call_cid, endCallReason);
+    } catch (error) {
+      nativeLog(`Failed to end call ${call_cid}: ${error}`, 'error');
+    }
     callFromPush.leave({ reject: false }).catch((error) => {
       nativeLog(
         `Failed to leave already-ended ringing call ${call_cid}: ${error}`,

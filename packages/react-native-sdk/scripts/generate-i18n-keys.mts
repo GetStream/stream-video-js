@@ -1,0 +1,48 @@
+// Regenerates src/i18n/keys.ts — the type-only catalog of every translation key mapped to its
+// English copy. The i18n types derive `TranslationKey` / `StreamTFunction` from it, so a typo'd key
+// is a compile error rather than a string that silently stops rendering.
+//
+// The generator itself lives in `@stream-io/i18n/codegen`, shared with the web SDK. Only
+// this package's paths are configured here; the call-site reader, the hard-fail guards and the
+// emitter are all core's.
+//
+// Run from the package root — every path below is relative to it. Running it and failing on any
+// diff is the drift gate that keeps the catalog and the call sites in step.
+import ts from 'typescript';
+import { generateI18nKeys } from '@stream-io/i18n/codegen';
+
+const jsonFlag = process.argv.indexOf('--json');
+const jsonOut = jsonFlag === -1 ? undefined : process.argv[jsonFlag + 1];
+
+if (jsonFlag !== -1 && (!jsonOut || jsonOut.startsWith('--'))) {
+  console.error('--json requires an output path');
+  process.exit(1);
+}
+
+try {
+  generateI18nKeys({
+    // `keys.ts` is type-only, so no runtime test can iterate it. The fixture is the data twin that
+    // lets a test render every key and assert none surfaces as its own dotted path.
+    //
+    // It lives *outside* `src/` — this package's tsconfig is `{"include": ["src"]}` with no
+    // `exclude`, so a fixture under `src/` would be compiled and shipped by all three
+    // react-native-builder-bob targets.
+    fixtureOut: '__tests__/i18n/catalog.fixture.json',
+    // `--all` includes the `timestamp.*` / `duration.*` formatter expressions. Off by default: a
+    // TMS handed those will "translate" the format template and break every date.
+    json: jsonOut
+      ? { includeFormats: process.argv.includes('--all'), out: jsonOut }
+      : undefined,
+    keysOut: 'src/i18n/keys.ts',
+    // `BundledKey` is `never` here and is declared by hand in `src/i18n/types.ts`, so there is no
+    // union to emit; emitting one would fight the hand-written declaration.
+    emitBundledKeyUnion: false,
+    runtimeDefaultsPath: 'src/i18n/runtimeDefaults.ts',
+    srcRoot: 'src',
+    ts,
+  });
+} catch (error) {
+  // The generator throws with every guard failure formatted; exit non-zero so CI fails.
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+}

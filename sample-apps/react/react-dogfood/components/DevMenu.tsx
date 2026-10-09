@@ -318,7 +318,7 @@ const StartStopRawRecording = () => {
         if (!call) return;
         if (isRawRecording) {
           call
-            .stopRecording('raw')
+            .stopRecording({ recording_type: 'raw' })
             .then(() => {
               console.log(`Raw recording stopped`);
             })
@@ -327,7 +327,7 @@ const StartStopRawRecording = () => {
             });
         } else {
           call
-            .startRecording('raw')
+            .startRecording({ recording_type: 'raw' })
             .then(() => {
               console.log(`Raw recording started`);
             })
@@ -357,7 +357,7 @@ const StartStopIndividualRecording = () => {
         if (!call) return;
         if (isIndividualRecording) {
           call
-            .stopRecording('individual')
+            .stopRecording({ recording_type: 'individual' })
             .then(() => {
               console.log(`Individual recording stopped`);
             })
@@ -366,7 +366,7 @@ const StartStopIndividualRecording = () => {
             });
         } else {
           call
-            .startRecording('individual')
+            .startRecording({ recording_type: 'individual' })
             .then(() => {
               console.log(`Individual recording started`);
             })
@@ -398,7 +398,7 @@ const StartStopCompositeRecording = () => {
         if (!call) return;
         if (isRecording) {
           call
-            .stopRecording('composite')
+            .stopRecording({ recording_type: 'composite' })
             .then(() => {
               console.log(`Composite recording stopped`);
             })
@@ -407,7 +407,7 @@ const StartStopCompositeRecording = () => {
             });
         } else {
           call
-            .startRecording('composite')
+            .startRecording({ recording_type: 'composite' })
             .then(() => {
               console.log(`Composite recording started`);
             })

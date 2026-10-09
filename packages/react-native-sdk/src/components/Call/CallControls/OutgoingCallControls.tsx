@@ -1,9 +1,9 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../contexts';
-import { ToggleAudioPreviewButton } from './ToggleAudioPreviewButton';
-import { ToggleVideoPreviewButton } from './ToggleVideoPreviewButton';
-import { RejectCallButton } from './RejectCallButton';
+import { RejectCallButton } from './Buttons/RejectCallButton';
+import { ToggleAudioPreviewButton } from './Buttons/ToggleAudioPreviewButton';
+import { ToggleVideoPreviewButton } from './Buttons/ToggleVideoPreviewButton';
 
 /**
  * Props for the OutgoingCallControls Component.
@@ -19,10 +19,7 @@ export const OutgoingCallControls = ({
   onHangupCallHandler,
 }: OutgoingCallControlsProps) => {
   const {
-    theme: {
-      outgoingCall,
-      variants: { buttonSizes },
-    },
+    theme: { outgoingCall },
   } = useTheme();
   return (
     <View style={[styles.buttonGroup, outgoingCall.buttonGroup]}>
@@ -34,7 +31,6 @@ export const OutgoingCallControls = ({
       </View>
       <RejectCallButton
         onRejectCallHandler={onHangupCallHandler}
-        size={buttonSizes.md}
         rejectReason="cancel"
       />
     </View>
@@ -48,6 +44,6 @@ const styles = StyleSheet.create({
   deviceControlButtons: {
     width: '100%',
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
+    justifyContent: 'flex-start',
   },
 });

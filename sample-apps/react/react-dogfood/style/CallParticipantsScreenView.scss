@@ -25,7 +25,7 @@
 
   .str-video__call-participants-screen-view__overlay {
     position: absolute;
-    background-color: var(--str-video__overlay-color);
+    background-color: var(--str-video__background-core-overlay-dark-strong);
     top: 0;
     left: 0;
     right: 0;
@@ -38,8 +38,8 @@
 
   .str-video__call-participants-screen-view__screen__presenter {
     padding: 0.625rem 0 0.625rem 0.625rem;
-    background-color: var(--str-video__background-color1);
-    border-radius: var(--str-video__border-radius-xs);
+    background-color: var(--str-video__background-core-surface-subtle);
+    border-radius: var(--str-video__radius-md);
   }
 
   .str-video__call-participants-screen-view__participants-wrapper {

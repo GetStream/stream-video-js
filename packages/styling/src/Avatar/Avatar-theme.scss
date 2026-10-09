@@ -1,24 +1,48 @@
-@use "../utils";
+@use '../utils';
+
+$avatar-font-sizes: (
+  'xs': var(--str-video__typography-font-size-xs),
+  'sm': var(--str-video__typography-font-size-sm),
+  'md': var(--str-video__typography-font-size-sm),
+  'lg': var(--str-video__typography-font-size-md),
+  'xl': var(--str-video__typography-font-size-lg),
+  '2xl': var(--str-video__typography-font-size-xl),
+  '3xl': var(--str-video__typography-font-size-xl),
+);
 
 .str-video {
   /* The font color applied inside the component */
-  --str-video__avatar--color: var(--str-video__text-color1);
+  --str-video__avatar--color: var(--str-video__avatar-text-default);
 
   /* The background color of the component */
-  --str-video__avatar--background-color: var(--str-video__background-color1);
+  --str-video__avatar--background-color: var(
+    --str-video__avatar-bg-placeholder
+  );
 
   /* The border radius used for the borders of the component */
-  --str-video__avatar--border-radius: var(--str-video__border-radius-circle);
-
+  --str-video__avatar--border-radius: var(--str-video__radius-max);
 }
+
 .str-video__avatar {
   @include utils.component-layer-overrides('avatar');
 }
 
 .str-video__avatar--initials-fallback {
-  background-color: var(--str-video__primary-color);
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: var(--str-video__border-radius-circle);
+  background-color: var(--str-video__avatar-bg-default);
+  color: var(--str-video__avatar-text-default);
+  font-size: var(--str-video__typography-font-size-sm);
+  font-weight: var(--str-video__typography-font-weight-semi-bold);
+  border-radius: var(--str-video__radius-max);
   text-transform: uppercase;
+}
+
+@each $name, $font-size in $avatar-font-sizes {
+  .str-video__avatar--initials-fallback.str-video__avatar--size-#{$name} {
+    font-size: $font-size;
+  }
+}
+
+.str-video__avatar--outlined {
+  box-shadow: inset 0 0 0 var(--str-video__w200)
+    var(--str-video__border-core-on-inverse);
 }

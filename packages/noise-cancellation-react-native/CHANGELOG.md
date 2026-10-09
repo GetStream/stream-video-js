@@ -2,6 +2,88 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-1.0.0-beta.0...@stream-io/noise-cancellation-react-native-1.0.0-beta.1) (2026-09-28)
+
+### ⚠ BREAKING CHANGES
+
+- **react-native:** Requires React Native >=0.79.0 with the New
+  Architecture enabled. RN 0.79 provides the iOS module-provider
+  registration used by this implementation.
+
+### 📝 Implementation notes.
+
+### 1. Migration to React Native New Architecture and TurboModules
+
+- Updated documentation in `README.md` to specify that the package now
+  requires React Native 0.79+ with the New Architecture enabled, and only
+  supports TurboModule registration.
+- Refactored Android native module to use the TurboModule codegen
+  pattern, removing legacy code and simplifying the module/package
+  classes.
+- Refactored iOS implementation to use a new Objective-C host
+  (`NoiseCancellationReactNative.h`/`.mm`) delegating to a Swift
+  implementation, fully adopting the TurboModule spec and removing legacy
+  bridging code.
+
+### 2. Android build system modernization
+
+- Updated `build.gradle` to use AGP 8.7.2, Kotlin 2.0.21, Java 17, and
+  simplified/extensively cleaned up build logic, removing legacy property
+  indirection and supporting only the new namespace system.
+- Removed obsolete manifest files and properties.
+
+### 3. iOS native module refactoring
+
+- Removed old Swift implementation and replaced it with a new
+  implementation in `NoiseCancellationReactNativeImpl.swift`, with the
+  Objective-C wrapper delegating all logic to this class and conforming to
+  the TurboModule interface.
+
+### 4. JavaScript/TypeScript and testing improvements
+
+- Added contract tests (`__tests__/native-module.test.cjs`) to verify
+  the JS interface against a stubbed TurboModule registry, ensuring
+  correct JS-native interaction and error propagation.
+- Added a `test` script to `package.json` for running these contract
+  tests.
+
+🎫 Ticket: https://linear.app/stream/issue/XYZ-123
+
+📑 Docs: https://github.com/GetStream/docs-content/pull/<id>
+
+<!-- This is an auto-generated comment: release notes by coderabbit.ai
+-->
+
+## Summary by CodeRabbit
+
+- **New Features**
+- Noise-cancellation controls now provide synchronous status,
+  enablement, and device-support checks.
+- The React Native integration now supports the New Architecture through
+  TurboModules.
+- Noise-cancellation state and errors are handled more reliably in the
+  provider.
+
+- **Bug Fixes**
+- Checking whether noise cancellation is enabled before registration now
+  returns `false` instead of failing.
+
+- **Documentation**
+- Added setup requirements, native installation guidance, synchronous
+  API usage notes, and peer dependency information.
+- Updated SDK installation guidance to require React Native 0.79+ with
+  the New Architecture enabled.
+
+<!-- end of auto-generated comment: release notes by coderabbit.ai -->
+
+### Features
+
+- **react-native:** Migrate noise cancellation module to TurboModule architecture ([#2447](https://github.com/GetStream/stream-video-js/issues/2447)) ([2842986](https://github.com/GetStream/stream-video-js/commit/2842986f6d3adeef8617af243fa11a3076aae4b2))
+
+### Bug Fixes
+
+- **android:** skip explicit Kotlin plugin when AGP registers the kotlin extension ([#2417](https://github.com/GetStream/stream-video-js/issues/2417)) ([1bff5e0](https://github.com/GetStream/stream-video-js/commit/1bff5e0f5b4a2f2bbe62ab5eff2a6457251f6350)), closes [RevenueCat/react-native-purchases#1934](https://github.com/RevenueCat/react-native-purchases/issues/1934)
+
 ## [1.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.11.0...@stream-io/noise-cancellation-react-native-1.0.0-beta.0) (2026-09-04)
 
 ## [0.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.10.0...@stream-io/noise-cancellation-react-native-0.11.0) (2026-08-18)

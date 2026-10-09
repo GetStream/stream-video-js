@@ -78,9 +78,17 @@ Components are organized by feature/responsibility:
 - **Lobby.tsx** - Pre-call device selection and settings
 - **ActiveCall.tsx** - Active call UI with participant grid/layout
 - **CallLayout/** - Layout components (Grid, Speaker, Spotlight)
+- **CallStats/** - App-owned call statistics UI with a lazy-loaded latency chart
+- **StatCard/** - Shared measurement cards, grids, and status tags used by call stats, pre-call tests, debug stats, and transcription settings
 - **Debug/** - Debug panels and inspection tools
 - **Inspector/** - Deep SDK state inspection
 - **Settings/** - Audio/video/effects configuration
+
+Call statistics UI lives in this app, not in the React SDK. Import `CallStats` and `StatCard` from
+the local component directories; continue using `useCallStateHooks().useCallStatsReport()` from the
+SDK for stats data. The app owns the `chart.js` and `react-chartjs-2` dependencies, the styles in
+`style/CallStats.scss` and `style/StatCard.scss`, and the `callStats.*` / `statCard.*` translation keys
+(accessed through `useAppI18n`). Keep the chart lazy-loaded so its dependencies load only when needed.
 
 ### SDK Integration Flow
 
@@ -193,9 +201,21 @@ When making changes to SDK packages, run them in watch mode for live updates.
 For local/custom coordinator testing:
 
 ```
-?coordinator_url=http://localhost:3030/video
+?coordinator_url=http://localhost:3030
 ?use_local_coordinator=true  (uses env NEXT_PUBLIC_STREAM_API_URL)
 ```
+
+### Pinning a Ring to One Call
+
+The Dialer page (`/ring`) generates a fresh call id per ring. To ring the same
+call repeatedly - useful when testing re-rings or the ring state endpoint:
+
+```
+?call_id=my-test-call        (reuses this call instead of a random id)
+?call_type=audio_call        (alias for ?type, wins when both are set)
+```
+
+Both are forwarded to `/join/<callId>` when the ring is answered.
 
 ### Skip Lobby
 
@@ -229,3 +249,13 @@ See `/AGENTS.md` at repo root for:
 - Testing strategy
 - API design principles
 - Performance and accessibility guidelines
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

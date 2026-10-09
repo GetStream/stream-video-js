@@ -1,5 +1,6 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
+import { ConnectedEvent, TimestampNS, VideoEvent } from '../../gen/coordinator';
+import type { UserRequest } from '../../gen/shims';
 import { AllSfuEvents } from '../../rtc';
 import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
 import type { DevicePersistenceOptions } from '../../devices/devicePersistence';
@@ -171,7 +172,12 @@ export type StreamVideoEvent = (
   | ConnectionRecoveredEvent
   | MicCaptureReportEvent
   | DeviceDisconnectedEvent
-) & { received_at?: string | Date };
+) & {
+  /**
+   * When this client received the frame, as a unix-nanosecond timestamp.
+   */
+  received_at?: TimestampNS;
+};
 
 // TODO: we should use WSCallEvent here but that needs fixing
 export type StreamCallEvent = Extract<StreamVideoEvent, { call_cid: string }>;
@@ -199,6 +205,18 @@ export type Logger = (
   message: string,
   ...args: unknown[]
 ) => void;
+
+export type RingStatePollingOptions = {
+  /**
+   * Quiet time after the ring starts, before the first poll. Defaults to 9_000.
+   */
+  startAfterMs?: number;
+
+  /**
+   * The interval between polls. Defaults to 5_000.
+   */
+  intervalMs?: number;
+};
 
 export type StreamClientOptions = Partial<AxiosRequestConfig> & {
   /**
@@ -304,6 +322,13 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * When set to true, the incoming calls are rejected when the user is busy in an another call.
    */
   rejectCallWhenBusy?: boolean;
+
+  /**
+   * Caller-side polling for the ring outcome, used when the `call.accepted`,
+   * `call.rejected` or `call.missed` event never arrives. Enabled by default;
+   * set to `false` to disable, or pass an object to tune the timings.
+   */
+  ringStatePolling?: false | RingStatePollingOptions;
 
   /**
    * Device persistence preference options (web only).

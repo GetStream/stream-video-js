@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 /**
  * @vitest-environment happy-dom
  */
@@ -18,7 +20,7 @@ import { DynascaleManager } from '../DynascaleManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
-import { StreamVideoWriteableStateStore } from '../../store';
+import { ClientState } from '../../store';
 import { getCurrentValue } from '../../store/rxUtils';
 import { VisibilityState } from '../../types';
 import { noopComparator } from '../../sorting';
@@ -44,8 +46,9 @@ describe('DynascaleManager', () => {
       id: 'id',
       type: 'default',
       streamClient,
+      videoApi: new VideoApi(new ApiClient(streamClient)),
       clientEventReporter: new ClientEventReporter({ streamClient }),
-      clientStore: new StreamVideoWriteableStateStore(),
+      clientState: new ClientState(),
     });
     call.setSortParticipantsBy(noopComparator());
     dynascaleManager = call.dynascaleManager;

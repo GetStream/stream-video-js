@@ -1,80 +1,92 @@
 import React from 'react';
-import { StyleSheet, View, Text, Pressable } from 'react-native';
-import { useTheme } from '../../../contexts/ThemeContext';
-import { Back } from '../../../icons/Back';
+import {
+  Pressable,
+  type StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  type ViewStyle,
+} from 'react-native';
+import { useTheme } from '../../../contexts';
+import { Back } from '../../../icons';
 
 export type TextBasedIndicatorProps = {
+  /**
+   * The message shown in the middle of the screen.
+   */
   text: string;
+  /**
+   * Shows a back button when provided. Without it the screen has no way out,
+   * which matters for states the call may sit in indefinitely.
+   */
   onBackPress?: () => void;
+
+  style?: StyleProp<ViewStyle>;
 };
 
-export const TextBasedIndicator = (props: TextBasedIndicatorProps) => {
-  const {
-    theme: {
-      colors,
-      typefaces,
-      variants: { iconSizes, insets },
-    },
-  } = useTheme();
+/**
+ * A full-screen message with an optional back button, shared by the ringing
+ * flow's terminal and preparatory states.
+ */
+export const TextBasedIndicator = ({
+  text,
+  onBackPress,
+  style,
+}: TextBasedIndicatorProps) => {
+  const styles = useStyles();
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.sheetTertiary,
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom,
-          paddingLeft: insets.left,
-          paddingRight: insets.right,
-        },
-      ]}
-    >
-      {props.onBackPress && (
+    <View style={[styles.container, style]}>
+      {onBackPress && (
         <View style={styles.backContainer}>
           <Pressable
-            onPress={props.onBackPress}
+            onPress={onBackPress}
             style={({ pressed }) => [
-              {
-                opacity: pressed ? 0.2 : 1,
-                height: iconSizes.md,
-                width: iconSizes.md,
-              },
+              styles.buttonContainer,
+              { opacity: pressed ? 0.5 : 1 },
             ]}
           >
-            <Back color={colors.iconPrimary} />
+            <Back size={styles.icon.width} color={styles.icon.color} />
           </Pressable>
         </View>
       )}
       <View style={styles.textContainer}>
-        <Text
-          style={[
-            styles.text,
-            { color: colors.textPrimary },
-            typefaces.heading6,
-          ]}
-        >
-          {props.text}
-        </Text>
+        <Text style={styles.text}>{text}</Text>
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  backContainer: {
-    padding: 8,
-    paddingTop: 16,
-  },
-  textContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  text: {
-    fontSize: 24,
-  },
-});
+const useStyles = () => {
+  const {
+    theme: { foundations, components, semantics },
+  } = useTheme();
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: semantics.backgroundCoreApp,
+    },
+    buttonContainer: {
+      height: components.iconSizeMd,
+      width: components.iconSizeMd,
+    },
+    icon: {
+      width: components.iconSizeMd,
+      color: semantics.accentNeutral,
+    },
+    backContainer: {
+      padding: 8,
+      paddingTop: 16,
+    },
+    textContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    text: {
+      color: semantics.textPrimary,
+      fontSize: foundations.typography.fontSizeSize22,
+    },
+  });
+};

@@ -1,0 +1,172 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCall, useTheme } from '@stream-io/video-react-native-sdk';
+import { useE2eeKeyStatus } from '../hooks/useE2eeKeyStatus';
+import { useAppI18n } from '../hooks/useAppI18n';
+import {
+  useAppGlobalStoreSetState,
+  useAppGlobalStoreValue,
+} from '../contexts/AppContext';
+import { useLobbyE2EE } from '../contexts/LobbyE2EEContext';
+import { updateE2EESharedKeys } from '../utils/e2ee';
+import { TextInput } from './TextInput';
+
+/**
+ * Surfaces a shared-key mismatch on an encrypted call.
+ *
+ * Without this a wrong meeting key looks like a broken call rather than a wrong
+ * key: media arrives, fails its authentication tag and is dropped, so tiles stay
+ * black and audio silent with nothing said about why.
+ *
+ * When the failure looks local, the banner doubles as the fix: the key can be
+ * re-entered here and is pushed straight to the native manager, so a mistyped key
+ * does not cost a rejoin. Dismissable, and re-armed once decryption recovers, so
+ * a later mismatch is surfaced again rather than nagging about this one.
+ */
+export const E2EEKeyNotification = () => {
+  const status = useE2eeKeyStatus();
+  const call = useCall();
+  const { t } = useAppI18n();
+  const setState = useAppGlobalStoreSetState();
+  const e2ee = useLobbyE2EE();
+  const storedKey = useAppGlobalStoreValue((store) => store.e2eeKeyInput) ?? '';
+  // A meeting carries its own key; a ringing call uses the persisted one.
+  const currentKey = e2ee ? (e2ee.encryptionKey ?? '') : storedKey;
+  const [dismissed, setDismissed] = useState(false);
+  const [draftKey, setDraftKey] = useState('');
+  const styles = useStyles();
+
+  // Re-arm once the call recovers, so a later mismatch is surfaced again.
+  useEffect(() => {
+    if (status.kind === 'ok') {
+      setDismissed(false);
+      setDraftKey('');
+    }
+  }, [status.kind]);
+
+  if (status.kind === 'ok' || dismissed) return null;
+
+  const applyKey = () => {
+    const key = draftKey.trim();
+    if (!key || !call) return;
+    if (e2ee) {
+      e2ee.updateEncryptionKey(key);
+    } else {
+      // Persist as well as apply: the stored value is what the next ringing
+      // call is created and encrypted with.
+      setState({ e2eeKeyInput: key });
+      updateE2EESharedKeys(call, key);
+    }
+    setDraftKey('');
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.row}>
+        <Text style={styles.message}>
+          {status.kind === 'local-key-mismatch'
+            ? t(
+                'e2eeKeyNotification.localKeyMismatch.text',
+                "Nobody's audio or video can be decrypted. Your meeting key is most likely wrong.",
+              )
+            : `${t(
+                'e2eeKeyNotification.undecryptableParticipants.text',
+                'Cannot decrypt participants:',
+              )} ${status.names.join(', ')}`}
+        </Text>
+        <Pressable
+          onPress={() => setDismissed(true)}
+          hitSlop={12}
+          accessibilityLabel={t(
+            'e2eeKeyNotification.dismiss.ariaLabel',
+            'Dismiss',
+          )}
+        >
+          <Text style={styles.dismiss}>✕</Text>
+        </Pressable>
+      </View>
+      {status.kind === 'local-key-mismatch' && (
+        <View style={styles.form}>
+          <TextInput
+            placeholder={
+              currentKey
+                ? t('e2eeKeyNotification.newKey.label', 'New meeting key')
+                : t('e2eeKeyNotification.key.label', 'Meeting key')
+            }
+            value={draftKey}
+            autoCapitalize="none"
+            autoCorrect={false}
+            onChangeText={setDraftKey}
+            onSubmitEditing={applyKey}
+            style={styles.input}
+          />
+          <Pressable
+            onPress={applyKey}
+            disabled={!draftKey.trim()}
+            style={[styles.apply, !draftKey.trim() && styles.applyDisabled]}
+          >
+            <Text style={styles.applyText}>
+              {t('e2eeKeyNotification.apply.label', 'Apply')}
+            </Text>
+          </Pressable>
+        </View>
+      )}
+    </View>
+  );
+};
+
+const useStyles = () => {
+  const {
+    theme: { semantics, primitives },
+  } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          backgroundColor: semantics.backgroundCoreApp,
+          borderRadius: 8,
+          marginHorizontal: primitives.spacingMd,
+          marginTop: primitives.spacingSm,
+          padding: primitives.spacingMd,
+        },
+        row: {
+          flexDirection: 'row',
+          alignItems: 'flex-start',
+        },
+        message: {
+          color: semantics.textPrimary,
+          flex: 1,
+          fontSize: 13,
+        },
+        dismiss: {
+          color: semantics.textSecondary,
+          fontSize: 16,
+          marginLeft: primitives.spacingMd,
+        },
+        form: {
+          alignItems: 'center',
+          flexDirection: 'row',
+          marginTop: primitives.spacingSm,
+        },
+        input: {
+          flex: 1,
+          marginVertical: 0,
+        },
+        apply: {
+          backgroundColor: semantics.accentPrimary,
+          borderRadius: 8,
+          marginLeft: primitives.spacingMd,
+          paddingHorizontal: primitives.spacingLg,
+          paddingVertical: primitives.spacingSm,
+        },
+        applyDisabled: {
+          backgroundColor: semantics.borderCoreDefault,
+        },
+        applyText: {
+          color: semantics.textPrimary,
+          fontWeight: '600',
+        },
+      }),
+    [primitives, semantics],
+  );
+};

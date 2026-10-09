@@ -16,9 +16,9 @@
     flex: 1;
     min-width: 0;
     padding: 0.25rem 0.5rem;
-    border: 1px solid var(--str-video__base-color5, #4c525c);
-    border-radius: var(--str-video__border-radius-xs, 0.25rem);
-    background: var(--str-video__background-color2, #1c1e22);
+    border: 1px solid var(--str-video__border-core-default);
+    border-radius: var(--str-video__radius-md);
+    background: var(--str-video__background-core-surface-default);
     color: inherit;
     font: inherit;
   }
@@ -26,9 +26,9 @@
   button {
     padding: 0.25rem 0.75rem;
     border: none;
-    border-radius: var(--str-video__border-radius-xs, 0.25rem);
-    background: var(--str-video__primary-color, #005fff);
-    color: #fff;
+    border-radius: var(--str-video__radius-md);
+    background: var(--str-video__accent-primary);
+    color: var(--str-video__text-on-accent);
     font: inherit;
     cursor: pointer;
 

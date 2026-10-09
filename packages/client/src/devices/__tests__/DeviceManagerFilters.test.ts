@@ -1,9 +1,11 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { of } from 'rxjs';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
-import { StreamVideoWriteableStateStore } from '../../store';
+import { ClientState } from '../../store';
 import { DeviceManagerState } from '../DeviceManagerState';
 import { DeviceManager } from '../DeviceManager';
 import {
@@ -52,8 +54,9 @@ describe('MediaStream Filters', () => {
         id: '',
         type: '',
         streamClient,
+        videoApi: new VideoApi(new ApiClient(streamClient)),
         clientEventReporter: new ClientEventReporter({ streamClient }),
-        clientStore: new StreamVideoWriteableStateStore(),
+        clientState: new ClientState(),
       }),
     );
   });

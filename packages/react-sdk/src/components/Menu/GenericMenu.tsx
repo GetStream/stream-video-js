@@ -36,3 +36,7 @@ export const GenericMenuButtonItem = ({
     </li>
   );
 };
+
+export const GenericMenuSeparator = () => (
+  <li className="str-video__generic-menu--separator" role="separator" />
+);

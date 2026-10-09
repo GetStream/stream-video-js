@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { useTheme } from '../../../contexts';
 import { ListRecordingsResponse } from '@stream-io/video-client';
 import {
@@ -54,7 +55,7 @@ export const CallEndedView = () => {
     const fetchRecordings = async () => {
       if (recordingsResponse == null) {
         try {
-          const callRecordingsResponse = await call?.queryRecordings();
+          const callRecordingsResponse = await call?.listRecordings();
           if (!isCanceled) {
             setRecordingsResponse(callRecordingsResponse);
           }
@@ -106,11 +107,18 @@ export const CallEndedView = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('The livestream has ended.')}</Text>
+      <Text style={styles.title}>
+        {t('livestreamPlayer.ended.title', 'The livestream has ended.')}
+      </Text>
 
       {showRecordings && (
         <>
-          <Text style={styles.subtitle}>{t('Watch recordings:')}</Text>
+          <Text style={styles.subtitle}>
+            {t(
+              'livestreamPlayer.ended.watchRecordings.title',
+              'Watch recordings:',
+            )}
+          </Text>
           <View style={styles.recordingsContainer}>
             <FlatList
               data={recordingsResponse.recordings}
@@ -125,42 +133,44 @@ export const CallEndedView = () => {
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
           flex: 1,
-          backgroundColor: theme.colors.sheetPrimary,
+          backgroundColor: semantics.backgroundCoreApp,
           justifyContent: 'center',
           alignItems: 'center',
-          padding: theme.variants.spacingSizes.md,
+          padding: primitives.spacingMd,
         },
         title: {
-          fontSize: theme.variants.fontSizes.lg,
-          marginBottom: theme.variants.spacingSizes.md,
-          color: theme.colors.textPrimary,
-          fontWeight: 'bold',
+          fontSize: primitives.typographyFontSizeLg,
+          marginBottom: primitives.spacingMd,
+          color: semantics.textPrimary,
+          fontWeight: primitives.typographyFontWeightBold,
         },
         subtitle: {
-          fontSize: theme.variants.fontSizes.md,
-          marginBottom: theme.variants.spacingSizes.md,
-          color: theme.colors.textPrimary,
-          fontWeight: 'bold',
+          fontSize: primitives.typographyFontSizeMd,
+          marginBottom: primitives.spacingMd,
+          color: semantics.textPrimary,
+          fontWeight: primitives.typographyFontWeightBold,
         },
         recordingButton: {
-          padding: theme.variants.spacingSizes.sm,
+          padding: primitives.spacingSm,
           width: '100%',
         },
         recordingText: {
-          color: theme.colors.textSecondary,
-          fontSize: theme.variants.fontSizes.md,
+          color: semantics.textSecondary,
+          fontSize: primitives.typographyFontSizeMd,
         },
         recordingsContainer: {
           width: '100%',
           alignItems: 'center',
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };

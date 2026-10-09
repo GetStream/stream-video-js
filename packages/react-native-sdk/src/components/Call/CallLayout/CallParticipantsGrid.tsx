@@ -5,6 +5,7 @@ import { debounceTime } from 'rxjs';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
   type CallParticipantsListComponentProps,
+  type CallParticipantsListProps,
 } from '../CallParticipantsList/CallParticipantsList';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -18,7 +19,8 @@ import { StreamVideoParticipant } from '@stream-io/video-client';
  */
 export type CallParticipantsGridProps = ParticipantViewComponentProps &
   Pick<CallContentProps, 'supportedReactions' | 'CallParticipantsList'> &
-  Pick<CallParticipantsListComponentProps, 'ParticipantView' | 'mirror'> & {
+  Pick<CallParticipantsListComponentProps, 'ParticipantView' | 'mirror'> &
+  Pick<CallParticipantsListProps, 'evenGridColumns'> & {
     /**
      * Boolean to decide if local participant will be visible in the grid when there is 1:1 call.
      */
@@ -45,9 +47,10 @@ export const CallParticipantsGrid = ({
   showLocalParticipant = false,
   supportedReactions,
   landscape,
+  evenGridColumns,
 }: CallParticipantsGridProps) => {
   const {
-    theme: { colors, callParticipantsGrid },
+    theme: { callParticipantsGrid },
   } = useTheme();
   const call = useCall();
   const { useLocalParticipant, useDominantSpeaker } = useCallStateHooks();
@@ -122,8 +125,7 @@ export const CallParticipantsGrid = ({
       style={[
         styles.container,
         landscape ? styles.row : styles.column,
-        { backgroundColor: colors.sheetPrimary },
-        callParticipantsGrid.container,
+        callParticipantsGrid?.container,
       ]}
       testID={ComponentTestIds.CALL_PARTICIPANTS_GRID}
     >
@@ -132,6 +134,7 @@ export const CallParticipantsGrid = ({
           participants={participants}
           supportedReactions={supportedReactions}
           landscape={landscape}
+          evenGridColumns={evenGridColumns}
           {...participantViewProps}
         />
       )}
@@ -140,7 +143,13 @@ export const CallParticipantsGrid = ({
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  row: { flexDirection: 'row' },
-  column: { flexDirection: 'column' },
+  container: {
+    flex: 1,
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  column: {
+    flexDirection: 'column',
+  },
 });

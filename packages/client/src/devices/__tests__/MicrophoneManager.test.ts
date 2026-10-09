@@ -1,18 +1,17 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { NoiseCancellationStub } from './NoiseCancellationStub';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { sleep } from '../../coordinator/connection/utils';
-import {
-  NoiseCancellationSettingsModeEnum,
-  OwnCapability,
-} from '../../gen/coordinator';
+import { OwnCapability } from '../../gen/coordinator';
 import {
   AudioBitrateProfile,
   TrackType,
 } from '../../gen/video/sfu/models/models';
-import { CallingState, StreamVideoWriteableStateStore } from '../../store';
+import { CallingState, ClientState } from '../../store';
 import {
   createLocalStorageMock,
   emitDeviceIds,
@@ -104,8 +103,9 @@ describe('MicrophoneManager', () => {
       id: '',
       type: '',
       streamClient,
+      videoApi: new VideoApi(new ApiClient(streamClient)),
       clientEventReporter: new ClientEventReporter({ streamClient }),
-      clientStore: new StreamVideoWriteableStateStore(),
+      clientState: new ClientState(),
     });
     const devicePersistence = { enabled: false, storageKey: '' };
     manager = new MicrophoneManager(call, devicePersistence, 'disable-tracks');
@@ -364,7 +364,7 @@ describe('MicrophoneManager', () => {
           settings: {
             audio: {
               noise_cancellation: {
-                mode: NoiseCancellationSettingsModeEnum.DISABLED,
+                mode: 'disabled',
               },
             },
           },
@@ -383,7 +383,7 @@ describe('MicrophoneManager', () => {
           settings: {
             audio: {
               noise_cancellation: {
-                mode: NoiseCancellationSettingsModeEnum.AUTO_ON,
+                mode: 'auto-on',
               },
             },
           },

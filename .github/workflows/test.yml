@@ -52,6 +52,22 @@ jobs:
       - name: Build packages
         run: NODE_ENV=production yarn build:all
 
+      - name: Validate translations are in sync with source
+        # `yarn build:all` above already ran each SDK's `build-translations`, which regenerates
+        # keys.ts and the render-test fixture from that SDK's t() call sites and runtimeDefaults.ts.
+        # A diff here means the author changed a call site without regenerating.
+        #
+        # Scoped to the generated files on purpose: the RN SDK's build runs `copy-version`, which
+        # rewrites src/version.ts on every build, so a bare diff would fail on every PR. The fixture
+        # is gated too (chat gates only keys.ts) because the render test reads it — a stale fixture
+        # means the strongest test in the suite quietly checks nothing.
+        run: |
+          git diff --exit-code -- \
+            packages/react-sdk/src/i18n/keys.ts \
+            packages/react-sdk/src/i18n/__tests__/catalog.fixture.json \
+            packages/react-native-sdk/src/i18n/keys.ts \
+            packages/react-native-sdk/__tests__/i18n/catalog.fixture.json
+
       # --- Bundle-size report (auxiliary, never fails CI) ---
 
       # PR: find the most recent successful run on the PR's own base branch that

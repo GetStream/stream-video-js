@@ -18,7 +18,7 @@ export function setupAndroidPushEvents(
   const callingx = getCallingxLib();
   callingx.addEventListener('ringCallPushReceived', (params) => {
     logger.debug(`ringCallPushReceived event call_cid: ${params?.call_cid}`);
-    onRingNotificationReceived(params).catch((error) => {
+    onRingNotificationReceived(params, pushConfig).catch((error) => {
       logger.error(`Error in onRingNotificationReceived: ${error}`);
     });
   });

@@ -5,11 +5,12 @@
   padding-bottom: 10px;
 
   .livestream-toggle-button {
-    background-color: #005fff;
-    border-radius: 4px;
-    color: #fff;
-    font-size: 17px;
-    font-weight: 500;
+    background-color: var(--str-video__accent-primary);
+    border-radius: var(--str-video__radius-xs);
+    color: var(--str-video__text-on-accent);
+    font-size: var(--str-video__typography-font-size-md);
+    line-height: var(--str-video__typography-line-height-normal);
+    font-weight: var(--str-video__typography-font-weight-medium);
     padding: 4px 10px;
 
     display: flex;
@@ -19,15 +20,14 @@
     margin-left: 15px;
 
     &:hover {
-      background-color: #0049d6;
+      background-image: linear-gradient(
+        var(--str-video__background-utility-hover),
+        var(--str-video__background-utility-hover)
+      );
     }
 
     &.broadcasting {
-      background-color: #ff3742;
-
-      &:hover {
-        background-color: #d62a33;
-      }
+      background-color: var(--str-video__accent-error);
     }
   }
 }

@@ -1,9 +1,7 @@
 import {
-  ButtonHTMLAttributes,
   ComponentProps,
   forwardRef,
   Fragment,
-  PropsWithChildren,
   useEffect,
   useState,
 } from 'react';
@@ -12,14 +10,10 @@ import {
   PermissionRequestEvent,
   UserResponse,
 } from '@stream-io/video-client';
-import {
-  TranslatorFunction,
-  useCall,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-bindings';
-import clsx from 'clsx';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { StreamTFunction, useI18n } from '../../i18n';
 
+import { Button } from '../Button';
 import { useFloatingUIPreset } from '../../hooks';
 
 const byNameOrId = (a: UserResponse, b: UserResponse) => {
@@ -93,7 +87,10 @@ export const PermissionRequests = () => {
           {permissionRequests.length} pending permission requests
         </span>
         <Button
-          type="button"
+          variant="secondary"
+          appearance="outline"
+          size="sm"
+          className="str-video__permission-request__button"
           onClick={() => {
             setExpanded((e) => !e);
           }}
@@ -143,25 +140,31 @@ export const PermissionRequestList = forwardRef<
                   {messageForPermission(user.name || user.id, permission, t)}
                 </div>
                 <Button
-                  className="str-video__permission-request__button--allow"
-                  type="button"
+                  variant="primary"
+                  appearance="solid"
+                  size="sm"
+                  className="str-video__permission-request__button str-video__permission-request__button--allow"
                   onClick={handleUpdatePermission(request, 'grant')}
                 >
-                  {t('Allow')}
+                  {t('common.allow.label', 'Allow')}
                 </Button>
                 <Button
-                  className="str-video__permission-request__button--reject"
-                  type="button"
+                  variant="secondary"
+                  appearance="outline"
+                  size="sm"
+                  className="str-video__permission-request__button str-video__permission-request__button--reject"
                   onClick={handleUpdatePermission(request, 'revoke')}
                 >
-                  {t('Revoke')}
+                  {t('common.revoke.label', 'Revoke')}
                 </Button>
                 <Button
-                  className="str-video__permission-request__button--reject"
-                  type="button"
+                  variant="secondary"
+                  appearance="outline"
+                  size="sm"
+                  className="str-video__permission-request__button str-video__permission-request__button--reject"
                   onClick={handleUpdatePermission(request, 'dismiss')}
                 >
-                  {t('Dismiss')}
+                  {t('common.dismiss.label', 'Dismiss')}
                 </Button>
               </div>
             ))}
@@ -172,38 +175,42 @@ export const PermissionRequestList = forwardRef<
   );
 });
 
-const Button = (
-  props: PropsWithChildren<ButtonHTMLAttributes<HTMLButtonElement>>,
-) => {
-  const { className, ...rest } = props;
-  return (
-    <button
-      className={clsx('str-video__permission-request__button', className)}
-      {...rest}
-    />
-  );
-};
-
 const messageForPermission = (
   userName: string,
   permission: string,
-  t: TranslatorFunction,
+  t: StreamTFunction,
 ) => {
   switch (permission) {
     case OwnCapability.SEND_AUDIO:
-      return t('{{ userName }} is requesting to speak', { userName });
+      return t(
+        'permissions.requestingToSpeak.text',
+        '{{ userName }} is requesting to speak',
+        { userName },
+      );
     case OwnCapability.SEND_VIDEO:
-      return t('{{ userName }} is requesting to share their camera', {
-        userName,
-      });
+      return t(
+        'permissions.requestingCamera.text',
+        '{{ userName }} is requesting to share their camera',
+        {
+          userName,
+        },
+      );
     case OwnCapability.SCREENSHARE:
-      return t('{{ userName }} is requesting to present their screen', {
-        userName,
-      });
+      return t(
+        'permissions.requestingScreenShare.text',
+        '{{ userName }} is requesting to present their screen',
+        {
+          userName,
+        },
+      );
     default:
-      return t('{{ userName }} is requesting permission: {{ permission }}', {
-        userName,
-        permission,
-      });
+      return t(
+        'permissions.requestingPermission.text',
+        '{{ userName }} is requesting permission: {{ permission }}',
+        {
+          userName,
+          permission,
+        },
+      );
   }
 };

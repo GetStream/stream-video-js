@@ -15,12 +15,19 @@ import { NavigationHeader } from '../components/NavigationHeader';
 import { useOrientation } from '../hooks/useOrientation';
 import { ActiveCall } from '../components/ActiveCall';
 import { LayoutProvider } from '../contexts/LayoutContext';
+import { RingStateDebugPane } from '../components/Ringing/RingStateDebugPane';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const ENABLE_RING_STATE_DEBUG = __DEV__;
 
 const CallStack = createNativeStackNavigator<CallStackParamList>();
 
 const Calls = () => {
   const calls = useCalls().filter((c) => c.ringing);
   const orientation = useOrientation();
+  const insets = useSafeAreaInsets();
+  const devMode = useAppGlobalStoreValue((store) => store.devMode);
 
   const firstCall = calls.at(-1);
 
@@ -30,7 +37,6 @@ const Calls = () => {
         <ActiveCall
           onCallEnded={() => {}}
           onHangupCallHandler={() => firstCall?.leave()}
-          onChatOpenHandler={null}
         />
       </LayoutProvider>
     );
@@ -47,7 +53,9 @@ const Calls = () => {
         <RingingCallContent
           landscape={orientation === 'landscape'}
           CallContent={customCallContent}
+          insets={insets}
         />
+        {(ENABLE_RING_STATE_DEBUG || devMode) && <RingStateDebugPane />}
       </View>
     </StreamCall>
   );

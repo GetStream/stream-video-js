@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import clsx from 'clsx';
-import { useI18n } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import { Icon } from '../../../components';
 
 interface StarRatingProps {
@@ -22,7 +22,10 @@ export const StarRating = ({ value, onChange }: StarRatingProps) => {
   return (
     <div className="str-video__embedded-call-feedback__rating-section">
       <p className="str-video__embedded-call-feedback__rating-label">
-        {t('How was your call quality?')}
+        {t(
+          'callFeedback.starRating.howWasCallQuality.text',
+          'How was your call quality?',
+        )}
       </p>
       <div
         className="str-video__embedded-call-feedback__stars"
@@ -35,7 +38,11 @@ export const StarRating = ({ value, onChange }: StarRatingProps) => {
             className={getStarClasses(star)}
             onClick={() => onChange(star)}
             onMouseEnter={() => setHovered(star)}
-            aria-label={t('Rate {{ count }} star', { count: star })}
+            aria-label={t('callFeedback.starRating.rateStars.ariaLabel', {
+              count: star,
+              defaultValue_one: 'Rate {{ count }} star',
+              defaultValue_other: 'Rate {{ count }} stars',
+            })}
           >
             <Icon icon="star-filled" />
           </button>

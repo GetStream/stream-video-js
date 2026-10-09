@@ -1,6 +1,7 @@
 import { PropsWithChildren, useEffect, useState } from 'react';
 import { Placement } from '@floating-ui/react';
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 import { Notification } from './Notification';
 
 export type MicCaptureErrorNotificationProps = {
@@ -26,13 +27,27 @@ export const MicCaptureErrorNotification = ({
     });
   }, [call]);
 
-  const message =
-    text ??
-    t('Your microphone is not capturing audio. Please check your setup.');
+  const message = text ?? (
+    <>
+      <span className="str-video__notification__line">
+        {t(
+          'notification.micCaptureError.title',
+          'Your microphone is not capturing audio.',
+        )}
+      </span>
+      <span className="str-video__notification__line">
+        {t(
+          'notification.micCaptureError.description',
+          'Please check your setup.',
+        )}
+      </span>
+    </>
+  );
 
   return (
     <Notification
       message={message}
+      state="error"
       isVisible={isVisible}
       placement={placement}
       close={() => setIsVisible(false)}

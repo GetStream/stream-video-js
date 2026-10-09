@@ -310,30 +310,30 @@
   --str-video__button-padding-x-with-label-md: 16px;
   --str-video__button-padding-x-with-label-sm: 16px;
   --str-video__button-padding-x-with-label-xs: 12px;
-  --str-video__background-core-overlay-light: rgba(
-    255,
-    255,
-    255,
-    0.75
-  ); /** A light semi-transparent layer. Used to lighten surfaces and for hover states on dark backgrounds. */
   --str-video__background-core-overlay-dark: rgba(
     26,
     27,
     37,
     0.25
   ); /** A dark semi-transparent layer. Used for image overlays. */
-  --str-video__background-core-scrim: rgba(
-    26,
-    27,
-    37,
-    0.5
-  ); /** A heavy semi-transparent layer. Used behind sheets, drawers, and modals to separate them from content. */
   --str-video__background-core-overlay-dark-strong: rgba(
     26,
     27,
     37,
     0.75
   ); /** A dark semi-transparent layer. Used for image overlays. */
+  --str-video__background-core-overlay-light: rgba(
+    255,
+    255,
+    255,
+    0.75
+  ); /** A light semi-transparent layer. Used to lighten surfaces and for hover states on dark backgrounds. */
+  --str-video__background-core-scrim: rgba(
+    26,
+    27,
+    37,
+    0.5
+  ); /** A heavy semi-transparent layer. Used behind sheets, drawers, and modals to separate them from content. */
   --str-video__background-utility-hover: rgba(
     26,
     27,
@@ -370,22 +370,21 @@
     37,
     0.15
   ); /** Border for selected or active items. Used for highlighted list items and active controls. */
-  --str-video__border-core-opacity-subtle: rgba(
-    26,
-    27,
-    37,
-    0.1
-  ); /** A very light transparent border. Used as a frame treatment on images and media attachments. */
   --str-video__border-core-opacity-strong: rgba(
     26,
     27,
     37,
     0.25
   ); /** A stronger transparent border for elements on colored or dark backgrounds. Used for waveform bars and similar treatments. */
+  --str-video__border-core-opacity-subtle: rgba(
+    26,
+    27,
+    37,
+    0.1
+  ); /** A very light transparent border. Used as a frame treatment on images and media attachments. */
   --str-video__system-bg-blur: rgba(255, 255, 255, 0.01);
   --str-video__system-scrollbar: rgba(0, 0, 0, 0.5);
   --str-video__badge-bg-overlay: rgba(0, 0, 0, 0.75);
-  --str-video__control-play-button-bg: rgba(0, 0, 0, 0.75);
   --str-video__base-transparent-0: var(
     --str-video__base-transparent-white-0
   ); /** Deprecated. Superseded by base/transparent/white-0%. Kept as an alias so existing integrations keep working; will be removed in a later release. */
@@ -518,28 +517,21 @@
   --str-video__emoji-lg: var(--str-video__font-size-size-32);
   --str-video__emoji-xl: var(--str-video__font-size-size-48);
   --str-video__emoji-2xl: var(--str-video__font-size-size-64);
+  --str-video__input-radius-search-input: var(--str-video__radius-full);
   --str-video__background-core-highlight: var(
     --str-video__yellow-50
   ); /** A tint for drawing attention to content. Used for highlights and pinned messages. */
-  --str-video__chat-waveform-bar: var(--str-video__border-core-opacity-strong);
-  --str-video__control-playback-thumb-border-default: var(
-    --str-video__border-core-opacity-strong
-  );
-  --str-video__avatar-palette-bg-1: var(--str-video__blue-150);
-  --str-video__avatar-palette-bg-2: var(--str-video__cyan-150);
-  --str-video__avatar-palette-bg-3: var(--str-video__green-150);
-  --str-video__avatar-palette-bg-4: var(--str-video__purple-150);
-  --str-video__avatar-palette-bg-5: var(--str-video__yellow-150);
-  --str-video__avatar-palette-text-1: var(--str-video__blue-900);
-  --str-video__avatar-palette-text-2: var(--str-video__cyan-900);
-  --str-video__avatar-palette-text-3: var(--str-video__green-900);
-  --str-video__avatar-palette-text-4: var(--str-video__purple-900);
-  --str-video__avatar-palette-text-5: var(--str-video__yellow-900);
+  --str-video__background-utility-skeleton-loading-highlight: var(
+    --str-video__background-core-overlay-light
+  ); /** Highlight color for the default skeleton loading gradient. Used for the moving shimmer to indicate loading activity. */
+  --str-video__control-call-control-error-badge-text: var(
+    --str-video__base-black
+  ); /** Icon or text on the error badge. Pinned to black in every mode, because the badge background does not invert and a mode-aware text token would flip to white on yellow. */
   --str-video__accent-success: var(
     --str-video__green-400
   ); /** Indicates a positive or completed state. Used for confirmations, sent indicators, and success feedback. */
   --str-video__accent-warning: var(
-    --str-video__yellow-400
+    --str-video__yellow-200
   ); /** Indicates a cautionary state that requires attention. Used for moderation flags and non-critical alerts. */
   --str-video__accent-error: var(
     --str-video__red-500
@@ -555,9 +547,6 @@
   --str-video__brand-700: var(--str-video__blue-700);
   --str-video__brand-800: var(--str-video__blue-800);
   --str-video__brand-900: var(--str-video__blue-900);
-  --str-video__skeleton-loading-highlight: var(
-    --str-video__background-core-overlay-light
-  ); /** Highlight color for the default skeleton loading gradient. Used for the moving shimmer to indicate loading activity. */
   --str-video__chrome-0: var(--str-video__base-white);
   --str-video__chrome-50: var(--str-video__slate-50);
   --str-video__chrome-100: var(--str-video__slate-100);
@@ -572,16 +561,6 @@
   --str-video__chrome-900: var(--str-video__slate-900);
   --str-video__chrome-1000: var(--str-video__base-black);
   --str-video__device-radius: var(--str-video__radius-md);
-  --str-video__message-bubble-radius-group-top: var(--str-video__radius-2xl);
-  --str-video__message-bubble-radius-group-middle: var(--str-video__radius-2xl);
-  --str-video__message-bubble-radius-group-bottom: var(--str-video__radius-2xl);
-  --str-video__message-bubble-radius-tail: var(--str-video__radius-none);
-  --str-video__message-bubble-radius-attachment: var(--str-video__radius-lg);
-  --str-video__message-bubble-radius-attachment-inline: var(
-    --str-video__radius-md
-  );
-  --str-video__composer-radius-fixed: var(--str-video__radius-3xl);
-  --str-video__composer-radius-floating: var(--str-video__radius-3xl);
   --str-video__button-primary-bg-liquid-glass: var(
     --str-video__base-transparent-0
   );
@@ -590,6 +569,9 @@
   --str-video__button-destructive-text: var(--str-video__accent-error);
   --str-video__button-destructive-border: var(--str-video__accent-error);
   --str-video__emoji-sm: var(--str-video__typography-font-size-md);
+  --str-video__input-radius-text-input: var(--str-video__radius-lg);
+  --str-video__input-radius-select-input: var(--str-video__radius-lg);
+  --str-video__input-radius-option-card: var(--str-video__radius-lg);
   --str-video__background-core-app: var(
     --str-video__chrome-0
   ); /** The outermost application background. Sits behind all surfaces and is generally not overridden directly. */
@@ -605,27 +587,33 @@
   --str-video__background-core-elevation-3: var(
     --str-video__chrome-0
   ); /** Used for badge counts that float above other UI elements. */
-  --str-video__background-core-surface-default: var(
-    --str-video__chrome-100
-  ); /** Background for sectioned content areas. Used for grouped containers, and distinct content regions. */
-  --str-video__background-core-surface-subtle: var(
-    --str-video__chrome-50
-  ); /** A slightly receded background. Used for secondary containers or to create soft visual separation. */
-  --str-video__background-core-surface-card: var(
-    --str-video__chrome-50
-  ); /** Background for contained, card-style elements. Matches the surface in light mode but lifts slightly in dark mode to maintain visual separation. */
-  --str-video__background-core-surface-strong: var(
-    --str-video__chrome-150
-  ); /** A more prominent background. Used for elements that need to stand out from the main surface. */
   --str-video__background-core-inverse: var(
     --str-video__chrome-1000
   ); /** The opposite of the primary surface. Used for tooltips, snackbars, and high-contrast floating elements. */
   --str-video__background-core-on-accent: var(
     --str-video__chrome-0
   ); /** Background for elements placed on an accent-colored surface. Ensures legibility against brand colors. */
+  --str-video__background-core-on-elevation: var(
+    --str-video__chrome-100
+  ); /** Background for controls and elements inside a floating surface, such as a menu, dialog, or popover. Steps up in dark mode, where the elevated surface has already lightened and a plain surface background would disappear into it. */
+  --str-video__background-core-surface-card: var(
+    --str-video__chrome-50
+  ); /** Background for contained, card-style elements. Matches the surface in light mode but lifts slightly in dark mode to maintain visual separation. */
+  --str-video__background-core-surface-default: var(
+    --str-video__chrome-100
+  ); /** Background for sectioned content areas. Used for grouped containers, and distinct content regions. */
+  --str-video__background-core-surface-strong: var(
+    --str-video__chrome-150
+  ); /** A more prominent background. Used for elements that need to stand out from the main surface. */
+  --str-video__background-core-surface-subtle: var(
+    --str-video__chrome-50
+  ); /** A slightly receded background. Used for secondary containers or to create soft visual separation. */
   --str-video__background-utility-disabled: var(
     --str-video__chrome-100
   ); /** Background for non-interactive elements. Flattens the element visually to signal unavailability. */
+  --str-video__background-utility-skeleton-loading-base: var(
+    --str-video__base-transparent-0
+  ); /** Base color for the default skeleton loading gradient. Used as the background tone for placeholder surfaces. */
   --str-video__border-utility-focused: var(
     --str-video__brand-150
   ); /** Focus ring for keyboard and accessibility navigation. Uses the brand color to signal input focus. */
@@ -647,53 +635,46 @@
   --str-video__border-core-default: var(
     --str-video__chrome-150
   ); /** Standard border for surfaces and containers. Used for input fields, cards, and dividers on neutral backgrounds. */
-  --str-video__border-core-subtle: var(
-    --str-video__chrome-100
-  ); /** A lighter border for minimal separation. Used where a full-strength border would feel too heavy. */
-  --str-video__border-core-strong: var(
-    --str-video__chrome-300
-  ); /** An emphatic border for elements that need clear definition. Used for focused containers and prominent dividers. */
-  --str-video__border-core-inverse: var(
-    --str-video__chrome-0
-  ); /** Used on dark backgrounds. */
   --str-video__border-core-on-accent: var(
     --str-video__chrome-0
   ); /** Border on accent-colored surfaces. Stays white in both modes since the accent background doesn't invert. */
-  --str-video__border-core-on-surface: var(
-    --str-video__chrome-300
-  ); /** Border for elements sitting on elevated surfaces. Uses a stronger value than default to maintain visible separation when the background is darker. */
+  --str-video__border-core-on-elevation: var(
+    --str-video__chrome-150
+  ); /** Border for controls and elements inside a floating surface, such as a menu, dialog, or popover. Steps up in dark mode to keep the edge visible once the elevated surface has lightened. Use border/core/on-surface instead for elements on a plain surface. */
   --str-video__border-core-on-inverse: var(
     --str-video__chrome-0
   ); /** Border on inverse-colored surfaces. Stays legible when the background flips between light and dark mode. */
-  --str-video__chat-bg-outgoing: var(
-    --str-video__brand-100
-  ); /** Outgoing bubble background. */
-  --str-video__chat-bg-attachment-outgoing: var(
-    --str-video__brand-150
-  ); /** Attachment card in outgoing bubble. */
-  --str-video__chat-bg-mention: var(--str-video__base-transparent-0);
-  --str-video__chat-text-outgoing: var(
-    --str-video__brand-900
-  ); /** Message body text. */
-  --str-video__chat-border-outgoing: var(--str-video__brand-100);
-  --str-video__chat-border-on-chat-outgoing: var(--str-video__brand-300);
-  --str-video__chat-reply-indicator-incoming: var(
-    --str-video__chrome-400
-  ); /** Reply indicator shading for incoming. */
-  --str-video__chat-reply-indicator-outgoing: var(
-    --str-video__brand-400
-  ); /** Reply indicator shading for outgoing. */
-  --str-video__chat-poll-progress-track-outgoing: var(--str-video__brand-200);
-  --str-video__chat-thread-connector-outgoing: var(--str-video__brand-150);
+  --str-video__border-core-on-surface: var(
+    --str-video__chrome-300
+  ); /** Border for elements sitting on elevated surfaces. Uses a stronger value than default to maintain visible separation when the background is darker. */
+  --str-video__border-core-strong: var(
+    --str-video__chrome-300
+  ); /** An emphatic border for elements that need clear definition. Used for focused containers and prominent dividers. */
+  --str-video__border-core-subtle: var(
+    --str-video__chrome-100
+  ); /** A lighter border for minimal separation. Used where a full-strength border would feel too heavy. */
+  --str-video__avatar-presence-bg-online: var(
+    --str-video__accent-success
+  ); /** The green online indicator. Uses success accent in normal themes. In high-contrast, color is dropped and replaced with strong black for maximum clarity. */
+  --str-video__avatar-bg-default: var(--str-video__brand-150);
+  --str-video__avatar-bg-placeholder: var(--str-video__chrome-150);
+  --str-video__avatar-text-default: var(--str-video__brand-900);
+  --str-video__avatar-text-placeholder: var(--str-video__chrome-500);
   --str-video__system-text: var(--str-video__chrome-1000);
   --str-video__badge-bg-error: var(--str-video__accent-error);
   --str-video__badge-bg-inverse: var(--str-video__chrome-1000);
   --str-video__control-checkbox-bg: var(--str-video__base-transparent-0);
   --str-video__control-radio-button-bg: var(--str-video__base-transparent-0);
   --str-video__control-radio-check-bg: var(--str-video__base-transparent-0);
-  --str-video__control-accept-call-bg: var(
+  --str-video__control-accept-call-button-bg: var(
     --str-video__accent-success
   ); /** Background for the accept call action. Green rather than the primary accent, so accept and decline read as opposites rather than as two primary actions. */
+  --str-video__control-call-control-error-badge-bg: var(
+    --str-video__accent-warning
+  ); /** Background for the error badge on a call control button. Yellow rather than red, so it stays legible on a red button and over video. */
+  --str-video__control-decline-call-button-bg: var(
+    --str-video__accent-error
+  ); /** Background for the decline call action. Red rather than the destructive button token, so accept and decline read as a matched pair. */
   --str-video__text-primary: var(
     --str-video__chrome-900
   ); /** Main body text. Used for message content, titles, and any text that carries primary meaning. */
@@ -715,22 +696,12 @@
   --str-video__text-link: var(
     --str-video__brand-500
   ); /** Hyperlinks and inline actions. Uses the brand color to signal interactivity within text content. */
-  --str-video__avatar-bg-default: var(--str-video__avatar-palette-bg-1);
-  --str-video__avatar-bg-placeholder: var(--str-video__chrome-150);
-  --str-video__avatar-text-default: var(--str-video__avatar-palette-text-1);
-  --str-video__avatar-text-placeholder: var(--str-video__chrome-500);
-  --str-video__avatar-presence-bg-online: var(
-    --str-video__accent-success
-  ); /** The green online indicator. Uses success accent in normal themes. In high-contrast, color is dropped and replaced with strong black for maximum clarity. */
   --str-video__accent-primary: var(
     --str-video__brand-500
   ); /** The main brand color. Used for interactive elements, buttons, links, and primary actions. Override this to apply your brand color across the SDK. */
   --str-video__accent-neutral: var(
     --str-video__chrome-500
   ); /** A mid-tone gray for de-emphasized UI elements. */
-  --str-video__skeleton-loading-base: var(
-    --str-video__base-transparent-0
-  ); /** Base color for the default skeleton loading gradient. Used as the background tone for placeholder surfaces. */
   --str-video__label-bg-neutral: var(
     --str-video__chrome-150
   ); /** Background for a neutral label. */
@@ -740,18 +711,24 @@
   --str-video__label-text-primary: var(
     --str-video__brand-900
   ); /** Text on a primary label. */
-  --str-video__indicator-great: var(
-    --str-video__accent-success
-  ); /** Connection quality indicator at its strongest level. */
-  --str-video__indicator-fair: var(
+  --str-video__indicator-connection-quality-fair: var(
     --str-video__accent-warning
-  ); /** Connection quality indicator at its middle level. */
-  --str-video__indicator-poor: var(
+  ); /** Reduced connection. Fills two bars on the connection quality indicator. */
+  --str-video__indicator-connection-quality-great: var(
+    --str-video__accent-success
+  ); /** Strongest connection. Fills all three bars on the connection quality indicator. */
+  --str-video__indicator-connection-quality-poor: var(
     --str-video__accent-error
-  ); /** Connection quality indicator at its weakest level. */
-  --str-video__indicator-speaking: var(
-    --str-video__brand-300
-  ); /** Active speaking indicator on a participant tile. Driven by voice activity, not mute state. */
+  ); /** Weak connection. Fills one bar, and is the only quality state worth interrupting the user for. */
+  --str-video__indicator-microphone-level-bar-active: var(
+    --str-video__brand-400
+  ); /** A filled bar in the microphone level meter. The number filled tracks the live input level from the selected device. */
+  --str-video__indicator-microphone-level-bar-inactive: var(
+    --str-video__chrome-200
+  ); /** An unfilled bar in the microphone level meter. Always drawn, so the meter keeps a constant width as the level moves. */
+  --str-video__indicator-sound-indicator-speaking: var(
+    --str-video__brand-400
+  ); /** Shown while a remote participant is talking. Only meaningful once the call is connected, since speaking state arrives from SFU events. */
   --str-video__button-primary-bg: var(--str-video__accent-primary);
   --str-video__button-primary-text: var(--str-video__accent-primary);
   --str-video__button-primary-text-on-accent: var(--str-video__text-on-accent);
@@ -784,52 +761,6 @@
   --str-video__button-destructive-border-on-dark: var(
     --str-video__text-on-inverse
   );
-  --str-video__border-utility-active: var(
-    --str-video__accent-primary
-  ); /** Active input border. Used for focused text fields and selected form elements. */
-  --str-video__chat-bg-incoming: var(
-    --str-video__background-core-surface-default
-  ); /** Incoming bubble background. */
-  --str-video__chat-bg-attachment-incoming: var(
-    --str-video__background-core-surface-strong
-  ); /** Attachment card in incoming bubble. */
-  --str-video__chat-bg-mention-user: var(--str-video__chat-bg-mention);
-  --str-video__chat-bg-mention-broadcast: var(--str-video__chat-bg-mention);
-  --str-video__chat-bg-mention-role: var(--str-video__chat-bg-mention);
-  --str-video__chat-bg-mention-group: var(--str-video__chat-bg-mention);
-  --str-video__chat-text-incoming: var(
-    --str-video__text-primary
-  ); /** Message body text. */
-  --str-video__chat-text-username: var(
-    --str-video__text-secondary
-  ); /** Username label. */
-  --str-video__chat-text-timestamp: var(
-    --str-video__text-tertiary
-  ); /** Time labels. */
-  --str-video__chat-text-read: var(--str-video__accent-primary);
-  --str-video__chat-text-mention: var(
-    --str-video__text-link
-  ); /** Mention styling. */
-  --str-video__chat-text-link: var(
-    --str-video__text-link
-  ); /** Links inside message bubbles. */
-  --str-video__chat-text-reaction: var(
-    --str-video__text-secondary
-  ); /** Reaction count text. */
-  --str-video__chat-text-system: var(
-    --str-video__text-secondary
-  ); /** System messages like date separators. */
-  --str-video__chat-border-incoming: var(--str-video__border-core-subtle);
-  --str-video__chat-border-on-chat-incoming: var(
-    --str-video__border-core-strong
-  );
-  --str-video__chat-waveform-bar-playing: var(--str-video__accent-primary);
-  --str-video__chat-poll-progress-fill-outgoing: var(
-    --str-video__accent-primary
-  );
-  --str-video__chat-thread-connector-incoming: var(
-    --str-video__border-core-default
-  );
   --str-video__input-text-default: var(
     --str-video__text-primary
   ); /** Main text inside the chat input. */
@@ -845,19 +776,15 @@
   --str-video__input-text-icon-active: var(
     --str-video__text-primary
   ); /** Icons inside the input area in their active state. Steps up from the resting icon colour to primary text. */
-  --str-video__input-send-icon: var(
+  --str-video__border-utility-active: var(
     --str-video__accent-primary
-  ); /** Default send icon color in the input. Uses the brand accent. */
-  --str-video__input-send-icon-disabled: var(
-    --str-video__text-disabled
-  ); /** Send icon when disabled (e.g. empty input). */
-  --str-video__reaction-bg: var(--str-video__background-core-elevation-3);
-  --str-video__reaction-border: var(--str-video__border-core-default);
-  --str-video__reaction-text: var(--str-video__text-primary);
-  --str-video__reaction-emoji: var(--str-video__text-primary);
-  --str-video__presence-bg-online: var(
-    --str-video__avatar-presence-bg-online
-  ); /** Deprecated. Renamed to avatar/presence in Figma. Kept as an alias so existing integrations keep working; will be removed in a later release. */
+  ); /** Active input border. Used for focused text fields and selected form elements. */
+  --str-video__avatar-presence-border: var(
+    --str-video__border-core-on-inverse
+  ); /** The thin outline around the presence dot. Matches the local surface behind the avatar. In high-contrast it uses the base surface. */
+  --str-video__avatar-presence-bg-offline: var(
+    --str-video__accent-neutral
+  ); /** The green online indicator. Uses success accent in normal themes. In high-contrast, color is dropped and replaced with strong black for maximum clarity. */
   --str-video__system-caret: var(--str-video__accent-primary);
   --str-video__badge-bg-default: var(--str-video__background-core-elevation-3);
   --str-video__badge-bg-primary: var(--str-video__accent-primary);
@@ -866,13 +793,6 @@
   --str-video__badge-text-on-inverse: var(--str-video__text-on-inverse);
   --str-video__badge-text-on-accent: var(--str-video__text-on-accent);
   --str-video__badge-border: var(--str-video__border-core-on-inverse);
-  --str-video__control-remove-control-bg: var(
-    --str-video__background-core-inverse
-  );
-  --str-video__control-remove-control-icon: var(--str-video__text-on-inverse);
-  --str-video__control-remove-control-border: var(
-    --str-video__border-core-on-inverse
-  );
   --str-video__control-progress-bar-fill: var(--str-video__accent-neutral);
   --str-video__control-progress-bar-track: var(
     --str-video__background-core-surface-strong
@@ -890,23 +810,9 @@
   --str-video__control-toggle-switch-knob: var(
     --str-video__background-core-on-accent
   );
-  --str-video__control-playback-toggle-text: var(--str-video__text-primary);
-  --str-video__control-playback-toggle-border: var(
-    --str-video__border-core-default
-  );
   --str-video__control-checkbox-border: var(--str-video__border-core-default);
   --str-video__control-checkbox-bg-selected: var(--str-video__accent-primary);
   --str-video__control-checkbox-icon: var(--str-video__text-on-accent);
-  --str-video__control-play-button-icon: var(--str-video__text-on-accent);
-  --str-video__control-playback-thumb-bg-default: var(
-    --str-video__background-core-on-accent
-  );
-  --str-video__control-playback-thumb-bg-active: var(
-    --str-video__accent-primary
-  );
-  --str-video__control-playback-thumb-border-active: var(
-    --str-video__border-core-on-accent
-  );
   --str-video__control-radio-button-border: var(
     --str-video__border-core-default
   );
@@ -923,55 +829,25 @@
   --str-video__control-radio-check-icon: var(--str-video__text-on-accent);
   --str-video__control-chip-border: var(--str-video__border-core-default);
   --str-video__control-chip-text: var(--str-video__text-primary);
-  --str-video__control-video-bg-control-bg: var(
-    --str-video__background-core-surface-subtle
-  ); /** Background of an unselected video background option. */
-  --str-video__control-video-bg-control-bg-selected: var(
-    --str-video__accent-primary
-  ); /** Background of the currently selected video background option. */
-  --str-video__control-video-bg-control-text: var(
-    --str-video__text-primary
-  ); /** Icon or label on an unselected video background option. */
-  --str-video__control-video-bg-control-text-selected: var(
-    --str-video__text-on-accent
-  ); /** Icon or label on the currently selected video background option. */
-  --str-video__control-accept-call-text: var(
+  --str-video__control-accept-call-button-text: var(
     --str-video__text-on-accent
   ); /** Icon or label on the accept call action, sitting on the success background. */
-  --str-video__avatar-presence-bg-offline: var(
-    --str-video__accent-neutral
-  ); /** The green online indicator. Uses success accent in normal themes. In high-contrast, color is dropped and replaced with strong black for maximum clarity. */
-  --str-video__avatar-presence-border: var(
-    --str-video__border-core-on-inverse
-  ); /** The thin outline around the presence dot. Matches the local surface behind the avatar. In high-contrast it uses the base surface. */
+  --str-video__control-decline-call-button-text: var(
+    --str-video__text-on-accent
+  ); /** Icon or label on the decline call action, sitting on the error background. */
   --str-video__label-text-neutral: var(
     --str-video__text-primary
   ); /** Text on a neutral label. */
-  --str-video__chat-text-typing-indicator: var(
-    --str-video__chat-text-incoming
-  ); /** Typing indicator chip. */
-  --str-video__chat-text-mention-user: var(
-    --str-video__chat-text-mention
-  ); /** Mention styling. */
-  --str-video__chat-text-mention-broadcast: var(
-    --str-video__chat-text-mention
-  ); /** Mention styling. */
-  --str-video__chat-text-mention-role: var(
-    --str-video__chat-text-mention
-  ); /** Mention styling. */
-  --str-video__chat-text-mention-group: var(
-    --str-video__chat-text-mention
-  ); /** Mention styling. */
-  --str-video__chat-poll-progress-track-incoming: var(
-    --str-video__control-progress-bar-track
-  );
-  --str-video__chat-poll-progress-fill-incoming: var(
-    --str-video__control-progress-bar-fill
-  );
-  --str-video__presence-border: var(
-    --str-video__avatar-presence-border
-  ); /** Deprecated. Renamed to avatar/presence in Figma. Kept as an alias so existing integrations keep working; will be removed in a later release. */
-  --str-video__presence-bg-offline: var(
-    --str-video__avatar-presence-bg-offline
-  ); /** Deprecated. Renamed to avatar/presence in Figma. Kept as an alias so existing integrations keep working; will be removed in a later release. */
+  --str-video__tab-indicator: var(
+    --str-video__accent-primary
+  ); /** The underline on the selected tab. */
+  --str-video__tab-text: var(
+    --str-video__text-secondary
+  ); /** Label colour of an unselected tab. */
+  --str-video__tab-text-selected: var(
+    --str-video__accent-primary
+  ); /** Label colour of the selected tab. */
+  --str-video__tab-track: var(
+    --str-video__border-core-default
+  ); /** The line running under the tab bar. */
 }

@@ -2,9 +2,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  $container-width: 500px;
-  width: $container-width;
-  height: calc(calc($container-width / 12) * 9);
+  width: 100%;
+  aspect-ratio: 16 / 9;
 
   .str-video__video-preview {
     object-fit: cover;

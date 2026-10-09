@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useCall, useI18n, useTheme } from '@stream-io/video-react-native-sdk';
+import { useCall, useTheme } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 import { StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
-import { appTheme } from '../../theme';
 import { Button } from '../../components/Button';
 import { TextInput } from '../../components/TextInput';
 
@@ -19,7 +19,7 @@ export const GuestModeScreen = ({
   const call = useCall();
   const [callId, setCallId] = useState<string>(route.params.callId);
   const [username, setUsername] = useState<string>('Guest');
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const styles = useStyles();
 
   useEffect(() => {
@@ -33,6 +33,7 @@ export const GuestModeScreen = ({
       mode: 'guest',
       guestUserId: username,
       callId: callId,
+      encryptionKey: route.params.encryptionKey,
     });
   };
 
@@ -41,6 +42,7 @@ export const GuestModeScreen = ({
       mode: 'anonymous',
       callId: callId,
       guestUserId: '!anon',
+      encryptionKey: route.params.encryptionKey,
     });
   };
 
@@ -50,16 +52,16 @@ export const GuestModeScreen = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('Guest Mode')}</Text>
+      <Text style={styles.title}>{t('guestMode.title', 'Guest Mode')}</Text>
       <View>
         <TextInput
-          placeholder={t('Meeting Id')}
+          placeholder={t('guestMode.callId.label', 'Meeting Id')}
           value={callId}
           onChangeText={(value) => setCallId(value)}
           style={styles.textInputStyle}
         />
         <TextInput
-          placeholder={t('Your name')}
+          placeholder={t('guestMode.userName.label', 'Your name')}
           value={username}
           onChangeText={(value) => setUsername(value)}
           style={styles.textInputStyle}
@@ -69,12 +71,12 @@ export const GuestModeScreen = ({
         <Button
           disabled={!isValidCallId}
           onPress={joinAsGuestHandler}
-          title={t('Join As Guest')}
+          title={t('guestMode.joinAsGuest.label', 'Join As Guest')}
         />
         <Button
           disabled={!isValidCallId}
           onPress={joinAnonymously}
-          title={t('Continue Anonymously')}
+          title={t('guestMode.joinAnonymously.label', 'Continue Anonymously')}
           buttonStyle={styles.anonymousButton}
         />
       </View>
@@ -83,15 +85,17 @@ export const GuestModeScreen = ({
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          padding: appTheme.spacing.lg,
+          padding: primitives.spacingLg,
           flex: 1,
           justifyContent: 'space-evenly',
-          backgroundColor: theme.colors.sheetTertiary,
+          backgroundColor: semantics.backgroundCoreApp,
         },
         textInputStyle: {
           flex: 0,
@@ -99,14 +103,14 @@ const useStyles = () => {
         title: {
           fontSize: 34,
           fontWeight: '400',
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           textAlign: 'center',
         },
         anonymousButton: {
-          marginTop: appTheme.spacing.lg,
-          backgroundColor: theme.colors.sheetTertiary,
+          marginTop: primitives.spacingLg,
+          backgroundColor: semantics.backgroundCoreApp,
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };

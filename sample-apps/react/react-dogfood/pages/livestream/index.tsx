@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { DefaultAppHeader } from '../../components/DefaultAppHeader';
 import { FormEvent, useState } from 'react';
 import { JwtTokenGenerator } from '../../lib/jwt';
-import { LatencyMap } from '../../components/LatencyMap/LatencyMap';
+import { LatencyMap } from '../../components/LatencyMap';
 import { useEdges } from '../../hooks/useEdges';
 
 export default function LivestreamSetupPage() {

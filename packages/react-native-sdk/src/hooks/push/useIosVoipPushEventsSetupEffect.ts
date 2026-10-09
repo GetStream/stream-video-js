@@ -26,7 +26,7 @@ function setLogoutCallback(
   setPushLogoutCallback(async () => {
     lastVoipTokenRef.current = { token: '', userId: '' };
     try {
-      await client.removeDevice(token);
+      await client.removeDevice({ id: token });
       logger.debug('PushLogoutCallback - Removed voip token', token);
     } catch (err) {
       logger.warn('PushLogoutCallback - Failed to remove voip token', err);
@@ -71,7 +71,11 @@ export const useIosVoipPushEventsSetupEffect = () => {
     );
 
     client
-      .addVoipDevice(tokenToSend, 'apn', pushProviderName)
+      .addVoipDevice({
+        id: tokenToSend,
+        push_provider: 'apn',
+        push_provider_name: pushProviderName,
+      })
       .then(() => {
         logger.debug(`Sent voip token: ${tokenToSend}`);
         setLogoutCallback(client, tokenToSend, lastVoipTokenRef);
@@ -118,7 +122,11 @@ export const useIosVoipPushEventsSetupEffect = () => {
 
       logger.debug(`Sending voip token: ${token} userId: ${userId}`);
       client
-        .addVoipDevice(token, 'apn', pushProviderName)
+        .addVoipDevice({
+          id: token,
+          push_provider: 'apn',
+          push_provider_name: pushProviderName,
+        })
         .then(() => {
           logger.debug(`Sent voip token: ${token} userId: ${userId}`);
           setLogoutCallback(client, token, lastVoipTokenRef);

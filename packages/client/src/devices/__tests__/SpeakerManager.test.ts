@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 /* @vitest-environment happy-dom */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
@@ -17,7 +19,7 @@ import { checkIfAudioOutputChangeSupported } from '../devices';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
-import { StreamVideoWriteableStateStore } from '../../store';
+import { ClientState } from '../../store';
 import { defaultDeviceId } from '../devicePersistence';
 
 vi.mock('../devices.ts', () => {
@@ -54,8 +56,9 @@ describe('SpeakerManager.test', () => {
         id: '',
         type: '',
         streamClient,
+        videoApi: new VideoApi(new ApiClient(streamClient)),
         clientEventReporter: new ClientEventReporter({ streamClient }),
-        clientStore: new StreamVideoWriteableStateStore(),
+        clientState: new ClientState(),
       }),
       devicePersistence,
     );
@@ -161,8 +164,9 @@ describe('SpeakerManager.test', () => {
         id: '',
         type: '',
         streamClient,
+        videoApi: new VideoApi(new ApiClient(streamClient)),
         clientEventReporter: new ClientEventReporter({ streamClient }),
-        clientStore: new StreamVideoWriteableStateStore(),
+        clientState: new ClientState(),
       }),
       { enabled: true, storageKey },
     );
@@ -189,8 +193,9 @@ describe('SpeakerManager.test', () => {
           id: '',
           type: '',
           streamClient,
+          videoApi: new VideoApi(new ApiClient(streamClient)),
           clientEventReporter: new ClientEventReporter({ streamClient }),
-          clientStore: new StreamVideoWriteableStateStore(),
+          clientState: new ClientState(),
         }),
         { enabled: true, storageKey },
       );

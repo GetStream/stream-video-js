@@ -1,13 +1,14 @@
 // main entry point for component styles
 
 @use 'src/base';
-@use 'src/global-theme-variables';
 @use 'src/variable-tokens';
+@use 'src/shadows';
 @use 'src/icons';
 @use 'src/utils';
 
 @use 'src/AudioBlockedNotification';
 @use 'src/Avatar';
+@use 'src/Badge';
 @use 'src/Button';
 @use 'src/BackgroundFilters';
 @use 'src/CallControls';
@@ -15,7 +16,6 @@
 @use 'src/CallParticipantList';
 @use 'src/CallPreview';
 @use 'src/CallRecodingList';
-@use 'src/CallStats';
 @use 'src/DeviceSettings';
 @use 'src/DropdownSelect';
 @use 'src/Icon';

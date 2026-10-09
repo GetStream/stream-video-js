@@ -13,6 +13,7 @@ import {
   useI18n,
 } from '@stream-io/video-react-sdk';
 import { isMobile } from '../helpers/isMobile';
+import { useSettings } from '../context/SettingsContext';
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButtonRender(props, ref) {
@@ -29,14 +30,21 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
       <button
         ref={ref}
         className="rd__button rd__button--align-left rd__lobby__mic-button"
+        aria-haspopup="menu"
+        aria-expanded={props.menuShown}
         title={
-          isSystemMuted ? t('Microphone is paused by your system') : undefined
+          isSystemMuted
+            ? t(
+                'callControls.toggleAudioButton.microphonePausedBySystem.title',
+                'Microphone is paused by your system',
+              )
+            : undefined
         }
       >
         <Icon className="rd__button__icon" icon="mic" />
         <p className="rd__lobby__mic-button__device">
           {microphones?.find((mic) => mic.deviceId === selectedMic)?.label ||
-            t('Default')}
+            t('common.default.label', 'Default')}
         </p>
         <Icon icon={props.menuShown ? 'chevron-down' : 'chevron-up'} />
       </button>
@@ -46,8 +54,13 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
 
 export const ToggleMicButton = () => {
   const { t } = useI18n();
+  const {
+    settings: { speakingDetectionEnabled },
+  } = useSettings();
   const inputVisualType =
-    isMobile() || Browsers.isSafari() ? 'list' : 'preview';
+    !speakingDetectionEnabled || isMobile() || Browsers.isSafari()
+      ? 'list'
+      : 'preview';
 
   return (
     <MenuToggle
@@ -57,9 +70,13 @@ export const ToggleMicButton = () => {
     >
       <DeviceSelectorAudioInput
         visualType={inputVisualType}
-        title={t('Microphone')}
+        volumeIndicatorVisible={speakingDetectionEnabled}
+        title={t('common.microphone.label', 'Microphone')}
       />
-      <DeviceSelectorAudioOutput visualType="list" title={t('Speaker')} />
+      <DeviceSelectorAudioOutput
+        visualType="list"
+        title={t('common.speaker.label', 'Speaker')}
+      />
     </MenuToggle>
   );
 };

@@ -23,8 +23,7 @@ const useVideoStateMocks = ({
     if (!enabled) return;
 
     const { participants = [] } = testEnvironment ?? {};
-    // @ts-expect-error private api
-    client.writeableStateStore.registerCall(call);
+    client.state.registerCall(call);
     call.state.setParticipants(participants as StreamVideoParticipant[]);
     console.log({ client, call });
   }, [client, call, testEnvironment, enabled]);

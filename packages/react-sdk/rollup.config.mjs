@@ -1,6 +1,5 @@
 import typescript from '@rollup/plugin-typescript';
 import replace from '@rollup/plugin-replace';
-import json from '@rollup/plugin-json';
 
 import pkg from './package.json' with { type: 'json' };
 
@@ -8,9 +7,6 @@ import pkg from './package.json' with { type: 'json' };
  * @type {import('rollup').OutputOptions['chunkFileNames']}
  */
 const chunkFileNames = (chunkInfo) => {
-  if (chunkInfo.name.includes('CallStatsLatencyChart')) {
-    return 'latency-chart-[hash].[format].js';
-  }
   if (chunkInfo.name.includes('BackgroundFilters')) {
     return 'background-filters-[hash].[format].js';
   }
@@ -18,7 +14,6 @@ const chunkFileNames = (chunkInfo) => {
 };
 
 const commonPlugins = [
-  json(),
   replace({
     preventAssignment: true,
     'process.env.PKG_NAME': JSON.stringify(pkg.name),
@@ -31,6 +26,10 @@ const external = [
   ...Object.keys(pkg.peerDependencies || {}),
   'react/jsx-runtime',
   'react/jsx-dev-runtime',
+  // Subpaths are not covered by the bare package names above, so each one a source file
+  // imports has to be listed. Without this rollup bundles the React binding into dist and
+  // warns about an unresolved dependency.
+  '@stream-io/i18n/react',
 ];
 
 const createTypescriptPlugin = (options) =>

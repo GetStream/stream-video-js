@@ -6,11 +6,11 @@ import {
   Icon,
   useCall,
   useCallStateHooks,
-  useI18n,
   UserResponse,
   WithTooltip,
 } from '@stream-io/video-react-sdk';
 import { useFloatingUIPreset } from '../hooks/useFloatingUIPreset';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 export type ToggleParticipantListButtonProps = { caption?: string } & Omit<
   CompositeButtonProps,
@@ -48,7 +48,7 @@ export const ToggleParticipantListButton = (
     });
     setWaitingRoom((queue) => queue.filter((u) => u.id !== user.id));
   };
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   return (
     <div className="rd__toggle-participants" ref={refs.setReference}>
@@ -65,7 +65,10 @@ export const ToggleParticipantListButton = (
         >
           <p className="rd__waiting-room-list__title">
             <Icon className="rd__waiting-room-list__title-icon" icon="info" />
-            {t('Someone wants to join the call')}
+            {t(
+              'participants.joinRequest.text',
+              'Someone wants to join the call',
+            )}
           </p>
           <ul className="rd__waiting-room-list__users">
             {waitingRoom.map((user) => (
@@ -79,7 +82,7 @@ export const ToggleParticipantListButton = (
                   type="button"
                   onClick={admitUser(user)}
                 >
-                  {t('Admit')}
+                  {t('participants.admit.label', 'Admit')}
                 </button>
               </li>
             ))}
@@ -90,13 +93,16 @@ export const ToggleParticipantListButton = (
               type="button"
               onClick={() => setIsDismissed(true)}
             >
-              {t('Dismiss')}
+              {t('common.dismiss.label', 'Dismiss')}
             </button>
           </div>
         </div>
       )}
-      <WithTooltip title={t('Participants')}>
-        <CompositeButton title={t('Participants')} {...props}>
+      <WithTooltip title={t('common.participants.label', 'Participants')}>
+        <CompositeButton
+          title={t('common.participants.label', 'Participants')}
+          {...props}
+        >
           <Icon icon="participants" />
           {participantCount > 1 && (
             <span className="rd__participant-count">{participantCount}</span>

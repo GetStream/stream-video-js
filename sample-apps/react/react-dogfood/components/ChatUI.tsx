@@ -10,38 +10,47 @@ import {
   WithComponents,
 } from 'stream-chat-react';
 
-import { Icon, IconButton, useI18n } from '@stream-io/video-react-sdk';
+import { Icon, IconButton } from '@stream-io/video-react-sdk';
 
 import { CHANNEL_TYPE } from '.';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 const NoMessages = () => {
   const { messages } = useChannelStateContext();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   if (messages?.length === 0) {
     return (
       <div className="rd__chat__no-messages">
         <svg
           className="rd__chat__no-messages__icon"
-          width="43"
-          height="42"
-          viewBox="0 0 43 42"
+          width="32"
+          height="32"
+          viewBox="0 0 32 32"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
         >
-          <g id="try">
-            <path
-              id="Vector"
-              d="M35.5 4.73024H7.5C5.575 4.73024 4 6.30524 4 8.23024V35.5127C4 37.0702 5.89 37.8577 6.9925 36.7552L11 32.7302H35.5C37.425 32.7302 39 31.1552 39 29.2302V8.23024C39 6.30524 37.425 4.73024 35.5 4.73024ZM24.2475 21.4777L22.2875 25.7477C21.9725 26.4302 21.01 26.4302 20.695 25.7477L18.735 21.4777L14.465 19.5177C13.7825 19.2027 13.7825 18.2402 14.465 17.9252L18.735 15.9652L20.695 11.6952C21.01 11.0127 21.9725 11.0127 22.2875 11.6952L24.2475 15.9652L28.5175 17.9252C29.2 18.2402 29.2 19.2027 28.5175 19.5177L24.2475 21.4777Z"
-              fill="#B0B4B7"
-            />
-          </g>
+          <path
+            d="M9.99125 26.3888C12.5119 27.8476 15.4771 28.34 18.334 27.7741C21.1909 27.2081 23.7444 25.6226 25.5186 23.3129C27.2928 21.0033 28.1664 18.1273 27.9767 15.2211C27.787 12.3149 26.5469 9.57687 24.4875 7.5175C22.4281 5.45813 19.6901 4.21798 16.7839 4.02827C13.8777 3.83856 11.0017 4.71223 8.69206 6.4864C6.38244 8.26057 4.79686 10.8141 4.23094 13.671C3.66503 16.5279 4.15739 19.4931 5.61625 22.0138L4.0525 26.6825C3.99374 26.8587 3.98521 27.0478 4.02787 27.2285C4.07053 27.4093 4.1627 27.5746 4.29403 27.706C4.42537 27.8373 4.59068 27.9295 4.77145 27.9721C4.95222 28.0148 5.1413 28.0063 5.3175 27.9475L9.99125 26.3888Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
 
-        <p className="rd__chat__no-messages__title">{t('Start chatting!')}</p>
-        <p className="rd__chat__no-messages__description">
-          {t('Let’s get this chat started, why not send the first message?')}
-        </p>
+        <div className="rd__chat__no-messages__content">
+          <p className="rd__chat__no-messages__title">
+            {t('chat.empty.startChatting.title', 'Start chatting!')}
+          </p>
+          <p className="rd__chat__no-messages__description">
+            {t(
+              'chat.empty.startChatting.description',
+              'Let’s get this chat started, why not send the first message?',
+            )}
+          </p>
+        </div>
       </div>
     );
   }
@@ -66,7 +75,7 @@ export const ChatUI = ({
   channelId: string;
 }) => {
   const { client, setActiveChannel } = useChatContext();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   const router = useRouter();
   useEffect(() => {
@@ -88,12 +97,15 @@ export const ChatUI = ({
         <Window>
           <div className="rd__chat-wrapper">
             <div className="rd__chat-header">
-              <h2 className="rd__chat-header__title">{t('Chat')}</h2>
+              <h2 className="rd__chat-header__title">
+                {t('chat.panel.title', 'Chat')}
+              </h2>
               <IconButton
                 className="rd__chat-header__icon"
                 onClick={onClose}
                 size="sm"
                 variant="secondary"
+                appearance="ghost"
                 icon="close"
               />
             </div>
@@ -102,7 +114,12 @@ export const ChatUI = ({
           <MessageComposer
             focus
             maxRows={5}
-            additionalTextareaProps={{ placeholder: t('Send a message') }}
+            additionalTextareaProps={{
+              placeholder: t(
+                'chat.composer.sendMessage.placeholder',
+                'Send a message',
+              ),
+            }}
           />
         </Window>
       </Channel>

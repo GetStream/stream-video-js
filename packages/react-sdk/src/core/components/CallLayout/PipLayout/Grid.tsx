@@ -1,4 +1,5 @@
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../../i18n';
 import { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { hasScreenShare } from '@stream-io/video-client';
@@ -99,7 +100,10 @@ export const Grid = (props: PipLayoutGridProps) => {
           <div className="str-video__pip-screen-share-local">
             <Icon icon="screen-share-off" />
             <span className="str-video__pip-screen-share-local__title">
-              {t('You are presenting your screen')}
+              {t(
+                'common.presentingYourScreen.text',
+                'You are presenting your screen',
+              )}
             </span>
           </div>
         ) : (

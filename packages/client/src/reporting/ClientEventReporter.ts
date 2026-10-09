@@ -45,6 +45,13 @@ export type ReportedIceState = 'CONNECTED' | 'FAILED' | 'NOT_CONNECTED';
 export type JoinReason =
   'first-attempt' | 'network-available' | 'migration' | 'full-rejoin';
 
+/**
+ * What triggered an automatic join, reported as `source` on the call's
+ * CoordinatorJoin events. `ring-ws` is a ring WebSocket event, `ring-poll-api`
+ * is the ring state poller, or the call refresh after a WS reconnect.
+ */
+export type JoinSource = 'ring-ws' | 'ring-poll-api';
+
 export type ClientEventStandardCode =
   | 'CLIENT_ABORTED'
   | 'BACKEND_LEAVE'
@@ -67,6 +74,11 @@ export type ClientEventReporterOptions = {
   enabled?: boolean;
 };
 
+// TODO OL: update OpenAPI
+type ReportedClientEvent = Omit<ClientEvent, 'source'> & {
+  source?: JoinSource;
+};
+
 type StageError = {
   reason: string;
   code: string;
@@ -78,6 +90,7 @@ type StagePairState = {
   startedAt: number;
   joinAttemptIdSnapshot?: string;
   joinReasonSnapshot?: JoinReason;
+  joinSourceSnapshot?: JoinSource;
   userIdSnapshot?: string;
   lastError?: StageError;
 };
@@ -104,6 +117,7 @@ export class ClientEventReporter {
   private callContexts = new Map<string, CallReportContext>();
   private joinAttemptIds = new Map<string, string>();
   private joinReasons = new Map<string, JoinReason>();
+  private joinSources = new Map<string, JoinSource>();
   private coordinatorPairs = new Map<string, StagePairState>();
   private wsPairs = new Map<string, StagePairState>();
 
@@ -195,14 +209,16 @@ export class ClientEventReporter {
     this.coordinatorWsPair = undefined;
   };
 
-  private buildCoordinatorWsCommon = (pair: StagePairState): ClientEvent => ({
+  private buildCoordinatorWsCommon = (
+    pair: StagePairState,
+  ): ReportedClientEvent => ({
     user_id: pair.userIdSnapshot ?? this.streamClient.userID,
     stage: 'CoordinatorWS',
     stage_id: pair.sid,
     ...(this.coordinatorConnectId && {
       coordinator_connect_id: this.coordinatorConnectId,
     }),
-    timestamp: new Date().toISOString(),
+    timestamp: new Date(),
     user_agent: this.streamClient.getUserAgent(),
     sdk_version: this.streamClient.getSdkVersion(),
   });
@@ -238,6 +254,7 @@ export class ClientEventReporter {
     this.callContexts.delete(cid);
     this.joinAttemptIds.delete(cid);
     this.joinReasons.delete(cid);
+    this.joinSources.delete(cid);
     this.coordinatorPairs.delete(cid);
     this.wsPairs.delete(cid);
 
@@ -269,15 +286,22 @@ export class ClientEventReporter {
 
   withJoinLifecycle = async <T>(
     cid: string,
-    joinReason: JoinReason,
+    options: { joinReason: JoinReason; joinSource?: JoinSource },
     op: () => Promise<T>,
   ): Promise<T> => {
+    const { joinReason, joinSource } = options;
+
+    if (joinSource) this.joinSources.set(cid, joinSource);
+    else this.joinSources.delete(cid);
+
     this.startCorrelation(cid, joinReason);
     try {
       return await op();
     } catch (err) {
       this.closeCallPairs(cid);
       throw err;
+    } finally {
+      this.joinSources.delete(cid);
     }
   };
 
@@ -389,7 +413,7 @@ export class ClientEventReporter {
       ...(coordinatorConnectId && {
         coordinator_connect_id: coordinatorConnectId,
       }),
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
       user_agent: this.streamClient.getUserAgent(),
       sdk_version: this.streamClient.getSdkVersion(),
       event_type: 'initiated',
@@ -436,6 +460,7 @@ export class ClientEventReporter {
         startedAt: Date.now(),
         joinAttemptIdSnapshot: this.joinAttemptIds.get(cid),
         joinReasonSnapshot: this.joinReasons.get(cid),
+        joinSourceSnapshot: this.joinSources.get(cid),
       };
       this.coordinatorPairs.set(cid, pair);
       this.sendForCall(cid, {
@@ -443,6 +468,7 @@ export class ClientEventReporter {
         ...(pair.joinReasonSnapshot && {
           join_reason: pair.joinReasonSnapshot,
         }),
+        ...(pair.joinSourceSnapshot && { source: pair.joinSourceSnapshot }),
         event_type: 'initiated',
       });
     }
@@ -457,6 +483,7 @@ export class ClientEventReporter {
       ...this.buildCommon(cid, 'CoordinatorJoin', pair),
       ...this.sessionIdField(cid),
       ...(pair.joinReasonSnapshot && { join_reason: pair.joinReasonSnapshot }),
+      ...(pair.joinSourceSnapshot && { source: pair.joinSourceSnapshot }),
       event_type: 'completed',
       outcome: 'success',
       retry_count_attempt: pair.attempts - 1,
@@ -476,6 +503,7 @@ export class ClientEventReporter {
       ...this.buildCommon(cid, 'CoordinatorJoin', pair),
       ...this.sessionIdField(cid),
       ...(pair.joinReasonSnapshot && { join_reason: pair.joinReasonSnapshot }),
+      ...(pair.joinSourceSnapshot && { source: pair.joinSourceSnapshot }),
       event_type: 'completed',
       outcome: 'failure',
       retry_count_attempt: pair.attempts - 1,
@@ -573,11 +601,16 @@ export class ClientEventReporter {
     }
 
     if (event.state === 'failed') {
+      const iceConnected =
+        event.iceConnectionState === 'connected' ||
+        event.iceConnectionState === 'completed';
       this.emitPeerConnectionFailure(
         cid,
         role,
-        'DTLS_CONNECTIVITY_FAILED',
-        'DTLS connectivity checks failed',
+        iceConnected ? 'DTLS_CONNECTIVITY_FAILED' : 'ICE_CONNECTIVITY_FAILED',
+        iceConnected
+          ? 'DTLS connectivity checks failed'
+          : 'ICE connectivity checks failed',
       );
       return;
     }
@@ -684,7 +717,7 @@ export class ClientEventReporter {
     cid: string,
     stage: ClientEventStage,
     pair: StagePairState,
-  ): ClientEvent => {
+  ): ReportedClientEvent => {
     const ctx = this.callContexts.get(cid);
     const coordinatorConnectId = this.coordinatorConnectId;
     return {
@@ -699,23 +732,25 @@ export class ClientEventReporter {
       ...(coordinatorConnectId && {
         coordinator_connect_id: coordinatorConnectId,
       }),
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
       user_agent: this.streamClient.getUserAgent(),
       sdk_version: this.streamClient.getSdkVersion(),
     };
   };
 
-  private send = (body: ClientEvent) => {
+  private send = (body: ReportedClientEvent) => {
     if (!this.enabled) return;
     void this.sendWithRetry(body);
   };
 
-  private sendForCall = (cid: string, body: ClientEvent) => {
+  private sendForCall = (cid: string, body: ReportedClientEvent) => {
     if (!this.callContexts.has(cid)) return;
     this.send(body);
   };
 
-  private sendWithRetry = async (body: ClientEvent): Promise<boolean> => {
+  private sendWithRetry = async (
+    body: ReportedClientEvent,
+  ): Promise<boolean> => {
     for (let attempt = 0; attempt < 5; attempt++) {
       try {
         await this.streamClient.doAxiosRequest<
@@ -723,7 +758,7 @@ export class ClientEventReporter {
           ReportClientEventRequest
         >(
           'post',
-          '/call_client_event',
+          '/api/v2/video/call_client_event',
           { events: [body] },
           { publicEndpoint: true },
         );

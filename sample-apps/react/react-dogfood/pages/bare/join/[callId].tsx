@@ -83,11 +83,7 @@ export default function BareCallRoom(props: ServerSideCredentialsProps) {
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
 
-      <StreamVideo
-        client={client}
-        language="en"
-        translationsOverrides={appTranslations}
-      >
+      <StreamVideo client={client} language="en" translations={appTranslations}>
         <StreamCall call={call}>
           <Stage videoFile={videoFile} />
         </StreamCall>

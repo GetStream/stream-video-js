@@ -1,26 +1,22 @@
 import { Call } from './Call';
+import { VideoApi } from './gen/coordinator/video/VideoApi';
+import { ApiClient } from './coordinator/connection/api-client';
 import { StreamClient } from './coordinator/connection/client';
-import {
-  CallingState,
-  StreamVideoReadOnlyStateStore,
-  StreamVideoWriteableStateStore,
-} from './store';
+import { CallingState, ClientState } from './store';
 import type {
   CallCreatedEvent,
   CallRingEvent,
   ConnectedEvent,
+  QueryAggregateCallStatsRequest,
+  QueryCallStatsRequest,
+  QueryCallsRequest,
+} from './gen/coordinator';
+import type {
   CreateDeviceRequest,
   CreateGuestRequest,
-  CreateGuestResponse,
-  GetEdgesResponse,
   ListDevicesResponse,
-  QueryAggregateCallStatsRequest,
-  QueryAggregateCallStatsResponse,
-  QueryCallsRequest,
-  QueryCallsResponse,
-  QueryCallStatsRequest,
-  QueryCallStatsResponse,
-} from './gen/coordinator';
+  Response,
+} from './gen/shims';
 import {
   AllClientEvents,
   ClientEventListener,
@@ -42,25 +38,29 @@ import { logToConsole, ScopedLogger, videoLoggerSystem } from './logger';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
 import { ClientEventReporter } from './reporting';
+import { reconcileRingState } from './ringing';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
  */
+const DEVICES_PATH = '/api/v2/devices';
+
 export class StreamVideoClient {
   /**
-   * A reactive store that exposes all the state variables reactively.
+   * The reactive state of this client.
    * You can subscribe to changes of the different state variables.
-   * Our library is built in a way that all state changes are exposed in this store,
-   * o all UI changes in your application should be handled by subscribing to these variables.
-   *
-   * @deprecated use the `client.state` getter.
    */
-  readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
+  readonly state = new ClientState();
   readonly logger: ScopedLogger;
 
-  protected readonly writeableStateStore: StreamVideoWriteableStateStore;
-  streamClient: StreamClient;
-  readonly clientEventReporter: ClientEventReporter;
+  /**
+   * The generated API for all coordinator operations.
+   */
+  readonly api: VideoApi;
+
+  readonly streamClient: StreamClient;
+  private readonly apiClient: ApiClient;
+  private readonly clientEventReporter: ClientEventReporter;
 
   private effectsRegistered = false;
   private eventHandlersToUnregister: Array<() => void> = [];
@@ -94,19 +94,18 @@ export class StreamVideoClient {
       ...clientOptions?.logOptions,
     });
 
+    const streamClient = createCoordinatorClient(apiKey, clientOptions);
+    this.streamClient = streamClient;
+    this.apiClient = new ApiClient(streamClient);
+    this.api = new VideoApi(this.apiClient);
+
     this.logger = videoLoggerSystem.getLogger('client');
     this.rejectCallWhenBusy = clientOptions?.rejectCallWhenBusy ?? false;
 
-    this.streamClient = createCoordinatorClient(apiKey, clientOptions);
     this.clientEventReporter = new ClientEventReporter({
       streamClient: this.streamClient,
       enabled: clientOptions?.clientEventsReportingEnabled ?? true,
     });
-
-    this.writeableStateStore = new StreamVideoWriteableStateStore();
-    this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
-      this.writeableStateStore,
-    );
 
     if (typeof apiKeyOrArgs !== 'string' && apiKeyOrArgs.user) {
       const user = apiKeyOrArgs.user;
@@ -158,13 +157,6 @@ export class StreamVideoClient {
     StreamVideoClient._instances.set(instanceKey, this);
   };
 
-  /**
-   * Return the reactive state store, use this if you want to be notified about changes to the client state
-   */
-  get state() {
-    return this.readOnlyStateStore;
-  }
-
   private registerEffects = () => {
     if (this.effectsRegistered) return;
 
@@ -174,7 +166,7 @@ export class StreamVideoClient {
       this.on('connection.changed', (event) => {
         if (!event.online) return;
 
-        const callsToReWatch = this.writeableStateStore.calls
+        const callsToReWatch = this.state.calls
           .filter((call) => call.watching)
           .map((call) => call.cid);
         if (callsToReWatch.length <= 0) return;
@@ -197,7 +189,7 @@ export class StreamVideoClient {
       const concurrencyTag = getCallInitConcurrencyTag(e.call_cid);
       await withoutConcurrency(concurrencyTag, async () => {
         const ringing = e.type === 'call.ring';
-        let call = this.writeableStateStore.findCall(e.call.type, e.call.id);
+        let call = this.state.findCall(e.call.type, e.call.id);
         if (call) {
           if (ringing) {
             if (this.shouldRejectCall(call.cid)) {
@@ -207,7 +199,7 @@ export class StreamVideoClient {
               // remove the instance from the state store
               await call.leave();
               // explicitly reject the call with busy reason as calling state was not ringing before and leave would not call it therefore
-              await call.reject('busy');
+              await call.reject({ reason: 'busy' });
             } else {
               await call.updateFromRingingEvent(e as CallRingEvent);
               await call.get();
@@ -219,12 +211,13 @@ export class StreamVideoClient {
         }
 
         call = new Call({
+          videoApi: this.api,
           streamClient: this.streamClient,
           clientEventReporter: this.clientEventReporter,
           type: e.call.type,
           id: e.call.id,
           members: e.members,
-          clientStore: this.writeableStateStore,
+          clientState: this.state,
           ringing,
         });
 
@@ -232,14 +225,14 @@ export class StreamVideoClient {
           if (this.shouldRejectCall(call.cid)) {
             this.logger.info(`Rejecting call ${call.cid} because user is busy`);
             // call is not in the state store yet, so just reject api is enough
-            await call.reject('busy');
+            await call.reject({ reason: 'busy' });
           } else {
             await call.updateFromRingingEvent(e as CallRingEvent);
             await call.get();
           }
         } else {
           call.state.updateFromCallResponse(e.call);
-          this.writeableStateStore.registerCall(call);
+          this.state.registerCall(call);
           this.logger.info(`New call created and registered: ${call.cid}`);
         }
       });
@@ -249,14 +242,29 @@ export class StreamVideoClient {
   };
 
   /**
+   * Queries per-call stats.
+   *
+   * @param data the query data.
+   */
+  queryCallStats = (data: QueryCallStatsRequest = {}) => {
+    return this.api.queryCallStats(data);
+  };
+
+  /**
+   * Queries aggregated call stats.
+   *
+   * @param data the query data.
+   */
+  queryAggregateCallStats = (data: QueryAggregateCallStatsRequest = {}) => {
+    return this.api.queryAggregateCallStats(data);
+  };
+
+  /**
    * Queries the API for calls matching the given filters.
    * @param data the query data.
    */
   private doQueryCalls = (data: QueryCallsRequest) => {
-    return this.streamClient.post<QueryCallsResponse, QueryCallsRequest>(
-      '/calls',
-      data,
-    );
+    return this.api.queryCalls(data);
   };
 
   /**
@@ -278,13 +286,17 @@ export class StreamVideoClient {
         });
 
         for (const c of response.calls) {
-          const call = this.writeableStateStore.findCall(
-            c.call.type,
-            c.call.id,
-          );
+          const call = this.state.findCall(c.call.type, c.call.id);
 
           if (call) {
             call.updateFromCallStateResponse(c);
+            // ring events missed while the WS was down aren't replayed
+            reconcileRingState(call, 'ring-poll-api').catch((err) => {
+              call.logger.error(
+                'Failed to reconcile the ring state after rewatch',
+                err,
+              );
+            });
           }
         }
 
@@ -310,8 +322,6 @@ export class StreamVideoClient {
 
   /**
    * Connects the given user to the client.
-   * Only one user can connect at a time, if you want to change users, call `disconnectUser` before connecting a new user.
-   * If the connection is successful, the connected user [state variable](#readonlystatestore) will be updated accordingly.
    *
    * @param user the user to connect.
    * @param tokenOrProvider a token or a function that returns a token.
@@ -369,7 +379,7 @@ export class StreamVideoClient {
 
     // connectUserResponse will be void if connectUser called twice for the same user
     if (connectUserResponse?.me) {
-      this.writeableStateStore.setConnectedUser(connectUserResponse.me);
+      this.state.setConnectedUser(connectUserResponse.me);
     }
 
     this.registerEffects();
@@ -378,18 +388,35 @@ export class StreamVideoClient {
   };
 
   /**
+   * Leaves every call this client still tracks. Runs while the coordinator
+   * connection is alive, so that the leave requests each call sends reach the
+   * backend.
+   */
+  private leaveAllCalls = async () => {
+    for (const call of this.state.calls) {
+      if (call.state.callingState === CallingState.LEFT) continue;
+
+      this.logger.info(`User disconnected, leaving call: ${call.cid}`);
+      await call
+        .leave({ message: 'client.disconnectUser() called' })
+        .catch((err) => {
+          this.logger.error(`Error leaving call: ${call.cid}`, err);
+        });
+    }
+  };
+
+  /**
    * Disconnects the currently connected user from the client.
-   *
-   * If the connection is successfully disconnected, the connected user [state variable](#readonlystatestore) will be updated accordingly
+   * Leaves every call the user is still in, and updates `client.state`accordingly.
    *
    * @param timeout Max number of ms, to wait for close event of websocket, before forcefully assuming successful disconnection.
-   *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   disconnectUser = async (timeout?: number) => {
     await withoutConcurrency(this.connectionConcurrencyTag, async () => {
       const { user, key } = this.streamClient;
       if (!user) return;
 
+      await this.leaveAllCalls();
       await this.streamClient.disconnectUser(timeout);
 
       if (user.id) {
@@ -398,14 +425,16 @@ export class StreamVideoClient {
       this.eventHandlersToUnregister.forEach((unregister) => unregister());
       this.eventHandlersToUnregister = [];
       this.effectsRegistered = false;
-      this.writeableStateStore.setConnectedUser(undefined);
+      this.state.setConnectedUser(undefined);
     });
   };
 
   /**
    * You can subscribe to WebSocket events provided by the API.
    * To remove a subscription, call the `off` method or, execute the returned unsubscribe function.
-   * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the reactive [state store](#readonlystatestore).
+   * Please note that subscribing to WebSocket events is an advanced use-case,
+   * for most use-cases it should be enough to watch for changes in the reactive
+   * `client.state`.
    *
    * @param eventName the event name or 'all'.
    * @param callback the callback which will be called when the event is emitted.
@@ -444,16 +473,17 @@ export class StreamVideoClient {
     options: { reuseInstance?: boolean } = {},
   ) => {
     const call = options.reuseInstance
-      ? this.writeableStateStore.findCall(type, id)
+      ? this.state.findCall(type, id)
       : undefined;
     return (
       call ??
       new Call({
+        videoApi: this.api,
         streamClient: this.streamClient,
         clientEventReporter: this.clientEventReporter,
         id: id,
         type: type,
-        clientStore: this.writeableStateStore,
+        clientState: this.state,
       })
     );
   };
@@ -464,14 +494,12 @@ export class StreamVideoClient {
    * @param data the data for the guest user.
    */
   createGuestUser = async (data: CreateGuestRequest) => {
-    return this.streamClient.doAxiosRequest<
-      CreateGuestResponse,
-      CreateGuestRequest
-    >('post', '/guest', data, { publicEndpoint: true });
+    return this.streamClient.createGuestUser(data);
   };
 
   /**
-   * Will query the API for calls matching the given filters.
+   * Queries calls and returns them as live {@link Call} instances, applying the
+   * device config and, with `watch: true`, setting up and registering each one.
    *
    * @param data the query data.
    * @param opts additional options, for tweaking the API behavior.
@@ -485,6 +513,7 @@ export class StreamVideoClient {
     const calls = [];
     for (const c of response.calls) {
       const call = new Call({
+        videoApi: this.api,
         streamClient: this.streamClient,
         clientEventReporter: this.clientEventReporter,
         id: c.call.id,
@@ -492,7 +521,7 @@ export class StreamVideoClient {
         members: c.members,
         ownCapabilities: c.own_capabilities,
         watching: data.watch,
-        clientStore: this.writeableStateStore,
+        clientState: this.state,
       });
       call.state.updateFromCallResponse(c.call);
       await call.applyDeviceConfig(c.call.settings, {
@@ -501,7 +530,7 @@ export class StreamVideoClient {
       });
       if (data.watch) {
         await call.setup();
-        this.writeableStateStore.registerCall(call);
+        this.state.registerCall(call);
       }
       calls.push(call);
     }
@@ -512,110 +541,56 @@ export class StreamVideoClient {
   };
 
   /**
-   * Retrieve the list of available call statistics reports matching a particular condition.
-   *
-   * @param data Filter and sort conditions for retrieving available call report summaries.
-   * @returns List with summary of available call reports matching the condition.
-   */
-  queryCallStats = async (data: QueryCallStatsRequest = {}) => {
-    return this.streamClient.post<
-      QueryCallStatsResponse,
-      QueryCallStatsRequest
-    >(`/call/stats`, data);
-  };
-
-  /**
-   * Retrieve the list of available reports aggregated from the call stats.
-   *
-   * @param data Specify filter conditions like from and to (within last 30 days) and the report types
-   * @returns Requested reports with (mostly) raw daily data for each report type requested
-   */
-  queryAggregateCallStats = async (
-    data: QueryAggregateCallStatsRequest = {},
-  ) => {
-    return this.streamClient.post<
-      QueryAggregateCallStatsResponse,
-      QueryAggregateCallStatsRequest
-    >(`/stats`, data);
-  };
-
-  /**
    * Returns a list of available data centers available for hosting calls.
    */
   edges = async () => {
-    return this.streamClient.get<GetEdgesResponse>(`/edges`);
+    return this.api.getEdges();
   };
 
   /**
-   * addDevice - Adds a push device for a user.
+   * Adds a push device for the connected user.
    *
-   * @param {string} id the device id
-   * @param {string} push_provider the push provider name (eg. apn, firebase)
-   * @param {string} push_provider_name user provided push provider name
-   * @param {string} [userID] the user id (defaults to current user)
-   * @param {boolean} [voip_token] enables use of VoIP token for push notifications on iOS platform
+   * @param data the device token, push provider, and optional device settings.
    */
-  addDevice = async (
-    id: string,
-    push_provider: string,
-    push_provider_name?: string,
-    userID?: string,
-    voip_token?: boolean,
-  ) => {
-    return await this.streamClient.post<CreateDeviceRequest>('/devices', {
-      id,
-      push_provider,
-      voip_token,
-      ...(userID != null ? { user_id: userID } : {}),
-      ...(push_provider_name != null ? { push_provider_name } : {}),
-    });
-  };
-
-  /**
-   * addDevice - Adds a push device for a user.
-   *
-   * @param {string} id the device id
-   * @param {string} push_provider the push provider name (eg. apn, firebase)
-   * @param {string} push_provider_name user provided push provider name
-   * @param {string} [userID] the user id (defaults to current user)
-   */
-  addVoipDevice = async (
-    id: string,
-    push_provider: string,
-    push_provider_name: string,
-    userID?: string,
-  ) => {
-    return await this.addDevice(
-      id,
-      push_provider,
-      push_provider_name,
-      userID,
-      true,
+  addDevice = async (data: CreateDeviceRequest) => {
+    return await this.apiClient.sendRequest<Response>(
+      'POST',
+      DEVICES_PATH,
+      undefined,
+      undefined,
+      data,
     );
   };
 
   /**
-   * getDevices - Returns the devices associated with a current user
-   * @param {string} [userID] User ID. Only works on serverside
+   * Adds a VoIP push device for the connected user.
+   *
+   * @param data the device token, push provider, and optional device settings.
    */
-  getDevices = async (userID?: string) => {
-    return await this.streamClient.get<ListDevicesResponse>(
-      '/devices',
-      userID ? { user_id: userID } : {},
+  addVoipDevice = async (data: Omit<CreateDeviceRequest, 'voip_token'>) => {
+    return await this.addDevice({ ...data, voip_token: true });
+  };
+
+  /**
+   * getDevices - Returns the devices associated with the current user.
+   */
+  getDevices = async () => {
+    return await this.apiClient.sendRequest<ListDevicesResponse>(
+      'GET',
+      DEVICES_PATH,
     );
   };
 
   /**
    * removeDevice - Removes the device with the given id.
-   *
-   * @param {string} id The device id
-   * @param {string} [userID] The user id. Only specify this for serverside requests
    */
-  removeDevice = async (id: string, userID?: string) => {
-    return await this.streamClient.delete('/devices', {
-      id,
-      ...(userID ? { user_id: userID } : {}),
-    });
+  removeDevice = async ({ id }: Pick<CreateDeviceRequest, 'id'>) => {
+    return await this.apiClient.sendRequest<Response>(
+      'DELETE',
+      DEVICES_PATH,
+      undefined,
+      { id },
+    );
   };
 
   /**
@@ -632,11 +607,12 @@ export class StreamVideoClient {
         // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
         const [callType, callId] = call_cid.split(':');
         call = new Call({
+          videoApi: this.api,
           streamClient: this.streamClient,
           clientEventReporter: this.clientEventReporter,
           type: callType,
           id: callId,
-          clientStore: this.writeableStateStore,
+          clientState: this.state,
           ringing: true,
         });
         await call.get();

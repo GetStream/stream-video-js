@@ -12,19 +12,22 @@ const RING_DATA = {
   type: 'call.ring',
 };
 
-/** Loads the handler with a failing client factory. `calls` records the callingx sequence. */
-const setup = (createStreamVideoClient: jest.Mock) => {
+/** Loads the handler with the given client factory. `calls` records the callingx sequence. */
+const setup = (
+  createStreamVideoClient: jest.Mock,
+  { listenToWS = true, mustEndCall = false } = {},
+) => {
   const calls: string[] = [];
   const callingx = {
     log: jest.fn(),
-    acquireBackgroundTask: jest.fn().mockResolvedValue(undefined),
+    acquireBackgroundTask: jest.fn(),
     releaseBackgroundTask: jest.fn(() => {
       calls.push('release');
     }),
-    endCallWithReason: jest.fn(async () => {
+    endCallWithReason: jest.fn(() => {
       calls.push('end');
     }),
-    stopService: jest.fn(async () => {
+    stopService: jest.fn(() => {
       calls.push('stop');
     }),
   };
@@ -44,17 +47,15 @@ const setup = (createStreamVideoClient: jest.Mock) => {
       getCallingxLib: () => callingx,
       getCallingxLibIfAvailable: () => callingx,
     }));
-    jest.doMock('../../src/utils/StreamVideoRN', () => ({
-      StreamVideoRN: {
-        getConfig: () => ({ push: { createStreamVideoClient } }),
-      },
-    }));
     jest.doMock('../../src/utils/push/internal/utils', () => ({
-      canListenToWS: () => true,
-      shouldCallBeClosed: () => ({ mustEndCall: false }),
+      canListenToWS: () => listenToWS,
+      shouldCallBeClosed: () => ({ mustEndCall, endCallReason: 'remote' }),
     }));
-    handler =
-      require('../../src/utils/push/internal/android').onRingNotificationReceived;
+    const {
+      onRingNotificationReceived,
+    } = require('../../src/utils/push/internal/android');
+    handler = (data) =>
+      onRingNotificationReceived(data, { createStreamVideoClient });
     subscriptions =
       require('../../src/utils/push/internal/constants').pushUnsubscriptionCallbacks;
   });
@@ -87,20 +88,55 @@ describe('onRingNotificationReceived — abandoning a push', () => {
     },
   );
 
-  it.each<['endCallWithReason' | 'stopService', string[]]>([
-    ['endCallWithReason', ['release', 'stop']],
-    ['stopService', ['release', 'end']],
-  ])('finishes the cleanup when %s rejects', async (failing, expected) => {
+  it.each<['endCallWithReason' | 'stopService', string[], string]>([
+    ['endCallWithReason', ['release', 'stop'], 'Failed to end call'],
+    ['stopService', ['release', 'end'], 'Failed to stop the call service for'],
+  ])('finishes the cleanup when %s throws', async (failing, expected, log) => {
     const { handler, calls, callingx, subscriptions } = setup(
       jest.fn().mockResolvedValue(undefined),
     );
-    callingx[failing].mockRejectedValue(new Error('boom'));
+    callingx[failing].mockImplementation(() => {
+      throw new Error('boom');
+    });
 
     await handler(RING_DATA);
 
     expect(calls).toEqual(expected);
+    expect(callingx.log).toHaveBeenCalledWith(
+      expect.stringContaining(`${log} ${CALL_CID}`),
+      'error',
+    );
     // a retained entry would make every later push for this cid look like a duplicate
     expect(subscriptions.has(CALL_CID)).toBe(false);
+  });
+});
+
+describe('onRingNotificationReceived — closing an already-ended ring', () => {
+  afterEach(() => {
+    jest.resetModules();
+  });
+
+  it('still leaves the call when the synchronous endCallWithReason throws', async () => {
+    const callFromPush = { leave: jest.fn().mockResolvedValue(undefined) };
+    const client = {
+      onRingingCall: jest.fn().mockResolvedValue(callFromPush),
+    };
+    const { handler, callingx } = setup(jest.fn().mockResolvedValue(client), {
+      listenToWS: false,
+      mustEndCall: true,
+    });
+    callingx.endCallWithReason.mockImplementation(() => {
+      throw new Error('boom');
+    });
+
+    await expect(handler(RING_DATA)).resolves.toBeUndefined();
+
+    expect(callingx.endCallWithReason).toHaveBeenCalledWith(CALL_CID, 'remote');
+    expect(callingx.log).toHaveBeenCalledWith(
+      expect.stringContaining(`Failed to end call ${CALL_CID}`),
+      'error',
+    );
+    expect(callFromPush.leave).toHaveBeenCalledWith({ reject: false });
   });
 });
 

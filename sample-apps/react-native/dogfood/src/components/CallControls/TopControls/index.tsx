@@ -6,8 +6,9 @@ import {
   useTheme,
   ToggleCameraFaceButton,
 } from '@stream-io/video-react-native-sdk';
-import { CallStatusBadge } from './CallStatusBadge';
 import { LayoutSwitcherButton } from './LayoutSwitcherButton';
+import { E2EEBadge } from './E2EEBadge';
+import { CallDurationIndicator } from '@stream-io/video-react-native-sdk/src/components/utility/CallDurationIndicator';
 
 export type TopControlsProps = {
   onHangupCallHandler?: () => void;
@@ -15,15 +16,13 @@ export type TopControlsProps = {
   isAwaitingResponse: boolean;
 };
 
-export const TopControls = ({
-  onHangupCallHandler,
-  isCallRecordingInProgress,
-  isAwaitingResponse,
-}: TopControlsProps) => {
+export const TopControls = ({ onHangupCallHandler }: TopControlsProps) => {
   const [topControlsHeight, setTopControlsHeight] = useState<number>(0);
   const [topControlsWidth, setTopControlsWidth] = useState<number>(0);
   const styles = useStyles();
-  const { theme } = useTheme();
+  const {
+    theme: { semantics },
+  } = useTheme();
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     const { height, width } = event.nativeEvent.layout;
@@ -42,15 +41,13 @@ export const TopControls = ({
           <View style={styles.leftContent}>
             <LayoutSwitcherButton />
             <ToggleCameraFaceButton
-              backgroundColor={theme.colors.sheetPrimary}
+              backgroundColor={semantics.backgroundCoreApp}
             />
           </View>
         </View>
         <View style={styles.centerElement}>
-          <CallStatusBadge
-            isCallRecordingInProgress={isCallRecordingInProgress}
-            isAwaitingResponse={isAwaitingResponse}
-          />
+          <E2EEBadge />
+          <CallDurationIndicator />
         </View>
         <View style={styles.rightElement}>
           <HangUpCallButton onPressHandler={onHangupCallHandler} />
@@ -61,17 +58,19 @@ export const TopControls = ({
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         content: {
           position: 'absolute',
-          backgroundColor: theme.colors.sheetPrimary,
+          backgroundColor: semantics.backgroundCoreApp,
           top: 0,
           flexDirection: 'row',
           paddingVertical: 2,
-          paddingHorizontal: theme.variants.spacingSizes.md,
+          paddingHorizontal: primitives.spacingMd,
           alignItems: 'center',
         },
         leftElement: {
@@ -86,12 +85,15 @@ const useStyles = () => {
         centerElement: {
           flex: 1,
           alignItems: 'center',
+          flexDirection: 'row',
+          gap: 8,
+          justifyContent: 'center',
         },
         rightElement: {
           flex: 1,
           alignItems: 'flex-end',
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };

@@ -17,6 +17,9 @@ class RTCViewPip: UIView {
     weak var manager: RTCViewPipManager?
 
     @objc var onPiPChange: RCTBubblingEventBlock?
+    /// Actual PiP window bounds in logical points.
+    @objc var onPiPBoundsChange: RCTBubblingEventBlock?
+    private var lastEmittedBounds: CGSize?
 
     // MARK: - Avatar Placeholder Properties
 
@@ -156,8 +159,11 @@ class RTCViewPip: UIView {
     @objc
     func onCallClosed() {
         PictureInPictureLogger.log("pictureInPictureController cleanup called")
+        self.pictureInPictureController?.onPiPStateChange = nil
+        self.pictureInPictureController?.onSizeUpdate = nil
         self.pictureInPictureController?.cleanup()
         self.pictureInPictureController = nil
+        self.lastEmittedBounds = nil
     }
     
     @objc
@@ -191,9 +197,8 @@ class RTCViewPip: UIView {
                 }
                 self.pictureInPictureController?.sourceView = self
                 self.pictureInPictureController?.isMirrored = self.mirror
-                // Set up PiP state change callback
-                self.pictureInPictureController?.onPiPStateChange = { [weak self] isActive in
-                    self?.sendPiPChangeEvent(isActive: isActive)
+                if let controller = self.pictureInPictureController {
+                    self.installCallbacks(on: controller)
                 }
                 if let reactTag = self.reactTag,
                    let size = self.manager?.getCachedSize(for: reactTag) {
@@ -277,12 +282,32 @@ class RTCViewPip: UIView {
         }
     }
     
-    private func sendPiPChangeEvent(isActive: Bool) {
-        guard let onPiPChange = onPiPChange else {
-            return
-        }
+    // MARK: - Picture in Picture Events
 
-        PictureInPictureLogger.log("Sending PiP state change event: \(isActive)")
-        onPiPChange(["active": isActive])
+    /// Ignore callbacks from a controller that has already been disposed.
+    private func installCallbacks(on controller: StreamPictureInPictureController) {
+        controller.onPiPStateChange = { [weak self, weak controller] isActive in
+            guard let self, let controller,
+                  self.pictureInPictureController === controller else { return }
+            self.onPiPChange?(["active": isActive])
+        }
+        controller.onSizeUpdate = { [weak self, weak controller] size in
+            guard let self, let controller,
+                  self.pictureInPictureController === controller else { return }
+            self.handleSizeUpdate(size)
+        }
+    }
+
+    private func handleSizeUpdate(_ size: CGSize) {
+        guard size.width.isFinite, size.height.isFinite else { return }
+        // truncated to match the integer dimensions the inline views report.
+        let bounds = CGSize(
+            width: size.width.rounded(.towardZero),
+            height: size.height.rounded(.towardZero)
+        )
+        guard bounds.width > 0, bounds.height > 0 else { return }
+        guard let onPiPBoundsChange, lastEmittedBounds != bounds else { return }
+        lastEmittedBounds = bounds
+        onPiPBoundsChange(["width": bounds.width, "height": bounds.height])
     }
 }

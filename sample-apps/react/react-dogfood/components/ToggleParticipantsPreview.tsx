@@ -8,8 +8,8 @@ import {
   MenuVisualType,
   ToggleMenuButtonProps,
   useCallStateHooks,
-  useI18n,
 } from '@stream-io/video-react-sdk';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 export type Props = {
   onJoin: () => void;
@@ -18,7 +18,7 @@ export type Props = {
 const ParticipantsPreview = ({ onJoin }: Props) => {
   const { useCallSession, useCallThumbnail } = useCallStateHooks();
   const session = useCallSession();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   const thumbnail = useCallThumbnail();
 
@@ -28,7 +28,7 @@ const ParticipantsPreview = ({ onJoin }: Props) => {
   return (
     <div className="rd__participants-preview">
       <h2 className="rd__participants-preview__heading">
-        {t('Ready to join?')}
+        {t('lobby.participantsPreview.readyToJoin.title', 'Ready to join?')}
       </h2>
 
       {thumbnail && <CallPreview style={{ width: '100%', height: '150px' }} />}
@@ -45,7 +45,7 @@ const ParticipantsPreview = ({ onJoin }: Props) => {
         onClick={onJoin}
       >
         <Icon className="rd__button__icon" icon="login" />
-        {t('Join the others')}
+        {t('lobby.participantsPreview.joinTheOthers.label', 'Join the others')}
       </button>
     </div>
   );
@@ -55,14 +55,17 @@ const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
   function ToggleMenuButtonRender(props, ref) {
     const { useCallSession } = useCallStateHooks();
     const session = useCallSession();
-    const { t } = useI18n();
+    const { t } = useAppI18n();
     const total = session?.participants?.length || 0;
     return (
       <CompositeButton
         ref={ref}
         active={props.menuShown}
         className="rd__participants-preview__button"
-        title={t('Participants already in the call')}
+        title={t(
+          'lobby.participantsPreview.participantsInCall.title',
+          'Participants already in the call',
+        )}
       >
         <Icon icon="participants" />
         {total > 0 && (

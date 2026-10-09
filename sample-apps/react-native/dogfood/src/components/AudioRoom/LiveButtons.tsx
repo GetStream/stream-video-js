@@ -4,8 +4,8 @@ import {
   Restricted,
   useCall,
   useCallStateHooks,
-  useI18n,
 } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 import React from 'react';
 import { Button } from 'react-native';
 
@@ -17,7 +17,7 @@ export default function LiveButtons({ onJoined }: { onJoined: () => void }) {
   // and it will emit a new value whenever the call goes live or stops being live.
   // we can use it to update the button text or adjust any other UI elements
   const isLive = useIsCallLive();
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   const callingState = useCallCallingState();
 
@@ -42,7 +42,10 @@ export default function LiveButtons({ onJoined }: { onJoined: () => void }) {
             requiredGrants={[OwnCapability.END_CALL]}
           >
             <Button
-              title={t('Stop Live and Leave')}
+              title={t(
+                'audioRoomControls.stopLiveAndLeave.label',
+                'Stop Live and Leave',
+              )}
               onPress={async () => {
                 try {
                   await call.stopLive();
@@ -55,7 +58,10 @@ export default function LiveButtons({ onJoined }: { onJoined: () => void }) {
           </Restricted>
           {canJoin && (
             <Button
-              title={t('Join the live call')}
+              title={t(
+                'audioRoomControls.joinLiveCall.label',
+                'Join the live call',
+              )}
               onPress={async () => {
                 try {
                   await call.join();
@@ -74,7 +80,10 @@ export default function LiveButtons({ onJoined }: { onJoined: () => void }) {
           requiredGrants={[OwnCapability.JOIN_BACKSTAGE]}
         >
           <Button
-            title={t('Start Live and Join')}
+            title={t(
+              'audioRoomControls.startLiveAndJoin.label',
+              'Start Live and Join',
+            )}
             onPress={async () => {
               try {
                 await call.goLive();
@@ -89,7 +98,7 @@ export default function LiveButtons({ onJoined }: { onJoined: () => void }) {
       )}
       {hasJoined && (
         <Button
-          title={t('Leave quietly')}
+          title={t('audioRoomControls.leaveQuietly.label', 'Leave quietly')}
           onPress={async () => {
             try {
               await call.leave();

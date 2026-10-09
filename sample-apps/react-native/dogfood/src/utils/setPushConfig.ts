@@ -7,6 +7,7 @@ import { mmkvStorage } from '../contexts/createStoreContext';
 import { createToken } from '../modules/helpers/createToken';
 import { setNotificationListeners } from './setNotificationListeners';
 import { registerNonRingingNotificationHandler } from './registerNonRingingNotifications';
+import { attachE2EEIfConfigured, disposeE2EEManager } from './e2ee';
 
 export function setPushConfig() {
   StreamVideoRN.updateConfig({
@@ -34,6 +35,15 @@ export function setPushConfig() {
     },
     shouldRejectCallWhenBusy: false,
     createStreamVideoClient,
+  });
+
+  // Covers every ringing path - accepted from CallKit/Telecom, accepted in-app, and
+  // outgoing. A ringing call is joined by the SDK, not by us, so this is the only
+  // window in which the E2EE manager can be attached; on the push path the app may
+  // never even reach React, if it was killed.
+  StreamVideoRN.setRingingCallLifecycleHooks({
+    onBeforeCallJoin: attachE2EEIfConfigured,
+    onAfterCallLeave: disposeE2EEManager,
   });
 
   setNotificationListeners();
@@ -72,6 +82,30 @@ const createStreamVideoClient = async () => {
     user,
     token,
     tokenProvider,
-    options: { logLevel: 'warn', rejectCallWhenBusy: false },
+    options: {
+      // keep the push-created client on the same coordinator the UI uses,
+      // otherwise a ring handled from a quit state talks to a different edge
+      baseURL: readPersistedString('coordinatorBaseUrl') || undefined,
+      ringStatePolling: readPersistedString('disableRingStatePolling')
+        ? false
+        : undefined,
+      logLevel: 'warn',
+      rejectCallWhenBusy: false,
+    },
   });
+};
+
+/**
+ * Reads a persisted store value without throwing on an absent or malformed
+ * entry, unlike the credential reads above which require their keys.
+ */
+const readPersistedString = (key: string): string | undefined => {
+  try {
+    const raw = mmkvStorage.getString(key);
+    if (!raw) return undefined;
+    const value = JSON.parse(raw);
+    return value ? String(value) : undefined;
+  } catch {
+    return undefined;
+  }
 };

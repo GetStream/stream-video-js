@@ -7,16 +7,16 @@ import {
   MenuVisualType,
   ToggleMenuButtonProps,
   WithTooltip,
-  useI18n,
 } from '@stream-io/video-react-sdk';
 
 import { Feedback } from './Feedback/Feedback';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
   function ToggleMenuButtonRender(props, ref) {
-    const { t } = useI18n();
+    const { t } = useAppI18n();
     return (
-      <WithTooltip title={t('Feedback')}>
+      <WithTooltip title={t('feedback.feedback.label', 'Feedback')}>
         <CompositeButton ref={ref} active={props.menuShown}>
           <Icon icon="feedback" />
         </CompositeButton>

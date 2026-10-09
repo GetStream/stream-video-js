@@ -14,11 +14,11 @@
   background-color: burlywood;
 }
 
-.str-video__video-placeholder .str-video__video-placeholder__avatar {
+.str-video__video-placeholder .str-video__avatar {
   border-radius: 30px;
 }
 
-.str-video__video-placeholder .str-video__video-placeholder__initials-fallback {
+.str-video__video-placeholder .str-video__avatar--initials-fallback {
   border-radius: 30px;
   background-color: bisque;
   color: dimgray;

@@ -1,14 +1,14 @@
 .rmc__channel-preview__call-controls {
-    display: flex;
-    gap: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
 
-  .str-video__call-controls__button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    padding: 0;
+  // Since the SDK button redesign these render as IconButton -> .str-video__button;
+  // `.str-video__call-controls__button` no longer exists. The button sizes itself
+  // from --str-video__button-visual, so set that rather than width/height.
+  .str-video__button {
+    --str-video__button-visual: 20px;
+    --str-video__button-px-icon-only: 0;
+    --str-video__button-py: 0;
 
     .str-video__icon--call-accept {
       width: 10px;

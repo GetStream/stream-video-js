@@ -1,9 +1,6 @@
 import { OwnCapability } from '@stream-io/video-client';
-import {
-  Restricted,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-bindings';
+import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../i18n';
 import {
   CancelCallConfirmButton,
   CompositeButton,
@@ -20,7 +17,7 @@ import {
 } from '../../components';
 
 import { useCallDuration } from '../hooks';
-import { CameraMenuWithBlur } from '../shared';
+import { CallDuration, CameraMenuWithBlur } from '../shared';
 
 interface CallControlsProps {
   showParticipants: boolean;
@@ -49,14 +46,8 @@ export const CallControls = ({
           </div>
         </Restricted>
         {startedAt && (
-          <div className="str-video__embedded-call-duration str-video__embedded-desktop">
-            <Icon
-              icon="verified"
-              className="str-video__embedded-call-duration__icon"
-            />
-            <span className="str-video__embedded-call-duration__time">
-              {elapsed}
-            </span>
+          <div className="str-video__embedded-desktop">
+            <CallDuration elapsed={elapsed} />
           </div>
         )}
       </div>
@@ -71,11 +62,11 @@ export const CallControls = ({
                 <>
                   <DeviceSelectorAudioInput
                     visualType="list"
-                    title={t('Microphone')}
+                    title={t('common.microphone.label', 'Microphone')}
                   />
                   <DeviceSelectorAudioOutput
                     visualType="list"
-                    title={t('Speaker')}
+                    title={t('common.speaker.label', 'Speaker')}
                   />
                 </>
               }
@@ -108,10 +99,10 @@ export const CallControls = ({
         </div>
       </div>
       <div className="str-video__call-controls--group str-video__call-controls--sidebar">
-        <WithTooltip title={t('Participants')}>
+        <WithTooltip title={t('common.participants.label', 'Participants')}>
           <CompositeButton
             active={showParticipants}
-            aria-label={t('Participants')}
+            aria-label={t('common.participants.label', 'Participants')}
             aria-pressed={showParticipants}
             onClick={onToggleParticipants}
           >

@@ -80,17 +80,15 @@ yarn lint:all
 
 ## Code Generation
 
-This package uses OpenAPI code generation for the Coordinator API models:
+The Coordinator API client (models, `VideoApi`, `CallApi`) is generated from a
+local `chat` checkout with the in-house generator (`chat/tools/openapi`):
 
 ```bash
-# Generate from protocol repo (production)
-./generate-openapi.sh protocol
-
-# Generate from chat repo (development)
-./generate-openapi.sh chat
+# expects ../../../chat; pass a path otherwise
+./generate-openapi.sh [path-to-chat-repo]
 ```
 
-Generated files are placed in `src/gen/coordinator/` and should not be manually edited. The SFU protocol buffer types are in `src/gen/video/sfu/`.
+Generated files are placed in `src/gen/coordinator/` and should not be manually edited (the script wipes the directory). Hand-written types belong in `src/gen/shims.ts`. Response dates are unix-nanosecond `TimestampNS` numbers; convert them with the helpers in `src/helpers/time.ts`. The SFU protocol buffer types are in `src/gen/video/sfu/`.
 
 ## Architecture
 
@@ -102,7 +100,7 @@ Generated files are placed in `src/gen/coordinator/` and should not be manually 
    - Entry point for the SDK
    - Handles authentication and connection to the Coordinator API
    - Manages Call instances
-   - Provides reactive state store for global client state
+   - Provides `client.state` (`ClientState`) for global client state
    - Singleton pattern with instance tracking
 
 2. **Call** (`src/Call.ts`)
@@ -141,8 +139,8 @@ Uses RxJS for reactive state management:
   - Participants, tracks, permissions, recording status, etc.
   - Uses BehaviorSubject for each state property
   - Provides derived observables (e.g., `remoteParticipants$`, `localParticipant$`)
-- **StreamVideoWriteableStateStore** (`stateStore.ts`): Global client state
-  - Manages calls, ringing calls, active call
+- **ClientState** (`ClientState.ts`): Global client state, exposed as `client.state`
+  - Connected user and the list of calls this client created or tracks
 - **CallingState** (`CallingState.ts`): Enum for call lifecycle states
 
 React and React Native SDKs consume these observables to trigger UI updates.
@@ -173,7 +171,7 @@ Device management abstraction for:
 - Collects WebRTC stats from Publisher and Subscriber peer connections
 - Aggregates trace data from multiple sources (SFU client, publisher, subscriber, tracer)
 - Periodic reporting via intervals (configurable `reporting_interval_ms`)
-- Sends both legacy stats and new coordinator stats formats
+- Sends delta-compressed `getStats()` samples inside `rtc_stats`, plus encode/decode `PerformanceStats`
 - Supports rollback mechanism on failure to prevent data loss
 
 **Tracer** (`stats/rtc/`):
@@ -389,7 +387,7 @@ src/
 │   └── helpers/               # SDP manipulation, track helpers
 ├── store/                     # State management
 │   ├── CallState.ts
-│   └── stateStore.ts
+│   └── ClientState.ts
 ├── events/                    # Event handlers
 ├── devices/                   # Device management
 ├── stats/                     # Call statistics and reporting
@@ -398,7 +396,7 @@ src/
 ├── permissions/               # Permissions handling
 ├── sorting/                   # Participant sorting
 └── gen/                       # Generated code (do not edit)
-    ├── coordinator/           # OpenAPI generated models
+    ├── coordinator/           # Generated Coordinator client (models, VideoApi, CallApi)
     ├── video/sfu/             # Protobuf generated code
     └── google/protobuf/       # Protobuf runtime models
 ```
@@ -446,7 +444,7 @@ src/
 
 - `src/gen/` directory contains auto-generated code from OpenAPI and Protocol Buffers (`coordinator/`, `video/sfu/`, and `google/protobuf/`)
 - Do not manually edit these files
-- Regenerate using `./generate-openapi.sh protocol`
+- Regenerate the Coordinator client using `./generate-openapi.sh`
 - Types from generated code are re-exported through `index.ts`
 
 ### Build Artifacts
@@ -494,7 +492,7 @@ src/
 ### Stats Reporting Flow
 
 1. SfuStatsReporter started with configurable interval
-2. Periodically calls `Publisher.stats.get()` and `Subscriber.stats.get()`
+2. Periodically calls `Publisher.stats.takeSample()` and `Subscriber.stats.takeSample()`
 3. Collects trace data from multiple tracers (SFU, publisher, subscriber)
 4. Aggregates WebRTC stats (encode/decode stats, connection quality)
 5. Sends to SFU via `sendStats()` or to Coordinator via HTTP

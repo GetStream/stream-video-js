@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import {
   Call,
   CallingState,
@@ -16,7 +17,12 @@ import {
   distinctUntilKeyChanged,
   filter,
   map,
+  of,
 } from 'rxjs';
+import {
+  getIosPipTrack$,
+  setIosPipTrack,
+} from '../../../../utils/internal/iosPipTrack';
 
 type TrackSubscriberProps = {
   participantSessionId: string;
@@ -28,6 +34,13 @@ type TrackSubscriberProps = {
    * the last reported layout survives a remount of this component.
    */
   dimensions$: BehaviorSubject<SfuModels.VideoDimension | undefined>;
+  /**
+   * Set by the native iOS Picture in Picture window, whose bounds this
+   * subscriber requests. While it does, the inline views of the same track
+   * stop requesting their own, hidden layout. Only rendered on iOS; on other
+   * platforms the gate is always open.
+   */
+  isPipWriter?: boolean;
 };
 
 /**
@@ -40,10 +53,20 @@ type TrackSubscriberProps = {
  * This component is used to unsubscribe to video track and subscribe only to the audio track of the participant (by passing undefined dimensions) in the following cases:
  * 1. When the participant stops publishing the video track
  * 2. When the participant becomes invisible
+ *
+ * The same component serves the native iOS Picture in Picture window, which
+ * renders one of the tracks too. Its bounds take precedence over the inline
+ * views of that track for as long as it is on screen.
 */
 const TrackSubscriber = (props: TrackSubscriberProps) => {
-  const { call, participantSessionId, trackType, isVisible, dimensions$ } =
-    props;
+  const {
+    call,
+    participantSessionId,
+    trackType,
+    isVisible,
+    dimensions$,
+    isPipWriter,
+  } = props;
 
   useEffect(() => {
     const requestTrackWithDimensions = (
@@ -75,12 +98,28 @@ const TrackSubscriber = (props: TrackSubscriberProps) => {
       map((callingState) => callingState === CallingState.JOINED),
     );
 
+    const trackKey = { sessionId: participantSessionId, trackType };
+    const pipTrack$ = Platform.OS === 'ios' ? getIosPipTrack$(call) : undefined;
+    if (isPipWriter && pipTrack$) setIosPipTrack(call, trackKey);
+    const canWrite$ = pipTrack$
+      ? pipTrack$.pipe(
+          map((track) => {
+            const sameTrack =
+              track?.sessionId === participantSessionId &&
+              track?.trackType === trackType;
+            return isPipWriter ? sameTrack : !sameTrack;
+          }),
+          distinctUntilChanged(),
+        )
+      : of(true);
+
     const subscription = combineLatest([
       dimensions$,
       isPublishingTrack$,
       isJoinedState$,
-    ]).subscribe(([dimension, isPublishing, isJoined]) => {
-      if (isJoined) {
+      canWrite$,
+    ]).subscribe(([dimension, isPublishing, isJoined, canWrite]) => {
+      if (isJoined && canWrite) {
         if (!isVisible || !isPublishing) {
           requestTrackWithDimensions(DebounceType.MEDIUM, undefined);
         } else if (dimension) {
@@ -91,8 +130,22 @@ const TrackSubscriber = (props: TrackSubscriberProps) => {
 
     return () => {
       subscription.unsubscribe();
+      if (isPipWriter && pipTrack$) {
+        // Let sibling inline views finish unmounting before handing back demand.
+        queueMicrotask(() => {
+          if (pipTrack$.getValue() === trackKey)
+            setIosPipTrack(call, undefined);
+        });
+      }
     };
-  }, [call, participantSessionId, trackType, isVisible, dimensions$]);
+  }, [
+    call,
+    participantSessionId,
+    trackType,
+    isVisible,
+    dimensions$,
+    isPipWriter,
+  ]);
 
   return null;
 };

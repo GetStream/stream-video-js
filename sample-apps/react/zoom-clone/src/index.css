@@ -14,34 +14,18 @@ body,
 }
 
 .str-video__call__header {
-  @apply p-4 !important;
-}
-
-.str-video__stage {
-  @apply px-4;
-}
-
-.str-video__call-participants-screen-view__participants {
-  @apply justify-start !important;
+  @apply flex items-center justify-between gap-3;
+  padding: 1rem !important;
 }
 
 .str-video__device-settings select {
   @apply text-zinc-900;
 }
 
-.str-video__device-settings {
-  @apply drop-shadow-sm bg-zinc-800;
-  color: white;
-}
-
 .str-video__device-settings__button,
 .str-video__device-settings__button:hover,
 .str-video__device-settings__button:focus {
   @apply flex items-center justify-center bg-zinc-800 rounded-full p-1;
-}
-
-.str-video__call-controls-section {
-  @apply flex justify-between items-center gap-3;
 }
 
 .str-video__call-controls {

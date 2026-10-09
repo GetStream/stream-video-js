@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
-import clsx from 'clsx';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 import {
+  Button,
   DeviceSelectorVideo,
   Icon,
   useBackgroundFilters,
@@ -40,26 +41,31 @@ export const BlurToggleButton = () => {
   ]);
 
   const getLabel = () => {
-    if (isLoading) return t('Applying...');
-    return isBlurred ? t('Disable blur') : t('Blur background');
+    if (isLoading)
+      return t('callControls.blurToggleButton.applying.label', 'Applying...');
+    return isBlurred
+      ? t('callControls.blurToggleButton.disableBlur.label', 'Disable blur')
+      : t(
+          'callControls.blurToggleButton.blurBackground.label',
+          'Blur background',
+        );
   };
 
   if (!isSupported) return null;
 
   return (
-    <button
-      type="button"
-      className={clsx(
-        'str-video__embedded-blur-toggle',
-        isBlurred && 'str-video__embedded-blur-toggle--active',
-      )}
+    <Button
+      variant="secondary"
+      appearance="outline"
+      size="sm"
+      className="str-video__embedded-blur-toggle"
       disabled={isDisabled}
-      aria-pressed={isBlurred}
+      active={isBlurred}
       onClick={handleClick}
     >
       <Icon icon="blur-icon" />
       <span>{getLabel()}</span>
-    </button>
+    </Button>
   );
 };
 

@@ -1,51 +1,53 @@
-import { test, type TestContext } from 'node:test';
+import { describe, expect, it } from 'vitest';
 import { normalizeString } from './normalizeString';
 
-test('removes acute accents', (t: TestContext) => {
-  t.assert.strictEqual(normalizeString('Éva'), 'eva');
-  t.assert.strictEqual(normalizeString('café'), 'cafe');
-  t.assert.strictEqual(normalizeString('résumé'), 'resume');
-});
+describe('normalizeString', () => {
+  it('removes acute accents', () => {
+    expect(normalizeString('Éva')).toBe('eva');
+    expect(normalizeString('café')).toBe('cafe');
+    expect(normalizeString('résumé')).toBe('resume');
+  });
 
-test('removes grave accents', (t: TestContext) => {
-  t.assert.strictEqual(normalizeString('à'), 'a');
-  t.assert.strictEqual(normalizeString('è'), 'e');
-  t.assert.strictEqual(normalizeString('Père'), 'pere');
-});
+  it('removes grave accents', () => {
+    expect(normalizeString('à')).toBe('a');
+    expect(normalizeString('è')).toBe('e');
+    expect(normalizeString('Père')).toBe('pere');
+  });
 
-test('removes circumflex accents', (t: TestContext) => {
-  t.assert.strictEqual(normalizeString('château'), 'chateau');
-  t.assert.strictEqual(normalizeString('forêt'), 'foret');
-});
+  it('removes circumflex accents', () => {
+    expect(normalizeString('château')).toBe('chateau');
+    expect(normalizeString('forêt')).toBe('foret');
+  });
 
-test('removes umlaut/diaeresis', (t: TestContext) => {
-  t.assert.strictEqual(normalizeString('Müller'), 'muller');
-  t.assert.strictEqual(normalizeString('naïve'), 'naive');
-  t.assert.strictEqual(normalizeString('Zoë'), 'zoe');
-});
+  it('removes umlaut/diaeresis', () => {
+    expect(normalizeString('Müller')).toBe('muller');
+    expect(normalizeString('naïve')).toBe('naive');
+    expect(normalizeString('Zoë')).toBe('zoe');
+  });
 
-test('removes tilde', (t: TestContext) => {
-  t.assert.strictEqual(normalizeString('señor'), 'senor');
-  t.assert.strictEqual(normalizeString('São Paulo'), 'sao paulo');
-});
+  it('removes tilde', () => {
+    expect(normalizeString('señor')).toBe('senor');
+    expect(normalizeString('São Paulo')).toBe('sao paulo');
+  });
 
-test('removes cedilla', (t: TestContext) => {
-  t.assert.strictEqual(normalizeString('François'), 'francois');
-  t.assert.strictEqual(normalizeString('façade'), 'facade');
-});
+  it('removes cedilla', () => {
+    expect(normalizeString('François')).toBe('francois');
+    expect(normalizeString('façade')).toBe('facade');
+  });
 
-test('handles mixed diacritics', (t: TestContext) => {
-  t.assert.strictEqual(normalizeString('Éva Raposa'), 'eva raposa');
-  t.assert.strictEqual(normalizeString('Jürgen Müller'), 'jurgen muller');
-  t.assert.strictEqual(normalizeString('Crème brûlée'), 'creme brulee');
-});
+  it('handles mixed diacritics', () => {
+    expect(normalizeString('Éva Raposa')).toBe('eva raposa');
+    expect(normalizeString('Jürgen Müller')).toBe('jurgen muller');
+    expect(normalizeString('Crème brûlée')).toBe('creme brulee');
+  });
 
-test('preserves non-accented characters', (t: TestContext) => {
-  t.assert.strictEqual(normalizeString('hello world'), 'hello world');
-  t.assert.strictEqual(normalizeString('test123'), 'test123');
-  t.assert.strictEqual(normalizeString('user@email.com'), 'user@email.com');
-});
+  it('preserves non-accented characters', () => {
+    expect(normalizeString('hello world')).toBe('hello world');
+    expect(normalizeString('test123')).toBe('test123');
+    expect(normalizeString('user@email.com')).toBe('user@email.com');
+  });
 
-test('handles empty string', (t: TestContext) => {
-  t.assert.strictEqual(normalizeString(''), '');
+  it('handles empty string', () => {
+    expect(normalizeString('')).toBe('');
+  });
 });

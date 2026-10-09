@@ -1,7 +1,7 @@
-import { PropsWithChildren, useEffect, useRef } from 'react';
+import { PropsWithChildren, useEffect } from 'react';
 import clsx from 'clsx';
 import { useFloatingUIPreset } from '../../hooks';
-import { FloatingArrow, Placement, arrow } from '@floating-ui/react';
+import { Placement } from '@floating-ui/react';
 
 export type TooltipProps<T extends HTMLElement> = PropsWithChildren<{
   /** Reference element to which the tooltip should attach to */
@@ -23,11 +23,9 @@ export const Tooltip = <T extends HTMLElement>({
   tooltipPlacement = 'top',
   visible = false,
 }: TooltipProps<T>) => {
-  const arrowRef = useRef<SVGSVGElement>(null);
-  const { refs, x, y, strategy, context } = useFloatingUIPreset({
+  const { refs, x, y, strategy } = useFloatingUIPreset({
     placement: tooltipPlacement,
     strategy: 'absolute',
-    middleware: [arrow({ element: arrowRef })],
   });
 
   useEffect(() => {
@@ -46,11 +44,6 @@ export const Tooltip = <T extends HTMLElement>({
         left: x ?? 0,
       }}
     >
-      <FloatingArrow
-        ref={arrowRef}
-        context={context}
-        fill="var(--str-video__tooltip--background-color)"
-      />
       {children}
     </div>
   );

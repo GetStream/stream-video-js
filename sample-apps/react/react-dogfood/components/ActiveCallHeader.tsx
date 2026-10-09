@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  convertTimestampToDate,
   CallingState,
   CancelCallConfirmButton,
   humanize,
   Icon,
-  LoadingIndicator,
   Notification,
   useCallStateHooks,
-  useI18n,
   WithTooltip,
+  TimestampNS,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 
@@ -21,6 +21,7 @@ import {
   useIsDemoEnvironment,
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
+import { useAppI18n } from '../hooks/useAppI18n';
 
 const LatencyIndicator = () => {
   const { useCallStatsReport } = useCallStateHooks();
@@ -37,28 +38,32 @@ const LatencyIndicator = () => {
           'rd__header__latency-indicator--bad': latency && latency > 400,
         })}
       ></div>
-      {latency} ms
+      <span>
+        {latency}
+        <span className="rd__header__latency-unit"> ms</span>
+      </span>
     </div>
   );
 };
 
-const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
+const Elapsed = ({ startedAt }: { startedAt: TimestampNS | undefined }) => {
   const [elapsed, setElapsed] = useState<string>();
   const startedAtDate = useMemo(
     // eslint-disable-next-line react-hooks/purity
-    () => (startedAt ? new Date(startedAt).getTime() : Date.now()),
+    () => convertTimestampToDate(startedAt)?.getTime() ?? Date.now(),
     [startedAt],
   );
   useEffect(() => {
     const interval = setInterval(() => {
-      const elapsedSeconds = (Date.now() - startedAtDate) / 1000;
-      const date = new Date(0);
-      date.setSeconds(elapsedSeconds);
-      const format = date.toISOString(); // '1970-01-01T00:00:35.000Z'
-      const hours = format.substring(11, 13);
-      const minutes = format.substring(14, 16);
-      const seconds = format.substring(17, 19);
-      const time = `${hours !== '00' ? hours + ':' : ''}${minutes}:${seconds}`;
+      const elapsedSeconds = Math.max(
+        0,
+        Math.floor((Date.now() - startedAtDate) / 1000),
+      );
+      const hours = Math.floor(elapsedSeconds / 3600);
+      const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+      const seconds = elapsedSeconds % 60;
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const time = `${hours > 0 ? pad(hours) + ':' : ''}${pad(minutes)}:${pad(seconds)}`;
       setElapsed(time);
     }, 1000);
     return () => clearInterval(interval);
@@ -67,20 +72,27 @@ const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
   return (
     <div className="rd__header__elapsed">
       <Icon className="rd__header__elapsed-icon" icon="verified" />
-      <div className="rd__header__elapsed-time">{elapsed}</div>
+      <div className="rd__header__elapsed-time">
+        <span className="rd__header__elapsed-time__lead">
+          {elapsed?.slice(0, elapsed.lastIndexOf(':') + 1)}
+        </span>
+        {elapsed?.slice(elapsed.lastIndexOf(':') + 1)}
+      </div>
     </div>
   );
 };
 
 const RecordingIndicator = () => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   return (
-    <div className="rd__header__recording-indicator">{t('Recording...')}</div>
+    <div className="rd__header__recording-indicator">
+      {t('activeCall.header.recording.text', 'Recording...')}
+    </div>
   );
 };
 
 const E2EEBadge = () => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const isPronto = useIsProntoEnvironment();
   const { useE2eeEnabled } = useCallStateHooks();
   const e2eeEnabled = useE2eeEnabled();
@@ -89,14 +101,22 @@ const E2EEBadge = () => {
   // overflow the header on mobile). The description lives in the tooltip.
   if (!isPronto || !e2eeEnabled) return null;
   return (
-    <WithTooltip title={t('This call is end-to-end encrypted.')}>
+    <WithTooltip
+      title={t(
+        'activeCall.header.encrypted.description',
+        'This call is end-to-end encrypted.',
+      )}
+    >
       <div
         className="rd__call-header__e2ee-badge"
-        aria-label={t('End-to-end encrypted')}
+        aria-label={t(
+          'activeCall.header.encrypted.ariaLabel',
+          'End-to-end encrypted',
+        )}
       >
         <LockIcon className="rd__call-header__e2ee-badge-icon" />
         <span className="rd__call-header__e2ee-badge-label">
-          {t('Encrypted')}
+          {t('activeCall.header.encrypted.label', 'Encrypted')}
         </span>
       </div>
     </WithTooltip>
@@ -140,7 +160,7 @@ export const ActiveCallHeader = ({
   const isReconnecting = callingState === CallingState.RECONNECTING;
   const hasFailedToRecover = callingState === CallingState.RECONNECTING_FAILED;
 
-  const { t } = useI18n();
+  const { t } = useAppI18n();
 
   const isDemo = useIsDemoEnvironment();
 
@@ -149,7 +169,14 @@ export const ActiveCallHeader = ({
       <div className="rd__call-header rd__call-header--active">
         <div className="rd__call-header__title">
           <CallHeaderTitle
-            title={isDemo ? t('Stream Video Calling') : undefined}
+            title={
+              isDemo
+                ? t(
+                    'activeCall.header.streamVideoCalling.title',
+                    'Stream Video Calling',
+                  )
+                : undefined
+            }
           />
 
           <ToggleDocumentationButton />
@@ -183,6 +210,7 @@ export const ActiveCallHeader = ({
           if (isOffline || hasFailedToRecover) {
             return (
               <Notification
+                state="error"
                 isVisible
                 placement="bottom"
                 message={
@@ -199,18 +227,14 @@ export const ActiveCallHeader = ({
           return (
             <Notification
               isVisible={isJoining || isReconnecting || isMigrating}
-              iconClassName={null}
+              state="loading"
               placement="bottom"
               message={
-                <LoadingIndicator
-                  text={
-                    isMigrating
-                      ? 'Migrating...'
-                      : isJoining
-                        ? 'Joining...'
-                        : 'Reconnecting...'
-                  }
-                />
+                isMigrating
+                  ? 'Migrating...'
+                  : isJoining
+                    ? 'Joining...'
+                    : 'Reconnecting...'
               }
             >
               <span />

@@ -1,4 +1,5 @@
-import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
+import { useTheme } from '@stream-io/video-react-native-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 import React, { useMemo, useState } from 'react';
 import {
   Image,
@@ -12,12 +13,12 @@ import {
 } from 'react-native';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { TextInput } from '../../components/TextInput';
-import { Button } from '../../components/Button';
 import { randomId } from '../../modules/helpers/randomId';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LiveStreamParamList } from '../../../types';
 import { useOrientation } from '../../hooks/useOrientation';
 import QRCode from '../../assets/QRCode';
+import { Button } from '@stream-io/video-react-native-sdk/src/components';
 
 type JoinLiveStreamScreenProps = NativeStackScreenProps<
   LiveStreamParamList,
@@ -29,11 +30,13 @@ export const JoinLiveStream = ({
   route,
 }: JoinLiveStreamScreenProps) => {
   const styles = useStyles();
-  const { theme } = useTheme();
+  const {
+    theme: { semantics },
+  } = useTheme();
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const userId = useAppGlobalStoreValue((store) => store.userId);
   const userName = useAppGlobalStoreValue((store) => store.userName);
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const orientation = useOrientation();
   const {
     params: { mode, scannedCallId },
@@ -80,12 +83,20 @@ export const JoinLiveStream = ({
         <Image source={{ uri: userImageUrl }} style={styles.logo} />
         <View>
           <Text style={styles.title}>
-            {t('Hello, {{ userName }}', { userName: userName || userId })}
+            {t('joinLivestream.greeting.title', 'Hello, {{ userName }}', {
+              userName: userName || userId,
+            })}
           </Text>
           <Text style={styles.subTitle}>
             {mode === 'host'
-              ? t('Start a livestream by entering the call ID.')
-              : t('Join/View a live stream by entering the call ID.')}
+              ? t(
+                  'joinLivestream.host.description',
+                  'Start a livestream by entering the call ID.',
+                )
+              : t(
+                  'joinLivestream.viewer.description',
+                  'Join/View a live stream by entering the call ID.',
+                )}
           </Text>
         </View>
       </View>
@@ -93,7 +104,7 @@ export const JoinLiveStream = ({
         <View style={styles.createCall}>
           <View style={styles.inputContainer}>
             <TextInput
-              placeholder={t('Livestream ID')}
+              placeholder={t('joinLivestream.callId.label', 'Livestream ID')}
               value={callId}
               autoCapitalize="none"
               autoCorrect={false}
@@ -110,7 +121,7 @@ export const JoinLiveStream = ({
                 <QRCode
                   width={20}
                   height={20}
-                  fill={theme.colors.textPrimary.toString()}
+                  fill={semantics.textPrimary.toString()}
                 />
               </TouchableOpacity>
             )}
@@ -120,13 +131,15 @@ export const JoinLiveStream = ({
           {isHost ? (
             <Button
               onPress={enterBackstageHandler}
-              title={t('Start Livestream')}
+              text={t('joinLivestream.start.label', 'Start Livestream')}
+              size="large"
               disabled={!isValidCallId}
             />
           ) : (
             <Button
               onPress={joinLiveStreamHandler}
-              title={t('Join Livestream')}
+              text={t('joinLivestream.join.label', 'Join Livestream')}
+              size="large"
               disabled={!isValidCallId}
             />
           )}
@@ -137,13 +150,15 @@ export const JoinLiveStream = ({
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics, primitives },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          padding: theme.variants.spacingSizes.lg,
-          backgroundColor: theme.colors.sheetPrimary,
+          padding: primitives.spacingLg,
+          backgroundColor: semantics.backgroundCoreApp,
           flex: 1,
           justifyContent: 'space-evenly',
         },
@@ -159,16 +174,16 @@ const useStyles = () => {
         },
         title: {
           fontSize: 30,
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           fontWeight: '500',
           textAlign: 'center',
-          marginTop: theme.variants.spacingSizes.lg,
+          marginTop: primitives.spacingLg,
         },
         subTitle: {
-          color: theme.colors.textSecondary,
+          color: semantics.textSecondary,
           fontSize: 16,
           textAlign: 'center',
-          marginHorizontal: theme.variants.spacingSizes.xl,
+          marginHorizontal: primitives.spacingXl,
         },
         bottomContainer: {
           flex: 1,
@@ -199,15 +214,15 @@ const useStyles = () => {
           alignItems: 'center',
         },
         buttonContainer: {
-          marginTop: theme.variants.spacingSizes.md,
+          marginTop: primitives.spacingMd,
         },
         noIdText: {
-          color: theme.colors.textPrimary,
-          marginTop: theme.variants.spacingSizes.lg,
+          color: semantics.textPrimary,
+          marginTop: primitives.spacingLg,
           fontSize: 12,
           textAlign: 'left',
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };

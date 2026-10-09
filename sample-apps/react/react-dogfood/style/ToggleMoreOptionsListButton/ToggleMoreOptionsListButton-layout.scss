@@ -3,7 +3,8 @@
 .rd__more-menu {
   display: flex;
   list-style: none;
-  padding: var(--str-video__spacing-md);
+  padding-block: var(--str-video__spacing-md);
+  padding-inline: 0;
   flex-direction: column;
   margin: 0;
 
@@ -15,14 +16,39 @@
 }
 
 .rd__more-menu__item {
-  margin-top: var(--str-video__spacing-sm);
+  padding-inline: var(--str-video__spacing-md);
+
+  .str-video__reactions-menu {
+    padding: 0;
+  }
+
+  &:not(&--list) {
+    margin-bottom: var(--str-video__spacing-md);
+  }
+
+  &--list {
+    padding-inline: var(--str-video__spacing-xxs);
+
+    .rd__more-button {
+      justify-content: flex-start;
+      gap: var(--str-video__spacing-sm);
+      min-height: 40px;
+      padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
+      border: 0;
+      border-radius: var(--str-video__radius-md);
+
+      .rd__button__icon {
+        margin-right: 0;
+      }
+    }
+  }
 }
 
 .rd__more-menu__button {
   display: flex;
   align-items: center;
   background-color: transparent;
-  color: var(--str-video__text-color1);
+  color: var(--str-video__text-primary);
 }
 
 @include breakpoints.respond-above(sm) {

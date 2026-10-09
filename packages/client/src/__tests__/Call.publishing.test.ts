@@ -1,3 +1,5 @@
+import { VideoApi } from '../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../coordinator/connection/api-client';
 import '../rtc/__tests__/mocks/webrtc.mocks';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -8,7 +10,7 @@ import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { PermissionsContext } from '../permissions';
 import { OwnCapability } from '../gen/coordinator';
-import { StreamVideoWriteableStateStore } from '../store';
+import { ClientState } from '../store';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
 
@@ -21,8 +23,9 @@ describe('Publishing and Unpublishing tracks', () => {
       type: 'test',
       id: generateUUIDv4(),
       streamClient,
+      videoApi: new VideoApi(new ApiClient(streamClient)),
       clientEventReporter: new ClientEventReporter({ streamClient }),
-      clientStore: new StreamVideoWriteableStateStore(),
+      clientState: new ClientState(),
     });
 
     const ctx = new PermissionsContext();

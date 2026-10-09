@@ -5,6 +5,7 @@ import { useEffectEvent as useEffectEventShim } from '@stream-io/video-react-bin
 import { StreamCall, StreamVideo } from '../core';
 import {
   StreamTheme,
+  type StreamThemeMode,
   BackgroundFiltersProvider,
   NoiseCancellationProvider,
 } from '../components';
@@ -14,7 +15,7 @@ import type { LogLevel, TokenProvider } from '@stream-io/video-client';
 import type { EmbeddedUser, LayoutOption } from './types';
 import { LoadingIndicator } from '../components';
 
-export interface EmbeddedClientProviderProps {
+interface EmbeddedClientContentProps {
   apiKey: string;
   user: EmbeddedUser;
   callId: string;
@@ -24,8 +25,12 @@ export interface EmbeddedClientProviderProps {
   logLevel?: LogLevel;
   onError?: (error: any) => void;
   layout?: LayoutOption;
-  theme?: Record<string, string>;
   children: ReactNode;
+}
+
+export interface EmbeddedClientProviderProps extends EmbeddedClientContentProps {
+  theme?: StreamThemeMode;
+  style?: Record<string, string>;
 }
 
 const NoiseCancellationWrapper = ({
@@ -51,6 +56,16 @@ const NoiseCancellationWrapper = ({
  * Handles client/call initialization and wraps children with all necessary providers.
  */
 export const EmbeddedClientProvider = ({
+  theme = 'dark',
+  style,
+  ...props
+}: EmbeddedClientProviderProps) => (
+  <StreamTheme className="str-video__embedded" theme={theme} style={style}>
+    <EmbeddedClientContent {...props} />
+  </StreamTheme>
+);
+
+const EmbeddedClientContent = ({
   apiKey,
   user,
   callId,
@@ -60,9 +75,8 @@ export const EmbeddedClientProvider = ({
   logLevel,
   onError,
   layout,
-  theme,
   children,
-}: EmbeddedClientProviderProps) => {
+}: EmbeddedClientContentProps) => {
   const [showError, setShowError] = useState<boolean>(false);
 
   const onErrorStable = useEffectEventShim(onError ?? console.error);
@@ -88,23 +102,17 @@ export const EmbeddedClientProvider = ({
 
   if (showError) {
     return (
-      <StreamTheme className="str-video__embedded">
-        <div className="str-video__embedded-error">
-          <p className="str-video__embedded-error__message">
-            An error occurred while initializing the client. Please try again
-            later.
-          </p>
-        </div>
-      </StreamTheme>
+      <div className="str-video__embedded-error">
+        <p className="str-video__embedded-error__message">
+          An error occurred while initializing the client. Please try again
+          later.
+        </p>
+      </div>
     );
   }
 
   if (!call || !client || !noiseCancellationReady) {
-    return (
-      <StreamTheme className="str-video__embedded">
-        <LoadingIndicator className="str-video__embedded-loading" />
-      </StreamTheme>
-    );
+    return <LoadingIndicator className="str-video__embedded-loading" />;
   }
 
   return (
@@ -113,9 +121,7 @@ export const EmbeddedClientProvider = ({
         <ConfigurationProvider layout={layout} onError={onErrorStable}>
           <BackgroundFiltersProvider>
             <NoiseCancellationWrapper noiseCancellation={noiseCancellation}>
-              <StreamTheme className="str-video__embedded" style={theme}>
-                {children}
-              </StreamTheme>
+              {children}
             </NoiseCancellationWrapper>
           </BackgroundFiltersProvider>
         </ConfigurationProvider>

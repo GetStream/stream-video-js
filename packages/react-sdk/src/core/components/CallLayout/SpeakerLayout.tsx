@@ -4,9 +4,9 @@ import { hasScreenShare } from '@stream-io/video-client';
 import {
   useCall,
   useCallStateHooks,
-  useI18n,
   useSpeakerLayoutSortPreset,
 } from '@stream-io/video-react-bindings';
+import { useI18n } from '../../../i18n';
 
 import {
   DefaultParticipantViewUI,
@@ -301,7 +301,10 @@ const HorizontalScrollButtons = <T extends HTMLElement>({
           variant="secondary"
           onClick={scrollStartClickHandler}
           icon="caret-left"
-          aria-label={t('Scroll participants left')}
+          aria-label={t(
+            'callLayout.speakerLayout.scrollParticipantsLeft.ariaLabel',
+            'Scroll participants left',
+          )}
           className="str-video__speaker-layout__participants-bar--button-left"
         />
       )}
@@ -311,7 +314,10 @@ const HorizontalScrollButtons = <T extends HTMLElement>({
           variant="secondary"
           onClick={scrollEndClickHandler}
           icon="caret-right"
-          aria-label={t('Scroll participants right')}
+          aria-label={t(
+            'callLayout.speakerLayout.scrollParticipantsRight.ariaLabel',
+            'Scroll participants right',
+          )}
           className="str-video__speaker-layout__participants-bar--button-right"
         />
       )}
@@ -340,7 +346,10 @@ const VerticalScrollButtons = <T extends HTMLElement>({
           variant="secondary"
           onClick={scrollTopClickHandler}
           icon="caret-up"
-          aria-label={t('Scroll participants up')}
+          aria-label={t(
+            'callLayout.speakerLayout.scrollParticipantsUp.ariaLabel',
+            'Scroll participants up',
+          )}
           className="str-video__speaker-layout__participants-bar--button-top"
         />
       )}
@@ -350,7 +359,10 @@ const VerticalScrollButtons = <T extends HTMLElement>({
           variant="secondary"
           onClick={scrollBottomClickHandler}
           icon="caret-down"
-          aria-label={t('Scroll participants down')}
+          aria-label={t(
+            'callLayout.speakerLayout.scrollParticipantsDown.ariaLabel',
+            'Scroll participants down',
+          )}
           className="str-video__speaker-layout__participants-bar--button-bottom"
         />
       )}

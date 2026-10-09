@@ -1,8 +1,10 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 /* @vitest-environment happy-dom */
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
-import { CallingState, StreamVideoWriteableStateStore } from '../../store';
+import { CallingState, ClientState } from '../../store';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -98,8 +100,9 @@ describe('Device Manager', () => {
         id: '',
         type: '',
         streamClient,
+        videoApi: new VideoApi(new ApiClient(streamClient)),
         clientEventReporter: new ClientEventReporter({ streamClient }),
-        clientStore: new StreamVideoWriteableStateStore(),
+        clientState: new ClientState(),
       }),
       { enabled: false, storageKey },
     );

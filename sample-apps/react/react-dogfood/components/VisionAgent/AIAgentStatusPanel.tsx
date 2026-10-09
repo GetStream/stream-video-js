@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react';
-import {
-  IconButton,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-sdk';
+import { IconButton, useCallStateHooks } from '@stream-io/video-react-sdk';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 const VISION_AGENTS_BUILD_URL = 'https://getstream.io/vision-agents/';
 
 export const AIAgentStatusPanel = () => {
-  const { t } = useI18n();
+  const { t } = useAppI18n();
   const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const [dismissed, setDismissed] = useState(false);
@@ -29,7 +26,7 @@ export const AIAgentStatusPanel = () => {
       <div className="rd__ai-agent-status__row">
         <span className="rd__ai-agent-status__dot" aria-hidden="true" />
         <span className="rd__ai-agent-status__label">
-          {t('AI agent in call')}
+          {t('visionAgent.status.inCall.text', 'AI agent in call')}
         </span>
         <IconButton
           className="rd__ai-agent-status__close"
@@ -45,10 +42,11 @@ export const AIAgentStatusPanel = () => {
         target="_blank"
         rel="noreferrer"
       >
-        {t('Build your own AI Agent')} →
+        {t('visionAgent.status.buildYourOwn.label', 'Build your own AI Agent')}{' '}
+        →
       </a>
       <p className="rd__ai-agent-status__powered-by">
-        ✦ {t('Powered by Vision Agents')}
+        ✦ {t('visionAgent.status.poweredBy.text', 'Powered by Vision Agents')}
       </p>
     </div>
   );
