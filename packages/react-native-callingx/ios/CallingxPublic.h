@@ -1,10 +1,9 @@
 #import <Foundation/Foundation.h>
-#import <CallKit/CallKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- * Callingx - React Native Turbo Module for CallKit integration
+ * Callingx - React Native Turbo Module for system call UI integration (LiveCommunicationKit on iOS)
  *
  * This header exposes the public API for use in AppDelegate or other native code.
  *
@@ -28,7 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface Callingx : NSObject
 
 /**
- * Report a new incoming call to CallKit.
+ * Report a new incoming call to the system (LiveCommunicationKit).
  * Call this from your PushKit delegate when receiving a VoIP push notification.
  *
  * @param callId Unique identifier for the call (e.g., call ID from your backend)
@@ -41,7 +40,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @param supportsGrouping Whether the call can be grouped with other calls
  * @param supportsUngrouping Whether the call can be ungrouped
  * @param payload Optional payload data from the push notification
- * @param completion Completion handler called after the call is reported, with an error if the call could not be displayed
+ * @param completion PushKit completion handler. Called once the report has been started (the report itself finishes asynchronously).
  */
 + (void)reportNewIncomingCall:(NSString *)callId
                        handle:(NSString *)handle
@@ -59,7 +58,9 @@ NS_ASSUME_NONNULL_BEGIN
  * End a call with a specific reason.
  *
  * @param callId The call ID to end
- * @param reason The reason for ending: 1=failed, 2=remoteEnded, 3=unanswered, 4=answeredElsewhere, 5=declinedElsewhere
+ * @param reason The reason for ending, mapped to LiveCommunicationKit `Conversation.EndedReason`:
+ *               1=failed, 2=remoteEnded, 3=unanswered, 4=answeredElsewhere (joinedElsewhere), 5=declinedElsewhere.
+ *               Unknown values map to failed.
  */
 + (void)endCall:(NSString *)callId
          reason:(int)reason;

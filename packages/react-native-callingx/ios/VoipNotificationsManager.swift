@@ -62,6 +62,8 @@ import React
         CallingxLog.voip.debugPublic("voipRegistration enter")
 
         DispatchQueue.main.async {
+            // A killed-state VoIP push is reported right away; make sure the conversation manager exists first.
+            CallingxImpl.initializeIfNeeded()
             let registry = PKPushRegistry(queue: DispatchQueue.main)
             registry.delegate = VoipPushHandler.sharedInstance()
             registry.desiredPushTypes = [.voIP]

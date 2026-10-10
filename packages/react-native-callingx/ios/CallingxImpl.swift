@@ -138,22 +138,39 @@ import stream_react_native_webrtc
         _ = getSharedInstance() // ensures the shared instance and the conversation manager exist
     }
 
-    /// Recreates the manager with the current settings (its configuration is immutable).
-    /// Skipped while a conversation is live: invalidating would tear down the system call.
+    /// Recreates the manager when the settings changed its configuration (which is immutable).
+    /// Skipped when the configuration is unchanged, and while any call is tracked: a killed-state push
+    /// report may not have landed in `conversations` yet, and invalidating would drop it.
     private static func recreateConversationManagerIfIdle() {
         guard let instance = sharedInstance else { return }
+        let configuration = Settings.getConversationManagerConfiguration()
         if let manager = conversationManager {
-            guard liveConversationUUIDs().isEmpty else {
-                CallingxLog.core.debugPublic("[recreateConversationManager] skipped — a conversation is live")
+            guard !isSameConfiguration(manager.configuration, configuration) else { return }
+            guard (uuidStorage?.count() ?? 0) == 0, liveConversationUUIDs().isEmpty else {
+                CallingxLog.core.debugPublic("[recreateConversationManager] skipped — a call is tracked or live")
                 return
             }
             manager.delegate = nil
             manager.invalidate()
         }
         CallingxLog.core.debugPublic("[recreateConversationManager]")
-        let manager = ConversationManager(configuration: Settings.getConversationManagerConfiguration())
+        let manager = ConversationManager(configuration: configuration)
         manager.delegate = instance
         conversationManager = manager
+    }
+
+    /// `ConversationManager.Configuration` is not `Equatable`; compares the fields callingx sets.
+    private static func isSameConfiguration(
+        _ lhs: ConversationManager.Configuration,
+        _ rhs: ConversationManager.Configuration
+    ) -> Bool {
+        return lhs.ringtoneName == rhs.ringtoneName
+            && lhs.iconTemplateImageData == rhs.iconTemplateImageData
+            && lhs.maximumConversationGroups == rhs.maximumConversationGroups
+            && lhs.maximumConversationsPerConversationGroup == rhs.maximumConversationsPerConversationGroup
+            && lhs.includesConversationInRecents == rhs.includesConversationInRecents
+            && lhs.supportsVideo == rhs.supportsVideo
+            && lhs.supportedHandleTypes == rhs.supportedHandleTypes
     }
 
     /// UUIDs of the manager's conversations that have not left yet.
@@ -199,16 +216,21 @@ import stream_react_native_webrtc
         reject: RCTPromiseRejectBlock?
     ) {
         initializeIfNeeded()
-        
-        guard let storage = uuidStorage, let manager = conversationManager else { return }
-        
+
+        guard let storage = uuidStorage, let manager = conversationManager else {
+            CallingxLog.core.errorPublic("[reportNewIncomingCall] no storage or conversation manager")
+            completion?()
+            reject?("DISPLAY_INCOMING_CALL_ERROR", "Conversation manager is not available", nil)
+            return
+        }
+
         if storage.containsCid(callId) {
             CallingxLog.core.debugPublic("[reportNewIncomingCall] callId already exists")
             completion?()
             resolve?(true)
             return
         }
-        
+
         let uuid = storage.getOrCreateUUID(forCid: callId)
         let displayName = localizedCallerName?.isEmpty == false ? localizedCallerName : nil
         let remoteHandle = Handle(type: Settings.getHandleType(handleType), value: handle, displayName: displayName)
@@ -221,7 +243,7 @@ import stream_react_native_webrtc
             CallingxLog.core.debugPublic("[reportNewIncomingCall] callId = \(callId), error = \(String(describing: error))")
             // LCK has no incoming-call error codes, unlike CallKit.
             let errorCode = error != nil ? "Unknown" : ""
-            
+
             let body = [
                 "error": error?.localizedDescription ?? "",
                 "errorCode": errorCode,
@@ -235,23 +257,25 @@ import stream_react_native_webrtc
                 "supportsUngrouping": supportsUngrouping ? "1" : "0",
                 "payload": payload ?? ""
             ]
-            
+
             if let instance = CallingxImpl.sharedInstance {
               instance.sendEvent(CallingxEvents.didDisplayIncomingCall, body: body)
             }
-        
+
             if error == nil {
                 CallingxLog.core.debugPublic("[reportNewIncomingCall] success callId = \(callId)")
                 scheduleUnansweredCallTimeout(callId: callId, uuid: uuid)
                 resolve?(true)
             } else {
-              reject?("DISPLAY_INCOMING_CALL_ERROR", error?.localizedDescription, error)
+                // Only drop our entry if it still belongs to this report (cid not re-used).
+                if uuidStorage?.getUUID(forCid: callId) == uuid {
+                    uuidStorage?.removeCid(callId)
+                }
+                reject?("DISPLAY_INCOMING_CALL_ERROR", error?.localizedDescription, error)
             }
-            
-            completion?()
         }
 
-        Task {
+        let report: () async -> Void = {
             do {
                 try await manager.reportNewIncomingConversation(uuid: uuid, update: update)
                 onReported(nil)
@@ -259,6 +283,19 @@ import stream_react_native_webrtc
                 onReported(error)
             }
         }
+
+        guard let completion else {
+            // JS path: no PushKit deadline, the promise settles after the report.
+            Task { await report() }
+            return
+        }
+
+        // PushKit path (Apple DTS workaround for FB16655952): the async report must be entered before
+        // this PushKit delegate returns, or the app is killed for not reporting a call. Start it, stall
+        // briefly so the task enters the report (Apple measured 5–7 ms), then complete the push.
+        Task.detached { await report() }
+        Thread.sleep(forTimeInterval: 0.05)
+        completion()
     }
     
     @objc public static func canRegisterCall() -> Bool {
