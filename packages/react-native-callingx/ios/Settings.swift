@@ -1,5 +1,5 @@
 import Foundation
-import CallKit
+import LiveCommunicationKit
 import UIKit
 
 @objcMembers public class Settings: NSObject {
@@ -55,46 +55,51 @@ import UIKit
         return skip
     }
 
-    public static func getProviderConfiguration() -> CXProviderConfiguration {
-        CallingxLog.settings.debugPublic("[getProviderConfiguration]")
-      
+    /// LCK types have no ObjC representation, hence `@nonobjc` on the members below.
+    @nonobjc public static func getConversationManagerConfiguration() -> ConversationManager.Configuration {
+        CallingxLog.settings.debugPublic("[getConversationManagerConfiguration]")
+
         let settings = getSettings()
-        let providerConfiguration = CXProviderConfiguration()
-        providerConfiguration.supportsVideo = true
-        providerConfiguration.maximumCallGroups = 1
-        providerConfiguration.maximumCallsPerCallGroup = 1
-        providerConfiguration.supportedHandleTypes = getSupportedHandleTypes(settings["handleType"])
+        var configuration = ConversationManager.Configuration(
+            ringtoneName: nil,
+            iconTemplateImageData: nil,
+            maximumConversationGroups: 1,
+            maximumConversationsPerConversationGroup: 1,
+            includesConversationInRecents: false,
+            supportsVideo: true,
+            supportedHandleTypes: getSupportedHandleTypes(settings["handleType"])
+        )
 
         if let supportsVideo = settings["supportsVideo"] as? Bool {
-            providerConfiguration.supportsVideo = supportsVideo
+            configuration.supportsVideo = supportsVideo
         }
         if let maximumCallGroups = settings["maximumCallGroups"] as? Int {
-            providerConfiguration.maximumCallGroups = maximumCallGroups
+            configuration.maximumConversationGroups = maximumCallGroups
         }
         if let maximumCallsPerCallGroup = settings["maximumCallsPerCallGroup"] as? Int {
-            providerConfiguration.maximumCallsPerCallGroup = maximumCallsPerCallGroup
+            configuration.maximumConversationsPerConversationGroup = maximumCallsPerCallGroup
         }
 
         if let imageName = settings["imageName"] as? String, !imageName.isEmpty {
             if let image = UIImage(named: imageName) {
-                providerConfiguration.iconTemplateImageData = image.pngData()
+                configuration.iconTemplateImageData = image.pngData()
             }
         }
 
         if let ringtoneSound = settings["ringtoneSound"] as? String, !ringtoneSound.isEmpty {
-            providerConfiguration.ringtoneSound = ringtoneSound
+            configuration.ringtoneName = ringtoneSound
         }
 
         if let includesCallsInRecents = settings["includesCallsInRecents"] as? Bool {
-            providerConfiguration.includesCallsInRecents = includesCallsInRecents
+            configuration.includesConversationInRecents = includesCallsInRecents
         }
 
-        return providerConfiguration
+        return configuration
     }
 
-  public static func getSupportedHandleTypes(_ handleType: Any?) -> Set<CXHandle.HandleType> {
+    @nonobjc public static func getSupportedHandleTypes(_ handleType: Any?) -> Set<Handle.Kind> {
         if let handleTypeArray = handleType as? [String] {
-            var types = Set<CXHandle.HandleType>()
+            var types = Set<Handle.Kind>()
             for type in handleTypeArray {
                 types.insert(getHandleType(type))
             }
@@ -103,11 +108,11 @@ import UIKit
             let type = getHandleType(handleTypeString)
             return Set([type])
         } else {
-            return Set([CXHandle.HandleType.phoneNumber])
+            return Set([Handle.Kind.phoneNumber])
         }
     }
 
-    public static func getHandleType(_ handleType: String?) -> CXHandle.HandleType {
+    @nonobjc public static func getHandleType(_ handleType: String?) -> Handle.Kind {
         guard let handleType = handleType else { return .generic }
 
         switch handleType {

@@ -1,5 +1,5 @@
 import Foundation
-import CallKit
+import LiveCommunicationKit
 import AVFoundation
 import UIKit
 import Combine
@@ -27,18 +27,21 @@ import stream_react_native_webrtc
 }
 
 // MARK: - Callingx Implementation
-@objc public class CallingxImpl: NSObject, CXProviderDelegate {
+@objc public class CallingxImpl: NSObject {
 
     // MARK: - Shared State
-    @objc public static var sharedProvider: CXProvider?
     @objc public static var uuidStorage: UUIDStorage?
     @objc public static var sharedInstance: CallingxImpl?
     /// Events stored before the module instance exists (e.g. VoIP from killed state). Drained in getInitialEvents().
     private static var delayedEvents: [[String: Any]] = []
+    /// Shared LiveCommunicationKit manager. Its `configuration` is immutable, so a settings change
+    /// recreates it. Its `delegate` is weak; `sharedInstance` keeps the delegate alive.
+    private static var conversationManager: ConversationManager?
+
+    /// Ended reason ints of the JS/ObjC contract (CallKit's historical raw values).
+    private static let endedReasonUnanswered = 3
 
     // MARK: - Instance Properties
-    @objc public var callKeepCallController: CXCallController?
-    @objc public var callKeepProvider: CXProvider?
     @objc public weak var eventEmitter: CallingxEventEmitter?
     @objc public weak var webRTCModule: WebRTCModule?
 
@@ -51,19 +54,19 @@ import stream_react_native_webrtc
     /// The ADM `engineSubscription` is bound to. Tracked so we can detect a new ADM
     /// (a JS reload recreates WebRTCModule) and re-wire instead of staying on a dead publisher.
     private weak var subscribedADM: AudioDeviceModule?
-    /// Backing storage for the CallKit-provider view of the desired engine gate.
+    /// Backing storage for the conversation-manager view of the desired engine gate.
     private var desiredEngineAvailability: RTCAudioEngineAvailability = .default
     private let engineAvailabilityQueue = DispatchQueue(label: "io.getstream.callingx.engineAvailability")
 
-    // Pending CXActions awaiting JS fulfillment
-    private var pendingAnswerActions: [String: (action: CXAnswerCallAction, enqueuedAt: DispatchTime)] = [:]
-    private var pendingEndActions: [String: (action: CXEndCallAction, enqueuedAt: DispatchTime)] = [:]
+    // Pending conversation actions awaiting JS fulfillment
+    private var pendingAnswerActions: [String: (action: JoinConversationAction, enqueuedAt: DispatchTime)] = [:]
+    private var pendingEndActions: [String: (action: EndConversationAction, enqueuedAt: DispatchTime)] = [:]
     private let pendingActionsQueue = DispatchQueue(label: "io.getstream.callingx.pendingActions")
     // a large timeout to accomodate for cold start + metro server load time
     private let pendingActionTimeoutSeconds = 30
 
     /// UUIDs of mute actions the app requested via `setMutedCall`. Lets the perform delegate skip
-    /// app-initiated mutes (vs system ones from the native CallKit UI). A set so concurrent toggles
+    /// app-initiated mutes (vs system ones from the native call UI). A set so concurrent toggles
     /// each match their own UUID. Guarded by `pendingActionsQueue`.
     private var appInitiatedMuteActionIds: Set<UUID> = []
 
@@ -72,7 +75,7 @@ import stream_react_native_webrtc
     /// Set on `willEnableAudioEngine`, cleared on `willStartAudioEngine`. Guarded by `pendingActionsQueue`.
     private var isAudioEngineStarting = false
 
-    /// Mute value of the last app-requested `CXSetMutedCallAction`. iOS 17+ round-trips it back as a
+    /// Mute value of the last app-requested mute action. iOS 17+ round-trips it back as a
     /// system-initiated action of the same value; we skip that echo (a real UI toggle flips the value).
     /// Reset when the call ends. Guarded by `pendingActionsQueue`.
     private var lastAppRequestedMute: Bool?
@@ -108,16 +111,12 @@ import stream_react_native_webrtc
         if CallingxImpl.uuidStorage == nil {
             CallingxImpl.uuidStorage = UUIDStorage()
         }
-        
-        if CallingxImpl.sharedProvider == nil {
-            CallingxImpl.sharedProvider = CXProvider(configuration: Settings.getProviderConfiguration())
+        CallingxImpl.uuidStorage?.liveConversationUUIDsProvider = { CallingxImpl.liveConversationUUIDs() }
+
+        if CallingxImpl.conversationManager == nil {
+            CallingxImpl.conversationManager = ConversationManager(configuration: Settings.getConversationManagerConfiguration())
         }
-      
-        callKeepCallController = CXCallController()
-        
-        callKeepProvider = CallingxImpl.sharedProvider
-        callKeepProvider?.setDelegate(nil, queue: nil)
-        callKeepProvider?.setDelegate(self, queue: nil)
+        CallingxImpl.conversationManager?.delegate = self
     }
     
     deinit {
@@ -125,17 +124,63 @@ import stream_react_native_webrtc
         engineSubscription?.cancel()
         engineSubscription = nil
 
-        callKeepProvider?.setDelegate(nil, queue: nil)
-        callKeepProvider?.invalidate()
-        CallingxImpl.sharedProvider = nil
+        if CallingxImpl.conversationManager?.delegate === self {
+            CallingxImpl.conversationManager?.delegate = nil
+            CallingxImpl.conversationManager?.invalidate()
+            CallingxImpl.conversationManager = nil
+        }
         canSendEvents = false
         isSetup = false
     }
     
     // MARK: - Class Methods
     @objc public static func initializeIfNeeded() {
-        _ = getSharedInstance() // ensures the shared instance is created and CXProvider delegate is set
-        CallingxImpl.sharedProvider?.configuration = Settings.getProviderConfiguration()
+        _ = getSharedInstance() // ensures the shared instance and the conversation manager exist
+    }
+
+    /// Recreates the manager with the current settings (its configuration is immutable).
+    /// Skipped while a conversation is live: invalidating would tear down the system call.
+    private static func recreateConversationManagerIfIdle() {
+        guard let instance = sharedInstance else { return }
+        if let manager = conversationManager {
+            guard liveConversationUUIDs().isEmpty else {
+                CallingxLog.core.debugPublic("[recreateConversationManager] skipped — a conversation is live")
+                return
+            }
+            manager.delegate = nil
+            manager.invalidate()
+        }
+        CallingxLog.core.debugPublic("[recreateConversationManager]")
+        let manager = ConversationManager(configuration: Settings.getConversationManagerConfiguration())
+        manager.delegate = instance
+        conversationManager = manager
+    }
+
+    /// UUIDs of the manager's conversations that have not left yet.
+    private static func liveConversationUUIDs() -> Set<UUID> {
+        guard let manager = conversationManager else { return [] }
+        return Set(manager.conversations.filter { $0.state != .left }.map { $0.uuid })
+    }
+
+    private static func reportConversationEvent(_ event: Conversation.Event, uuid: UUID) {
+        guard let manager = conversationManager,
+              let conversation = manager.conversations.first(where: { $0.uuid == uuid }) else {
+            CallingxLog.core.debugPublic("[reportConversationEvent] conversation not found for uuid = \(uuid)")
+            return
+        }
+        manager.reportConversationEvent(event, for: conversation)
+    }
+
+    /// Maps the JS/ObjC ended reason ints (CallKit raw values) to LCK reasons.
+    private static func conversationEndedReason(_ reason: Int) -> Conversation.EndedReason {
+        switch reason {
+        case 1: return .failed
+        case 2: return .remoteEnded
+        case 3: return .unanswered
+        case 4: return .joinedElsewhere
+        case 5: return .declinedElsewhere
+        default: return .failed
+        }
     }
     
     @objc public static func reportNewIncomingCall(
@@ -155,7 +200,7 @@ import stream_react_native_webrtc
     ) {
         initializeIfNeeded()
         
-        guard let storage = uuidStorage else { return }
+        guard let storage = uuidStorage, let manager = conversationManager else { return }
         
         if storage.containsCid(callId) {
             CallingxLog.core.debugPublic("[reportNewIncomingCall] callId already exists")
@@ -164,20 +209,18 @@ import stream_react_native_webrtc
             return
         }
         
-        let cxHandleType = Settings.getHandleType(handleType)
         let uuid = storage.getOrCreateUUID(forCid: callId)
-        let callUpdate = CXCallUpdate()
-        callUpdate.remoteHandle = CXHandle(type: cxHandleType, value: handle)
-        callUpdate.supportsHolding = supportsHolding
-        callUpdate.supportsDTMF = supportsDTMF
-        callUpdate.supportsGrouping = supportsGrouping
-        callUpdate.supportsUngrouping = supportsUngrouping
-        callUpdate.hasVideo = hasVideo
-        callUpdate.localizedCallerName = localizedCallerName
-        
-        sharedProvider?.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
+        let displayName = localizedCallerName?.isEmpty == false ? localizedCallerName : nil
+        let remoteHandle = Handle(type: Settings.getHandleType(handleType), value: handle, displayName: displayName)
+        let update = Conversation.Update(
+            members: [remoteHandle],
+            capabilities: hasVideo ? [.video] : []
+        )
+
+        let onReported: (Error?) -> Void = { error in
             CallingxLog.core.debugPublic("[reportNewIncomingCall] callId = \(callId), error = \(String(describing: error))")
-            let errorCode = error != nil ? CallingxImpl.getIncomingCallErrorCode(error!) : ""
+            // LCK has no incoming-call error codes, unlike CallKit.
+            let errorCode = error != nil ? "Unknown" : ""
             
             let body = [
                 "error": error?.localizedDescription ?? "",
@@ -207,6 +250,15 @@ import stream_react_native_webrtc
             
             completion?()
         }
+
+        Task {
+            do {
+                try await manager.reportNewIncomingConversation(uuid: uuid, update: update)
+                onReported(nil)
+            } catch {
+                onReported(error)
+            }
+        }
     }
     
     @objc public static func canRegisterCall() -> Bool {
@@ -216,8 +268,7 @@ import stream_react_native_webrtc
     }
 
     @objc public static func hasRegisteredCall() -> Bool {
-        // Backed by the warm CXCallObserver maintained in UUIDStorage — no per-call observer
-        // construction and no cold-snapshot misses. Intersects our calls with CallKit's live set.
+        // Intersects our calls with the conversation manager's live conversations.
         return uuidStorage?.hasRegisteredCall() ?? false
     }
     
@@ -231,10 +282,10 @@ import stream_react_native_webrtc
         
         call.markEnded()
         
-        // CXCallEndedReason raw values: failed=1, remoteEnded=2, unanswered=3, answeredElsewhere=4, declinedElsewhere=5
-        let endedReason = CXCallEndedReason(rawValue: reason) ?? .failed
-        
-        sharedProvider?.reportCall(with: call.uuid, endedAt: call.endedAt ?? Date(), reason: endedReason)
+        reportConversationEvent(
+            .conversationEnded(call.endedAt ?? Date(), conversationEndedReason(reason)),
+            uuid: call.uuid
+        )
         uuidStorage?.removeCid(callId)
     }
     
@@ -247,64 +298,31 @@ import stream_react_native_webrtc
             guard let call = uuidStorage?.getCall(forCid: callId), call.uuid == uuid,
                   !call.isAnswered, !call.hasEnded else { return }
             CallingxLog.core.debugPublic("[displayCallTimeout] unanswered after \(timeout) ms, ending callId = \(callId)")
-            endCall(callId, reason: CXCallEndedReason.unanswered.rawValue)
+            endCall(callId, reason: endedReasonUnanswered)
         }
     }
 
-    @objc public static func getIncomingCallErrorCode(_ error: Error) -> String {
-        let nsError = error as NSError
-        switch nsError.code {
-        case CXErrorCodeIncomingCallError.unentitled.rawValue:
-            return "Unentitled"
-        case CXErrorCodeIncomingCallError.callUUIDAlreadyExists.rawValue:
-            return "CallUUIDAlreadyExists"
-        case CXErrorCodeIncomingCallError.filteredByDoNotDisturb.rawValue:
-            return "FilteredByDoNotDisturb"
-        case CXErrorCodeIncomingCallError.filteredByBlockList.rawValue:
-            return "FilteredByBlockList"
-        default:
-            return "Unknown"
-        }
-    }
-    
     // MARK: - Instance Methods
-    @objc public func requestTransaction(_ transaction: CXTransaction) {
-        CallingxLog.core.debugPublic("[requestTransaction] transaction = \(transaction)")
-        
-        if callKeepCallController == nil {
-            callKeepCallController = CXCallController()
+    /// Performs a conversation action through the manager. On failure, resets the call's
+    /// action-source flags (the delegate never ran for it).
+    private func performConversationAction(_ action: ConversationAction) {
+        guard let manager = CallingxImpl.conversationManager else {
+            CallingxLog.core.errorPublic("[performConversationAction] no conversation manager")
+            return
         }
-        
-        callKeepCallController?.request(transaction) { [weak self] error in
-            if let error = error {
-                CallingxLog.core.errorPublic("[requestTransaction] Error requesting transaction (\(transaction.actions)): (\(error))")
+        CallingxLog.core.debugPublic("[performConversationAction] action = \(action)")
 
-                // Reset per-call action-source flags for all actions in the failed transaction
-                for action in transaction.actions {
-                    if let mutedAction = action as? CXSetMutedCallAction {
-                        self?.pendingActionsQueue.sync {
-                            _ = self?.appInitiatedMuteActionIds.remove(mutedAction.uuid)
-                        }
-                    }
-                    if let callAction = action as? CXCallAction,
-                       let call = CallingxImpl.uuidStorage?.getCallByUUID(callAction.callUUID) {
-                        call.resetAllSelfFlags()
-                    }
+        Task { [weak self] in
+            do {
+                try await manager.perform([action])
+                CallingxLog.core.debugPublic("[performConversationAction] performed action successfully")
+            } catch {
+                CallingxLog.core.errorPublic("[performConversationAction] Error performing action (\(action)): (\(error))")
+                self?.pendingActionsQueue.sync {
+                    _ = self?.appInitiatedMuteActionIds.remove(action.uuid)
                 }
-            } else {
-                CallingxLog.core.debugPublic("[requestTransaction] Requested transaction successfully")
-                
-                if let startCallAction = transaction.actions.first as? CXStartCallAction {
-                    let callUpdate = CXCallUpdate()
-                    callUpdate.remoteHandle = startCallAction.handle
-                    callUpdate.hasVideo = startCallAction.isVideo
-                    callUpdate.localizedCallerName = startCallAction.contactIdentifier
-                    callUpdate.supportsDTMF = false
-                    callUpdate.supportsHolding = false
-                    callUpdate.supportsGrouping = false
-                    callUpdate.supportsUngrouping = false
-                    
-                    self?.callKeepProvider?.reportCall(with: startCallAction.callUUID, updated: callUpdate)
+                if let call = CallingxImpl.uuidStorage?.getCallByUUID(action.conversationUUID) {
+                    call.resetAllSelfFlags()
                 }
             }
         }
@@ -401,14 +419,14 @@ import stream_react_native_webrtc
     // MARK: - Setup Methods
     @objc public func setup(options: [String: Any]) {
         Settings.setSettings(options)
-        CallingxImpl.sharedProvider?.configuration = Settings.getProviderConfiguration()
+        CallingxImpl.recreateConversationManagerIfIdle()
         isSetup = true
     }
 
     /// Wires the ADM engine-lifecycle subscription to the live call factory's ADM. A no-op when
     /// already wired to that ADM; re-wires when the ADM changes.
     @objc public func wireAudioEngineSubscription() {
-        // Only wire when callingx (CallKit) owns the session. For non-CallKit calls the engine gate
+        // Only wire when callingx (the system call layer) owns the session. For non-callingx calls the engine gate
         // and the sink below are irrelevant, so skipping keeps their ADM on `.default`.
         guard CallingxSessionOwnership.callingxOwnsSession else {
             CallingxLog.core.debugPublic("[wireEngineSubscription] skipped — callingx does not own the session")
@@ -423,9 +441,9 @@ import stream_react_native_webrtc
         subscribedADM = adm
         CallingxLog.core.debugPublic("[wireEngineSubscription]")
 
-        // Replay fixes potential race for a case when CallKit callbacks are invoked before adm instance exists.
+        // Replay fixes potential race for a case when conversation manager callbacks are invoked before adm instance exists.
         // Serialized with setDesiredEngineAvailability so the read-then-apply pair can't interleave with a
-        // concurrent CX-queue write; otherwise a stale value could land on the ADM after CX applied a newer one.
+        // concurrent delegate-queue write; otherwise a stale value could land on the ADM after the delegate applied a newer one.
         engineAvailabilityQueue.sync {
             _ = adm.setEngineAvailability(self.desiredEngineAvailability)
         }
@@ -485,7 +503,7 @@ import stream_react_native_webrtc
             return false
         }
         
-        // Guard: already answered or ended — prevent duplicate CXAnswerCallAction transactions
+        // Guard: already answered or ended — prevent duplicate JoinConversationActions
         if call.isAnswered || call.hasEnded {
             CallingxLog.core.debugPublic("[answerIncomingCall] callId already answered/ended, skipping")
             return true
@@ -494,11 +512,7 @@ import stream_react_native_webrtc
         call.markSelfAnswered()
         call.markStartedConnecting() // internal state: incoming call is now connecting
         
-        let answerCallAction = CXAnswerCallAction(call: call.uuid)
-        let transaction = CXTransaction()
-        transaction.addAction(answerCallAction)
-        
-        requestTransaction(transaction)
+        performConversationAction(JoinConversationAction(conversationUUID: call.uuid))
         return true
     }
     
@@ -535,7 +549,7 @@ import stream_react_native_webrtc
             return false
         }
         
-        // Guard: already ended — prevent duplicate CXEndCallAction transactions
+        // Guard: already ended — prevent duplicate EndConversationActions
         if call.hasEnded {
             CallingxLog.core.debugPublic("[endCall] callId already ended, skipping")
             return true
@@ -544,69 +558,28 @@ import stream_react_native_webrtc
         call.markSelfEnded()
         call.markEnded()
         
-        let endCallAction = CXEndCallAction(call: call.uuid)
-        let transaction = CXTransaction(action: endCallAction)
-        
-        requestTransaction(transaction)
+        performConversationAction(EndConversationAction(conversationUUID: call.uuid))
         return true
     }
     
     @objc public func isCallTracked(_ callId: String) -> Bool {
-        // Backed by the warm CXCallObserver in UUIDStorage — no per-call observer construction
-        // and no cold-snapshot misses. True when the call is tracked AND confirmed live by CallKit.
+        // True when the call is tracked AND confirmed live by the conversation manager.
         return CallingxImpl.uuidStorage?.isCallTracked(forCid: callId) ?? false
     }
     
     @objc public func setCurrentCallActive(_ callId: String) -> Bool {
-        CallingxLog.core.debugPublic("[setCurrentCallActive] callId = \(callId)")
-      
-        guard let call = CallingxImpl.uuidStorage?.getCall(forCid: callId) else {
-            CallingxLog.core.debugPublic("[setCurrentCallActive] callId not found")
-            return false
-        }
-        
-        call.markConnected()
-        
-        // Report connected timestamp to CallKit.
-        // startedConnectingAt is reported separately in the CXStartCallAction delegate.
-        callKeepProvider?.reportOutgoingCall(with: call.uuid, connectedAt: call.connectedAt ?? Date())
-        return true
+        CallingxLog.core.debugPublic("[setCurrentCallActive] not yet supported")
+        return false
     }
     
     @objc public func setMutedCall(_ callId: String, isMuted: Bool) -> Bool {
-        CallingxLog.core.debugPublic("[setMutedCall] muted = \(isMuted)")
-        guard let call = CallingxImpl.uuidStorage?.getCall(forCid: callId) else {
-            CallingxLog.core.debugPublic("[setMutedCall] callId not found")
-            return false
-        }
-        
-        let setMutedAction = CXSetMutedCallAction(call: call.uuid, muted: isMuted)
-        // Record the action UUID so the perform delegate can recognize this as app-initiated
-        // (and skip echoing it back to JS) without racing on a shared per-call flag.
-        pendingActionsQueue.sync {
-            _ = appInitiatedMuteActionIds.insert(setMutedAction.uuid)
-        }
-        let transaction = CXTransaction()
-        transaction.addAction(setMutedAction)
-
-        requestTransaction(transaction)
-        return true
+        CallingxLog.core.debugPublic("[setMutedCall] not yet supported")
+        return false
     }
     
     @objc public func setOnHoldCall(_ callId: String, isOnHold: Bool) -> Bool {
-        CallingxLog.core.debugPublic("[setOnHold] uuidString = \(callId), shouldHold = \(isOnHold)")
-        
-        guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
-            CallingxLog.core.debugPublic("[setOnHoldCall] callId not found")
-            return false
-        }
-        
-        let setHeldCallAction = CXSetHeldCallAction(call: uuid, onHold: isOnHold)
-        let transaction = CXTransaction()
-        transaction.addAction(setHeldCallAction)
-        
-        requestTransaction(transaction)
-        return true
+        CallingxLog.core.debugPublic("[setOnHoldCall] not yet supported")
+        return false
     }
     
     @objc public func startCall(
@@ -615,29 +588,7 @@ import stream_react_native_webrtc
         callerName: String,
         hasVideo: Bool
     ) {
-        CallingxLog.core.debugPublic("[startCall] uuidString = \(callId), phoneNumber = \(phoneNumber)")
-        
-        guard let storage = CallingxImpl.uuidStorage else { return }
-      
-        if (storage.containsCid(callId)) {
-          CallingxLog.core.debugPublic("[startCall] Call \(callId) is already registered")
-          return
-        }
-        
-        CallingxImpl.sharedProvider?.configuration = Settings.getProviderConfiguration()
-      
-        let call = storage.getOrCreateCall(forCid: callId, isOutgoing: true)
-        call.markStartedConnecting() // outgoing: will be reported via reportOutgoingCall(startedConnectingAt:)
-        
-        let handleTypeString = Settings.getSettings()["handleType"] as? String
-        let handleType = Settings.getHandleType(handleTypeString ?? "generic")
-        let callHandle = CXHandle(type: handleType, value: phoneNumber)
-        let startCallAction = CXStartCallAction(call: call.uuid, handle: callHandle)
-        startCallAction.isVideo = hasVideo
-        startCallAction.contactIdentifier = callerName
-        
-        let transaction = CXTransaction(action: startCallAction)
-        requestTransaction(transaction)
+        CallingxLog.core.debugPublic("[startCall] not yet supported")
     }
     
     @objc public func updateDisplay(
@@ -645,335 +596,36 @@ import stream_react_native_webrtc
         phoneNumber: String,
         callerName: String
     ) -> Bool {
-        CallingxLog.core.debugPublic("[updateDisplay] uuidString = \(callId) displayName = \(callerName) uri = \(phoneNumber)")
-        
-        guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
-            CallingxLog.core.debugPublic("[updateDisplay] callId not found")
-            return false
-        }
-        
-        let handleTypeString = Settings.getSettings()["handleType"] as? String
-        let handleType = Settings.getHandleType(handleTypeString ?? "generic")
-        let callHandle = CXHandle(type: handleType, value: phoneNumber)
-        let callUpdate = CXCallUpdate()
-        callUpdate.localizedCallerName = callerName
-        callUpdate.remoteHandle = callHandle
-        
-        callKeepProvider?.reportCall(with: uuid, updated: callUpdate)
-        return true
-    }
-    
-    // MARK: - CXProviderDelegate
-    public func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
-        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performStartCallAction]")
-
-        guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.callUUID) else {
-            CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performStartCallAction] callId not found")
-            action.fail()
-            return
-        }
-
-        // Claim audio-session ownership BEFORE applyCallKitConfigurationSync:
-        // both can synchronously fire .didDisableAudioEngine / .willEnableAudioEngine
-        // through the ADM publisher. The engine sink gates on this flag.
-        CallingxSessionOwnership.callingxOwnsSession = true
-        // Gate the audio engine off until CallKit activates the AVAudioSession
-        // (provider:didActivate:). Prevents the engine starting on the wrong,
-        // CallKit-restricted timing.
-        setDesiredEngineAvailability(.none)
-        AudioSessionManager.shared.applyCallKitConfigurationSync()
-
-        sendEvent(CallingxEvents.didReceiveStartCallAction, body: [
-            "callId": call.cid,
-            "handle": action.handle.value
-        ])
-        
-        action.fulfill()
-        
-        // Report startedConnectingAt to CallKit now that the action is fulfilled.
-        // The timestamp was set in startCall when the call was created.
-        callKeepProvider?.reportOutgoingCall(with: call.uuid, startedConnectingAt: call.startedConnectingAt ?? Date())
-    }
-    
-    public func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
-        guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.callUUID) else {
-            CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performAnswerCallAction] callId not found")
-            action.fail()
-            return
-        }
-        
-        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performAnswerCallAction] isSelfAnswered: \(call.isSelfAnswered)")
-        // Claim audio-session ownership BEFORE applyCallKitConfigurationSync:
-        // it can synchronously fire .didDisableAudioEngine / .willEnableAudioEngine
-        // through the ADM publisher. The engine sink gates on this flag.
-        CallingxSessionOwnership.callingxOwnsSession = true
-        // Gate the audio engine off until CallKit activates the AVAudioSession
-        // (provider:didActivate:). Prevents the engine starting on the wrong,
-        // CallKit-restricted timing.
-        setDesiredEngineAvailability(.none)
-        AudioSessionManager.shared.applyCallKitConfigurationSync()
-
-        let source = call.isSelfAnswered ? "app" : "sys"
-        sendEvent(CallingxEvents.performAnswerCallAction, body: [
-            "callId": call.cid,
-            "source": source
-        ])
-        
-        call.resetSelfAnswered()
-        call.markConnected() // incoming: call is now connected
-
-        if source == "app" {
-            // App initiated this answer — no need to wait for JS, fulfill immediately
-            action.fulfill()
-        } else {
-            // System initiated — defer fulfillment until JS reports back via fulfillAnswerCallAction
-            let cid = call.cid
-            pendingActionsQueue.sync {
-                self.pendingAnswerActions[cid] = (action: action, enqueuedAt: DispatchTime.now())
-            }
-            // Safety timer: auto-fail if JS never responds.
-            // Answer timeout = call never connected
-            let timeout = DispatchTime.now() + DispatchTimeInterval.seconds(pendingActionTimeoutSeconds)
-            pendingActionsQueue.asyncAfter(deadline: timeout) { [weak self] in
-                if let pending = self?.pendingAnswerActions.removeValue(forKey: cid) {
-                    CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performAnswerCallAction] answer timeout for callId: \(cid)")
-                    pending.action.fail()
-                }
-            }
-        }
-    }
-
-    public func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
-        guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.callUUID) else {
-            CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performEndCallAction] callId not found")
-            // End actions represent explicit user intent to close call UI.
-            // Fulfill stale/duplicate end actions to avoid "Call Failed" UX.
-            action.fulfill()
-            return
-        }
-
-        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performEndCallAction] isSelfEnded: \(call.isSelfEnded)")
-
-        let source = call.isSelfEnded ? "app" : "sys"
-        sendEvent(CallingxEvents.performEndCallAction, body: [
-            "callId": call.cid,
-            "source": source
-        ])
-
-        call.resetSelfEnded()
-        call.markEnded()
-        CallingxImpl.uuidStorage?.removeCid(call.cid)
-        // Forget this call's mute intent so its stale value can't be read as an echo next call.
-        pendingActionsQueue.sync { lastAppRequestedMute = nil }
-
-        if source == "app" {
-            // App initiated this end — no need to wait for JS, fulfill immediately
-            action.fulfill()
-        } else {
-            // System initiated — defer fulfillment until JS reports back via fulfillEndCallAction
-            let cid = call.cid
-            pendingActionsQueue.sync {
-                self.pendingEndActions[cid] = (action: action, enqueuedAt: DispatchTime.now())
-            }
-            // Safety timer: auto-fulfill if JS never responds.
-            let timeout = DispatchTime.now() + DispatchTimeInterval.seconds(pendingActionTimeoutSeconds)
-            pendingActionsQueue.asyncAfter(deadline: timeout) { [weak self] in
-                if let pending = self?.pendingEndActions.removeValue(forKey: cid) {
-                    CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performEndCallAction] end timeout for callId: \(cid)")
-                    pending.action.fulfill()
-                }
-            }
-        }
-    }
-    
-    public func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
-        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performSetHeldCallAction]")
-        
-        guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {
-            CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performSetHeldCallAction] callId not found")
-            action.fail()
-            return
-        }
-        
-        sendEvent(CallingxEvents.didToggleHoldAction, body: [
-            "hold": action.isOnHold,
-            "callId": callId
-        ])
-        
-        action.fulfill()
-    }
-    
-    public func provider(_ provider: CXProvider, perform action: CXSetMutedCallAction) {
-        guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.callUUID) else {
-            CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performSetMutedCallAction] callId not found")
-            action.fail()
-            return
-        }
-        
-        // Resolve all three suppression flags in one queue hop (serialized state).
-        let (isAppInitiated, suppressDuringStartup, isMuteEcho) = pendingActionsQueue.sync { () -> (Bool, Bool, Bool) in
-            let appInitiated = appInitiatedMuteActionIds.remove(action.uuid) != nil
-            // Remember the value so its iOS 17+ system echo can be skipped below.
-            if appInitiated { lastAppRequestedMute = action.isMuted }
-            let echo = !appInitiated && lastAppRequestedMute == action.isMuted
-            return (appInitiated, isAudioEngineStarting, echo)
-        }
-
-        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performSetMutedCallAction] \(action.isMuted) isAppInitiated: \(isAppInitiated) suppressDuringStartup: \(suppressDuringStartup) isMuteEcho: \(isMuteEcho)")
-        // Forward to JS only genuine system mutes (user tapped native CallKit UI). Skip app-initiated
-        // actions (feedback loop), their iOS 17+ system echoes, and engine-startup artifacts —
-        // see each flag's field docs.
-        if !isAppInitiated && !suppressDuringStartup && !isMuteEcho {
-            sendEvent(CallingxEvents.didPerformSetMutedCallAction, body: [
-                "muted": action.isMuted,
-                "callId": call.cid
-            ])
-        }
-        
-        action.fulfill()
-    }
-  
-    public func provider(_ provider: CXProvider, perform action: CXPlayDTMFCallAction) {
-        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performPlayDTMFCallAction]")
-        
-        guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {
-            CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performPlayDTMFCallAction] callId not found")
-            action.fail()
-            return
-        }
-        
-        sendEvent(CallingxEvents.performPlayDTMFCallAction, body: [
-            "digits": action.digits,
-            "callId": callId
-        ])
-        
-        action.fulfill()
-    }
-    
-    public func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
-        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:didActivateAudioSession] category=\(audioSession.category) mode=\(audioSession.mode)")
-        // Re-claim ownership BEFORE notifying WebRTC. Handles the PSTN/Siri
-        // interruption-resume case: didDeactivate cleared the flag if the call
-        // had ended, but for an interruption the call is still tracked and
-        // ownership was preserved — re-asserting here is a no-op then, and
-        // closes any edge case where it had been cleared.
-        CallingxSessionOwnership.callingxOwnsSession = true
-
-        // CallKit may activate with its own category/mode; re-apply VoIP preset
-        AudioSessionManager.shared.applyCallKitConfigurationSync()
-
-        // CallKit owns the session timing now — allow the audio engine to start.
-        setDesiredEngineAvailability(.default)
-
-        // When CallKit activates the AVAudioSession, inform WebRTC as well.
-        RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
-
-        // Enable wake lock to keep the device awake during the call
-        DispatchQueue.main.async {
-            UIApplication.shared.isIdleTimerDisabled = true
-        }
-
-        sendEvent(CallingxEvents.didActivateAudioSession, body: nil)
-    }
-    
-    public func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
-        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:didDeactivateAudioSession] category=\(audioSession.category) mode=\(audioSession.mode)")
-
-        // do not let webrtc audio engine auto start until after provider:didActivate:.
-        setDesiredEngineAvailability(.none)
-
-        // When CallKit deactivates the AVAudioSession, inform WebRTC as well.
-        RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
-
-        // Invariant: callingx ships with maximumCallsPerCallGroup = maximumCallGroups = 1
-        // (see packages/react-native-callingx/src/utils/constants.ts defaultiOSOptions).
-        // So `UUIDStorage.count() == 0` reliably distinguishes:
-        //   - true end-of-call (call removed in CXEndCallAction.perform before didDeactivate)
-        //   - PSTN/Siri interruption (call still tracked, will resume via didActivate)
-        // Do NOT "fix" this to handle multi-call semantics — the product does not support
-        // concurrent CallKit calls. See plan: critically-review-the-implementation-zesty-spindle.
-        if let storage = CallingxImpl.uuidStorage, storage.count() == 0 {
-            CallingxSessionOwnership.callingxOwnsSession = false
-            AudioSessionManager.shared.stopRouteObserver()
-        }
-
-        // Disable wake lock when the call ends
-        DispatchQueue.main.async {
-            UIApplication.shared.isIdleTimerDisabled = false
-        }
-
-        sendEvent(CallingxEvents.didDeactivateAudioSession, body: nil)
-    }
-  
-    public func provider(_ provider: CXProvider, timedOutPerforming action: CXAction) {
-        // note: in practice we should never be getting this callback as we already have a pending timeout set.
-        // in our tests callkit timesout and exectutes this method in approximately 60 seconds.
-        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:timedOutPerformingAction]")
-
-        guard let callAction = action as? CXCallAction else {
-            return
-        }
-
-        pendingActionsQueue.sync {
-            // cid mapping as soon as end is initiated, so cleanup by matching callUUID.
-            if let answerEntry = pendingAnswerActions.first(where: { $0.value.action.callUUID == callAction.callUUID }) {
-                pendingAnswerActions.removeValue(forKey: answerEntry.key)
-                let elapsedMs = elapsedMilliseconds(since: answerEntry.value.enqueuedAt)
-                CallingxLog.core.debugPublic("[CXProviderDelegate][provider:timedOutPerformingAction] removed pending answer action for callId: \(answerEntry.key), elapsedMs=\(elapsedMs)")
-            }
-
-            if let endEntry = pendingEndActions.first(where: { $0.value.action.callUUID == callAction.callUUID }) {
-                pendingEndActions.removeValue(forKey: endEntry.key)
-                let elapsedMs = elapsedMilliseconds(since: endEntry.value.enqueuedAt)
-                CallingxLog.core.debugPublic("[CXProviderDelegate][provider:timedOutPerformingAction] removed pending end action for callId: \(endEntry.key), elapsedMs=\(elapsedMs)")
-            }
-        }
-    }
-  
-    public func providerDidReset(_ provider: CXProvider) {
-        CallingxLog.core.debugPublic("[providerDidReset]")
-
-        // Clear any pending actions to prevent memory leaks.
-        // After a provider reset, all pending CXActions are invalid.
-        pendingActionsQueue.sync {
-            pendingAnswerActions.removeAll()
-            pendingEndActions.removeAll()
-            lastAppRequestedMute = nil
-        }
-
-        // Snapshot the tracked cids before wiping storage: JS leaves exactly the calls CallKit was tracking. 
-        let trackedCids = CallingxImpl.uuidStorage?.allCids() ?? []
-        CallingxSessionOwnership.callingxOwnsSession = false
-        CallingxImpl.uuidStorage?.removeAllObjects()
-        AudioSessionManager.shared.stopRouteObserver()
-
-        sendEvent(CallingxEvents.providerReset, body: ["callCids": trackedCids])
+        CallingxLog.core.debugPublic("[updateDisplay] not yet supported")
+        return false
     }
     
     // MARK: - Pending Action Fulfillment
 
     @objc public func fulfillAnswerCallAction(_ callId: String, didFail: Bool) {
-        pendingActionsQueue.sync { [weak self] in
-            guard let pending = self?.pendingAnswerActions.removeValue(forKey: callId) else {
-                CallingxLog.core.debugPublic("[fulfillAnswerCallAction] action not found for callId: \(callId)")
-                return
-            }
-            let elapsedMs = elapsedMilliseconds(since: pending.enqueuedAt)
-            CallingxLog.core.debugPublic("[fulfillAnswerCallAction] callId: \(callId), didFail: \(didFail), elapsedMs=\(elapsedMs)")
-            if didFail { pending.action.fail() } else { pending.action.fulfill() }
+        guard let pending = pendingActionsQueue.sync(execute: { pendingAnswerActions.removeValue(forKey: callId) }) else {
+            CallingxLog.core.debugPublic("[fulfillAnswerCallAction] action not found for callId: \(callId)")
+            return
+        }
+        let elapsedMs = elapsedMilliseconds(since: pending.enqueuedAt)
+        CallingxLog.core.debugPublic("[fulfillAnswerCallAction] callId: \(callId), didFail: \(didFail), elapsedMs=\(elapsedMs)")
+        if didFail {
+            pending.action.fail()
+        } else {
+            let connectedAt = Date()
+            pending.action.fulfill(dateConnected: connectedAt)
+            CallingxImpl.reportConversationEvent(.conversationConnected(connectedAt), uuid: pending.action.conversationUUID)
         }
     }
 
     @objc public func fulfillEndCallAction(_ callId: String, didFail: Bool) {
-        pendingActionsQueue.sync { [weak self] in
-            guard let pending = self?.pendingEndActions.removeValue(forKey: callId) else {
-                CallingxLog.core.debugPublic("[fulfillEndCallAction] action not found for callId: \(callId)")
-                return
-            }
-            let elapsedMs = elapsedMilliseconds(since: pending.enqueuedAt)
-            CallingxLog.core.debugPublic("[fulfillEndCallAction] callId: \(callId), didFail: \(didFail), elapsedMs=\(elapsedMs)")
-            if didFail { pending.action.fail() } else { pending.action.fulfill() }
+        guard let pending = pendingActionsQueue.sync(execute: { pendingEndActions.removeValue(forKey: callId) }) else {
+            CallingxLog.core.debugPublic("[fulfillEndCallAction] action not found for callId: \(callId)")
+            return
         }
+        let elapsedMs = elapsedMilliseconds(since: pending.enqueuedAt)
+        CallingxLog.core.debugPublic("[fulfillEndCallAction] callId: \(callId), didFail: \(didFail), elapsedMs=\(elapsedMs)")
+        if didFail { pending.action.fail() } else { pending.action.fulfill(dateEnded: Date()) }
     }
 
     // MARK: - Audio Configuration
@@ -991,7 +643,7 @@ import stream_react_native_webrtc
     }
 
     /// Records the desired engine availability and applies it to the current call's ADM if one
-    /// exists. When the ADM doesn't exist yet (a CallKit callback landed before join built the
+    /// exists. When the ADM doesn't exist yet (a conversation manager callback landed before join built the
     /// per-call factory), the direct apply is a no-op and the stored value is replayed onto the
     /// ADM in `wireAudioEngineSubscription()`.
     private func setDesiredEngineAvailability(_ availability: RTCAudioEngineAvailability) {
@@ -1009,5 +661,219 @@ import stream_react_native_webrtc
             return nil
         }
         return adm
+    }
+}
+
+// MARK: - ConversationManagerDelegate
+// Swift-only: LiveCommunicationKit types have no ObjC representation.
+extension CallingxImpl: ConversationManagerDelegate {
+
+    public func conversationManager(_ manager: ConversationManager, conversationChanged conversation: Conversation) {
+        CallingxLog.core.debugPublic("[ConversationManagerDelegate][conversationChanged] uuid = \(conversation.uuid) state = \(conversation.state)")
+    }
+
+    public func conversationManagerDidBegin(_ manager: ConversationManager) {
+        CallingxLog.core.debugPublic("[ConversationManagerDelegate][conversationManagerDidBegin]")
+    }
+
+    public func conversationManager(_ manager: ConversationManager, perform action: ConversationAction) {
+        switch action {
+        case let joinAction as JoinConversationAction:
+            performJoinConversationAction(joinAction)
+        case let endAction as EndConversationAction:
+            performEndConversationAction(endAction)
+        default:
+            CallingxLog.core.debugPublic("[ConversationManagerDelegate][perform] unsupported action \(action), failing")
+            action.fail()
+        }
+    }
+
+    private func performJoinConversationAction(_ action: JoinConversationAction) {
+        guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.conversationUUID) else {
+            CallingxLog.core.debugPublic("[ConversationManagerDelegate][performJoinConversationAction] callId not found")
+            action.fail()
+            return
+        }
+        
+        CallingxLog.core.debugPublic("[ConversationManagerDelegate][performJoinConversationAction] isSelfAnswered: \(call.isSelfAnswered)")
+        // Claim audio-session ownership BEFORE applyCallKitConfigurationSync:
+        // it can synchronously fire .didDisableAudioEngine / .willEnableAudioEngine
+        // through the ADM publisher. The engine sink gates on this flag.
+        CallingxSessionOwnership.callingxOwnsSession = true
+        // Gate the audio engine off until the system activates the AVAudioSession
+        // (conversationManager:didActivate:). Prevents the engine starting on the wrong,
+        // system-restricted timing.
+        setDesiredEngineAvailability(.none)
+        AudioSessionManager.shared.applyCallKitConfigurationSync()
+
+        let source = call.isSelfAnswered ? "app" : "sys"
+        sendEvent(CallingxEvents.performAnswerCallAction, body: [
+            "callId": call.cid,
+            "source": source
+        ])
+        
+        call.resetSelfAnswered()
+        call.markConnected() // incoming: call is now connected
+
+        if source == "app" {
+            // App initiated this answer — no need to wait for JS, fulfill immediately
+            let connectedAt = call.connectedAt ?? Date()
+            action.fulfill(dateConnected: connectedAt)
+            CallingxImpl.reportConversationEvent(.conversationConnected(connectedAt), uuid: call.uuid)
+        } else {
+            // System initiated — defer fulfillment until JS reports back via fulfillAnswerCallAction
+            let cid = call.cid
+            pendingActionsQueue.sync {
+                self.pendingAnswerActions[cid] = (action: action, enqueuedAt: DispatchTime.now())
+            }
+            // Safety timer: auto-fail if JS never responds.
+            // Answer timeout = call never connected
+            let timeout = DispatchTime.now() + DispatchTimeInterval.seconds(pendingActionTimeoutSeconds)
+            pendingActionsQueue.asyncAfter(deadline: timeout) { [weak self] in
+                if let pending = self?.pendingAnswerActions.removeValue(forKey: cid) {
+                    CallingxLog.core.debugPublic("[ConversationManagerDelegate][performJoinConversationAction] answer timeout for callId: \(cid)")
+                    pending.action.fail()
+                }
+            }
+        }
+    }
+
+    private func performEndConversationAction(_ action: EndConversationAction) {
+        guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.conversationUUID) else {
+            CallingxLog.core.debugPublic("[ConversationManagerDelegate][performEndConversationAction] callId not found")
+            // End actions represent explicit user intent to close call UI.
+            // Fulfill stale/duplicate end actions to avoid "Call Failed" UX.
+            action.fulfill(dateEnded: Date())
+            return
+        }
+
+        CallingxLog.core.debugPublic("[ConversationManagerDelegate][performEndConversationAction] isSelfEnded: \(call.isSelfEnded)")
+
+        let source = call.isSelfEnded ? "app" : "sys"
+        sendEvent(CallingxEvents.performEndCallAction, body: [
+            "callId": call.cid,
+            "source": source
+        ])
+
+        call.resetSelfEnded()
+        call.markEnded()
+        CallingxImpl.uuidStorage?.removeCid(call.cid)
+        // Forget this call's mute intent so its stale value can't be read as an echo next call.
+        pendingActionsQueue.sync { lastAppRequestedMute = nil }
+
+        if source == "app" {
+            // App initiated this end — no need to wait for JS, fulfill immediately
+            action.fulfill(dateEnded: call.endedAt ?? Date())
+        } else {
+            // System initiated — defer fulfillment until JS reports back via fulfillEndCallAction
+            let cid = call.cid
+            pendingActionsQueue.sync {
+                self.pendingEndActions[cid] = (action: action, enqueuedAt: DispatchTime.now())
+            }
+            // Safety timer: auto-fulfill if JS never responds.
+            let timeout = DispatchTime.now() + DispatchTimeInterval.seconds(pendingActionTimeoutSeconds)
+            pendingActionsQueue.asyncAfter(deadline: timeout) { [weak self] in
+                if let pending = self?.pendingEndActions.removeValue(forKey: cid) {
+                    CallingxLog.core.debugPublic("[ConversationManagerDelegate][performEndConversationAction] end timeout for callId: \(cid)")
+                    pending.action.fulfill(dateEnded: Date())
+                }
+            }
+        }
+    }
+
+    public func conversationManager(_ manager: ConversationManager, didActivate audioSession: AVAudioSession) {
+        CallingxLog.core.debugPublic("[ConversationManagerDelegate][didActivateAudioSession] category=\(audioSession.category) mode=\(audioSession.mode)")
+        // Re-claim ownership BEFORE notifying WebRTC. Handles the PSTN/Siri
+        // interruption-resume case: didDeactivate cleared the flag if the call
+        // had ended, but for an interruption the call is still tracked and
+        // ownership was preserved — re-asserting here is a no-op then, and
+        // closes any edge case where it had been cleared.
+        CallingxSessionOwnership.callingxOwnsSession = true
+
+        // The system may activate with its own category/mode; re-apply VoIP preset
+        AudioSessionManager.shared.applyCallKitConfigurationSync()
+
+        // The system owns the session timing now — allow the audio engine to start.
+        setDesiredEngineAvailability(.default)
+
+        // When the system activates the AVAudioSession, inform WebRTC as well.
+        RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
+
+        // Enable wake lock to keep the device awake during the call
+        DispatchQueue.main.async {
+            UIApplication.shared.isIdleTimerDisabled = true
+        }
+
+        sendEvent(CallingxEvents.didActivateAudioSession, body: nil)
+    }
+    
+    public func conversationManager(_ manager: ConversationManager, didDeactivate audioSession: AVAudioSession) {
+        CallingxLog.core.debugPublic("[ConversationManagerDelegate][didDeactivateAudioSession] category=\(audioSession.category) mode=\(audioSession.mode)")
+
+        // do not let webrtc audio engine auto start until after conversationManager:didActivate:.
+        setDesiredEngineAvailability(.none)
+
+        // When the system deactivates the AVAudioSession, inform WebRTC as well.
+        RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
+
+        // Invariant: callingx ships with maximumCallsPerCallGroup = maximumCallGroups = 1
+        // (see packages/react-native-callingx/src/utils/constants.ts defaultiOSOptions).
+        // So `UUIDStorage.count() == 0` reliably distinguishes:
+        //   - true end-of-call (call removed in the EndConversationAction perform before didDeactivate)
+        //   - PSTN/Siri interruption (call still tracked, will resume via didActivate)
+        // Do NOT "fix" this to handle multi-call semantics — the product does not support
+        // concurrent system calls. See plan: critically-review-the-implementation-zesty-spindle.
+        if let storage = CallingxImpl.uuidStorage, storage.count() == 0 {
+            CallingxSessionOwnership.callingxOwnsSession = false
+            AudioSessionManager.shared.stopRouteObserver()
+        }
+
+        // Disable wake lock when the call ends
+        DispatchQueue.main.async {
+            UIApplication.shared.isIdleTimerDisabled = false
+        }
+
+        sendEvent(CallingxEvents.didDeactivateAudioSession, body: nil)
+    }
+  
+    public func conversationManager(_ manager: ConversationManager, timedOutPerforming action: ConversationAction) {
+        // note: in practice we should never be getting this callback as we already have a pending timeout set.
+        CallingxLog.core.debugPublic("[ConversationManagerDelegate][timedOutPerformingAction]")
+
+        let conversationUUID = action.conversationUUID
+        pendingActionsQueue.sync {
+            // cid mapping as soon as end is initiated, so cleanup by matching conversationUUID.
+            if let answerEntry = pendingAnswerActions.first(where: { $0.value.action.conversationUUID == conversationUUID }) {
+                pendingAnswerActions.removeValue(forKey: answerEntry.key)
+                let elapsedMs = elapsedMilliseconds(since: answerEntry.value.enqueuedAt)
+                CallingxLog.core.debugPublic("[ConversationManagerDelegate][timedOutPerformingAction] removed pending answer action for callId: \(answerEntry.key), elapsedMs=\(elapsedMs)")
+            }
+
+            if let endEntry = pendingEndActions.first(where: { $0.value.action.conversationUUID == conversationUUID }) {
+                pendingEndActions.removeValue(forKey: endEntry.key)
+                let elapsedMs = elapsedMilliseconds(since: endEntry.value.enqueuedAt)
+                CallingxLog.core.debugPublic("[ConversationManagerDelegate][timedOutPerformingAction] removed pending end action for callId: \(endEntry.key), elapsedMs=\(elapsedMs)")
+            }
+        }
+    }
+  
+    public func conversationManagerDidReset(_ manager: ConversationManager) {
+        CallingxLog.core.debugPublic("[ConversationManagerDelegate][conversationManagerDidReset]")
+
+        // Clear any pending actions to prevent memory leaks.
+        // After a reset, all pending conversation actions are invalid.
+        pendingActionsQueue.sync {
+            pendingAnswerActions.removeAll()
+            pendingEndActions.removeAll()
+            lastAppRequestedMute = nil
+        }
+
+        // Snapshot the tracked cids before wiping storage: JS leaves exactly the calls the system was tracking.
+        let trackedCids = CallingxImpl.uuidStorage?.allCids() ?? []
+        CallingxSessionOwnership.callingxOwnsSession = false
+        CallingxImpl.uuidStorage?.removeAllObjects()
+        AudioSessionManager.shared.stopRouteObserver()
+
+        sendEvent(CallingxEvents.providerReset, body: ["callCids": trackedCids])
     }
 }
