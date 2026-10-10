@@ -72,6 +72,14 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (BOOL)canRegisterCall;
 
+/**
+ * Check if any call is active (joining, joined or paused) on the device, including calls of other apps.
+ * Returns NO when the conversation manager has not been created yet.
+ *
+ * @return YES if there is an active call
+ */
++ (BOOL)hasAnyActiveCall;
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -1,4 +1,4 @@
-#import <CallKit/CallKit.h>
+#import <objc/message.h>
 #import "StreamVideoReactNative.h"
 
 @implementation StreamVideoReactNative
@@ -28,18 +28,16 @@
     [voipManagerClass voipRegistration];
 }
 
-//current implementation will return any registered calls not only stream calls
+// Asks callingx (optional dependency, resolved at runtime) whether any call is active on the device.
+// Returns NO when callingx is not installed. Covers any registered call, not only stream calls.
 + (BOOL)hasAnyActiveCall
 {
-    CXCallObserver *callObserver = [[CXCallObserver alloc] init];
-
-    for(CXCall *call in callObserver.calls){
-        if(call.hasConnected){
-            NSLog(@"[StreamVideoReactNative] Found active call with UUID: %@", call.UUID);
-            return YES;
-        }
+    Class callingxClass = NSClassFromString(@"Callingx");
+    SEL selector = @selector(hasAnyActiveCall);
+    if (!callingxClass || ![callingxClass respondsToSelector:selector]) {
+        return NO;
     }
-    return NO;
+    return ((BOOL (*)(id, SEL))objc_msgSend)(callingxClass, selector);
 }
 
 @end

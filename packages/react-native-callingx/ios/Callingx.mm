@@ -51,6 +51,10 @@
   return [CallingxImpl canRegisterCall];
 }
 
++ (BOOL)hasAnyActiveCall {
+  return [CallingxImpl hasAnyActiveCall];
+}
+
 + (BOOL)shouldSkipIncomingPushInForeground {
   return [Settings getSkipIncomingPushInForeground];
 }

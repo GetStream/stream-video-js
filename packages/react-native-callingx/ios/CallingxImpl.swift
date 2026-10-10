@@ -410,6 +410,12 @@ import stream_react_native_webrtc
         // Intersects our calls with the conversation manager's live conversations.
         return uuidStorage?.hasRegisteredCall() ?? false
     }
+
+    /// Device-wide (any app's call): true when a conversation is joining, joined or paused.
+    @objc public static func hasAnyActiveCall() -> Bool {
+        guard let manager = conversationManager else { return false }
+        return manager.conversations.contains { $0.state == .joining || $0.state == .joined || $0.state == .paused }
+    }
     
     @objc public static func endCall(_ callId: String, reason: Int) {
         CallingxLog.core.debugPublic("[endCall] callId = \(callId) reason = \(reason)")
