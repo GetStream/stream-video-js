@@ -2,7 +2,7 @@ import Foundation
 
 /// Represents a call tracked by the CallingxImpl module.
 /// Holds per-call lifecycle state to guard against duplicate actions
-/// and to track timestamps for CallKit reporting.
+/// and to track timestamps for LiveCommunicationKit reporting.
 @objcMembers public class CallingxCall: NSObject {
     public let uuid: UUID
     public let cid: String
@@ -10,7 +10,7 @@ import Foundation
 
     // MARK: - Action-source flags
     // These flags track whether an action was initiated from the app (vs system UI).
-    // They follow a "set-then-read-then-reset" pattern in the CXProviderDelegate methods
+    // They follow a "set-then-read-then-reset" pattern in the ConversationManagerDelegate methods
     // to determine the event source ("app" vs "sys") before being reset.
 
     /// Whether answerIncomingCall was initiated from the app (vs system UI)
@@ -23,11 +23,11 @@ import Foundation
 
     // MARK: - Lifecycle timestamps
 
-    /// When the call started connecting (outgoing: maps to reportOutgoingCall(startedConnectingAt:);
+    /// When the call started connecting (outgoing: reported as .conversationStartedConnecting;
     /// incoming: set when answerIncomingCall is called, internal-only)
     public private(set) var startedConnectingAt: Date?
-    /// When the call became connected (outgoing: maps to reportOutgoingCall(connectedAt:);
-    /// incoming: set when CXAnswerCallAction delegate fires, internal-only)
+    /// When the call became connected (outgoing: reported as .conversationConnected;
+    /// incoming: set when the JoinConversationAction delegate fires, internal-only)
     public private(set) var connectedAt: Date?
     /// When the call ended
     public private(set) var endedAt: Date?
@@ -39,7 +39,7 @@ import Foundation
     public var hasEnded: Bool { endedAt != nil }
     /// Whether the call has been answered (incoming) or started connecting (outgoing).
     /// Checks both startedConnectingAt (set by answerIncomingCall from app) and connectedAt
-    /// (set by CXAnswerCallAction delegate, which fires even when answered from system UI).
+    /// (set by the JoinConversationAction delegate, which fires even when answered from system UI).
     /// Used as the primary guard against duplicate answerIncomingCall invocations.
     public var isAnswered: Bool { startedConnectingAt != nil || connectedAt != nil }
 
@@ -59,7 +59,7 @@ import Foundation
     public func resetSelfAnswered() { isSelfAnswered = false }
     public func resetSelfEnded() { isSelfEnded = false }
 
-    /// Resets all action-source flags. Called when a CXTransaction fails.
+    /// Resets all action-source flags. Called when performing a conversation action fails.
     public func resetAllSelfFlags() {
         isSelfAnswered = false
         isSelfEnded = false

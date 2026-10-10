@@ -1,15 +1,15 @@
 import Foundation
 
 /// Cross-package handoff guard. `CallingxImpl` flips `callingxOwnsSession`
-/// to `true` at CX-action entry points (`CXStartCallAction.perform`,
-/// `CXAnswerCallAction.perform`, re-asserted in `provider(_:didActivate:)`)
-/// and back to `false` in `provider(_:didDeactivate:)` when no calls remain
-/// (`UUIDStorage.count() == 0`) or on `providerDidReset`.
+/// to `true` at conversation-action entry points (`StartConversationAction`,
+/// `JoinConversationAction`, re-asserted in `conversationManager(_:didActivate:)`)
+/// and back to `false` in `conversationManager(_:didDeactivate:)` when no calls remain
+/// (`UUIDStorage.count() == 0`) or on `conversationManagerDidReset`.
 ///
 /// `StreamInCallManager` (in `@stream-io/video-react-native-sdk`) consults this
 /// flag from its AudioDeviceModule publisher sink and no-ops when callingx owns
 /// the session, so the two packages don't write conflicting `AVAudioSession`
-/// configurations during the transient overlap when a CallKit call is winding
+/// configurations during the transient overlap when a system (LiveCommunicationKit) call is winding
 /// down and the SDK is about to take over (or vice versa).
 ///
 /// Exposed as an `@objcMembers NSObject` with an `@objc class var` so that

@@ -34,21 +34,21 @@ enum DefaultAudioDevice {
 
     /// Applies category/mode/options on the calling thread, blocking until complete.
     /// Serializes with `engineWillEnable` via `audioSessionQueue`. Does not call
-    /// `setActive` — CallKit owns activation.
+    /// `setActive` — LiveCommunicationKit owns activation.
     ///
     /// Call sites:
-    /// - `CXStartCallAction` / `CXAnswerCallAction` (before `fulfill`)
-    /// - `provider(_:didActivate:)` (after CallKit activates, before the engine starts)
-    public func applyCallKitConfigurationSync() {
+    /// - `StartConversationAction` / `JoinConversationAction` (before `fulfill`)
+    /// - `conversationManager(_:didActivate:)` (after the system activates, before the engine starts)
+    public func applySystemCallConfigurationSync() {
         audioSessionQueue.sync {
-            self.applyCallKitConfiguration()
+            self.applySystemCallConfiguration()
         }
         startRouteObserver()
     }
 
     /// Called from the AudioDeviceModule publisher's `.willEnableAudioEngine` event.
     /// Reapplies the callingx audio-session configuration on every engine rebuild
-    /// (initial activation, interruption recovery, mode change). CallKit owns
+    /// (initial activation, interruption recovery, mode change). LiveCommunicationKit owns
     /// activation, so we never call `setActive`.
     ///
     /// Hops onto `audioSessionQueue` because the sink is Combine-driven with no
@@ -57,14 +57,14 @@ enum DefaultAudioDevice {
     public func engineWillEnable() {
         audioSessionQueue.async { [weak self] in
             CallingxLog.audio.debugPublic("[engineWillEnable]")
-            self?.applyCallKitConfiguration()
+            self?.applySystemCallConfiguration()
         }
     }
 
     /// Called from the AudioDeviceModule publisher's `.didDisableAudioEngine` event.
-    /// CallKit owns deactivation — no-op on the CallKit path.
+    /// LiveCommunicationKit owns deactivation — no-op on the callingx path.
     public func engineDidDisable() {
-        // No-op: CallKit's `provider(_:didDeactivate:)` handles `setActive(false)`.
+        // No-op: the system deactivates the session (`conversationManager(_:didDeactivate:)`).
     }
 
     // MARK: - Route-change observer
@@ -102,7 +102,7 @@ enum DefaultAudioDevice {
 
     // MARK: - Private
 
-    private func applyCallKitConfiguration() {
+    private func applySystemCallConfiguration() {
         let currentDevice = stateQueue.sync { defaultAudioDevice }
 
         let rtcSession = RTCAudioSession.sharedInstance()
@@ -139,7 +139,7 @@ enum DefaultAudioDevice {
         }
         RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
 
-        CallingxLog.audio.debugPublic("[applyCallKitConfiguration] category=\(rtcConfig.category) mode=\(rtcConfig.mode)")
+        CallingxLog.audio.debugPublic("[applySystemCallConfiguration] category=\(rtcConfig.category) mode=\(rtcConfig.mode)")
 
         rtcSession.lockForConfiguration()
         defer { rtcSession.unlockForConfiguration() }
@@ -147,7 +147,7 @@ enum DefaultAudioDevice {
         do {
             try rtcSession.setConfiguration(rtcConfig)
         } catch {
-            CallingxLog.audio.errorPublic("[applyCallKitConfiguration] Error: \(error)")
+            CallingxLog.audio.errorPublic("[applySystemCallConfiguration] Error: \(error)")
         }
     }
 

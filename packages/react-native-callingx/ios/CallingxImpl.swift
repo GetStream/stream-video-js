@@ -36,7 +36,24 @@ import stream_react_native_webrtc
     private static var delayedEvents: [[String: Any]] = []
     /// Shared LiveCommunicationKit manager. Its `configuration` is immutable, so a settings change
     /// recreates it. Its `delegate` is weak; `sharedInstance` keeps the delegate alive.
-    private static var conversationManager: ConversationManager?
+    /// Accessed from the JS thread, main (PushKit), the delegate queue and tasks: read it through
+    /// `conversationManager` and swap it only under `conversationManagerLock`.
+    private static var _conversationManager: ConversationManager?
+    /// Set when a configuration change arrived while a call was tracked; applied once idle.
+    private static var isConversationManagerRecreatePending = false
+    private static let conversationManagerLock = NSLock()
+
+    private static var conversationManager: ConversationManager? {
+        conversationManagerLock.lock()
+        defer { conversationManagerLock.unlock() }
+        return _conversationManager
+    }
+
+    /// UUIDs of incoming reports not yet landed in `conversations`, and `.conversationEnded`
+    /// events deferred until they land. Guarded by `incomingReportsLock`.
+    private static var inFlightIncomingReports: Set<UUID> = []
+    private static var deferredEndedEvents: [UUID: Conversation.Event] = [:]
+    private static let incomingReportsLock = NSLock()
 
     /// Ended reason ints of the JS/ObjC contract (CallKit's historical raw values).
     private static let endedReasonUnanswered = 3
@@ -113,10 +130,12 @@ import stream_react_native_webrtc
         }
         CallingxImpl.uuidStorage?.liveConversationUUIDsProvider = { CallingxImpl.liveConversationUUIDs() }
 
-        if CallingxImpl.conversationManager == nil {
-            CallingxImpl.conversationManager = ConversationManager(configuration: Settings.getConversationManagerConfiguration())
+        CallingxImpl.conversationManagerLock.lock()
+        if CallingxImpl._conversationManager == nil {
+            CallingxImpl._conversationManager = ConversationManager(configuration: Settings.getConversationManagerConfiguration())
         }
-        CallingxImpl.conversationManager?.delegate = self
+        CallingxImpl._conversationManager?.delegate = self
+        CallingxImpl.conversationManagerLock.unlock()
     }
     
     deinit {
@@ -124,11 +143,13 @@ import stream_react_native_webrtc
         engineSubscription?.cancel()
         engineSubscription = nil
 
-        if CallingxImpl.conversationManager?.delegate === self {
-            CallingxImpl.conversationManager?.delegate = nil
-            CallingxImpl.conversationManager?.invalidate()
-            CallingxImpl.conversationManager = nil
+        CallingxImpl.conversationManagerLock.lock()
+        if CallingxImpl._conversationManager?.delegate === self {
+            CallingxImpl._conversationManager?.delegate = nil
+            CallingxImpl._conversationManager?.invalidate()
+            CallingxImpl._conversationManager = nil
         }
+        CallingxImpl.conversationManagerLock.unlock()
         canSendEvents = false
         isSetup = false
     }
@@ -136,18 +157,29 @@ import stream_react_native_webrtc
     // MARK: - Class Methods
     @objc public static func initializeIfNeeded() {
         _ = getSharedInstance() // ensures the shared instance and the conversation manager exist
+        applyConversationManagerConfiguration()
     }
 
     /// Recreates the manager when the settings changed its configuration (which is immutable).
-    /// Skipped when the configuration is unchanged, and while any call is tracked: a killed-state push
-    /// report may not have landed in `conversations` yet, and invalidating would drop it.
-    private static func recreateConversationManagerIfIdle() {
+    /// While any call is tracked or live the change is marked pending instead (a killed-state push
+    /// report may not have landed in `conversations` yet, and invalidating would drop it) and
+    /// applied by `applyPendingConversationManagerConfiguration()` once the last call ends.
+    /// Callers register a call in `uuidStorage` before reading the manager, so the idle check and
+    /// the swap (both under the lock) can't drop a call that's being reported or started.
+    private static func applyConversationManagerConfiguration() {
         guard let instance = sharedInstance else { return }
         let configuration = Settings.getConversationManagerConfiguration()
-        if let manager = conversationManager {
-            guard !isSameConfiguration(manager.configuration, configuration) else { return }
-            guard (uuidStorage?.count() ?? 0) == 0, liveConversationUUIDs().isEmpty else {
-                CallingxLog.core.debugPublic("[recreateConversationManager] skipped — a call is tracked or live")
+
+        conversationManagerLock.lock()
+        defer { conversationManagerLock.unlock() }
+        if let manager = _conversationManager {
+            guard !isSameConfiguration(manager.configuration, configuration) else {
+                isConversationManagerRecreatePending = false
+                return
+            }
+            guard (uuidStorage?.count() ?? 0) == 0, liveConversationUUIDs(of: manager).isEmpty else {
+                isConversationManagerRecreatePending = true
+                CallingxLog.core.debugPublic("[recreateConversationManager] pending — a call is tracked or live")
                 return
             }
             manager.delegate = nil
@@ -156,7 +188,21 @@ import stream_react_native_webrtc
         CallingxLog.core.debugPublic("[recreateConversationManager]")
         let manager = ConversationManager(configuration: configuration)
         manager.delegate = instance
-        conversationManager = manager
+        _conversationManager = manager
+        isConversationManagerRecreatePending = false
+    }
+
+    /// Applies a configuration change deferred while a call was live. Hops to main so the manager is
+    /// never invalidated from inside its own delegate callback.
+    private static func applyPendingConversationManagerConfiguration() {
+        DispatchQueue.main.async {
+            conversationManagerLock.lock()
+            let isPending = isConversationManagerRecreatePending
+            conversationManagerLock.unlock()
+            guard isPending else { return }
+            CallingxLog.core.debugPublic("[recreateConversationManager] applying pending configuration")
+            applyConversationManagerConfiguration()
+        }
     }
 
     /// `ConversationManager.Configuration` is not `Equatable`; compares the fields callingx sets.
@@ -176,16 +222,43 @@ import stream_react_native_webrtc
     /// UUIDs of the manager's conversations that have not left yet.
     private static func liveConversationUUIDs() -> Set<UUID> {
         guard let manager = conversationManager else { return [] }
+        return liveConversationUUIDs(of: manager)
+    }
+
+    private static func liveConversationUUIDs(of manager: ConversationManager) -> Set<UUID> {
         return Set(manager.conversations.filter { $0.state != .left }.map { $0.uuid })
     }
 
-    private static func reportConversationEvent(_ event: Conversation.Event, uuid: UUID) {
+    @discardableResult
+    private static func reportConversationEvent(_ event: Conversation.Event, uuid: UUID) -> Bool {
         guard let manager = conversationManager,
               let conversation = manager.conversations.first(where: { $0.uuid == uuid }) else {
-            CallingxLog.core.debugPublic("[reportConversationEvent] conversation not found for uuid = \(uuid)")
-            return
+            CallingxLog.core.errorPublic("[reportConversationEvent] conversation not found for uuid = \(uuid), event = \(event)")
+            return false
         }
         manager.reportConversationEvent(event, for: conversation)
+        return true
+    }
+
+    /// Reports `.conversationEnded`. If the incoming report hasn't landed yet (e.g. the caller hung up
+    /// right after the push), defers it until the report completes so no ringing UI is left behind.
+    private static func reportConversationEnded(_ event: Conversation.Event, uuid: UUID) {
+        guard let manager = conversationManager,
+              manager.conversations.contains(where: { $0.uuid == uuid }) else {
+            incomingReportsLock.lock()
+            let isReportInFlight = inFlightIncomingReports.contains(uuid)
+            if isReportInFlight { deferredEndedEvents[uuid] = event }
+            incomingReportsLock.unlock()
+
+            if isReportInFlight {
+                CallingxLog.core.debugPublic("[reportConversationEnded] incoming report in flight, deferring end for uuid = \(uuid)")
+            } else {
+                // The report may have landed since the lookup above: retry once.
+                reportConversationEvent(event, uuid: uuid)
+            }
+            return
+        }
+        reportConversationEvent(event, uuid: uuid)
     }
 
     /// Maps the JS/ObjC ended reason ints (CallKit raw values) to LCK reasons.
@@ -217,8 +290,8 @@ import stream_react_native_webrtc
     ) {
         initializeIfNeeded()
 
-        guard let storage = uuidStorage, let manager = conversationManager else {
-            CallingxLog.core.errorPublic("[reportNewIncomingCall] no storage or conversation manager")
+        guard let storage = uuidStorage else {
+            CallingxLog.core.errorPublic("[reportNewIncomingCall] no storage")
             completion?()
             reject?("DISPLAY_INCOMING_CALL_ERROR", "Conversation manager is not available", nil)
             return
@@ -231,7 +304,15 @@ import stream_react_native_webrtc
             return
         }
 
+        // Register the call before reading the manager so a concurrent recreate sees it as busy.
         let uuid = storage.getOrCreateUUID(forCid: callId)
+        guard let manager = conversationManager else {
+            CallingxLog.core.errorPublic("[reportNewIncomingCall] no conversation manager")
+            storage.removeCid(callId)
+            completion?()
+            reject?("DISPLAY_INCOMING_CALL_ERROR", "Conversation manager is not available", nil)
+            return
+        }
         let displayName = localizedCallerName?.isEmpty == false ? localizedCallerName : nil
         let remoteHandle = Handle(type: Settings.getHandleType(handleType), value: handle, displayName: displayName)
         var capabilities: Conversation.Capabilities = []
@@ -247,6 +328,10 @@ import stream_react_native_webrtc
 
         let onReported: (Error?) -> Void = { error in
             CallingxLog.core.debugPublic("[reportNewIncomingCall] callId = \(callId), error = \(String(describing: error))")
+            incomingReportsLock.lock()
+            inFlightIncomingReports.remove(uuid)
+            let deferredEndedEvent = deferredEndedEvents.removeValue(forKey: uuid)
+            incomingReportsLock.unlock()
             // LCK has no incoming-call error codes, unlike CallKit.
             let errorCode = error != nil ? "Unknown" : ""
 
@@ -270,7 +355,13 @@ import stream_react_native_webrtc
 
             if error == nil {
                 CallingxLog.core.debugPublic("[reportNewIncomingCall] success callId = \(callId)")
-                scheduleUnansweredCallTimeout(callId: callId, uuid: uuid)
+                if let deferredEndedEvent {
+                    // Ended (endCall(_:reason:)) while the report was in flight.
+                    CallingxLog.core.debugPublic("[reportNewIncomingCall] reporting deferred end for callId = \(callId)")
+                    reportConversationEvent(deferredEndedEvent, uuid: uuid)
+                } else {
+                    scheduleUnansweredCallTimeout(callId: callId, uuid: uuid)
+                }
                 resolve?(true)
             } else {
                 // Only drop our entry if it still belongs to this report (cid not re-used).
@@ -281,6 +372,10 @@ import stream_react_native_webrtc
             }
         }
 
+        incomingReportsLock.lock()
+        inFlightIncomingReports.insert(uuid)
+        incomingReportsLock.unlock()
+
         let report: () async -> Void = {
             do {
                 try await manager.reportNewIncomingConversation(uuid: uuid, update: update)
@@ -290,18 +385,19 @@ import stream_react_native_webrtc
             }
         }
 
-        guard let completion else {
+        if resolve != nil || reject != nil {
             // JS path: no PushKit deadline, the promise settles after the report.
             Task { await report() }
             return
         }
 
-        // PushKit path (Apple DTS workaround for FB16655952): the async report must be entered before
+        // Native path, assumed to be a PushKit delegate even with a nil completion
+        // (Apple DTS workaround for FB16655952): the async report must be entered before
         // this PushKit delegate returns, or the app is killed for not reporting a call. Start it, stall
         // briefly so the task enters the report (Apple measured 5–7 ms), then complete the push.
         Task.detached { await report() }
         Thread.sleep(forTimeInterval: 0.05)
-        completion()
+        completion?()
     }
     
     @objc public static func canRegisterCall() -> Bool {
@@ -325,11 +421,12 @@ import stream_react_native_webrtc
         
         call.markEnded()
         
-        reportConversationEvent(
+        reportConversationEnded(
             .conversationEnded(call.endedAt ?? Date(), conversationEndedReason(reason)),
             uuid: call.uuid
         )
         uuidStorage?.removeCid(callId)
+        applyPendingConversationManagerConfiguration()
     }
     
     /// Native backstop: ends an incoming call still unanswered after `displayCallTimeout`, even
@@ -376,6 +473,7 @@ import stream_react_native_webrtc
                     call.resetAllSelfFlags()
                     if action is StartConversationAction {
                         CallingxImpl.uuidStorage?.removeCid(call.cid)
+                        CallingxImpl.applyPendingConversationManagerConfiguration()
                     }
                 }
             }
@@ -473,7 +571,7 @@ import stream_react_native_webrtc
     // MARK: - Setup Methods
     @objc public func setup(options: [String: Any]) {
         Settings.setSettings(options)
-        CallingxImpl.recreateConversationManagerIfIdle()
+        CallingxImpl.applyConversationManagerConfiguration()
         isSetup = true
     }
 
@@ -682,8 +780,8 @@ import stream_react_native_webrtc
             return
         }
 
-        // Pick up configuration changes; a no-op while a call is tracked.
-        CallingxImpl.recreateConversationManagerIfIdle()
+        // Pick up configuration changes; deferred while a call is tracked.
+        CallingxImpl.applyConversationManagerConfiguration()
 
         let call = storage.getOrCreateCall(forCid: callId, isOutgoing: true)
         call.markStartedConnecting() // outgoing: reported as .conversationStartedConnecting in the delegate
@@ -830,7 +928,7 @@ extension CallingxImpl: ConversationManagerDelegate {
             return
         }
 
-        // Claim audio-session ownership BEFORE applyCallKitConfigurationSync:
+        // Claim audio-session ownership BEFORE applySystemCallConfigurationSync:
         // both can synchronously fire .didDisableAudioEngine / .willEnableAudioEngine
         // through the ADM publisher. The engine sink gates on this flag.
         CallingxSessionOwnership.callingxOwnsSession = true
@@ -838,7 +936,7 @@ extension CallingxImpl: ConversationManagerDelegate {
         // (conversationManager:didActivate:). Prevents the engine starting on the wrong,
         // system-restricted timing.
         setDesiredEngineAvailability(.none)
-        AudioSessionManager.shared.applyCallKitConfigurationSync()
+        AudioSessionManager.shared.applySystemCallConfigurationSync()
 
         sendEvent(CallingxEvents.didReceiveStartCallAction, body: [
             "callId": call.cid,
@@ -927,7 +1025,7 @@ extension CallingxImpl: ConversationManagerDelegate {
         }
         
         CallingxLog.core.debugPublic("[ConversationManagerDelegate][performJoinConversationAction] isSelfAnswered: \(call.isSelfAnswered)")
-        // Claim audio-session ownership BEFORE applyCallKitConfigurationSync:
+        // Claim audio-session ownership BEFORE applySystemCallConfigurationSync:
         // it can synchronously fire .didDisableAudioEngine / .willEnableAudioEngine
         // through the ADM publisher. The engine sink gates on this flag.
         CallingxSessionOwnership.callingxOwnsSession = true
@@ -935,7 +1033,7 @@ extension CallingxImpl: ConversationManagerDelegate {
         // (conversationManager:didActivate:). Prevents the engine starting on the wrong,
         // system-restricted timing.
         setDesiredEngineAvailability(.none)
-        AudioSessionManager.shared.applyCallKitConfigurationSync()
+        AudioSessionManager.shared.applySystemCallConfigurationSync()
 
         let source = call.isSelfAnswered ? "app" : "sys"
         sendEvent(CallingxEvents.performAnswerCallAction, body: [
@@ -989,6 +1087,7 @@ extension CallingxImpl: ConversationManagerDelegate {
         call.resetSelfEnded()
         call.markEnded()
         CallingxImpl.uuidStorage?.removeCid(call.cid)
+        CallingxImpl.applyPendingConversationManagerConfiguration()
         // Forget this call's mute intent so its stale value can't be read as an echo next call.
         pendingActionsQueue.sync { lastAppRequestedMute = nil }
 
@@ -1022,7 +1121,7 @@ extension CallingxImpl: ConversationManagerDelegate {
         CallingxSessionOwnership.callingxOwnsSession = true
 
         // The system may activate with its own category/mode; re-apply VoIP preset
-        AudioSessionManager.shared.applyCallKitConfigurationSync()
+        AudioSessionManager.shared.applySystemCallConfigurationSync()
 
         // The system owns the session timing now — allow the audio engine to start.
         setDesiredEngineAvailability(.default)
@@ -1057,6 +1156,7 @@ extension CallingxImpl: ConversationManagerDelegate {
         if let storage = CallingxImpl.uuidStorage, storage.count() == 0 {
             CallingxSessionOwnership.callingxOwnsSession = false
             AudioSessionManager.shared.stopRouteObserver()
+            CallingxImpl.applyPendingConversationManagerConfiguration()
         }
 
         // Disable wake lock when the call ends
@@ -1106,5 +1206,6 @@ extension CallingxImpl: ConversationManagerDelegate {
         AudioSessionManager.shared.stopRouteObserver()
 
         sendEvent(CallingxEvents.providerReset, body: ["callCids": trackedCids])
+        CallingxImpl.applyPendingConversationManagerConfiguration()
     }
 }
