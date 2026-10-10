@@ -341,7 +341,7 @@ import stream_react_native_webrtc
 
     // MARK: - Instance Methods
     /// Performs a conversation action through the manager. On failure, resets the call's
-    /// action-source flags (the delegate never ran for it).
+    /// action-source flags (the delegate never ran for it) and drops a call that failed to start.
     private func performConversationAction(_ action: ConversationAction) {
         guard let manager = CallingxImpl.conversationManager else {
             CallingxLog.core.errorPublic("[performConversationAction] no conversation manager")
@@ -353,6 +353,14 @@ import stream_react_native_webrtc
             do {
                 try await manager.perform([action])
                 CallingxLog.core.debugPublic("[performConversationAction] performed action successfully")
+
+                if let startAction = action as? StartConversationAction {
+                    let update = Conversation.Update(
+                        members: Set(startAction.handles),
+                        capabilities: startAction.isVideo ? [.video] : []
+                    )
+                    CallingxImpl.reportConversationEvent(.conversationUpdated(update), uuid: startAction.conversationUUID)
+                }
             } catch {
                 CallingxLog.core.errorPublic("[performConversationAction] Error performing action (\(action)): (\(error))")
                 self?.pendingActionsQueue.sync {
@@ -360,6 +368,9 @@ import stream_react_native_webrtc
                 }
                 if let call = CallingxImpl.uuidStorage?.getCallByUUID(action.conversationUUID) {
                     call.resetAllSelfFlags()
+                    if action is StartConversationAction {
+                        CallingxImpl.uuidStorage?.removeCid(call.cid)
+                    }
                 }
             }
         }
@@ -605,8 +616,19 @@ import stream_react_native_webrtc
     }
     
     @objc public func setCurrentCallActive(_ callId: String) -> Bool {
-        CallingxLog.core.debugPublic("[setCurrentCallActive] not yet supported")
-        return false
+        CallingxLog.core.debugPublic("[setCurrentCallActive] callId = \(callId)")
+
+        guard let call = CallingxImpl.uuidStorage?.getCall(forCid: callId) else {
+            CallingxLog.core.debugPublic("[setCurrentCallActive] callId not found")
+            return false
+        }
+
+        call.markConnected()
+
+        // Report the connected timestamp to the system.
+        // startedConnectingAt is reported separately in the StartConversationAction delegate.
+        CallingxImpl.reportConversationEvent(.conversationConnected(call.connectedAt ?? Date()), uuid: call.uuid)
+        return true
     }
     
     @objc public func setMutedCall(_ callId: String, isMuted: Bool) -> Bool {
@@ -625,7 +647,33 @@ import stream_react_native_webrtc
         callerName: String,
         hasVideo: Bool
     ) {
-        CallingxLog.core.debugPublic("[startCall] not yet supported")
+        CallingxLog.core.debugPublic("[startCall] callId = \(callId), phoneNumber = \(phoneNumber)")
+
+        guard let storage = CallingxImpl.uuidStorage else { return }
+
+        if storage.containsCid(callId) {
+            CallingxLog.core.debugPublic("[startCall] Call \(callId) is already registered")
+            return
+        }
+
+        // Pick up configuration changes; a no-op while a call is tracked.
+        CallingxImpl.recreateConversationManagerIfIdle()
+
+        let call = storage.getOrCreateCall(forCid: callId, isOutgoing: true)
+        call.markStartedConnecting() // outgoing: reported as .conversationStartedConnecting in the delegate
+
+        let handleTypeString = Settings.getSettings()["handleType"] as? String
+        let displayName = callerName.isEmpty ? nil : callerName
+        let callHandle = Handle(
+            type: Settings.getHandleType(handleTypeString ?? "generic"),
+            value: phoneNumber,
+            displayName: displayName
+        )
+        performConversationAction(StartConversationAction(
+            conversationUUID: call.uuid,
+            handles: [callHandle],
+            isVideo: hasVideo
+        ))
     }
     
     @objc public func updateDisplay(
@@ -633,8 +681,21 @@ import stream_react_native_webrtc
         phoneNumber: String,
         callerName: String
     ) -> Bool {
-        CallingxLog.core.debugPublic("[updateDisplay] not yet supported")
-        return false
+        CallingxLog.core.debugPublic("[updateDisplay] callId = \(callId) displayName = \(callerName) uri = \(phoneNumber)")
+
+        guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
+            CallingxLog.core.debugPublic("[updateDisplay] callId not found")
+            return false
+        }
+
+        let handleTypeString = Settings.getSettings()["handleType"] as? String
+        let callHandle = Handle(
+            type: Settings.getHandleType(handleTypeString ?? "generic"),
+            value: phoneNumber,
+            displayName: callerName.isEmpty ? nil : callerName
+        )
+        CallingxImpl.reportConversationEvent(.conversationUpdated(Conversation.Update(members: [callHandle])), uuid: uuid)
+        return true
     }
     
     // MARK: - Pending Action Fulfillment
@@ -715,6 +776,8 @@ extension CallingxImpl: ConversationManagerDelegate {
 
     public func conversationManager(_ manager: ConversationManager, perform action: ConversationAction) {
         switch action {
+        case let startAction as StartConversationAction:
+            performStartConversationAction(startAction)
         case let joinAction as JoinConversationAction:
             performJoinConversationAction(joinAction)
         case let endAction as EndConversationAction:
@@ -723,6 +786,40 @@ extension CallingxImpl: ConversationManagerDelegate {
             CallingxLog.core.debugPublic("[ConversationManagerDelegate][perform] unsupported action \(action), failing")
             action.fail()
         }
+    }
+
+    private func performStartConversationAction(_ action: StartConversationAction) {
+        CallingxLog.core.debugPublic("[ConversationManagerDelegate][performStartConversationAction]")
+
+        guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.conversationUUID) else {
+            CallingxLog.core.debugPublic("[ConversationManagerDelegate][performStartConversationAction] callId not found")
+            action.fail()
+            return
+        }
+
+        // Claim audio-session ownership BEFORE applyCallKitConfigurationSync:
+        // both can synchronously fire .didDisableAudioEngine / .willEnableAudioEngine
+        // through the ADM publisher. The engine sink gates on this flag.
+        CallingxSessionOwnership.callingxOwnsSession = true
+        // Gate the audio engine off until the system activates the AVAudioSession
+        // (conversationManager:didActivate:). Prevents the engine starting on the wrong,
+        // system-restricted timing.
+        setDesiredEngineAvailability(.none)
+        AudioSessionManager.shared.applyCallKitConfigurationSync()
+
+        sendEvent(CallingxEvents.didReceiveStartCallAction, body: [
+            "callId": call.cid,
+            "handle": action.handles.first?.value ?? ""
+        ])
+
+        action.fulfill(dateStarted: Date())
+
+        // Report startedConnectingAt now that the action is fulfilled.
+        // The timestamp was set in startCall when the call was created.
+        CallingxImpl.reportConversationEvent(
+            .conversationStartedConnecting(call.startedConnectingAt ?? Date()),
+            uuid: call.uuid
+        )
     }
 
     private func performJoinConversationAction(_ action: JoinConversationAction) {
