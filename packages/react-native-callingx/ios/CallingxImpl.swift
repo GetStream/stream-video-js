@@ -1,5 +1,6 @@
 import Foundation
 import LiveCommunicationKit
+import Intents
 import AVFoundation
 import UIKit
 import Combine
@@ -8,6 +9,7 @@ import stream_react_native_webrtc
 // MARK: - Event Names
 @objcMembers public class CallingxEvents: NSObject {
     public static let didReceiveStartCallAction = "didReceiveStartCallAction"
+    public static let didReceiveStartCallIntent = "didReceiveStartCallIntent"
     public static let didToggleHoldAction = "didToggleHoldCallAction"
     public static let didPerformSetMutedCallAction = "didPerformSetMutedCallAction"
     public static let didAudioInterruption = "didAudioInterruption"
@@ -417,6 +419,42 @@ import stream_react_native_webrtc
         return manager.conversations.contains { $0.state == .joining || $0.state == .joined || $0.state == .paused }
     }
     
+    /// Recents redial: emits `didReceiveStartCallIntent` `{handle, isVideo}` for a start-call intent
+    /// (buffered until `getInitialEvents` on cold start). Returns false for any other activity.
+    @objc public static func handleUserActivity(_ userActivity: NSUserActivity) -> Bool {
+        guard let intent = userActivity.interaction?.intent else { return false }
+
+        let intentName = NSStringFromClass(type(of: intent))
+        let handle: String?
+        let isVideo: Bool
+        if let startCallIntent = intent as? INStartCallIntent {
+            handle = startCallIntent.contacts?.first?.personHandle?.value
+            isVideo = startCallIntent.callCapability == .videoCall
+        } else if intentName == "INStartAudioCallIntent" || intentName == "INStartVideoCallIntent" {
+            // Deprecated intents Recents still delivers on some versions; read via KVC to avoid deprecation warnings.
+            handle = (intent.value(forKey: "contacts") as? [INPerson])?.first?.personHandle?.value
+            isVideo = intentName == "INStartVideoCallIntent"
+        } else {
+            return false
+        }
+
+        guard let handle = handle, !handle.isEmpty else {
+            CallingxLog.core.errorPublic("[handleUserActivity] start call intent without a handle")
+            return false
+        }
+        CallingxLog.core.debugPublic("[handleUserActivity] handle = \(handle) isVideo = \(isVideo)")
+        emitStartCallIntent(handle: handle, isVideo: isVideo)
+        return true
+    }
+
+    /// Emits `didReceiveStartCallIntent`; queued in `delayedEvents` until JS calls `getInitialEvents`.
+    static func emitStartCallIntent(handle: String, isVideo: Bool) {
+        getSharedInstance().sendEvent(CallingxEvents.didReceiveStartCallIntent, body: [
+            "handle": handle,
+            "isVideo": isVideo,
+        ])
+    }
+
     @objc public static func endCall(_ callId: String, reason: Int) {
         CallingxLog.core.debugPublic("[endCall] callId = \(callId) reason = \(reason)")
         

@@ -38,6 +38,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     // Cold-start universal links (Handoff / https links).
     for userActivity in connectionOptions.userActivities {
+      // Recents redial (start-call intent), buffered until JS reads the initial events.
+      _ = StreamVideoReactNative.handleUserActivity(userActivity)
       RCTLinkingManager.application(UIApplication.shared, continue: userActivity) { _ in }
     }
   }
@@ -51,6 +53,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
   // Universal links while the app is running
   func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+    _ = StreamVideoReactNative.handleUserActivity(userActivity)
     RCTLinkingManager.application(UIApplication.shared, continue: userActivity) { _ in }
   }
 }

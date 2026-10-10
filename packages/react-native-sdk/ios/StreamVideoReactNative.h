@@ -12,4 +12,13 @@
  */
 + (void)voipRegistration;
 
+/**
+ * Forwards a user activity to callingx so a start-call intent (a tap on the app's
+ * call in the Phone app's Recents) redials the call. Call it from your
+ * SceneDelegate's `scene(_:continue:)` and for each `connectionOptions.userActivities`
+ * on cold start (or from `application(_:continue:restorationHandler:)`).
+ * Returns NO when callingx is not installed or the activity is not a start-call intent.
+ */
++ (BOOL)handleUserActivity:(NSUserActivity *)userActivity NS_SWIFT_NAME(handleUserActivity(_:));
+
 @end

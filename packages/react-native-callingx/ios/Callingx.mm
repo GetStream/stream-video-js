@@ -55,6 +55,10 @@
   return [CallingxImpl hasAnyActiveCall];
 }
 
++ (BOOL)handleUserActivity:(NSUserActivity *)userActivity {
+  return [CallingxImpl handleUserActivity:userActivity];
+}
+
 + (BOOL)shouldSkipIncomingPushInForeground {
   return [Settings getSkipIncomingPushInForeground];
 }

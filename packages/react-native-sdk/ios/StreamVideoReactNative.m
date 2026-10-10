@@ -40,4 +40,14 @@
     return ((BOOL (*)(id, SEL))objc_msgSend)(callingxClass, selector);
 }
 
++ (BOOL)handleUserActivity:(NSUserActivity *)userActivity
+{
+    Class callingxClass = NSClassFromString(@"Callingx");
+    SEL selector = @selector(handleUserActivity:);
+    if (!callingxClass || ![callingxClass respondsToSelector:selector]) {
+        return NO;
+    }
+    return ((BOOL (*)(id, SEL, NSUserActivity *))objc_msgSend)(callingxClass, selector, userActivity);
+}
+
 @end

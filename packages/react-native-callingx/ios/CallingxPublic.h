@@ -80,6 +80,15 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (BOOL)hasAnyActiveCall;
 
+/**
+ * Handle a user activity that may carry a start-call intent (e.g. a tap on the app's call in the Phone app's Recents).
+ * Forward it from `scene:continueUserActivity:` / `connectionOptions.userActivities` (or the AppDelegate equivalent).
+ * Emits `didReceiveStartCallIntent` with `{handle, isVideo}` (buffered until JS reads the initial events).
+ *
+ * @return YES if the activity was a start-call intent and was handled
+ */
++ (BOOL)handleUserActivity:(NSUserActivity *)userActivity NS_SWIFT_NAME(handleUserActivity(_:));
+
 @end
 
 NS_ASSUME_NONNULL_END
