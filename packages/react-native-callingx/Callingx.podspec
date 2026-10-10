@@ -10,7 +10,8 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => min_ios_version_supported }
+  # LiveCommunicationKit requires iOS 17.4
+  s.platforms    = { :ios => "17.4" }
   s.source       = { :git => "https://github.com/GetStream/stream-video-js/tree/main/packages/react-native-callingx.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,swift,cpp}"
