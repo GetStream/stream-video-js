@@ -234,9 +234,15 @@ import stream_react_native_webrtc
         let uuid = storage.getOrCreateUUID(forCid: callId)
         let displayName = localizedCallerName?.isEmpty == false ? localizedCallerName : nil
         let remoteHandle = Handle(type: Settings.getHandleType(handleType), value: handle, displayName: displayName)
+        var capabilities: Conversation.Capabilities = []
+        if hasVideo { capabilities.insert(.video) }
+        if supportsHolding { capabilities.insert(.pausing) }
+        if supportsDTMF { capabilities.insert(.playingTones) }
+        if supportsGrouping { capabilities.insert(.merging) }
+        if supportsUngrouping { capabilities.insert(.unmerging) }
         let update = Conversation.Update(
             members: [remoteHandle],
-            capabilities: hasVideo ? [.video] : []
+            capabilities: capabilities
         )
 
         let onReported: (Error?) -> Void = { error in
@@ -632,13 +638,33 @@ import stream_react_native_webrtc
     }
     
     @objc public func setMutedCall(_ callId: String, isMuted: Bool) -> Bool {
-        CallingxLog.core.debugPublic("[setMutedCall] not yet supported")
-        return false
+        CallingxLog.core.debugPublic("[setMutedCall] muted = \(isMuted)")
+        guard let call = CallingxImpl.uuidStorage?.getCall(forCid: callId) else {
+            CallingxLog.core.debugPublic("[setMutedCall] callId not found")
+            return false
+        }
+
+        let muteAction = MuteConversationAction(conversationUUID: call.uuid, isMuted: isMuted)
+        // Record the action UUID so the perform delegate can recognize this as app-initiated
+        // (and skip echoing it back to JS) without racing on a shared per-call flag.
+        pendingActionsQueue.sync {
+            _ = appInitiatedMuteActionIds.insert(muteAction.uuid)
+        }
+
+        performConversationAction(muteAction)
+        return true
     }
     
     @objc public func setOnHoldCall(_ callId: String, isOnHold: Bool) -> Bool {
-        CallingxLog.core.debugPublic("[setOnHoldCall] not yet supported")
-        return false
+        CallingxLog.core.debugPublic("[setOnHold] uuidString = \(callId), shouldHold = \(isOnHold)")
+
+        guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
+            CallingxLog.core.debugPublic("[setOnHoldCall] callId not found")
+            return false
+        }
+
+        performConversationAction(PauseConversationAction(conversationUUID: uuid, isPaused: isOnHold))
+        return true
     }
     
     @objc public func startCall(
@@ -782,7 +808,14 @@ extension CallingxImpl: ConversationManagerDelegate {
             performJoinConversationAction(joinAction)
         case let endAction as EndConversationAction:
             performEndConversationAction(endAction)
+        case let muteAction as MuteConversationAction:
+            performMuteConversationAction(muteAction)
+        case let pauseAction as PauseConversationAction:
+            performPauseConversationAction(pauseAction)
+        case let toneAction as PlayToneAction:
+            performPlayToneAction(toneAction)
         default:
+            // Includes MergeConversationAction/UnmergeConversationAction: grouping is not supported.
             CallingxLog.core.debugPublic("[ConversationManagerDelegate][perform] unsupported action \(action), failing")
             action.fail()
         }
@@ -820,6 +853,70 @@ extension CallingxImpl: ConversationManagerDelegate {
             .conversationStartedConnecting(call.startedConnectingAt ?? Date()),
             uuid: call.uuid
         )
+    }
+
+    private func performMuteConversationAction(_ action: MuteConversationAction) {
+        guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.conversationUUID) else {
+            CallingxLog.core.debugPublic("[ConversationManagerDelegate][performMuteConversationAction] callId not found")
+            action.fail()
+            return
+        }
+
+        // Resolve all three suppression flags in one queue hop (serialized state).
+        let (isAppInitiated, suppressDuringStartup, isMuteEcho) = pendingActionsQueue.sync { () -> (Bool, Bool, Bool) in
+            let appInitiated = appInitiatedMuteActionIds.remove(action.uuid) != nil
+            // Remember the value so its iOS 17+ system echo can be skipped below.
+            if appInitiated { lastAppRequestedMute = action.isMuted }
+            let echo = !appInitiated && lastAppRequestedMute == action.isMuted
+            return (appInitiated, isAudioEngineStarting, echo)
+        }
+
+        CallingxLog.core.debugPublic("[ConversationManagerDelegate][performMuteConversationAction] \(action.isMuted) isAppInitiated: \(isAppInitiated) suppressDuringStartup: \(suppressDuringStartup) isMuteEcho: \(isMuteEcho)")
+        // Forward to JS only genuine system mutes (user tapped the native call UI). Skip app-initiated
+        // actions (feedback loop), their iOS 17+ system echoes, and engine-startup artifacts —
+        // see each flag's field docs.
+        if !isAppInitiated && !suppressDuringStartup && !isMuteEcho {
+            sendEvent(CallingxEvents.didPerformSetMutedCallAction, body: [
+                "muted": action.isMuted,
+                "callId": call.cid
+            ])
+        }
+
+        action.fulfill()
+    }
+
+    private func performPauseConversationAction(_ action: PauseConversationAction) {
+        CallingxLog.core.debugPublic("[ConversationManagerDelegate][performPauseConversationAction]")
+
+        guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.conversationUUID) else {
+            CallingxLog.core.debugPublic("[ConversationManagerDelegate][performPauseConversationAction] callId not found")
+            action.fail()
+            return
+        }
+
+        sendEvent(CallingxEvents.didToggleHoldAction, body: [
+            "hold": action.isPaused,
+            "callId": callId
+        ])
+
+        action.fulfill()
+    }
+
+    private func performPlayToneAction(_ action: PlayToneAction) {
+        CallingxLog.core.debugPublic("[ConversationManagerDelegate][performPlayToneAction]")
+
+        guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.conversationUUID) else {
+            CallingxLog.core.debugPublic("[ConversationManagerDelegate][performPlayToneAction] callId not found")
+            action.fail()
+            return
+        }
+
+        sendEvent(CallingxEvents.performPlayDTMFCallAction, body: [
+            "digits": action.digits,
+            "callId": callId
+        ])
+
+        action.fulfill()
     }
 
     private func performJoinConversationAction(_ action: JoinConversationAction) {
