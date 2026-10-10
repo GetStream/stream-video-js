@@ -1,14 +1,11 @@
 import React from 'react';
-import {
-  type HostComponent,
-  Platform,
-  requireNativeComponent,
-  StyleSheet,
-  UIManager,
-} from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { videoLoggerSystem } from '@stream-io/video-client';
+import NativeComponent, {
+  Commands,
+} from '../../../native/RTCViewPipNativeComponent';
 
-const COMPONENT_NAME = 'RTCViewPip';
+export type RTCViewPipNativeRef = React.ComponentRef<typeof NativeComponent>;
 
 export type PiPChangeEvent = {
   active: boolean;
@@ -49,39 +46,31 @@ type RTCViewPipNativeProps = {
   connectionQuality?: number;
 };
 
-const NativeComponent: HostComponent<RTCViewPipNativeProps> =
-  requireNativeComponent(COMPONENT_NAME);
-
-export function onNativeCallClosed(reactTag: number) {
+export function onNativeCallClosed(ref: RTCViewPipNativeRef | null) {
+  if (Platform.OS !== 'ios' || !ref) return;
   videoLoggerSystem.getLogger('RTCViewPipNative').debug('onNativeCallClosed');
-  const commandId =
-    UIManager.getViewManagerConfig(COMPONENT_NAME).Commands.onCallClosed;
-  if (!commandId) return;
-  UIManager.dispatchViewManagerCommand(reactTag, commandId, []);
+  Commands.onCallClosed(ref);
 }
 
 export function onNativeDimensionsUpdated(
-  reactTag: number,
+  ref: RTCViewPipNativeRef | null,
   width: number,
   height: number,
 ) {
+  if (Platform.OS !== 'ios' || !ref) return;
   videoLoggerSystem
     .getLogger('RTCViewPipNative')
     .debug('onNativeDimensionsUpdated', {
       width,
       height,
     });
-  const commandId =
-    UIManager.getViewManagerConfig(COMPONENT_NAME).Commands
-      .setPreferredContentSize;
-  if (!commandId) return;
-  UIManager.dispatchViewManagerCommand(reactTag, commandId, [width, height]);
+  Commands.setPreferredContentSize(ref, width, height);
 }
 
 /** Wrapper for the native view
  * meant to stay private and not exposed */
 export const RTCViewPipNative = React.memo(
-  React.forwardRef<React.Ref<any>, RTCViewPipNativeProps>((props, ref) => {
+  React.forwardRef<RTCViewPipNativeRef, RTCViewPipNativeProps>((props, ref) => {
     if (Platform.OS !== 'ios') return null;
 
     return (
@@ -114,7 +103,6 @@ export const RTCViewPipNative = React.memo(
         isSpeaking={props.isSpeaking}
         // eslint-disable-next-line react/prop-types
         connectionQuality={props.connectionQuality}
-        // @ts-expect-error - types issue
         ref={ref}
       />
     );

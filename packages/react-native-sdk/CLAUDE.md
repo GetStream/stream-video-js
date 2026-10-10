@@ -2,10 +2,21 @@
 
 - Never use RxJS observables from the client directly here; all state access goes through the bindings hooks.
 - Apps must import from this SDK (not `@stream-io/video-client` directly): importing it registers the WebRTC globals and polyfills (`src/index.ts`).
-- The SDK's own native modules are bridge modules, reached through `NativeModules` (iOS: `RCT_EXTERN_METHOD` in `.m` files backed by Swift; Android: `@ReactMethod`). Keep the TS declarations in sync with the native signatures.
+- The SDK's own natives are New Architecture only (codegen); see "Native modules" below.
 - CallKit (iOS) and Telecom (Android) go through the workspace package `@stream-io/react-native-callingx`.
 - `StreamCall` runs its side effects (app-state, keep-alive, callingx sync, screen-share audio mixing, device stats) as renderless child components.
 - Theming: `<StreamVideo style={...}>` takes a `DeepPartial<Theme>`; theme tokens are `semantics` and `components` (`src/theme/theme.ts`).
+
+## Native modules
+
+`codegenConfig` in `package.json` uses `jsSrcsDir: "src/native"`; generated output is never committed (codegen runs app-side).
+
+- Specs in `src/native/`: `NativeStreamVideoReactNative.ts`, `NativeStreamInCallManager.ts`, `NativeStreamVideoAppLifecycle.ts` (Android-only, `TurboModuleRegistry.get`), `RTCViewPipNativeComponent.ts` (iOS Fabric component, `excludedPlatforms: ['android']`). One spec per module shared by both platforms; platform-only methods are stubs on the other side. Events use codegen `EventEmitter`.
+- Android: Kotlin modules extend the generated `Native<Name>Spec`; registered by `StreamVideoReactNativePackage` (`BaseReactPackage`). `StreamVideoReactNative.kt` is a static helper for app `MainActivity`.
+- iOS: thin ObjC++ adapters `ios/StreamVideoReactNativeModule.{h,mm}` and `ios/StreamInCallManagerModule.{h,mm}` (registered via `codegenConfig.ios.modulesProvider`) forward to Swift `StreamVideoReactNativeImpl` / `StreamInCallManagerImpl`. `ios/RTCViewPipComponentView.{h,mm}` hosts the Swift `RTCViewPip` (registered via `componentProvider`). `StreamVideoReactNative.{h,m}` keeps only the public class methods for AppDelegates (`+voipRegistration`, `+hasAnyActiveCall`).
+- Emit events only through each module's guarded helper (generated `emitOn*` crashes if the event emitter callback isn't set yet).
+- Jest: `src/native/*` modules are mocked in `jest-setup.ts`.
+- Not SDK-owned (still legacy, keep): `NativeModules.WebRTCModule`, `NativeModules.ScreenCapturePickerViewManager` from `@stream-io/react-native-webrtc`.
 
 ## Testing
 

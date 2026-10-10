@@ -5,9 +5,9 @@ import android.view.WindowManager
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
+import com.streamvideo.reactnative.NativeStreamInCallManagerSpec
 import com.streamvideo.reactnative.audio.AudioDeviceManager
 import com.streamvideo.reactnative.audio.utils.CallAudioRole
 import com.streamvideo.reactnative.audio.utils.WebRtcAudioUtils
@@ -17,7 +17,7 @@ import java.util.Locale
 
 
 class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
-    ReactContextBaseJavaModule(reactContext), LifecycleEventListener {
+    NativeStreamInCallManagerSpec(reactContext), LifecycleEventListener {
 
     private var audioManagerActivated = false
 
@@ -25,24 +25,20 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
 
     private val mSoundPlayer = SoundPlayer(reactContext)
 
-    override fun getName(): String {
-        return TAG
-    }
-
     init {
         reactContext.addLifecycleEventListener(this)
+        mAudioDeviceManager.onAudioDeviceChanged = { payload -> emitAudioDeviceChanged(payload) }
     }
 
-    // This method was removed upstream in react-native 0.74+, replaced with invalidate
-    // We will leave this stub here for older react-native versions compatibility
-    // ...but it will just delegate to the new invalidate method
-    @Deprecated("Deprecated in Java", ReplaceWith("invalidate()"))
-    @Suppress("removal")
-    override fun onCatalystInstanceDestroy() {
-        invalidate()
+    private fun emitAudioDeviceChanged(payload: ReadableMap) {
+        // The emitter callback is set after initialize(); drop events fired before that (JS reads
+        // the initial state through getAudioDeviceStatus)
+        if (mEventEmitterCallback == null) return
+        emitOnAudioDeviceChanged(payload)
     }
 
     override fun invalidate() {
+        mAudioDeviceManager.onAudioDeviceChanged = null
         // Ensure we cleanup proximity and screen flags too
         stop()
         mSoundPlayer.stopSound()
@@ -50,8 +46,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         super.invalidate()
     }
 
-    @ReactMethod
-    fun setAudioRole(audioRole: String) {
+    override fun setAudioRole(audioRole: String) {
         AudioDeviceManager.runInAudioThread {
             if (audioManagerActivated) {
                 Log.e(TAG, "setAudioRole(): AudioManager is already activated and so Audio Role cannot be changed, current audio role is ${mAudioDeviceManager.callAudioRole}")
@@ -67,8 +62,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun setTelecomManagedMode(enabled: Boolean) {
+    override fun setTelecomManagedMode(enabled: Boolean) {
         AudioDeviceManager.runInAudioThread {
             if (audioManagerActivated) {
                 Log.e(TAG, "setTelecomManagedMode(): AudioManager is already activated and so telecom-managed mode cannot be changed")
@@ -79,8 +73,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun setDisableCommunicationModeWorkaround(disabled: Boolean) {
+    override fun setDisableCommunicationModeWorkaround(disabled: Boolean) {
         AudioDeviceManager.runInAudioThread {
             if (audioManagerActivated) {
                 Log.e(TAG, "setDisableCommunicationModeWorkaround(): AudioManager is already activated and so it cannot be changed")
@@ -91,8 +84,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun setDefaultAudioDeviceEndpointType(endpointDeviceTypeName: String) {
+    override fun setDefaultAudioDeviceEndpointType(endpointDeviceTypeName: String) {
         AudioDeviceManager.runInAudioThread {
             if (audioManagerActivated) {
                 Log.e(TAG, "setAudioRole(): AudioManager is already activated and so default audio device cannot be changed, current audio default device is ${mAudioDeviceManager.defaultAudioDevice}")
@@ -108,8 +100,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun setEnableStereoAudioOutput(enabled: Boolean) {
+    override fun setEnableStereoAudioOutput(enabled: Boolean) {
         AudioDeviceManager.runInAudioThread {
             if (audioManagerActivated) {
                 Log.e(TAG, "setEnableStereoAudioOutput(): AudioManager is already activated and so enabling stereo audio output cannot be changed")
@@ -119,15 +110,13 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun setup() {
+    override fun setup() {
         AudioDeviceManager.runInAudioThread {
             mAudioDeviceManager.setup()
         }
     }
 
-    @ReactMethod
-    fun start() {
+    override fun start() {
         AudioDeviceManager.runInAudioThread {
             if (!audioManagerActivated) {
                 reactApplicationContext.currentActivity?.let {
@@ -140,8 +129,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun stop() {
+    override fun stop() {
         AudioDeviceManager.runInAudioThread {
             if (audioManagerActivated) {
                 Log.d(TAG, "stop() mAudioDeviceManager")
@@ -167,9 +155,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @Suppress("unused")
-    @ReactMethod
-    fun setForceSpeakerphoneOn(enable: Boolean) {
+    override fun setForceSpeakerphoneOn(enable: Boolean) {
         AudioDeviceManager.runInAudioThread {
             if (mAudioDeviceManager.callAudioRole !== CallAudioRole.Communicator) {
                 Log.e(
@@ -182,25 +168,20 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun getAudioDeviceStatus(promise: Promise) {
+    override fun getAudioDeviceStatus(promise: Promise) {
         promise.resolve(mAudioDeviceManager.audioStatusMap())
     }
 
-    @ReactMethod
-    fun logAudioState() {
+    override fun logAudioState() {
         Log.d(TAG, getAudioStateLog())
     }
 
-    @ReactMethod(isBlockingSynchronousMethod = true)
-    fun getAudioStateLog(): String {
+    override fun getAudioStateLog(): String {
         return WebRtcAudioUtils.getAudioStateLog(reactApplicationContext) +
             "Communication mode keep-alive: ${mAudioDeviceManager.communicationModeKeepAliveState()}\n"
     }
 
-    @Suppress("unused")
-    @ReactMethod
-    fun chooseAudioDeviceEndpoint(deviceId: String) {
+    override fun chooseAudioDeviceEndpoint(deviceId: String) {
         AudioDeviceManager.runInAudioThread {
             if (mAudioDeviceManager.callAudioRole !== CallAudioRole.Communicator) {
                 Log.e(
@@ -215,29 +196,35 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun playSound(soundName: String?, playIfMuted: Boolean) {
+    override fun playSound(soundName: String?, playIfMuted: Boolean) {
         mSoundPlayer.playSound(soundName, playIfMuted)
     }
 
-    @ReactMethod
-    fun stopSound() {
+    override fun stopSound() {
         mSoundPlayer.stopSound()
     }
 
-    @ReactMethod
-    fun muteAudioOutput() {
+    override fun muteAudioOutput() {
         AudioDeviceManager.runInAudioThread {
             mAudioDeviceManager.muteAudioOutput()
         }
     }
 
-    @ReactMethod
-    fun unmuteAudioOutput() {
+    override fun unmuteAudioOutput() {
         AudioDeviceManager.runInAudioThread {
             mAudioDeviceManager.unmuteAudioOutput()
         }
     }
+
+    // iOS-only methods, no-ops on Android
+
+    override fun setMuteMode(mode: Double) {}
+
+    override fun setRecordingAlwaysPreparedMode(enabled: Boolean) {}
+
+    override fun showAudioRoutePicker() {}
+
+    override fun reapplyAudioRoute() {}
 
 
     override fun onHostResume() {
@@ -248,16 +235,6 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
 
     override fun onHostDestroy() {
         stop()
-    }
-
-    @ReactMethod
-    fun addListener(eventName: String?) {
-        // Keep: Required for RN built in Event Emitter Calls.
-    }
-
-    @ReactMethod
-    fun removeListeners(count: Int?) {
-        // Keep: Required for RN built in Event Emitter Calls.
     }
 
     companion object {

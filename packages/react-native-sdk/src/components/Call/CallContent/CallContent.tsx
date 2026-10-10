@@ -1,12 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
-  NativeModules,
-  Platform,
-  StyleProp,
-  StyleSheet,
-  ViewStyle,
-  View,
-} from 'react-native';
+import { Platform, StyleProp, StyleSheet, ViewStyle, View } from 'react-native';
+import NativeStreamVideoReactNative from '../../../native/NativeStreamVideoReactNative';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { debounceTime } from 'rxjs';
 import {
@@ -209,14 +203,14 @@ export const CallContent = ({
       videoLoggerSystem
         .getLogger('CallContent')
         .debug(`exiting PiP mode due to call.ended`);
-      NativeModules.StreamVideoReactNative.exitPipMode();
+      NativeStreamVideoReactNative.exitPipMode();
     });
     const subscription = call?.state.callingState$.subscribe((state) => {
       if (state === CallingState.LEFT) {
         videoLoggerSystem
           .getLogger('CallContent')
           .debug(`exiting PiP mode due to callingState: LEFT`);
-        NativeModules.StreamVideoReactNative.exitPipMode();
+        NativeStreamVideoReactNative.exitPipMode();
       }
     });
     return () => {

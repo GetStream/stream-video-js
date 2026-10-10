@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { AppState, NativeModules, Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import {
   useCall,
@@ -8,8 +8,8 @@ import {
 } from '@stream-io/video-react-bindings';
 import { StreamVideoRN } from '../utils/StreamVideoRN';
 import { getCallingxLibIfAvailable } from '../utils/push/libs/callingx';
+import NativeManager from '../native/NativeStreamInCallManager';
 
-const NativeManager = NativeModules.StreamInCallManager;
 const CallingxModule = getCallingxLibIfAvailable();
 
 const ACTIVE_CALLING_STATES: CallingState[] = [

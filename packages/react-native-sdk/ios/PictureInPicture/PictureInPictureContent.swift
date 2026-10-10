@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import WebRTC
 
 /// Represents the content state for the Picture-in-Picture window.
 ///

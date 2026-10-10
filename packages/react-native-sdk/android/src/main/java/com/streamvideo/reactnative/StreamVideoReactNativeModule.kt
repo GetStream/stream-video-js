@@ -20,10 +20,7 @@ import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.facebook.react.bridge.ReadableMap
 import com.oney.WebRTCModule.WebRTCModule
 import com.oney.WebRTCModule.WebRTCModuleOptions
@@ -46,11 +43,7 @@ import kotlin.math.sin
 
 
 class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
-    ReactContextBaseJavaModule(reactContext) {
-
-    override fun getName(): String {
-        return NAME
-    }
+    NativeStreamVideoReactNativeSpec(reactContext) {
 
     private val mPowerManager = reactApplicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
     
@@ -66,10 +59,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     private var batteryChargingStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent == null) return
-            val result = getBatteryStatusFromIntent(intent)
-            reactApplicationContext
-                .getJSModule(RCTDeviceEventEmitter::class.java)
-                .emit("chargingStateChanged", result)
+            emitChargingState(getBatteryStatusFromIntent(intent))
         }
     }
 
@@ -77,7 +67,12 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         super.initialize()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             StreamVideoReactNative.addPipListener { isInPictureInPictureMode, newConfig ->
-                PiPHelper.onPiPChange(reactApplicationContext, isInPictureInPictureMode, newConfig)
+                PiPHelper.onPiPChange(
+                    reactApplicationContext,
+                    isInPictureInPictureMode,
+                    newConfig,
+                    ::emitPiPChange,
+                )
             }
         }
 
@@ -93,31 +88,42 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
 
-    @ReactMethod
-    fun isInPiPMode(promise: Promise) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            promise.resolve(PiPHelper.isInPiPMode(reactApplicationContext))
-        } else {
-            promise.resolve(false)
-        }
+    // Events can fire before the JSI wrapper sets the emitter callback (it is set after initialize()),
+    // JS recovers the initial state through the getters
+    private fun emitPiPChange(isInPictureInPictureMode: Boolean) {
+        if (mEventEmitterCallback == null) return
+        emitOnPiPChange(isInPictureInPictureMode)
     }
 
-    @ReactMethod
-    fun isCallAliveConfigured(promise: Promise) {
-        val permissionsDeclared =
-            CallAlivePermissionsHelper.hasForegroundServicePermissionsDeclared(reactApplicationContext)
-        if (!permissionsDeclared) {
-            promise.resolve(false)
-            return
+    private fun emitChargingState(state: WritableMap) {
+        if (mEventEmitterCallback == null) return
+        emitOnChargingStateChanged(state)
+    }
+
+    private fun emitLowPowerMode(isLowPowerMode: Boolean) {
+        if (mEventEmitterCallback == null) return
+        emitOnLowPowerModeChanged(isLowPowerMode)
+    }
+
+    private fun emitThermalState(thermalState: String) {
+        if (mEventEmitterCallback == null) return
+        emitOnThermalStateChanged(thermalState)
+    }
+
+    override fun isInPiPMode(): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            return PiPHelper.isInPiPMode(reactApplicationContext) ?: false
         }
+        return false
+    }
+
+    override fun isCallAliveConfigured(): Boolean {
         // Service is declared in the SDK's own AndroidManifest and merged by default.
         // Permissions are expected to be provided by the app (or via Expo config plugin).
-        promise.resolve(true)
+        return CallAlivePermissionsHelper.hasForegroundServicePermissionsDeclared(reactApplicationContext)
     }
 
-
-    @ReactMethod
-    fun startKeepCallAliveService(
+    override fun startKeepCallAliveService(
         callCid: String,
         channelId: String,
         channelName: String,
@@ -143,8 +149,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun stopKeepCallAliveService(promise: Promise) {
+    override fun stopKeepCallAliveService(promise: Promise) {
         try {
             val intent = StreamCallKeepAliveHeadlessService.buildStopIntent(reactApplicationContext)
             val stopped = reactApplicationContext.stopService(intent)
@@ -152,25 +157,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         } catch (e: Exception) {
             promise.reject(NAME, "Failed to stop keep call alive foreground service", e)
         }
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    @ReactMethod
-    fun addListener(eventName: String?) {
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    @ReactMethod
-    fun removeListeners(count: Int) {
-    }
-
-    // This method was removed upstream in react-native 0.74+, replaced with invalidate
-    // We will leave this stub here for older react-native versions compatibility
-    // ...but it will just delegate to the new invalidate method
-    @Deprecated("Deprecated in Java", ReplaceWith("invalidate()"))
-    @Suppress("removal")
-    override fun onCatalystInstanceDestroy() {
-        invalidate()
     }
 
     override fun invalidate() {
@@ -183,15 +169,13 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         super.invalidate()
     }
 
-    @ReactMethod
-    fun canAutoEnterPipMode(value: Boolean) {
+    override fun canAutoEnterPipMode(value: Boolean) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             PiPHelper.canAutoEnterPipMode(reactApplicationContext, value)
         }
     }
 
-    @ReactMethod
-    fun exitPipMode(promise: Promise) {
+    override fun exitPipMode(promise: Promise) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val success = PiPHelper.exitPipMode(reactApplicationContext)
             promise.resolve(success)
@@ -200,42 +184,22 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun startThermalStatusUpdates(promise: Promise) {
+    override fun startThermalStatusUpdates() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-
-                val listener = PowerManager.OnThermalStatusChangedListener { status ->
-                    val thermalStatus = when (status) {
-                        PowerManager.THERMAL_STATUS_NONE -> "NONE"
-                        PowerManager.THERMAL_STATUS_LIGHT -> "LIGHT"
-                        PowerManager.THERMAL_STATUS_MODERATE -> "MODERATE"
-                        PowerManager.THERMAL_STATUS_SEVERE -> "SEVERE"
-                        PowerManager.THERMAL_STATUS_CRITICAL -> "CRITICAL"
-                        PowerManager.THERMAL_STATUS_EMERGENCY -> "EMERGENCY"
-                        PowerManager.THERMAL_STATUS_SHUTDOWN -> "SHUTDOWN"
-                        else -> "UNKNOWN"
-                    }
-
-                    reactApplicationContext
-                        .getJSModule(RCTDeviceEventEmitter::class.java)
-                        .emit("thermalStateDidChange", thermalStatus)
-                }
-
-                thermalStatusListener = listener
-                mPowerManager.addThermalStatusListener(listener)
-                // Get initial status
-                currentThermalState(promise)
-            } else {
-                promise.resolve("NOT_SUPPORTED")
+            // avoid leaking a previous listener if JS starts twice
+            stopThermalStatusUpdates()
+            val listener = PowerManager.OnThermalStatusChangedListener { status ->
+                emitThermalState(thermalStatusToString(status))
             }
+            thermalStatusListener = listener
+            mPowerManager.addThermalStatusListener(listener)
         } catch (e: Exception) {
-            promise.reject("THERMAL_ERROR", e.message)
+            Log.e(NAME, "Failed to start thermal status updates", e)
         }
     }
 
-    @ReactMethod
-    fun stopThermalStatusUpdates() {
+    override fun stopThermalStatusUpdates() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             // Store the current listener in a local val for safe null checking
             val currentListener = thermalStatusListener
@@ -246,28 +210,20 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun currentThermalState(promise: Promise) {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val status = mPowerManager.currentThermalStatus
-                val thermalStatus = when (status) {
-                    PowerManager.THERMAL_STATUS_NONE -> "NONE"
-                    PowerManager.THERMAL_STATUS_LIGHT -> "LIGHT"
-                    PowerManager.THERMAL_STATUS_MODERATE -> "MODERATE"
-                    PowerManager.THERMAL_STATUS_SEVERE -> "SEVERE"
-                    PowerManager.THERMAL_STATUS_CRITICAL -> "CRITICAL"
-                    PowerManager.THERMAL_STATUS_EMERGENCY -> "EMERGENCY"
-                    PowerManager.THERMAL_STATUS_SHUTDOWN -> "SHUTDOWN"
-                    else -> "UNKNOWN"
-                }
-                promise.resolve(thermalStatus)
-            } else {
-                promise.resolve("NOT_SUPPORTED")
-            }
-        } catch (e: Exception) {
-            promise.reject("THERMAL_ERROR", e.message)
-        }
+    private fun thermalStatusToString(status: Int): String = when (status) {
+        PowerManager.THERMAL_STATUS_NONE -> "NONE"
+        PowerManager.THERMAL_STATUS_LIGHT -> "LIGHT"
+        PowerManager.THERMAL_STATUS_MODERATE -> "MODERATE"
+        PowerManager.THERMAL_STATUS_SEVERE -> "SEVERE"
+        PowerManager.THERMAL_STATUS_CRITICAL -> "CRITICAL"
+        PowerManager.THERMAL_STATUS_EMERGENCY -> "EMERGENCY"
+        PowerManager.THERMAL_STATUS_SHUTDOWN -> "SHUTDOWN"
+        else -> "UNKNOWN"
+    }
+
+    override fun currentThermalState(): String {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return "NOT_SUPPORTED"
+        return thermalStatusToString(mPowerManager.currentThermalStatus)
     }
 
     private val powerReceiver = object : BroadcastReceiver() {
@@ -279,20 +235,10 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     private fun sendPowerModeEvent() {
-        val isLowPowerMode = mPowerManager.isPowerSaveMode
-        reactApplicationContext
-            .getJSModule(RCTDeviceEventEmitter::class.java)
-            .emit("isLowPowerModeEnabled", isLowPowerMode)
+        emitLowPowerMode(mPowerManager.isPowerSaveMode)
     }
 
-    @ReactMethod
-    fun isLowPowerModeEnabled(promise: Promise) {
-        try {
-            promise.resolve(mPowerManager.isPowerSaveMode)
-        } catch (e: Exception) {
-            promise.reject("ERROR", e.message)
-        }
-    }
+    override fun isLowPowerModeEnabled(): Boolean = mPowerManager.isPowerSaveMode
 
     private fun getVideoTrackForStreamURL(streamURL: String): VideoTrack {
         var videoTrack: VideoTrack? = null
@@ -316,12 +262,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         throw Exception("No video stream for react tag: $streamURL")
     }
 
-    @ReactMethod
-    fun takeScreenshot(streamURL: String?, promise: Promise) {
-        if (streamURL == null) {
-            promise.reject("ERROR", "Null stream URL provided")
-            return
-        }
+    override fun takeScreenshot(streamURL: String, promise: Promise) {
         try {
             val track = getVideoTrackForStreamURL(streamURL)
             var screenshotSink: VideoSink? = null
@@ -351,37 +292,40 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun getBatteryState(promise: Promise) {
-        try {
-            val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-            val batteryStatus = reactApplicationContext.registerReceiver(null, filter)
-            if (batteryStatus == null) {
-                return promise.reject("BATTERY_ERROR", "Failed to get battery status")
-            }
-
-            promise.resolve(getBatteryStatusFromIntent(batteryStatus))
-        } catch (e: Exception) {
-            promise.reject("BATTERY_ERROR", "Failed to get charging state", e)
-        }
+    override fun getBatteryState(): WritableMap {
+        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        val batteryStatus = reactApplicationContext.registerReceiver(null, filter)
+            ?: throw IllegalStateException("Failed to get battery status")
+        return getBatteryStatusFromIntent(batteryStatus)
     }
 
-    @ReactMethod
-    fun hasAudioOutputHardware(promise: Promise) {
-        val hasAudioOutput = reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_AUDIO_OUTPUT)
-        promise.resolve(hasAudioOutput)
+    override fun hasAudioOutputHardware(): Boolean =
+        reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_AUDIO_OUTPUT)
+
+    override fun hasMicrophoneHardware(): Boolean =
+        reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_MICROPHONE)
+
+    override fun hasCameraHardware(): Boolean =
+        reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+
+    // iOS only
+    override fun captureRef(reactTag: Double, options: ReadableMap, promise: Promise) {
+        promise.reject(UNSUPPORTED_PLATFORM_CODE, "captureRef is only supported on iOS")
     }
 
-    @ReactMethod
-    fun hasMicrophoneHardware(promise: Promise) {
-        val hasAudioInput = reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_MICROPHONE)
-        promise.resolve(hasAudioInput)
+    // iOS only
+    override fun checkPermission(permission: String, promise: Promise) {
+        promise.reject(UNSUPPORTED_PLATFORM_CODE, "checkPermission is only supported on iOS")
     }
 
-    @ReactMethod
-    fun hasCameraHardware(promise: Promise) {
-        val hasCamera = reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
-        promise.resolve(hasCamera)
+    // iOS only
+    override fun startInAppScreenCapture(includeAudio: Boolean, promise: Promise) {
+        promise.reject(UNSUPPORTED_PLATFORM_CODE, "startInAppScreenCapture is only supported on iOS")
+    }
+
+    // iOS only
+    override fun stopInAppScreenCapture(promise: Promise) {
+        promise.reject(UNSUPPORTED_PLATFORM_CODE, "stopInAppScreenCapture is only supported on iOS")
     }
 
     private fun getBatteryStatusFromIntent(intent: Intent): WritableMap {
@@ -402,8 +346,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun playBusyTone(promise: Promise) {
+    override fun playBusyTone(promise: Promise) {
         try {
             stopBusyToneInternal()
 
@@ -464,8 +407,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun stopBusyTone(promise: Promise) {
+    override fun stopBusyTone(promise: Promise) {
         try {
             stopBusyToneInternal()
             promise.resolve(true)
@@ -516,8 +458,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         return ShortArray(totalSamples)
     }
 
-    @ReactMethod
-    fun startScreenShareAudioMixing(promise: Promise) {
+    override fun startScreenShareAudioMixing(promise: Promise) {
         try {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                 promise.reject("API_LEVEL", "Screen audio capture requires Android 10 (API 29)+")
@@ -568,8 +509,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun stopScreenShareAudioMixing(promise: Promise) {
+    override fun stopScreenShareAudioMixing(promise: Promise) {
         try {
             stopScreenShareAudioMixingInternal()
             promise.resolve(null)
@@ -595,8 +535,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
 
     // ── Track recorder bridge ────────────────────────────────────────────
 
-    @ReactMethod
-    fun startTrackRecording(options: ReadableMap, promise: Promise) {
+    override fun startTrackRecording(options: ReadableMap, promise: Promise) {
         val videoTrackId = if (options.hasKey("videoTrackId") && !options.isNull("videoTrackId")) {
             options.getString("videoTrackId")
         } else {
@@ -640,15 +579,13 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun stopTrackRecording(promise: Promise) {
+    override fun stopTrackRecording(promise: Promise) {
         TracksRecorderManager.shared.stopRecording {
             promise.resolve(null)
         }
     }
 
-    @ReactMethod
-    fun clearStreamRecordings(promise: Promise) {
+    override fun clearStreamRecordings(promise: Promise) {
         TracksRecorderManager.shared.clearRecordingsDirectory(reactApplicationContext) { error ->
             if (error != null) {
                 promise.reject(RECORDING_CLEAR_ERROR_CODE, error.message ?: "clear failed", error)
@@ -658,8 +595,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun getStreamRecordings(promise: Promise) {
+    override fun getStreamRecordings(promise: Promise) {
         val files: List<File> = TracksRecorderManager.shared.listRecordings(reactApplicationContext)
         val arr = Arguments.createArray()
         for (f in files) {
@@ -669,7 +605,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     companion object {
-        private const val NAME = "StreamVideoReactNative"
+        private const val UNSUPPORTED_PLATFORM_CODE = "UNSUPPORTED_PLATFORM"
         private const val SAMPLE_RATE = 22050
         private const val DEFAULT_RECORDING_DURATION_MS = 5000L
         private const val RECORDING_ERROR_CODE = "recording_error"
