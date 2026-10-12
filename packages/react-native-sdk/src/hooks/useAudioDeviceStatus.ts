@@ -31,7 +31,7 @@ const areStatesEqual = (
 /**
  * Subscribes to the current audio output device state and keeps it in sync.
  *
- * Works on Android, and iOS with callingx
+ * Works on Android, iOS, and iOS with callingx
  * (`@stream-io/react-native-callingx`) — the underlying source is selected
  * automatically. Pair with `callManager.audioDevices.select(device.id)` to
  * build a custom audio route picker.
