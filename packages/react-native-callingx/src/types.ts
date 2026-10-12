@@ -40,7 +40,7 @@ export interface ICallingxModule {
 
   /**
    * Setup the module. This method must be called before any other method.
-   * For iOS, the module will setup CallKit parameters.
+   * For iOS, the module will setup LiveCommunicationKit parameters.
    *    See: {@link InternalIOSOptions}
    * For Android, the module will create notification channels.
    *    See: {@link InternalAndroidOptions}
@@ -62,14 +62,14 @@ export interface ICallingxModule {
 
   /**
    * Set whether to reject calls when the user is busy.
-   * The value is used in iOS native module to prevent calls registration in CallKit when the user is busy.
+   * The value is used in iOS native module to prevent calls registration in LiveCommunicationKit when the user is busy.
    * @param shouldReject - Whether to reject calls when the user is busy.
    */
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;
 
   /**
    * Set the default audio endpoint applied when the OS activates the call's audio session.
-   * - iOS: applied next time CallKit activates the session.
+   * - iOS: applied next time LiveCommunicationKit activates the session.
    * - Android (Telecom): applied once when the call becomes active and no wired/bluetooth
    *   device is connected.
    * Sticky preference.
@@ -285,7 +285,7 @@ export type InternalIOSOptions = {
   enableOngoingCalls?: boolean;
   /**
    * When true, ringing pushes that arrive while the app is in the foreground
-   * are not shown by CallKit. The push is still delivered to JS via
+   * are not shown by the system call UI. The push is still delivered to JS via
    * `voipNotificationReceived`, so the app must show its own ringing UI.
    * Background pushes are unaffected. Requires iOS 26.4+; no-op on older
    * versions.
@@ -293,7 +293,7 @@ export type InternalIOSOptions = {
    */
   skipIncomingPushInForeground?: boolean;
   /**
-   * Default audio endpoint when CallKit activates the session.
+   * Default audio endpoint when LiveCommunicationKit activates the session.
    * `'earpiece'` omits `.defaultToSpeaker` for voice-only call UX.
    */
   defaultDeviceEndpointType?: DefaultDeviceEndpointType;
@@ -394,6 +394,7 @@ export type EventName =
   | 'didAudioInterruption'
   | 'didReceiveStartCallAction'
   | 'didPerformSetMutedCallAction'
+  | 'didPerformDTMFAction'
   | 'didActivateAudioSession'
   | 'didDeactivateAudioSession'
   | 'providerReset'
@@ -438,6 +439,10 @@ export type EventParams = {
   didPerformSetMutedCallAction: {
     callId: string;
     muted: boolean;
+  };
+  didPerformDTMFAction: {
+    callId: string;
+    digits: string;
   };
   didChangeAudioRoute: undefined;
   didAudioInterruption: IOSAudioInterruptionEvent;
@@ -488,10 +493,10 @@ export type VoipEventParams = {
 /**
  * The reason for ending a call. These values are mapped to platform-specific
  * constants on each platform:
- * - iOS: `CXCallEndedReason` (CallKit)
+ * - iOS: `Conversation.EndedReason` (LiveCommunicationKit)
  * - Android: `DisconnectCause` (Telecom)
  *
- * @see https://developer.apple.com/documentation/callkit/cxcallendedreason
+ * @see https://developer.apple.com/documentation/livecommunicationkit/conversation/endedreason
  * @see https://developer.android.com/reference/android/telecom/DisconnectCause
  */
 export type EndCallReason =

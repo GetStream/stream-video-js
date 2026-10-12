@@ -2,7 +2,7 @@
 
 React Native native-calling bridge for:
 
-- iOS CallKit
+- iOS LiveCommunicationKit (iOS 17.4+)
 - Android Telecom/ConnectionService
 
 ## Install
@@ -16,6 +16,20 @@ Then run iOS pods:
 ```sh
 cd ios && pod install
 ```
+
+Requires iOS 17.4+ (Apple LiveCommunicationKit). No CallKit is linked.
+
+### Migrating from CallKit (breaking)
+
+iOS now uses LiveCommunicationKit instead of CallKit. The JS API, events and native `Callingx` ObjC methods are unchanged.
+
+- Raise your app's iOS deployment target to 17.4 (Expo: `expo-build-properties` → `ios.deploymentTarget: "17.4"`), then `pod install`.
+- No other app changes.
+
+### Known issues (iOS)
+
+- Apple FB16655952: LiveCommunicationKit's incoming-call report is async-only, but PushKit needs it entered before the delegate returns. Handled with Apple DTS's documented workaround (start the report in a detached `Task`, stall 50 ms, then call the PushKit completion).
+- Apple FB24933340: the caller display name may not show for `generic` handles on iOS 27.0.x.
 
 ## Quick start
 
@@ -63,7 +77,7 @@ await CallingxModule.displayIncomingCall(
 - `acquireBackgroundTask(owner)` / `releaseBackgroundTask(owner)` (Android, sync) — ref-counted keep-alive task that keeps the JS runtime/timers alive in the background; the underlying HeadlessJS task starts on the first acquire and stops once all owners release.
 - `stopService()` (Android, sync) — asks the call service to stop. A request, not a command: the service hosts every call, so it stays alive while any call is registered or is being registered. Use `endCallWithReason(callId, reason)` to tear down an individual call.
 
-`phoneNumber` is the call handle. iOS uses it as the CallKit `CXHandle`. Android always wraps it as the opaque Telecom address `<packageName>:<phoneNumber>` (a scheme-less address reboots ColorOS devices); it is never displayed or dialed. The Stream Video SDK passes the caller's user id on iOS and the call id on Android.
+`phoneNumber` is the call handle. iOS uses it as the LiveCommunicationKit `Handle` value (the caller name is the handle's display name). Android always wraps it as the opaque Telecom address `<packageName>:<phoneNumber>` (a scheme-less address reboots ColorOS devices); it is never displayed or dialed. The Stream Video SDK passes the caller's user id on iOS and the call id on Android.
 
 ## Migrating from Promise-based call controls
 
@@ -95,6 +109,7 @@ Call events:
 - `didToggleHoldCallAction`
 - `didPerformSetMutedCallAction`
 - `didReceiveStartCallAction`
+- `didPerformDTMFAction`
 - `didActivateAudioSession`
 - `didDeactivateAudioSession`
 
@@ -103,9 +118,9 @@ VoIP events:
 - `voipNotificationsRegistered`
 - `voipNotificationReceived`
 
-## Skip CallKit when the app is in the foreground (iOS 26.4+)
+## Skip the system call UI when the app is in the foreground (iOS 26.4+)
 
-Set `skipIncomingPushInForeground: true` in `setup()` to hide CallKit for
+Set `skipIncomingPushInForeground: true` in `setup()` to hide the system call UI for
 ringing pushes that arrive while the user is already inside your app. The
 push is still delivered to JS via `voipNotificationReceived`, so the app
 must show its own ringing UI. Background pushes are unaffected.
