@@ -284,6 +284,14 @@ import stream_react_native_webrtc
         reportConversationEvent(event, uuid: uuid)
     }
 
+    /// System handle for the remote party. The system call UI shows `Handle.value` and ignores
+    /// `displayName` (Apple FB24933340, seen on iPadOS 27.0.1), so the value is the display name
+    /// when there is one, else the given handle (e.g. the caller's user id).
+    private static func makeRemoteHandle(handleType: String?, handle: String, displayName: String?) -> Handle {
+        let name = displayName?.isEmpty == false ? displayName : nil
+        return Handle(type: Settings.getHandleType(handleType), value: name ?? handle, displayName: name)
+    }
+
     /// Maps the JS/ObjC ended reason ints (CallKit raw values) to LCK reasons.
     private static func conversationEndedReason(_ reason: Int) -> Conversation.EndedReason {
         switch reason {
@@ -336,8 +344,7 @@ import stream_react_native_webrtc
             reject?("DISPLAY_INCOMING_CALL_ERROR", "Conversation manager is not available", nil)
             return
         }
-        let displayName = localizedCallerName?.isEmpty == false ? localizedCallerName : nil
-        let remoteHandle = Handle(type: Settings.getHandleType(handleType), value: handle, displayName: displayName)
+        let remoteHandle = makeRemoteHandle(handleType: handleType, handle: handle, displayName: localizedCallerName)
         var capabilities: Conversation.Capabilities = []
         if hasVideo { capabilities.insert(.video) }
         if supportsHolding { capabilities.insert(.pausing) }
@@ -815,12 +822,10 @@ import stream_react_native_webrtc
         let call = storage.getOrCreateCall(forCid: callId, isOutgoing: true)
         call.markStartedConnecting() // outgoing: reported as .conversationStartedConnecting in the delegate
 
-        let handleTypeString = Settings.getSettings()["handleType"] as? String
-        let displayName = callerName.isEmpty ? nil : callerName
-        let callHandle = Handle(
-            type: Settings.getHandleType(handleTypeString ?? "generic"),
-            value: phoneNumber,
-            displayName: displayName
+        let callHandle = CallingxImpl.makeRemoteHandle(
+            handleType: Settings.getSettings()["handleType"] as? String,
+            handle: phoneNumber,
+            displayName: callerName
         )
         performConversationAction(StartConversationAction(
             conversationUUID: call.uuid,
@@ -841,11 +846,10 @@ import stream_react_native_webrtc
             return false
         }
 
-        let handleTypeString = Settings.getSettings()["handleType"] as? String
-        let callHandle = Handle(
-            type: Settings.getHandleType(handleTypeString ?? "generic"),
-            value: phoneNumber,
-            displayName: callerName.isEmpty ? nil : callerName
+        let callHandle = CallingxImpl.makeRemoteHandle(
+            handleType: Settings.getSettings()["handleType"] as? String,
+            handle: phoneNumber,
+            displayName: callerName
         )
         CallingxImpl.reportConversationEvent(.conversationUpdated(Conversation.Update(members: [callHandle])), uuid: uuid)
         return true
