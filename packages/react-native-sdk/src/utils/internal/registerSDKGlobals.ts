@@ -38,15 +38,15 @@ const safeNativeCall = (label: string, fn: () => void): void => {
 };
 
 /**
- * Checks if StreamInCallManager should be bypassed because CallKit is handling
+ * Checks if StreamInCallManager should be bypassed because callingx is handling
  * the audio session via CallingX.
  *
  * On iOS, when CallingX is set up and has a registered call, the audio session
- * is managed by CallKit through CallingxImpl.swift.
+ * is managed by the system call layer through CallingxImpl.swift.
  * In this case, StreamInCallManager should not run to avoid conflicting audio
  * session configurations.
  */
-const shouldBypassForCallKit = ({
+const shouldBypassForCallingx = ({
   isRingingTypeCall,
 }: {
   isRingingTypeCall: boolean;
@@ -95,12 +95,12 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   callManager: {
     setup: ({ defaultDevice, isRingingTypeCall, cid }) => {
       const isTelecomManaged = isAndroidTelecomManaged({ cid });
-      const isCallKitManaged = shouldBypassForCallKit({ isRingingTypeCall });
+      const isCallingxManaged = shouldBypassForCallingx({ isRingingTypeCall });
       if (Platform.OS === 'android') {
         StreamInCallManagerNativeModule.setTelecomManagedMode(isTelecomManaged);
       }
 
-      if (isTelecomManaged || isCallKitManaged) {
+      if (isTelecomManaged || isCallingxManaged) {
         safeNativeCall('setup defaultAudioDevice (callingx)', () =>
           CallingxModule?.setDefaultAudioDeviceEndpointType(defaultDevice),
         );
@@ -128,8 +128,8 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
           ? config.deviceEndpointType
           : undefined;
 
-      if (shouldBypassForCallKit({ isRingingTypeCall })) {
-        // CallKit owns activation. Only forward an explicit endpoint override; the
+      if (shouldBypassForCallingx({ isRingingTypeCall })) {
+        // The system call layer owns activation. Only forward an explicit endpoint override; the
         // SpeakerManager-derived default was already forwarded via `setup`.
         if (deviceOverride) {
           safeNativeCall('start defaultAudioDevice (callingx)', () =>
@@ -177,14 +177,14 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       // We want to interact with ADM only when it was instantiated. This guards a case when
       // leave is invoked for ringing call - in this case PC Factory and ADM are not yet created.
       if (shouldStopCallManager) {
-        // Teardown of setMutedRecordingPrepared. Done here (before the CallKit gate)
+        // Teardown of setMutedRecordingPrepared. Done here (before the callingx gate)
         // so it runs on both paths and while the call factory is still alive: leave()
         // calls stop() before disposing the engine, so the ADM resolves to the call's
         // factory rather than a default.
         if (Platform.OS === 'ios') {
           StreamInCallManagerNativeModule.setRecordingAlwaysPreparedMode(false);
         }
-        if (shouldBypassForCallKit({ isRingingTypeCall })) {
+        if (shouldBypassForCallingx({ isRingingTypeCall })) {
           return;
         }
         StreamInCallManagerNativeModule.stop();
@@ -193,8 +193,8 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
     // iOS-only. Keep the AVAudioEngine mic-input (voice-processing) chain
     // prepared while muted so the engine stays full-duplex and remote audio
     // renders when joining muted. Intentionally NOT gated by
-    // `shouldBypassForCallKit`: it acts on the shared `RTCAudioDeviceModule`, so
-    // it must run for both the StreamInCallManager and CallKit/callingx paths.
+    // `shouldBypassForCallingx`: it acts on the shared `RTCAudioDeviceModule`, so
+    // it must run for both the StreamInCallManager and callingx paths.
     setMutedRecordingPrepared: (enabled) => {
       if (Platform.OS !== 'ios') {
         return;

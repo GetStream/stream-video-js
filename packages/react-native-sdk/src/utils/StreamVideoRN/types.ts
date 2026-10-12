@@ -30,7 +30,7 @@ export type NonRingingPushEvent =
  * connections.
  *
  * These hooks are that moment. They run for every ringing path: accepted from the
- * CallKit/Telecom UI, accepted inside the app, and outgoing.
+ * system call UI (LiveCommunicationKit/Telecom), accepted inside the app, and outgoing.
  *
  * Register them with {@link StreamVideoRN.setRingingCallLifecycleHooks} at your app's
  * entry point, next to `setPushConfig`. A call accepted from a push notification
@@ -48,7 +48,7 @@ export type RingingCallLifecycleHooks = {
    * A failed join also ends the call, so the `Call` it failed on is finished with -
    * a later attempt happens on a new incoming call or a newly created one.
    *
-   * Keep it fast. On the CallKit accept path it runs inside iOS's accept deadline
+   * Keep it fast. On the system accept path (iOS) it runs inside iOS's accept deadline
    * (roughly 30s before the app is killed) and anything slower than five seconds is
    * treated as a failure. Deriving a key locally is fine; fetching one over the
    * network does not belong here.
@@ -138,16 +138,16 @@ export type StreamVideoConfig = {
       enableOngoingCalls?: boolean;
       /**
        * When true, ringing pushes that arrive while the app is in the
-       * foreground are not shown by CallKit. The push is still delivered to
+       * foreground are not shown by the system call UI. The push is still delivered to
        * JS, so the app must show its own ringing UI. Background pushes are unaffected.
        * Requires iOS 26.4 or newer version of iOS.
        * @default false
        */
       skipIncomingPushInForeground?: boolean;
       /**
-       * Default audio endpoint for CallKit-managed calls on iOS.
+       * Default audio endpoint for callingx-managed calls on iOS.
        * `'earpiece'` routes voice-only / phone-style calls to the built-in receiver.
-       * Set via `setPushConfig` so it's in place before CallKit's `CXAnswerCallAction`.
+       * Set via `setPushConfig` so it's in place before the system answer action.
        * @default 'speaker'
        */
       defaultDeviceEndpointType?: 'speaker' | 'earpiece';

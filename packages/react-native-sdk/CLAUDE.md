@@ -76,7 +76,7 @@ The client (`packages/client`) is platform-agnostic and can't `import` React Nat
 ## Push notifications
 
 - **The SDK only handles ringing call pushes.** Non-ringing notifications (call.missed, call.live_started, call.notification) are delivered by the backend directly to the device; displaying them and handling taps is the app's responsibility.
-- iOS: VoIP push → callingx shows the LiveCommunicationKit UI. iOS kills the app if the call UI isn't shown within ~30 seconds of a VoIP push, and the system call must end when the Stream call ends. Apps register with `StreamVideoReactNative.voipRegistration()` in the AppDelegate.
+- iOS: VoIP push → callingx shows the LiveCommunicationKit UI. the incoming call must be reported to the system before the PushKit delegate returns (callingx does it natively, Apple FB16655952 workaround), otherwise iOS kills the app and may stop delivering VoIP pushes, and the system call must end when the Stream call ends. Apps register with `StreamVideoReactNative.voipRegistration()` in the AppDelegate.
 - Android: Firebase (`@react-native-firebase/messaging`) → callingx shows the incoming call via Telecom.
 
 ## Gotchas
