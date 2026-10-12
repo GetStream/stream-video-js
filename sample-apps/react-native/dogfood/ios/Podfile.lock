@@ -3001,7 +3001,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Callingx: 788ffff74cc7f925e7dd07afd446397830a6cf39
+  Callingx: 891c41db7aaa7e15c4e091ed14e5ca694750a9e1
   FBLazyVector: 3c3be9a019176b5699455f7f66c5444b78a411c6
   hermes-engine: 5da8d7eeb13a48d932b021d8d9df9e27d1acc5be
   MMKVCore: 3d16ce9f7d411e135020915fde98a056859a1efa

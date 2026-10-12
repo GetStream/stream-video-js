@@ -88,11 +88,11 @@ export class StreamVideoRN {
    * import { AppRegistry } from 'react-native';
    * import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
    * import App from './App';
-   * // LiveCommunicationKit/Android Telecom options are part of the push config. Unset options use their defaults.
+   * // CallKit/Android Telecom options are part of the push config. Unset options use their defaults.
    * StreamVideoRN.setPushConfig({
    *   ios: {
    *     pushProviderName: 'my-apn-provider',
-   *     callsHistory: { enabled: true, callType: 'default' },
+   *     callsHistory: true,
    *     displayCallTimeout: 60000,
    *     sound: 'ringtone',
    *     imageName: 'callkit_icon',

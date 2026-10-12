@@ -1,6 +1,5 @@
 import Foundation
 import LiveCommunicationKit
-import Intents
 import AVFoundation
 import UIKit
 import Combine
@@ -9,7 +8,6 @@ import stream_react_native_webrtc
 // MARK: - Event Names
 @objcMembers public class CallingxEvents: NSObject {
     public static let didReceiveStartCallAction = "didReceiveStartCallAction"
-    public static let didReceiveStartCallIntent = "didReceiveStartCallIntent"
     public static let didToggleHoldAction = "didToggleHoldCallAction"
     public static let didPerformSetMutedCallAction = "didPerformSetMutedCallAction"
     public static let didAudioInterruption = "didAudioInterruption"
@@ -339,7 +337,6 @@ import stream_react_native_webrtc
             return
         }
         let displayName = localizedCallerName?.isEmpty == false ? localizedCallerName : nil
-        storage.getCall(forCid: callId)?.setRemote(handle: handle, displayName: displayName, hasVideo: hasVideo)
         let remoteHandle = Handle(type: Settings.getHandleType(handleType), value: handle, displayName: displayName)
         var capabilities: Conversation.Capabilities = []
         if hasVideo { capabilities.insert(.video) }
@@ -443,42 +440,6 @@ import stream_react_native_webrtc
         return manager.conversations.contains { $0.state == .joining || $0.state == .joined || $0.state == .paused }
     }
     
-    /// Recents redial: emits `didReceiveStartCallIntent` `{handle, isVideo}` for a start-call intent
-    /// (buffered until `getInitialEvents` on cold start). Returns false for any other activity.
-    @objc public static func handleUserActivity(_ userActivity: NSUserActivity) -> Bool {
-        guard let intent = userActivity.interaction?.intent else { return false }
-
-        let intentName = NSStringFromClass(type(of: intent))
-        let handle: String?
-        let isVideo: Bool
-        if let startCallIntent = intent as? INStartCallIntent {
-            handle = startCallIntent.contacts?.first?.personHandle?.value
-            isVideo = startCallIntent.callCapability == .videoCall
-        } else if intentName == "INStartAudioCallIntent" || intentName == "INStartVideoCallIntent" {
-            // Deprecated intents Recents still delivers on some versions; read via KVC to avoid deprecation warnings.
-            handle = (intent.value(forKey: "contacts") as? [INPerson])?.first?.personHandle?.value
-            isVideo = intentName == "INStartVideoCallIntent"
-        } else {
-            return false
-        }
-
-        guard let handle = handle, !handle.isEmpty else {
-            CallingxLog.core.errorPublic("[handleUserActivity] start call intent without a handle")
-            return false
-        }
-        CallingxLog.core.debugPublic("[handleUserActivity] handle = \(handle) isVideo = \(isVideo)")
-        emitStartCallIntent(handle: handle, isVideo: isVideo)
-        return true
-    }
-
-    /// Emits `didReceiveStartCallIntent`; queued in `delayedEvents` until JS calls `getInitialEvents`.
-    static func emitStartCallIntent(handle: String, isVideo: Bool) {
-        getSharedInstance().sendEvent(CallingxEvents.didReceiveStartCallIntent, body: [
-            "handle": handle,
-            "isVideo": isVideo,
-        ])
-    }
-
     @objc public static func endCall(_ callId: String, reason: Int) {
         CallingxLog.core.debugPublic("[endCall] callId = \(callId) reason = \(reason)")
         
@@ -495,19 +456,6 @@ import stream_react_native_webrtc
         )
         uuidStorage?.removeCid(callId)
         applyPendingConversationManagerConfiguration()
-        donateStartCallIntentIfNeeded(for: call)
-    }
-
-    /// iOS 27 App Intents: donates a start-call intent for an ended call that connected, so the
-    /// system can suggest calling it again. Detached, never blocks call teardown.
-    private static func donateStartCallIntentIfNeeded(for call: CallingxCall) {
-        guard call.isConnected, let handle = call.handle,
-              Settings.getSettings()["includesCallsInRecents"] as? Bool == true else { return }
-        #if compiler(>=6.4)
-        if #available(iOS 27.0, *) {
-            CallingxStartCallIntent.donate(handle: handle, displayName: call.displayName, isVideo: call.hasVideo)
-        }
-        #endif
     }
     
     /// Native backstop: ends an incoming call still unanswered after `displayCallTimeout`, even
@@ -869,7 +817,6 @@ import stream_react_native_webrtc
 
         let handleTypeString = Settings.getSettings()["handleType"] as? String
         let displayName = callerName.isEmpty ? nil : callerName
-        call.setRemote(handle: phoneNumber, displayName: displayName, hasVideo: hasVideo)
         let callHandle = Handle(
             type: Settings.getHandleType(handleTypeString ?? "generic"),
             value: phoneNumber,
@@ -894,9 +841,6 @@ import stream_react_native_webrtc
             return false
         }
 
-        if let call = CallingxImpl.uuidStorage?.getCall(forCid: callId) {
-            call.setRemote(handle: phoneNumber, displayName: callerName.isEmpty ? nil : callerName, hasVideo: call.hasVideo)
-        }
         let handleTypeString = Settings.getSettings()["handleType"] as? String
         let callHandle = Handle(
             type: Settings.getHandleType(handleTypeString ?? "generic"),
@@ -1173,7 +1117,6 @@ extension CallingxImpl: ConversationManagerDelegate {
         call.markEnded()
         CallingxImpl.uuidStorage?.removeCid(call.cid)
         CallingxImpl.applyPendingConversationManagerConfiguration()
-        CallingxImpl.donateStartCallIntentIfNeeded(for: call)
         // Forget this call's mute intent so its stale value can't be read as an echo next call.
         pendingActionsQueue.sync { lastAppRequestedMute = nil }
 

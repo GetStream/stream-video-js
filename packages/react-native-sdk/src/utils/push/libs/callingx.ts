@@ -43,8 +43,8 @@ export function extractCallingExpOptions(
     if (pushConfig.ios.imageName !== undefined) {
       iosOptions.imageName = pushConfig.ios.imageName;
     }
-    if (pushConfig.ios.callsHistory?.enabled !== undefined) {
-      iosOptions.callsHistory = pushConfig.ios.callsHistory.enabled;
+    if (pushConfig.ios.callsHistory !== undefined) {
+      iosOptions.callsHistory = pushConfig.ios.callsHistory;
     }
     if (pushConfig.ios.displayCallTimeout !== undefined) {
       iosOptions.displayCallTimeout = pushConfig.ios.displayCallTimeout;

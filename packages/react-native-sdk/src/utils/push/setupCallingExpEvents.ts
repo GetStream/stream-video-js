@@ -58,10 +58,6 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     onProviderReset(pushConfig)(params);
   });
 
-  callingx.addEventListener('didReceiveStartCallIntent', (params) => {
-    onStartCallIntent(pushConfig)(params);
-  });
-
   //NOTE: until getInitialEvents invocation, events are delayed and won't be sent to event listeners, this is a way to make sure none of required events are missed
   //in most cases there will be no delayed answers or ends, but if so we don't want to miss any of them
   const events = callingx.getInitialEvents();
@@ -78,10 +74,6 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
       onDidDeactivateAudioSession();
     } else if (eventName === 'providerReset') {
       onProviderReset(pushConfig)(params as EventParams['providerReset']);
-    } else if (eventName === 'didReceiveStartCallIntent') {
-      onStartCallIntent(pushConfig)(
-        params as EventParams['didReceiveStartCallIntent'],
-      );
     } else if (eventName === 'ringCallPushReceived') {
       onRingNotificationReceived(params, pushConfig).catch((error) => {
         logger.error(`Error in onRingNotificationReceived: ${error}`);
@@ -125,57 +117,6 @@ const onProviderReset =
           logger.error(`onProviderReset: error leaving call ${cid}`, error);
         });
       }
-    }
-  };
-
-const generateCallId = () =>
-  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = Math.floor(Math.random() * 16);
-    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-  });
-
-/**
- * Recents redial (iOS): rings the user ids found in the handle of the start-call intent.
- */
-export const onStartCallIntent =
-  (pushConfig: PushConfig) =>
-  async ({ handle, isVideo }: EventParams['didReceiveStartCallIntent']) => {
-    logger.debug(`onStartCallIntent event handle: ${handle} video: ${isVideo}`);
-
-    const callsHistory = pushConfig.ios?.callsHistory;
-    if (Platform.OS !== 'ios' || !callsHistory?.enabled) {
-      return;
-    }
-
-    try {
-      const videoClient = await pushConfig.createStreamVideoClient();
-      const currentUserId = videoClient?.state.connectedUser?.id;
-      if (!videoClient || !currentUserId) {
-        logger.debug('onStartCallIntent: no connected user, skipping redial');
-        return;
-      }
-
-      const userIds = (handle ?? '')
-        .split(',')
-        .map((id) => id.trim())
-        .filter((id) => id.length > 0 && id !== currentUserId);
-      if (userIds.length === 0) {
-        return;
-      }
-
-      const call = videoClient.call(
-        callsHistory.callType ?? 'default',
-        generateCallId(),
-      );
-      await call.getOrCreate({
-        ring: true,
-        video: isVideo,
-        data: {
-          members: [currentUserId, ...userIds].map((user_id) => ({ user_id })),
-        },
-      });
-    } catch (error) {
-      logger.error('onStartCallIntent: failed to start the call', error);
     }
   };
 

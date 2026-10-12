@@ -27,7 +27,7 @@ export function setPushConfig() {
   StreamVideoRN.setPushConfig({
     ios: {
       pushProviderName: 'rn-apn-video',
-      callsHistory: { enabled: true },
+      callsHistory: true,
       enableOngoingCalls: true,
     },
     android: {

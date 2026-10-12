@@ -6,7 +6,6 @@ import { ExpoConfig } from '@expo/config-types';
 interface CustomExpoConfig extends ExpoConfig {
   modResults: {
     UIBackgroundModes?: string[];
-    NSUserActivityTypes?: string[];
   };
 }
 
@@ -165,39 +164,5 @@ describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
     expect(modifiedConfig.modResults.UIBackgroundModes).toContain('voip');
     expect(modifiedConfig.modResults.UIBackgroundModes).toContain('fetch');
     expect(modifiedConfig.modResults.UIBackgroundModes).toContain('processing');
-  });
-
-  it('should add start call intent activity types for ringing, deduped', async () => {
-    const config: CustomExpoConfig = {
-      name: 'test-app',
-      slug: 'test-app',
-      modResults: {
-        NSUserActivityTypes: ['INStartCallIntent', 'com.example.activity'],
-      },
-    };
-    const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(config, {
-      ringing: true,
-    }) as CustomExpoConfig;
-
-    expect(modifiedConfig.modResults.NSUserActivityTypes).toEqual([
-      'INStartCallIntent',
-      'com.example.activity',
-      'INStartAudioCallIntent',
-      'INStartVideoCallIntent',
-    ]);
-  });
-
-  it('should not add activity types without ringing', async () => {
-    const config: CustomExpoConfig = {
-      name: 'test-app',
-      slug: 'test-app',
-      modResults: {},
-    };
-    const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
-      config,
-      {},
-    ) as CustomExpoConfig;
-
-    expect(modifiedConfig.modResults.NSUserActivityTypes).toBeUndefined();
   });
 });

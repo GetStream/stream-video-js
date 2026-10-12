@@ -8,8 +8,6 @@ import {
   addObjcImports,
 } from '@expo/config-plugins/build/ios/codeMod';
 
-import { findMatchingBracketPosition } from '@expo/config-plugins/build/utils/matchBrackets';
-
 import { type ConfigProps } from './common/types';
 import { addToSwiftBridgingHeaderFile } from './common/addToSwiftBridgingHeaderFile';
 
@@ -62,9 +60,6 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
           addDidFinishLaunchingWithOptionsRingingSwift(
             config.modResults.contents,
           );
-        config.modResults.contents = addContinueUserActivityRingingSwift(
-          config.modResults.contents,
-        );
       }
       return config;
     } catch (error: any) {
@@ -126,51 +121,6 @@ function addDidFinishLaunchingWithOptionsRingingSwift(contents: string) {
     );
   }
   return updated;
-}
-
-// Forwards Recents redial (INStartCallIntent) user activities to callingx.
-function addContinueUserActivityRingingSwift(contents: string) {
-  const functionSelector = 'application(_:continue:restorationHandler:)';
-  const handleActivityCall =
-    '_ = StreamVideoReactNative.handleUserActivity(userActivity)';
-  if (contents.includes('StreamVideoReactNative.handleUserActivity(')) {
-    return contents;
-  }
-  // insertContentsInsideSwiftFunctionBlock matches by name + param count only,
-  // which would hit application(_:open:options:), so locate the function here
-  const funcMatch =
-    /func\s+application\(\s*_\s+\w+:\s*UIApplication,\s*continue\s+userActivity\b[^{]*\{/.exec(
-      contents,
-    );
-  if (funcMatch) {
-    const bodyStart = funcMatch.index + funcMatch[0].length;
-    return (
-      contents.slice(0, bodyStart) +
-      `\n    ${handleActivityCall}` +
-      contents.slice(bodyStart)
-    );
-  }
-  // the template has no such override: add one that defers to super
-  const classMatch = /class\s+AppDelegate\b[^{]*\{/.exec(contents);
-  if (!classMatch) {
-    throw new Error(
-      `Could not find the AppDelegate class to add ${functionSelector}`,
-    );
-  }
-  const classStart = classMatch.index + classMatch[0].length - 1;
-  const classEnd = findMatchingBracketPosition(contents, '{', classStart);
-  const override = `
-  // Recents redial (INStartCallIntent) and Universal Links
-  public override func application(
-    _ application: UIApplication,
-    continue userActivity: NSUserActivity,
-    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
-  ) -> Bool {
-    ${handleActivityCall}
-    return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
-  }
-`;
-  return contents.slice(0, classEnd) + override + contents.slice(classEnd);
 }
 
 export default withAppDelegate;

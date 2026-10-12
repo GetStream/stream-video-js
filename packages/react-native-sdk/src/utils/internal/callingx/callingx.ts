@@ -56,18 +56,6 @@ export function getCallDisplayName(
 }
 
 /**
- * Outgoing call handle: user ids of the other members, sorted and comma-joined.
- * Falls back to `fallback` when no other members are known.
- */
-function getOutgoingHandle(call: Call, fallback: string): string {
-  const currentUserId = call.currentUserId;
-  const otherIds = (call.state.members ?? [])
-    .map((member) => member.user_id)
-    .filter((id) => !!id && id !== currentUserId);
-  return otherIds.length > 0 ? [...otherIds].sort().join(',') : fallback;
-}
-
-/**
  * Args shared by the callingx call registration APIs:
  * `(callId, phoneNumber, callerName, hasVideo)`.
  */
@@ -80,17 +68,13 @@ function getCallingxCallArgs(call: Call): [string, string, string, boolean] {
       call.currentUserId,
     );
   const createdByHandle = call.state.createdBy?.id ?? callDisplayName;
-  const iosHandle = call.isCreatedByMe
-    ? getOutgoingHandle(call, createdByHandle)
-    : createdByHandle;
   return [
     call.cid, // unique id for call
-    // handle for the native call UI. On iOS it is stored in the Recents and used for
-    // redial: incoming calls carry the caller's user id (matches the Swift SDK), outgoing
-    // calls the other members' user ids (sorted, comma-joined) so redial rings the same people.
-    // On Android the self-managed Telecom address is never displayed and callingx wraps it as
+    // handle for the native call UI. On iOS it is shown in CallKit Recents and used for
+    // call-back, so we send the caller's user id (matches the Swift SDK). On Android the
+    // self-managed Telecom address is never displayed and callingx wraps it as
     // `<packageName>:<handle>`, so we send the call id (matches the Android SDK).
-    Platform.OS === 'android' ? call.id : iosHandle,
+    Platform.OS === 'android' ? call.id : createdByHandle,
     callDisplayName, // display name for display in call screen
     call.state.settings?.video?.enabled ?? false, // is video call?
   ];
