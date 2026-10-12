@@ -19,6 +19,19 @@ const withStreamVideoReactNativeSDKiOSInfoPList: ConfigPlugin<ConfigProps> = (
       addBackgroundMode('voip');
     }
     if (props?.ringing) {
+      // Recents redial: the system hands the app an INStartCallIntent activity
+      if (!Array.isArray(config.modResults.NSUserActivityTypes)) {
+        config.modResults.NSUserActivityTypes = [];
+      }
+      for (const type of [
+        'INStartCallIntent',
+        'INStartAudioCallIntent',
+        'INStartVideoCallIntent',
+      ]) {
+        if (!config.modResults.NSUserActivityTypes.includes(type)) {
+          config.modResults.NSUserActivityTypes.push(type);
+        }
+      }
       addBackgroundMode('fetch');
       addBackgroundMode('processing');
       config.modResults['BGTaskSchedulerPermittedIdentifiers'] = [

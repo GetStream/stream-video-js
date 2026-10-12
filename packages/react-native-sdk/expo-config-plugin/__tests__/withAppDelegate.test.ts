@@ -119,6 +119,14 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       'func pushRegistry(',
     );
 
+    // Recents redial: forwarded at the head of the existing continue override
+    expect(updatedConfig.modResults.contents).toMatch(
+      /restorationHandler: @escaping \(\[UIUserActivityRestoring\]\?\) -> Void\n {2}\) -> Bool \{\n {4}_ = StreamVideoReactNative\.handleUserActivity\(userActivity\)/,
+    );
+    expect(
+      updatedConfig.modResults.contents.match(/handleUserActivity\(/g),
+    ).toHaveLength(1);
+
     modifiedConfigSwift = updatedConfig;
   });
 
@@ -137,6 +145,32 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       modifiedConfigSwift!.modResults.contents ===
         updatedConfig.modResults.contents,
     ).toBeTruthy();
+  });
+
+  it('swift - should add a continue override when the template has none', () => {
+    const contents = ExpoModulesAppDelegateSwift.replace(
+      /\s*\/\/ Universal Links[\s\S]*?super\.application\(application, continue[^\n]*\n {2}\}\n/,
+      '\n',
+    );
+    expect(contents).not.toContain('continue userActivity');
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: { language: 'swift', contents },
+      modRequest: { projectRoot: '.' },
+    };
+    const updated = withAppDelegate(config, {
+      ringing: true,
+    }) as CustomExpoConfig;
+    expect(updated.modResults.contents).toMatch(
+      /continue userActivity: NSUserActivity[\s\S]*_ = StreamVideoReactNative\.handleUserActivity\(userActivity\)[\s\S]*return super\.application\(application, continue: userActivity/,
+    );
+    // still inside AppDelegate (before ReactNativeDelegate)
+    expect(
+      updated.modResults.contents.indexOf('handleUserActivity('),
+    ).toBeLessThan(
+      updated.modResults.contents.indexOf('class ReactNativeDelegate'),
+    );
   });
 
   it('should throw a descriptive error for an Objective-C AppDelegate', () => {
