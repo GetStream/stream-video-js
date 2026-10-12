@@ -145,13 +145,16 @@ import stream_react_native_webrtc
         engineSubscription?.cancel()
         engineSubscription = nil
 
+        // Swap under the lock, call into LCK after unlocking.
         CallingxImpl.conversationManagerLock.lock()
+        var oldManager: ConversationManager?
         if CallingxImpl._conversationManager?.delegate === self {
-            CallingxImpl._conversationManager?.delegate = nil
-            CallingxImpl._conversationManager?.invalidate()
+            oldManager = CallingxImpl._conversationManager
             CallingxImpl._conversationManager = nil
         }
         CallingxImpl.conversationManagerLock.unlock()
+        oldManager?.delegate = nil
+        oldManager?.invalidate()
         canSendEvents = false
         isSetup = false
     }
@@ -168,30 +171,50 @@ import stream_react_native_webrtc
     /// applied by `applyPendingConversationManagerConfiguration()` once the last call ends.
     /// Callers register a call in `uuidStorage` before reading the manager, so the idle check and
     /// the swap (both under the lock) can't drop a call that's being reported or started.
+    /// Never calls into LiveCommunicationKit while holding the lock: LCK may serialize on the queue
+    /// of a delegate callback that is reading `conversationManager`.
     private static func applyConversationManagerConfiguration() {
         guard let instance = sharedInstance else { return }
         let configuration = Settings.getConversationManagerConfiguration()
 
         conversationManagerLock.lock()
-        defer { conversationManagerLock.unlock() }
-        if let manager = _conversationManager {
-            guard !isSameConfiguration(manager.configuration, configuration) else {
-                isConversationManagerRecreatePending = false
+        let snapshot = _conversationManager
+        conversationManagerLock.unlock()
+
+        var liveUUIDs: Set<UUID> = []
+        if let snapshot {
+            guard !isSameConfiguration(snapshot.configuration, configuration) else {
+                conversationManagerLock.lock()
+                if _conversationManager === snapshot { isConversationManagerRecreatePending = false }
+                conversationManagerLock.unlock()
                 return
             }
-            guard (uuidStorage?.count() ?? 0) == 0, liveConversationUUIDs(of: manager).isEmpty else {
+            liveUUIDs = liveConversationUUIDs(of: snapshot)
+        }
+
+        conversationManagerLock.lock()
+        guard _conversationManager === snapshot else {
+            // Swapped concurrently: keep any pending change for the next apply.
+            conversationManagerLock.unlock()
+            return
+        }
+        if snapshot != nil {
+            guard (uuidStorage?.count() ?? 0) == 0, liveUUIDs.isEmpty else {
                 isConversationManagerRecreatePending = true
+                conversationManagerLock.unlock()
                 CallingxLog.core.debugPublic("[recreateConversationManager] pending — a call is tracked or live")
                 return
             }
-            manager.delegate = nil
-            manager.invalidate()
         }
-        CallingxLog.core.debugPublic("[recreateConversationManager]")
         let manager = ConversationManager(configuration: configuration)
         manager.delegate = instance
         _conversationManager = manager
         isConversationManagerRecreatePending = false
+        conversationManagerLock.unlock()
+
+        CallingxLog.core.debugPublic("[recreateConversationManager]")
+        snapshot?.delegate = nil
+        snapshot?.invalidate()
     }
 
     /// Applies a configuration change deferred while a call was live. Hops to main so the manager is
