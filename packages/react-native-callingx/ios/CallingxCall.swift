@@ -21,6 +21,14 @@ import Foundation
     // (`appInitiatedMuteActionIds`), not via a per-call flag, to avoid a race between
     // concurrent app-initiated mute toggles.
 
+    // MARK: - Remote party
+    // Kept for the start-call intent donation when the call ends.
+
+    /// Handle value reported to the system (incoming: caller id; outgoing: comma-separated callee ids)
+    public private(set) var handle: String?
+    public private(set) var displayName: String?
+    public private(set) var hasVideo: Bool = false
+
     // MARK: - Lifecycle timestamps
 
     /// When the call started connecting (outgoing: reported as .conversationStartedConnecting;
@@ -49,6 +57,12 @@ import Foundation
         self.uuid = uuid
         self.cid = cid
         self.isOutgoing = isOutgoing
+    }
+
+    public func setRemote(handle: String, displayName: String?, hasVideo: Bool) {
+        self.handle = handle
+        self.displayName = displayName
+        self.hasVideo = hasVideo
     }
 
     // MARK: - Action-source flag methods

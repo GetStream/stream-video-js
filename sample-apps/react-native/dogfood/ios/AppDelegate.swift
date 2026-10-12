@@ -92,3 +92,16 @@ class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
 #endif
   }
 }
+
+#if compiler(>=6.4)
+import AppIntents
+import Callingx
+
+// Exposes callingx's iOS 27 start-call App Intent (Siri, Shortcuts, call donations).
+@available(iOS 27.0, *)
+struct AppIntentsPackages: AppIntentsPackage {
+  static var includedPackages: [any AppIntentsPackage.Type] {
+    [CallingxIntentsPackage.self]
+  }
+}
+#endif

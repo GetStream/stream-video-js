@@ -339,6 +339,7 @@ import stream_react_native_webrtc
             return
         }
         let displayName = localizedCallerName?.isEmpty == false ? localizedCallerName : nil
+        storage.getCall(forCid: callId)?.setRemote(handle: handle, displayName: displayName, hasVideo: hasVideo)
         let remoteHandle = Handle(type: Settings.getHandleType(handleType), value: handle, displayName: displayName)
         var capabilities: Conversation.Capabilities = []
         if hasVideo { capabilities.insert(.video) }
@@ -494,6 +495,19 @@ import stream_react_native_webrtc
         )
         uuidStorage?.removeCid(callId)
         applyPendingConversationManagerConfiguration()
+        donateStartCallIntentIfNeeded(for: call)
+    }
+
+    /// iOS 27 App Intents: donates a start-call intent for an ended call that connected, so the
+    /// system can suggest calling it again. Detached, never blocks call teardown.
+    private static func donateStartCallIntentIfNeeded(for call: CallingxCall) {
+        guard call.isConnected, let handle = call.handle,
+              Settings.getSettings()["includesCallsInRecents"] as? Bool == true else { return }
+        #if compiler(>=6.4)
+        if #available(iOS 27.0, *) {
+            CallingxStartCallIntent.donate(handle: handle, displayName: call.displayName, isVideo: call.hasVideo)
+        }
+        #endif
     }
     
     /// Native backstop: ends an incoming call still unanswered after `displayCallTimeout`, even
@@ -855,6 +869,7 @@ import stream_react_native_webrtc
 
         let handleTypeString = Settings.getSettings()["handleType"] as? String
         let displayName = callerName.isEmpty ? nil : callerName
+        call.setRemote(handle: phoneNumber, displayName: displayName, hasVideo: hasVideo)
         let callHandle = Handle(
             type: Settings.getHandleType(handleTypeString ?? "generic"),
             value: phoneNumber,
@@ -879,6 +894,9 @@ import stream_react_native_webrtc
             return false
         }
 
+        if let call = CallingxImpl.uuidStorage?.getCall(forCid: callId) {
+            call.setRemote(handle: phoneNumber, displayName: callerName.isEmpty ? nil : callerName, hasVideo: call.hasVideo)
+        }
         let handleTypeString = Settings.getSettings()["handleType"] as? String
         let callHandle = Handle(
             type: Settings.getHandleType(handleTypeString ?? "generic"),
@@ -1155,6 +1173,7 @@ extension CallingxImpl: ConversationManagerDelegate {
         call.markEnded()
         CallingxImpl.uuidStorage?.removeCid(call.cid)
         CallingxImpl.applyPendingConversationManagerConfiguration()
+        CallingxImpl.donateStartCallIntentIfNeeded(for: call)
         // Forget this call's mute intent so its stale value can't be read as an echo next call.
         pendingActionsQueue.sync { lastAppRequestedMute = nil }
 
