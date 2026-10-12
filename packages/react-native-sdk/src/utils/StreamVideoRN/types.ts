@@ -120,10 +120,17 @@ export type StreamVideoConfig = {
        */
       imageName?: string;
       /**
-       * Enable calls history. When enabled, the call will be added to the calls history.
-       * @default false
+       * Calls history (Phone app Recents) and redial.
+       * - `enabled`: calls are added to the Recents; tapping one re-rings the same people.
+       *   Requires forwarding the user activity to `StreamVideoReactNative.handleUserActivity`
+       *   (the Expo plugin does it automatically).
+       * - `callType`: call type of the ringing call created on redial.
+       * @default { enabled: false, callType: 'default' }
        */
-      callsHistory?: boolean;
+      callsHistory?: {
+        enabled?: boolean;
+        callType?: string;
+      };
       /**
        * iOS: time in ms after which an incoming call that is still unanswered is ended
        * natively as unanswered (shown as a missed call), including calls reported from

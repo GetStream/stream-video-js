@@ -397,6 +397,7 @@ export type EventName =
   | 'didActivateAudioSession'
   | 'didDeactivateAudioSession'
   | 'providerReset'
+  | 'didReceiveStartCallIntent'
   | 'ringCallPushReceived';
 
 export type RingCallPushPayload = {
@@ -448,6 +449,10 @@ export type EventParams = {
   didDeactivateAudioSession: undefined;
   providerReset: {
     callCids: string[];
+  };
+  didReceiveStartCallIntent: {
+    handle: string;
+    isVideo: boolean;
   };
   ringCallPushReceived: RingCallPushPayload;
 };
