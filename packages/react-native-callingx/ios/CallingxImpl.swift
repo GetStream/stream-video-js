@@ -87,6 +87,12 @@ import stream_react_native_webrtc
     /// each match their own UUID. Guarded by `pendingActionsQueue`.
     private var appInitiatedMuteActionIds: Set<UUID> = []
 
+    /// Members/capabilities update of outgoing calls whose start action was fulfilled but whose
+    /// conversation hasn't appeared in `conversations` yet. LCK adds it only after
+    /// `fulfill(dateStarted:)` (`conversationChanged` follows), so the start events are reported
+    /// from there. Guarded by `pendingActionsQueue`.
+    private var pendingOutgoingConversationReports: [UUID: Conversation.Update] = [:]
+
     /// `true` while the audio engine is starting. Startup toggles `voiceProcessingInputMuted`, which
     /// iOS 17+ surfaces as system-initiated mutes — artifacts, not user intent, so we skip them.
     /// Set on `willEnableAudioEngine`, cleared on `willStartAudioEngine`. Guarded by `pendingActionsQueue`.
@@ -353,6 +359,7 @@ import stream_react_native_webrtc
         if supportsUngrouping { capabilities.insert(.unmerging) }
         let update = Conversation.Update(
             members: [remoteHandle],
+            activeRemoteMembers: [remoteHandle],
             capabilities: capabilities
         )
 
@@ -492,18 +499,11 @@ import stream_react_native_webrtc
             do {
                 try await manager.perform([action])
                 CallingxLog.core.debugPublic("[performConversationAction] performed action successfully")
-
-                if let startAction = action as? StartConversationAction {
-                    let update = Conversation.Update(
-                        members: Set(startAction.handles),
-                        capabilities: startAction.isVideo ? [.video] : []
-                    )
-                    CallingxImpl.reportConversationEvent(.conversationUpdated(update), uuid: startAction.conversationUUID)
-                }
             } catch {
                 CallingxLog.core.errorPublic("[performConversationAction] Error performing action (\(action)): (\(error))")
                 self?.pendingActionsQueue.sync {
                     _ = self?.appInitiatedMuteActionIds.remove(action.uuid)
+                    _ = self?.pendingOutgoingConversationReports.removeValue(forKey: action.conversationUUID)
                 }
                 if let call = CallingxImpl.uuidStorage?.getCallByUUID(action.conversationUUID) {
                     call.resetAllSelfFlags()
@@ -925,6 +925,7 @@ extension CallingxImpl: ConversationManagerDelegate {
 
     public func conversationManager(_ manager: ConversationManager, conversationChanged conversation: Conversation) {
         CallingxLog.core.debugPublic("[ConversationManagerDelegate][conversationChanged] uuid = \(conversation.uuid) state = \(conversation.state)")
+        reportOutgoingConversationStarted(conversation)
     }
 
     public func conversationManagerDidBegin(_ manager: ConversationManager) {
@@ -976,10 +977,28 @@ extension CallingxImpl: ConversationManagerDelegate {
             "handle": action.handles.first?.value ?? ""
         ])
 
+        // The conversation appears in `conversations` only after the fulfill below; its start
+        // events are reported from `conversationChanged`.
+        let update = Conversation.Update(
+            members: Set(action.handles),
+            activeRemoteMembers: Set(action.handles),
+            capabilities: action.isVideo ? [.video] : []
+        )
+        pendingActionsQueue.sync {
+            pendingOutgoingConversationReports[call.uuid] = update
+        }
         action.fulfill(dateStarted: Date())
+    }
 
-        // Report startedConnectingAt now that the action is fulfilled.
-        // The timestamp was set in startCall when the call was created.
+    /// Reports an outgoing call's members, capabilities and `startedConnectingAt` (set in
+    /// startCall) once its conversation exists.
+    private func reportOutgoingConversationStarted(_ conversation: Conversation) {
+        let update = pendingActionsQueue.sync {
+            pendingOutgoingConversationReports.removeValue(forKey: conversation.uuid)
+        }
+        guard let update, let call = CallingxImpl.uuidStorage?.getCallByUUID(conversation.uuid) else { return }
+
+        CallingxImpl.reportConversationEvent(.conversationUpdated(update), uuid: call.uuid)
         CallingxImpl.reportConversationEvent(
             .conversationStartedConnecting(call.startedConnectingAt ?? Date()),
             uuid: call.uuid
