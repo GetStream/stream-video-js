@@ -444,6 +444,29 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     return getAudioStream(constraints, this.call.tracer);
   }
 
+  /**
+   * On mute, starts the speaking while muted detection before the mic tracks
+   * are stopped, so the detector's clone keeps the device captured. Releasing
+   * and re-acquiring the mic flips Bluetooth headsets between audio profiles.
+   */
+  protected override async muteStream(stopTracks: boolean = true) {
+    const { state } = this.call;
+    if (
+      !isReactNative() &&
+      this.state.optimisticStatus === 'disabled' &&
+      this.speakingWhileMutedNotificationEnabled &&
+      state.callingState === CallingState.JOINED &&
+      state.ownCapabilities.includes(OwnCapability.SEND_AUDIO)
+    ) {
+      await this.startSpeakingWhileMutedDetection(
+        this.state.selectedDevice,
+      ).catch((err) => {
+        this.logger.warn('Could not hand off mic to speaking while muted', err);
+      });
+    }
+    await super.muteStream(stopTracks);
+  }
+
   protected override doSetAudioBitrateProfile(profile: AudioBitrateProfile) {
     this.setDefaultConstraints({
       ...this.state.defaultConstraints,
@@ -491,11 +514,18 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           unsubscribe();
         };
       } else {
-        // Need to start a new stream that's not connected to publisher
-        const stream = await this.getStream({
-          ...this.state.defaultConstraints,
-          deviceId: { exact: deviceId },
-        });
+        // Clone the live mic track while muting, so the device stays captured.
+        // Otherwise, start a new stream that's not connected to publisher.
+        const [liveTrack] = this.enabled
+          ? (this.state.rootMediaStream?.getAudioTracks() ?? [])
+          : [];
+        const stream =
+          liveTrack?.readyState === 'live'
+            ? new MediaStream([liveTrack.clone()])
+            : await this.getStream({
+                ...this.state.defaultConstraints,
+                deviceId: { exact: deviceId },
+              });
         this.soundDetectorCleanup = createSoundDetector(stream, (event) => {
           this.state.setSpeakingWhileMuted(event.isSoundDetected);
         });

@@ -327,6 +327,61 @@ describe('MicrophoneManager', () => {
       await manager.disable();
       expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
     });
+
+    describe('mute hand-off', () => {
+      let micTrack: MediaStreamTrack;
+      let clonedTrack: MediaStreamTrack;
+
+      beforeEach(() => {
+        vi.stubGlobal(
+          'MediaStream',
+          vi.fn(function (this: object, tracks: MediaStreamTrack[]) {
+            Object.assign(this, { getTracks: () => tracks });
+          }),
+        );
+        const stream = mockAudioStream();
+        [micTrack] = stream.getAudioTracks();
+        [clonedTrack] = mockAudioStream().getAudioTracks();
+        micTrack.clone = vi.fn(() => clonedTrack);
+        vi.mocked(getAudioStream).mockResolvedValueOnce(stream);
+        const devicePersistence = { enabled: false, storageKey: '' };
+        manager = new MicrophoneManager(call, devicePersistence);
+      });
+
+      afterEach(() => {
+        vi.unstubAllGlobals();
+      });
+
+      const enableAndSettle = async () => {
+        await manager.enable();
+        await sleep(25);
+        vi.mocked(micTrack.clone).mockClear();
+        vi.mocked(getAudioStream).mockClear();
+        vi.mocked(createSoundDetector).mockClear();
+      };
+
+      it('keeps the mic captured by handing a clone to the detector', async () => {
+        await enableAndSettle();
+        await manager.disable();
+        await sleep(25);
+
+        expect(micTrack.readyState).toBe('ended');
+        expect(clonedTrack.readyState).toBe('live');
+        expect(createSoundDetector).toHaveBeenCalledTimes(1);
+        const [detectorStream] = vi.mocked(createSoundDetector).mock.calls[0];
+        expect(detectorStream.getTracks()).toEqual([clonedTrack]);
+        expect(getAudioStream).not.toHaveBeenCalled();
+      });
+
+      it('does not hand off the mic when leaving the call', async () => {
+        await enableAndSettle();
+        call.state.setCallingState(CallingState.LEFT);
+        await manager.disable(true);
+
+        expect(micTrack.clone).not.toHaveBeenCalled();
+        expect(micTrack.readyState).toBe('ended');
+      });
+    });
   });
 
   describe('Noise Cancellation', () => {
