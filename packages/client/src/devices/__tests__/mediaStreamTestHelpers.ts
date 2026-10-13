@@ -10,6 +10,7 @@ const createTrack = (
     getSettings: () => settings,
     enabled: true,
     readyState: 'live',
+    clone: () => createTrack(settings, extras),
     stop: () => {
       // @ts-expect-error read-only property
       track.readyState = 'ended';
