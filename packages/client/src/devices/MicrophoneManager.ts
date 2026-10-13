@@ -445,26 +445,37 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   }
 
   /**
-   * On mute, starts the speaking while muted detection before the mic tracks
-   * are stopped, so the detector's clone keeps the device captured. Releasing
-   * and re-acquiring the mic flips Bluetooth headsets between audio profiles.
+   * On mute, hands a clone of the live mic track to the speaking while muted
+   * detection, so the device stays captured after the mic tracks are stopped.
+   * Releasing and re-acquiring the mic flips Bluetooth headsets between audio
+   * profiles.
    */
   protected override async muteStream(stopTracks: boolean = true) {
     const { state } = this.call;
-    if (
+    const [track] = this.state.rootMediaStream?.getAudioTracks() ?? [];
+    const clone =
       !isReactNative() &&
+      track?.readyState === 'live' &&
       this.state.optimisticStatus === 'disabled' &&
       this.speakingWhileMutedNotificationEnabled &&
       state.callingState === CallingState.JOINED &&
       state.ownCapabilities.includes(OwnCapability.SEND_AUDIO)
-    ) {
-      await this.startSpeakingWhileMutedDetection(
-        this.state.selectedDevice,
-      ).catch((err) => {
-        this.logger.warn('Could not hand off mic to speaking while muted', err);
-      });
+        ? track.clone()
+        : undefined;
+    try {
+      await super.muteStream(stopTracks);
+    } catch (err) {
+      clone?.stop();
+      throw err;
     }
-    await super.muteStream(stopTracks);
+    if (!clone) return;
+    this.startSpeakingWhileMutedDetection(
+      this.state.selectedDevice,
+      clone,
+    ).catch((err) => {
+      clone.stop();
+      this.logger.warn('Could not hand off mic to speaking while muted', err);
+    });
   }
 
   protected override doSetAudioBitrateProfile(profile: AudioBitrateProfile) {
@@ -491,10 +502,18 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     }
   }
 
-  private async startSpeakingWhileMutedDetection(deviceId?: string) {
+  private async startSpeakingWhileMutedDetection(
+    deviceId?: string,
+    track?: MediaStreamTrack,
+  ) {
     await withoutConcurrency(this.soundDetectorConcurrencyTag, async () => {
-      if (this.soundDetectorCleanup && this.soundDetectorDeviceId === deviceId)
+      if (
+        this.soundDetectorCleanup &&
+        this.soundDetectorDeviceId === deviceId
+      ) {
+        track?.stop();
         return;
+      }
 
       await this.teardownSpeakingWhileMutedDetection();
 
@@ -514,18 +533,14 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           unsubscribe();
         };
       } else {
-        // Clone the live mic track while muting, so the device stays captured.
-        // Otherwise, start a new stream that's not connected to publisher.
-        const [liveTrack] = this.enabled
-          ? (this.state.rootMediaStream?.getAudioTracks() ?? [])
-          : [];
-        const stream =
-          liveTrack?.readyState === 'live'
-            ? new MediaStream([liveTrack.clone()])
-            : await this.getStream({
-                ...this.state.defaultConstraints,
-                deviceId: { exact: deviceId },
-              });
+        // Use the handed-off mic track, or start a new stream that's not
+        // connected to publisher
+        const stream = track
+          ? new MediaStream([track])
+          : await this.getStream({
+              ...this.state.defaultConstraints,
+              deviceId: { exact: deviceId },
+            });
         this.soundDetectorCleanup = createSoundDetector(stream, (event) => {
           this.state.setSpeakingWhileMuted(event.isSoundDetected);
         });

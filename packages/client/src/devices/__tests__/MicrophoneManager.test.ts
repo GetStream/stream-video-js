@@ -344,6 +344,7 @@ describe('MicrophoneManager', () => {
         [clonedTrack] = mockAudioStream().getAudioTracks();
         micTrack.clone = vi.fn(() => clonedTrack);
         vi.mocked(getAudioStream).mockResolvedValueOnce(stream);
+        manager.dispose();
         const devicePersistence = { enabled: false, storageKey: '' };
         manager = new MicrophoneManager(call, devicePersistence);
       });
@@ -371,6 +372,95 @@ describe('MicrophoneManager', () => {
         const [detectorStream] = vi.mocked(createSoundDetector).mock.calls[0];
         expect(detectorStream.getTracks()).toEqual([clonedTrack]);
         expect(getAudioStream).not.toHaveBeenCalled();
+      });
+
+      it('releases the clone after unmute opened the new capture', async () => {
+        await enableAndSettle();
+        const cleanup = vi.fn(async () => {});
+        vi.mocked(createSoundDetector).mockImplementationOnce(() => cleanup);
+        await manager.disable();
+        await sleep(25);
+        await manager.enable();
+        await sleep(25);
+
+        expect(cleanup).toHaveBeenCalledTimes(1);
+        expect(getAudioStream).toHaveBeenCalledTimes(1);
+        const [captureOrder] =
+          vi.mocked(getAudioStream).mock.invocationCallOrder;
+        expect(captureOrder).toBeLessThan(cleanup.mock.invocationCallOrder[0]);
+      });
+
+      it('releases the clone and keeps the mic live when muting fails', async () => {
+        await enableAndSettle();
+        vi.mocked(call.stopPublish).mockRejectedValueOnce(
+          new Error('SFU unavailable'),
+        );
+
+        await expect(manager.disable()).rejects.toThrow('SFU unavailable');
+        await sleep(25);
+
+        expect(manager.state.status).toBe('enabled');
+        expect(micTrack.readyState).toBe('live');
+        expect(clonedTrack.readyState).toBe('ended');
+        expect(createSoundDetector).not.toHaveBeenCalled();
+      });
+
+      it('releases the clone and falls back when the detector cannot start', async () => {
+        await enableAndSettle();
+        vi.mocked(createSoundDetector).mockImplementationOnce(() => {
+          throw new Error('AudioContext unavailable');
+        });
+
+        await manager.disable();
+        await sleep(25);
+
+        expect(manager.state.status).toBe('disabled');
+        expect(clonedTrack.readyState).toBe('ended');
+        expect(getAudioStream).toHaveBeenCalledTimes(1);
+      });
+
+      it('unpublishes without waiting for the detector queue', async () => {
+        await enableAndSettle();
+        let unblock!: () => void;
+        const blocker = new Promise<void>((resolve) => (unblock = resolve));
+        withoutConcurrency(
+          manager['soundDetectorConcurrencyTag'],
+          () => blocker,
+        );
+
+        const muted = manager.disable();
+        await sleep(25);
+
+        expect(call.stopPublish).toHaveBeenCalledWith(TrackType.AUDIO);
+        expect(micTrack.readyState).toBe('ended');
+        expect(clonedTrack.readyState).toBe('live');
+        unblock();
+        await muted;
+      });
+
+      it('does not open a capture before muting an ended mic track', async () => {
+        await enableAndSettle();
+        micTrack.stop();
+
+        await manager.disable();
+        await sleep(25);
+
+        expect(micTrack.clone).not.toHaveBeenCalled();
+        const [unpublished] = vi.mocked(call.stopPublish).mock
+          .invocationCallOrder;
+        vi.mocked(getAudioStream).mock.invocationCallOrder.forEach((order) => {
+          expect(order).toBeGreaterThan(unpublished);
+        });
+      });
+
+      it('releases the handed-off track when a detector already runs', async () => {
+        await manager['startSpeakingWhileMutedDetection']('device-1');
+        await manager['startSpeakingWhileMutedDetection'](
+          'device-1',
+          clonedTrack,
+        );
+
+        expect(clonedTrack.readyState).toBe('ended');
       });
 
       it('does not hand off the mic when leaving the call', async () => {

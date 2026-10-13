@@ -154,6 +154,7 @@ export const mockAudioStream = () => {
     label: mockAudioDevices[0].label,
     enabled: true,
     readyState: 'live',
+    clone: () => mockAudioStream().getAudioTracks()[0],
     stop: () => {
       track.readyState = 'ended';
     },
