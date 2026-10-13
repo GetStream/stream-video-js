@@ -49,7 +49,7 @@ export class SpeakerManager {
 
   private async applyWeb() {
     const { enabled, storageKey } = this.devicePersistence;
-    if (!enabled) return;
+    if (!enabled || !this.state.isDeviceSelectionSupported) return;
 
     const preferences = readPreferences(storageKey);
     const preferenceList = toPreferenceList(preferences.speaker);

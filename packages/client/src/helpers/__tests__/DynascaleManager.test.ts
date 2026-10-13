@@ -29,6 +29,7 @@ vi.mock(import('../browsers'), async (importOriginal) => {
   return {
     ...module,
     isSafari: () => globalThis._isSafari ?? false,
+    isWebKit: () => false,
   };
 });
 
@@ -191,6 +192,9 @@ describe('DynascaleManager', () => {
     it('audio: Safari should use AudioContext for audio playback', () => {
       globalThis._isSafari = true;
       dynascaleManager.setUseWebAudio(true); // enabled by default on Safari
+      Object.defineProperty(call.speaker.state, 'isDeviceSelectionSupported', {
+        value: false,
+      });
 
       vi.useFakeTimers();
       const audioElement = document.createElement('audio');
@@ -257,11 +261,9 @@ describe('DynascaleManager', () => {
       expect(gainNode.connect).toHaveBeenCalledWith(audioContext.destination);
 
       call.speaker.select('different-device-id');
-      expect(audioElement.setSinkId).toHaveBeenCalledWith(
-        'different-device-id',
-      );
+      expect(audioElement.setSinkId).not.toHaveBeenCalled();
       // @ts-expect-error sinkId isn't available in the TS definition
-      expect(audioContext.sinkId).toBe('different-device-id');
+      expect(audioContext.sinkId).not.toBe('different-device-id');
 
       call.speaker.setVolume(0.5);
       expect(audioElement.volume).toBe(0.5);

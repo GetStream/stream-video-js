@@ -23,6 +23,7 @@ vi.mock('../BrowserPermission', () => {
 vi.mock('../../helpers/browsers', () => ({
   isSafari: vi.fn(),
   isFirefox: vi.fn(),
+  isWebKit: vi.fn(),
 }));
 
 type MediaDevicesMock = MediaDevices &
@@ -66,11 +67,11 @@ describe('devices', () => {
     vi.resetModules();
   });
 
-  it('checkIfAudioOutputChangeSupported uses audio element when not Safari', async () => {
+  it('checkIfAudioOutputChangeSupported uses audio element when not WebKit', async () => {
     setupMediaDevices();
     const { checkIfAudioOutputChangeSupported } = await loadDevicesModule();
     const browsers = await import('../../helpers/browsers');
-    vi.mocked(browsers.isSafari).mockReturnValue(false);
+    vi.mocked(browsers.isWebKit).mockReturnValue(false);
     const createElementSpy = vi
       .spyOn(document, 'createElement')
       .mockReturnValue({ setSinkId: vi.fn() } as unknown as HTMLMediaElement);
@@ -79,21 +80,16 @@ describe('devices', () => {
     expect(createElementSpy).toHaveBeenCalledWith('audio');
   });
 
-  it('checkIfAudioOutputChangeSupported uses AudioContext in Safari', async () => {
+  it('checkIfAudioOutputChangeSupported is false on WebKit', async () => {
     setupMediaDevices();
-    class AudioContextStub {}
-    (
-      AudioContextStub.prototype as { setSinkId?: () => Promise<void> }
-    ).setSinkId = vi.fn();
-    Object.defineProperty(globalThis, 'AudioContext', {
-      configurable: true,
-      value: AudioContextStub as typeof AudioContext,
-    });
-
     const { checkIfAudioOutputChangeSupported } = await loadDevicesModule();
     const browsers = await import('../../helpers/browsers');
-    vi.mocked(browsers.isSafari).mockReturnValue(true);
-    expect(checkIfAudioOutputChangeSupported()).toBe(true);
+    vi.mocked(browsers.isWebKit).mockReturnValue(true);
+    vi.spyOn(document, 'createElement').mockReturnValue({
+      setSinkId: vi.fn(),
+    } as unknown as HTMLMediaElement);
+
+    expect(checkIfAudioOutputChangeSupported()).toBe(false);
   });
 
   it('getAudioDevices prompts and filters devices', async () => {
