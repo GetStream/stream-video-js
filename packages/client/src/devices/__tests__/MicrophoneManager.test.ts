@@ -471,6 +471,23 @@ describe('MicrophoneManager', () => {
         return () => unblock();
       };
 
+      it('falls back to a new capture when the mic ends while unpublishing', async () => {
+        await enableAndSettle();
+        const unblock = blockUnpublish();
+
+        const muted = manager.disable();
+        await sleep(25);
+        clonedTrack.stop();
+        unblock();
+        await muted;
+        await sleep(25);
+
+        expect(createSoundDetector).toHaveBeenCalledTimes(1);
+        const [detectorStream] = vi.mocked(createSoundDetector).mock.calls[0];
+        expect(detectorStream.getTracks()).not.toContain(clonedTrack);
+        expect(getAudioStream).toHaveBeenCalledTimes(1);
+      });
+
       it.each([
         [
           'the call is left',

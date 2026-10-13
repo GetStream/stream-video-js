@@ -462,12 +462,17 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     }
     if (!clone) return;
 
-    // the call, or the selected device, may have changed while unpublishing
+    // the mic, the call, or the selected device may have changed while
+    // unpublishing
     const deviceId = resolveDeviceId(
       clone.getSettings().deviceId,
       'audioinput',
     );
-    if (!this.canHandOffMic() || deviceId !== this.state.selectedDevice) {
+    if (
+      clone.readyState !== 'live' ||
+      !this.canHandOffMic() ||
+      deviceId !== this.state.selectedDevice
+    ) {
       clone.stop();
       return;
     }
