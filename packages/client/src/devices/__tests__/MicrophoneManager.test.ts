@@ -463,6 +463,79 @@ describe('MicrophoneManager', () => {
         expect(clonedTrack.readyState).toBe('ended');
       });
 
+      const blockUnpublish = () => {
+        let unblock!: () => void;
+        vi.mocked(call.stopPublish).mockImplementationOnce(
+          () => new Promise<void>((resolve) => (unblock = resolve)),
+        );
+        return () => unblock();
+      };
+
+      it.each([
+        [
+          'the call is left',
+          () => call.state.setCallingState(CallingState.LEFT),
+        ],
+        ['sending audio is revoked', () => call.state.setOwnCapabilities([])],
+        [
+          'the notification is disabled',
+          () => manager.disableSpeakingWhileMutedNotification(),
+        ],
+      ])('releases the clone when %s while unpublishing', async (_, change) => {
+        await enableAndSettle();
+        const unblock = blockUnpublish();
+
+        const muted = manager.disable();
+        await sleep(25);
+        await change();
+        unblock();
+        await muted;
+        await sleep(25);
+
+        expect(clonedTrack.readyState).toBe('ended');
+        expect(createSoundDetector).not.toHaveBeenCalled();
+      });
+
+      it('releases the clone when another mic is selected while unpublishing', async () => {
+        await enableAndSettle();
+        const unblock = blockUnpublish();
+
+        const muted = manager.disable();
+        await sleep(25);
+        const selected = manager.select('other-mic');
+        unblock();
+        await Promise.all([muted, selected]);
+        await sleep(25);
+
+        expect(clonedTrack.readyState).toBe('ended');
+        expect(getAudioStream).toHaveBeenCalledWith(
+          expect.objectContaining({ deviceId: { exact: 'other-mic' } }),
+          expect.any(Tracer),
+        );
+      });
+
+      it('keeps the detector when a stale unmute is handled after muting again', async () => {
+        await enableAndSettle();
+        const cleanup = vi.fn(async () => {});
+        vi.mocked(createSoundDetector).mockImplementationOnce(() => cleanup);
+        let unblock!: () => void;
+        const blocker = new Promise<void>((resolve) => (unblock = resolve));
+        withoutConcurrency(
+          manager['soundDetectorConcurrencyTag'],
+          () => blocker,
+        );
+
+        await manager.disable();
+        await manager.enable();
+        await manager.disable();
+        unblock();
+        await sleep(25);
+
+        expect(manager.state.status).toBe('disabled');
+        expect(cleanup).not.toHaveBeenCalled();
+        expect(clonedTrack.readyState).toBe('live');
+      });
+
       it('does not hand off the mic when leaving the call', async () => {
         await enableAndSettle();
         call.state.setCallingState(CallingState.LEFT);
