@@ -1,5 +1,6 @@
 import { PropsWithChildren, useEffect, useState } from 'react';
 import { Placement } from '@floating-ui/react';
+import clsx from 'clsx';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { Notification } from './Notification';
 
@@ -51,7 +52,7 @@ export const CameraUnavailableNotification = ({
       message={message}
       isVisible={isVisible}
       placement={placement}
-      className={className}
+      className={clsx('str-video__camera-unavailable-notification', className)}
       close={() => setIsVisible(false)}
     >
       {children}

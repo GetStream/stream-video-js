@@ -1,6 +1,4 @@
 .str-video__notification {
-  width: max-content;
-  max-width: min(30rem, calc(100vw - 20px));
   padding: 0.625rem;
   display: flex;
   align-items: center;
@@ -29,4 +27,9 @@
       cursor: pointer;
     }
   }
+}
+
+.str-video__camera-unavailable-notification {
+  width: max-content;
+  max-width: min(30rem, calc(100vw - 20px));
 }
