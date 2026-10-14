@@ -6,15 +6,16 @@ import type { CallLeaveOptions } from '../types';
 /**
  * Decides what a ringing call should do next, based on the current call state.
  *
- * The `call.accepted`, `call.rejected` and `call.missed` handlers and the ring
- * state poller both run this. They differ only in how the state got there: the
- * handlers rely on `CallState.updateFromEvent`, which runs before them, and the
- * poller applies the polled ring state itself.
+ * The `call.accepted` and `call.rejected` handlers, the ring state poller and
+ * the rewatch after a WS reconnect all run this. They differ only in how the
+ * state got there: the handlers rely on `CallState.updateFromEvent`, which runs
+ * before them, while the poller applies the polled ring state itself and the
+ * rewatch applies the queried call state.
  *
  * @param call the call to reconcile.
- * @param joinSource which of the two triggered this run, reported on the
- * caller's join: `ring-ws` for the event handlers, `ring-poll-api` for the
- * poller.
+ * @param joinSource what triggered this run, reported on the caller's join:
+ * `ring-ws` for the event handlers, `ring-poll-api` for the poller and the
+ * rewatch (both come from an API response).
  * @returns whether the ring reached a terminal state. A failed join is not
  * terminal: the caller should keep trying while the ring is open.
  */
@@ -79,10 +80,17 @@ const reconcileAsCaller = async (
 };
 
 // the current user's own accept or reject, on this or another device, is
-// handled by `resolveOwnRingOutcome`, and `call.ended` by `watchCallEnded`.
+// handled by `resolveOwnRingOutcome`, and a live `call.ended` by
+// `watchCallEnded`. An end missed while offline is handled here.
 const reconcileAsCallee = async (call: Call): Promise<boolean> => {
-  const createdById = call.state.createdBy?.id;
-  const rejectedBy = call.state.session?.rejected_by ?? {};
+  const { session, endedAt, createdBy } = call.state;
+  if (endedAt || session?.ended_at) {
+    call.logger.info('ring: the call has ended, leaving');
+    return leave(call, { reason: 'ended', message: 'ring: call ended' });
+  }
+
+  const createdById = createdBy?.id;
+  const rejectedBy = session?.rejected_by ?? {};
   if (createdById && rejectedBy[createdById]) {
     call.logger.info('ring: the caller cancelled, leaving');
     return leave(call, {

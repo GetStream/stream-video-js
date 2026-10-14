@@ -14,10 +14,6 @@ buildscript {
   }
 }
 
-def isNewArchitectureEnabled() {
-    return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
-}
-
 apply plugin: "com.android.library"
 // AGP 9 ships built-in Kotlin support and registers the `kotlin` extension
 // itself. Applying the Kotlin plugin on top of it fails configuration with
@@ -27,9 +23,7 @@ if (project.extensions.findByName('kotlin') == null) {
     apply plugin: "kotlin-android"
 }
 
-if (isNewArchitectureEnabled()) {
-    apply plugin: "com.facebook.react"
-}
+apply plugin: "com.facebook.react"
 
 def getExtOrDefault(name) {
   return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['StreamVideoReactNative_' + name]
@@ -43,25 +37,8 @@ def getExtOrIntegerMax(name, max) {
     return [max, getExtOrIntegerDefault(name)].max()
 }
 
-def supportsNamespace() {
-    def parsed = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')
-    def major = parsed[0].toInteger()
-    def minor = parsed[1].toInteger()
-
-    // Namespace support was added in 7.3.0
-    return (major == 7 && minor >= 3) || major >= 8
-}
-
 android {
-    if (supportsNamespace()) {
-        namespace "com.streamvideo.reactnative"
-
-        sourceSets {
-            main {
-                manifest.srcFile "src/main/AndroidManifestNew.xml"
-            }
-        }
-    }
+    namespace "com.streamvideo.reactnative"
 
     compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
 
@@ -96,10 +73,7 @@ repositories {
 def kotlin_version = getExtOrDefault('kotlinVersion')
 
 dependencies {
-    // For < 0.71, this will be from the local maven repo
-    // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
-    //noinspection GradleDynamicVersion
-    implementation "com.facebook.react:react-native:+"
+    implementation "com.facebook.react:react-android"
     implementation project(':stream-io_react-native-webrtc')
     implementation "io.github.crow-misia.libyuv:libyuv-android:0.36.0"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"

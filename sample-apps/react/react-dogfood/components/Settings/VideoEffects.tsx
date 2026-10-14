@@ -116,8 +116,8 @@ export const VideoEffectsSettings = () => {
           </div>
         )}
       </div>
-      <div className="rd__video-effects__container">
-        <div className="rd__video-effects__card">
+      <div>
+        <div>
           <h4>{t('settings.effects.label', 'Effects')}</h4>
           <div className="rd__video-effects__list">
             <CompositeButton
@@ -163,7 +163,7 @@ export const VideoEffectsSettings = () => {
             </CompositeButton>
           </div>
         </div>
-        <div className="rd__video-effects__card">
+        <div>
           <h4>
             {t('videoEffects.segmentationModel.title', 'Segmentation model')}
           </h4>
@@ -195,11 +195,11 @@ export const VideoEffectsSettings = () => {
           </WithTooltip>
         </div>
         {backgroundImages && backgroundImages.length > 0 && (
-          <div className="rd__video-effects__card">
+          <div>
             <h4>{t('videoEffects.backgrounds.title', 'Backgrounds')}</h4>
             <div className="rd__video-effects__list">
               {backgroundImages.map((imageUrl) => (
-                <div key={imageUrl} className="rd__video-effects__list-box">
+                <div key={imageUrl}>
                   <img
                     className={clsx(
                       'rd__video-effects__image',

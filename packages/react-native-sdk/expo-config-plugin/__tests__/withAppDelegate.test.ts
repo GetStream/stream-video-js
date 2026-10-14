@@ -33,7 +33,7 @@ jest.mock('../src/common/addToSwiftBridgingHeaderFile', () => ({
   addToSwiftBridgingHeaderFile: jest.fn(
     (_: string, action: (headerFileContents: string) => string) => {
       const result = action('#import "ExistingImport.h"');
-      expect(result).toMatch(/#import "ProcessorProvider.h"/);
+      expect(result).not.toMatch(/ProcessorProvider/);
       expect(result).toMatch(/#import "StreamVideoReactNative.h"/);
       expect(result).toMatch(/#import <WebRTCModuleOptions.h>/);
       expect(result).toMatch(/#import "ExistingImport.h"/);
@@ -41,35 +41,9 @@ jest.mock('../src/common/addToSwiftBridgingHeaderFile', () => ({
   ),
 }));
 
-// Expo 53 and above
 const ExpoModulesAppDelegateSwift = getFixture('AppDelegate.swift');
 
-// Expo 52 and below
-const ExpoModulesAppDelegate = getFixture('AppDelegate.mm');
-
 describe('withStreamVideoReactNativeSDKAppDelegate', () => {
-  it('objc - should not modify config if push is not enabled', () => {
-    // Prepare a mock config
-    const config: CustomExpoConfig = {
-      name: 'test-app',
-      slug: 'test-app',
-      modResults: {
-        language: 'objc',
-        contents: ExpoModulesAppDelegate,
-      },
-      modRequest: {
-        projectRoot: '.',
-      },
-    };
-
-    const props: ConfigProps = {};
-    const updatedConfig = withAppDelegate(config, props) as CustomExpoConfig;
-
-    expect(
-      updatedConfig.modResults.contents === config.modResults.contents,
-    ).toBeTruthy();
-  });
-
   it('swift - should not modify config if push is not enabled', () => {
     // Prepare a mock config
     const config: CustomExpoConfig = {
@@ -92,62 +66,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     ).toBeTruthy();
   });
 
-  let modifiedConfigObjC: CustomExpoConfig | undefined;
   let modifiedConfigSwift: CustomExpoConfig | undefined;
-  it('objc - should modify config as per props', () => {
-    // Prepare a mock config
-    const config: CustomExpoConfig = {
-      name: 'test-app',
-      slug: 'test-app',
-      modResults: {
-        language: 'objc',
-        contents: ExpoModulesAppDelegate,
-      },
-      modRequest: {
-        projectRoot: '.',
-      },
-    };
-
-    const props: ConfigProps = {
-      iOSEnableMultitaskingCameraAccess: true,
-      addNoiseCancellation: true,
-      ringing: true,
-    };
-
-    const updatedConfig = withAppDelegate(config, props) as CustomExpoConfig;
-
-    expect(updatedConfig.modResults.contents).toMatch(
-      /#import "NoiseCancellationManagerObjc.h"/,
-    );
-
-    expect(updatedConfig.modResults.contents).toMatch(
-      /NoiseCancellationManagerObjc sharedInstance/,
-    );
-
-    expect(updatedConfig.modResults.contents).toMatch(
-      /#import <WebRTCModuleOptions.h>/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /options.enableMultitaskingCameraAccess = YES/,
-    );
-
-    // Managed-mode VoIP registration: the SDK owns the PKPushRegistry delegate
-    // internally, so the AppDelegate shouldn't have PushKit imports,
-    // PKPushRegistryDelegate conformance, or any pushRegistry(...) methods.
-    expect(updatedConfig.modResults.contents).toMatch(
-      /#import "StreamVideoReactNative.h"/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /\[StreamVideoReactNative voipRegistration\]/,
-    );
-    expect(updatedConfig.modResults.contents).not.toContain(
-      '<PushKit/PushKit.h>',
-    );
-    expect(updatedConfig.modResults.contents).not.toContain('pushRegistry:');
-
-    modifiedConfigObjC = updatedConfig;
-  });
-
   it('swift - should modify config as per props', () => {
     // Prepare a mock config
     const config: CustomExpoConfig = {
@@ -203,23 +122,6 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     modifiedConfigSwift = updatedConfig;
   });
 
-  it('objc - should not modify config if already added', () => {
-    const props: ConfigProps = {
-      iOSEnableMultitaskingCameraAccess: true,
-      ringing: true,
-    };
-
-    const updatedConfig = withAppDelegate(
-      modifiedConfigObjC!,
-      props,
-    ) as CustomExpoConfig;
-
-    expect(
-      modifiedConfigObjC!.modResults.contents ===
-        updatedConfig.modResults.contents,
-    ).toBeTruthy();
-  });
-
   it('swift - should not modify config if already added', () => {
     const props: ConfigProps = {
       iOSEnableMultitaskingCameraAccess: true,
@@ -237,33 +139,27 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     ).toBeTruthy();
   });
 
-  it('objc - should throw error for malformed manifest and unsupported language', () => {
-    // Prepare a mock config
+  it('should throw a descriptive error for an Objective-C AppDelegate', () => {
     const config: CustomExpoConfig = {
       name: 'test-app',
       slug: 'test-app',
       modResults: {
-        language: 'objc',
-        // malformed contents
-        contents: 'blabla',
+        language: 'objcpp',
+        contents: '@implementation AppDelegate\n@end',
       },
       modRequest: {
         projectRoot: '.',
       },
     };
-    const props: ConfigProps = {
-      ringing: true,
-    };
-    expect(() => withAppDelegate(config, props)).toThrow();
+    expect(() => withAppDelegate(config, { ringing: true })).toThrow(/Swift/);
   });
 
-  it('swift - should throw error for malformed manifest and unsupported language', () => {
-    // Prepare a mock config
+  it('swift - should throw error for a malformed AppDelegate', () => {
     const config: CustomExpoConfig = {
       name: 'test-app',
       slug: 'test-app',
       modResults: {
-        language: 'objc',
+        language: 'swift',
         // malformed contents
         contents: 'blabla',
       },
@@ -271,9 +167,6 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
         projectRoot: '.',
       },
     };
-    const props: ConfigProps = {
-      ringing: true,
-    };
-    expect(() => withAppDelegate(config, props)).toThrow();
+    expect(() => withAppDelegate(config, { ringing: true })).toThrow();
   });
 });

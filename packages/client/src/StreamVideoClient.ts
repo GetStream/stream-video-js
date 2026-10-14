@@ -38,6 +38,7 @@ import { logToConsole, ScopedLogger, videoLoggerSystem } from './logger';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
 import { ClientEventReporter } from './reporting';
+import { reconcileRingState } from './ringing';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -86,11 +87,11 @@ export class StreamVideoClient {
 
     if (clientOptions?.enableTimerWorker) enableTimerWorker();
 
-    const rootLogger = clientOptions?.logger || logToConsole;
-
+    const { default: defaultLogOptions, ...scopedLogOptions } =
+      clientOptions?.logOptions ?? {};
     videoLoggerSystem.configureLoggers({
-      default: { sink: rootLogger, level: clientOptions?.logLevel || 'warn' },
-      ...clientOptions?.logOptions,
+      ...scopedLogOptions,
+      default: { sink: logToConsole, level: 'warn', ...defaultLogOptions },
     });
 
     const streamClient = createCoordinatorClient(apiKey, clientOptions);
@@ -289,6 +290,13 @@ export class StreamVideoClient {
 
           if (call) {
             call.updateFromCallStateResponse(c);
+            // ring events missed while the WS was down aren't replayed
+            reconcileRingState(call, 'ring-poll-api').catch((err) => {
+              call.logger.error(
+                'Failed to reconcile the ring state after rewatch',
+                err,
+              );
+            });
           }
         }
 

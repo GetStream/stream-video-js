@@ -4,7 +4,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import React, { type PropsWithChildren, useEffect } from 'react';
 import NetInfo from '@react-native-community/netinfo';
-import { usePushRegisterEffect } from '../hooks';
+import { usePushRegisterEffect } from '../hooks/push';
 import {
   TranslationProvider,
   useStreami18n,

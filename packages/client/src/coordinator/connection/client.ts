@@ -55,7 +55,6 @@ export class StreamClient {
 
   node: boolean;
   options: StreamClientOptions;
-  secret?: string;
   connectUserTask: ConnectAPIResponse | null;
   tokenManager: TokenManager;
   user?: UserWithId;
@@ -76,7 +75,6 @@ export class StreamClient {
    *
    * @param {string} key - the api key
    * @param {StreamClientOptions} [options] - additional options, here you can pass custom options to axios instance
-   * @param {string} [options.secret] - the api secret
    * @param {boolean} [options.browser] - enforce the client to be in browser mode
    * @param {boolean} [options.warmUp] - default to false, if true, client will open a connection as soon as possible to speed up following requests
    * @param {Logger} [options.Logger] - custom logger
@@ -86,9 +84,6 @@ export class StreamClient {
   constructor(key: string, options?: StreamClientOptions) {
     // set the key
     this.key = key;
-
-    // set the secret
-    this.secret = options?.secret;
 
     // set the options... and figure out defaults...
     const inputOptions = options
@@ -142,9 +137,7 @@ export class StreamClient {
     this.persistUserOnConnectionFailure =
       this.options?.persistUserOnConnectionFailure;
 
-    // If it is a server-side client, then lets initialize the tokenManager, since token will be
-    // generated from secret.
-    this.tokenManager = new TokenManager(this.secret);
+    this.tokenManager = new TokenManager();
     this.consecutiveFailures = 0;
 
     this.defaultWSTimeout = this.options.defaultWsTimeout ?? 15000;
@@ -208,7 +201,7 @@ export class StreamClient {
       );
     }
 
-    if ((this.secret || this.node) && !this.options.allowServerSideConnect) {
+    if (this.node) {
       this.logger.warn(
         'Please do not use connectUser server side. Use our @stream-io/node-sdk instead: https://getstream.io/video/docs/api/',
       );

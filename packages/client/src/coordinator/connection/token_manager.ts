@@ -10,15 +10,10 @@ import type { TokenOrProvider, UserWithId } from './types';
 export class TokenManager {
   private loadTokenPromise: Promise<string> | null = null;
   private type: 'static' | 'provider' = 'static';
-  private readonly secret?: string;
   private token?: string;
   private tokenProvider?: TokenOrProvider;
   private user?: UserWithId;
   private isAnonymous?: boolean;
-
-  constructor(secret?: string) {
-    this.secret = secret;
-  }
 
   /**
    * Set the static string token or token provider.
@@ -67,8 +62,7 @@ export class TokenManager {
     // allow empty token for anon user
     if (this.user && this.isAnonymous && !tokenOrProvider) return;
 
-    // Don't allow empty token for non-server side client.
-    if (!this.secret && !tokenOrProvider) {
+    if (!tokenOrProvider) {
       throw new Error('User token can not be empty');
     }
 

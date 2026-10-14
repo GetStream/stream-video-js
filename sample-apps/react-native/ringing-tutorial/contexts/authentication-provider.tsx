@@ -51,7 +51,7 @@ export function AuthenticationProvider({ children }: PropsWithChildren) {
         image: `https://robohash.org/${userWithToken.id}`,
       },
       options: {
-        logLevel: 'debug',
+        logOptions: { default: { level: 'debug' } },
       },
     });
 

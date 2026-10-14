@@ -30,7 +30,7 @@ const makeCallingx = (overrides: Partial<any> = {}) => ({
   isCallTracked: jest.fn().mockReturnValue(true),
   getRegisteredCallIds: jest.fn().mockReturnValue(['type:id']),
   getAvailableAudioEndpoints: jest.fn(),
-  requestAudioEndpointChange: jest.fn().mockResolvedValue(undefined),
+  requestAudioEndpointChange: jest.fn(),
   setDefaultAudioDeviceEndpointType: jest.fn(),
   addEventListener: jest.fn().mockReturnValue({ remove: jest.fn() }),
   ...overrides,
@@ -110,7 +110,7 @@ describe('CallManager Android Telecom branch', () => {
   it('adapts a callingx snapshot to AudioDevicesState', async () => {
     const nativeManager = makeNativeManager();
     const callingx = makeCallingx({
-      getAvailableAudioEndpoints: jest.fn().mockResolvedValue(speakerSnapshot),
+      getAvailableAudioEndpoints: jest.fn().mockReturnValue(speakerSnapshot),
     });
     const { CallManager } = loadCallManager({
       os: 'android',
@@ -135,7 +135,7 @@ describe('CallManager Android Telecom branch', () => {
   it('select routes via Telecom directly by endpoint id', async () => {
     const nativeManager = makeNativeManager();
     const callingx = makeCallingx({
-      getAvailableAudioEndpoints: jest.fn().mockResolvedValue(speakerSnapshot),
+      getAvailableAudioEndpoints: jest.fn().mockReturnValue(speakerSnapshot),
     });
     const { CallManager } = loadCallManager({
       os: 'android',
@@ -155,7 +155,7 @@ describe('CallManager Android Telecom branch', () => {
   it('setForceSpeakerphoneOn(true) routes to the speaker endpoint', async () => {
     const nativeManager = makeNativeManager();
     const callingx = makeCallingx({
-      getAvailableAudioEndpoints: jest.fn().mockResolvedValue(speakerSnapshot),
+      getAvailableAudioEndpoints: jest.fn().mockReturnValue(speakerSnapshot),
     });
     const { CallManager } = loadCallManager({
       os: 'android',
@@ -176,7 +176,7 @@ describe('CallManager Android Telecom branch', () => {
     const nativeManager = makeNativeManager();
     // No wired device present -> should pick bluetooth over earpiece.
     const callingx = makeCallingx({
-      getAvailableAudioEndpoints: jest.fn().mockResolvedValue(speakerSnapshot),
+      getAvailableAudioEndpoints: jest.fn().mockReturnValue(speakerSnapshot),
     });
     const { CallManager } = loadCallManager({
       os: 'android',
@@ -237,7 +237,7 @@ describe('CallManager Android Telecom branch', () => {
   it('addChangeListener subscribes to the signal-only route event and re-fetches state', async () => {
     const nativeManager = makeNativeManager();
     const callingx = makeCallingx({
-      getAvailableAudioEndpoints: jest.fn().mockResolvedValue(speakerSnapshot),
+      getAvailableAudioEndpoints: jest.fn().mockReturnValue(speakerSnapshot),
     });
     const { CallManager } = loadCallManager({
       os: 'android',

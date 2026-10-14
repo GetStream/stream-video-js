@@ -54,7 +54,10 @@ export const GuestMeetingScreen = (props: Props) => {
         appEnvironment,
       );
 
-      const options = { logLevel: 'warn', rejectCallWhenBusy: false } as const;
+      const options = {
+        logOptions: { default: { level: 'warn' } },
+        rejectCallWhenBusy: false,
+      } as const;
       if (mode === 'guest') {
         _videoClient = StreamVideoClient.getOrCreateInstance({
           apiKey,

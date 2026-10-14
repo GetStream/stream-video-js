@@ -178,7 +178,7 @@ export async function joinCallingxCall(
       // never answer a call that was hung up while the OS was displaying it -
       // the cleanup below ends the registration instead
       if (isCancelled?.()) return;
-      await CallingxModule.answerIncomingCall(call.cid);
+      CallingxModule.answerIncomingCall(call.cid);
     } else {
       await CallingxModule.startCall(...callArgs);
     }
@@ -215,7 +215,7 @@ export async function endCallingxCall(call: Call, reason?: EndCallReason) {
   const logger = videoLoggerSystem.getLogger('callingx');
   try {
     logger.debug(`endCallingxCall: Ending call ${call.cid}`);
-    await CallingxModule.endCallWithReason(call.cid, reason ?? 'local');
+    CallingxModule.endCallWithReason(call.cid, reason ?? 'local');
   } catch (error) {
     logger.error(
       `endCallingxCall: Error ending call in callingx: ${call.cid}`,

@@ -31,8 +31,6 @@
 NSNotificationName const kBroadcastStartedNotification = @"iOS_BroadcastStarted";
 NSNotificationName const kBroadcastStoppedNotification = @"iOS_BroadcastStopped";
 
-static dispatch_queue_t _dictionaryQueue = nil;
-
 void broadcastNotificationCallback(CFNotificationCenterRef center,
                                    void *observer,
                                    CFStringRef name,
@@ -58,20 +56,6 @@ RCT_EXPORT_MODULE();
 
 +(BOOL)requiresMainQueueSetup {
     return NO;
-}
-
-+(void)setup {
-    // RTCDefaultVideoEncoderFactory *videoEncoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
-    // RTCVideoEncoderFactorySimulcast *simulcastVideoEncoderFactory = [[RTCVideoEncoderFactorySimulcast alloc] initWithPrimary:videoEncoderFactory fallback:videoEncoderFactory];
-    // WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
-    // options.videoEncoderFactory = simulcastVideoEncoderFactory;
-}
-
-+(void)initializeSharedDictionaries {
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        _dictionaryQueue = dispatch_queue_create("com.stream.video.dictionary", DISPATCH_QUEUE_SERIAL);
-    });
 }
 
 +(void)voipRegistration {
@@ -104,7 +88,6 @@ RCT_EXPORT_MODULE();
         _notificationCenter = CFNotificationCenterGetDarwinNotifyCenter();
         [UIDevice currentDevice].batteryMonitoringEnabled = YES;
         [self setupScreenshareEventObserver];
-        [StreamVideoReactNative initializeSharedDictionaries];
     }
     return self;
 }
@@ -369,7 +352,7 @@ RCT_EXPORT_METHOD(checkPermission:(NSString *)permission
     
     for(CXCall *call in callObserver.calls){
         if(call.hasConnected){
-            NSLog(@"[RNCallKeep] Found active call with UUID: %@", call.UUID);
+            NSLog(@"[StreamVideoReactNative] Found active call with UUID: %@", call.UUID);
             return YES;
         }
     }

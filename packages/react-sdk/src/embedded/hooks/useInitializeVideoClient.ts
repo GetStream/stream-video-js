@@ -37,7 +37,9 @@ export const useInitializeVideoClient = ({
   useEffect(() => {
     if (!apiKey) return;
 
-    const options = logLevel ? { logLevel } : undefined;
+    const options = logLevel
+      ? { logOptions: { default: { level: logLevel } } }
+      : undefined;
     let _client: StreamVideoClient | undefined;
     try {
       if (user?.type === 'guest') {

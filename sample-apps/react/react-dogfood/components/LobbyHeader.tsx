@@ -43,10 +43,7 @@ export const UserMenu = () => {
               });
             }}
           >
-            <Icon
-              className="rd__button__icon rd__user-session__menu-icon"
-              icon="logout"
-            />
+            <Icon className="rd__button__icon" icon="logout" />
             Logout
           </button>
         </li>

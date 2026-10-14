@@ -93,7 +93,7 @@ export const TranscriptionSettings = () => {
   }, [call, transcriptionLanguage]);
 
   return (
-    <div className="rd__transcriptions">
+    <div>
       <div className="rd__transcriptions__status">
         <StatCardGrid>
           <ClosedCaptionStatus />

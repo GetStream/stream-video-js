@@ -17,11 +17,11 @@ const mockCallingxModule = {
   displayIncomingCall: jest.fn(async (cid: string) => {
     mockTracked.add(cid);
   }),
-  answerIncomingCall: jest.fn().mockResolvedValue(undefined),
+  answerIncomingCall: jest.fn(),
   startCall: jest.fn(async (cid: string) => {
     mockTracked.add(cid);
   }),
-  endCallWithReason: jest.fn(async (cid: string) => {
+  endCallWithReason: jest.fn((cid: string) => {
     mockTracked.delete(cid);
   }),
 };
@@ -47,7 +47,10 @@ const createCall = () => {
   const client = new StreamVideoClient({
     apiKey: 'abc',
     // no network from these fixtures - see ringingJoinIntegration.test.ts
-    options: { clientEventsReportingEnabled: false, logLevel: 'error' },
+    options: {
+      clientEventsReportingEnabled: false,
+      logOptions: { default: { level: 'error' } },
+    },
   });
   const call = client.call(
     'test',

@@ -10,10 +10,6 @@ import { AudioInterruptionTracer } from './AudioInterruptionTracer';
 import { pushUnsubscriptionCallbacks } from '../../utils/push/internal/constants';
 import { useCallingExpWithCallingStateEffect } from '../../hooks/push/useCallingExpWithCallingStateEffect';
 
-// const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
-
-// const isAndroid8OrAbove = Platform.OS === 'android' && Platform.Version >= 26;
-
 export type StreamCallProps = {
   /**
    * Stream Call instance propagated to the component's children as a part of StreamCallContext.

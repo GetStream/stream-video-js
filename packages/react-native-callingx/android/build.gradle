@@ -1,6 +1,16 @@
 buildscript {
-  ext.getExtOrDefault = {name ->
-    return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['Callingx_' + name]
+  ext.Callingx = [
+    kotlinVersion: "2.0.21",
+    minSdkVersion: 24,
+    compileSdkVersion: 35
+  ]
+
+  ext.getExtOrDefault = { prop ->
+    if (rootProject.ext.has(prop)) {
+      return rootProject.ext.get(prop)
+    }
+
+    return Callingx[prop]
   }
 
   repositories {
@@ -15,13 +25,12 @@ buildscript {
   }
 }
 
-
 apply plugin: "com.android.library"
 // AGP 9 ships built-in Kotlin support and registers the `kotlin` extension
 // itself. Applying the Kotlin plugin on top of it fails configuration with
 // "Cannot add extension with name 'kotlin'". Only apply it when nothing has
 // registered that extension yet.
-if (project.extensions.findByName('kotlin') == null) {
+if (project.extensions.findByName("kotlin") == null) {
   apply plugin: "kotlin-android"
 }
 
@@ -29,70 +38,33 @@ apply plugin: "kotlin-parcelize"
 
 apply plugin: "com.facebook.react"
 
-def getExtOrIntegerDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["Callingx_" + name]).toInteger()
-}
-
-def isNewArchitectureEnabled() {
-  return rootProject.hasProperty("newArchEnabled") && rootProject.newArchEnabled == "true"
-}
-
 android {
   namespace "io.getstream.rn.callingx"
 
-  compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
+  compileSdkVersion getExtOrDefault("compileSdkVersion")
 
   defaultConfig {
-    minSdkVersion getExtOrIntegerDefault("minSdkVersion")
-    targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
+    minSdkVersion getExtOrDefault("minSdkVersion")
   }
 
   buildFeatures {
     buildConfig true
   }
 
-  buildTypes {
-    release {
-      minifyEnabled false
-    }
-  }
-
-  lint {
-    disable "GradleCompatible"
-  }
-
   compileOptions {
-    sourceCompatibility JavaVersion.VERSION_11
-    targetCompatibility JavaVersion.VERSION_11
-  }
-
-  sourceSets {
-    main {
-      java.srcDirs += [
-        "generated/java",
-        "generated/jni",
-        "build/generated/source/codegen/java",
-        "build/generated/source/codegen/jni",
-      ]
-      if (isNewArchitectureEnabled()) {
-        java.srcDirs += ["src/newarch"]
-      } else {
-        java.srcDirs += ["src/oldarch"]
-      }
-    }
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
   }
 }
 
-repositories {
-  mavenCentral()
-  google()
+kotlin {
+  compilerOptions {
+    jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+  }
 }
-
-def kotlin_version = getExtOrDefault("kotlinVersion")
 
 dependencies {
   implementation "com.facebook.react:react-android"
-  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation "androidx.core:core-telecom:1.0.1"
   // Compile-time only dependency so StreamMessagingService can reference RemoteMessage.
   // The consuming app (via @react-native-firebase/messaging) must provide the actual runtime version.

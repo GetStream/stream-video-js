@@ -43,14 +43,14 @@ export default function Guest() {
             <div className="rd__guest-page__config">
               <input
                 type="text"
-                className="rd__input rd__input--underlined rd__join-call-input"
+                className="rd__input"
                 placeholder="Meeting ID"
                 value={callId}
                 onChange={(e) => setCallId(e.target.value)}
               />
               <input
                 type="text"
-                className="rd__input rd__input--underlined rd__join-call-input"
+                className="rd__input"
                 placeholder="Your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}

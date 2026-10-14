@@ -199,6 +199,7 @@ import stream_react_native_webrtc
         
             if error == nil {
                 CallingxLog.core.debugPublic("[reportNewIncomingCall] success callId = \(callId)")
+                scheduleUnansweredCallTimeout(callId: callId, uuid: uuid)
                 resolve?(true)
             } else {
               reject?("DISPLAY_INCOMING_CALL_ERROR", error?.localizedDescription, error)
@@ -237,6 +238,19 @@ import stream_react_native_webrtc
         uuidStorage?.removeCid(callId)
     }
     
+    /// Native backstop: ends an incoming call still unanswered after `displayCallTimeout`, even
+    /// when JS never ends it (e.g. it missed the caller's cancel while iOS kept the app suspended).
+    private static func scheduleUnansweredCallTimeout(callId: String, uuid: UUID) {
+        guard let timeout = Settings.getSettings()["displayCallTimeout"] as? Int, timeout > 0 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(timeout)) {
+            // Same call (cid not re-used), never answered, not ended yet.
+            guard let call = uuidStorage?.getCall(forCid: callId), call.uuid == uuid,
+                  !call.isAnswered, !call.hasEnded else { return }
+            CallingxLog.core.debugPublic("[displayCallTimeout] unanswered after \(timeout) ms, ending callId = \(callId)")
+            endCall(callId, reason: CXCallEndedReason.unanswered.rawValue)
+        }
+    }
+
     @objc public static func getIncomingCallErrorCode(_ error: Error) -> String {
         let nsError = error as NSError
         switch nsError.code {
@@ -496,7 +510,6 @@ import stream_react_native_webrtc
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId)
         CallingxImpl.reportNewIncomingCall(
             callId: callId,
             handle: phoneNumber,
@@ -512,19 +525,6 @@ import stream_react_native_webrtc
             resolve: resolve,
             reject: reject
         )
-        
-        let wasAlreadyAnswered = uuid != nil
-        if !wasAlreadyAnswered {
-            let settings = Settings.getSettings()
-            if let timeout = settings["displayCallTimeout"] as? Int {
-                let popTime = DispatchTime.now() + .milliseconds(timeout)
-                DispatchQueue.main.asyncAfter(deadline: popTime) { [weak self] in
-                    guard let self = self, !self.isSetup else { return }
-                    CallingxLog.core.debugPublic("Displayed a call without a reachable app, ending the call: \(callId)")
-                    CallingxImpl.endCall(callId, reason: CXCallEndedReason.failed.rawValue)
-                }
-            }
-        }
     }
     
     @objc public func endCall(_ callId: String) -> Bool {

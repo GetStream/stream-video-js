@@ -74,7 +74,7 @@ export const defaultDeps = (): HarnessDeps => ({
       token,
       // Debug level surfaces the SDK's "E2EE encryptor attached to sender" line
       // and any worker errors, which is most of the point of this harness.
-      options: { logLevel: 'debug' },
+      options: { logOptions: { default: { level: 'debug' } } },
       tokenProvider: () => fetchCredentials(userId).then((c) => c.token),
     }),
   createManager: (userId) => EncryptionManager.create(userId),

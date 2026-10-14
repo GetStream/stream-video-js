@@ -28,10 +28,6 @@
   }
 }
 
-.str-video__embedded-host-lobby {
-  background: var(--str-video__background-core-app);
-}
-
 .str-video__embedded-viewer-lobby {
   background: var(--str-video__background-core-app);
   color: var(--str-video__text-secondary);
@@ -48,17 +44,9 @@
     opacity: 0.7;
   }
 
-  &__participant-count {
-    opacity: 0.6;
-  }
-
   &__auto-join {
     input[type='checkbox'] {
       accent-color: var(--str-video__control-checkbox-bg-selected);
     }
-  }
-
-  &__join-error {
-    color: var(--str-video__accent-error);
   }
 }

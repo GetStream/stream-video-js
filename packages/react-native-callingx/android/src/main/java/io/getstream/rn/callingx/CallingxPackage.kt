@@ -11,6 +11,16 @@ class CallingPackage : BaseReactPackage() {
             if (name == CallingxModule.NAME) CallingxModule(reactContext) else null
 
     override fun getReactModuleInfoProvider(): ReactModuleInfoProvider = ReactModuleInfoProvider {
-        mapOf(CallingxModule.NAME to ReactModuleInfo(CallingxModule.NAME, CallingxModule.NAME, false, false, false, true))
+        mapOf(
+                CallingxModule.NAME to
+                        ReactModuleInfo(
+                                name = CallingxModule.NAME,
+                                className = CallingxModule.NAME,
+                                canOverrideExistingModule = false,
+                                needsEagerInit = false,
+                                isCxxModule = false,
+                                isTurboModule = true
+                        )
+        )
     }
 }

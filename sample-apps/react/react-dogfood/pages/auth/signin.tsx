@@ -93,14 +93,11 @@ export default function SignIn({
                   </div>
                 )}
                 <button
-                  className="rd__button rd__auth-provider"
+                  className="rd__button"
                   onClick={() => signIn(provider.id, { callbackUrl })}
                   data-testid="sign-in-button"
                 >
-                  <Icon
-                    className="rd__button__icon rd__auth-provider__icon"
-                    icon="provider-google"
-                  />
+                  <Icon className="rd__button__icon" icon="provider-google" />
                   <span>
                     {t(
                       'auth.signIn.withProvider.label',
@@ -140,9 +137,9 @@ const GuestLoginItem = (props: {
     }
   }, [fromQR, logIn]);
   return (
-    <li className="rd__auth-item rd__auth-item--guest-login">
+    <li className="rd__auth-item">
       <button
-        className="rd__button rd__button--primary rd__button--large rd__auth-provider"
+        className="rd__button rd__button--primary rd__button--large"
         onClick={logIn}
         data-testid="guest-sign-in-button"
       >

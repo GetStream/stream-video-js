@@ -45,19 +45,6 @@
     margin-bottom: var(--str-video__spacing-sm);
   }
 
-  .rd__auth-item--guest-login {
-    .rd__auth-item--guest_name_wrapper {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      padding: 8px 0;
-
-      .rd__input {
-        flex: 1;
-      }
-    }
-  }
-
   .rd__auth-item--secondary {
     background-color: var(--str-video__background-core-surface-subtle);
     border-radius: var(--str-video__radius-2xl);

@@ -1,12 +1,12 @@
-import { NativeEventEmitter, type EventSubscription } from 'react-native';
-import NativeCallingModule from './spec/NativeCallingx';
+import type { EventSubscription } from 'react-native';
+import NativeCallingModule from './NativeCallingx';
 import type {
   EventData,
   EventName,
   VoipEventData,
   VoipEventName,
 } from './types';
-import { isVoipEvent, isTurboModuleEnabled } from './utils/utils';
+import { isVoipEvent } from './utils/utils';
 
 type EventListener<T> = (params: T) => void;
 
@@ -31,23 +31,10 @@ class EventManager<Name extends EventName | VoipEventName, Params> {
         eventListeners.forEach((listener) => listener(event.params as Params));
       };
 
-      if (isTurboModuleEnabled) {
-        if (isVoipEvent(eventName)) {
-          this.subscription = NativeCallingModule.onNewVoipEvent(eventHandler);
-        } else {
-          this.subscription = NativeCallingModule.onNewEvent(eventHandler);
-        }
+      if (isVoipEvent(eventName)) {
+        this.subscription = NativeCallingModule.onNewVoipEvent(eventHandler);
       } else {
-        const nativeEmitter = new NativeEventEmitter(
-          NativeCallingModule as any,
-        );
-        const nativeEventName = isVoipEvent(eventName)
-          ? 'onNewVoipEvent'
-          : 'onNewEvent';
-        this.subscription = nativeEmitter.addListener(
-          nativeEventName,
-          eventHandler as any,
-        );
+        this.subscription = NativeCallingModule.onNewEvent(eventHandler);
       }
     }
   }

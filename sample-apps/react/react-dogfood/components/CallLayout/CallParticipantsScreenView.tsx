@@ -60,7 +60,6 @@ export const CallParticipantsScreenView = (props: {
             </span>
             <div className="str-video__call-participants-screen-view__wrapper">
               <Video
-                className="str-video__screen-share"
                 participant={firstScreenSharingParticipant}
                 trackType="screenShareTrack"
                 autoPlay

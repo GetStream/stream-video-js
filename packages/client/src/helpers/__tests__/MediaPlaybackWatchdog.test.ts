@@ -59,6 +59,7 @@ type SetupOpts = {
   kind?: 'audio' | 'video';
   state?: FakeMediaState;
   isBlocked?: () => boolean;
+  onGiveUp?: () => void;
 };
 
 describe('MediaPlaybackWatchdog', () => {
@@ -77,6 +78,7 @@ describe('MediaPlaybackWatchdog', () => {
       kind,
       tracer,
       isBlocked: opts.isBlocked,
+      onGiveUp: opts.onGiveUp,
     });
   };
 
@@ -161,6 +163,24 @@ describe('MediaPlaybackWatchdog', () => {
     expect(play).toHaveBeenCalledTimes(1);
 
     await vi.advanceTimersByTimeAsync(6000);
+    expect(play).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps the settle window running through a routine suspend', async () => {
+    el.dispatchEvent(new Event('pause'));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(play).toHaveBeenCalledTimes(1);
+
+    setPaused(el, false);
+    el.dispatchEvent(new Event('playing'));
+    await vi.advanceTimersByTimeAsync(500);
+    el.dispatchEvent(new Event('suspend'));
+    await vi.advanceTimersByTimeAsync(500);
+
+    // settled, so the next pause recovers immediately instead of backing off
+    setPaused(el, true);
+    el.dispatchEvent(new Event('pause'));
+    await vi.advanceTimersByTimeAsync(0);
     expect(play).toHaveBeenCalledTimes(2);
   });
 
@@ -295,6 +315,126 @@ describe('MediaPlaybackWatchdog', () => {
     await vi.advanceTimersByTimeAsync(6000);
 
     expect(play).not.toHaveBeenCalled();
+  });
+
+  it('calls onGiveUp once when the attempts are exhausted', async () => {
+    const onGiveUp = vi.fn();
+    setup({ onGiveUp });
+    play.mockRejectedValue(new Error('nope'));
+
+    el.dispatchEvent(new Event('pause'));
+    for (let i = 0; i < 20; i++) {
+      await vi.advanceTimersByTimeAsync(6000);
+    }
+    el.dispatchEvent(new Event('pause'));
+    await vi.advanceTimersByTimeAsync(6000);
+
+    expect(play).toHaveBeenCalledTimes(10);
+    expect(onGiveUp).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onGiveUp when playback recovers', async () => {
+    const onGiveUp = vi.fn();
+    setup({ onGiveUp });
+
+    el.dispatchEvent(new Event('pause'));
+    for (let i = 0; i < 20; i++) {
+      await vi.advanceTimersByTimeAsync(6000);
+    }
+
+    expect(play).toHaveBeenCalledTimes(1);
+    expect(onGiveUp).not.toHaveBeenCalled();
+  });
+
+  describe('rearm', () => {
+    it('restarts recovery with a fresh budget after giving up', async () => {
+      play.mockRejectedValue(new Error('nope'));
+      el.dispatchEvent(new Event('pause'));
+      for (let i = 0; i < 20; i++) {
+        await vi.advanceTimersByTimeAsync(6000);
+      }
+      expect(play).toHaveBeenCalledTimes(10);
+
+      watchdog.rearm();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(play).toHaveBeenCalledTimes(11);
+
+      for (let i = 0; i < 20; i++) {
+        await vi.advanceTimersByTimeAsync(6000);
+      }
+      expect(play).toHaveBeenCalledTimes(20);
+    });
+
+    it('tries an element that regular recovery skips as blocked', async () => {
+      setup({ isBlocked: () => true });
+
+      el.dispatchEvent(new Event('pause'));
+      await vi.advanceTimersByTimeAsync(6000);
+      expect(play).not.toHaveBeenCalled();
+
+      watchdog.rearm();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(play).toHaveBeenCalledTimes(1);
+    });
+
+    it('tries an element that regular recovery skips as not ready', async () => {
+      setup({ state: { readyState: 0 } });
+
+      watchdog.rearm();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(play).toHaveBeenCalledTimes(1);
+    });
+
+    it('replaces a pending backoff retry with an immediate attempt', async () => {
+      play.mockRejectedValueOnce(new Error('fail-1'));
+      el.dispatchEvent(new Event('pause'));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(play).toHaveBeenCalledTimes(1);
+
+      watchdog.rearm();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(play).toHaveBeenCalledTimes(2);
+
+      await vi.advanceTimersByTimeAsync(6000);
+      expect(play).toHaveBeenCalledTimes(2);
+    });
+
+    it('does nothing when the element is playing', async () => {
+      setup({ state: { paused: false } });
+
+      watchdog.rearm();
+      await vi.advanceTimersByTimeAsync(6000);
+
+      expect(play).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when the element has no source', async () => {
+      setup({ state: { srcObject: null } });
+
+      watchdog.rearm();
+      await vi.advanceTimersByTimeAsync(6000);
+
+      expect(play).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when the element has ended', async () => {
+      setup({ state: { ended: true } });
+
+      watchdog.rearm();
+      await vi.advanceTimersByTimeAsync(6000);
+
+      expect(play).not.toHaveBeenCalled();
+    });
+
+    it('does nothing after dispose', async () => {
+      watchdog.dispose();
+
+      watchdog.rearm();
+      await vi.advanceTimersByTimeAsync(6000);
+
+      expect(play).not.toHaveBeenCalled();
+    });
   });
 
   it('does not stack timers when pause fires multiple times before the first attempt', async () => {

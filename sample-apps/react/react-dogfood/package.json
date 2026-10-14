@@ -30,7 +30,7 @@
     "mapbox-gl": "^3.32.0",
     "mobile-device-detect": "^0.4.3",
     "nanoid": "^5.1.16",
-    "next": "^16.2.12",
+    "next": "^16.3.6",
     "next-auth": "^4.24.15",
     "qrcode.react": "^4.2.0",
     "raw-body": "^3.0.2",

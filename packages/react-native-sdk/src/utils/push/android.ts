@@ -61,18 +61,3 @@ export async function initAndroidPushToken(
   const token = await messaging().getToken();
   await setDeviceToken(token);
 }
-
-let firebaseDataHandlerDeprecationLogged = false;
-/**
- * @deprecated Ring notifications are now handled by the SDK internally. This method is a no-op;
- * you can safely remove `firebaseDataHandler(...)` wiring from your Firebase messaging handlers.
- */
-export const firebaseDataHandler = async (data?: any) => {
-  void data;
-  if (!firebaseDataHandlerDeprecationLogged) {
-    firebaseDataHandlerDeprecationLogged = true;
-    console.warn(
-      '[@stream-io/video-react-native-sdk] `firebaseDataHandler` is deprecated. Ring notifications are now handled by the SDK internally — you can remove calls to it from your Firebase messaging handlers.',
-    );
-  }
-};

@@ -9,25 +9,6 @@
   z-index: 1;
 }
 
-.str-video__device-settings__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 16px 0px 16px;
-  margin-bottom: 33px;
-}
-
-.str-video__icon.str-video__device-settings__settings-icon {
-  height: 24px;
-  width: 24px;
-  color: var(--str-video__text-primary);
-}
-
-.str-video__device-settings__close-button {
-  color: var(--str-video__text-primary);
-  background-color: transparent;
-}
-
 .str-video__menu-container:has(.str-video__device-settings__device-kind) {
   padding-block: var(--str-video__spacing-xxs);
 }
@@ -50,7 +31,6 @@
     line-height: var(--str-video__typography-line-height-normal);
   }
 
-  .str-video__option,
   .str-video__device-settings__option {
     display: flex;
     align-items: center;

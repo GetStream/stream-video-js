@@ -103,7 +103,6 @@ async function startForegroundService(call_cid: string): Promise<boolean> {
  * This hook is used to keep the call alive in the background for Android.
  * It starts a foreground service to keep the call alive as soon as the call is joined
  * and stops the foreground Service when the call is left.
- * Additionally: also responsible for cancelling any notifee displayed notification when the call has transitioned out of ringing
  */
 export const useAndroidKeepCallAliveEffect = () => {
   const foregroundServiceStartedRef = useRef(false);
@@ -138,7 +137,7 @@ export const useAndroidKeepCallAliveEffect = () => {
     if (callingxKeepAliveOwnerRef.current && isCallEnded) {
       const currentOwner = callingxKeepAliveOwnerRef.current;
       callingxKeepAliveOwnerRef.current = undefined;
-      callingx?.releaseBackgroundTask(currentOwner).catch(() => {});
+      callingx?.releaseBackgroundTask(currentOwner);
       return undefined;
     }
 
@@ -152,14 +151,16 @@ export const useAndroidKeepCallAliveEffect = () => {
       ) {
         const owner = `keepalive:${activeCallCid}`;
         callingxKeepAliveOwnerRef.current = owner;
-        callingx.acquireBackgroundTask(owner).catch((e) => {
+        try {
+          callingx.acquireBackgroundTask(owner);
+        } catch (e) {
           if (callingxKeepAliveOwnerRef.current === owner) {
             callingxKeepAliveOwnerRef.current = undefined;
           }
           videoLoggerSystem
             .getLogger('useAndroidKeepCallAliveEffect')
             .warn('Failed to acquire callingx keep-alive background task', e);
-        });
+        }
       }
       return undefined;
     }
@@ -233,16 +234,7 @@ export const useAndroidKeepCallAliveEffect = () => {
       if (callingxKeepAliveOwnerRef.current) {
         const owner = callingxKeepAliveOwnerRef.current;
         callingxKeepAliveOwnerRef.current = undefined;
-        getCallingxLibIfAvailable()
-          ?.releaseBackgroundTask(owner)
-          .catch(() => {
-            videoLoggerSystem
-              .getLogger('useAndroidKeepCallAliveEffect')
-              .warn(
-                'Failed to release callingx keep-alive background task',
-                owner,
-              );
-          });
+        getCallingxLibIfAvailable()?.releaseBackgroundTask(owner);
       }
     };
   }, []);

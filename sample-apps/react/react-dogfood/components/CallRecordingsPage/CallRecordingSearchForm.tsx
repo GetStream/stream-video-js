@@ -109,11 +109,11 @@ export const CallRecordingSearchForm = ({
     <div className="rd__call-recordings-page-form">
       <form onSubmit={handleSubmit} id={formId}>
         <div className="rd__call-recordings-page-form__container">
-          <div className="rd__call-type-dropdown-container">
+          <div>
             <input
               form={formId}
               ref={setCallTypeInput}
-              className="rd__input rd__input--underlined rd__call-recording-search-input"
+              className="rd__input"
               type="text"
               onChange={handleChange}
               placeholder={t(
@@ -125,7 +125,7 @@ export const CallRecordingSearchForm = ({
           </div>
           <input
             form={formId}
-            className="rd__input rd__input--underlined rd__call-recording-search-input"
+            className="rd__input"
             type="text"
             onChange={handleChange}
             ref={setCallIdInput}
