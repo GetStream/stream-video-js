@@ -19,6 +19,7 @@ import { toJSON } from './helpers/iceCandiates';
 import {
   BasePeerConnectionOpts,
   OnIceConnected,
+  OnNoLocalCandidates,
   OnPeerConnectionStateChange,
   OnReconnectionNeeded,
   OnRemoteTrackUnmute,
@@ -43,10 +44,12 @@ export abstract class BasePeerConnection {
 
   protected onReconnectionNeeded?: OnReconnectionNeeded;
   private onIceConnected?: OnIceConnected;
+  private onNoLocalCandidates?: OnNoLocalCandidates;
   private onPeerConnectionStateChange?: OnPeerConnectionStateChange;
   protected onRemoteTrackUnmute?: OnRemoteTrackUnmute;
   private readonly iceRestartDelay: number;
   private iceHasEverConnected = false;
+  private localCandidatesGathered = 0;
   private iceRestartTimeout?: NodeJS.Timeout;
   private preConnectStuckTimeout?: NodeJS.Timeout;
   protected isIceRestarting = false;
@@ -73,6 +76,7 @@ export abstract class BasePeerConnection {
       dispatcher,
       onReconnectionNeeded,
       onIceConnected,
+      onNoLocalCandidates,
       onPeerConnectionStateChange,
       onRemoteTrackUnmute,
       tag,
@@ -93,6 +97,7 @@ export abstract class BasePeerConnection {
     this.tag = tag;
     this.onReconnectionNeeded = onReconnectionNeeded;
     this.onIceConnected = onIceConnected;
+    this.onNoLocalCandidates = onNoLocalCandidates;
     this.onPeerConnectionStateChange = onPeerConnectionStateChange;
     this.onRemoteTrackUnmute = onRemoteTrackUnmute;
     this.logger = videoLoggerSystem.getLogger(
@@ -148,6 +153,7 @@ export abstract class BasePeerConnection {
     this.preConnectStuckTimeout = undefined;
     this.onReconnectionNeeded = undefined;
     this.onIceConnected = undefined;
+    this.onNoLocalCandidates = undefined;
     this.onPeerConnectionStateChange = undefined;
     this.onRemoteTrackUnmute = undefined;
     this.isDisposed = true;
@@ -286,6 +292,20 @@ export abstract class BasePeerConnection {
   };
 
   /**
+   * Returns `true` once ICE has reached `connected`/`completed` at least
+   * once during the lifetime of this peer connection.
+   */
+  hasIceEverConnected = () => this.iceHasEverConnected;
+
+  /**
+   * Returns `true` when the latest ICE gathering round completed without
+   * producing a single local candidate.
+   */
+  hasNoLocalCandidates = () =>
+    this.pc.iceGatheringState === 'complete' &&
+    this.localCandidatesGathered === 0;
+
+  /**
    * Checks if the `RTCPeerConnection` is healthy.
    * It checks the ICE connection state and the peer connection state.
    * If either state is `failed`, `disconnected`, or `closed`,
@@ -311,6 +331,7 @@ export abstract class BasePeerConnection {
       this.logger.debug('null ice candidate');
       return;
     }
+    if (candidate.candidate) this.localCandidatesGathered++;
 
     const iceCandidate = toJSON(candidate);
     this.sfuClient
@@ -389,6 +410,20 @@ export abstract class BasePeerConnection {
   private handleConnectionStateUpdate = (
     state: RTCIceConnectionState | RTCPeerConnectionState,
   ) => {
+    // Fire `onIceConnected` exactly once per peer-connection lifetime, the
+    // first time ICE reaches `connected`/`completed` end-to-end. Recorded
+    // ahead of the guards below so a connection established while offline,
+    // reconnecting or restarting ICE is not missed. Used by `Call` to reset
+    // the unsupported-network failure counter only after WebRTC has actually
+    // recovered, not merely on SFU join.
+    if (
+      (state === 'connected' || state === 'completed') &&
+      !this.iceHasEverConnected
+    ) {
+      this.iceHasEverConnected = true;
+      this.onIceConnected?.(this.peerType);
+    }
+
     const { callingState } = this.state;
     if (callingState === CallingState.OFFLINE) return;
     if (callingState === CallingState.RECONNECTING) return;
@@ -466,14 +501,6 @@ export abstract class BasePeerConnection {
 
       case 'connected':
       case 'completed':
-        // Fire `onIceConnected` exactly once per peer-connection lifetime —
-        // the first time ICE reaches `connected`/`completed` end-to-end.
-        // Used by `Call` to reset the unsupported-network failure counter
-        // only after WebRTC has actually recovered, not merely on SFU join.
-        if (!this.iceHasEverConnected) {
-          this.iceHasEverConnected = true;
-          this.onIceConnected?.(this.peerType);
-        }
         // clear any scheduled restartICE since the connection is healthy
         if (this.iceRestartTimeout) {
           this.logger.info('connected connection, canceling restartICE');
@@ -502,7 +529,18 @@ export abstract class BasePeerConnection {
    * Handles the ICE gathering state change event.
    */
   private onIceGatherChange = () => {
-    this.logger.debug(`ICE Gathering State`, this.pc.iceGatheringState);
+    const state = this.pc.iceGatheringState;
+    this.logger.debug(`ICE Gathering State`, state);
+    if (state === 'gathering') {
+      this.localCandidatesGathered = 0;
+    } else if (
+      state === 'complete' &&
+      this.localCandidatesGathered === 0 &&
+      !this.iceHasEverConnected
+    ) {
+      this.logger.info('ICE gathering completed without local candidates');
+      this.onNoLocalCandidates?.(this.peerType);
+    }
   };
 
   /**
