@@ -137,7 +137,9 @@ import UIKit
 
     // MARK: - LiveCommunicationKit
 
-    /// LCK types have no ObjC representation, hence `@nonobjc` on the members below.
+    /// LCK types have no ObjC representation, hence `@nonobjc` on the members below. LCK is
+    /// weak-linked (iOS 17.4+), hence `@available`.
+    @available(iOS 17.4, *)
     @nonobjc public static func getConversationManagerConfiguration() -> ConversationManager.Configuration {
         CallingxLog.settings.debugPublic("[getConversationManagerConfiguration]")
 
@@ -179,6 +181,7 @@ import UIKit
         return configuration
     }
 
+    @available(iOS 17.4, *)
     @nonobjc public static func getSupportedHandleTypes(_ handleType: Any?) -> Set<Handle.Kind> {
         if let handleTypeArray = handleType as? [String] {
             var types = Set<Handle.Kind>()
@@ -194,6 +197,7 @@ import UIKit
         }
     }
 
+    @available(iOS 17.4, *)
     @nonobjc public static func getHandleType(_ handleType: String?) -> Handle.Kind {
         guard let handleType = handleType else { return .generic }
 

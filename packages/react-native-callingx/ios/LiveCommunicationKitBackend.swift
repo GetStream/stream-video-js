@@ -7,6 +7,7 @@ import stream_react_native_webrtc
 // MARK: - LiveCommunicationKit Backend
 /// `CallingxBackend` on Apple LiveCommunicationKit. Created once per process; it is the
 /// conversation manager's delegate and stays alive with `CallingxImpl`'s backend reference.
+@available(iOS 17.4, *)
 final class LiveCommunicationKitBackend: CallingxBackend {
 
     let kind: CallingxBackendKind = .liveCommunicationKit
@@ -611,6 +612,7 @@ final class LiveCommunicationKitBackend: CallingxBackend {
 }
 
 // MARK: - ConversationManagerDelegate
+@available(iOS 17.4, *)
 extension LiveCommunicationKitBackend: ConversationManagerDelegate {
 
     func conversationManager(_ manager: ConversationManager, conversationChanged conversation: Conversation) {

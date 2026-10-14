@@ -109,11 +109,13 @@ import stream_react_native_webrtc
         defer { backendLock.unlock() }
         if let backend { return backend }
         let created: CallingxBackend
-        switch preferredBackendKind() {
-        case .liveCommunicationKit:
+        if #available(iOS 17.4, *), preferredBackendKind() == .liveCommunicationKit {
             created = LiveCommunicationKitBackend()
             CallingxLog.core.debugPublic("[backend] using LiveCommunicationKit")
-        case .callKit:
+        } else if Settings.getUseLiveCommunicationKit() {
+            created = CallKitBackend()
+            CallingxLog.core.debugPublic("[backend] using CallKit (useLiveCommunicationKit requires iOS 17.4)")
+        } else {
             created = CallKitBackend()
             CallingxLog.core.debugPublic("[backend] using CallKit")
         }
@@ -121,9 +123,10 @@ import stream_react_native_webrtc
         return created
     }
 
-    /// The backend the persisted settings ask for.
+    /// The backend the persisted settings ask for: LiveCommunicationKit iff opted in and iOS 17.4+.
     private static func preferredBackendKind() -> CallingxBackendKind {
-        return Settings.getUseLiveCommunicationKit() ? .liveCommunicationKit : .callKit
+        guard #available(iOS 17.4, *), Settings.getUseLiveCommunicationKit() else { return .callKit }
+        return .liveCommunicationKit
     }
 
     /// The backend if it was created already. Never creates one.
