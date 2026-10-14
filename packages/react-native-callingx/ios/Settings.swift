@@ -1,4 +1,5 @@
 import Foundation
+import CallKit
 import LiveCommunicationKit
 import UIKit
 
@@ -55,6 +56,87 @@ import UIKit
         return skip
     }
 
+    /// `true` when the integrator opted into LiveCommunicationKit. Read once per process by
+    /// `CallingxImpl.currentBackend()`.
+    public static func getUseLiveCommunicationKit() -> Bool {
+        guard let useLiveCommunicationKit = getSettings()["useLiveCommunicationKit"] as? Bool else {
+            return false
+        }
+        return useLiveCommunicationKit
+    }
+
+    // MARK: - CallKit
+
+    /// `@nonobjc` keeps CallKit types out of the ObjC header (the `.m`/`.mm` files don't import CallKit).
+    @nonobjc public static func getProviderConfiguration() -> CXProviderConfiguration {
+        CallingxLog.settings.debugPublic("[getProviderConfiguration]")
+
+        let settings = getSettings()
+        let providerConfiguration = CXProviderConfiguration()
+        providerConfiguration.supportsVideo = true
+        providerConfiguration.maximumCallGroups = 1
+        providerConfiguration.maximumCallsPerCallGroup = 1
+        providerConfiguration.supportedHandleTypes = getSupportedHandleTypes(settings["handleType"])
+
+        if let supportsVideo = settings["supportsVideo"] as? Bool {
+            providerConfiguration.supportsVideo = supportsVideo
+        }
+        if let maximumCallGroups = settings["maximumCallGroups"] as? Int {
+            providerConfiguration.maximumCallGroups = maximumCallGroups
+        }
+        if let maximumCallsPerCallGroup = settings["maximumCallsPerCallGroup"] as? Int {
+            providerConfiguration.maximumCallsPerCallGroup = maximumCallsPerCallGroup
+        }
+
+        if let imageName = settings["imageName"] as? String, !imageName.isEmpty {
+            if let image = UIImage(named: imageName) {
+                providerConfiguration.iconTemplateImageData = image.pngData()
+            }
+        }
+
+        if let ringtoneSound = settings["ringtoneSound"] as? String, !ringtoneSound.isEmpty {
+            providerConfiguration.ringtoneSound = ringtoneSound
+        }
+
+        if let includesCallsInRecents = settings["includesCallsInRecents"] as? Bool {
+            providerConfiguration.includesCallsInRecents = includesCallsInRecents
+        }
+
+        return providerConfiguration
+    }
+
+    @nonobjc public static func getSupportedHandleTypes(_ handleType: Any?) -> Set<CXHandle.HandleType> {
+        if let handleTypeArray = handleType as? [String] {
+            var types = Set<CXHandle.HandleType>()
+            for type in handleTypeArray {
+                types.insert(getHandleType(type))
+            }
+            return types
+        } else if let handleTypeString = handleType as? String {
+            let type: CXHandle.HandleType = getHandleType(handleTypeString)
+            return Set([type])
+        } else {
+            return Set([CXHandle.HandleType.phoneNumber])
+        }
+    }
+
+    @nonobjc public static func getHandleType(_ handleType: String?) -> CXHandle.HandleType {
+        guard let handleType = handleType else { return .generic }
+
+        switch handleType {
+        case "generic":
+            return .generic
+        case "number", "phone":
+            return .phoneNumber
+        case "email":
+            return .emailAddress
+        default:
+            return .generic
+        }
+    }
+
+    // MARK: - LiveCommunicationKit
+
     /// LCK types have no ObjC representation, hence `@nonobjc` on the members below.
     @nonobjc public static func getConversationManagerConfiguration() -> ConversationManager.Configuration {
         CallingxLog.settings.debugPublic("[getConversationManagerConfiguration]")
@@ -105,7 +187,7 @@ import UIKit
             }
             return types
         } else if let handleTypeString = handleType as? String {
-            let type = getHandleType(handleTypeString)
+            let type: Handle.Kind = getHandleType(handleTypeString)
             return Set([type])
         } else {
             return Set([Handle.Kind.phoneNumber])

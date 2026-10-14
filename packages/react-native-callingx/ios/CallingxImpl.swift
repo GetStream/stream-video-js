@@ -86,8 +86,6 @@ import stream_react_native_webrtc
             CallingxImpl.uuidStorage = UUIDStorage()
         }
         CallingxImpl.uuidStorage?.liveCallUUIDsProvider = { CallingxImpl.existingBackend()?.liveCallUUIDs() ?? [] }
-
-        _ = CallingxImpl.currentBackend()
     }
     
     deinit {
@@ -100,19 +98,32 @@ import stream_react_native_webrtc
     
     // MARK: - Class Methods
     @objc public static func initializeIfNeeded() {
-        _ = getSharedInstance() // ensures the shared instance and the backend exist
         currentBackend().applyConfiguration()
     }
 
-    /// The process-wide backend; created on first use.
+    /// The process-wide backend, created on first use from the persisted settings and never switched
+    /// afterwards. Ensures the shared instance exists first so the backend's events are delivered.
     static func currentBackend() -> CallingxBackend {
+        _ = getSharedInstance()
         backendLock.lock()
         defer { backendLock.unlock() }
         if let backend { return backend }
-        let created = LiveCommunicationKitBackend()
-        CallingxLog.core.debugPublic("[backend] using LiveCommunicationKit")
+        let created: CallingxBackend
+        switch preferredBackendKind() {
+        case .liveCommunicationKit:
+            created = LiveCommunicationKitBackend()
+            CallingxLog.core.debugPublic("[backend] using LiveCommunicationKit")
+        case .callKit:
+            created = CallKitBackend()
+            CallingxLog.core.debugPublic("[backend] using CallKit")
+        }
         backend = created
         return created
+    }
+
+    /// The backend the persisted settings ask for.
+    private static func preferredBackendKind() -> CallingxBackendKind {
+        return Settings.getUseLiveCommunicationKit() ? .liveCommunicationKit : .callKit
     }
 
     /// The backend if it was created already. Never creates one.
@@ -166,9 +177,10 @@ import stream_react_native_webrtc
         return uuidStorage?.hasRegisteredCall() ?? false
     }
 
-    /// Device-wide (any app's call), answered by the backend.
+    /// Device-wide (any app's call), answered by the backend. Before a backend exists CallKit's
+    /// observer answers: its view is device-wide and needs no provider.
     @objc public static func hasAnyActiveCall() -> Bool {
-        return existingBackend()?.hasAnyActiveCall() ?? false
+        return existingBackend()?.hasAnyActiveCall() ?? CallKitBackend.hasConnectedCall()
     }
     
     @objc public static func endCall(_ callId: String, reason: Int) {
@@ -266,8 +278,14 @@ import stream_react_native_webrtc
 
     // MARK: - Setup Methods
     @objc public func setup(options: [String: Any]) {
+        // Persist first: the backend is chosen from the persisted settings when it is created.
         Settings.setSettings(options)
-        CallingxImpl.currentBackend().applyConfiguration()
+        let backend = CallingxImpl.currentBackend()
+        backend.applyConfiguration()
+        let requestedKind = CallingxImpl.preferredBackendKind()
+        if backend.kind != requestedKind {
+            CallingxLog.core.errorPublic("[backend] useLiveCommunicationKit changed to \(requestedKind == .liveCommunicationKit), it takes effect on next app launch")
+        }
         isSetup = true
     }
 
