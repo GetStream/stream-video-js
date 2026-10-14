@@ -1,5 +1,4 @@
 import {
-  CameraUnavailableNotification,
   DeviceSelectorVideo,
   OwnCapability,
   Restricted,
@@ -14,17 +13,15 @@ export const ToggleDualCameraButton = () => {
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]} hasPermissionsOnly>
       <div>
         <DegradedPerformanceNotification className="rd__call-controls__notification" />
-        <CameraUnavailableNotification>
-          <ToggleVideoPublishingButton
-            Menu={
-              <DeviceSelectorVideo
-                visualType="list"
-                title={t('common.camera.label', 'Camera')}
-              />
-            }
-            menuPlacement="top"
-          />
-        </CameraUnavailableNotification>
+        <ToggleVideoPublishingButton
+          Menu={
+            <DeviceSelectorVideo
+              visualType="list"
+              title={t('common.camera.label', 'Camera')}
+            />
+          }
+          menuPlacement="top"
+        />
       </div>
     </Restricted>
   );

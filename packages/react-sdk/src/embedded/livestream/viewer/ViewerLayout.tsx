@@ -6,7 +6,6 @@ import { useI18n } from '../../../i18n';
 import { useCallDuration, useLayout, useWakeLock } from '../../hooks';
 import {
   CallParticipantsList,
-  CameraUnavailableNotification,
   CancelCallConfirmButton,
   CompositeButton,
   DeviceSelectorAudioInput,
@@ -126,12 +125,10 @@ export const ViewerLayout = () => {
             requiredGrants={[OwnCapability.SEND_VIDEO]}
             hasPermissionsOnly
           >
-            <CameraUnavailableNotification>
-              <ToggleVideoPublishingButton
-                Menu={<CameraMenuWithBlur />}
-                menuPlacement="top"
-              />
-            </CameraUnavailableNotification>
+            <ToggleVideoPublishingButton
+              Menu={<CameraMenuWithBlur />}
+              menuPlacement="top"
+            />
           </Restricted>
           <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
             <div className="str-video__embedded-desktop">

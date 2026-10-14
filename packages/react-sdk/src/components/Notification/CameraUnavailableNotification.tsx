@@ -5,10 +5,6 @@ import { useI18n } from '../../i18n';
 import { Notification } from './Notification';
 
 export type CameraUnavailableNotificationProps = {
-  /**
-   * Text message displayed by the notification.
-   */
-  text?: string;
   placement?: Placement;
   className?: string;
 };
@@ -28,7 +24,6 @@ const isCameraUnavailable = (error: Error | undefined) =>
  */
 export const CameraUnavailableNotification = ({
   children,
-  text,
   placement,
   className,
 }: PropsWithChildren<CameraUnavailableNotificationProps>) => {
@@ -41,7 +36,7 @@ export const CameraUnavailableNotification = ({
     setIsVisible(isCameraUnavailable(error));
   }, [error]);
 
-  const message = text ?? (
+  const message = (
     <>
       <span className="str-video__notification__line str-video__notification__title">
         {t('notification.cameraUnavailable.title', 'Camera unavailable')}
