@@ -336,6 +336,8 @@
   "Test speaker": "Probar altavoz",
   "Recording in progress...": "Grabación en curso...",
   "Your microphone is not capturing audio. Please check your setup.": "Tu micrófono no está capturando audio. Comprueba tu configuración.",
+  "Camera unavailable": "Cámara no disponible",
+  "Close other apps that might be using your camera and try again.": "Cierra otras aplicaciones que puedan estar usando tu cámara e inténtalo de nuevo.",
   "Call Latency": "Latencia de la llamada",
   "Very high latency values may reduce call quality, cause lag, and make the call less enjoyable.": "Valores de latencia muy altos pueden reducir la calidad de la llamada, causar retrasos y hacerla menos agradable.",
   "Video performance": "Rendimiento de video",

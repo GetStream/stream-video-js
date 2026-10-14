@@ -1,4 +1,6 @@
 .str-video__notification {
+  width: max-content;
+  max-width: min(30rem, calc(100vw - 20px));
   padding: 0.625rem;
   display: flex;
   align-items: center;
@@ -12,6 +14,10 @@
 
   .str-video__notification__message {
     flex: 1;
+  }
+
+  .str-video__notification__line {
+    display: block;
   }
 
   .str-video__notification__close {

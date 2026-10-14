@@ -12,7 +12,10 @@ import {
 } from '@stream-io/video-client';
 import { CompositeButton, IconButtonWithMenuProps } from '../Button/';
 import { DeviceSelectorVideo } from '../DeviceSettings';
-import { PermissionNotification } from '../Notification';
+import {
+  CameraUnavailableNotification,
+  PermissionNotification,
+} from '../Notification';
 import { useRequestPermission } from '../../hooks';
 import { Icon } from '../Icon';
 import { WithTooltip } from '../Tooltip';
@@ -58,64 +61,66 @@ export const ToggleVideoPreviewButton = (
   const handleClick = createCallControlHandler(props, () => camera.toggle());
 
   return (
-    <WithTooltip
-      title={
-        !hasBrowserPermission
-          ? t('Check your browser video permissions')
-          : isSystemMuted
-            ? t('Camera is paused by your system')
-            : (caption ?? t('Video'))
-      }
-      tooltipDisabled={tooltipDisabled}
-    >
-      <CompositeButton
-        active={optionsAwareIsMute}
-        caption={caption}
-        className={clsx(
-          !hasBrowserPermission && 'str-video__device-unavailable',
-        )}
-        variant="secondary"
-        data-testid={
-          optionsAwareIsMute
-            ? 'preview-video-unmute-button'
-            : 'preview-video-mute-button'
+    <CameraUnavailableNotification>
+      <WithTooltip
+        title={
+          !hasBrowserPermission
+            ? t('Check your browser video permissions')
+            : isSystemMuted
+              ? t('Camera is paused by your system')
+              : (caption ?? t('Video'))
         }
-        onClick={handleClick}
-        disabled={
-          !hasBrowserPermission || (!optimisticUpdates && isTogglePending)
-        }
-        Menu={Menu}
-        menuPlacement={menuPlacement}
-        {...restCompositeButtonProps}
-        onMenuToggle={(shown) => {
-          setTooltipDisabled(shown);
-          onMenuToggle?.(shown);
-        }}
+        tooltipDisabled={tooltipDisabled}
       >
-        <Icon icon={!optionsAwareIsMute ? 'camera' : 'camera-off'} />
-        {!hasBrowserPermission && (
-          <span
-            className="str-video__no-media-permission"
-            title={t('Check your browser video permissions')}
-            children="!"
-          />
-        )}
-        {isPromptingPermission && (
-          <span
-            className="str-video__pending-permission"
-            title={t('Waiting for permission')}
-            children="?"
-          />
-        )}
-        {isSystemMuted && hasBrowserPermission && (
-          <span
-            className="str-video__system-muted"
-            title={t('Camera is paused by your system')}
-            children="!"
-          />
-        )}
-      </CompositeButton>
-    </WithTooltip>
+        <CompositeButton
+          active={optionsAwareIsMute}
+          caption={caption}
+          className={clsx(
+            !hasBrowserPermission && 'str-video__device-unavailable',
+          )}
+          variant="secondary"
+          data-testid={
+            optionsAwareIsMute
+              ? 'preview-video-unmute-button'
+              : 'preview-video-mute-button'
+          }
+          onClick={handleClick}
+          disabled={
+            !hasBrowserPermission || (!optimisticUpdates && isTogglePending)
+          }
+          Menu={Menu}
+          menuPlacement={menuPlacement}
+          {...restCompositeButtonProps}
+          onMenuToggle={(shown) => {
+            setTooltipDisabled(shown);
+            onMenuToggle?.(shown);
+          }}
+        >
+          <Icon icon={!optionsAwareIsMute ? 'camera' : 'camera-off'} />
+          {!hasBrowserPermission && (
+            <span
+              className="str-video__no-media-permission"
+              title={t('Check your browser video permissions')}
+              children="!"
+            />
+          )}
+          {isPromptingPermission && (
+            <span
+              className="str-video__pending-permission"
+              title={t('Waiting for permission')}
+              children="?"
+            />
+          )}
+          {isSystemMuted && hasBrowserPermission && (
+            <span
+              className="str-video__system-muted"
+              title={t('Camera is paused by your system')}
+              children="!"
+            />
+          )}
+        </CompositeButton>
+      </WithTooltip>
+    </CameraUnavailableNotification>
   );
 };
 
@@ -178,70 +183,72 @@ export const ToggleVideoPublishingButton = (
         )}
         messageRevoked={t('You can no longer share your video.')}
       >
-        <WithTooltip
-          title={
-            !hasPermission
-              ? t('You have no permission to share your video')
-              : !hasBrowserPermission
-                ? t('Check your browser video permissions')
-                : !isPublishingVideoAllowed
-                  ? t('Video publishing is disabled by the system')
-                  : isSystemMuted
-                    ? t('Camera is paused by your system')
-                    : caption || t('Video')
-          }
-          tooltipDisabled={tooltipDisabled}
-        >
-          <CompositeButton
-            active={optionsAwareIsMute}
-            caption={caption}
-            variant="secondary"
-            disabled={
-              !hasBrowserPermission ||
-              !hasPermission ||
-              !isPublishingVideoAllowed ||
-              (!optimisticUpdates && isTogglePending)
+        <CameraUnavailableNotification>
+          <WithTooltip
+            title={
+              !hasPermission
+                ? t('You have no permission to share your video')
+                : !hasBrowserPermission
+                  ? t('Check your browser video permissions')
+                  : !isPublishingVideoAllowed
+                    ? t('Video publishing is disabled by the system')
+                    : isSystemMuted
+                      ? t('Camera is paused by your system')
+                      : caption || t('Video')
             }
-            data-testid={
-              optionsAwareIsMute ? 'video-unmute-button' : 'video-mute-button'
-            }
-            onClick={handleClick}
-            Menu={Menu}
-            menuPlacement={menuPlacement}
-            menuOffset={16}
-            {...restCompositeButtonProps}
-            onMenuToggle={(shown) => {
-              setTooltipDisabled(shown);
-              onMenuToggle?.(shown);
-            }}
+            tooltipDisabled={tooltipDisabled}
           >
-            <Icon icon={optionsAwareIsMute ? 'camera-off' : 'camera'} />
-            {(!hasBrowserPermission ||
-              !hasPermission ||
-              !isPublishingVideoAllowed) && (
-              <span className="str-video__no-media-permission">!</span>
-            )}
-            {isPromptingPermission && (
-              <span
-                className="str-video__pending-permission"
-                title={t('Waiting for permission')}
-              >
-                ?
-              </span>
-            )}
-            {isSystemMuted &&
-              hasBrowserPermission &&
-              hasPermission &&
-              isPublishingVideoAllowed && (
+            <CompositeButton
+              active={optionsAwareIsMute}
+              caption={caption}
+              variant="secondary"
+              disabled={
+                !hasBrowserPermission ||
+                !hasPermission ||
+                !isPublishingVideoAllowed ||
+                (!optimisticUpdates && isTogglePending)
+              }
+              data-testid={
+                optionsAwareIsMute ? 'video-unmute-button' : 'video-mute-button'
+              }
+              onClick={handleClick}
+              Menu={Menu}
+              menuPlacement={menuPlacement}
+              menuOffset={16}
+              {...restCompositeButtonProps}
+              onMenuToggle={(shown) => {
+                setTooltipDisabled(shown);
+                onMenuToggle?.(shown);
+              }}
+            >
+              <Icon icon={optionsAwareIsMute ? 'camera-off' : 'camera'} />
+              {(!hasBrowserPermission ||
+                !hasPermission ||
+                !isPublishingVideoAllowed) && (
+                <span className="str-video__no-media-permission">!</span>
+              )}
+              {isPromptingPermission && (
                 <span
-                  className="str-video__system-muted"
-                  title={t('Camera is paused by your system')}
+                  className="str-video__pending-permission"
+                  title={t('Waiting for permission')}
                 >
-                  !
+                  ?
                 </span>
               )}
-          </CompositeButton>
-        </WithTooltip>
+              {isSystemMuted &&
+                hasBrowserPermission &&
+                hasPermission &&
+                isPublishingVideoAllowed && (
+                  <span
+                    className="str-video__system-muted"
+                    title={t('Camera is paused by your system')}
+                  >
+                    !
+                  </span>
+                )}
+            </CompositeButton>
+          </WithTooltip>
+        </CameraUnavailableNotification>
       </PermissionNotification>
     </Restricted>
   );

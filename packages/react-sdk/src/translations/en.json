@@ -67,6 +67,8 @@
   "Camera on": "Camera on",
   "Camera off": "Camera off",
   "Camera is paused by your system": "Camera is paused by your system",
+  "Camera unavailable": "Camera unavailable",
+  "Close other apps that might be using your camera and try again.": "Close other apps that might be using your camera and try again.",
   "No camera found": "No camera found",
   "Video is disabled": "Video is disabled",
   "Pinned": "Pinned",
