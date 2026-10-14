@@ -2353,9 +2353,11 @@ export class Call {
 
     // handles the "error" event, through which the SFU can request a reconnect
     // Only the active SFU client may drive a reconnect: a superseded one can
-    // still report errors about its own (replaced) session.
+    // still report errors about its own (replaced) session, and none may
+    // while `leave()` tears the call down.
     const activeSfuTag = () => this.sfuClient?.tag ?? '*';
     const unregisterOnError = this.dispatcher.on('error', activeSfuTag, (e) => {
+      if (!this.sfuClient) return;
       const { reconnectStrategy: strategy, error } = e;
       if (!SfuJoinError.isJoinErrorCode(e)) {
         const code = error?.code ? ErrorCode[error.code] : undefined;

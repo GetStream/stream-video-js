@@ -1218,7 +1218,7 @@ describe('Call.leave() reconnect-state reset', () => {
 describe('Call SFU media transport failure', () => {
   let call: Call;
 
-  const dispatchSfuError = (code: ErrorCode, tag?: string) => {
+  const dispatchSfuError = (code: ErrorCode, tag = 'active') => {
     call['dispatcher'].dispatch(
       {
         eventPayload: {
@@ -1261,12 +1261,14 @@ describe('Call SFU media transport failure', () => {
       call.state.setCallingState(CallingState.JOINED);
     });
     call['registerReconnectHandlers']();
+    call['sfuClient'] = { tag: 'active' } as unknown as StreamSfuClient;
     call.state.setCallingState(CallingState.JOINED);
   });
 
   afterEach(() => {
     call['publisher'] = undefined;
     call['subscriber'] = undefined;
+    call['sfuClient'] = undefined;
     vi.clearAllMocks();
   });
 
@@ -1312,7 +1314,18 @@ describe('Call SFU media transport failure', () => {
     expect(call.leave).toHaveBeenCalledWith({
       message: 'webrtc_unsupported_network',
     });
+  });
+
+  it('ignores errors while no SFU client is active', async () => {
+    call.setMaxIceFailuresWithoutConnect(1);
+    setPeerConnections({ publisher: false, subscriber: false });
     call['sfuClient'] = undefined;
+
+    dispatchSfuError(ErrorCode.PARTICIPANT_MEDIA_TRANSPORT_FAILURE, '1');
+    await settled(call['reconnectConcurrencyTag']);
+
+    expect(call['reconnectRejoin']).not.toHaveBeenCalled();
+    expect(call.leave).not.toHaveBeenCalled();
   });
 
   it('does not count other SFU errors before connect', async () => {
