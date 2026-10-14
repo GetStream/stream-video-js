@@ -17,6 +17,7 @@ export const defaultiOSOptions: Required<InternalIOSOptions> = {
   enableOngoingCalls: false,
   skipIncomingPushInForeground: false,
   defaultDeviceEndpointType: 'speaker',
+  useLiveCommunicationKit: false,
 };
 
 export const defaultAndroidOptions: Omit<

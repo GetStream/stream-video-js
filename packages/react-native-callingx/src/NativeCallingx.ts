@@ -14,6 +14,7 @@ export interface Spec extends TurboModule {
     callsHistory: boolean;
     displayCallTimeout: number;
     skipIncomingPushInForeground: boolean;
+    useLiveCommunicationKit: boolean;
   }): boolean;
 
   setupAndroid(options: {

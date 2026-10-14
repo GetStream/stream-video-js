@@ -151,6 +151,13 @@ export type StreamVideoConfig = {
        * @default 'speaker'
        */
       defaultDeviceEndpointType?: 'speaker' | 'earpiece';
+      /**
+       * @experimental Use Apple LiveCommunicationKit (iOS 17.4+) instead of CallKit for the system call UI.
+       * Defaults to false. On iOS versions below 17.4 CallKit is used.
+       * Read once per app launch: a change takes effect on the next launch.
+       * @default false
+       */
+      useLiveCommunicationKit?: boolean;
     };
     android?: {
       /**

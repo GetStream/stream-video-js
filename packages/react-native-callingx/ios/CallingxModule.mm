@@ -80,7 +80,8 @@
     @"imageName" : options.imageName() ?: @"",
     @"includesCallsInRecents" : @(options.callsHistory()),
     @"displayCallTimeout" : @(options.displayCallTimeout()),
-    @"skipIncomingPushInForeground" : @(options.skipIncomingPushInForeground())
+    @"skipIncomingPushInForeground" : @(options.skipIncomingPushInForeground()),
+    @"useLiveCommunicationKit" : @(options.useLiveCommunicationKit())
   };
 
   [_moduleImpl setupWithOptions:optionsDict];

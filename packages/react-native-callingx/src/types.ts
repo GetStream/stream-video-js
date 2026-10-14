@@ -297,6 +297,12 @@ export type InternalIOSOptions = {
    * `'earpiece'` omits `.defaultToSpeaker` for voice-only call UX.
    */
   defaultDeviceEndpointType?: DefaultDeviceEndpointType;
+  /**
+   * @experimental Use Apple LiveCommunicationKit (iOS 17.4+) instead of CallKit for the system call UI.
+   * On iOS versions below 17.4 CallKit is used. Read once per app launch: a change takes effect on the next launch.
+   * @default false
+   */
+  useLiveCommunicationKit?: boolean;
 };
 type iOSOptions = Omit<
   InternalIOSOptions,
