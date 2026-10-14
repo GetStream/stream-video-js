@@ -40,7 +40,7 @@ export interface ICallingxModule {
 
   /**
    * Setup the module. This method must be called before any other method.
-   * For iOS, the module will setup LiveCommunicationKit parameters.
+   * For iOS, the module will setup CallKit / LiveCommunicationKit parameters.
    *    See: {@link InternalIOSOptions}
    * For Android, the module will create notification channels.
    *    See: {@link InternalAndroidOptions}
@@ -62,14 +62,14 @@ export interface ICallingxModule {
 
   /**
    * Set whether to reject calls when the user is busy.
-   * The value is used in iOS native module to prevent calls registration in LiveCommunicationKit when the user is busy.
+   * The value is used in iOS native module to prevent calls registration in the system call UI when the user is busy.
    * @param shouldReject - Whether to reject calls when the user is busy.
    */
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;
 
   /**
    * Set the default audio endpoint applied when the OS activates the call's audio session.
-   * - iOS: applied next time LiveCommunicationKit activates the session.
+   * - iOS: applied next time the system activates the session.
    * - Android (Telecom): applied once when the call becomes active and no wired/bluetooth
    *   device is connected.
    * Sticky preference.
@@ -293,7 +293,7 @@ export type InternalIOSOptions = {
    */
   skipIncomingPushInForeground?: boolean;
   /**
-   * Default audio endpoint when LiveCommunicationKit activates the session.
+   * Default audio endpoint when the system activates the session.
    * `'earpiece'` omits `.defaultToSpeaker` for voice-only call UX.
    */
   defaultDeviceEndpointType?: DefaultDeviceEndpointType;
@@ -499,7 +499,7 @@ export type VoipEventParams = {
 /**
  * The reason for ending a call. These values are mapped to platform-specific
  * constants on each platform:
- * - iOS: `Conversation.EndedReason` (LiveCommunicationKit)
+ * - iOS: `CXCallEndedReason` (CallKit) / `Conversation.EndedReason` (LiveCommunicationKit)
  * - Android: `DisconnectCause` (Telecom)
  *
  * @see https://developer.apple.com/documentation/livecommunicationkit/conversation/endedreason

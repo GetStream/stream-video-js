@@ -47,7 +47,7 @@ export interface Spec extends TurboModule {
 
   /**
    * Whether audio routing is backed by the Jetpack Telecom stack on this device.
-   * Android: true on API 26+. iOS: always false (LiveCommunicationKit path uses its own bypass).
+   * Android: true on API 26+. iOS: always false (iOS uses its own bypass).
    */
   isTelecomBacked(): boolean;
 

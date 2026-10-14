@@ -16,7 +16,7 @@ type CanAddPushWSSubscriptionsRef = { current: boolean };
 
 /**
  * This function is used to check if the call should be ended based on the push notification
- * Used to end the system (LiveCommunicationKit/Telecom) call (through callingx) if necessary.
+ * Used to end the system (CallKit/LiveCommunicationKit/Telecom) call (through callingx) if necessary.
  */
 export const shouldCallBeEnded = (
   callFromPush: Call,

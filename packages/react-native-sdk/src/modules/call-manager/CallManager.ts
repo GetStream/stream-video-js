@@ -177,7 +177,7 @@ class AudioDevicesManager {
     let active = true;
     const unsubscribes: Array<() => void> = [];
 
-    // callingx-owned route changes (Android Telecom + iOS LiveCommunicationKit). The event is
+    // callingx-owned route changes (Android Telecom + iOS CallKit/LiveCommunicationKit). The event is
     // signal-only, so re-read the current state — ignoring a resolve that lands
     // after unsubscribe, and swallowing bridge rejections.
     if (CallingxModule) {

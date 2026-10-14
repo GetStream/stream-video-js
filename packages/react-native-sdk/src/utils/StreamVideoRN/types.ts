@@ -30,7 +30,7 @@ export type NonRingingPushEvent =
  * connections.
  *
  * These hooks are that moment. They run for every ringing path: accepted from the
- * system call UI (LiveCommunicationKit/Telecom), accepted inside the app, and outgoing.
+ * system call UI (CallKit/LiveCommunicationKit/Telecom), accepted inside the app, and outgoing.
  *
  * Register them with {@link StreamVideoRN.setRingingCallLifecycleHooks} at your app's
  * entry point, next to `setPushConfig`. A call accepted from a push notification

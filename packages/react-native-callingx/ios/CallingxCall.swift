@@ -2,7 +2,7 @@ import Foundation
 
 /// Represents a call tracked by the CallingxImpl module.
 /// Holds per-call lifecycle state to guard against duplicate actions
-/// and to track timestamps for LiveCommunicationKit reporting.
+/// and to track timestamps for system-call reporting.
 @objcMembers public class CallingxCall: NSObject {
     public let uuid: UUID
     public let cid: String

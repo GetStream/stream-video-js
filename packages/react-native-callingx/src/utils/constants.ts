@@ -39,7 +39,7 @@ export const defaultAndroidOptions: Omit<
   enableOngoingCalls: false,
 };
 
-// iOS: maps to LiveCommunicationKit `Conversation.EndedReason` (mapped explicitly on the native side).
+// iOS: maps to `CXCallEndedReason` (CallKit) or `Conversation.EndedReason` (LiveCommunicationKit), mapped natively.
 // See https://developer.apple.com/documentation/livecommunicationkit/conversation/endedreason
 // ints: failed=1, remoteEnded=2, unanswered=3, joinedElsewhere=4, declinedElsewhere=5
 export const iosEndCallReasonMap: Record<EndCallReason, number> = {

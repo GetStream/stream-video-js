@@ -59,7 +59,7 @@
   return [Settings getSkipIncomingPushInForeground];
 }
 
-// `reason` keeps the CallKit-era int contract; CallingxImpl maps it to LiveCommunicationKit `Conversation.EndedReason`.
+// `reason` keeps the int contract; the active backend maps it to `CXCallEndedReason` (CallKit) or `Conversation.EndedReason` (LiveCommunicationKit).
 + (void)endCall:(NSString *)callId reason:(int)reason {
   [CallingxImpl endCall:callId reason:reason];
 }

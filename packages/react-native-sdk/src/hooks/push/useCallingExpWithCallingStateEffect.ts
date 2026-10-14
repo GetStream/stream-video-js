@@ -10,7 +10,7 @@ import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
 const logger = videoLoggerSystem.getLogger('callingx');
 
 /**
- * This hook is used to inform sync call state with the system call UI (LiveCommunicationKit/Telecom) (i.e. start call, end call, mute/unmute call).
+ * This hook is used to inform sync call state with the system call UI (CallKit/LiveCommunicationKit/Telecom) (i.e. start call, end call, mute/unmute call).
  */
 export const useCallingExpWithCallingStateEffect = () => {
   const { useMicrophoneState, useParticipants, useCallMembers } =

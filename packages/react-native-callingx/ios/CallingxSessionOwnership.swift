@@ -9,7 +9,7 @@ import Foundation
 /// `StreamInCallManager` (in `@stream-io/video-react-native-sdk`) consults this
 /// flag from its AudioDeviceModule publisher sink and no-ops when callingx owns
 /// the session, so the two packages don't write conflicting `AVAudioSession`
-/// configurations during the transient overlap when a system (LiveCommunicationKit) call is winding
+/// configurations during the transient overlap when a system (CallKit/LiveCommunicationKit) call is winding
 /// down and the SDK is about to take over (or vice versa).
 ///
 /// Exposed as an `@objcMembers NSObject` with an `@objc class var` so that

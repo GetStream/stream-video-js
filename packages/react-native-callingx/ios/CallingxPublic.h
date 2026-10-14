@@ -3,7 +3,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- * Callingx - React Native Turbo Module for system call UI integration (LiveCommunicationKit on iOS)
+ * Callingx - React Native Turbo Module for system call UI integration (CallKit or LiveCommunicationKit on iOS)
  *
  * This header exposes the public API for use in AppDelegate or other native code.
  *
@@ -27,7 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface Callingx : NSObject
 
 /**
- * Report a new incoming call to the system (LiveCommunicationKit).
+ * Report a new incoming call to the system (CallKit, or LiveCommunicationKit when opted in).
  * Call this from your PushKit delegate when receiving a VoIP push notification.
  *
  * @param callId Unique identifier for the call (e.g., call ID from your backend)
@@ -58,7 +58,7 @@ NS_ASSUME_NONNULL_BEGIN
  * End a call with a specific reason.
  *
  * @param callId The call ID to end
- * @param reason The reason for ending, mapped to LiveCommunicationKit `Conversation.EndedReason`:
+ * @param reason The reason for ending, mapped to the backend's end reason (`CXCallEndedReason` / `Conversation.EndedReason`):
  *               1=failed, 2=remoteEnded, 3=unanswered, 4=answeredElsewhere (joinedElsewhere), 5=declinedElsewhere.
  *               Unknown values map to failed.
  */

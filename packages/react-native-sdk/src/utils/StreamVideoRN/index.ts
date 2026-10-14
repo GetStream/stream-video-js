@@ -88,7 +88,7 @@ export class StreamVideoRN {
    * import { AppRegistry } from 'react-native';
    * import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
    * import App from './App';
-   * // LiveCommunicationKit/Android Telecom options are part of the push config. Unset options use their defaults.
+   * // CallKit/LiveCommunicationKit/Android Telecom options are part of the push config. Unset options use their defaults.
    * StreamVideoRN.setPushConfig({
    *   ios: {
    *     pushProviderName: 'my-apn-provider',
@@ -144,7 +144,7 @@ export class StreamVideoRN {
 
   /**
    * Register hooks that run around a ringing call's join, for every ringing path:
-   * accepted from the system call UI (LiveCommunicationKit/Telecom), accepted inside the app, and outgoing.
+   * accepted from the system call UI (CallKit/LiveCommunicationKit/Telecom), accepted inside the app, and outgoing.
    *
    * Call this at your application's entry point, alongside
    * {@link StreamVideoRN.setPushConfig} and **outside** the React tree. A call

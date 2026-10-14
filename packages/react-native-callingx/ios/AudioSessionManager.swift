@@ -34,7 +34,7 @@ enum DefaultAudioDevice {
 
     /// Applies category/mode/options on the calling thread, blocking until complete.
     /// Serializes with `engineWillEnable` via `audioSessionQueue`. Does not call
-    /// `setActive` — LiveCommunicationKit owns activation.
+    /// `setActive` — the system call backend (CallKit/LiveCommunicationKit) owns activation.
     ///
     /// Call sites:
     /// - `StartConversationAction` / `JoinConversationAction` (before `fulfill`)
@@ -48,7 +48,7 @@ enum DefaultAudioDevice {
 
     /// Called from the AudioDeviceModule publisher's `.willEnableAudioEngine` event.
     /// Reapplies the callingx audio-session configuration on every engine rebuild
-    /// (initial activation, interruption recovery, mode change). LiveCommunicationKit owns
+    /// (initial activation, interruption recovery, mode change). The system call backend owns
     /// activation, so we never call `setActive`.
     ///
     /// Hops onto `audioSessionQueue` because the sink is Combine-driven with no
@@ -62,9 +62,9 @@ enum DefaultAudioDevice {
     }
 
     /// Called from the AudioDeviceModule publisher's `.didDisableAudioEngine` event.
-    /// LiveCommunicationKit owns deactivation — no-op on the callingx path.
+    /// The system call backend owns deactivation — no-op on the callingx path.
     public func engineDidDisable() {
-        // No-op: the system deactivates the session (`conversationManager(_:didDeactivate:)`).
+        // No-op: the system deactivates the session (`provider(_:didDeactivate:)` / `conversationManager(_:didDeactivate:)`).
     }
 
     // MARK: - Route-change observer

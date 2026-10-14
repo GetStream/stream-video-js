@@ -134,7 +134,7 @@
 }
 
 - (NSNumber *)isTelecomBacked {
-  // Android-only Telecom routing; iOS uses the LiveCommunicationKit bypass instead.
+  // Android-only Telecom routing; iOS uses its own bypass instead.
   return @NO;
 }
 
