@@ -83,8 +83,9 @@ export class SilentAudioPlayer {
     document.hidden && navigator.maxTouchPoints > 1;
 
   private create = (): HTMLAudioElement | undefined => {
+    let context: AudioContext | undefined;
     try {
-      const context = new AudioContext();
+      context = new AudioContext();
       const oscillator = context.createOscillator();
       const gain = context.createGain();
       gain.gain.value = 0;
@@ -115,6 +116,7 @@ export class SilentAudioPlayer {
       return element;
     } catch (err) {
       this.logger.warn('Failed to create the silent audio element', err);
+      context?.close().catch(console.error);
       return undefined;
     }
   };
