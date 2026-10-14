@@ -131,6 +131,10 @@ export interface APIError {
    */
   details: Array<number>;
   /**
+   * Milliseconds until the user's slow mode cool down period ends. Only set on code 60 (cool down) errors
+   */
+  cooldown_remaining_ms?: number;
+  /**
    * Flag that indicates if the error is unrecoverable, requests that return unrecoverable errors should not be retried, this error only applies to the request that caused it
    */
   unrecoverable?: boolean;
@@ -199,8 +203,13 @@ export interface Audience {
   shape?: string;
 }
 
+export type AudioDefaultDevice = 'speaker' | 'earpiece';
+
 export interface AudioSettingsRequest {
-  default_device: 'speaker' | 'earpiece';
+  /**
+   * The device a call routes audio to by default.
+   */
+  default_device: AudioDefaultDevice;
   access_request_enabled?: boolean;
   hifi_audio_enabled?: boolean;
   mic_default_on?: boolean;
@@ -212,12 +221,15 @@ export interface AudioSettingsRequest {
 
 export interface AudioSettingsResponse {
   access_request_enabled: boolean;
-  default_device: 'speaker' | 'earpiece';
   hifi_audio_enabled: boolean;
   mic_default_on: boolean;
   opus_dtx_enabled: boolean;
   redundant_coding_enabled: boolean;
   speaker_default_on: boolean;
+  /**
+   * The device a call routes audio to by default.
+   */
+  default_device: AudioDefaultDevice;
   noise_cancellation?: NoiseCancellationSettings;
 }
 
@@ -814,9 +826,9 @@ export interface CallRecordingFailedEvent {
   created_at: TimestampNS;
   egress_id: string;
   /**
-   * The type of recording
+   * The layout a call recording is produced in.
    */
-  recording_type: 'composite' | 'individual' | 'raw';
+  recording_type: RecordingType;
   /**
    * The type of event: "call.recording_failed" in this case
    */
@@ -828,13 +840,13 @@ export interface CallRecordingReadyEvent {
   created_at: TimestampNS;
   egress_id: string;
   /**
-   * The type of recording
-   */
-  recording_type: 'composite' | 'individual' | 'raw';
-  /**
    * CallRecording represents a recording of a call.
    */
   call_recording: CallRecording;
+  /**
+   * The layout a call recording is produced in.
+   */
+  recording_type: RecordingType;
   /**
    * The type of event: "call.recording_ready" in this case
    */
@@ -846,9 +858,9 @@ export interface CallRecordingStartedEvent {
   created_at: TimestampNS;
   egress_id: string;
   /**
-   * The type of recording
+   * The layout a call recording is produced in.
    */
-  recording_type: 'composite' | 'individual' | 'raw';
+  recording_type: RecordingType;
   /**
    * The type of event: "call.recording_started" in this case
    */
@@ -860,9 +872,9 @@ export interface CallRecordingStoppedEvent {
   created_at: TimestampNS;
   egress_id: string;
   /**
-   * The type of recording
+   * The layout a call recording is produced in.
    */
-  recording_type: 'composite' | 'individual' | 'raw';
+  recording_type: RecordingType;
   /**
    * The type of event: "call.recording_stopped" in this case
    */
@@ -1163,6 +1175,7 @@ export interface CallSettingsRequest {
   geofencing?: GeofenceSettingsRequest;
   individual_recording?: IndividualRecordingSettingsRequest;
   ingress?: IngressSettingsRequest;
+  lifecycle?: LifecycleSettingsRequest;
   limits?: LimitsSettingsRequest;
   raw_recording?: RawRecordingSettingsRequest;
   recording?: RecordSettingsRequest;
@@ -1188,6 +1201,10 @@ export interface CallSettingsResponse {
   frame_recording: FrameRecordingSettingsResponse;
   geofencing: GeofenceSettingsResponse;
   individual_recording: IndividualRecordingSettingsResponse;
+  /**
+   * LifecycleSettings is the payload for call lifecycle settings
+   */
+  lifecycle: LifecycleSettingsResponse;
   limits: LimitsSettingsResponse;
   raw_recording: RawRecordingSettingsResponse;
   /**
@@ -1485,6 +1502,8 @@ export interface CallsPerDayReportResponse {
   daily: Array<DailyAggregateCallsPerDayReportResponse>;
 }
 
+export type CameraFacing = 'front' | 'back' | 'external';
+
 export interface ChatActivityStatsResponse {
   messages?: MessageStatsResponse;
 }
@@ -1536,6 +1555,14 @@ export interface ClientEvent {
    * Reason the client initiated the join. Optional on CoordinatorJoin events; empty when not provided.
    */
   join_reason?: string;
+  /**
+   * Source of the leave that aborted a join: user, app, callkit, remote_event, sdk_error, or unknown. Not validated against this set, so SDKs may report new values. Optional; sent on failure events. Maximum 32 characters.
+   */
+  leave_initiator?: string;
+  /**
+   * Internal reason or triggering event for the leave that aborted a join. Optional; sent on failure events. Maximum 200 characters.
+   */
+  leave_reason?: string;
   /**
    * Microphone permission status: INITIATED, FAILED, GRANTED, or NOT_INITIATED. Required on every MediaDevicePermission event.
    */
@@ -2316,10 +2343,13 @@ export interface IngressVideoEncodingResponse {
 
 export interface IngressVideoLayerRequest {
   bitrate: number;
-  codec: 'h264' | 'vp8';
   frame_rate_limit: number;
   max_dimension: number;
   min_dimension: number;
+  /**
+   * The codec an ingress video layer is encoded with.
+   */
+  codec: VideoCodec;
 }
 
 export interface IngressVideoLayerResponse {
@@ -2425,12 +2455,32 @@ export interface KickedUserEvent {
   kicked_by_user?: UserResponse;
 }
 
+export type LayoutName =
+  'spotlight' | 'grid' | 'single-participant' | 'mobile' | 'custom';
+
 export interface LayoutSettingsRequest {
-  name: 'spotlight' | 'grid' | 'single-participant' | 'mobile' | 'custom';
+  /**
+   * The layout a call recording or broadcast is composed with.
+   */
+  name: LayoutName;
   detect_orientation?: boolean;
   external_app_url?: string;
   external_css_url?: string;
   options?: Record<string, any>;
+}
+
+export interface LifecycleSettingsRequest {
+  /**
+   * Call lifecycle mode. One of: reusable, single_use. A single_use call cannot be reused once it has ended; the server ends it when its ring settles without an answer (currently: when the caller cancels the ring). Fixed at call creation
+   */
+  mode?: 'reusable' | 'single_use';
+}
+
+export interface LifecycleSettingsResponse {
+  /**
+   * Call lifecycle mode. One of: reusable, single_use. A single_use call cannot be reused once it has ended; the server ends it when its ring settles without an answer (currently: when the caller cancels the ring). Fixed at call creation
+   */
+  mode: 'reusable' | 'single_use';
 }
 
 export interface LimitsSettingsRequest {
@@ -2613,6 +2663,7 @@ export interface OwnUserResponse {
   language: string;
   role: string;
   updated_at: TimestampNS;
+  blocked_user_ids: Array<string>;
   devices: Array<DeviceResponse>;
   teams: Array<string>;
   custom: Record<string, any>;
@@ -2622,8 +2673,6 @@ export interface OwnUserResponse {
   image?: string;
   last_active?: TimestampNS;
   name?: string;
-  revoke_tokens_issued_before?: TimestampNS;
-  blocked_user_ids?: Array<string>;
   /**
    * The privacy settings of the user.
    */
@@ -3374,6 +3423,8 @@ export interface RecordSettingsResponse {
   quality: string;
 }
 
+export type RecordingType = 'composite' | 'individual' | 'raw';
+
 export interface RejectCallRequest {
   /**
    * Reason for rejecting the call
@@ -3972,46 +4023,9 @@ export interface StartClosedCaptionsRequest {
    */
   external_storage?: string;
   /**
-   * The spoken language in the call, if not provided the language defined in the transcription settings will be used. One of: auto, ar, bg, ca, cs, da, de, el, en, es, et, fi, fr, he, hi, hr, hu, id, it, ja, ko, ms, nl, no, pl, pt, ro, ru, sk, sl, sv, ta, th, tl, tr, uk, zh
+   * Language a call is transcribed or captioned in.
    */
-  language?:
-    | 'auto'
-    | 'en'
-    | 'fr'
-    | 'es'
-    | 'de'
-    | 'it'
-    | 'nl'
-    | 'pt'
-    | 'pl'
-    | 'ca'
-    | 'cs'
-    | 'da'
-    | 'el'
-    | 'fi'
-    | 'id'
-    | 'ja'
-    | 'ru'
-    | 'sv'
-    | 'ta'
-    | 'th'
-    | 'tr'
-    | 'hu'
-    | 'ro'
-    | 'zh'
-    | 'ar'
-    | 'tl'
-    | 'he'
-    | 'hi'
-    | 'hr'
-    | 'ko'
-    | 'ms'
-    | 'no'
-    | 'uk'
-    | 'bg'
-    | 'et'
-    | 'sl'
-    | 'sk';
+  language?: TranscriptionLanguage;
   speech_segment_config?: SpeechSegmentConfig;
 }
 
@@ -4071,50 +4085,13 @@ export interface StartTranscriptionRequest {
    */
   enable_closed_captions?: boolean;
   /**
-   * The spoken language in the call, if not provided the language defined in the transcription settings will be used. One of: auto, ar, bg, ca, cs, da, de, el, en, es, et, fi, fr, he, hi, hr, hu, id, it, ja, ko, ms, nl, no, pl, pt, ro, ru, sk, sl, sv, ta, th, tl, tr, uk, zh
-   */
-  language?:
-    | 'auto'
-    | 'en'
-    | 'fr'
-    | 'es'
-    | 'de'
-    | 'it'
-    | 'nl'
-    | 'pt'
-    | 'pl'
-    | 'ca'
-    | 'cs'
-    | 'da'
-    | 'el'
-    | 'fi'
-    | 'id'
-    | 'ja'
-    | 'ru'
-    | 'sv'
-    | 'ta'
-    | 'th'
-    | 'tr'
-    | 'hu'
-    | 'ro'
-    | 'zh'
-    | 'ar'
-    | 'tl'
-    | 'he'
-    | 'hi'
-    | 'hr'
-    | 'ko'
-    | 'ms'
-    | 'no'
-    | 'uk'
-    | 'bg'
-    | 'et'
-    | 'sl'
-    | 'sk';
-  /**
    * Store transcriptions in this external storage
    */
   transcription_external_storage?: string;
+  /**
+   * Language a call is transcribed or captioned in.
+   */
+  language?: TranscriptionLanguage;
 }
 
 export interface StartTranscriptionResponse {
@@ -4255,92 +4232,63 @@ export interface TrackStatsResponse {
   track_type: string;
 }
 
+export type TranscriptionLanguage =
+  | 'auto'
+  | 'en'
+  | 'fr'
+  | 'es'
+  | 'de'
+  | 'it'
+  | 'nl'
+  | 'pt'
+  | 'pl'
+  | 'ca'
+  | 'cs'
+  | 'da'
+  | 'el'
+  | 'fi'
+  | 'id'
+  | 'ja'
+  | 'ru'
+  | 'sv'
+  | 'ta'
+  | 'th'
+  | 'tr'
+  | 'hu'
+  | 'ro'
+  | 'zh'
+  | 'ar'
+  | 'tl'
+  | 'he'
+  | 'hi'
+  | 'hr'
+  | 'ko'
+  | 'ms'
+  | 'no'
+  | 'uk'
+  | 'bg'
+  | 'et'
+  | 'sl'
+  | 'sk';
+
 export interface TranscriptionSettingsRequest {
   closed_caption_mode?: 'available' | 'disabled' | 'auto-on';
-  language?:
-    | 'auto'
-    | 'en'
-    | 'fr'
-    | 'es'
-    | 'de'
-    | 'it'
-    | 'nl'
-    | 'pt'
-    | 'pl'
-    | 'ca'
-    | 'cs'
-    | 'da'
-    | 'el'
-    | 'fi'
-    | 'id'
-    | 'ja'
-    | 'ru'
-    | 'sv'
-    | 'ta'
-    | 'th'
-    | 'tr'
-    | 'hu'
-    | 'ro'
-    | 'zh'
-    | 'ar'
-    | 'tl'
-    | 'he'
-    | 'hi'
-    | 'hr'
-    | 'ko'
-    | 'ms'
-    | 'no'
-    | 'uk'
-    | 'bg'
-    | 'et'
-    | 'sl'
-    | 'sk';
   mode?: 'available' | 'disabled' | 'auto-on';
+  /**
+   * Language a call is transcribed or captioned in.
+   */
+  language?: TranscriptionLanguage;
   speech_segment_config?: SpeechSegmentConfig;
   translation?: TranslationSettings;
 }
 
 export interface TranscriptionSettingsResponse {
   closed_caption_mode: 'available' | 'disabled' | 'auto-on';
-  language:
-    | 'auto'
-    | 'en'
-    | 'fr'
-    | 'es'
-    | 'de'
-    | 'it'
-    | 'nl'
-    | 'pt'
-    | 'pl'
-    | 'ca'
-    | 'cs'
-    | 'da'
-    | 'el'
-    | 'fi'
-    | 'id'
-    | 'ja'
-    | 'ru'
-    | 'sv'
-    | 'ta'
-    | 'th'
-    | 'tr'
-    | 'hu'
-    | 'ro'
-    | 'zh'
-    | 'ar'
-    | 'tl'
-    | 'he'
-    | 'hi'
-    | 'hr'
-    | 'ko'
-    | 'ms'
-    | 'no'
-    | 'uk'
-    | 'bg'
-    | 'et'
-    | 'sl'
-    | 'sk';
   mode: 'available' | 'disabled' | 'auto-on';
+  /**
+   * Language a call is transcribed or captioned in.
+   */
+  language: TranscriptionLanguage;
   speech_segment_config?: SpeechSegmentConfig;
   translation?: TranslationSettings;
 }
@@ -4665,10 +4613,6 @@ export interface UserResponse {
    * Optional name of user
    */
   name?: string;
-  /**
-   * Revocation date for tokens
-   */
-  revoke_tokens_issued_before?: TimestampNS;
   teams_role?: Record<string, string>;
 }
 
@@ -4687,7 +4631,6 @@ export interface UserResponseCommonFields {
   image?: string;
   last_active?: TimestampNS;
   name?: string;
-  revoke_tokens_issued_before?: TimestampNS;
   teams_role?: Record<string, string>;
 }
 
@@ -4707,7 +4650,6 @@ export interface UserResponsePrivacyFields {
   invisible?: boolean;
   last_active?: TimestampNS;
   name?: string;
-  revoke_tokens_issued_before?: TimestampNS;
   /**
    * The privacy settings of the user.
    */
@@ -4766,6 +4708,8 @@ export interface UserUpdatedEvent {
   type: string;
   received_at?: TimestampNS;
 }
+
+export type VideoCodec = 'h264' | 'vp8';
 
 export type VideoEvent =
   | ({ type: 'app.updated' } & AppUpdatedEvent)
@@ -4871,16 +4815,22 @@ export interface VideoReactionsResponse {
 export interface VideoSettingsRequest {
   access_request_enabled?: boolean;
   camera_default_on?: boolean;
-  camera_facing?: 'front' | 'back' | 'external';
   enabled?: boolean;
+  /**
+   * Which camera a call opens with.
+   */
+  camera_facing?: CameraFacing;
   target_resolution?: TargetResolution;
 }
 
 export interface VideoSettingsResponse {
   access_request_enabled: boolean;
   camera_default_on: boolean;
-  camera_facing: 'front' | 'back' | 'external';
   enabled: boolean;
+  /**
+   * Which camera a call opens with.
+   */
+  camera_facing: CameraFacing;
   target_resolution: TargetResolution;
 }
 

@@ -31,6 +31,7 @@ import type {
   QueryCallParticipantSessionsResponse,
   QueryCallParticipantsRequest,
   QueryCallParticipantsResponse,
+  RecordingType,
   RejectCallRequest,
   RejectCallResponse,
   RequestPermissionRequest,
@@ -205,7 +206,7 @@ export class CallApi {
   }
 
   startRecording(
-    pathParams: { recording_type: string },
+    pathParams: { recording_type: RecordingType },
     request?: StartRecordingRequest,
   ): Promise<StreamResponse<StartRecordingResponse>> {
     return this.videoApi.startRecording(
@@ -215,7 +216,7 @@ export class CallApi {
   }
 
   stopRecording(
-    pathParams: { recording_type: string },
+    pathParams: { recording_type: RecordingType },
     request?: StopRecordingRequest,
   ): Promise<StreamResponse<StopRecordingResponse>> {
     return this.videoApi.stopRecording(
