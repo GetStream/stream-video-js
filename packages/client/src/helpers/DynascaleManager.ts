@@ -19,6 +19,7 @@ import {
   type MediaPlaybackWatchdogOptions,
 } from './MediaPlaybackWatchdog';
 import { watchMediaInterruptions } from './mediaInterruptions';
+import { SilentAudioPlayer } from './SilentAudioPlayer';
 import type { TrackSubscriptionManager } from './TrackSubscriptionManager';
 import { isFirefox, isSafari } from './browsers';
 import { hasScreenShare, hasVideo } from './participantUtils';
@@ -44,6 +45,7 @@ export class DynascaleManager {
   private playbackWatchdogs = new Set<MediaPlaybackWatchdog>();
   private stopWatchingInterruptions: (() => void) | undefined;
   private stopTracingAudioSession: (() => void) | undefined;
+  private silentAudioPlayer: SilentAudioPlayer;
 
   private trackSubscriptionManager: TrackSubscriptionManager;
   private blockedAudioTracker: BlockedAudioTracker;
@@ -63,6 +65,7 @@ export class DynascaleManager {
     this.tracer = tracer;
     this.trackSubscriptionManager = trackSubscriptionManager;
     this.blockedAudioTracker = blockedAudioTracker;
+    this.silentAudioPlayer = new SilentAudioPlayer(tracer);
   }
 
   /**
@@ -73,12 +76,30 @@ export class DynascaleManager {
     this.stopWatchingInterruptions = undefined;
     this.stopTracingAudioSession?.();
     this.stopTracingAudioSession = undefined;
+    this.releaseAudioPlaybackUnlock();
     const context = this.audioContext;
     if (context && context.state !== 'closed') {
       document.removeEventListener('click', this.resumeAudioContext);
       await context.close();
       this.audioContext = undefined;
     }
+  };
+
+  /**
+   * Keeps a silent audio element playing on WebKit, so remote audio can
+   * autoplay later without another user gesture. Call it from a user gesture
+   * or while audio is playing; it is a no-op on other browsers.
+   */
+  keepAudioPlaybackUnlocked = () => {
+    this.silentAudioPlayer.play();
+  };
+
+  /**
+   * Stops the silent audio element started by {@link keepAudioPlaybackUnlocked}.
+   */
+  releaseAudioPlaybackUnlock = () => {
+    // closing the audio context needs no waiting: the element is already gone
+    void this.silentAudioPlayer.dispose();
   };
 
   /**
@@ -343,12 +364,16 @@ export class DynascaleManager {
     let audioWatchdog: MediaPlaybackWatchdog | undefined = undefined;
     let blockedByGiveUp = false;
 
+    const onPlaying = () => {
+      this.silentAudioPlayer.resume();
+      clearBlockedAudio();
+    };
     const clearBlockedAudio = () => {
       blockedByGiveUp = false;
       if (!this.blockedAudioTracker.isBlocked(audioElement)) return;
       this.blockedAudioTracker.markBlocked(audioElement, false);
     };
-    audioElement.addEventListener('playing', clearBlockedAudio);
+    audioElement.addEventListener('playing', onPlaying);
 
     const isAudioTrack = trackType === 'audioTrack';
     const trackKey = isAudioTrack ? 'audioStream' : 'screenShareAudioStream';
@@ -449,7 +474,7 @@ export class DynascaleManager {
     audioElement.autoplay = true;
 
     return () => {
-      audioElement.removeEventListener('playing', clearBlockedAudio);
+      audioElement.removeEventListener('playing', onPlaying);
       clearBlockedAudio();
       sinkIdSubscription?.unsubscribe();
       volumeSubscription.unsubscribe();
