@@ -136,6 +136,7 @@ import {
 import { normalize } from './devices/devicePersistence';
 import {
   hasPending,
+  settled,
   singleFlight,
   withoutConcurrency,
 } from './helpers/concurrency';
@@ -284,6 +285,15 @@ export class Call {
 
   // (10 attempts per rolling 120 s window).
   private readonly rejoinRateLimiter = new SlidingWindowRateLimiter(10, 120000);
+  // Backstop for slow REJOIN loops that stay under the short window
+  // (20 attempts per rolling 30 min window). Dropped once the integrator
+  // takes over the budget through `setRejoinAttemptLimit`.
+  private rejoinLongWindowRateLimiter?: SlidingWindowRateLimiter =
+    new SlidingWindowRateLimiter(20, 30 * 60 * 1000);
+  // In-flight `doJoin` runs, awaited before acting on peer connections that
+  // gathered no local ICE candidates.
+  private readonly joinTasks = new Set<Promise<void>>();
+  private noLocalCandidatesCheckScheduled = false;
   // "Network doesn't support WebRTC" detector: counts peer-connection
   // failures where ICE never reached `connected`/`completed`.
   private maxIceFailuresWithoutConnect = 2;
@@ -770,6 +780,7 @@ export class Call {
       // `joinFlow` never runs, leaving stale values that would make the next
       // fresh `join()` send a stale `ReconnectDetails` to the SFU.
       this.rejoinRateLimiter.reset();
+      this.rejoinLongWindowRateLimiter?.reset();
       this.iceFailuresWithoutConnect = 0;
       this.consecutiveNegotiationFailures = 0;
       this.reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
@@ -1239,6 +1250,16 @@ export class Call {
    * @returns a promise which resolves once the call join-flow has finished.
    */
   private doJoin = async (data?: JoinCallData): Promise<void> => {
+    const task = this.performJoin(data);
+    this.joinTasks.add(task);
+    try {
+      await task;
+    } finally {
+      this.joinTasks.delete(task);
+    }
+  };
+
+  private performJoin = async (data?: JoinCallData): Promise<void> => {
     const connectStartTime = Date.now();
     const callingState = this.state.callingState;
     const joinLeaveGeneration = this.leaveGeneration;
@@ -1687,6 +1708,9 @@ export class Call {
         // "ICE never connected" failure budget can be cleared.
         this.iceFailuresWithoutConnect = 0;
       },
+      onNoLocalCandidates: () => {
+        this.checkNoLocalCandidates();
+      },
       onPeerConnectionStateChange: (event) => {
         this.clientEventReporter.onPeerConnectionStateChange(this.cid, event);
       },
@@ -1742,6 +1766,62 @@ export class Call {
         unifiedSessionId,
       });
       this.sfuStatsReporter.start();
+    }
+  };
+
+  /**
+   * Escalates to REJOIN with `ICE_NEVER_CONNECTED` when the current peer
+   * connections never connected and one of them completed ICE gathering
+   * without a single local candidate, which means WebRTC networking is
+   * blocked on this device.
+   *
+   * `reconnect` ignores requests while a join or another reconnect is in
+   * flight, so the check is postponed until those settle and then re-run
+   * against the peer connections current at that time.
+   */
+  private checkNoLocalCandidates = () => {
+    if (this.noLocalCandidatesCheckScheduled) return;
+    if (this.joinTasks.size > 0 || hasPending(this.reconnectConcurrencyTag)) {
+      this.noLocalCandidatesCheckScheduled = true;
+      const leaveGeneration = this.leaveGeneration;
+      this.waitForJoinsAndReconnects()
+        .then(() => {
+          this.noLocalCandidatesCheckScheduled = false;
+          if (this.leaveGeneration !== leaveGeneration) return;
+          this.checkNoLocalCandidates();
+        })
+        .catch((err) => {
+          this.noLocalCandidatesCheckScheduled = false;
+          this.logger.warn('[Reconnect] No-candidates check failed', err);
+        });
+      return;
+    }
+
+    if (this.state.callingState !== CallingState.JOINED) return;
+    // without network, gathering legitimately yields no candidates
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+    const peerConnections = [this.publisher, this.subscriber];
+    if (peerConnections.some((pc) => pc?.hasIceEverConnected())) return;
+    if (!peerConnections.some((pc) => pc?.hasNoLocalCandidates())) return;
+
+    this.reconnect(
+      WebsocketReconnectStrategy.REJOIN,
+      ReconnectReason.ICE_NEVER_CONNECTED,
+    ).catch((err) => {
+      this.logger.warn('[Reconnect] Error reconnecting', err);
+    });
+  };
+
+  /**
+   * Resolves once no `doJoin` run and no reconnect is in flight.
+   */
+  private waitForJoinsAndReconnects = async () => {
+    while (
+      this.joinTasks.size > 0 ||
+      hasPending(this.reconnectConcurrencyTag)
+    ) {
+      await Promise.allSettled(this.joinTasks);
+      await settled(this.reconnectConcurrencyTag);
     }
   };
 
@@ -1981,6 +2061,16 @@ export class Call {
             await giveUpAndLeave('rejoin_attempt_limit_exceeded');
             return;
           }
+        }
+        // MIGRATE is server-driven (e.g. SFU drains), so it doesn't count
+        // toward the long-window backstop.
+        if (
+          this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN &&
+          this.rejoinLongWindowRateLimiter &&
+          !this.rejoinLongWindowRateLimiter.tryRegister()
+        ) {
+          await giveUpAndLeave('rejoin_attempt_limit_exceeded');
+          return;
         }
 
         // we don't increment reconnect attempts for the FAST strategy.
@@ -2262,7 +2352,10 @@ export class Call {
     });
 
     // handles the "error" event, through which the SFU can request a reconnect
-    const unregisterOnError = this.on('error', (e) => {
+    // Only the active SFU client may drive a reconnect: a superseded one can
+    // still report errors about its own (replaced) session.
+    const activeSfuTag = () => this.sfuClient?.tag ?? '*';
+    const unregisterOnError = this.dispatcher.on('error', activeSfuTag, (e) => {
       const { reconnectStrategy: strategy, error } = e;
       if (!SfuJoinError.isJoinErrorCode(e)) {
         const code = error?.code ? ErrorCode[error.code] : undefined;
@@ -2282,10 +2375,17 @@ export class Call {
           this.logger.warn(`Can't leave call after disconnect request`, err);
         });
       } else {
-        this.reconnect(
-          strategy,
-          error?.message || ReconnectReason.SFU_ERROR,
-        ).catch((err) => {
+        // A media transport failure on a session whose peer connections
+        // never connected is an "ICE never connected" failure, and must
+        // count toward the unsupported-network budget.
+        const neverConnected =
+          error?.code === ErrorCode.PARTICIPANT_MEDIA_TRANSPORT_FAILURE &&
+          !this.publisher?.hasIceEverConnected() &&
+          !this.subscriber?.hasIceEverConnected();
+        const reason = neverConnected
+          ? ReconnectReason.ICE_NEVER_CONNECTED
+          : error?.message || ReconnectReason.SFU_ERROR;
+        this.reconnect(strategy, reason).catch((err) => {
           this.logger.warn('[Reconnect] Error reconnecting', err);
         });
       }
@@ -3516,9 +3616,11 @@ export class Call {
    * `rejoin_attempt_limit_exceeded` leave message.
    *
    * Defaults: 10 attempts per 120 seconds (aligned with the Swift SDK).
-   * Both arguments are clamped to a minimum of 1.
+   * Both arguments are clamped to a minimum of 1. Unless this method is
+   * called, an additional cap of 20 REJOIN attempts per 30 minutes applies.
    */
   setRejoinAttemptLimit = (maxAttempts: number, windowSeconds: number) => {
+    this.rejoinLongWindowRateLimiter = undefined;
     this.rejoinRateLimiter.setLimits(
       Math.max(1, maxAttempts),
       Math.max(1, windowSeconds) * 1000,
