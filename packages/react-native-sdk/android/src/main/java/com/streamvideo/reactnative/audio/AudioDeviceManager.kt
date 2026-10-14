@@ -26,7 +26,6 @@ import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.streamvideo.reactnative.audio.utils.AudioDeviceEndpointUtils
 import com.streamvideo.reactnative.audio.utils.AudioFocusUtil
 import com.streamvideo.reactnative.audio.utils.AudioManagerUtil
@@ -65,6 +64,10 @@ class AudioDeviceManager(
         }
         EndpointMaps(bluetoothEndpoints, nonBluetoothEndpoints)
     }
+
+    /** Set by the owning module, which emits the codegen event; cleared on module invalidation. */
+    @Volatile
+    var onAudioDeviceChanged: ((WritableMap) -> Unit)? = null
 
     private var cachedAvailableEndpointIdsSet = setOf<String>()
 
@@ -657,23 +660,10 @@ class AudioDeviceManager(
             // callingx emits endpoint changes in this mode; avoid duplicate/conflicting events.
             return
         }
-        try {
-            if (mReactContext.hasActiveReactInstance()) {
-                val payload = audioStatusMap()
-                Log.d(TAG, "sendAudioStatusEvent: $payload")
-                mReactContext.getJSModule(
-                    DeviceEventManagerModule.RCTDeviceEventEmitter::class.java
-                ).emit("onAudioDeviceChanged", payload)
-            } else {
-                Log.e(TAG, "sendEvent(): reactContext is null or not having CatalystInstance yet.")
-            }
-        } catch (e: RuntimeException) {
-            Log.e(
-                TAG,
-                "sendEvent(): java.lang.RuntimeException: Trying to invoke JS before CatalystInstance has been set!",
-                e
-            )
-        }
+        val callback = onAudioDeviceChanged ?: return
+        val payload = audioStatusMap()
+        Log.d(TAG, "sendAudioStatusEvent: $payload")
+        callback(payload)
     }
 
     companion object {

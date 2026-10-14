@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
-import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
-
-type Event = {
-  name: 'iOS_BroadcastStarted' | 'iOS_BroadcastStopped';
-};
+import { Platform } from 'react-native';
+import NativeStreamVideoReactNative from '../native/NativeStreamVideoReactNative';
 
 export function useIsIosScreenshareBroadcastStarted() {
   const [hasStarted, setHasStarted] = useState(false);
@@ -13,13 +10,8 @@ export function useIsIosScreenshareBroadcastStarted() {
       return;
     }
 
-    const eventEmitter = new NativeEventEmitter(
-      NativeModules.StreamVideoReactNative,
-    );
-
-    const subscription = eventEmitter.addListener(
-      'StreamVideoReactNative_Ios_Screenshare_Event',
-      (event: Event) => {
+    const subscription = NativeStreamVideoReactNative.onScreenShareEvent(
+      (event: { name: string }) => {
         setHasStarted(event.name === 'iOS_BroadcastStarted');
       },
     );

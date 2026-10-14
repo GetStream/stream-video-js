@@ -14,13 +14,13 @@ import {
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import React, { useEffect, useCallback, useRef, useState } from 'react';
-import { findNodeHandle } from 'react-native';
 import {
   onNativeCallClosed,
   onNativeDimensionsUpdated,
   type PiPBoundsChangeEvent,
   type PiPChangeEvent,
   RTCViewPipNative,
+  type RTCViewPipNativeRef,
 } from './RTCViewPipNative';
 import { BehaviorSubject, debounceTime } from 'rxjs';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
@@ -135,19 +135,18 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
       !includeLocalParticipantVideo;
   }, [includeLocalParticipantVideo]);
 
-  const nativeRef = React.useRef<any>(null);
+  const nativeRef = React.useRef<RTCViewPipNativeRef>(null);
 
   React.useEffect(() => {
-    const node = findNodeHandle(nativeRef.current);
+    // captured on mount: the ref is already detached when the cleanup runs.
+    const node = nativeRef.current;
     isClosedRef.current = false;
     const onCallClosed = () => {
       if (isClosedRef.current) {
         return;
       }
       isClosedRef.current = true;
-      if (node !== null) {
-        onNativeCallClosed(node);
-      }
+      onNativeCallClosed(node);
       shouldDisableIOSLocalVideoOnBackgroundRef.current = true;
       pipDimensions$.next(undefined);
       updatePipState(false);
@@ -174,9 +173,8 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
   }, [call, pipDimensions$, updatePipState]);
 
   const onDimensionsUpdated = useCallback((width: number, height: number) => {
-    const node = findNodeHandle(nativeRef.current);
-    if (node !== null && width > 0 && height > 0) {
-      onNativeDimensionsUpdated(node, width, height);
+    if (width > 0 && height > 0) {
+      onNativeDimensionsUpdated(nativeRef.current, width, height);
     }
   }, []);
 

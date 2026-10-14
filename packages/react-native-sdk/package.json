@@ -148,6 +148,23 @@
     "rimraf": "^6.1.3",
     "typescript": "^6.0.3"
   },
+  "codegenConfig": {
+    "name": "StreamVideoReactNativeSpec",
+    "type": "all",
+    "jsSrcsDir": "src/native",
+    "android": {
+      "javaPackageName": "com.streamvideo.reactnative"
+    },
+    "ios": {
+      "modulesProvider": {
+        "StreamInCallManager": "StreamInCallManagerModule",
+        "StreamVideoReactNative": "StreamVideoReactNativeModule"
+      },
+      "componentProvider": {
+        "RTCViewPip": "RTCViewPipComponentView"
+      }
+    }
+  },
   "react-native-builder-bob": {
     "source": "src",
     "output": "dist",

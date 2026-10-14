@@ -1,4 +1,4 @@
-import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import type {
   AudioDeviceEndpointType,
   AudioDevicesState,
@@ -11,11 +11,9 @@ import type {
 } from '@stream-io/react-native-callingx';
 import { videoLoggerSystem } from '@stream-io/video-client';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs';
+import NativeManager from '../../native/NativeStreamInCallManager';
 
-const NativeManager = NativeModules.StreamInCallManager;
 const CallingxModule = getCallingxLibIfAvailable();
-const AUDIO_INTERRUPTION_EVENT = 'StreamInCallManagerAudioInterruption';
-const AUDIO_DEVICE_CHANGED_EVENT = 'onAudioDeviceChanged';
 
 const invariant = (condition: boolean, message: string) => {
   if (!condition) throw new Error(message);
@@ -103,7 +101,6 @@ const snapshotToState = (
  * Cross-platform audio output device picker.
  */
 class AudioDevicesManager {
-  private eventEmitter?: NativeEventEmitter;
   private interruptionReassertSetup = false;
 
   /**
@@ -202,12 +199,7 @@ class AudioDevicesManager {
     }
 
     // SDK-managed route changes (non-callingx calls).
-    this.eventEmitter =
-      this.eventEmitter ?? new NativeEventEmitter(NativeManager);
-    const sdkSub = this.eventEmitter.addListener(
-      AUDIO_DEVICE_CHANGED_EVENT,
-      onChange,
-    );
+    const sdkSub = NativeManager.onAudioDeviceChanged(onChange);
     unsubscribes.push(() => sdkSub.remove());
 
     return () => {
@@ -218,8 +210,6 @@ class AudioDevicesManager {
 }
 
 class IOSCallManager {
-  private eventEmitter?: NativeEventEmitter;
-
   /**
    * Will trigger the iOS device selector.
    */
@@ -237,10 +227,8 @@ class IOSCallManager {
     onInterruption: (event: IOSAudioInterruptionEvent) => void,
   ): (() => void) => {
     invariant(Platform.OS === 'ios', 'Supported only on iOS');
-    this.eventEmitter ??= new NativeEventEmitter(NativeManager);
-    const s = this.eventEmitter.addListener(
-      AUDIO_INTERRUPTION_EVENT,
-      onInterruption,
+    const s = NativeManager.onAudioInterruption((event) =>
+      onInterruption(event as IOSAudioInterruptionEvent),
     );
     return () => s.remove();
   };
