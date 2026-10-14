@@ -13,6 +13,11 @@ export type CameraUnavailableNotificationProps = {
   className?: string;
 };
 
+const UNAVAILABLE_ERRORS = ['NotReadableError', 'AbortError'];
+
+const isCameraUnavailable = (error: Error | undefined) =>
+  !!error?.name && UNAVAILABLE_ERRORS.includes(error.name);
+
 /**
  * Shows when the last attempt to start the camera failed (e.g. the camera is
  * in use by another app). Reads the error from the camera state, so it shows
@@ -28,12 +33,12 @@ export const CameraUnavailableNotification = ({
   className,
 }: PropsWithChildren<CameraUnavailableNotificationProps>) => {
   const { useCameraState } = useCallStateHooks();
-  const { error, hasBrowserPermission } = useCameraState();
+  const { error } = useCameraState();
   const { t } = useI18n();
-  const [isVisible, setIsVisible] = useState(!!error);
+  const [isVisible, setIsVisible] = useState(() => isCameraUnavailable(error));
 
   useEffect(() => {
-    setIsVisible(!!error);
+    setIsVisible(isCameraUnavailable(error));
   }, [error]);
 
   const message = text ?? (
@@ -54,7 +59,7 @@ export const CameraUnavailableNotification = ({
     <Notification
       message={message}
       state="error"
-      isVisible={isVisible && hasBrowserPermission}
+      isVisible={isVisible}
       placement={placement}
       className={className}
       close={() => setIsVisible(false)}
