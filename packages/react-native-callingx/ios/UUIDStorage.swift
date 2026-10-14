@@ -7,14 +7,14 @@ import Foundation
     private var callsByUUID: [String: CallingxCall] = [:]
     private let queue = DispatchQueue(label: "com.stream.uuidstorage", attributes: [])
 
-    /// UUIDs of the conversation manager's live (not left) conversations, set by `CallingxImpl`.
+    /// UUIDs of the system's live calls, supplied by the backend (`CallingxBackend.liveCallUUIDs()`).
     /// Invoked outside `queue` so it never runs while our lock is held.
-    @nonobjc public var liveConversationUUIDsProvider: (() -> Set<UUID>)?
+    @nonobjc public var liveCallUUIDsProvider: (() -> Set<UUID>)?
 
     // MARK: - Conversation liveness queries
 
     public func hasRegisteredCall() -> Bool {
-        let live = liveConversationUUIDsProvider?() ?? []
+        let live = liveCallUUIDsProvider?() ?? []
         return queue.sync {
             guard !callsByCid.isEmpty else { return false }
             let ours = Set(callsByCid.values.map { $0.uuid })
@@ -23,7 +23,7 @@ import Foundation
     }
 
     public func isCallTracked(forCid cid: String) -> Bool {
-        let live = liveConversationUUIDsProvider?() ?? []
+        let live = liveCallUUIDsProvider?() ?? []
         return queue.sync {
             guard let call = callsByCid[cid] else { return false }
             return live.contains(call.uuid)
