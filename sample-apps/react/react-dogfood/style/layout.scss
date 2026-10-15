@@ -103,6 +103,15 @@
       width: 324px;
     }
 
+    &.rd__sidebar--open.rd__sidebar--wide {
+      width: 440px;
+
+      .rd__sidebar__container {
+        max-width: 440px;
+        min-width: 440px;
+      }
+    }
+
     .rd__sidebar__container {
       max-width: 324px;
       min-width: 324px;

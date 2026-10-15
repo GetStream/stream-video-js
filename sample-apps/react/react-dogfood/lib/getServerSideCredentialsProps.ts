@@ -22,6 +22,7 @@ type QueryParams = {
   token?: string;
   user_id?: string;
   environment?: string;
+  name?: string;
 };
 
 export const getServerSideCredentialsPropsWithOptions =
@@ -100,9 +101,11 @@ export const getServerSideCredentialsPropsWithOptions =
         userToken: token,
         user: {
           id: streamUserId,
-          ...(session.user?.name
-            ? { name: session.user.name }
-            : { name: isProntoSales ? '' : getRandomName() }),
+          ...(query.name?.trim()
+            ? { name: query.name.trim() }
+            : session.user?.name
+              ? { name: session.user.name }
+              : { name: isProntoSales ? '' : getRandomName() }),
           ...(session.user?.image ? { image: session.user.image } : {}),
         },
         gleapApiKey,

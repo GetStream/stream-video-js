@@ -48,6 +48,7 @@ import { ToggleParticipantListButton } from './ToggleParticipantListButton';
 import { TourPanel } from './TourPanel';
 import { UnreadCountBadge } from './UnreadCountBadge';
 import { AIAgentStatusPanel, AskAIAgentButton } from './VisionAgent';
+import { ToggleWwsdButton, WwsdPanel, WwsdProvider } from './Wwsd';
 
 import {
   useIsDemoEnvironment,
@@ -76,7 +77,7 @@ export type ActiveCallProps = {
 };
 
 type SidebarContent =
-  'participants' | 'chat' | 'stats' | 'closed-captions' | null;
+  'participants' | 'chat' | 'stats' | 'closed-captions' | 'wwsd' | null;
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
@@ -109,13 +110,17 @@ export const ActiveCall = (props: ActiveCallProps) => {
     isDemoEnvironment && !isTourActive,
   );
   const [agentSessionId, setAgentSessionId] = useState<string | null>(null);
-  const [sidebarContent, setSidebarContent] = useState<SidebarContent>(null);
+  const router = useRouter();
+  const isWwsd = router.query['wwsd'] === '1';
+  const [sidebarContent, setSidebarContent] = useState<SidebarContent>(
+    isWwsd ? 'wwsd' : null,
+  );
   const showSidebar = sidebarContent != null;
   const showParticipants = sidebarContent === 'participants';
   const showChat = sidebarContent === 'chat';
   const showStats = sidebarContent === 'stats';
   const showClosedCaptions = sidebarContent === 'closed-captions';
-  const router = useRouter();
+  const showWwsd = sidebarContent === 'wwsd';
   const chatDisabled =
     router.query['disable_chat'] === 'true' ||
     process.env.NEXT_PUBLIC_DISABLE_CHAT === 'true';
@@ -140,9 +145,9 @@ export const ActiveCall = (props: ActiveCallProps) => {
     if (currentTourStep === StepNames.Chat) {
       setSidebarContent('chat');
     } else {
-      setSidebarContent(null);
+      setSidebarContent(isWwsd ? 'wwsd' : null);
     }
-  }, [currentTourStep]);
+  }, [currentTourStep, isWwsd]);
 
   useEffect(() => {
     if (isDemoEnvironment && !isTourActive) {
@@ -200,44 +205,56 @@ export const ActiveCall = (props: ActiveCallProps) => {
             {isCaptioning && <ClosedCaptions />}
           </div>
 
-          <div
-            className={clsx('rd__sidebar', showSidebar && 'rd__sidebar--open')}
-          >
-            {showSidebar && (
-              <div className="rd__sidebar__container">
-                {showParticipants && (
-                  <div className="rd__participants">
-                    <CallParticipantsList
-                      onClose={() => setSidebarContent(null)}
-                    />
-                    <InvitePanel />
-                  </div>
-                )}
-
-                {showChat && (
-                  <ChatWrapper chatClient={chatClient}>
-                    <div className="str-video__chat">
-                      <ChatUI
-                        onClose={() => {
-                          if (
-                            isTourActive &&
-                            currentTourStep === StepNames.Chat
-                          ) {
-                            nextTourStep();
-                          }
-                          setSidebarContent(null);
-                        }}
-                        channelId={activeCall.id}
+          <WwsdProvider enabled={isWwsd} callId={activeCall.id}>
+            <div
+              className={clsx(
+                'rd__sidebar',
+                showSidebar && 'rd__sidebar--open',
+                showWwsd && 'rd__sidebar--wide',
+              )}
+            >
+              {showSidebar && (
+                <div className="rd__sidebar__container">
+                  {showParticipants && (
+                    <div className="rd__participants">
+                      <CallParticipantsList
+                        onClose={() => setSidebarContent(null)}
                       />
+                      <InvitePanel />
                     </div>
-                  </ChatWrapper>
-                )}
+                  )}
 
-                {showStats && <CallStatsSidebar />}
-                {isPronto && showClosedCaptions && <ClosedCaptionsSidebar />}
-              </div>
-            )}
-          </div>
+                  {showChat && (
+                    <ChatWrapper chatClient={chatClient}>
+                      <div className="str-video__chat">
+                        <ChatUI
+                          onClose={() => {
+                            if (
+                              isTourActive &&
+                              currentTourStep === StepNames.Chat
+                            ) {
+                              nextTourStep();
+                            }
+                            setSidebarContent(null);
+                          }}
+                          channelId={activeCall.id}
+                        />
+                      </div>
+                    </ChatWrapper>
+                  )}
+
+                  {showStats && <CallStatsSidebar />}
+                  {isPronto && showClosedCaptions && <ClosedCaptionsSidebar />}
+                  {isWwsd && showWwsd && (
+                    <WwsdPanel
+                      onClose={() => setSidebarContent(null)}
+                      onLeave={onLeave}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          </WwsdProvider>
         </div>
         <ModerationNotification />
         <E2EEKeyNotification />
@@ -344,6 +361,12 @@ export const ActiveCall = (props: ActiveCallProps) => {
             </div>
           </div>
           <div className="str-video__call-controls--group str-video__call-controls--sidebar">
+            {isWwsd && (
+              <ToggleWwsdButton
+                active={showWwsd}
+                onClick={() => setSidebarContent(showWwsd ? null : 'wwsd')}
+              />
+            )}
             {isPronto && (
               <div className="str-video__call-controls__desktop">
                 <WithTooltip
