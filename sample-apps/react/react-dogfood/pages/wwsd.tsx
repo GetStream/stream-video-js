@@ -68,7 +68,9 @@ export default function WwsdStartPage() {
         throw new Error('The backend returned no rep or customer link.');
       }
       storeCustomerLink(id, customer.url);
-      await router.push(toLocalJoinPath(rep, id));
+      // A full navigation: /join's getServerSideProps may have to sign in first, and a
+      // client-side push would land on its JSON data URL after that.
+      window.location.assign(toLocalJoinPath(rep, id));
     });
 
   const resetCall = () =>

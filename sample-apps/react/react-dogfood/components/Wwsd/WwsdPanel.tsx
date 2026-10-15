@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActionBar } from './ActionBar';
 import { CardStack } from './CardStack';
 import { DealSheet } from './DealSheet';
@@ -13,8 +13,14 @@ export const WwsdPanel = (props: {
   onLeave: () => void;
 }) => {
   const { onClose, onLeave } = props;
-  const { actions } = useWwsd();
+  const { actions, state } = useWwsd();
   const [recapOpen, setRecapOpen] = useState(false);
+
+  // A recap can arrive over the feed (autoplay, another console), not only from this button.
+  const recapTs = state.recap?.ts;
+  useEffect(() => {
+    if (recapTs) setRecapOpen(true);
+  }, [recapTs]);
 
   const openRecap = () => {
     setRecapOpen(true);
