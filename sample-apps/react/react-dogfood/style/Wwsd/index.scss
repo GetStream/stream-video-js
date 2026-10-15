@@ -464,12 +464,26 @@
   white-space: nowrap;
 }
 
+// Experts sit in an even grid of compact chips: full names live in the
+// tooltip, so no row ever needs to scroll.
 .rd__wwsd-actions__experts {
-  flex-wrap: nowrap;
-  overflow-x: auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .rd__wwsd-expert {
-  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 5px 8px;
+  font-size: 12px;
   white-space: nowrap;
+
+  &__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }

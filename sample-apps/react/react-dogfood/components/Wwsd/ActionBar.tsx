@@ -19,6 +19,7 @@ export const ActionBar = () => {
       <div className="rd__wwsd-actions__experts">
         {state.personas.map((persona) => {
           const reason = state.suggestedPersonas[persona.id];
+          const label = persona.button_label || persona.display_name;
           return (
             <button
               key={persona.id}
@@ -26,14 +27,17 @@ export const ActionBar = () => {
                 'rd__wwsd-expert',
                 reason && 'rd__wwsd-expert--suggested',
               )}
-              title={reason}
+              title={reason ? `${label}: ${reason}` : label}
+              aria-label={label}
               disabled={isPending(`persona:${persona.id}`)}
               onClick={() =>
                 fire('persona', actions.runPersona(persona.id, speak))
               }
             >
-              <span aria-hidden>{persona.emoji}</span>{' '}
-              {persona.button_label || persona.display_name}
+              <span aria-hidden>{persona.emoji}</span>
+              <span className="rd__wwsd-expert__name">
+                {persona.display_name || label}
+              </span>
             </button>
           );
         })}
