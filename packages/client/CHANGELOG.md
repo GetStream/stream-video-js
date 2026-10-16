@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.62.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.61.2...@stream-io/video-client-1.62.0) (2026-10-16)
+
+### Features
+
+- **react-sdk:** Expose the device error in camera/microphone state ([#2511](https://github.com/GetStream/stream-video-js/issues/2511)) ([f6822e4](https://github.com/GetStream/stream-video-js/commit/f6822e4c92cb22607ff0dd56606159e83db34fa2))
+
+### Bug Fixes
+
+- **client:** don't call setSinkId on Safari and other WebKit browsers ([#2505](https://github.com/GetStream/stream-video-js/issues/2505)) ([1b2cd97](https://github.com/GetStream/stream-video-js/commit/1b2cd974c3eb1c67266122a3966e07254e0ff0e1))
+- **client:** give up on devices that gather no ICE candidates ([#2509](https://github.com/GetStream/stream-video-js/issues/2509)) ([85633cd](https://github.com/GetStream/stream-video-js/commit/85633cd1a2d717ed67cb7dafb2874ad7790f6c45)), closes [GetStream/video-sfu#1728](https://github.com/GetStream/video-sfu/issues/1728)
+- **client:** keep the mic captured across mute for speaking-while-muted ([#2507](https://github.com/GetStream/stream-video-js/issues/2507)) ([07996da](https://github.com/GetStream/stream-video-js/commit/07996daaa59b13da07d21b2be4cb615de34a846e))
+
 ## [1.61.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.61.1...@stream-io/video-client-1.61.2) (2026-10-09)
 
 ### Bug Fixes
