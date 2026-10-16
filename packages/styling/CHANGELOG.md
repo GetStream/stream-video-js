@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.16.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.15.1...@stream-io/video-styling-1.16.0) (2026-10-16)
+
+### Features
+
+- **react-sdk:** Expose the device error in camera/microphone state ([#2511](https://github.com/GetStream/stream-video-js/issues/2511)) ([f6822e4](https://github.com/GetStream/stream-video-js/commit/f6822e4c92cb22607ff0dd56606159e83db34fa2))
+
 ## [1.15.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.15.0...@stream-io/video-styling-1.15.1) (2026-08-07)
 
 ## [1.15.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.14.2...@stream-io/video-styling-1.15.0) (2026-07-30)
