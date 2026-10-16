@@ -1115,6 +1115,8 @@ export class Call {
       const supersededByLeave = () =>
         this.leaveGeneration !== joinLeaveGeneration;
 
+      this.dynascaleManager?.keepAudioPlaybackUnlocked();
+
       // we need this to be set before the callingx.joinCall() is
       // called to avoid registering the test call in the CallKit/Telecom
       this.allowOwnTracksLoopback = allowOwnTracksLoopback;
@@ -1234,6 +1236,7 @@ export class Call {
           },
         );
       } catch (error) {
+        this.dynascaleManager?.releaseAudioPlaybackUnlock();
         callingX?.endCall(this, 'error');
         // Ends the failed ringing flow and releases what its setup installed.
         // Never rejects, so `error` is what the caller sees.
