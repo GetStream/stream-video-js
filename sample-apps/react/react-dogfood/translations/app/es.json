@@ -148,6 +148,8 @@
   "participants.joinRequest.text": "Alguien quiere unirse a la llamada",
   "recordings.searchForm.callType.placeholder": "Tipo de llamada",
   "recordings.searchForm.search.label": "Buscar",
+  "recordings.transcriptions.download.title": "Descargar la transcripción",
+  "recordings.transcriptions.title": "Transcripciones",
   "ringing.dialer.deleteUser.ariaLabel": "Eliminar usuario",
   "ringing.dialer.ring.label": "Llamar",
   "ringing.dialer.userId.placeholder": "ID de usuario",

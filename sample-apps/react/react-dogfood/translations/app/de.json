@@ -148,6 +148,8 @@
   "participants.joinRequest.text": "Jemand möchte dem Anruf beitreten",
   "recordings.searchForm.callType.placeholder": "Anruftyp",
   "recordings.searchForm.search.label": "Suchen",
+  "recordings.transcriptions.download.title": "Transkript herunterladen",
+  "recordings.transcriptions.title": "Transkripte",
   "ringing.dialer.deleteUser.ariaLabel": "Benutzer löschen",
   "ringing.dialer.ring.label": "Anrufen",
   "ringing.dialer.userId.placeholder": "Benutzer-ID",

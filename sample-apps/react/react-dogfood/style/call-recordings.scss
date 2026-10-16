@@ -16,6 +16,12 @@
     max-height: 400px;
     max-width: 400px;
   }
+
+  .rd__call-recordings-page__transcript-filename {
+    flex: 1 1 auto;
+    white-space: nowrap;
+    text-align: start;
+  }
 }
 
 .rd__call-recordings-page-form {
