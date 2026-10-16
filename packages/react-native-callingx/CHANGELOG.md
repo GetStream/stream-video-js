@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0-beta.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-1.0.0-beta.1...@stream-io/react-native-callingx-1.0.0-beta.2) (2026-10-16)
+
+### ⚠ BREAKING CHANGES
+
+- remove deprecated APIs and legacy code for v2 (#2498)
+- **react-native-callingx:** migrate to the New Architecture (#2493)
+
+### Features
+
+- **react-native-callingx:** migrate to the New Architecture ([#2493](https://github.com/GetStream/stream-video-js/issues/2493)) ([afb4657](https://github.com/GetStream/stream-video-js/commit/afb4657cf90abcf2a9cf2e9dff9d50085a7816a6)), closes [#2459](https://github.com/GetStream/stream-video-js/issues/2459) [#2466](https://github.com/GetStream/stream-video-js/issues/2466)
+- remove deprecated APIs and legacy code for v2 ([#2498](https://github.com/GetStream/stream-video-js/issues/2498)) ([7a20921](https://github.com/GetStream/stream-video-js/commit/7a209213d0eddb7ad8f1d21e55bd43910391666e)), closes [#2493](https://github.com/GetStream/stream-video-js/issues/2493)
+
 ## [1.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-1.0.0-beta.0...@stream-io/react-native-callingx-1.0.0-beta.1) (2026-09-28)
 
 ### Bug Fixes
