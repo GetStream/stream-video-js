@@ -1,5 +1,6 @@
 import { createContext, PropsWithChildren, useContext } from 'react';
 import { Call } from '@stream-io/video-client';
+import { SdkErrorObserver } from './SdkErrorObserver';
 
 const StreamCallContext = createContext<Call | undefined>(undefined);
 
@@ -22,7 +23,7 @@ export const StreamCallProvider = (
   const { call, children } = props;
   return (
     <StreamCallContext.Provider value={call}>
-      {children}
+      <SdkErrorObserver call={call}>{children}</SdkErrorObserver>
     </StreamCallContext.Provider>
   );
 };
