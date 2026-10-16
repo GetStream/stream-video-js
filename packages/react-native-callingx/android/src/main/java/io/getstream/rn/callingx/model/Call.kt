@@ -2,9 +2,12 @@ package io.getstream.rn.callingx.model
 
 import android.os.Bundle
 import android.telecom.DisconnectCause
+import android.util.Log
 import androidx.core.telecom.CallAttributesCompat
 import androidx.core.telecom.CallEndpointCompat
 import kotlinx.coroutines.channels.Channel
+
+private const val TAG = "[Callingx] Call"
 
 /**
  * Custom representation of a call state.
@@ -40,11 +43,19 @@ sealed class Call {
         fun isIncoming() = callAttributes.direction == CallAttributesCompat.DIRECTION_INCOMING
 
         /**
-             * Sends an action to the call session. It will be processed if it's still registered.
+         * Sends an action to the call session. Actions are queued and processed in order by the
+         * call session.
          *
-         * @return true if the action was sent, false otherwise
+         * @return true if the action was queued, false only if the action channel is closed,
+         * which callingx never does
          */
-        fun processAction(action: CallAction) = actionSource.trySend(action).isSuccess
+        fun processAction(action: CallAction): Boolean {
+            val sent = actionSource.trySend(action).isSuccess
+            if (!sent) {
+                Log.w(TAG, "[call] processAction[$id]: Dropped ${action::class.simpleName}, action channel is closed")
+            }
+            return sent
+        }
     }
 
     /**
