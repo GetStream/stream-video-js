@@ -21,8 +21,6 @@ export * from './MoreHor';
 export * from './RecordCall';
 export * from './Users';
 export * from './Verified';
-export * from './Spotlight';
-export * from './Grid';
 export * from './MessageBubbles';
 export * from './ExclamationMark';
 export * from './Language';

@@ -7,7 +7,6 @@ import {
   HangUpCallButton,
   HangUpCallButtonProps,
 } from './Buttons/HangupCallButton';
-import { LayoutSwitchButton } from './Buttons/LayoutSwitchButton';
 import { ToggleCameraFaceButton } from './Buttons/ToggleCameraFaceButton';
 
 /**
@@ -15,19 +14,15 @@ import { ToggleCameraFaceButton } from './Buttons/ToggleCameraFaceButton';
  */
 export type CallAppBarProps = Pick<ViewProps, 'style'> &
   Pick<HangUpCallButtonProps, 'onHangupCallHandler'> & {
-    layout?: 'grid' | 'spotlight';
     onHangupPressHandler?: () => void;
-    onLayoutToggleHandler?: (newLayout: 'grid' | 'spotlight') => void;
   };
 /**
  * A list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
  * the user can trigger within an active call.
  */
 export const CallAppBar = ({
-  layout,
   onHangupPressHandler,
   onHangupCallHandler,
-  onLayoutToggleHandler,
   style,
 }: CallAppBarProps) => {
   const {
@@ -37,10 +32,6 @@ export const CallAppBar = ({
   return (
     <View style={[styles.container, callAppBar.container, style]}>
       <View style={styles.leftGroup}>
-        <LayoutSwitchButton
-          layout={layout}
-          onLayoutToggleHandler={onLayoutToggleHandler}
-        />
         <ToggleCameraFaceButton />
       </View>
       <View style={styles.durationContainer}>
