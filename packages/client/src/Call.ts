@@ -113,6 +113,7 @@ import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
 import { ViewportTracker } from './helpers/ViewportTracker';
+import { tracePageLifecycle } from './helpers/pageLifecycle';
 import { PermissionsContext } from './permissions';
 import { RingStatePoller, RingTimeout, resolveOwnRingOutcome } from './ringing';
 import { CallTypes } from './CallType';
@@ -310,6 +311,7 @@ export class Call {
   private joinCallData?: JoinCallData;
   private allowOwnTracksLoopback = false;
   private hasJoinedOnce = false;
+  private stopTracingPageLifecycle?: () => void;
   private deviceSettingsAppliedOnce = false;
   private callManagerStarted = false;
   private leaveGeneration = 0;
@@ -733,6 +735,8 @@ export class Call {
 
       this.statsReporter?.stop();
       this.statsReporter = undefined;
+      this.stopTracingPageLifecycle?.();
+      this.stopTracingPageLifecycle = undefined;
 
       const leaveReason = message ?? reason ?? 'user is leaving the call';
       this.tracer.trace('call.leaveReason', leaveReason);
@@ -1453,6 +1457,15 @@ export class Call {
       this.state.setCallingState(CallingState.JOINED);
     }
     this.hasJoinedOnce = true;
+    this.stopTracingPageLifecycle ??= tracePageLifecycle({
+      tracer: this.tracer,
+      onHidden: () => {
+        if (!this.lastStatsOptions?.enable_rtc_stats) return;
+        this.sfuStatsReporter?.flush().catch((err) => {
+          this.logger.warn('Failed to flush stats on page hide', err);
+        });
+      },
+    });
 
     // when performing fast reconnect, or when we reuse the same SFU client,
     // (ws remained healthy), we just need to restore the ICE connection
