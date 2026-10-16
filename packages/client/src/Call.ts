@@ -44,7 +44,6 @@ import {
   GetCallSessionParticipantStatsDetailsResponse,
   GetOrCreateCallRequest,
   GoLiveRequest,
-  JoinCallRequest,
   JoinCallResponse,
   BlockUserRequest,
   KickUserRequest,
@@ -1847,14 +1846,12 @@ export class Call {
     }
     const e2ee = !!this.e2eeManager;
     const transcode = this.transcodeMode;
-    // `transcode` is not part of the published coordinator spec yet
-    const request: JoinCallRequest & { transcode?: boolean } = {
+    const joinResponse = await this.api.join({
       ...data,
       location,
       e2ee,
       transcode,
-    };
-    const joinResponse = await this.api.join(request);
+    });
 
     if (this.leaveGeneration !== joinLeaveGeneration) {
       this.logger.debug(
