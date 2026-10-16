@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.44.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.43.4...@stream-io/video-react-sdk-1.44.0) (2026-10-16)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.16.0`
+- `@stream-io/video-client` updated to version `1.62.0`
+- `@stream-io/video-react-bindings` updated to version `1.21.0`
+
+### Features
+
+- **react-sdk:** Expose the device error in camera/microphone state ([#2511](https://github.com/GetStream/stream-video-js/issues/2511)) ([f6822e4](https://github.com/GetStream/stream-video-js/commit/f6822e4c92cb22607ff0dd56606159e83db34fa2))
+
 ## [1.43.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.43.3...@stream-io/video-react-sdk-1.43.4) (2026-10-09)
 
 ### Dependency Updates
