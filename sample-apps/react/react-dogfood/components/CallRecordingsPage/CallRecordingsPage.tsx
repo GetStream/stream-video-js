@@ -1,17 +1,21 @@
 import {
-  CallRecording,
   CallRecordingListItem,
   LoadingIndicator,
   StreamVideo,
   StreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { useEffect, useState } from 'react';
-import { CallRecordingSearchForm } from './CallRecordingSearchForm';
+import {
+  CallRecordingSearchForm,
+  CallRecordingSearchResult,
+} from './CallRecordingSearchForm';
 import { ServerSideCredentialsProps } from '../../lib/getServerSideCredentialsProps';
 import { useSettings } from '../../context/SettingsContext';
 import { DefaultAppHeader } from '../DefaultAppHeader';
 import { getClient } from '../../helpers/client';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
+import { useAppI18n } from '../../hooks/useAppI18n';
+import { TranscriptionDownloadList } from '../TranscriptionDownloadList';
 
 export const CallRecordingsPage = ({
   apiKey,
@@ -21,7 +25,7 @@ export const CallRecordingsPage = ({
   const {
     settings: { language, fallbackLanguage },
   } = useSettings();
-  const [recordings, setRecordings] = useState<CallRecording[] | undefined>();
+  const [result, setResult] = useState<CallRecordingSearchResult | undefined>();
   const [error, setError] = useState<Error | undefined>();
   const [loading, setLoading] = useState(false);
   const [videoClient, setVideoClient] = useState<StreamVideoClient>();
@@ -55,7 +59,7 @@ export const CallRecordingsPage = ({
       <div className="rd__call-recordings-page">
         <div className="rd__call-recordings-page__container">
           <CallRecordingSearchForm
-            setResult={setRecordings}
+            setResult={setResult}
             setResultError={setError}
             setLoading={setLoading}
           />
@@ -64,21 +68,40 @@ export const CallRecordingsPage = ({
           ) : error?.message ? (
             <div>{error.message}</div>
           ) : (
-            <div className="rd__call-recordings-page__recordings-list">
-              {!recordings
-                ? null
-                : recordings.length
-                  ? recordings.map((recording) => (
-                      <CallRecordingListItem
-                        recording={recording}
-                        key={recording.filename}
-                      />
-                    ))
-                  : 'No recordings found for the call'}
-            </div>
+            result && <CallRecordingSearchResults result={result} />
           )}
         </div>
       </div>
     </StreamVideo>
+  );
+};
+
+const CallRecordingSearchResults = ({
+  result: { recordings, transcriptions },
+}: {
+  result: CallRecordingSearchResult;
+}) => {
+  const { t } = useAppI18n();
+  return (
+    <>
+      <div className="rd__call-recordings-page__recordings-list">
+        {recordings.length
+          ? recordings.map((recording) => (
+              <CallRecordingListItem
+                recording={recording}
+                key={recording.filename}
+              />
+            ))
+          : 'No recordings found for the call'}
+      </div>
+      {transcriptions.length > 0 && (
+        <>
+          <h4>{t('recordings.transcriptions.title', 'Transcripts')}</h4>
+          <div className="rd__call-recordings-page__recordings-list">
+            <TranscriptionDownloadList transcriptions={transcriptions} />
+          </div>
+        </>
+      )}
+    </>
   );
 };
