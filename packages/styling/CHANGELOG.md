@@ -2,6 +2,22 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-2.0.0-beta.1...@stream-io/video-styling-2.0.0-beta.2) (2026-10-16)
+
+### ⚠ BREAKING CHANGES
+
+- remove deprecated APIs and legacy code for v2 (#2498)
+
+### Features
+
+- **react-sdk:** show a notification when the camera can't start ([#2462](https://github.com/GetStream/stream-video-js/issues/2462)) ([794144f](https://github.com/GetStream/stream-video-js/commit/794144fbb3497981ad0657274d4427ac23a9bd22))
+- remove deprecated APIs and legacy code for v2 ([#2498](https://github.com/GetStream/stream-video-js/issues/2498)) ([7a20921](https://github.com/GetStream/stream-video-js/commit/7a209213d0eddb7ad8f1d21e55bd43910391666e)), closes [#2493](https://github.com/GetStream/stream-video-js/issues/2493)
+
+### Bug Fixes
+
+- **react-dogfood:** align call UI with design review ([#2471](https://github.com/GetStream/stream-video-js/issues/2471)) ([65d4137](https://github.com/GetStream/stream-video-js/commit/65d4137ec65f28a70fec09181f7812b82911a776))
+- **styling:** keep the poor-connection notification inside participant tiles ([#2490](https://github.com/GetStream/stream-video-js/issues/2490)) ([8e50b46](https://github.com/GetStream/stream-video-js/commit/8e50b460f2440ab526e652a944f0bfa78df97198))
+
 ## [2.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-2.0.0-beta.0...@stream-io/video-styling-2.0.0-beta.1) (2026-09-28)
 
 ### Features
