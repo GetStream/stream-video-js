@@ -77,7 +77,6 @@ class CallService : Service(), CallRepository.Listener {
         internal const val ACTION_OUTGOING_CALL = "outgoing_call"
         internal const val ACTION_UPDATE_CALL = "update_call"
         internal const val ACTION_START_BACKGROUND_TASK = "start_background_task"
-        internal const val ACTION_STOP_BACKGROUND_TASK = "stop_background_task"
         internal const val ACTION_STOP_SERVICE = "stop_service"
         internal const val ACTION_PROCESS_ACTION = "execute_action"
         internal const val ACTION_REGISTRATION_FAILED = "registration_failed"
@@ -331,9 +330,6 @@ class CallService : Service(), CallRepository.Listener {
             ACTION_START_BACKGROUND_TASK -> {
                 startBackgroundTask(intent)
             }
-            ACTION_STOP_BACKGROUND_TASK -> {
-                stopBackgroundTask()
-            }
             ACTION_UPDATE_CALL -> {
                 updateCall(intent)
                 // This action never registers anything, and plain startService may have created
@@ -519,10 +515,6 @@ class CallService : Service(), CallRepository.Listener {
         val data = intent.getBundleExtra(EXTRA_TASK_DATA)!!
         val timeout = intent.getLongExtra(EXTRA_TASK_TIMEOUT, 0)
         headlessJSManager.startHeadlessTask(taskName, data, timeout)
-    }
-
-    fun stopBackgroundTask() {
-        headlessJSManager.stopHeadlessTask()
     }
 
     private fun registerCall(intent: Intent, incoming: Boolean) {

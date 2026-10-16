@@ -15,7 +15,7 @@ export const ToggleDualMicButton = () => {
   } = useSettings();
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]} hasPermissionsOnly>
-      <div className="rd__dual-toggle">
+      <div>
         <ToggleAudioPublishingButton
           Menu={
             <>

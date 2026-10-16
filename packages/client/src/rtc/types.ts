@@ -57,6 +57,13 @@ export type OnReconnectionNeeded = (
 export type OnIceConnected = (peerType: PeerType) => void;
 
 /**
+ * Fires when an ICE gathering round completes without producing a single
+ * local candidate on a peer connection that never connected. Used by `Call`
+ * to detect devices whose WebRTC networking is blocked.
+ */
+export type OnNoLocalCandidates = (peerType: PeerType) => void;
+
+/**
  * Snapshot of the peer connection's ICE and DTLS state surfaced to telemetry
  * consumers (e.g. `ClientEventReporter`). Fired on every transition of
  * either `iceConnectionState` or `peerConnectionState`.
@@ -96,6 +103,7 @@ export type BasePeerConnectionOpts = {
   dispatcher: Dispatcher;
   onReconnectionNeeded?: OnReconnectionNeeded;
   onIceConnected?: OnIceConnected;
+  onNoLocalCandidates?: OnNoLocalCandidates;
   onPeerConnectionStateChange?: OnPeerConnectionStateChange;
   onRemoteTrackUnmute?: OnRemoteTrackUnmute;
   tag: string;

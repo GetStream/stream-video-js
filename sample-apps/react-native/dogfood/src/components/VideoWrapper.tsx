@@ -68,18 +68,22 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
           baseURL: coordinatorBaseUrl || undefined,
           ringStatePolling: disableRingStatePolling ? false : undefined,
           rejectCallWhenBusy: false,
-          logLevel: 'debug',
-          logger: (level, message, ...args) => {
-            if (
-              message.startsWith('[Dispatcher]') &&
-              /audioLevelChanged|dominantSpeakerChanged/.test(message)
-            ) {
-              // reduce noise from audioLevelChanged and dominantSpeakerChanged events
-              return;
-            }
+          logOptions: {
+            default: {
+              level: 'debug',
+              sink: (level, message, ...args) => {
+                if (
+                  message.startsWith('[Dispatcher]') &&
+                  /audioLevelChanged|dominantSpeakerChanged/.test(message)
+                ) {
+                  // reduce noise from audioLevelChanged and dominantSpeakerChanged events
+                  return;
+                }
 
-            // Call the SDK's default log method
-            logToConsole(level, message, ...args);
+                // Call the SDK's default log method
+                logToConsole(level, message, ...args);
+              },
+            },
           },
           transformResponse: useLocalSfu
             ? getCustomSfuResponseTransformers(localIpAddress)

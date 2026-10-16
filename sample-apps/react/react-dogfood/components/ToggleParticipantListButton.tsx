@@ -89,7 +89,7 @@ export const ToggleParticipantListButton = (
           </ul>
           <div className="rd__waiting-room-list__footer">
             <button
-              className="rd__button rd__waiting-room-list__dismiss"
+              className="rd__button"
               type="button"
               onClick={() => setIsDismissed(true)}
             >

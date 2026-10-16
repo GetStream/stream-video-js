@@ -1,21 +1,14 @@
 import { useCall } from '@stream-io/video-react-bindings';
 import { useEffect, useRef } from 'react';
-import {
-  AppState,
-  type AppStateStatus,
-  NativeEventEmitter,
-  NativeModules,
-  Platform,
-} from 'react-native';
+import { AppState, type AppStateStatus, Platform } from 'react-native';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 import { disablePiPMode$, isInPiPMode$ } from '../../utils/internal/rxSubjects';
 import { RxUtils, videoLoggerSystem } from '@stream-io/video-client';
+import NativeStreamVideoAppLifecycle from '../../native/NativeStreamVideoAppLifecycle';
+import NativeStreamVideoReactNative from '../../native/NativeStreamVideoReactNative';
 
-const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
-const ANDROID_APP_STATE_CHANGED_EVENT =
-  'StreamVideoAppLifecycle_APP_STATE_CHANGED';
-
-const isAndroid8OrAbove = Platform.OS === 'android' && Platform.Version >= 26;
+const isAndroid8OrAbove = () =>
+  Platform.OS === 'android' && Platform.Version >= 26;
 
 // Does 2 functionalities:
 // 1. Resume/Disable video stream tracks when app goes to background/foreground - To save on CPU resources
@@ -27,11 +20,10 @@ export const AppStateListener = () => {
 
   // on mount: set initial PiP mode and listen to PiP events
   useEffect(() => {
-    if (!isAndroid8OrAbove) {
+    if (!isAndroid8OrAbove()) {
       return;
     }
 
-    let cancelled = false;
     const disablePiP = RxUtils.getCurrentValue(disablePiPMode$);
     const logger = videoLoggerSystem.getLogger('AppStateListener');
     const initialPipMode =
@@ -39,36 +31,40 @@ export const AppStateListener = () => {
     isInPiPMode$.next(initialPipMode);
     logger.debug('Initial PiP mode on mount set to ', initialPipMode);
 
-    NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
-      (isInPiP: boolean | null | undefined) => {
-        if (cancelled) return;
-        isInPiPMode$.next(!!isInPiP);
-        logger.debug(
-          'Initial PiP mode on mount (after asking native module) set to ',
-          !!isInPiP,
-        );
-      },
-    );
+    try {
+      const isInPiP = NativeStreamVideoReactNative.isInPiPMode();
+      isInPiPMode$.next(!!isInPiP);
+      logger.debug(
+        'Initial PiP mode on mount (after asking native module) set to ',
+        !!isInPiP,
+      );
+    } catch (e) {
+      logger.warn('Failed to get initial PiP mode from native module', e);
+    }
 
-    const eventEmitter = new NativeEventEmitter(
-      NativeModules.StreamVideoReactNative,
-    );
-
-    const subscriptionPiPChange = eventEmitter.addListener(
-      PIP_CHANGE_EVENT,
+    const subscriptionPiPChange = NativeStreamVideoReactNative.onPiPChange(
       (isInPiPMode: boolean) => {
         isInPiPMode$.next(isInPiPMode);
       },
     );
 
     return () => {
-      cancelled = true;
       subscriptionPiPChange.remove();
     };
   }, []);
 
   useEffect(() => {
     const logger = videoLoggerSystem.getLogger('AppStateListener');
+
+    const isCallAliveConfigured = () => {
+      try {
+        return NativeStreamVideoReactNative.isCallAliveConfigured();
+      } catch (e) {
+        logger.warn('Failed to check whether KeepCallAlive is configured', e);
+        // assume it is not configured, matching the previous behavior when the native call was unavailable
+        return false;
+      }
+    };
 
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       logger.debug(
@@ -103,13 +99,9 @@ export const AppStateListener = () => {
               });
           };
           if (Platform.OS === 'android') {
-            NativeModules.StreamVideoReactNative.isCallAliveConfigured().then(
-              (isCallAliveConfigured: boolean) => {
-                if (!isCallAliveConfigured) {
-                  renableCamera();
-                }
-              },
-            );
+            if (!isCallAliveConfigured()) {
+              renableCamera();
+            }
           } else {
             renableCamera();
           }
@@ -153,33 +145,31 @@ export const AppStateListener = () => {
         if (Platform.OS === 'android') {
           // in Android, we need to check if we are in PiP mode
           // in PiP mode, we don't want to disable the camera
-          if (isAndroid8OrAbove) {
+          if (isAndroid8OrAbove()) {
             // set with an assumption that its enabled so that UI disabling happens faster
             const disablePiP = RxUtils.getCurrentValue(disablePiPMode$);
             isInPiPMode$.next(!disablePiP);
             // if PiP was not enabled anyway, then in the next code we ll set it to false and UI wont be shown anyway
-            NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
-              (isInPiP: boolean | null | undefined) => {
-                isInPiPMode$.next(!!isInPiP);
-                if (!isInPiP) {
-                  if (AppState.currentState === 'active') {
-                    // this is to handle the case that the app became active as soon as it went to background
-                    // in this case, we dont want to disable the camera
-                    // this happens on foreground push notifications
-                    return;
-                  }
-                  // check if keep call alive is configured
-                  // if not, then disable the camera as we are not able to keep the call alive in the background
-                  NativeModules.StreamVideoReactNative.isCallAliveConfigured().then(
-                    (isCallAliveConfigured: boolean) => {
-                      if (!isCallAliveConfigured) {
-                        disableCameraIfNeeded();
-                      }
-                    },
-                  );
-                }
-              },
-            );
+            let isInPiP = false;
+            try {
+              isInPiP = !!NativeStreamVideoReactNative.isInPiPMode();
+            } catch (e) {
+              logger.warn('Failed to check PiP mode from native module', e);
+            }
+            isInPiPMode$.next(isInPiP);
+            if (!isInPiP) {
+              if (AppState.currentState === 'active') {
+                // this is to handle the case that the app became active as soon as it went to background
+                // in this case, we dont want to disable the camera
+                // this happens on foreground push notifications
+                return;
+              }
+              // check if keep call alive is configured
+              // if not, then disable the camera as we are not able to keep the call alive in the background
+              if (!isCallAliveConfigured()) {
+                disableCameraIfNeeded();
+              }
+            }
           } else {
             disableCameraIfNeeded();
           }
@@ -196,25 +186,22 @@ export const AppStateListener = () => {
     // for Android use our custom native module to listen to app state changes
     // because the default react-native AppState listener works for activity and ours works for application process
     if (Platform.OS === 'android') {
-      const nativeModule = NativeModules.StreamVideoAppLifecycle;
-      const eventEmitter = new NativeEventEmitter(nativeModule);
-      let cancelled = false;
+      if (!NativeStreamVideoAppLifecycle) {
+        logger.warn('StreamVideoAppLifecycle native module is not available');
+        return;
+      }
 
-      nativeModule
-        .getCurrentAppState()
-        .then((initialState: AppStateStatus | null | undefined) => {
-          if (cancelled) return;
-          if (initialState === 'active' || initialState === 'background') {
-            appState.current = initialState;
-          }
-        })
-        .catch(() => {
-          logger.warn('Failed to get current app state from native module');
-        });
+      try {
+        const initialState = NativeStreamVideoAppLifecycle.getCurrentAppState();
+        if (initialState === 'active' || initialState === 'background') {
+          appState.current = initialState;
+        }
+      } catch {
+        logger.warn('Failed to get current app state from native module');
+      }
 
-      const subscription = eventEmitter.addListener(
-        ANDROID_APP_STATE_CHANGED_EVENT,
-        (nextAppState: AppStateStatus) => {
+      const subscription = NativeStreamVideoAppLifecycle.onAppStateChanged(
+        (nextAppState: string) => {
           if (nextAppState === 'active' || nextAppState === 'background') {
             handleAppStateChange(nextAppState);
           }
@@ -222,7 +209,6 @@ export const AppStateListener = () => {
       );
 
       return () => {
-        cancelled = true;
         subscription.remove();
       };
     }

@@ -39,12 +39,10 @@ const HeadComponent = ({ callId }: { callId: string }) => {
 export const CallScope = ({
   call,
   chatClient,
-  useLegacyFilters,
   segmentationModel,
 }: {
   call: Call;
   chatClient: ComponentProps<typeof MeetingUI>['chatClient'];
-  useLegacyFilters: boolean;
   segmentationModel: Parameters<typeof getSegmentationModelUrl>[0];
 }) => {
   const [noiseCancellation, setNoiseCancellation] =
@@ -68,7 +66,6 @@ export const CallScope = ({
       <TourProvider>
         <BackgroundFiltersProvider
           forceSafariSupport
-          useLegacyFilter={useLegacyFilters}
           modelFilePath={getSegmentationModelUrl(segmentationModel)}
           backgroundImages={[
             `${basePath}/backgrounds/amsterdam-1.jpg`,

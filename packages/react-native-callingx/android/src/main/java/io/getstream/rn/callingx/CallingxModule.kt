@@ -163,11 +163,6 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         return true
     }
 
-    override fun stopBackgroundTask(taskName: String): Boolean {
-        impl.stopBackgroundTask(taskName)
-        return true
-    }
-
     override fun fulfillAnswerCallAction(callId: String, didFail: Boolean): Boolean {
         impl.fulfillAnswerCallAction(callId, didFail)
         return true

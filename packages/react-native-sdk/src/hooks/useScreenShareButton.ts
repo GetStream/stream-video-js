@@ -46,11 +46,7 @@ export type ScreenShareOptions = {
   includeAudio?: boolean;
 };
 
-// ios >= 14.0 or android - platform restrictions
-const CanDeviceScreenShare =
-  (Platform.OS === 'ios' &&
-    Number.parseInt(Platform.Version?.split('.')[0] ?? '0', 10) >= 14) ||
-  Platform.OS === 'android';
+const CanDeviceScreenShare = Platform.OS === 'ios' || Platform.OS === 'android';
 
 export const useScreenShareButton = (
   /**

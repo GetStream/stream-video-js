@@ -164,8 +164,6 @@ export interface Spec extends TurboModule {
 
   startBackgroundTask(taskName: string, timeout: number): boolean;
 
-  stopBackgroundTask(taskName: string): boolean;
-
   fulfillAnswerCallAction(callId: string, didFail: boolean): boolean;
 
   fulfillEndCallAction(callId: string, didFail: boolean): boolean;

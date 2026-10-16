@@ -239,6 +239,33 @@ describe('SpeakerManager.test', () => {
       expect(persistedManager.state.selectedDevice).toBe('speaker-1');
     });
 
+    it('does not restore a speaker when output selection is not supported', async () => {
+      const persistedManager = createPersistedManager();
+      Object.defineProperty(
+        persistedManager.state,
+        'isDeviceSelectionSupported',
+        { value: false },
+      );
+      vi.spyOn(persistedManager, 'listDevices').mockReturnValue(
+        of([
+          {
+            deviceId: 'speaker-1',
+            kind: 'audiooutput',
+            label: 'Speaker 1',
+            groupId: 'speaker-group',
+          } as MediaDeviceInfo,
+        ]),
+      );
+      persist('speaker-1', 'Speaker 1');
+
+      const selectSpy = vi.spyOn(persistedManager, 'select');
+      // @ts-expect-error - partial data
+      await persistedManager.apply({});
+
+      expect(selectSpy).not.toHaveBeenCalled();
+      expect(persistedManager.state.selectedDevice).toBe('');
+    });
+
     it('does not select a missing persisted speaker device', async () => {
       const persistedManager = createPersistedManager();
       vi.spyOn(persistedManager, 'listDevices').mockReturnValue(

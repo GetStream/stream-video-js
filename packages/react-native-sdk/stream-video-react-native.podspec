@@ -10,10 +10,11 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => '13.0' }
+  s.platforms    = { :ios => min_ios_version_supported }
   s.source       = { :git => "https://github.com/GetStream/stream-video-js/tree/main/packages/react-native-sdk.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,swift}"
+  s.private_header_files = ["ios/RTCViewPipComponentView.h", "ios/StreamInCallManagerModule.h", "ios/StreamVideoReactNativeModule.h"]
   s.dependency "stream-react-native-webrtc"
 
   install_modules_dependencies(s)

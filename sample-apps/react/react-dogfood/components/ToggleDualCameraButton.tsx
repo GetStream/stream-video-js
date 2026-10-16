@@ -11,7 +11,7 @@ export const ToggleDualCameraButton = () => {
   const { t } = useAppI18n();
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]} hasPermissionsOnly>
-      <div className="rd__dual-toggle">
+      <div>
         <DegradedPerformanceNotification className="rd__call-controls__notification" />
         <ToggleVideoPublishingButton
           Menu={

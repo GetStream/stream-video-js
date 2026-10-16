@@ -258,11 +258,6 @@
   return @YES;
 }
 
-- (NSNumber *)stopBackgroundTask:(NSString *)taskName {
-  // Not implemented on iOS
-  return @YES;
-}
-
 - (NSNumber *)stopService {
   // Not implemented on iOS
   return @YES;

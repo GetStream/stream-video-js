@@ -87,7 +87,7 @@ const ClosedCaptionList = (props: { queue: CallClosedCaption[] }) => {
   return queue.map(({ user, text, start_time }) => (
     <p className="rd__closed-captions__line" key={`${user.id}-${start_time}`}>
       <span className="rd__closed-captions__speaker">{user.name}:</span>
-      <span className="rd__closed-captions__text">{text}</span>
+      <span>{text}</span>
     </p>
   ));
 };

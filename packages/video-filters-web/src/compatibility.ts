@@ -1,5 +1,3 @@
-import { simd } from 'wasm-feature-detect';
-
 export type PlatformSupportFlags = {
   /**
    * Forces support for mobile devices, although performance isn't optimal.
@@ -26,26 +24,6 @@ const isMobile = () => /Mobi/i.test(navigator.userAgent);
  */
 const isSafari = () =>
   /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
-/**
- * Runs a check to see if the current platform supports
- * the necessary APIs required for the video filters.
- */
-export const isPlatformSupported = async ({
-  forceMobileSupport = false,
-  forceSafariSupport = false,
-}: PlatformSupportFlags = {}) =>
-  typeof document !== 'undefined' &&
-  typeof window !== 'undefined' &&
-  typeof navigator !== 'undefined' &&
-  // we don't support mobile devices yet due to performance issues
-  (forceMobileSupport || !isMobile()) &&
-  // Safari has issues with timer throttling, causing low FPS when the tab goes to the background
-  (forceSafariSupport || !isSafari()) &&
-  typeof WebAssembly !== 'undefined' &&
-  !!window.WebGL2RenderingContext && // WebGL2 is required for the video filters
-  !!document.createElement('canvas').getContext('webgl2') &&
-  (await simd()); // SIMD is required for the wasm module
 
 /**
  * Runs a check to see if the current platform supports

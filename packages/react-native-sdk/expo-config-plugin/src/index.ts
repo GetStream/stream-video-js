@@ -9,7 +9,6 @@ import withAndroidManifest from './withAndroidManifest';
 import withiOSInfoPlist from './withiOSInfoPlist';
 import withMainActivity from './withMainActivity';
 import withMainApplication from './withMainApplication';
-import withAppBuildGradle from './withAppBuildGradle';
 import withIosScreenCapture from './withIosScreenCapture';
 import withCallResources from './withCallResources';
 import withAndroidMessagingService from './withAndroidMessagingService';
@@ -29,7 +28,6 @@ const withStreamVideoReactNativeSDK: ConfigPlugin<ConfigProps> = (
     () => withIosScreenCapture(config, props),
     // android
     () => withAndroidPermissions(config, props),
-    withAppBuildGradle,
     () => withAndroidManifest(config, props),
     () => withMainActivity(config, props),
     () => withMainApplication(config, props),

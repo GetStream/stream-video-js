@@ -86,5 +86,5 @@ Notes:
 
 ## Known limitations
 
-- This library only works in a modern desktop browser that supports WebAssembly SIMD and WebGL.
+- This library only works in a modern desktop browser that supports WebAssembly, WebGL2, OffscreenCanvas and the VideoFrame API.
 - Support for mobile browsers is not guaranteed and may not work as expected

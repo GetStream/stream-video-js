@@ -26,16 +26,16 @@ jest.mock('@expo/config-plugins', () => {
   };
 });
 
-const ExpoModulesMainActivity = getFixture('MainActivity.java');
+const ExpoModulesMainActivity = getFixture('MainActivity.kt');
 
-describe('withStreamVideoReactNativeSDKAppDelegate', () => {
+describe('withStreamVideoReactNativeSDKMainActivity', () => {
   it('should modify config as per props', () => {
     // Prepare a mock config
     const config: CustomExpoConfig = {
       name: 'test-app',
       slug: 'test-app',
       modResults: {
-        language: 'java',
+        language: 'kt',
         contents: ExpoModulesMainActivity,
       },
     };
@@ -57,7 +57,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       name: 'test-app',
       slug: 'test-app',
       modResults: {
-        language: 'java',
+        language: 'kt',
         contents: ExpoModulesMainActivity,
       },
     };
@@ -72,7 +72,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     );
 
     const commonAssertions = [
-      /StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode/,
+      /StreamVideoReactNative.canAutoEnterPictureInPictureMode/,
       /options.enableMediaProjectionService = true/,
       /StreamVideoReactNative.setupCallActivity/,
     ];
@@ -83,13 +83,25 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     });
   });
 
-  it('should throw error for malformed manifest and unsupported language', () => {
-    // Prepare a mock config
+  it('should throw a descriptive error for a Java MainActivity', () => {
     const config: CustomExpoConfig = {
       name: 'test-app',
       slug: 'test-app',
       modResults: {
         language: 'java',
+        contents: ExpoModulesMainActivity,
+      },
+    };
+    expect(() => withMainActivity(config, {})).toThrow(/Kotlin/);
+  });
+
+  it('should throw error for malformed main activity', () => {
+    // Prepare a mock config
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        language: 'kt',
         // malformed contents
         contents: 'blabla',
       },

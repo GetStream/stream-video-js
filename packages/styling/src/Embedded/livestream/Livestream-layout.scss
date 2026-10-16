@@ -94,11 +94,6 @@
     font-size: var(--str-video__typography-font-size-sm);
   }
 
-  &__participant-count {
-    margin: var(--str-video__spacing-sm);
-    font-size: var(--str-video__typography-font-size-xs);
-  }
-
   &__actions {
     display: flex;
     flex-direction: column;
@@ -121,19 +116,6 @@
 
     input[type='checkbox'] {
       cursor: pointer;
-    }
-  }
-
-  &__join-error {
-    margin-top: var(--str-video__spacing-sm);
-    font-size: var(--str-video__typography-font-size-xs);
-    line-height: 1.3;
-    text-align: center;
-    font-weight: var(--str-video__typography-font-weight-medium);
-    min-height: 1.3em;
-
-    &[data-visible='false'] {
-      visibility: hidden;
     }
   }
 }

@@ -20,15 +20,10 @@ const loadStreamVideoRN = ({
   jest.isolateModules(() => {
     jest.doMock('react-native', () => ({
       Platform: { OS: os, select: (o: any) => o[os] },
-      NativeModules: {
-        StreamInCallManager: inCallManager,
-        StreamVideoReactNative: {},
-      },
-      NativeEventEmitter: class {
-        addListener() {
-          return { remove: jest.fn() };
-        }
-      },
+    }));
+    jest.doMock('../src/native/NativeStreamInCallManager', () => ({
+      __esModule: true,
+      default: inCallManager,
     }));
     // keep the push/callingx runtime out of this test
     jest.doMock('../src/utils/push/setupIosVoipPushEvents', () => ({
@@ -91,17 +86,6 @@ describe('StreamVideoRN.setDisableCommunicationModeWorkaround', () => {
     delete (inCallManager as Partial<typeof inCallManager>)
       .setDisableCommunicationModeWorkaround;
     const StreamVideoRN = loadStreamVideoRN({ os: 'android', inCallManager });
-
-    expect(() =>
-      StreamVideoRN.setDisableCommunicationModeWorkaround(true),
-    ).not.toThrow();
-  });
-
-  it('survives the native module being absent entirely', () => {
-    const StreamVideoRN = loadStreamVideoRN({
-      os: 'android',
-      inCallManager: undefined,
-    });
 
     expect(() =>
       StreamVideoRN.setDisableCommunicationModeWorkaround(true),

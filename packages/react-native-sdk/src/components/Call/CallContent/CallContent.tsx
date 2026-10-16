@@ -1,12 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  NativeModules,
-  Platform,
-  StyleProp,
-  StyleSheet,
-  ViewStyle,
-  View,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Platform, StyleProp, StyleSheet, ViewStyle, View } from 'react-native';
+import NativeStreamVideoReactNative from '../../../native/NativeStreamVideoReactNative';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { debounceTime } from 'rxjs';
 import {
@@ -44,7 +38,6 @@ import {
   type ScreenShareOverlayProps,
 } from '../../utility/ScreenShareOverlay';
 import { RTCViewPipIOS } from './RTCViewPipIOS';
-import { getRNInCallManagerLibNoThrow } from '../../../modules/call-manager/PrevLibDetection';
 
 export type StreamReactionType = StreamReaction & {
   icon: string;
@@ -109,15 +102,6 @@ export type CallContentProps = Pick<
      */
     disablePictureInPicture?: boolean;
     /**
-     * @deprecated This prop is deprecated and will be removed in the future. Use `StreamInCallManager` instead.
-     * Props to set the audio mode for the react-native-incall-manager library
-     * If media type is video, audio is routed by default to speaker, otherwise it is routed to earpiece.
-     * Changing the mode on the fly is not supported.
-     * Manually invoke `InCallManager.start({ media })` to achieve this.
-     * @default 'video'
-     */
-    initialInCallManagerAudioMode?: 'video' | 'audio';
-    /**
      * Handler to be called when the layout toggle button is pressed.
      * @param newLayout - The new layout to be set.
      * @returns void
@@ -152,7 +136,6 @@ export const CallContent = ({
   evenGridColumns,
   landscape = false,
   supportedReactions,
-  initialInCallManagerAudioMode = 'video',
   iOSPiPIncludeLocalParticipantVideo,
   disablePictureInPicture,
   style,
@@ -220,14 +203,14 @@ export const CallContent = ({
       videoLoggerSystem
         .getLogger('CallContent')
         .debug(`exiting PiP mode due to call.ended`);
-      NativeModules.StreamVideoReactNative.exitPipMode();
+      NativeStreamVideoReactNative.exitPipMode();
     });
     const subscription = call?.state.callingState$.subscribe((state) => {
       if (state === CallingState.LEFT) {
         videoLoggerSystem
           .getLogger('CallContent')
           .debug(`exiting PiP mode due to callingState: LEFT`);
-        NativeModules.StreamVideoReactNative.exitPipMode();
+        NativeStreamVideoReactNative.exitPipMode();
       }
     });
     return () => {
@@ -248,21 +231,6 @@ export const CallContent = ({
     showFloatingView &&
     showRemoteParticipantInFloatingView &&
     remoteCountBucket === 1;
-
-  /**
-   * This hook is used to handle IncallManager specs of the application.
-   */
-  const incallManagerModeRef = useRef(initialInCallManagerAudioMode);
-  useEffect(() => {
-    const prevInCallManager = getRNInCallManagerLibNoThrow();
-    if (prevInCallManager) {
-      prevInCallManager.start({ media: incallManagerModeRef.current });
-      return () => {
-        prevInCallManager.stop();
-      };
-    }
-    return undefined;
-  }, []);
 
   const handleFloatingViewParticipantSwitch = () => {
     if (remoteCountBucket !== 1) {

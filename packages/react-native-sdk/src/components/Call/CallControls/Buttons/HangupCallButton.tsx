@@ -25,10 +25,6 @@ export type HangUpCallButtonProps = {
    * Whether the button is disabled.
    */
   disabled?: boolean;
-  /**
-   * Sets the height, width and border-radius (half the value) of the button.
-   */
-  size?: React.ComponentProps<typeof CallControlsButton>['size'];
 };
 
 /**

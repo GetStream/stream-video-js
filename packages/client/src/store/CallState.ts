@@ -1193,11 +1193,10 @@ export class CallState {
   };
 
   private updateFromRecordingEvent = (
-    type: CallRecordingType | undefined,
+    type: CallRecordingType,
     running: boolean,
   ) => {
-    // handle the legacy format, where `type` is absent in the emitted events
-    if (type === undefined || type === 'composite') {
+    if (type === 'composite') {
       setCurrentValue(this.recordingSubject, running);
     } else if (type === 'individual') {
       setCurrentValue(this.individualRecordingSubject, running);

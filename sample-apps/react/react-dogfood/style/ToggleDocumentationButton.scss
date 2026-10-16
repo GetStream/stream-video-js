@@ -11,10 +11,6 @@
 
 .rd__call-header__title {
   display: none;
-  .str-video__call-controls__button .str-video__icon--caret-down {
-    width: 18px;
-    height: 18px;
-  }
 }
 
 @include breakpoints.respond-above(sm) {

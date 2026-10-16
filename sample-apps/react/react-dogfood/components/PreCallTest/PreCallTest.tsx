@@ -146,7 +146,7 @@ export const PreCallTest = () => {
           <div className="rd__pre-call-test__header-status">
             <div className="rd__header__recording-indicator">Recording...</div>
             <div className="rd__header__elapsed">
-              <div className="rd__header__elapsed-time" role="timer">
+              <div role="timer">
                 {formatRemaining(
                   DEFAULT_LOOPBACK_RECORDING_DURATION_MS - elapsedMs,
                 )}

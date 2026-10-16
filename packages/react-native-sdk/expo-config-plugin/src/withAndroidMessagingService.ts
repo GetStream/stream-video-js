@@ -32,7 +32,7 @@ const FIREBASE_MESSAGING_ARTIFACT = 'com.google.firebase:firebase-messaging';
 /**
  * Fallback Firebase BOM version, used only when the live BOM cannot be resolved
  * from @react-native-firebase/app. This is the BOM shipped by the minimum RNFB
- * version we support: @stream-io/react-native-callingx declares a
+ * version we support: this SDK and @stream-io/react-native-callingx declare a
  * `@react-native-firebase/* >= 23.0.0` peer dependency, and RNFB `23.0.0` pins
  * firebase-bom `34.0.0`. Keep in sync with that peer floor.
  */

@@ -11,7 +11,11 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
   props,
 ) => {
   return withMainActivity(configuration, (config) => {
-    const isMainActivityJava = config.modResults.language === 'java';
+    if (config.modResults.language !== 'kt') {
+      throw new Error(
+        `Cannot setup StreamVideoReactNativeSDK: a Kotlin MainActivity is required (the default since Expo SDK 50), found ${config.modResults.language}`,
+      );
+    }
 
     config.modResults.contents = addImports(
       config.modResults.contents,
@@ -22,29 +26,25 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
         'androidx.lifecycle.Lifecycle',
         'com.oney.WebRTCModule.WebRTCModuleOptions',
       ],
-      isMainActivityJava,
+      false,
     );
     config.modResults.contents = addOnPictureInPictureModeChanged(
       config.modResults.contents,
-      isMainActivityJava,
     );
     if (props?.androidPictureInPicture) {
       config.modResults.contents = addOnUserLeaveHint(
         config.modResults.contents,
-        isMainActivityJava,
       );
     }
     if (props?.enableScreenshare) {
       config.modResults.contents = addInsideOnCreateScreenshare(
         config.modResults.contents,
-        isMainActivityJava,
       );
     }
 
     if (props?.ringing) {
       config.modResults.contents = addInsideOnCreateLockscreen(
         config.modResults.contents,
-        isMainActivityJava,
       );
     }
 
@@ -52,32 +52,13 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
   });
 };
 
-function addOnPictureInPictureModeChanged(contents: string, isJava: boolean) {
+function addOnPictureInPictureModeChanged(contents: string) {
   if (
     !contents.includes(
       'StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)',
     )
   ) {
-    let statementToInsert = '';
-
-    if (isJava) {
-      statementToInsert = `
-      @Override
-      public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
-          super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
-          if (isFinishing()) {
-            return;
-          }
-          if (lifecycleOwner.getLifecycle().getCurrentState() == Lifecycle.State.CREATED) {
-              // When user clicks on Close button of PIP
-              finishAndRemoveTask();
-          } else {
-              StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
-          }
-      }`;
-    } else {
-      // Kotlin
-      statementToInsert = `         
+    const statementToInsert = `
       override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode)
         if (isFinishing) {
@@ -90,7 +71,6 @@ function addOnPictureInPictureModeChanged(contents: string, isJava: boolean) {
             StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         }
       }`;
-    }
 
     contents = addNewLinesToMainActivity(
       contents,
@@ -100,33 +80,13 @@ function addOnPictureInPictureModeChanged(contents: string, isJava: boolean) {
   return contents;
 }
 
-function addOnUserLeaveHint(contents: string, isJava: boolean) {
-  let statementToInsert = '';
-
-  if (isJava) {
-    if (
-      !contents.includes(
-        'StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode',
-      )
-    ) {
-      statementToInsert = `
-      @Override
-      protected void onUserLeaveHint() {
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-              Build.VERSION.SDK_INT < Build.VERSION_CODES.S &&
-              StreamVideoReactNative.Companion.getCanAutoEnterPictureInPictureMode()) {
-              Configuration config = getResources().getConfiguration();
-              onPictureInPictureModeChanged(true, config);
-          }
-      }`;
-    }
-  } else {
-    if (
-      !contents.includes(
-        'StreamVideoReactNative.canAutoEnterPictureInPictureMode',
-      )
-    ) {
-      statementToInsert = `           
+function addOnUserLeaveHint(contents: string) {
+  if (
+    !contents.includes(
+      'StreamVideoReactNative.canAutoEnterPictureInPictureMode',
+    )
+  ) {
+    const statementToInsert = `
       override fun onUserLeaveHint() {
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
               Build.VERSION.SDK_INT < Build.VERSION_CODES.S &&
@@ -135,10 +95,6 @@ function addOnUserLeaveHint(contents: string, isJava: boolean) {
               onPictureInPictureModeChanged(true,  config)
           }
       }`;
-    }
-  }
-
-  if (statementToInsert) {
     contents = addNewLinesToMainActivity(
       contents,
       statementToInsert.trim().split('\n'),
@@ -148,12 +104,8 @@ function addOnUserLeaveHint(contents: string, isJava: boolean) {
   return contents;
 }
 
-function addInsideOnCreateScreenshare(contents: string, isJava: boolean) {
-  const addScreenShareServiceEnablerBlock = isJava
-    ? `WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
-    options.enableMediaProjectionService = true;
-`
-    : `val options: WebRTCModuleOptions = WebRTCModuleOptions.getInstance()
+function addInsideOnCreateScreenshare(contents: string) {
+  const addScreenShareServiceEnablerBlock = `val options: WebRTCModuleOptions = WebRTCModuleOptions.getInstance()
     options.enableMediaProjectionService = true
 `;
   if (!contents.includes('options.enableMediaProjectionService = true')) {
@@ -166,10 +118,8 @@ function addInsideOnCreateScreenshare(contents: string, isJava: boolean) {
   return contents;
 }
 
-function addInsideOnCreateLockscreen(contents: string, isJava: boolean) {
-  const addLockscreenServiceEnablerBlock = isJava
-    ? `StreamVideoReactNative.setupCallActivity(this);`
-    : `StreamVideoReactNative.setupCallActivity(this)`;
+function addInsideOnCreateLockscreen(contents: string) {
+  const addLockscreenServiceEnablerBlock = `StreamVideoReactNative.setupCallActivity(this)`;
   if (!contents.includes('StreamVideoReactNative.setupCallActivity')) {
     contents = appendContentsInsideDeclarationBlock(
       contents,

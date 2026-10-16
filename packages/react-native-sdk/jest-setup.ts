@@ -52,3 +52,39 @@ global.navigator = {
 
 // @ts-expect-error due to dom typing incompatible with RN
 global.RTCPeerConnection = jest.fn();
+
+// Codegen TurboModule mock: any method is a lazily created jest.fn; `on*` events return a subscription.
+const mockTurboModule = (defaults: Record<string, unknown> = {}) =>
+  new Proxy({} as Record<string, jest.Mock>, {
+    get: (target, key) => {
+      if (typeof key !== 'string' || key === 'then') return undefined;
+      target[key] ??= key.startsWith('on')
+        ? jest.fn(() => ({ remove: jest.fn() }))
+        : jest.fn(() => defaults[key]);
+      return target[key];
+    },
+  });
+
+jest.mock('./src/native/NativeStreamInCallManager', () => ({
+  __esModule: true,
+  default: mockTurboModule({ getAudioStateLog: '' }),
+}));
+
+jest.mock('./src/native/NativeStreamVideoReactNative', () => ({
+  __esModule: true,
+  default: mockTurboModule({
+    currentThermalState: 'NONE',
+    getBatteryState: { charging: false, level: 100 },
+  }),
+}));
+
+jest.mock('./src/native/NativeStreamVideoAppLifecycle', () => ({
+  __esModule: true,
+  default: mockTurboModule({ getCurrentAppState: 'active' }),
+}));
+
+jest.mock('./src/native/RTCViewPipNativeComponent', () => ({
+  __esModule: true,
+  default: require('react-native').View,
+  Commands: { onCallClosed: jest.fn(), setPreferredContentSize: jest.fn() },
+}));

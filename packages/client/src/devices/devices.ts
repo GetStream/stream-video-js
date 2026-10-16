@@ -11,7 +11,7 @@ import {
 } from 'rxjs';
 import { BrowserPermission } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
-import { isFirefox } from '../helpers/browsers';
+import { isFirefox, isWebKit } from '../helpers/browsers';
 import { dumpStream, Tracer } from '../stats';
 import { getCurrentValue } from '../store/rxUtils';
 import { videoLoggerSystem } from '../logger';
@@ -58,9 +58,15 @@ const getDevices = (
 /**
  * Tells if the browser supports audio output change on 'audio' elements,
  * see https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId.
+ *
+ * WebKit (Safari, iOS browsers, WKWebView) is reported as unsupported:
+ * setSinkId requires a user gesture, a per-device output can run at a
+ * different sample rate than the remote audio mixer (pitched/slowed audio),
+ * and audio goes silent when the selected device disconnects.
  */
 export const checkIfAudioOutputChangeSupported = () => {
   if (typeof document === 'undefined') return false;
+  if (isWebKit()) return false;
   const element = document.createElement('audio');
   return 'setSinkId' in element;
 };

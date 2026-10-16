@@ -33,15 +33,8 @@ try {
   videoFiltersModule = require('@stream-io/video-filters-react-native');
 } catch {}
 
-const isSupported = (function () {
-  if (!videoFiltersModule) return false;
-  if (Platform.OS === 'ios') {
-    // only supported on ios 15 and above
-    const currentVersion = parseInt(Platform.Version, 10);
-    return currentVersion >= 15;
-  }
-  return Platform.OS === 'android';
-})();
+const isSupported =
+  !!videoFiltersModule && (Platform.OS === 'ios' || Platform.OS === 'android');
 
 /**
  * A hook to access the background filters context API.

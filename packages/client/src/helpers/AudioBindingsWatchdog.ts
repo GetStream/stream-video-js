@@ -10,12 +10,43 @@ const toBindingKey = (
   trackType: AudioTrackType = 'audioTrack',
 ) => `${sessionId}/${trackType}`;
 
+type AudioElementState = {
+  paused: boolean;
+  muted: boolean;
+  volume: number;
+  readyState: number;
+  sinkId?: string;
+  track: { enabled: boolean; muted: boolean; readyState: string } | null;
+};
+
+const toElementState = (element: HTMLAudioElement): AudioElementState => {
+  const stream = element.srcObject as MediaStream | null;
+  const [track] = stream?.getAudioTracks?.() ?? [];
+  return {
+    paused: element.paused,
+    muted: element.muted,
+    volume: Math.round(element.volume * 100) / 100,
+    readyState: element.readyState,
+    sinkId: element.sinkId,
+    track: track
+      ? {
+          enabled: track.enabled,
+          muted: track.muted,
+          readyState: track.readyState,
+        }
+      : null,
+  };
+};
+
 /**
  * Tracks audio element bindings and periodically warns about
  * remote participants whose audio streams have no bound element.
+ * On the same tick, it traces the playback state of the bound elements,
+ * limited to the bindings whose state changed since the previous trace.
  */
 export class AudioBindingsWatchdog {
   private bindings = new Map<string, HTMLAudioElement>();
+  private tracedStates = new Map<string, string>();
   private enabled = true;
   private watchdogInterval?: NodeJS.Timeout;
   private readonly unsubscribeCallingState: () => void;
@@ -30,7 +61,6 @@ export class AudioBindingsWatchdog {
     this.unsubscribeCallingState = createSubscription(
       state.callingState$,
       (callingState) => {
-        if (!this.enabled) return;
         if (callingState !== CallingState.JOINED) {
           this.stop();
         } else {
@@ -68,14 +98,14 @@ export class AudioBindingsWatchdog {
   };
 
   /**
-   * Enables or disables the watchdog.
-   * When disabled, the periodic check stops but bindings are still tracked.
+   * Enables or disables the dangling binding warnings.
+   * Bindings are still tracked and their playback state is still traced.
    */
   setEnabled = (enabled: boolean) => {
     this.enabled = enabled;
     if (enabled) {
       this.start();
-    } else {
+    } else if (this.state.callingState !== CallingState.JOINED) {
       this.stop();
     }
   };
@@ -86,45 +116,71 @@ export class AudioBindingsWatchdog {
   dispose = () => {
     this.stop();
     this.bindings.clear();
+    this.tracedStates.clear();
     this.unsubscribeCallingState();
   };
 
   private start = () => {
     clearInterval(this.watchdogInterval);
     this.watchdogInterval = setInterval(() => {
-      const danglingUserIds: string[] = [];
-      for (const p of this.state.participants) {
-        if (p.isLocalParticipant) continue;
-        const {
-          audioStream,
-          screenShareAudioStream,
-          sessionId,
-          userId,
-          publishedTracks,
-        } = p;
-        if (
-          audioStream &&
-          publishedTracks.includes(TrackType.AUDIO) &&
-          !this.bindings.has(toBindingKey(sessionId))
-        ) {
-          danglingUserIds.push(userId);
-        }
-        if (
-          screenShareAudioStream &&
-          publishedTracks.includes(TrackType.SCREEN_SHARE_AUDIO) &&
-          !this.bindings.has(toBindingKey(sessionId, 'screenShareAudioTrack'))
-        ) {
-          danglingUserIds.push(userId);
-        }
-      }
-      if (danglingUserIds.length > 0) {
-        const key = 'audioBinding.danglingWarning';
-        this.tracer.traceOnce(key, key, danglingUserIds);
-        this.logger.warn(
-          `Dangling audio bindings detected. Did you forget to bind the audio element? user_ids: ${danglingUserIds}.`,
-        );
-      }
+      if (this.enabled) this.warnAboutDanglingBindings();
+      this.traceBindingStates();
     }, 3000);
+  };
+
+  private warnAboutDanglingBindings = () => {
+    const danglingUserIds: string[] = [];
+    for (const p of this.state.participants) {
+      if (p.isLocalParticipant) continue;
+      const {
+        audioStream,
+        screenShareAudioStream,
+        sessionId,
+        userId,
+        publishedTracks,
+      } = p;
+      if (
+        audioStream &&
+        publishedTracks.includes(TrackType.AUDIO) &&
+        !this.bindings.has(toBindingKey(sessionId))
+      ) {
+        danglingUserIds.push(userId);
+      }
+      if (
+        screenShareAudioStream &&
+        publishedTracks.includes(TrackType.SCREEN_SHARE_AUDIO) &&
+        !this.bindings.has(toBindingKey(sessionId, 'screenShareAudioTrack'))
+      ) {
+        danglingUserIds.push(userId);
+      }
+    }
+    if (danglingUserIds.length > 0) {
+      const key = 'audioBinding.danglingWarning';
+      this.tracer.traceOnce(key, key, danglingUserIds);
+      this.logger.warn(
+        `Dangling audio bindings detected. Did you forget to bind the audio element? user_ids: ${danglingUserIds}.`,
+      );
+    }
+  };
+
+  private traceBindingStates = () => {
+    const changes: Record<string, AudioElementState | null> = {};
+    let hasChanges = false;
+    for (const [key, element] of this.bindings) {
+      const state = toElementState(element);
+      const serialized = JSON.stringify(state);
+      if (this.tracedStates.get(key) === serialized) continue;
+      this.tracedStates.set(key, serialized);
+      changes[key] = state;
+      hasChanges = true;
+    }
+    for (const key of this.tracedStates.keys()) {
+      if (this.bindings.has(key)) continue;
+      this.tracedStates.delete(key);
+      changes[key] = null;
+      hasChanges = true;
+    }
+    if (hasChanges) this.tracer.trace('audioBinding.state', changes);
   };
 
   private stop = () => {
