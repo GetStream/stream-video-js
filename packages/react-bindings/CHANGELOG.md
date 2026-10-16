@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.21.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.20.6...@stream-io/video-react-bindings-1.21.0) (2026-10-16)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.62.0`
+
+### Features
+
+- **react-bindings:** report render errors from StreamCall ([#2514](https://github.com/GetStream/stream-video-js/issues/2514)) ([215f894](https://github.com/GetStream/stream-video-js/commit/215f894abec7bb932a1153744fcbd90b539dbae2))
+- **react-sdk:** Expose the device error in camera/microphone state ([#2511](https://github.com/GetStream/stream-video-js/issues/2511)) ([f6822e4](https://github.com/GetStream/stream-video-js/commit/f6822e4c92cb22607ff0dd56606159e83db34fa2))
+
 ## [1.20.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.20.5...@stream-io/video-react-bindings-1.20.6) (2026-10-09)
 
 ### Dependency Updates
