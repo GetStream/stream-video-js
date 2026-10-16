@@ -19,6 +19,7 @@ import {
 import { ParticipantsInfoListModal } from './ParticipantsInfoListModal';
 import { E2EEKeyNotification } from './E2EEKeyNotification';
 import { BottomControls } from './CallControls/BottomControls';
+import { CustomTopBar } from './CallControls/TopControls/CustomTopBar';
 import { MoreActionsDrawer } from './CallControls/MoreActionsButton/MoreActionsDrawer';
 import { useOrientation } from '../hooks/useOrientation';
 import { FoldAwareCallArea } from './FoldAwareCallArea';
@@ -49,7 +50,7 @@ export const ActiveCall = ({
     useState<boolean>(false);
   const call = useCall();
   const styles = useStyles();
-  const { selectedLayout, onLayoutSelection } = useLayout();
+  const { selectedLayout } = useLayout();
   const isInPiPMode = useIsInPiPMode();
   const currentOrientation = useOrientation();
   const { height: windowHeight } = useWindowDimensions();
@@ -120,10 +121,6 @@ export const ActiveCall = ({
   const [controlsHeight, setControlsHeight] = useState(0);
   const [isMoreActionsVisible, setIsMoreActionsVisible] = useState(false);
 
-  const onLayoutToggleHandler = (newLayout: 'grid' | 'spotlight') => {
-    onLayoutSelection(newLayout);
-  };
-
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
@@ -139,6 +136,7 @@ export const ActiveCall = ({
             </FoldAwareTopBar>
             <CallContent
               iOSPiPIncludeLocalParticipantVideo
+              CallAppBar={CustomTopBar}
               // CallControls={CustomBottomControls}
               landscape={isLandscape}
               layout={selectedLayout}
@@ -147,7 +145,6 @@ export const ActiveCall = ({
               onUsersPress={onOpenCallParticipantsInfo}
               onMessageBubblesPress={onChatOpenHandler}
               onHangupPressHandler={onHangupCallHandler}
-              onLayoutToggleHandler={onLayoutToggleHandler}
             />
           </FoldAwareCallArea>
           <MoreActionsDrawer
