@@ -368,5 +368,11 @@
   "We couldn't connect to the server. Please check your connection and try again.": "No pudimos conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.",
   "Try again": "Intentar de nuevo",
   "End Stream": "Finalizar stream",
-  "Start Stream": "Iniciar stream"
+  "Start Stream": "Iniciar stream",
+  "recordings.transcriptions.download.title": "Descargar la transcripción",
+  "recordings.transcriptions.title": "Transcripciones",
+  "settings.transcription.disabled.text": "La transcripción está desactivada para este tipo de llamada.",
+  "settings.transcription.downloads.empty.text": "Aún no hay transcripciones. Aparecerán aquí cuando se detenga una transcripción.",
+  "settings.transcription.start.label": "Iniciar transcripción",
+  "settings.transcription.stop.label": "Detener transcripción"
 }

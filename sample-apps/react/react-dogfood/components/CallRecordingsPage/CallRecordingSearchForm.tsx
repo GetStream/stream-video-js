@@ -1,5 +1,6 @@
 import {
   CallRecording,
+  CallTranscription,
   useI18n,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
@@ -12,9 +13,14 @@ import {
   useState,
 } from 'react';
 
+export type CallRecordingSearchResult = {
+  recordings: CallRecording[];
+  transcriptions: CallTranscription[];
+};
+
 type CallRecordingSearchFormProps = {
   setLoading: (loading: boolean) => void;
-  setResult: (recordings: CallRecording[] | undefined) => void;
+  setResult: (result: CallRecordingSearchResult | undefined) => void;
   setResultError: (error: Error | undefined) => void;
 };
 export const CallRecordingSearchForm = ({
@@ -41,8 +47,17 @@ export const CallRecordingSearchForm = ({
       try {
         setLoading(true);
         setEnabled(false);
-        const { recordings } = await call.queryRecordings();
-        setResult(recordings);
+        const [{ recordings }, { transcriptions }] = await Promise.all([
+          call.listRecordings().catch((err) => {
+            console.warn('Failed to list recordings', err);
+            return { recordings: [] };
+          }),
+          call.listTranscriptions().catch((err) => {
+            console.warn('Failed to list transcriptions', err);
+            return { transcriptions: [] };
+          }),
+        ]);
+        setResult({ recordings, transcriptions });
         setResultError(undefined);
       } catch (err) {
         setResultError(err as Error);
