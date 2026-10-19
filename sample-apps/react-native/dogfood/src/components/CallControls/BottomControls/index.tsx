@@ -13,28 +13,20 @@ import { ChatButton } from './ChatButton';
 import { RecordCallButton } from './RecordCallButton';
 import { SubtitleContainer } from './SubtitleContainer';
 import { useFoldAwareBarLayout } from '../../../contexts/FoldAwareBarLayoutContext';
+import { Z_INDEX } from '../../../constants';
 
 export type BottomControlsProps = Pick<
   CallContentProps,
   'supportedReactions'
 > & {
-  onChatOpenHandler?: () => void;
-  onParticipantInfoPress: () => void;
-  toggleCallRecording: () => Promise<void>;
-  isAwaitingResponse: boolean;
-  isCallRecordingInProgress: boolean;
   landscape?: boolean;
 };
 
-export const BottomControls = ({
-  onChatOpenHandler,
-  onParticipantInfoPress,
-  toggleCallRecording,
-  isAwaitingResponse,
-  isCallRecordingInProgress,
-  landscape = false,
-}: BottomControlsProps) => {
+export const BottomControls = ({ landscape = false }: BottomControlsProps) => {
   const styles = useStyles();
+  const {
+    theme: { callControls },
+  } = useTheme();
   const [measuredHeight, setMeasuredHeight] = useState<number>();
   // drawers and subtitles are lifted above the controls only when the
   // controls are below the video; beside the video there is nothing to clear
@@ -56,18 +48,14 @@ export const BottomControls = ({
         <MoreActionsButton controlsContainerHeight={controlsContainerHeight} />
         <ToggleAudioPublishingButton />
         <ToggleVideoPublishingButton />
+      </View>
+      <View style={[styles.right, landscape && styles.groupLandscape]}>
         <ScreenShareToggleButton
           screenShareOptions={{ type: 'broadcast', includeAudio: true }}
         />
-        <RecordCallButton
-          toggleCallRecording={toggleCallRecording}
-          isAwaitingResponse={isAwaitingResponse}
-          isCallRecordingInProgress={isCallRecordingInProgress}
-        />
-      </View>
-      <View style={[styles.right, landscape && styles.groupLandscape]}>
-        <ParticipantsButton onParticipantInfoPress={onParticipantInfoPress} />
-        {onChatOpenHandler && <ChatButton onPressHandler={onChatOpenHandler} />}
+        <RecordCallButton />
+        <ParticipantsButton />
+        <ChatButton />
       </View>
     </>
   );
@@ -89,7 +77,10 @@ export const BottomControls = ({
           {buttons}
         </ScrollView>
       ) : (
-        <View style={styles.container} onLayout={onLayout}>
+        <View
+          style={[styles.container, callControls.container]}
+          onLayout={onLayout}
+        >
           {buttons}
         </View>
       )}
@@ -108,23 +99,15 @@ const useStyles = () => {
     () =>
       StyleSheet.create({
         container: {
-          paddingTop: primitives.spacingSm,
-          paddingBottom: primitives.spacingMd,
-          paddingHorizontal: primitives.spacingMd,
           flexDirection: 'row',
-          justifyContent: 'flex-start',
+          justifyContent: 'space-between',
+          zIndex: Z_INDEX.IN_FRONT,
         },
         left: {
-          flex: 2.5,
           flexDirection: 'row',
-          alignItems: 'flex-start',
-          gap: primitives.spacingXs,
         },
         right: {
-          flex: 1,
           flexDirection: 'row',
-          justifyContent: 'flex-end',
-          gap: primitives.spacingXs,
         },
         containerLandscape: {
           flexDirection: 'column',

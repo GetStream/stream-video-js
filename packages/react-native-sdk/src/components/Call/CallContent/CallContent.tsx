@@ -71,13 +71,7 @@ export type CallContentProps = Pick<
   CallAppBarProps,
   'onHangupCallHandler' | 'onHangupPressHandler'
 > &
-  Pick<
-    CallControlProps,
-    | 'onMorePress'
-    | 'onUsersPress'
-    | 'onMessageBubblesPress'
-    | 'onControlsHeightChange'
-  > &
+  Pick<CallControlProps, 'onControlsHeightChange'> &
   CallContentComponentProps & {
     /**
      * This switches the participant's layout between the grid and the spotlight mode.
@@ -114,9 +108,6 @@ export type CallContentProps = Pick<
 export const CallContent = ({
   onHangupPressHandler,
   onHangupCallHandler,
-  onMorePress,
-  onUsersPress,
-  onMessageBubblesPress,
   onControlsHeightChange,
   CallParticipantsList,
   CallAppBar = DefaultCallAppBar,
@@ -318,9 +309,6 @@ export const CallContent = ({
       {!isInPiPMode && CallControls && (
         <CallControls
           landscape={landscape}
-          onMorePress={onMorePress}
-          onUsersPress={onUsersPress}
-          onMessageBubblesPress={onMessageBubblesPress}
           onControlsHeightChange={onControlsHeightChange}
         />
       )}

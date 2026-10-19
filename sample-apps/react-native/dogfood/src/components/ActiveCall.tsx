@@ -1,12 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   CallContent,
-  type CallControlProps,
   NoiseCancellationProvider,
   useCall,
   useModeration,
   useTheme,
-  useToggleCallRecording,
   BackgroundFiltersProvider,
   useIsInPiPMode,
 } from '@stream-io/video-react-native-sdk';
@@ -16,11 +14,9 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from 'react-native';
-import { ParticipantsInfoListModal } from './ParticipantsInfoListModal';
 import { E2EEKeyNotification } from './E2EEKeyNotification';
 import { BottomControls } from './CallControls/BottomControls';
 import { CustomTopBar } from './CallControls/TopControls/CustomTopBar';
-import { MoreActionsDrawer } from './CallControls/MoreActionsButton/MoreActionsDrawer';
 import { useOrientation } from '../hooks/useOrientation';
 import { FoldAwareCallArea } from './FoldAwareCallArea';
 import { FoldAwareTopBar } from '../contexts/FoldAwareBarLayoutContext';
@@ -28,7 +24,6 @@ import { useFoldDivision } from '../hooks/useFoldDivision';
 import { useLayout } from '../contexts/LayoutContext';
 import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { SubtitleContainer } from './CallControls/BottomControls/SubtitleContainer';
 
 // Windows shorter than this use the landscape layout (controls on the side).
 // Taller windows, such as tablets or a large foldable display, keep the
@@ -37,17 +32,13 @@ const LANDSCAPE_LAYOUT_MAX_HEIGHT = 500;
 
 type ActiveCallProps = {
   onHangupCallHandler?: () => void;
-  onChatOpenHandler?: () => void;
   onCallEnded: () => void;
 };
 
 export const ActiveCall = ({
-  onChatOpenHandler,
   onHangupCallHandler,
   onCallEnded,
 }: ActiveCallProps) => {
-  const [isCallParticipantsVisible, setIsCallParticipantsVisible] =
-    useState<boolean>(false);
   const call = useCall();
   const styles = useStyles();
   const { selectedLayout } = useLayout();
@@ -59,10 +50,6 @@ export const ActiveCall = ({
     windowHeight < LANDSCAPE_LAYOUT_MAX_HEIGHT;
   // on a foldable, keep the grid split at the hinge
   const hasHinge = !!useFoldDivision();
-
-  const onOpenCallParticipantsInfo = useCallback(() => {
-    setIsCallParticipantsVisible(true);
-  }, []);
 
   useEffect(() => {
     return call?.on('call.moderation_warning', (event) => {
@@ -91,36 +78,6 @@ export const ActiveCall = ({
     });
   }, [call, onCallEnded]);
 
-  const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
-    useToggleCallRecording();
-
-  const CustomBottomControls = useCallback(
-    ({ landscape }: CallControlProps) => {
-      return (
-        <BottomControls
-          landscape={landscape}
-          onParticipantInfoPress={onOpenCallParticipantsInfo}
-          onChatOpenHandler={onChatOpenHandler}
-          toggleCallRecording={toggleCallRecording}
-          isCallRecordingInProgress={isCallRecordingInProgress}
-          isAwaitingResponse={isAwaitingResponse}
-        />
-      );
-    },
-    [
-      onChatOpenHandler,
-      onOpenCallParticipantsInfo,
-      toggleCallRecording,
-      isAwaitingResponse,
-      isCallRecordingInProgress,
-    ],
-  );
-
-  // the SDK renders the call controls, so it reports their height for the
-  // more-actions drawer to sit on top of
-  const [controlsHeight, setControlsHeight] = useState(0);
-  const [isMoreActionsVisible, setIsMoreActionsVisible] = useState(false);
-
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
@@ -137,28 +94,13 @@ export const ActiveCall = ({
             <CallContent
               iOSPiPIncludeLocalParticipantVideo
               CallAppBar={CustomTopBar}
-              // CallControls={CustomBottomControls}
+              CallControls={BottomControls}
               landscape={isLandscape}
               layout={selectedLayout}
-              onControlsHeightChange={setControlsHeight}
-              onMorePress={() => setIsMoreActionsVisible((visible) => !visible)}
-              onUsersPress={onOpenCallParticipantsInfo}
-              onMessageBubblesPress={onChatOpenHandler}
+              evenGridColumns={hasHinge}
               onHangupPressHandler={onHangupCallHandler}
             />
           </FoldAwareCallArea>
-          <MoreActionsDrawer
-            isVisible={isMoreActionsVisible}
-            onClose={() => setIsMoreActionsVisible(false)}
-            controlsContainerHeight={controlsHeight}
-          />
-          <ParticipantsInfoListModal
-            isCallParticipantsInfoVisible={isCallParticipantsVisible}
-            setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
-          />
-          {!!controlsHeight && (
-            <SubtitleContainer controlsContainerHeight={controlsHeight} />
-          )}
         </SafeAreaView>
       </NoiseCancellationProvider>
     </BackgroundFiltersProvider>
