@@ -114,6 +114,18 @@ describe('inboundAudioStallDetector', () => {
     expect(getStats).not.toHaveBeenCalled();
   });
 
+  it('checks participants that publish only screen-share audio', async () => {
+    state.setParticipants([remote([TrackType.SCREEN_SHARE_AUDIO])]);
+    start();
+    packets = 100;
+    await poll(4);
+    expect(getStats).toHaveBeenCalled();
+    expect(trace).toHaveBeenCalledWith('inboundAudio.stalled', {
+      noPacketsForMs: 6000,
+      remoteAudioSenders: 1,
+    });
+  });
+
   it('is inert unless the call is joined', async () => {
     state.setCallingState(CallingState.RECONNECTING);
     start();
