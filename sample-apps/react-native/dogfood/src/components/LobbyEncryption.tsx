@@ -43,7 +43,9 @@ export const LobbyEncryption = () => {
   const settings = useCallSettings();
   const createdBy = useCallCreatedBy();
   const connectedUser = useConnectedUser();
-  const { theme } = useTheme();
+  const {
+    theme: { semantics },
+  } = useTheme();
   const styles = useStyles();
 
   const [copied, setCopied] = useState(false);
@@ -82,7 +84,7 @@ export const LobbyEncryption = () => {
     return (
       <View style={styles.container}>
         <View style={styles.switchRow}>
-          <LockIcon color={theme.colors.iconWarning} size={18} />
+          <LockIcon color={semantics.accentWarning} size={18} />
           <View style={styles.text}>
             <Text style={styles.title}>
               {t(
@@ -111,7 +113,7 @@ export const LobbyEncryption = () => {
   return (
     <View style={[styles.container, styles.containerOn]}>
       <View style={styles.switchRow}>
-        <LockIcon color={theme.colors.iconPrimary} size={18} />
+        <LockIcon color={semantics.accentPrimary} size={18} />
         <View style={styles.text}>
           <Text style={styles.title}>
             {t(
@@ -260,7 +262,7 @@ const useStyles = () => {
           paddingVertical: primitives.spacingSm,
         },
         copyButtonText: {
-          color: semantics.textPrimary,
+          color: semantics.textOnAccent,
           fontSize: 14,
           fontWeight: '600',
         },
