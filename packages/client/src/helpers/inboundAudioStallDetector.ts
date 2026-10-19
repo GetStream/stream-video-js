@@ -1,7 +1,7 @@
 import { CallingState, CallState } from '../store';
 import type { Subscriber } from '../rtc';
 import { Tracer } from '../stats';
-import { hasAudio } from './participantUtils';
+import { hasAudio, hasScreenShareAudio } from './participantUtils';
 
 export type InboundAudioStallDetectorOptions = {
   state: CallState;
@@ -54,7 +54,9 @@ export const createInboundAudioStallDetector = ({
     const now = Date.now();
     const senders =
       state.callingState === CallingState.JOINED
-        ? state.remoteParticipants.filter(hasAudio)
+        ? state.remoteParticipants.filter(
+            (p) => hasAudio(p) || hasScreenShareAudio(p),
+          )
         : [];
     if (senders.length === 0) {
       if (stalledSince !== undefined) {
