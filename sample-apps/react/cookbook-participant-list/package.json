@@ -14,13 +14,13 @@
     "@mui/material": "^6.5.0",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   },
   "devDependencies": {
     "@stream-io/typescript-config": "workspace:^",
-    "@types/react": "~19.2.18",
-    "@types/react-dom": "~19.2.4",
+    "@types/react": "~19.3.0",
+    "@types/react-dom": "~19.3.0",
     "@vitejs/plugin-react": "^6.0.5",
     "typescript": "^6.0.3",
     "vite": "^8.2.0"

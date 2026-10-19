@@ -3,12 +3,13 @@ import {
   StyleSheet,
   TextInput as NativeTextInput,
   TextInputProps,
+  type TextInputInstance,
 } from 'react-native';
 import { INPUT_HEIGHT } from '../constants';
 import { useTheme } from '@stream-io/video-react-native-sdk';
 
 export const TextInput = React.forwardRef<
-  NativeTextInput,
+  TextInputInstance,
   Omit<TextInputProps, 'placeholderTextColor'>
 >((props, ref) => {
   const styles = useStyles();

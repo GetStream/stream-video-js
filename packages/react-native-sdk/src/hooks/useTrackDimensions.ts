@@ -5,6 +5,13 @@ import {
 import { useEffect, useState } from 'react';
 import { NativeEventEmitter, NativeModules } from 'react-native';
 
+type VideoTrackDimensionChangedEvent = {
+  pcId: string;
+  trackId: string;
+  width: number;
+  height: number;
+};
+
 /**
  * This is a utility hook to get the dimensions of the video track of the participant.
  * Note: the `tracktype` is used only for local participants.
@@ -34,12 +41,9 @@ export function useTrackDimensions(
   useEffect(() => {
     if (!trackId || !track) return;
 
-    const handleVideoTrackDimensionChanged = (eventData: {
-      pcId: string;
-      trackId: string;
-      width: number;
-      height: number;
-    }) => {
+    const handleVideoTrackDimensionChanged = (
+      eventData: VideoTrackDimensionChangedEvent,
+    ) => {
       // Only handle events for this specific participant
       if (eventData.trackId === trackId) {
         setTrackDimensions((prev) => {
@@ -65,9 +69,9 @@ export function useTrackDimensions(
       };
     });
 
-    const webRTCEventEmitter = new NativeEventEmitter(
-      NativeModules.WebRTCModule,
-    );
+    const webRTCEventEmitter = new NativeEventEmitter<{
+      videoTrackDimensionChanged: [VideoTrackDimensionChangedEvent];
+    }>(NativeModules.WebRTCModule);
     const subscription = webRTCEventEmitter.addListener(
       'videoTrackDimensionChanged',
       handleVideoTrackDimensionChanged,
