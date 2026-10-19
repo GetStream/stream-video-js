@@ -84,6 +84,11 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         return true
     }
 
+    override fun setVoipTokenRegistered(registered: Boolean): Boolean {
+        // leave empty
+        return true
+    }
+
     override fun getInitialEvents(): WritableArray {
         return impl.getInitialEvents()
     }

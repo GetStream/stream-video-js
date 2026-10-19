@@ -379,6 +379,10 @@ class CallingxModule implements ICallingxModule {
     NativeCallingModule.registerVoipToken();
   };
 
+  setVoipTokenRegistered = (registered: boolean): void => {
+    NativeCallingModule.setVoipTokenRegistered(registered);
+  };
+
   stopService = (): void => {
     NativeCallingModule.stopService();
   };

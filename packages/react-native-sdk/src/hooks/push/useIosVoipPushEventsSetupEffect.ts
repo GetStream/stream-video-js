@@ -25,6 +25,7 @@ function setLogoutCallback(
 ) {
   setPushLogoutCallback(async () => {
     lastVoipTokenRef.current = { token: '', userId: '' };
+    getCallingxLibIfAvailable()?.setVoipTokenRegistered(false);
     try {
       await client.removeDevice({ id: token });
       logger.debug('PushLogoutCallback - Removed voip token', token);
@@ -78,6 +79,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
       })
       .then(() => {
         logger.debug(`Sent voip token: ${tokenToSend}`);
+        getCallingxLibIfAvailable()?.setVoipTokenRegistered(true);
         setLogoutCallback(client, tokenToSend, lastVoipTokenRef);
         lastVoipTokenRef.current = {
           token: tokenToSend,
@@ -129,6 +131,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
         })
         .then(() => {
           logger.debug(`Sent voip token: ${token} userId: ${userId}`);
+          callingx.setVoipTokenRegistered(true);
           setLogoutCallback(client, token, lastVoipTokenRef);
           lastVoipTokenRef.current = { token, userId };
         })
