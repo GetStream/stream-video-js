@@ -23,4 +23,13 @@ declare global {
      */
     audioSession?: AudioSession;
   }
+
+  interface Document {
+    /**
+     * Whether the browser discarded the page in the background and
+     * reloaded it. Chromium only. See:
+     * https://developer.chrome.com/docs/web-platform/page-lifecycle-api
+     */
+    readonly wasDiscarded?: boolean;
+  }
 }
