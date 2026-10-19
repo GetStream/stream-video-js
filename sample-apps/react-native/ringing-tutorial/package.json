@@ -21,18 +21,18 @@
     "@stream-io/react-native-webrtc": "145.4.1",
     "@stream-io/video-react-native-sdk": "workspace:^",
     "expo": "~58.0.14",
-    "expo-build-properties": "~58.0.10",
+    "expo-build-properties": "~58.0.11",
     "expo-constants": "~58.0.12",
-    "expo-dev-client": "~58.0.13",
+    "expo-dev-client": "~58.0.14",
     "expo-font": "~58.0.8",
     "expo-linking": "~58.0.13",
-    "expo-router": "~58.0.20",
-    "expo-splash-screen": "~58.0.9",
+    "expo-router": "~58.0.23",
+    "expo-splash-screen": "~58.0.10",
     "expo-system-ui": "~58.0.6",
     "expo-web-browser": "~58.0.6",
     "react": "19.3.0",
     "react-native": "0.88.0",
-    "react-native-gesture-handler": "~3.3.0",
+    "react-native-gesture-handler": "~3.4.0",
     "react-native-reanimated": "4.7.1",
     "react-native-safe-area-context": "~5.10.1",
     "react-native-screens": "~4.30.0",
@@ -50,5 +50,12 @@
   },
   "installConfig": {
     "hoistingLimits": "workspaces"
+  },
+  "expo": {
+    "install": {
+      "exclude": [
+        "react-native-gesture-handler"
+      ]
+    }
   }
 }
