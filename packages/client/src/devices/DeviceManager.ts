@@ -672,6 +672,9 @@ export abstract class DeviceManager<
       this.state.setMediaStream(stream, rootStream);
       if (rootStream) {
         const handleTrackEnded = async () => {
+          this.call.tracer.trace('navigator.mediaDevices.trackEnded', {
+            trackType: TrackType[this.trackType],
+          });
           this.setLocalInterrupted(false);
           await this.statusChangeSettled();
           if (this.enabled) {
