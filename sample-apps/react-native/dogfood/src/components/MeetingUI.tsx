@@ -212,10 +212,6 @@ const MeetingUIFlow = ({ callId, navigation, route }: Props) => {
     }
   }, [call, appStoreSetState, lobbyKey]);
 
-  const onChatOpenHandler = () => {
-    navigation.navigate('ChatScreen', { callId });
-  };
-
   const onHangupCallHandler = async () => {
     setShow('loading');
     try {
@@ -283,7 +279,6 @@ const MeetingUIFlow = ({ callId, navigation, route }: Props) => {
         <ActiveCall
           onCallEnded={onCallEnded}
           onHangupCallHandler={onHangupCallHandler}
-          onChatOpenHandler={onChatOpenHandler}
         />
       </LayoutProvider>
     );

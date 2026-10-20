@@ -13,6 +13,9 @@ jest.mock(
           spacingSm: 8,
           spacingMd: 16,
         },
+        callControls: {
+          container: {},
+        },
       },
     }),
     ScreenShareToggleButton: () => null,
@@ -41,16 +44,7 @@ jest.mock(
 );
 
 const renderControls = (landscape?: boolean) =>
-  render(
-    <BottomControls
-      landscape={landscape}
-      onChatOpenHandler={() => {}}
-      onParticipantInfoPress={() => {}}
-      toggleCallRecording={async () => {}}
-      isAwaitingResponse={false}
-      isCallRecordingInProgress={false}
-    />,
-  );
+  render(<BottomControls landscape={landscape} />);
 
 describe('BottomControls', () => {
   it('scrolls the stacked controls in landscape', () => {
