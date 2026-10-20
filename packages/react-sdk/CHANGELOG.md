@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-2.0.0-beta.2...@stream-io/video-react-sdk-2.0.0-beta.3) (2026-10-20)
+
+### Bug Fixes
+
+- keep remote audio elements mounted across mute/unmute ([#2524](https://github.com/GetStream/stream-video-js/issues/2524)) ([916cbc6](https://github.com/GetStream/stream-video-js/commit/916cbc6aa3d040aa6cc6e43271d0a7e9ec3641e9))
+
 ## [2.0.0-beta.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-2.0.0-beta.1...@stream-io/video-react-sdk-2.0.0-beta.2) (2026-10-16)
 
 ### ⚠ BREAKING CHANGES
