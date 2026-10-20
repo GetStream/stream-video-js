@@ -73,8 +73,10 @@ NS_ASSUME_NONNULL_BEGIN
 + (BOOL)canRegisterCall;
 
 /**
- * Check if any call is active (joining, joined or paused) on the device, including calls of other apps.
- * Returns NO when the conversation manager has not been created yet.
+ * Check if a call is active.
+ * CallKit (default): a connected call on the device, including calls of other apps.
+ * LiveCommunicationKit (opt-in): this app's conversation is joined or paused, or CallKit reports a connected call on the device.
+ * Before the backend is created, CallKit's call observer answers (connected calls on the device).
  *
  * @return YES if there is an active call
  */

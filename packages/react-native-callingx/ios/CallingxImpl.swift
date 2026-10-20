@@ -180,8 +180,8 @@ import stream_react_native_webrtc
         return uuidStorage?.hasRegisteredCall() ?? false
     }
 
-    /// Device-wide (any app's call), answered by the backend. Before a backend exists CallKit's
-    /// observer answers: its view is device-wide and needs no provider.
+    /// Whether a call is active, per the backend (see `CallingxBackend.hasAnyActiveCall`). Before a
+    /// backend exists CallKit's observer answers (device-wide connected calls, needs no provider).
     @objc public static func hasAnyActiveCall() -> Bool {
         return existingBackend()?.hasAnyActiveCall() ?? CallKitBackend.hasConnectedCall()
     }

@@ -1,5 +1,6 @@
 import Foundation
 import LiveCommunicationKit
+import CallKit
 import AVFoundation
 import UIKit
 import stream_react_native_webrtc
@@ -53,6 +54,14 @@ final class LiveCommunicationKitBackend: CallingxBackend {
     /// `fulfill(dateStarted:)` (`conversationChanged` follows), so the start events are reported
     /// from there. Guarded by `pendingActionsQueue`.
     private var pendingOutgoingConversationReports: [UUID: Conversation.Update] = [:]
+
+    /// `startCall` phone number per outgoing call UUID, reported as `didReceiveStartCallAction`'s
+    /// handle: the action's handle value is the display name (see `makeRemoteHandle`).
+    /// Guarded by `pendingActionsQueue`.
+    private var outgoingCallPhoneNumbers: [UUID: String] = [:]
+
+    /// Long-lived so its call list is current. LCK conversations are only this app's.
+    private let callObserver = CXCallObserver()
 
     /// `true` while the audio engine is starting. Startup toggles `voiceProcessingInputMuted`, which
     /// iOS 17+ surfaces as system-initiated mutes — artifacts, not user intent, so we skip them.
@@ -171,10 +180,14 @@ final class LiveCommunicationKitBackend: CallingxBackend {
         return Set(manager.conversations.filter { $0.state != .left }.map { $0.uuid })
     }
 
-    /// Device-wide (any app's call): true when a conversation is joining, joined or paused.
+    /// True when this app's conversation is joined or paused, or CallKit reports a connected call
+    /// on the device (other apps, cellular). LCK conversations may not appear in CallKit's observer.
     func hasAnyActiveCall() -> Bool {
-        guard let manager = conversationManager else { return false }
-        return manager.conversations.contains { $0.state == .joining || $0.state == .joined || $0.state == .paused }
+        if let manager = conversationManager,
+           manager.conversations.contains(where: { $0.state == .joined || $0.state == .paused }) {
+            return true
+        }
+        return CallKitBackend.hasConnectedCall(callObserver)
     }
 
     @discardableResult
@@ -406,6 +419,7 @@ final class LiveCommunicationKitBackend: CallingxBackend {
                 self?.pendingActionsQueue.sync {
                     _ = self?.appInitiatedMuteActionIds.remove(action.uuid)
                     _ = self?.pendingOutgoingConversationReports.removeValue(forKey: action.conversationUUID)
+                    _ = self?.outgoingCallPhoneNumbers.removeValue(forKey: action.conversationUUID)
                 }
                 if let call = self?.uuidStorage?.getCallByUUID(action.conversationUUID) {
                     call.resetAllSelfFlags()
@@ -532,6 +546,9 @@ final class LiveCommunicationKitBackend: CallingxBackend {
             handle: phoneNumber,
             displayName: callerName
         )
+        pendingActionsQueue.sync {
+            outgoingCallPhoneNumbers[call.uuid] = phoneNumber
+        }
         performConversationAction(StartConversationAction(
             conversationUUID: call.uuid,
             handles: [callHandle],
@@ -664,9 +681,12 @@ extension LiveCommunicationKitBackend: ConversationManagerDelegate {
         setDesiredEngineAvailability(.none)
         AudioSessionManager.shared.applySystemCallConfigurationSync()
 
+        let phoneNumber = pendingActionsQueue.sync {
+            outgoingCallPhoneNumbers.removeValue(forKey: action.conversationUUID)
+        }
         sendEvent(CallingxEvents.didReceiveStartCallAction, body: [
             "callId": call.cid,
-            "handle": action.handles.first?.value ?? ""
+            "handle": phoneNumber ?? action.handles.first?.value ?? ""
         ])
 
         // The conversation appears in `conversations` only after the fulfill below; its start

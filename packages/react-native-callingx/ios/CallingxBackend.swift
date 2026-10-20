@@ -37,7 +37,8 @@ protocol CallingxBackend: AnyObject {
     )
     /// `reason` is the JS/ObjC ended reason int contract (CallKit's raw values).
     func endCall(_ callId: String, reason: Int)
-    /// Device-wide (any app's call).
+    /// CallKit: a connected call on the device (any app's). LiveCommunicationKit: this app's
+    /// conversation is joined or paused, or CallKit reports a connected call on the device.
     func hasAnyActiveCall() -> Bool
     /// UUIDs of the system's live calls; feeds `UUIDStorage` liveness. Never called while
     /// `UUIDStorage` holds its queue.
