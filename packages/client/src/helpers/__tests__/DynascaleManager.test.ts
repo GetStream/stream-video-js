@@ -177,12 +177,104 @@ describe('DynascaleManager', () => {
           getCurrentValue(call.blockedAudioTracker.blockedSessionIds$),
         ).toEqual(['session-id']);
 
+        // Safari fires `playing` on an element whose play() was rejected
+        Object.defineProperty(audioElement, 'paused', {
+          value: true,
+          writable: true,
+        });
+        audioElement.dispatchEvent(new Event('playing'));
+        expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(true);
+
+        // @ts-expect-error read-only property
+        audioElement.paused = false;
         audioElement.dispatchEvent(new Event('playing'));
 
         expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(false);
         expect(
           getCurrentValue(call.blockedAudioTracker.blockedSessionIds$),
         ).toEqual([]);
+      } finally {
+        cleanup?.();
+        vi.useRealTimers();
+      }
+    });
+
+    it('audio: retries playback of a paused element when the track is republished', async () => {
+      vi.useFakeTimers();
+      let cleanup: ReturnType<typeof dynascaleManager.bindAudioElement>;
+      try {
+        const audioElement = document.createElement('audio');
+        Object.defineProperty(audioElement, 'srcObject', { writable: true });
+        const play = vi
+          .spyOn(audioElement, 'play')
+          .mockRejectedValue(new DOMException('', 'NotAllowedError'));
+
+        // @ts-expect-error incomplete data
+        call.state.updateOrAddParticipant('session-id', {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          publishedTracks: [TrackType.AUDIO],
+          audioStream: new MediaStream(),
+        });
+
+        cleanup = dynascaleManager.bindAudioElement(
+          audioElement,
+          'session-id',
+          'audioTrack',
+        );
+        await vi.advanceTimersByTimeAsync(0);
+        expect(play).toHaveBeenCalledTimes(1);
+        expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(true);
+
+        call.state.updateParticipant('session-id', { publishedTracks: [] });
+        await vi.advanceTimersByTimeAsync(0);
+        expect(play).toHaveBeenCalledTimes(1);
+
+        play.mockResolvedValue();
+        call.state.updateParticipant('session-id', {
+          publishedTracks: [TrackType.AUDIO],
+        });
+        await vi.advanceTimersByTimeAsync(0);
+        expect(play).toHaveBeenCalledTimes(2);
+      } finally {
+        cleanup?.();
+        vi.useRealTimers();
+      }
+    });
+
+    it('audio: does not retry playback of a playing element when the track is republished', async () => {
+      vi.useFakeTimers();
+      let cleanup: ReturnType<typeof dynascaleManager.bindAudioElement>;
+      try {
+        const audioElement = document.createElement('audio');
+        Object.defineProperties(audioElement, {
+          srcObject: { writable: true },
+          paused: { value: false },
+        });
+        const play = vi.spyOn(audioElement, 'play').mockResolvedValue();
+
+        // @ts-expect-error incomplete data
+        call.state.updateOrAddParticipant('session-id', {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          publishedTracks: [TrackType.AUDIO],
+          audioStream: new MediaStream(),
+        });
+
+        cleanup = dynascaleManager.bindAudioElement(
+          audioElement,
+          'session-id',
+          'audioTrack',
+        );
+        await vi.advanceTimersByTimeAsync(0);
+        expect(play).toHaveBeenCalledTimes(1);
+
+        call.state.updateParticipant('session-id', { publishedTracks: [] });
+        call.state.updateParticipant('session-id', {
+          publishedTracks: [TrackType.AUDIO],
+        });
+        await vi.advanceTimersByTimeAsync(0);
+        expect(play).toHaveBeenCalledTimes(1);
       } finally {
         cleanup?.();
         vi.useRealTimers();
@@ -907,6 +999,8 @@ describe('DynascaleManager', () => {
         expect(play.mock.calls.length).toBe(callsBeforeRearm + 2);
         // the prompt stays up until audio actually plays
         expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(true);
+        // @ts-expect-error simulate actual playback
+        audioElement.paused = false;
         audioElement.dispatchEvent(new Event('playing'));
         expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(false);
 
