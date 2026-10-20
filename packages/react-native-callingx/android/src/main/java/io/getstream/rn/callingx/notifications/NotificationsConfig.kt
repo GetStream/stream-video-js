@@ -48,7 +48,6 @@ object NotificationsConfig {
     return config
   }
 
-  /** Whether JS `setup()` has saved the config at least once; readable before JS runs. */
   fun isSaved(context: Context): Boolean {
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     return prefs.contains(PREFIX_IN + KEY_ID)

@@ -52,6 +52,8 @@ import React
     // MARK: - Class Methods
     
     @objc public static func voipRegistration() {
+        Settings.migrateVoipTokenRegisteredIfNeeded()
+
         guard Settings.getVoipTokenRegistered() else {
             CallingxLog.voip.debugPublic("voipRegistration skipped: no VoIP token registered for a logged-in user on this install")
             return

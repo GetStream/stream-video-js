@@ -25,9 +25,9 @@ function setLogoutCallback(
 ) {
   setPushLogoutCallback(async () => {
     lastVoipTokenRef.current = { token: '', userId: '' };
-    getCallingxLibIfAvailable()?.setVoipTokenRegistered(false);
     try {
       await client.removeDevice({ id: token });
+      getCallingxLibIfAvailable()?.setVoipTokenRegistered(false);
       logger.debug('PushLogoutCallback - Removed voip token', token);
     } catch (err) {
       logger.warn('PushLogoutCallback - Failed to remove voip token', err);
@@ -48,6 +48,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
   // this effect is used to send the unsent token to the Stream backend
   useEffect(() => {
     const { pushProviderName } = StreamVideoRN.getConfig().push?.ios || {};
+    const callingx = getCallingxLibIfAvailable();
     //  we need to wait for user to be connected before we can send the push token
     if (!pushProviderName || !client || !connectedUserId) return;
 
@@ -79,13 +80,13 @@ export const useIosVoipPushEventsSetupEffect = () => {
       })
       .then(() => {
         logger.debug(`Sent voip token: ${tokenToSend}`);
-        getCallingxLibIfAvailable()?.setVoipTokenRegistered(true);
         setLogoutCallback(client, tokenToSend, lastVoipTokenRef);
         lastVoipTokenRef.current = {
           token: tokenToSend,
           userId: connectedUserId,
         };
         setUnsentToken(undefined);
+        callingx?.setVoipTokenRegistered(true);
       })
       .catch((error) => {
         logger.warn('Error in sending unsent voip token', error);
@@ -131,9 +132,9 @@ export const useIosVoipPushEventsSetupEffect = () => {
         })
         .then(() => {
           logger.debug(`Sent voip token: ${token} userId: ${userId}`);
-          callingx.setVoipTokenRegistered(true);
           setLogoutCallback(client, token, lastVoipTokenRef);
           lastVoipTokenRef.current = { token, userId };
+          callingx.setVoipTokenRegistered(true);
         })
         .catch((err) => {
           setUnsentToken(token);

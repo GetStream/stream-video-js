@@ -61,6 +61,18 @@ import UIKit
         setSettings(["voipTokenRegistered": registered])
     }
 
+    public static func migrateVoipTokenRegisteredIfNeeded() {
+        let settings = getSettings()
+        guard settings["voipTokenRegistered"] == nil, !settings.isEmpty else { return }
+        CallingxLog.settings.debugPublic("[migrateVoipTokenRegisteredIfNeeded] legacy install, marking VoIP token as registered")
+        setVoipTokenRegistered(true)
+    }
+
+    public static func initVoipTokenRegisteredIfNeeded() {
+        guard getSettings()["voipTokenRegistered"] == nil else { return }
+        setVoipTokenRegistered(false)
+    }
+
     public static func getSkipIncomingPushInForeground() -> Bool {
         guard let skip = getSettings()["skipIncomingPushInForeground"] as? Bool else {
             return false
