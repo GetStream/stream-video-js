@@ -70,6 +70,7 @@ type Props = React.PropsWithChildren<{
   onBottomSheetClose: () => void;
   onBottomSheetOpen: () => void;
   callId: string;
+  ref?: React.Ref<BottomSheetWrapperMethods>;
 }>;
 
 export type BottomSheetWrapperMethods = {
@@ -81,11 +82,9 @@ export type BottomSheetWrapperMethods = {
  * A common wrapper component that wraps the chat component in a bottom sheet.
  * This component is used in both the host and viewer live stream screens.
  */
-const BottomSheetChatWrapper = React.forwardRef<
-  BottomSheetWrapperMethods,
-  Props
->((props, ref) => {
-  const { onBottomSheetClose, onBottomSheetOpen, callId, children } = props;
+const BottomSheetChatWrapper = (props: Props) => {
+  const { onBottomSheetClose, onBottomSheetOpen, callId, children, ref } =
+    props;
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const safeAreaInsets = patchSafeAreaInsets(useSafeAreaInsets());
   const { client: chatClient } = useChatContext();
@@ -193,7 +192,7 @@ const BottomSheetChatWrapper = React.forwardRef<
       </BottomSheetModal>
     </BottomSheetModalProvider>
   );
-});
+};
 
 BottomSheetChatWrapper.displayName = 'BottomSheetChatWrapper';
 
