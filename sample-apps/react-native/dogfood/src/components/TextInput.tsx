@@ -8,10 +8,11 @@ import {
 import { INPUT_HEIGHT } from '../constants';
 import { useTheme } from '@stream-io/video-react-native-sdk';
 
-export const TextInput = React.forwardRef<
-  TextInputInstance,
-  Omit<TextInputProps, 'placeholderTextColor'>
->((props, ref) => {
+type Props = Omit<TextInputProps, 'placeholderTextColor'> & {
+  ref?: React.Ref<TextInputInstance>;
+};
+
+export const TextInput = ({ ref, ...props }: Props) => {
   const styles = useStyles();
   return (
     <NativeTextInput
@@ -21,7 +22,7 @@ export const TextInput = React.forwardRef<
       style={[styles.input, props.style]}
     />
   );
-});
+};
 
 TextInput.displayName = 'TextInput';
 
