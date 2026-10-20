@@ -13,6 +13,8 @@ type BlockedAudioElement = {
   sessionId?: string;
 };
 
+const gestureEvents = ['click', 'keydown'] as const;
+
 /**
  * Tracks audio elements that the browser's autoplay policy has blocked.
  */
@@ -27,7 +29,8 @@ export class BlockedAudioTracker {
   /**
    * Whether the browser's autoplay policy is blocking audio playback.
    * Will be `true` when at least one audio element is currently blocked.
-   * Use {@link resumeAudio} within a user gesture to unblock.
+   * Use {@link resumeAudio} within a user gesture to unblock. Any click or
+   * key press on the page unblocks it as well.
    */
   autoplayBlocked$ = this.blockedElementsSubject.pipe(
     map((elements) => elements.length > 0),
@@ -58,7 +61,30 @@ export class BlockedAudioTracker {
 
   constructor(tracer: Tracer) {
     this.tracer = tracer;
+    this.autoplayBlocked$.subscribe(this.toggleResumeOnGesture);
   }
+
+  /**
+   * While audio is blocked, any user gesture on the page resumes it.
+   * WebKit keeps an element whose play() was rejected restricted until it
+   * is played from within a gesture, even after the page had interactions.
+   */
+  private toggleResumeOnGesture = (blocked: boolean) => {
+    if (typeof document === 'undefined') return;
+    for (const type of gestureEvents) {
+      if (blocked) {
+        document.addEventListener(type, this.resumeOnGesture, true);
+      } else {
+        document.removeEventListener(type, this.resumeOnGesture, true);
+      }
+    }
+  };
+
+  private resumeOnGesture = () => {
+    this.resumeAudio().catch((err) => {
+      this.logger.warn(`Can't resume audio on user gesture`, err);
+    });
+  };
 
   /**
    * Registers an audio element as blocked by the browser's autoplay policy.
