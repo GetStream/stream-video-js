@@ -13,8 +13,6 @@ type BlockedAudioElement = {
   sessionId?: string;
 };
 
-const gestureEvents = ['click', 'keydown'] as const;
-
 /**
  * Tracks audio elements that the browser's autoplay policy has blocked.
  */
@@ -71,7 +69,7 @@ export class BlockedAudioTracker {
    */
   private toggleResumeOnGesture = (blocked: boolean) => {
     if (typeof document === 'undefined') return;
-    for (const type of gestureEvents) {
+    for (const type of ['click', 'keydown'] as const) {
       if (blocked) {
         document.addEventListener(type, this.resumeOnGesture, true);
       } else {
