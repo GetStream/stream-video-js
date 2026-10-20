@@ -4,6 +4,7 @@
 
 import CoreImage
 import Foundation
+import React
 
 /// A video filter that applies a custom image as the background.
 ///
