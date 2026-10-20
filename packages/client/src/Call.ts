@@ -1,5 +1,6 @@
 import { StreamSfuClient } from './StreamSfuClient';
 import { SfuJoinError } from './errors';
+import { FastReconnectRejectedError } from './errors/FastReconnectRejectedError';
 import {
   BasePeerConnectionOpts,
   type CallMediaEngine,
@@ -159,6 +160,7 @@ import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
+import { createInboundAudioStallDetector } from './helpers/inboundAudioStallDetector';
 import { ViewportTracker } from './helpers/ViewportTracker';
 import { tracePageLifecycle } from './helpers/pageLifecycle';
 import { PermissionsContext } from './permissions';
@@ -304,6 +306,8 @@ export class Call {
   private currentPublishOptions?: PublishOption[];
   private statsReportingIntervalInMs: number = 2000;
   private statsReporter?: StatsReporter;
+  private stopInboundAudioStallDetector?: () => void;
+  private fastReconnectOffer?: Promise<boolean>;
   private sfuStatsReporter?: SfuStatsReporter;
   private lastStatsOptions?: StatsOptions;
   private ringTimeout: RingTimeout | undefined;
@@ -775,6 +779,8 @@ export class Call {
 
       this.statsReporter?.stop();
       this.statsReporter = undefined;
+      this.stopInboundAudioStallDetector?.();
+      this.stopInboundAudioStallDetector = undefined;
       this.stopTracingPageLifecycle?.();
       this.stopTracingPageLifecycle = undefined;
 
@@ -1338,6 +1344,8 @@ export class Call {
   };
 
   private performJoin = async (data?: JoinCallData): Promise<void> => {
+    // only a fast reconnect arms this, never carry one over from a previous join
+    this.fastReconnectOffer = undefined;
     const connectStartTime = Date.now();
     const callingState = this.state.callingState;
     const joinLeaveGeneration = this.leaveGeneration;
@@ -1472,26 +1480,39 @@ export class Call {
       const unifiedSessionId = this.unifiedSessionId;
       const capabilities = Array.from(this.clientCapabilities);
       try {
-        const { callState, fastReconnectDeadlineSeconds, publishOptions } =
-          await this.clientEventReporter.track(this.cid, 'WSJoin', () =>
-            sfuClient.join({
-              unifiedSessionId,
-              subscriberSdp,
-              publisherSdp,
-              clientDetails,
-              fastReconnect: performingFastReconnect,
-              reconnectDetails,
-              preferredPublishOptions,
-              preferredSubscribeOptions,
-              capabilities,
-              source: ParticipantSource.WEBRTC_UNSPECIFIED,
-            }),
-          );
+        const {
+          callState,
+          fastReconnectDeadlineSeconds,
+          publishOptions,
+          reconnected,
+        } = await this.clientEventReporter.track(this.cid, 'WSJoin', () =>
+          sfuClient.join({
+            unifiedSessionId,
+            subscriberSdp,
+            publisherSdp,
+            clientDetails,
+            fastReconnect: performingFastReconnect,
+            reconnectDetails,
+            preferredPublishOptions,
+            preferredSubscribeOptions,
+            capabilities,
+            source: ParticipantSource.WEBRTC_UNSPECIFIED,
+          }),
+        );
         if (supersededByLeave()) {
           this.logger.debug(
             'Join superseded by leave; not applying SFU response',
           );
           return;
+        }
+
+        if (performingFastReconnect && !reconnected) {
+          // The SFU couldn't resume our session (e.g. it was cleaned up while
+          // this client was frozen). It won't restart the subscriber, so the
+          // call would stay silent while reporting JOINED: rejoin instead.
+          throw new FastReconnectRejectedError(
+            'SFU did not resume the session after a fast reconnect',
+          );
         }
 
         this.currentPublishOptions = publishOptions;
@@ -1545,7 +1566,15 @@ export class Call {
     // (ws remained healthy), we just need to restore the ICE connection
     if (performingFastReconnect) {
       // the SFU automatically issues an ICE restart on the subscriber
-      // we don't have to do it ourselves
+      // we don't have to do it ourselves, but `reconnectFast` rejoins if it
+      // never arrives. Armed before `restoreICE` moves the subscriber to the
+      // new SFU client, as no offer from that client can reach it before.
+      // The SFU only restarts the subscriber in response to a fast-reconnect
+      // join: when the healthy client was reused, no join was sent and no
+      // offer is coming, so don't wait for one.
+      if (previousSfuClient !== sfuClient) {
+        this.fastReconnectOffer = this.subscriber?.waitForOffer();
+      }
       await this.restoreICE(sfuClient, { includeSubscriber: false });
     } else {
       const connectionConfig = toRtcConfiguration(this.credentials.ice_servers);
@@ -1841,6 +1870,16 @@ export class Call {
         pollingIntervalInMs: this.statsReportingIntervalInMs,
       });
     }
+
+    this.stopInboundAudioStallDetector?.();
+    this.stopInboundAudioStallDetector =
+      enableTracing && this.subscriber
+        ? createInboundAudioStallDetector({
+            state: this.state,
+            subscriber: this.subscriber,
+            tracer: this.tracer,
+          })
+        : undefined;
 
     this.tracer.setEnabled(enableTracing);
     if (statsOptions?.reporting_interval_ms > 0) {
@@ -2281,6 +2320,7 @@ export class Call {
           // in some cases, we immediately switch to the REJOIN strategy.
           const shouldRejoin =
             mustPerformRejoin || // if we are past the fast reconnect deadline
+            error instanceof FastReconnectRejectedError || // SFU didn't resume
             wasMigrating || // if we were migrating, but the migration failed
             attempt >= 3 || // after 3 failed attempts
             !(this.publisher?.isHealthy() ?? true) || // if the publisher is not healthy
@@ -2319,6 +2359,20 @@ export class Call {
     this.state.setCallingState(CallingState.RECONNECTING);
     await this.doJoin(this.joinCallData);
     if (this.leaveGeneration !== reconnectLeaveGeneration) return;
+    // The SFU restarts the subscriber by sending an offer after the join. If
+    // none comes, the session wasn't resumed and the call would stay silent
+    // while JOINED: rejoin. Awaited here rather than reported through
+    // `onReconnectionNeeded`, which `reconnect()` drops while this flow runs,
+    // and before `get()`, so a coordinator hiccup can't skip the check.
+    const offerReceived = await this.fastReconnectOffer;
+    this.fastReconnectOffer = undefined;
+    if (this.leaveGeneration !== reconnectLeaveGeneration) return;
+    if (offerReceived === false) {
+      this.state.setCallingState(CallingState.RECONNECTING);
+      throw new FastReconnectRejectedError(
+        'No subscriber offer after a fast reconnect',
+      );
+    }
     await this.get(); // fetch the latest call state, as it might have changed
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.FAST,
