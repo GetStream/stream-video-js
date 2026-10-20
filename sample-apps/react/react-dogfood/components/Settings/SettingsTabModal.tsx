@@ -29,7 +29,7 @@ import { LanguageMenu } from './LanguageMenu';
 import { ThemeMenu } from './ThemeMenu';
 import { CallRecordings } from '../CallRecordings';
 import { useSettings } from '../../context/SettingsContext';
-import { useIsProntoEnvironment } from '../../context/AppEnvironmentContext';
+import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import { IncomingVideoSettingsDropdown } from '../IncomingVideoSettings';
 import { DeviceSelectionSettingsDropdown } from './DeviceSelection';
 import { OnOffSettingsDropdown } from './OnOffSettingsDropdown';
@@ -149,7 +149,9 @@ export const SettingsTabModalMenu = (props: {
   const { t } = useAppI18n();
 
   const { tabModalProps, layoutProps } = props;
-  const isPronto = useIsProntoEnvironment();
+  const appEnvironment = useAppEnvironment();
+  const showTranscriptions =
+    appEnvironment === 'pronto' || appEnvironment === 'pronto-sales';
 
   return (
     <SettingsTabModal {...tabModalProps}>
@@ -233,7 +235,7 @@ export const SettingsTabModalMenu = (props: {
         icon="transcriptions"
         label={t('settings.transcriptions.label', 'Transcriptions')}
         inMeeting
-        hidden={!isPronto}
+        hidden={!showTranscriptions}
       >
         <TranscriptionSettings />
       </TabWrapper>

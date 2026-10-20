@@ -6,6 +6,7 @@ import AVFoundation
 import CoreMedia
 import Foundation
 import WebRTC
+import stream_react_native_webrtc
 
 /// Orchestrator for the React Native track recorder. Owns the
 /// `AVAssetWriter`, the recording lifecycle, the writer-start gate, and

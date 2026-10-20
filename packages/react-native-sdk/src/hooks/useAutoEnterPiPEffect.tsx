@@ -1,7 +1,8 @@
 import { CallingState } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
-import { NativeModules, Platform } from 'react-native';
+import { Platform } from 'react-native';
+import NativeStreamVideoReactNative from '../native/NativeStreamVideoReactNative';
 import { disablePiPMode$ } from '../utils/internal/rxSubjects';
 
 export function useAutoEnterPiPEffect(
@@ -18,7 +19,7 @@ export function useAutoEnterPiPEffect(
     }
 
     if (!disablePictureInPicture && callingState === CallingState.JOINED) {
-      NativeModules.StreamVideoReactNative.canAutoEnterPipMode(
+      NativeStreamVideoReactNative.canAutoEnterPipMode(
         !disablePictureInPicture,
       );
     }
@@ -33,12 +34,12 @@ export function useAutoEnterPiPEffect(
 
     // if disable prop was sent, immediately disable PiP mode auto enter
     if (disablePictureInPicture) {
-      NativeModules.StreamVideoReactNative.canAutoEnterPipMode(false);
+      NativeStreamVideoReactNative.canAutoEnterPipMode(false);
     }
 
     // on unmount always disable PiP mode auto enter
     return () => {
-      NativeModules.StreamVideoReactNative.canAutoEnterPipMode(false);
+      NativeStreamVideoReactNative.canAutoEnterPipMode(false);
     };
   }, [disablePictureInPicture]);
 }

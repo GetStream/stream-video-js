@@ -1,5 +1,4 @@
 import Foundation
-import React
 import UIKit
 import AVFoundation
 import Combine
@@ -44,9 +43,11 @@ private enum Constants {
     static let stereoRefreshDebounceSeconds: TimeInterval = 0.5
 }
 
-private enum StreamInCallManagerEvents {
-    static let audioInterruption = "StreamInCallManagerAudioInterruption"
-    static let audioDeviceChanged = "onAudioDeviceChanged"
+/// Implemented by the `StreamInCallManagerModule` TurboModule adapter, which forwards
+/// to the codegen `emitOn*` emitters.
+@objc public protocol StreamInCallManagerEventEmitter: AnyObject {
+    func emitAudioDeviceChanged(_ payload: [String: Any])
+    func emitAudioInterruption(_ payload: [String: Any])
 }
 
 /// Stable device-id scheme for the JS layer. The built-in speaker is synthetic; every
@@ -56,8 +57,12 @@ private enum AudioDeviceId {
     static let speaker = "speaker"
 }
 
-@objc(StreamInCallManager)
-class StreamInCallManager: RCTEventEmitter {
+@objc public class StreamInCallManagerImpl: NSObject {
+
+    /// The TurboModule adapter; events are dropped when it is gone.
+    @objc public weak var eventEmitter: StreamInCallManagerEventEmitter?
+    /// Resolves the live `WebRTCModule` through the adapter's module registry.
+    @objc public var webRTCModuleProvider: (() -> WebRTCModule?)?
 
     private let audioSessionQueue = DispatchQueue(label: "io.getstream.rn.audioSessionQueue")
 
@@ -85,18 +90,13 @@ class StreamInCallManager: RCTEventEmitter {
 
     private let soundPlayer = SoundPlayer()
 
-    override func invalidate() {
+    @objc public func invalidate() {
         stopSound()
         stop()
-        super.invalidate()
-    }
-
-    override static func requiresMainQueueSetup() -> Bool {
-        return false
     }
 
     @objc(setAudioRole:)
-    func setAudioRole(audioRole: String) {
+    public func setAudioRole(audioRole: String) {
         audioSessionQueue.async { [self] in
             if audioManagerActivated {
                 log("AudioManager is already activated, audio role cannot be changed.")
@@ -107,7 +107,7 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     @objc(setDefaultAudioDeviceEndpointType:)
-    func setDefaultAudioDeviceEndpointType(endpointType: String) {
+    public func setDefaultAudioDeviceEndpointType(endpointType: String) {
         audioSessionQueue.async { [self] in
             if audioManagerActivated {
                 log("AudioManager is already activated, default audio device cannot be changed.")
@@ -118,7 +118,7 @@ class StreamInCallManager: RCTEventEmitter {
     }
     
     @objc(setEnableStereoAudioOutput:)
-    func setEnableStereoAudioOutput(enabled: Bool) {
+    public func setEnableStereoAudioOutput(enabled: Bool) {
         audioSessionQueue.async { [self] in
             if audioManagerActivated {
                 log("AudioManager is already activated, enable stereo audio output cannot be changed.")
@@ -129,7 +129,7 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     @objc(setMuteMode:)
-    func setMuteMode(mode: NSInteger) {
+    public func setMuteMode(mode: Int) {
         audioSessionQueue.async { [self] in
             guard let adm = getAudioDeviceModule() else {
                 log("setMuteMode(\(mode)) skipped: no live call ADM")
@@ -141,7 +141,7 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     @objc(setRecordingAlwaysPreparedMode:)
-    func setRecordingAlwaysPreparedMode(enabled: Bool) {
+    public func setRecordingAlwaysPreparedMode(enabled: Bool) {
         audioSessionQueue.async { [self] in
             guard let adm = getAudioDeviceModule() else {
                 log("setRecordingAlwaysPreparedMode(\(enabled)) skipped: no live call ADM")
@@ -217,7 +217,7 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     @objc
-    func setup() {
+    public func setup() {
         audioSessionQueue.async { [self] in
             let adm = getAudioDeviceModule()
             selectedOutput = nil
@@ -344,7 +344,7 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     @objc
-    func start() {
+    public func start() {
         setup()
         audioSessionQueue.async { [self] in
             if audioManagerActivated {
@@ -377,7 +377,7 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     @objc
-    func stop() {
+    public func stop() {
         audioSessionQueue.async { [self] in
             if !audioManagerActivated {
                 return
@@ -424,7 +424,7 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     @objc(setForceSpeakerphoneOn:)
-    func setForceSpeakerphoneOn(enable: Bool) {
+    public func setForceSpeakerphoneOn(enable: Bool) {
         audioSessionQueue.async { [self] in
             let session = RTCAudioSession.sharedInstance()
             session.lockForConfiguration()
@@ -447,9 +447,8 @@ class StreamInCallManager: RCTEventEmitter {
 
     // MARK: - Audio Device Picker
 
-    @objc(getAudioDeviceStatus:reject:)
-    func getAudioDeviceStatus(resolve: @escaping RCTPromiseResolveBlock,
-                              reject: @escaping RCTPromiseRejectBlock) {
+    @objc(getAudioDeviceStatus:)
+    public func getAudioDeviceStatus(resolve: @escaping ([String: Any]) -> Void) {
         audioSessionQueue.async { [weak self] in
             guard let self else {
                 resolve(["devices": [], "currentEndpointType": "Unknown"])
@@ -461,7 +460,7 @@ class StreamInCallManager: RCTEventEmitter {
 
     /// Switches the audio output to the device with the given id.
     @objc(chooseAudioDeviceEndpoint:)
-    func chooseAudioDeviceEndpoint(id: String) {
+    public func chooseAudioDeviceEndpoint(id: String) {
         audioSessionQueue.async { [self] in
             guard callAudioRole == .communicator else {
                 log("chooseAudioDeviceEndpoint ignored: only supported in communicator role")
@@ -491,7 +490,7 @@ class StreamInCallManager: RCTEventEmitter {
     /// Called on interruption-end (via callingx's interruption event, forwarded from JS) to
     /// restore a Bluetooth/wired route
     @objc(reapplyAudioRoute)
-    func reapplyAudioRoute() {
+    public func reapplyAudioRoute() {
         audioSessionQueue.async { [self] in
             guard callAudioRole == .communicator, let routing = selectedOutput else { return }
             let session = RTCAudioSession.sharedInstance()
@@ -614,12 +613,12 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     @objc
-    func logAudioState() {
+    public func logAudioState() {
         log(getAudioStateLog())
     }
     
     @objc(getAudioStateLog)
-    func getAudioStateLog() -> String {
+    public func getAudioStateLog() -> String {
         let session = AVAudioSession.sharedInstance()
         
         guard let adm = getAudioDeviceModule() else {
@@ -667,7 +666,7 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     @objc(muteAudioOutput)
-    func muteAudioOutput() {
+    public func muteAudioOutput() {
         DispatchQueue.main.async { [self] in
             let volumeView = MPVolumeView()
 
@@ -695,7 +694,7 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     @objc(unmuteAudioOutput)
-    func unmuteAudioOutput() {
+    public func unmuteAudioOutput() {
         DispatchQueue.main.async { [self] in
             let volumeView = MPVolumeView()
 
@@ -782,7 +781,7 @@ class StreamInCallManager: RCTEventEmitter {
         switch type {
         case .began:
             payload["phase"] = "began"
-            sendEvent(withName: StreamInCallManagerEvents.audioInterruption, body: payload)
+            eventEmitter?.emitAudioInterruption(payload)
             #if DEBUG
             log("Audio interruption began (reason=\(reason ?? "n/a")). Recovery owned by WebRTC AudioEngineDevice.")
             #endif
@@ -793,7 +792,7 @@ class StreamInCallManager: RCTEventEmitter {
             }
             payload["phase"] = "ended"
             payload["shouldResume"] = shouldResume
-            sendEvent(withName: StreamInCallManagerEvents.audioInterruption, body: payload)
+            eventEmitter?.emitAudioInterruption(payload)
             #if DEBUG
             log("Audio interruption ended (shouldResume=\(shouldResume)). WebRTC restarts the engine.")
             #endif
@@ -840,10 +839,7 @@ class StreamInCallManager: RCTEventEmitter {
                   self.audioManagerActivated,
                   self.callAudioRole == .communicator,
                   !Self.callingxOwnsSession() else { return }
-            self.sendEvent(
-                withName: StreamInCallManagerEvents.audioDeviceChanged,
-                body: self.buildAudioDevicesState()
-            )
+            self.eventEmitter?.emitAudioDeviceChanged(self.buildAudioDevicesState())
         }
 
         // Route changes can arrive on arbitrary queues; ensure UI-safe work on main
@@ -881,31 +877,24 @@ class StreamInCallManager: RCTEventEmitter {
     // MARK: - Call Sounds
 
     /// Starts the looping ringing tone. See `SoundPlayer`.
-    /// - Parameter playIfMuted: Android-only, accepted so the bridge signature matches across
+    /// - Parameter playIfMuted: Android-only, accepted so the spec signature matches across
     ///   platforms; iOS playback follows the call's audio session.
     @objc(playSound:playIfMuted:)
-    func playSound(soundName: String?, playIfMuted: Bool) {
+    public func playSound(soundName: String?, playIfMuted: Bool) {
         soundPlayer.playSound(soundName)
     }
 
     @objc(stopSound)
-    func stopSound() {
+    public func stopSound() {
         soundPlayer.stopSound()
-    }
-
-    // MARK: - RCTEventEmitter
-
-    override func supportedEvents() -> [String]! {
-        return [
-            StreamInCallManagerEvents.audioInterruption,
-            StreamInCallManagerEvents.audioDeviceChanged,
-        ]
     }
 
     // MARK: - Helper Methods
     private func getAudioDeviceModule() -> AudioDeviceModule? {
-        guard let webrtcModule = moduleRegistry?.module(forName: "WebRTCModule") as? WebRTCModule else {
-            fatalError("WebRTCModule is required but not registered with the module registry")
+        // nil while the TurboModule manager is invalidating (JS reload/teardown); callers handle a nil ADM
+        guard let webrtcModule = webRTCModuleProvider?() else {
+            log("getAudioDeviceModule(): WebRTCModule is not available")
+            return nil
         }
 
         // Follow the live call's ADM; fall back to the default only when no call factory is

@@ -14,6 +14,9 @@ config.resolver.nodeModulesPaths = [
   // The SDK is bundled from source, so its unhoisted deps resolve here. Last,
   // so react/react-native stay single-copy.
   path.resolve(workspaceRoot, 'packages/react-native-sdk/node_modules'),
+  // @stream-io/i18n's deps stay nested under it (its optional react peer
+  // differs per app), so they are unreachable without hierarchical lookup.
+  path.resolve(workspaceRoot, 'node_modules/@stream-io/i18n/node_modules'),
 ];
 
 config.resolver.disableHierarchicalLookup = true;

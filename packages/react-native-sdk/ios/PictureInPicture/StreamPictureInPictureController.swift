@@ -5,6 +5,7 @@
 import AVKit
 import Combine
 import Foundation
+import WebRTC
 
 /// A controller class for picture-in-picture whenever that is possible.
 ///

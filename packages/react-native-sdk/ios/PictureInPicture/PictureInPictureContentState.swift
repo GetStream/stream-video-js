@@ -8,6 +8,7 @@
 
 import Combine
 import Foundation
+import WebRTC
 
 /// Manages the content state for the Picture-in-Picture window.
 ///

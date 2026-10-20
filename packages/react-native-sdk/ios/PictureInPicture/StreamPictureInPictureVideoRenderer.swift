@@ -5,6 +5,8 @@
 import Combine
 import Foundation
 import UIKit
+import CoreMedia
+import WebRTC
 
 /// A view that can be used to render an instance of `RTCVideoTrack`
 ///

@@ -4,13 +4,15 @@ import {
   VideoTrackType,
   VisibilityState,
 } from '../types';
-import { VideoDimension } from '../gen/video/sfu/models/models';
+import { TrackType, VideoDimension } from '../gen/video/sfu/models/models';
 import {
   combineLatest,
   distinctUntilChanged,
   distinctUntilKeyChanged,
+  filter,
   map,
   shareReplay,
+  skip,
   takeWhile,
 } from 'rxjs';
 import type { BlockedAudioTracker } from './BlockedAudioTracker';
@@ -364,16 +366,31 @@ export class DynascaleManager {
     let audioWatchdog: MediaPlaybackWatchdog | undefined = undefined;
     let blockedByGiveUp = false;
 
-    const onPlaying = () => {
-      this.silentAudioPlayer.resume();
-      clearBlockedAudio();
-    };
     const clearBlockedAudio = () => {
       blockedByGiveUp = false;
       if (!this.blockedAudioTracker.isBlocked(audioElement)) return;
       this.blockedAudioTracker.markBlocked(audioElement, false);
     };
+    // Safari fires `playing` (followed by `pause`) even when play() is
+    // rejected by the autoplay policy, so only trust it while not paused
+    const onPlaying = () => {
+      if (audioElement.paused) return;
+      this.silentAudioPlayer.resume();
+      clearBlockedAudio();
+    };
     audioElement.addEventListener('playing', onPlaying);
+
+    const playAudioElement = () => {
+      audioElement.play().catch((e) => {
+        this.tracer.trace('audioPlaybackError', e.message);
+        if (e.name === 'NotAllowedError') {
+          this.tracer.trace('audioPlaybackBlocked', null);
+          blockedByGiveUp = false;
+          this.blockedAudioTracker.markBlocked(audioElement, true, sessionId);
+        }
+        this.logger.warn(`Failed to play audio stream`, e);
+      });
+    };
 
     const isAudioTrack = trackType === 'audioTrack';
     const trackKey = isAudioTrack ? 'audioStream' : 'screenShareAudioStream';
@@ -415,19 +432,7 @@ export class DynascaleManager {
           } else {
             // we will play audio directly through the audio element in other browsers
             audioElement.muted = false;
-            audioElement.play().catch((e) => {
-              this.tracer.trace('audioPlaybackError', e.message);
-              if (e.name === 'NotAllowedError') {
-                this.tracer.trace('audioPlaybackBlocked', null);
-                blockedByGiveUp = false;
-                this.blockedAudioTracker.markBlocked(
-                  audioElement,
-                  true,
-                  sessionId,
-                );
-              }
-              this.logger.warn(`Failed to play audio stream`, e);
-            });
+            playAudioElement();
             audioWatchdog = this.createPlaybackWatchdog({
               element: audioElement,
               kind: 'audio',
@@ -455,6 +460,24 @@ export class DynascaleManager {
         });
       });
 
+    // the element stays bound while the participant is muted, so retry a
+    // paused (e.g., autoplay-blocked) element once the track is published again
+    const publishedTrackType = isAudioTrack
+      ? TrackType.AUDIO
+      : TrackType.SCREEN_SHARE_AUDIO;
+    const republishSubscription = participant$
+      .pipe(
+        map((p) => p.publishedTracks.includes(publishedTrackType)),
+        distinctUntilChanged(),
+        skip(1),
+        filter((isPublished) => isPublished),
+      )
+      .subscribe(() => {
+        if (sourceChangeTimer || !audioElement.srcObject) return;
+        if (sourceNode) return this.resumeAudioContext();
+        if (audioElement.paused) playAudioElement();
+      });
+
     const sinkIdSubscription = !this.speaker.state.isDeviceSelectionSupported
       ? null
       : this.speaker.state.selectedDevice$.subscribe((deviceId) => {
@@ -479,6 +502,7 @@ export class DynascaleManager {
       sinkIdSubscription?.unsubscribe();
       volumeSubscription.unsubscribe();
       updateMediaStreamSubscription.unsubscribe();
+      republishSubscription.unsubscribe();
       clearTimeout(sourceChangeTimer);
       audioElement.srcObject = null;
       sourceNode?.disconnect();

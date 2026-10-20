@@ -1,6 +1,7 @@
 .str-video__notification {
   min-height: var(--str-video__size-48);
-  max-width: var(--str-video__size-480);
+  width: max-content;
+  max-width: min(var(--str-video__size-480), calc(100vw - 20px));
   display: flex;
   align-items: center;
   gap: var(--str-video__spacing-xs);

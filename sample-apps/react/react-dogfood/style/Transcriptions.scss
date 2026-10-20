@@ -4,3 +4,21 @@
   border-radius: var(--str-video__radius-3xl);
   background-color: var(--str-video__background-core-surface-subtle);
 }
+
+.rd__transcriptions__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.rd__transcriptions__hint {
+  color: var(--str-video__text-secondary);
+  font-size: 12px;
+}
+
+.rd__transcription-download-list__filename {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  text-align: start;
+}

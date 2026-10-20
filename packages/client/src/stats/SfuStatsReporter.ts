@@ -241,13 +241,13 @@ export class SfuStatsReporter {
   };
 
   /**
-   * Explicit/final flush (leave, migration, re-init). Time-boxes the sampling
-   * step and swallows its failures, so a slow or failing `getStats()` on a
-   * degraded or closing peer connection can never block or reject call teardown
-   * or reconnect setup. On a successful sample it fires the send best-effort;
-   * the returned promise resolves once the sample is taken (or the time-box
-   * elapses / sampling fails), never when the sending completes. No-op once the
-   * reporter has been stopped.
+   * Explicit/final flush (leave, migration, re-init, page hidden). Time-boxes
+   * the sampling step and swallows its failures, so a slow or failing
+   * `getStats()` on a degraded or closing peer connection can never block or
+   * reject call teardown or reconnect setup. On a successful sample it fires
+   * the send best-effort; the returned promise resolves once the sample is
+   * taken (or the time-box elapses / sampling fails), never when the sending
+   * completes. No-op once the reporter has been stopped.
    */
   flush = async (): Promise<void> => {
     if (this.isStopped) return;
