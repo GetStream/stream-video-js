@@ -1798,13 +1798,14 @@ export class Call {
     }
 
     this.stopInboundAudioStallDetector?.();
-    this.stopInboundAudioStallDetector = this.subscriber
-      ? createInboundAudioStallDetector({
-          state: this.state,
-          subscriber: this.subscriber,
-          tracer: this.tracer,
-        })
-      : undefined;
+    this.stopInboundAudioStallDetector =
+      enableTracing && this.subscriber
+        ? createInboundAudioStallDetector({
+            state: this.state,
+            subscriber: this.subscriber,
+            tracer: this.tracer,
+          })
+        : undefined;
 
     this.tracer.setEnabled(enableTracing);
     if (statsOptions?.reporting_interval_ms > 0) {
