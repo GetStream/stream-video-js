@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-2.0.0-beta.2...@stream-io/video-client-2.0.0-beta.3) (2026-10-20)
+
+### Features
+
+- **client:** trace page lifecycle and flush stats when hidden ([#2518](https://github.com/GetStream/stream-video-js/issues/2518)) ([1755225](https://github.com/GetStream/stream-video-js/commit/17552250fc3275a8befbff9f2dcd44dbcd1b0829))
+
+### Bug Fixes
+
+- **client:** rejoin when the SFU did not resume the session ([#2519](https://github.com/GetStream/stream-video-js/issues/2519)) ([81ca2e0](https://github.com/GetStream/stream-video-js/commit/81ca2e047c758cf1dd155c59263b0f89628291f8))
+- keep remote audio elements mounted across mute/unmute ([#2524](https://github.com/GetStream/stream-video-js/issues/2524)) ([916cbc6](https://github.com/GetStream/stream-video-js/commit/916cbc6aa3d040aa6cc6e43271d0a7e9ec3641e9))
+
 ## [2.0.0-beta.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-2.0.0-beta.1...@stream-io/video-client-2.0.0-beta.2) (2026-10-16)
 
 ### ⚠ BREAKING CHANGES
