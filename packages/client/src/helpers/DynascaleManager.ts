@@ -86,9 +86,9 @@ export class DynascaleManager {
   };
 
   /**
-   * Keeps a silent audio element playing on WebKit, so remote audio can
+   * Keeps a silent audio element playing on iOS, so remote audio can
    * autoplay later without another user gesture. Call it from a user gesture
-   * or while audio is playing; it is a no-op on other browsers.
+   * or while audio is playing; it is a no-op on other platforms.
    */
   keepAudioPlaybackUnlocked = () => {
     this.silentAudioPlayer.play();

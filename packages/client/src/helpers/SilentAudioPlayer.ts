@@ -1,16 +1,19 @@
-import { isWebKit } from './browsers';
+import { isIOS } from './browsers';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
 
 /**
- * Keeps a silent, MediaStream-backed `<audio>` element playing on WebKit.
+ * Keeps a silent, MediaStream-backed `<audio>` element playing on iOS.
  *
- * WebKit lets a MediaStream-backed media element start playing without a
+ * iOS WebKit lets a MediaStream-backed media element start playing without a
  * user gesture only while the page captures the mic or camera, or already
  * plays audio. Muting stops the mic track, so once the short user-activation
  * window lapses, a remote participant who joins later stays silent until
  * the user taps the page. A playing silent element keeps the page in the
  * "already playing audio" state, so remote audio keeps autoplaying.
+ *
+ * Limited to iOS: desktop Safari would show the tab as playing audio for
+ * the whole call.
  */
 export class SilentAudioPlayer {
   private logger = videoLoggerSystem.getLogger('SilentAudioPlayer');
@@ -26,12 +29,12 @@ export class SilentAudioPlayer {
 
   /**
    * Starts the silent element, or resumes it if it was paused.
-   * Succeeds only while WebKit permits playback: within a user gesture,
+   * Succeeds only while iOS permits playback: within a user gesture,
    * while capturing, or while other audio is playing. Otherwise it is a
-   * no-op until the next call. Does nothing outside WebKit.
+   * no-op until the next call. Does nothing outside iOS.
    */
   play = () => {
-    if (!isWebKit() || typeof AudioContext === 'undefined') return;
+    if (!isIOS() || typeof AudioContext === 'undefined') return;
     this.element ??= this.create();
     this.resume();
   };

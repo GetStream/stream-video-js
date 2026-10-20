@@ -33,6 +33,18 @@ export const isWebKit = () => {
 };
 
 /**
+ * Checks whether the current runtime is iOS or iPadOS, in any browser or
+ * WebView (all of them run on WebKit there).
+ */
+export const isIOS = () => {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  if (/iPhone|iPad|iPod/.test(ua)) return true;
+  // iPadOS requests desktop sites by default and reports itself as a Mac
+  return /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+};
+
+/**
  * Checks whether the current browser is Firefox.
  */
 export const isFirefox = () => {
