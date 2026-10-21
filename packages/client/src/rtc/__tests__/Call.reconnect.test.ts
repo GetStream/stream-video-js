@@ -23,7 +23,7 @@ import { StreamSfuClient } from '../../StreamSfuClient';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { SfuJoinError } from '../../errors';
 import { FastReconnectRejectedError } from '../../errors/FastReconnectRejectedError';
-import { settled } from '../../helpers/concurrency';
+import { settled, withoutConcurrency } from '../../helpers/concurrency';
 import { promiseWithResolvers } from '../../helpers/promise';
 
 vi.mock('../../StreamSfuClient', () => ({
@@ -710,6 +710,24 @@ describe('Call reconnect entry-condition bails', () => {
     expect(strategies.migrate).not.toHaveBeenCalled();
   });
 
+  it('bails immediately while a leave is in progress', async () => {
+    const strategies = stubAllStrategies();
+    call.state.setCallingState(CallingState.JOINED);
+    const leaving = promiseWithResolvers<void>();
+    const leave = withoutConcurrency(
+      call['joinLeaveConcurrencyTag'],
+      () => leaving.promise,
+    );
+
+    await call['reconnect'](WebsocketReconnectStrategy.FAST, 'test');
+
+    expect(strategies.fast).not.toHaveBeenCalled();
+    expect(strategies.rejoin).not.toHaveBeenCalled();
+    expect(strategies.migrate).not.toHaveBeenCalled();
+    leaving.resolve();
+    await leave;
+  });
+
   it('drops duplicate reconnect calls while one is already pending', async () => {
     let resolveFirst: () => void = () => {};
     const firstStrategy = new Promise<void>((resolve) => {
@@ -1176,6 +1194,63 @@ describe('Call.handleSfuSignalClose superseded-client guard', () => {
       '1006 ',
     );
     expect(reconnectSpy).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * The SFU closes its socket on `callEnded` while `leave()` is still tearing
+ * down (state JOINED). That close must not start a reconnect that outlives the
+ * leave and rejoins the ended call.
+ */
+describe('Call reconnect vs leave race', () => {
+  it('does not reconnect when the SFU signal closes during leave()', async () => {
+    const call = makeCall();
+    call.state.setCallingState(CallingState.JOINED);
+    const fast = vi
+      .spyOn(
+        call as unknown as { reconnectFast: () => Promise<void> },
+        'reconnectFast',
+      )
+      .mockResolvedValue(undefined);
+    const rejoin = vi
+      .spyOn(
+        call as unknown as { reconnectRejoin: () => Promise<void> },
+        'reconnectRejoin',
+      )
+      .mockResolvedValue(undefined);
+
+    const sfuClient = {
+      isLeaving: false,
+      isClosingClean: false,
+      leaveAndClose: vi.fn().mockResolvedValue(undefined),
+    };
+    const disposing = promiseWithResolvers<void>();
+    const publisherDisposed = promiseWithResolvers<void>();
+    Object.assign(call as unknown as Record<string, unknown>, {
+      sfuClient,
+      subscriber: { isHealthy: () => true, dispose: vi.fn() },
+      publisher: {
+        isHealthy: () => true,
+        dispose: () => {
+          disposing.resolve();
+          return publisherDisposed.promise;
+        },
+      },
+    });
+
+    const leave = call.leave();
+    await disposing.promise;
+    call['handleSfuSignalClose'](
+      sfuClient as unknown as StreamSfuClient,
+      '1006 ',
+    );
+    publisherDisposed.resolve();
+    await leave;
+    await settled(call['reconnectConcurrencyTag']);
+
+    expect(fast).not.toHaveBeenCalled();
+    expect(rejoin).not.toHaveBeenCalled();
+    expect(call.state.callingState).toBe(CallingState.LEFT);
   });
 });
 

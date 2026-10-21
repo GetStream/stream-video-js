@@ -2035,6 +2035,14 @@ export class Call {
     // `POST /join` per entry) once the call is already healthy again.
     if (hasPending(this.reconnectConcurrencyTag)) return;
 
+    // A leave in progress (e.g. the SFU closed the socket on `callEnded`)
+    // bumped the generation before this snapshot, so `supersededByLeave`
+    // couldn't catch it: a reconnect here would rejoin the call it tears down.
+    if (hasPending(this.joinLeaveConcurrencyTag)) {
+      this.logger.debug('[Reconnect] Leave in progress; not reconnecting');
+      return;
+    }
+
     const reconnectLeaveGeneration = this.leaveGeneration;
     const supersededByLeave = () =>
       this.leaveGeneration !== reconnectLeaveGeneration;
