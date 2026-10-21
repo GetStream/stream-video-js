@@ -45,7 +45,7 @@ export class SilentAudioPlayer {
    */
   resume = () => {
     const element = this.element;
-    if (!element || !element.paused || this.isHiddenOnMobile()) return;
+    if (!element || !element.paused || document.hidden) return;
     // never resume an "interrupted" context: on iOS that can leave its
     // output stuck; WebKit resumes it once the interruption ends
     if (this.context?.state === 'suspended') {
@@ -82,9 +82,6 @@ export class SilentAudioPlayer {
     }
   };
 
-  private isHiddenOnMobile = () =>
-    document.hidden && navigator.maxTouchPoints > 1;
-
   private create = (): HTMLAudioElement | undefined => {
     let context: AudioContext | undefined;
     try {
@@ -106,7 +103,7 @@ export class SilentAudioPlayer {
       document.addEventListener(
         'visibilitychange',
         () => {
-          if (!this.isHiddenOnMobile()) return this.resume();
+          if (!document.hidden) return this.resume();
           element.pause();
           element.srcObject = null;
         },
