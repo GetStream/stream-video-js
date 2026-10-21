@@ -3,14 +3,16 @@ import {
   StyleSheet,
   TextInput as NativeTextInput,
   TextInputProps,
+  type TextInputInstance,
 } from 'react-native';
 import { INPUT_HEIGHT } from '../constants';
 import { useTheme } from '@stream-io/video-react-native-sdk';
 
-export const TextInput = React.forwardRef<
-  NativeTextInput,
-  Omit<TextInputProps, 'placeholderTextColor'>
->((props, ref) => {
+type Props = Omit<TextInputProps, 'placeholderTextColor'> & {
+  ref?: React.Ref<TextInputInstance>;
+};
+
+export const TextInput = ({ ref, ...props }: Props) => {
   const styles = useStyles();
   return (
     <NativeTextInput
@@ -20,28 +22,29 @@ export const TextInput = React.forwardRef<
       style={[styles.input, props.style]}
     />
   );
-});
+};
 
 TextInput.displayName = 'TextInput';
 
 const useStyles = () => {
-  const appTheme = useTheme().theme;
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         input: {
-          paddingLeft: appTheme.variants.spacingSizes.lg,
-          marginVertical: appTheme.variants.spacingSizes.md,
+          paddingLeft: primitives.spacingLg,
           height: INPUT_HEIGHT,
-          backgroundColor: appTheme.colors.sheetSecondary,
+          backgroundColor: semantics.backgroundCoreApp,
           borderRadius: 8,
-          borderColor: appTheme.colors.buttonDisabled,
+          borderColor: semantics.backgroundUtilityDisabled,
           borderWidth: 1,
-          color: appTheme.colors.textPrimary,
-          fontSize: 17,
+          color: semantics.textPrimary,
+          fontSize: primitives.typographyFontSizeMd,
           flex: 1,
         },
       }),
-    [appTheme],
+    [primitives, semantics],
   );
 };

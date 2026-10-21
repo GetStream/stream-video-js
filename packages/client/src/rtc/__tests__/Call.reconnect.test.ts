@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 import './mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -20,6 +22,9 @@ import { Dispatcher } from '../Dispatcher';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { SfuJoinError } from '../../errors';
+import { FastReconnectRejectedError } from '../../errors/FastReconnectRejectedError';
+import { settled } from '../../helpers/concurrency';
+import { promiseWithResolvers } from '../../helpers/promise';
 
 vi.mock('../../StreamSfuClient', () => ({
   StreamSfuClient: vi.fn(),
@@ -32,6 +37,7 @@ const makeCall = ({ reportingEnabled = false } = {}) => {
     type: 'default',
     id: 'test-call',
     streamClient,
+    videoApi: new VideoApi(new ApiClient(streamClient)),
     clientEventReporter: new ClientEventReporter({
       streamClient,
       enabled: reportingEnabled,
@@ -129,6 +135,69 @@ describe('Call reconnect stopping conditions', () => {
 
       expect(rejoinSpy).toHaveBeenCalledTimes(1);
       expect(call.leave).not.toHaveBeenCalled();
+    });
+
+    describe('long-window backstop', () => {
+      /** Spaces consecutive `Date.now()` reads so the short window never trips. */
+      const advanceClockOnEveryRead = () => {
+        let now = 0;
+        vi.spyOn(Date, 'now').mockImplementation(() => (now += 7000));
+      };
+
+      afterEach(() => {
+        vi.mocked(Date.now).mockRestore();
+      });
+
+      it('caps slow REJOIN loops that stay under the short window', async () => {
+        advanceClockOnEveryRead();
+        const rejoinSpy = vi
+          .spyOn(
+            call as unknown as { reconnectRejoin: () => Promise<void> },
+            'reconnectRejoin',
+          )
+          .mockRejectedValue(new Error('rejoin failed'));
+
+        await call['reconnect'](WebsocketReconnectStrategy.REJOIN, 'test');
+
+        expect(rejoinSpy).toHaveBeenCalledTimes(20);
+        expect(call.leave).toHaveBeenCalledWith({
+          message: 'rejoin_attempt_limit_exceeded',
+        });
+      });
+
+      it('is disabled once setRejoinAttemptLimit is called', async () => {
+        advanceClockOnEveryRead();
+        call.setRejoinAttemptLimit(10, 120);
+        let attempts = 0;
+        vi.spyOn(
+          call as unknown as { reconnectRejoin: () => Promise<void> },
+          'reconnectRejoin',
+        ).mockImplementation(async () => {
+          if (++attempts <= 25) throw new Error('rejoin failed');
+          call.state.setCallingState(CallingState.JOINED);
+        });
+
+        await call['reconnect'](WebsocketReconnectStrategy.REJOIN, 'test');
+
+        expect(attempts).toBe(26);
+        expect(call.leave).not.toHaveBeenCalled();
+      });
+
+      it('does not count MIGRATE attempts', async () => {
+        advanceClockOnEveryRead();
+        vi.spyOn(
+          call as unknown as { reconnectMigrate: () => Promise<void> },
+          'reconnectMigrate',
+        ).mockImplementation(async () => {
+          call.state.setCallingState(CallingState.JOINED);
+        });
+
+        for (let i = 0; i < 25; i++) {
+          await call['reconnect'](WebsocketReconnectStrategy.MIGRATE, 'test');
+        }
+
+        expect(call.leave).not.toHaveBeenCalled();
+      });
     });
 
     it('FAST strategy is NOT counted against the rejoin budget', async () => {
@@ -734,6 +803,7 @@ describe('Call reconnect wiring (PC event → leave)', () => {
       type: 'default',
       id: 'test-call',
       streamClient,
+      videoApi: new VideoApi(new ApiClient(streamClient)),
       clientEventReporter: new ClientEventReporter({ streamClient }),
       clientState,
       ringing: false,
@@ -952,6 +1022,117 @@ describe('Call reconnect wiring (PC event → leave)', () => {
       PeerType.SUBSCRIBER,
     );
   });
+
+  describe('ICE gathering completed without local candidates', () => {
+    const makePublisher = (onNoLocalCandidates = vi.fn()) =>
+      new Publisher(
+        {
+          sfuClient,
+          dispatcher,
+          state: call.state,
+          tag: 'test',
+          enableTracing: false,
+          onNoLocalCandidates,
+        },
+        [],
+      );
+
+    const gather = (publisher: Publisher, candidates: string[]) => {
+      // @ts-expect-error private field
+      publisher['pc'].iceGatheringState = 'gathering';
+      publisher['onIceGatherChange']();
+      for (const candidate of candidates) {
+        publisher['onIceCandidate']({
+          candidate: { candidate, sdpMid: '0', sdpMLineIndex: 0 },
+        } as unknown as RTCPeerConnectionIceEvent);
+      }
+      // @ts-expect-error private field
+      publisher['pc'].iceGatheringState = 'complete';
+      publisher['onIceGatherChange']();
+    };
+
+    beforeEach(() => {
+      sfuClient.iceTrickle = vi.fn().mockResolvedValue(undefined);
+    });
+
+    it('reports a gathering round without candidates', () => {
+      const onNoLocalCandidates = vi.fn();
+      const publisher = makePublisher(onNoLocalCandidates);
+
+      gather(publisher, []);
+
+      expect(onNoLocalCandidates).toHaveBeenCalledWith(
+        PeerType.PUBLISHER_UNSPECIFIED,
+      );
+      expect(publisher.hasNoLocalCandidates()).toBe(true);
+    });
+
+    it('does not report a round that gathered a candidate', () => {
+      const onNoLocalCandidates = vi.fn();
+      const publisher = makePublisher(onNoLocalCandidates);
+
+      gather(publisher, []);
+      gather(publisher, [
+        'candidate:1 1 udp 2122260223 10.0.0.1 50000 typ host',
+      ]);
+
+      expect(onNoLocalCandidates).toHaveBeenCalledTimes(1);
+      expect(publisher.hasNoLocalCandidates()).toBe(false);
+    });
+
+    it('does not report once ICE has connected', () => {
+      const onNoLocalCandidates = vi.fn();
+      const publisher = makePublisher(onNoLocalCandidates);
+      // @ts-expect-error private field
+      publisher['pc'].iceConnectionState = 'connected';
+      publisher['onIceConnectionStateChange']();
+
+      gather(publisher, []);
+
+      expect(onNoLocalCandidates).not.toHaveBeenCalled();
+    });
+
+    it('does not report after dispose', async () => {
+      const onNoLocalCandidates = vi.fn();
+      const publisher = makePublisher(onNoLocalCandidates);
+      await publisher.dispose();
+
+      gather(publisher, []);
+
+      expect(onNoLocalCandidates).not.toHaveBeenCalled();
+    });
+  });
+
+  it.each([
+    ['reconnecting', CallingState.RECONNECTING, false],
+    ['offline', CallingState.OFFLINE, false],
+    ['restarting ICE', CallingState.JOINED, true],
+  ])(
+    'records an ICE connection established while %s',
+    (_, callingState, isIceRestarting) => {
+      const onIceConnected = vi.fn();
+      call.state.setCallingState(callingState);
+      const publisher = new Publisher(
+        {
+          sfuClient,
+          dispatcher,
+          state: call.state,
+          tag: 'test',
+          enableTracing: false,
+          onIceConnected,
+        },
+        [],
+      );
+      publisher['isIceRestarting'] = isIceRestarting;
+
+      // @ts-expect-error private field
+      publisher['pc'].iceConnectionState = 'connected';
+      publisher['onIceConnectionStateChange']();
+
+      expect(publisher.hasIceEverConnected()).toBe(true);
+      expect(onIceConnected).toHaveBeenCalledTimes(1);
+    },
+  );
 });
 
 /**
@@ -1026,5 +1207,403 @@ describe('Call.leave() reconnect-state reset', () => {
     expect(call['reconnectAttempts']).toBe(0);
     expect(call['iceFailuresWithoutConnect']).toBe(0);
     expect(call['consecutiveNegotiationFailures']).toBe(0);
+  });
+});
+
+/**
+ * The SFU reports `PARTICIPANT_MEDIA_TRANSPORT_FAILURE` (205) when a peer
+ * connection never establishes its transport, e.g. when the device gathers
+ * no ICE candidates at all. That must count toward the unsupported-network
+ * budget, otherwise the SFU-driven REJOIN loops forever.
+ */
+describe('Call SFU media transport failure', () => {
+  let call: Call;
+
+  const dispatchSfuError = (code: ErrorCode, tag = 'active') => {
+    call['dispatcher'].dispatch(
+      {
+        eventPayload: {
+          oneofKind: 'error',
+          error: {
+            error: {
+              code,
+              message: 'publisher PC negotiation failed',
+              shouldRetry: false,
+            },
+            reconnectStrategy: WebsocketReconnectStrategy.REJOIN,
+          },
+        },
+      },
+      tag,
+    );
+  };
+
+  const setPeerConnections = (connected: {
+    publisher: boolean;
+    subscriber: boolean;
+  }) => {
+    call['publisher'] = {
+      hasIceEverConnected: () => connected.publisher,
+    } as unknown as Publisher;
+    call['subscriber'] = {
+      hasIceEverConnected: () => connected.subscriber,
+    } as unknown as Subscriber;
+  };
+
+  beforeEach(() => {
+    call = makeCall();
+    vi.spyOn(connectionUtils, 'sleep').mockResolvedValue(undefined);
+    vi.spyOn(call, 'leave').mockResolvedValue(undefined);
+    vi.spyOn(call, 'get').mockResolvedValue({} as never);
+    vi.spyOn(
+      call as unknown as { reconnectRejoin: () => Promise<void> },
+      'reconnectRejoin',
+    ).mockImplementation(async () => {
+      call.state.setCallingState(CallingState.JOINED);
+    });
+    call['registerReconnectHandlers']();
+    call['sfuClient'] = { tag: 'active' } as unknown as StreamSfuClient;
+    call.state.setCallingState(CallingState.JOINED);
+  });
+
+  afterEach(() => {
+    call['publisher'] = undefined;
+    call['subscriber'] = undefined;
+    call['sfuClient'] = undefined;
+    vi.clearAllMocks();
+  });
+
+  it('leaves with webrtc_unsupported_network after two failures before connect', async () => {
+    call.setMaxIceFailuresWithoutConnect(2);
+    setPeerConnections({ publisher: false, subscriber: false });
+
+    dispatchSfuError(ErrorCode.PARTICIPANT_MEDIA_TRANSPORT_FAILURE);
+    await settled(call['reconnectConcurrencyTag']);
+    expect(call['iceFailuresWithoutConnect']).toBe(1);
+    expect(call.leave).not.toHaveBeenCalled();
+
+    dispatchSfuError(ErrorCode.PARTICIPANT_MEDIA_TRANSPORT_FAILURE);
+    await settled(call['reconnectConcurrencyTag']);
+    expect(call.leave).toHaveBeenCalledWith({
+      message: 'webrtc_unsupported_network',
+    });
+  });
+
+  it('does not count the failure when a peer connection has connected', async () => {
+    call.setMaxIceFailuresWithoutConnect(1);
+    setPeerConnections({ publisher: false, subscriber: true });
+
+    dispatchSfuError(ErrorCode.PARTICIPANT_MEDIA_TRANSPORT_FAILURE);
+    await settled(call['reconnectConcurrencyTag']);
+
+    expect(call['iceFailuresWithoutConnect']).toBe(0);
+    expect(call.leave).not.toHaveBeenCalled();
+    expect(call['reconnectRejoin']).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores errors from a superseded SFU client', async () => {
+    call.setMaxIceFailuresWithoutConnect(1);
+    setPeerConnections({ publisher: false, subscriber: false });
+    call['sfuClient'] = { tag: '2' } as unknown as StreamSfuClient;
+
+    dispatchSfuError(ErrorCode.PARTICIPANT_MEDIA_TRANSPORT_FAILURE, '1');
+    await settled(call['reconnectConcurrencyTag']);
+    expect(call['reconnectRejoin']).not.toHaveBeenCalled();
+
+    dispatchSfuError(ErrorCode.PARTICIPANT_MEDIA_TRANSPORT_FAILURE, '2');
+    await settled(call['reconnectConcurrencyTag']);
+    expect(call.leave).toHaveBeenCalledWith({
+      message: 'webrtc_unsupported_network',
+    });
+  });
+
+  it('ignores errors while no SFU client is active', async () => {
+    call.setMaxIceFailuresWithoutConnect(1);
+    setPeerConnections({ publisher: false, subscriber: false });
+    call['sfuClient'] = undefined;
+
+    dispatchSfuError(ErrorCode.PARTICIPANT_MEDIA_TRANSPORT_FAILURE, '1');
+    await settled(call['reconnectConcurrencyTag']);
+
+    expect(call['reconnectRejoin']).not.toHaveBeenCalled();
+    expect(call.leave).not.toHaveBeenCalled();
+  });
+
+  it('does not count other SFU errors before connect', async () => {
+    call.setMaxIceFailuresWithoutConnect(1);
+    setPeerConnections({ publisher: false, subscriber: false });
+
+    dispatchSfuError(ErrorCode.PARTICIPANT_SIGNAL_LOST);
+    await settled(call['reconnectConcurrencyTag']);
+
+    expect(call['iceFailuresWithoutConnect']).toBe(0);
+    expect(call.leave).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * A peer connection that gathered no local ICE candidates reports it to
+ * `Call`, which escalates once no join or reconnect is in flight, so the
+ * escalation is neither dropped by `reconnect` nor raced against a join.
+ */
+describe('Call no-local-candidates escalation', () => {
+  let call: Call;
+
+  const setPeerConnections = (pcs: {
+    connected?: boolean;
+    noLocalCandidates?: boolean;
+  }) => {
+    const fake = {
+      hasIceEverConnected: () => pcs.connected ?? false,
+      hasNoLocalCandidates: () => pcs.noLocalCandidates ?? true,
+    };
+    call['publisher'] = fake as unknown as Publisher;
+    call['subscriber'] = {
+      hasIceEverConnected: () => false,
+      hasNoLocalCandidates: () => false,
+    } as unknown as Subscriber;
+  };
+
+  const flush = async () => {
+    await call['waitForJoinsAndReconnects']();
+    await new Promise<void>((r) => setTimeout(r, 0));
+    await settled(call['reconnectConcurrencyTag']);
+  };
+
+  beforeEach(() => {
+    call = makeCall();
+    vi.spyOn(connectionUtils, 'sleep').mockResolvedValue(undefined);
+    vi.spyOn(call, 'leave').mockResolvedValue(undefined);
+    vi.spyOn(call, 'get').mockResolvedValue({} as never);
+    vi.spyOn(
+      call as unknown as { reconnectRejoin: () => Promise<void> },
+      'reconnectRejoin',
+    ).mockImplementation(async () => {
+      call.state.setCallingState(CallingState.JOINED);
+    });
+    call.state.setCallingState(CallingState.JOINED);
+  });
+
+  afterEach(() => {
+    call['publisher'] = undefined;
+    call['subscriber'] = undefined;
+    vi.unstubAllGlobals();
+    vi.clearAllMocks();
+  });
+
+  it('escalates right away when the call is idle', async () => {
+    setPeerConnections({});
+
+    call['checkNoLocalCandidates']();
+    await flush();
+
+    expect(call['reconnectRejoin']).toHaveBeenCalledTimes(1);
+    expect(call['iceFailuresWithoutConnect']).toBe(1);
+  });
+
+  it('defers the escalation until an in-flight reconnect settles', async () => {
+    setPeerConnections({});
+    const rejoin = promiseWithResolvers<void>();
+    vi.mocked(call['reconnectRejoin']).mockImplementationOnce(async () => {
+      await rejoin.promise;
+      call.state.setCallingState(CallingState.JOINED);
+    });
+    call['reconnect'](WebsocketReconnectStrategy.REJOIN, 'test');
+
+    call['checkNoLocalCandidates']();
+    await new Promise<void>((r) => setTimeout(r, 0));
+    expect(call['iceFailuresWithoutConnect']).toBe(0);
+
+    rejoin.resolve();
+    await flush();
+
+    expect(call['reconnectRejoin']).toHaveBeenCalledTimes(2);
+    expect(call['iceFailuresWithoutConnect']).toBe(1);
+  });
+
+  it('defers the escalation until an in-flight join settles', async () => {
+    setPeerConnections({});
+    const join = promiseWithResolvers<void>();
+    vi.spyOn(
+      call as unknown as { performJoin: () => Promise<void> },
+      'performJoin',
+    ).mockImplementation(async () => {
+      await join.promise;
+    });
+    const joining = call['doJoin']();
+
+    call['checkNoLocalCandidates']();
+    await new Promise<void>((r) => setTimeout(r, 0));
+    expect(call['reconnectRejoin']).not.toHaveBeenCalled();
+
+    join.resolve();
+    await joining;
+    await flush();
+
+    expect(call['reconnectRejoin']).toHaveBeenCalledTimes(1);
+    expect(call['iceFailuresWithoutConnect']).toBe(1);
+  });
+
+  it('does not escalate when a peer connection has connected', async () => {
+    setPeerConnections({ connected: true });
+
+    call['checkNoLocalCandidates']();
+    await flush();
+
+    expect(call['reconnectRejoin']).not.toHaveBeenCalled();
+  });
+
+  it('does not escalate when the current peer connections gathered candidates', async () => {
+    setPeerConnections({ noLocalCandidates: false });
+
+    call['checkNoLocalCandidates']();
+    await flush();
+
+    expect(call['reconnectRejoin']).not.toHaveBeenCalled();
+  });
+
+  it('does not escalate while the browser is offline', async () => {
+    setPeerConnections({});
+    vi.stubGlobal('navigator', { onLine: false });
+
+    call['checkNoLocalCandidates']();
+    await flush();
+
+    expect(call['reconnectRejoin']).not.toHaveBeenCalled();
+  });
+
+  it('drops a deferred escalation when the call is left meanwhile', async () => {
+    setPeerConnections({});
+    const join = promiseWithResolvers<void>();
+    vi.spyOn(
+      call as unknown as { performJoin: () => Promise<void> },
+      'performJoin',
+    ).mockImplementation(async () => {
+      await join.promise;
+    });
+    const joining = call['doJoin']();
+    call['checkNoLocalCandidates']();
+
+    call['leaveGeneration']++;
+    join.resolve();
+    await joining;
+    await flush();
+
+    expect(call['reconnectRejoin']).not.toHaveBeenCalled();
+  });
+
+  it('leaves with webrtc_unsupported_network after two sessions without candidates', async () => {
+    call.setMaxIceFailuresWithoutConnect(2);
+    setPeerConnections({});
+
+    call['checkNoLocalCandidates']();
+    await flush();
+    expect(call.leave).not.toHaveBeenCalled();
+
+    call['checkNoLocalCandidates']();
+    await flush();
+    expect(call.leave).toHaveBeenCalledWith({
+      message: 'webrtc_unsupported_network',
+    });
+  });
+});
+
+describe('Call reconnect: fast reconnect rejected by the SFU', () => {
+  let call: Call;
+
+  beforeEach(() => {
+    call = makeCall();
+    vi.spyOn(connectionUtils, 'sleep').mockResolvedValue(undefined);
+    vi.spyOn(call, 'leave').mockResolvedValue(undefined);
+    vi.spyOn(call, 'get').mockResolvedValue({} as never);
+    vi.spyOn(
+      call as unknown as { reconnectMigrate: () => Promise<void> },
+      'reconnectMigrate',
+    ).mockRejectedValue(new Error('migrate stub'));
+    vi.spyOn(
+      call as unknown as { reconnectRejoin: () => Promise<void> },
+      'reconnectRejoin',
+    ).mockImplementation(async () => {
+      call.state.setCallingState(CallingState.JOINED);
+    });
+    primeForReconnect(call);
+    // keep the deadline far away, so only the error class can force REJOIN
+    (
+      call as unknown as { fastReconnectDeadlineSeconds: number }
+    ).fastReconnectDeadlineSeconds = 3600;
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('switches to REJOIN right after a FastReconnectRejectedError', async () => {
+    const reconnectFast = vi
+      .spyOn(
+        call as unknown as { reconnectFast: () => Promise<void> },
+        'reconnectFast',
+      )
+      .mockRejectedValue(
+        new FastReconnectRejectedError('SFU did not resume the session'),
+      );
+
+    await call['reconnect'](WebsocketReconnectStrategy.FAST, 'test');
+
+    expect(reconnectFast).toHaveBeenCalledTimes(1);
+    expect(call['reconnectRejoin']).toHaveBeenCalledTimes(1);
+    expect(call.state.callingState).toBe(CallingState.JOINED);
+  });
+
+  it('keeps retrying FAST after an ordinary failure', async () => {
+    const reconnectFast = vi
+      .spyOn(
+        call as unknown as { reconnectFast: () => Promise<void> },
+        'reconnectFast',
+      )
+      .mockRejectedValueOnce(new Error('transient'))
+      .mockImplementation(async () => {
+        call.state.setCallingState(CallingState.JOINED);
+      });
+
+    await call['reconnect'](WebsocketReconnectStrategy.FAST, 'test');
+
+    expect(reconnectFast).toHaveBeenCalledTimes(2);
+    expect(call['reconnectRejoin']).not.toHaveBeenCalled();
+  });
+
+  describe('reconnectFast and the subscriber offer', () => {
+    const stubDoJoin = (offerReceived: boolean) =>
+      vi
+        .spyOn(call as unknown as { doJoin: () => Promise<void> }, 'doJoin')
+        .mockImplementation(async () => {
+          call.state.setCallingState(CallingState.JOINED);
+          (
+            call as unknown as { fastReconnectOffer?: Promise<boolean> }
+          ).fastReconnectOffer = Promise.resolve(offerReceived);
+        });
+
+    it('rejoins when the offer never arrives, leaving JOINED first', async () => {
+      stubDoJoin(false);
+      await expect(call['reconnectFast']()).rejects.toBeInstanceOf(
+        FastReconnectRejectedError,
+      );
+      // the reconnect loop stops on JOINED, so the throw must not leave it there
+      expect(call.state.callingState).toBe(CallingState.RECONNECTING);
+    });
+
+    it('checks the offer before refreshing the call state', async () => {
+      stubDoJoin(false);
+      vi.spyOn(call, 'get').mockRejectedValue(new Error('coordinator down'));
+      await expect(call['reconnectFast']()).rejects.toBeInstanceOf(
+        FastReconnectRejectedError,
+      );
+      expect(call.get).not.toHaveBeenCalled();
+    });
+
+    it('completes when the offer arrived', async () => {
+      stubDoJoin(true);
+      await expect(call['reconnectFast']()).resolves.toBeUndefined();
+      expect(call.state.callingState).toBe(CallingState.JOINED);
+    });
   });
 });

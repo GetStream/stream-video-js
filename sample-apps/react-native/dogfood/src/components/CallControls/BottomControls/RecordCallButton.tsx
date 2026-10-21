@@ -2,41 +2,37 @@ import React, { useState } from 'react';
 import {
   CallControlsButton,
   useTheme,
+  useToggleCallRecording,
 } from '@stream-io/video-react-native-sdk';
 import { RecordCall } from '../../../assets/RecordCall';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import { CallRecordingModal } from './CallRecordingModal';
+import { StopRecordCall } from '../../../assets/StopRecordCall';
 
 /**
  * The props for the Record Call Button in the Call Controls.
  */
 export type RecordCallButtonProps = {
   onPressHandler?: () => void;
-  toggleCallRecording: () => Promise<void>;
-  isAwaitingResponse: boolean;
-  isCallRecordingInProgress: boolean;
 };
 
 /**
  * The Record Call Button is used in the Call Controls component
  * and allows the user to toggle call recording.
  */
-export const RecordCallButton = ({
-  onPressHandler,
-  toggleCallRecording,
-  isAwaitingResponse,
-  isCallRecordingInProgress,
-}: RecordCallButtonProps) => {
+export const RecordCallButton = ({ onPressHandler }: RecordCallButtonProps) => {
   const {
-    theme: { colors, recordCallButton, variants },
+    theme: { components, semantics },
   } = useTheme();
+  const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
+    useToggleCallRecording();
 
   const [isStopRecordingModalOpen, setIsStopRecordingModalOpen] =
     useState(false);
 
   const buttonColor = isCallRecordingInProgress
-    ? colors.buttonWarning
-    : colors.buttonSecondary;
+    ? semantics.accentError
+    : undefined;
 
   const onPress = async () => {
     if (onPressHandler) {
@@ -74,19 +70,23 @@ export const RecordCallButton = ({
 
   return (
     <CallControlsButton
-      size={variants.roundButtonSizes.lg}
       onPress={onPress}
       color={buttonColor}
-      style={recordCallButton}
       disabled={isAwaitingResponse}
-      disabledColor={colors.buttonDisabled}
     >
       {endRecording}
       <IconWrapper>
-        <RecordCall
-          color={colors.iconPrimary}
-          size={variants.roundButtonSizes.sm}
-        />
+        {isCallRecordingInProgress ? (
+          <StopRecordCall
+            color={semantics.textOnAccent}
+            size={components.iconSizeMd}
+          />
+        ) : (
+          <RecordCall
+            color={semantics.textPrimary}
+            size={components.iconSizeMd}
+          />
+        )}
       </IconWrapper>
     </CallControlsButton>
   );

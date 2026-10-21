@@ -2,6 +2,25 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0-beta.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-1.0.0-beta.1...@stream-io/react-native-callingx-1.0.0-beta.2) (2026-10-16)
+
+### ⚠ BREAKING CHANGES
+
+- remove deprecated APIs and legacy code for v2 (#2498)
+- **react-native-callingx:** migrate to the New Architecture (#2493)
+
+### Features
+
+- **react-native-callingx:** migrate to the New Architecture ([#2493](https://github.com/GetStream/stream-video-js/issues/2493)) ([afb4657](https://github.com/GetStream/stream-video-js/commit/afb4657cf90abcf2a9cf2e9dff9d50085a7816a6)), closes [#2459](https://github.com/GetStream/stream-video-js/issues/2459) [#2466](https://github.com/GetStream/stream-video-js/issues/2466)
+- remove deprecated APIs and legacy code for v2 ([#2498](https://github.com/GetStream/stream-video-js/issues/2498)) ([7a20921](https://github.com/GetStream/stream-video-js/commit/7a209213d0eddb7ad8f1d21e55bd43910391666e)), closes [#2493](https://github.com/GetStream/stream-video-js/issues/2493)
+
+## [1.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-1.0.0-beta.0...@stream-io/react-native-callingx-1.0.0-beta.1) (2026-09-28)
+
+### Bug Fixes
+
+- **android:** skip explicit Kotlin plugin when AGP registers the kotlin extension ([#2417](https://github.com/GetStream/stream-video-js/issues/2417)) ([1bff5e0](https://github.com/GetStream/stream-video-js/commit/1bff5e0f5b4a2f2bbe62ab5eff2a6457251f6350)), closes [RevenueCat/react-native-purchases#1934](https://github.com/RevenueCat/react-native-purchases/issues/1934)
+- **react-native-callingx:** use <packageName>:<callId> as the Android Telecom address ([#2453](https://github.com/GetStream/stream-video-js/issues/2453)) ([22d18d8](https://github.com/GetStream/stream-video-js/commit/22d18d8b55bab81946989d791b5fa18569428712)), closes [#2452](https://github.com/GetStream/stream-video-js/issues/2452) [#2452](https://github.com/GetStream/stream-video-js/issues/2452)
+
 ## [1.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.11.1...@stream-io/react-native-callingx-1.0.0-beta.0) (2026-09-04)
 
 ## [0.11.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.11.0...@stream-io/react-native-callingx-0.11.1) (2026-09-04)

@@ -1,10 +1,7 @@
 import { vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { CallingState, CallState } from '../../store';
-import {
-  NoiseCancellationSettingsModeEnum,
-  OwnCapability,
-} from '../../gen/coordinator';
+import { OwnCapability } from '../../gen/coordinator';
 import { Call } from '../../Call';
 import { of, ReplaySubject } from 'rxjs';
 import { BrowserPermission } from '../BrowserPermission';
@@ -114,7 +111,7 @@ export const mockCall = (): Partial<Call> => {
       settings: {
         audio: {
           noise_cancellation: {
-            mode: NoiseCancellationSettingsModeEnum.AVAILABLE,
+            mode: 'available',
           },
         },
         screensharing: {
@@ -157,6 +154,7 @@ export const mockAudioStream = () => {
     label: mockAudioDevices[0].label,
     enabled: true,
     readyState: 'live',
+    clone: () => mockAudioStream().getAudioTracks()[0],
     stop: () => {
       track.readyState = 'ended';
     },

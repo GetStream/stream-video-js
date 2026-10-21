@@ -931,6 +931,56 @@ describe('Publisher', () => {
       );
     });
 
+    it.each(['checking', 'failed'] as const)(
+      `connection-state 'failed' before ICE connects emits ICE_NEVER_CONNECTED when ICE is '%s'`,
+      async (iceState) => {
+        vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+        publisher['onReconnectionNeeded'] = vi.fn();
+        // @ts-expect-error readonly field
+        publisher['pc'].iceConnectionState = iceState;
+        // @ts-expect-error readonly field
+        publisher['pc'].connectionState = 'failed';
+
+        // No ICE state-change event precedes the aggregate failure.
+        await publisher['onConnectionStateChange']();
+
+        expect(publisher.restartIce).not.toHaveBeenCalled();
+        expect(
+          publisher['onReconnectionNeeded'],
+        ).toHaveBeenCalledExactlyOnceWith(
+          WebsocketReconnectStrategy.REJOIN,
+          ReconnectReason.ICE_NEVER_CONNECTED,
+          PeerType.PUBLISHER_UNSPECIFIED,
+        );
+      },
+    );
+
+    it(`connection-state 'failed' cancels the pre-connect watchdog`, async () => {
+      vi.useFakeTimers();
+      publisher['onReconnectionNeeded'] = vi.fn();
+      const watchdogMs = publisher['iceRestartDelay'] * 2;
+
+      // @ts-expect-error readonly field
+      publisher['pc'].iceConnectionState = 'disconnected';
+      publisher['onIceConnectionStateChange']();
+      expect(publisher['preConnectStuckTimeout']).toBeDefined();
+      expect(publisher['onReconnectionNeeded']).not.toHaveBeenCalled();
+
+      // Keep ICE disconnected so an uncanceled watchdog would reconnect again.
+      // @ts-expect-error readonly field
+      publisher['pc'].connectionState = 'failed';
+      await publisher['onConnectionStateChange']();
+
+      expect(publisher['preConnectStuckTimeout']).toBeUndefined();
+      expect(publisher['onReconnectionNeeded']).toHaveBeenCalledExactlyOnceWith(
+        WebsocketReconnectStrategy.REJOIN,
+        ReconnectReason.ICE_NEVER_CONNECTED,
+        PeerType.PUBLISHER_UNSPECIFIED,
+      );
+      await vi.advanceTimersByTimeAsync(watchdogMs + 100);
+      expect(publisher['onReconnectionNeeded']).toHaveBeenCalledTimes(1);
+    });
+
     it(`connection-state 'failed' (distinct from ICE state) still fires REJOIN even after ICE was connected`, () => {
       // mark ICE as connected first
       // @ts-expect-error private api

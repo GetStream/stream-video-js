@@ -8,7 +8,10 @@ export type MediaPlaybackWatchdogOptions = {
   element: HTMLMediaElement;
   kind: MediaKind;
   tracer: Tracer;
+  sessionId?: string;
+  trackType?: string;
   isBlocked?: () => boolean;
+  onGiveUp?: () => void;
 };
 
 /**
@@ -18,7 +21,13 @@ export type MediaPlaybackWatchdogOptions = {
 export class MediaPlaybackWatchdog {
   private logger = videoLoggerSystem.getLogger('MediaPlaybackWatchdog');
   private readonly kind: MediaKind;
+  private readonly traceInfo: {
+    kind: MediaKind;
+    sessionId?: string;
+    trackType?: string;
+  };
   private readonly isBlocked: () => boolean;
+  private readonly onGiveUp: () => void;
   private element: HTMLMediaElement;
   private tracer: Tracer;
   private controller = new AbortController();
@@ -31,8 +40,14 @@ export class MediaPlaybackWatchdog {
   constructor(opts: MediaPlaybackWatchdogOptions) {
     this.element = opts.element;
     this.kind = opts.kind;
+    this.traceInfo = {
+      kind: opts.kind,
+      sessionId: opts.sessionId,
+      trackType: opts.trackType,
+    };
     this.tracer = opts.tracer;
     this.isBlocked = opts.isBlocked ?? (() => false);
+    this.onGiveUp = opts.onGiveUp ?? (() => {});
     this.attach();
   }
 
@@ -49,6 +64,22 @@ export class MediaPlaybackWatchdog {
     this.disposed = true;
     this.controller.abort();
     this.clearTimers();
+  };
+
+  /**
+   * Starts a fresh recovery cycle, e.g. after a media interruption ended.
+   * Unlike a regular pause-triggered recovery, it also tries elements that
+   * were skipped as blocked or not ready, since those conditions may have
+   * cleared together with the interruption.
+   */
+  rearm = () => {
+    if (this.disposed) return;
+    this.clearTimers();
+    this.attempt = 0;
+    this.stopped = false;
+    const { paused, srcObject, ended } = this.element;
+    if (!paused || !srcObject || ended) return;
+    this.pendingTimer = setTimeout(this.attemptPlay, 0);
   };
 
   private clearTimers = () => {
@@ -69,17 +100,34 @@ export class MediaPlaybackWatchdog {
     this.settleTimer = undefined;
     if (this.element.paused) return;
     this.tracer.trace('mediaPlayback.recover.success', {
-      kind: this.kind,
+      ...this.traceInfo,
       attempts: this.attempt,
     });
     this.attempt = 0;
     this.stopped = false;
   };
 
+  /**
+   * Media elements backed by a MediaStream fire `suspend` routinely (after
+   * the initial load, on source swaps, on layer switches), so a `suspend`
+   * that needs no recovery is ignored without a trace. An explicit `pause`
+   * is rare and always traced, along with the reason recovery was skipped.
+   */
   private onPauseOrSuspend = (event: Event) => {
-    if (this.disposed || this.stopped) return;
+    if (this.disposed || this.stopped || this.pendingTimer) return;
+    const skipReason = this.computeSkipReason();
+    if (skipReason) {
+      if (event.type === 'pause') {
+        this.tracer.trace('mediaPlayback.paused', {
+          ...this.traceInfo,
+          reason: event.type,
+          skipped: skipReason,
+        });
+      }
+      return;
+    }
     this.tracer.trace('mediaPlayback.paused', {
-      kind: this.kind,
+      ...this.traceInfo,
       reason: event.type,
     });
     if (this.settleTimer) clearTimeout(this.settleTimer);
@@ -92,7 +140,7 @@ export class MediaPlaybackWatchdog {
     const skipReason = this.computeSkipReason();
     if (skipReason) {
       this.tracer.trace('mediaPlayback.recover.skipped', {
-        kind: this.kind,
+        ...this.traceInfo,
         reason: skipReason,
       });
       return;
@@ -102,9 +150,10 @@ export class MediaPlaybackWatchdog {
       this.stopped = true;
       this.clearTimers();
       this.tracer.trace('mediaPlayback.recover.giveUp', {
-        kind: this.kind,
+        ...this.traceInfo,
         attempts: this.attempt,
       });
+      this.onGiveUp();
       return;
     }
     const delay = this.attempt === 0 ? 0 : retryInterval(this.attempt);
@@ -127,7 +176,7 @@ export class MediaPlaybackWatchdog {
     if (this.disposed) return;
     this.attempt += 1;
     this.tracer.trace('mediaPlayback.recover.attempt', {
-      kind: this.kind,
+      ...this.traceInfo,
       attempt: this.attempt,
     });
     try {

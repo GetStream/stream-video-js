@@ -5,11 +5,15 @@ import {
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
 } from '@stream-io/video-react-sdk';
+import { useSettings } from '../context/SettingsContext';
 import { AdaptivePipGrid } from './AdaptivePipGrid';
 
 export function StagePip() {
+  const {
+    settings: { themeMode },
+  } = useSettings();
   return (
-    <StreamTheme>
+    <StreamTheme theme={themeMode}>
       <div className="rd__stage-pip">
         <AdaptivePipGrid ParticipantViewUI={PipParticipantViewUI} />
       </div>

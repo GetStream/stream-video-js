@@ -35,6 +35,7 @@ import {
 import { applyDisplayName } from '../helpers/client';
 import { applyQueryConfigParams } from '../lib/queryConfigParams';
 import { useAppI18n } from '../hooks/useAppI18n';
+import { useSettings } from '../context/SettingsContext';
 import type { LooseTranslateFunction } from '@stream-io/video-react-sdk';
 
 /**
@@ -133,6 +134,12 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   }, [callState, onLeave]);
 
   useEffect(() => {
+    if (show === 'loading' && callState === CallingState.JOINED) {
+      setShow('active-call');
+    }
+  }, [show, callState]);
+
+  useEffect(() => {
     if (!call) return;
     return call.on('call.ended', async (e) => {
       if (!e.user || e.user.id === call.currentUserId) return;
@@ -166,6 +173,21 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       call.setSortParticipantsBy(defaultSortPreset);
     }
   }, [call, isSortingDisabled]);
+
+  const {
+    settings: { speakingDetectionEnabled },
+  } = useSettings();
+  useEffect(() => {
+    if (!call) return;
+    if (speakingDetectionEnabled && callState !== CallingState.JOINED) return;
+
+    const { microphone } = call;
+    const update = speakingDetectionEnabled
+      ? microphone.enableSpeakingWhileMutedNotification()
+      : microphone.disableSpeakingWhileMutedNotification();
+
+    update.catch(console.error);
+  }, [call, callState, speakingDetectionEnabled]);
 
   useKeyboardShortcuts();
   useWakeLock();
@@ -242,8 +264,8 @@ const ErrorPage = ({
   return (
     <div className="rd__error">
       <div className="rd__error__container">
-        <h1 className="rd__error__header">{heading}</h1>
-        <div className="rd__error__content">
+        <h1>{heading}</h1>
+        <div>
           {error?.stack && (
             <div className="rd__error__message">
               <pre>{error.stack}</pre>

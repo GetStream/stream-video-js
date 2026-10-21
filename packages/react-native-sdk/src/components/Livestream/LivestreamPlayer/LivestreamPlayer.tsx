@@ -6,6 +6,7 @@ import {
 import { Call, CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import { StreamCall } from '../../../providers/StreamCall';
 import { useStreamVideoClient } from '@stream-io/video-react-bindings';
+import { Insets } from '../../../theme/types';
 
 export type LivestreamPlayerProps = {
   /**
@@ -34,6 +35,10 @@ export type LivestreamPlayerProps = {
    * @default "asap"
    */
   joinBehavior?: 'asap' | 'live';
+  /**
+   * Safe-area insets, applied to the ViewerLivestream component.
+   */
+  insets?: Insets;
 };
 
 export const LivestreamPlayer = ({
@@ -42,6 +47,7 @@ export const LivestreamPlayer = ({
   ViewerLivestream = DefaultViewerLivestream,
   joinBehavior = 'asap',
   children,
+  insets,
 }: PropsWithChildren<LivestreamPlayerProps>) => {
   const client = useStreamVideoClient();
 
@@ -82,7 +88,7 @@ export const LivestreamPlayer = ({
 
   return (
     <StreamCall call={call}>
-      <ViewerLivestream joinBehavior={joinBehavior} />
+      <ViewerLivestream joinBehavior={joinBehavior} insets={insets} />
       {children}
     </StreamCall>
   );

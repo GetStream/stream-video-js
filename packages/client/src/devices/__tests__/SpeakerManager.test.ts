@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 /* @vitest-environment happy-dom */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
@@ -54,6 +56,7 @@ describe('SpeakerManager.test', () => {
         id: '',
         type: '',
         streamClient,
+        videoApi: new VideoApi(new ApiClient(streamClient)),
         clientEventReporter: new ClientEventReporter({ streamClient }),
         clientState: new ClientState(),
       }),
@@ -161,6 +164,7 @@ describe('SpeakerManager.test', () => {
         id: '',
         type: '',
         streamClient,
+        videoApi: new VideoApi(new ApiClient(streamClient)),
         clientEventReporter: new ClientEventReporter({ streamClient }),
         clientState: new ClientState(),
       }),
@@ -189,6 +193,7 @@ describe('SpeakerManager.test', () => {
           id: '',
           type: '',
           streamClient,
+          videoApi: new VideoApi(new ApiClient(streamClient)),
           clientEventReporter: new ClientEventReporter({ streamClient }),
           clientState: new ClientState(),
         }),
@@ -232,6 +237,33 @@ describe('SpeakerManager.test', () => {
 
       expect(selectSpy).toHaveBeenCalledWith('speaker-1');
       expect(persistedManager.state.selectedDevice).toBe('speaker-1');
+    });
+
+    it('does not restore a speaker when output selection is not supported', async () => {
+      const persistedManager = createPersistedManager();
+      Object.defineProperty(
+        persistedManager.state,
+        'isDeviceSelectionSupported',
+        { value: false },
+      );
+      vi.spyOn(persistedManager, 'listDevices').mockReturnValue(
+        of([
+          {
+            deviceId: 'speaker-1',
+            kind: 'audiooutput',
+            label: 'Speaker 1',
+            groupId: 'speaker-group',
+          } as MediaDeviceInfo,
+        ]),
+      );
+      persist('speaker-1', 'Speaker 1');
+
+      const selectSpy = vi.spyOn(persistedManager, 'select');
+      // @ts-expect-error - partial data
+      await persistedManager.apply({});
+
+      expect(selectSpy).not.toHaveBeenCalled();
+      expect(persistedManager.state.selectedDevice).toBe('');
     });
 
     it('does not select a missing persisted speaker device', async () => {

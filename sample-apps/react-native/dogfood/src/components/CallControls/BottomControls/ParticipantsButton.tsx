@@ -1,23 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   CallControlsButton,
   CallingState,
   useCallStateHooks,
-  useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
+import { ControlButtonIcon } from '@stream-io/video-react-native-sdk/src/icons';
 import { BadgeCountIndicator } from './BadgeCountIndicator';
-import Participants from '../../../assets/Participants';
+import { Users } from '../../../assets/Users';
+import { ParticipantsInfoListModal } from '../../ParticipantsInfoListModal';
 
 /**
  * The props for the Participants Button in the Call Controls.
  */
 export type ParticipantsButtonProps = {
-  /**
-   * Handler to be called when the participants button is pressed.
-   * @returns void
-   */
-  onParticipantInfoPress?: () => void;
   /**
    * The count of the current participants present in the call.
    */
@@ -27,19 +22,19 @@ export type ParticipantsButtonProps = {
 /**
  * Button to open the Participant window while in the call.
  *
- * This button also displays the participant count of the participants in the call.
+ * This button also displays the participant count of the participants in the call,
+ * and owns the participants list modal it opens.
  */
 export const ParticipantsButton = ({
-  onParticipantInfoPress,
   participantCount,
 }: ParticipantsButtonProps) => {
-  const {
-    theme: { colors, chatButton, defaults },
-  } = useTheme();
-
-  const { useCallMembers, useCallCallingState } = useCallStateHooks();
+  const [isParticipantsInfoVisible, setIsParticipantsInfoVisible] =
+    useState(false);
+  const { useCallMembers, useCallCallingState, useParticipantCount } =
+    useCallStateHooks();
   const members = useCallMembers();
   const callingState = useCallCallingState();
+  const callParticipantCount = useParticipantCount();
 
   let count = 0;
   /**
@@ -50,16 +45,19 @@ export const ParticipantsButton = ({
   if (callingState === CallingState.RINGING) {
     count = members.length - 1;
   } else {
-    count = participantCount ?? 0;
+    count = participantCount ?? callParticipantCount;
   }
 
-  // TODO: PBE-5873 [Demo App] On click implement showing the Participant List
   return (
-    <CallControlsButton onPress={onParticipantInfoPress} style={chatButton}>
-      <BadgeCountIndicator count={count} />
-      <IconWrapper>
-        <Participants color={colors.iconPrimary} size={defaults.iconSize} />
-      </IconWrapper>
-    </CallControlsButton>
+    <>
+      <CallControlsButton onPress={() => setIsParticipantsInfoVisible(true)}>
+        <BadgeCountIndicator count={count} />
+        <ControlButtonIcon icon={Users} />
+      </CallControlsButton>
+      <ParticipantsInfoListModal
+        isCallParticipantsInfoVisible={isParticipantsInfoVisible}
+        setIsCallParticipantsInfoVisible={setIsParticipantsInfoVisible}
+      />
+    </>
   );
 };

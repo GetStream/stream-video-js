@@ -1,5 +1,6 @@
 import {
   CallRecording,
+  CallTranscription,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { useRouter } from 'next/router';
@@ -12,9 +13,14 @@ import {
 } from 'react';
 import { useAppI18n } from '../../hooks/useAppI18n';
 
+export type CallRecordingSearchResult = {
+  recordings: CallRecording[];
+  transcriptions: CallTranscription[];
+};
+
 type CallRecordingSearchFormProps = {
   setLoading: (loading: boolean) => void;
-  setResult: (recordings: CallRecording[] | undefined) => void;
+  setResult: (result: CallRecordingSearchResult | undefined) => void;
   setResultError: (error: Error | undefined) => void;
 };
 export const CallRecordingSearchForm = ({
@@ -41,8 +47,17 @@ export const CallRecordingSearchForm = ({
       try {
         setLoading(true);
         setEnabled(false);
-        const { recordings } = await call.queryRecordings();
-        setResult(recordings);
+        const [{ recordings }, { transcriptions }] = await Promise.all([
+          call.listRecordings().catch((err) => {
+            console.warn('Failed to list recordings', err);
+            return { recordings: [] };
+          }),
+          call.listTranscriptions().catch((err) => {
+            console.warn('Failed to list transcriptions', err);
+            return { transcriptions: [] };
+          }),
+        ]);
+        setResult({ recordings, transcriptions });
         setResultError(undefined);
       } catch (err) {
         setResultError(err as Error);
@@ -109,11 +124,11 @@ export const CallRecordingSearchForm = ({
     <div className="rd__call-recordings-page-form">
       <form onSubmit={handleSubmit} id={formId}>
         <div className="rd__call-recordings-page-form__container">
-          <div className="rd__call-type-dropdown-container">
+          <div>
             <input
               form={formId}
               ref={setCallTypeInput}
-              className="rd__input rd__input--underlined rd__call-recording-search-input"
+              className="rd__input"
               type="text"
               onChange={handleChange}
               placeholder={t(
@@ -125,7 +140,7 @@ export const CallRecordingSearchForm = ({
           </div>
           <input
             form={formId}
-            className="rd__input rd__input--underlined rd__call-recording-search-input"
+            className="rd__input"
             type="text"
             onChange={handleChange}
             ref={setCallIdInput}

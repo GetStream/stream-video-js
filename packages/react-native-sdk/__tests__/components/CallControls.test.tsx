@@ -6,9 +6,8 @@ import { mockCall } from '../mocks/call';
 import { fireEvent, render, screen } from '../utils/RNTLTools';
 import { OwnCapability } from '@stream-io/video-client';
 import { defaultEmojiReactions } from '../../src/constants';
-import { CallControls } from '../../src';
-import { HangUpCallButton } from '../../src/components/Call/CallControls/HangupCallButton';
-import { ReactionsButton } from '../../src/components/Call/CallControls/ReactionsButton';
+import { HangUpCallButton } from '../../src/components/Call/CallControls/Buttons/HangupCallButton';
+import { ReactionsButton } from '../../src/components/Call/CallControls/Buttons/ReactionsButton';
 
 console.warn = jest.fn();
 jest.useFakeTimers();
@@ -66,7 +65,7 @@ describe('HangupCallButton', () => {
     expect(onHangupCallHandler).toHaveBeenCalled();
   });
 
-  it('execute call.leave when hangup button is pressed with no custom handler in call controls component', async () => {
+  it('execute call.leave when hangup button is pressed with no custom handler', async () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({
         isLocalParticipant: true,
@@ -75,7 +74,7 @@ describe('HangupCallButton', () => {
       }),
     ]);
 
-    render(<CallControls />, {
+    render(<HangUpCallButton />, {
       call,
     });
 

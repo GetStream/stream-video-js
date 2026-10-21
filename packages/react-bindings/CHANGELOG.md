@@ -2,6 +2,26 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-2.0.0-beta.2...@stream-io/video-react-bindings-2.0.0-beta.3) (2026-10-20)
+
+## [2.0.0-beta.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-2.0.0-beta.1...@stream-io/video-react-bindings-2.0.0-beta.2) (2026-10-16)
+
+### Features
+
+- **client:** integrate OpenAPI generated client ([#2454](https://github.com/GetStream/stream-video-js/issues/2454)) ([710afe0](https://github.com/GetStream/stream-video-js/commit/710afe0ce976f7c0c54436055102e6dd2bc14236))
+- **react-bindings:** report render errors from StreamCall ([#2514](https://github.com/GetStream/stream-video-js/issues/2514)) ([a7a31a1](https://github.com/GetStream/stream-video-js/commit/a7a31a1fdd63799caead7f8404d32ef087cfadd9))
+- **react-sdk:** show a notification when the camera can't start ([#2462](https://github.com/GetStream/stream-video-js/issues/2462)) ([794144f](https://github.com/GetStream/stream-video-js/commit/794144fbb3497981ad0657274d4427ac23a9bd22))
+
+## [2.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-2.0.0-beta.0...@stream-io/video-react-bindings-2.0.0-beta.1) (2026-09-28)
+
+### ⚠ BREAKING CHANGES
+
+- **i18n:** adopt the shared @stream-io/i18n runtime (#2436)
+
+### Features
+
+- **i18n:** adopt the shared @stream-io/i18n runtime ([#2436](https://github.com/GetStream/stream-video-js/issues/2436)) ([2fcd426](https://github.com/GetStream/stream-video-js/commit/2fcd4269227d5db8f46342c597d17f2c7d835f88)), closes [stream-chat-react#3261](https://github.com/GetStream/stream-chat-react/issues/3261)
+
 ## [2.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.20.1...@stream-io/video-react-bindings-2.0.0-beta.0) (2026-09-04)
 
 ## [1.20.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.20.0...@stream-io/video-react-bindings-1.20.1) (2026-08-28)

@@ -1,20 +1,25 @@
 import { ElementType, HTMLProps, PropsWithChildren } from 'react';
 import clsx from 'clsx';
 
+export type StreamThemeMode = 'light' | 'dark';
+
 export type StreamThemeProps = HTMLProps<HTMLElement> & {
   as?: ElementType;
-  theme?: string;
+  theme?: StreamThemeMode;
 };
 
 export const StreamTheme = ({
   as: Component = 'div',
   className,
   children,
-  theme = 'str-video__theme-dark',
+  theme = 'dark',
   ...props
 }: PropsWithChildren<StreamThemeProps>) => {
   return (
-    <Component {...props} className={clsx('str-video', theme, className)}>
+    <Component
+      {...props}
+      className={clsx('str-video', `str-video__theme-${theme}`, className)}
+    >
       {children}
     </Component>
   );

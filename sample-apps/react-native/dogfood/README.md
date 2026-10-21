@@ -2,7 +2,6 @@
 
 ## Setup the environment for React Native
 
-​
 First things first, make sure you have set up the development environment for React Native. You can find the official guide [here](https://reactnative.dev/docs/environment-setup).
 
 ## Steps to run the app

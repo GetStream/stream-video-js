@@ -129,30 +129,34 @@ export async function joinCallingxCall(
   }
 
   const logger = videoLoggerSystem.getLogger('callingx');
-  const isOutcomingCall = call.ringing && call.isCreatedByMe;
-  const isIncomingCall = call.ringing && !call.isCreatedByMe;
-  const isOngoingCall = (c: Call) =>
-    !c.ringing &&
-    CallingxModule.isOngoingCallsEnabled &&
-    !c.isOwnTracksLoopbackAllowed;
 
-  if (!isIncomingCall && !isOutcomingCall && !isOngoingCall(call)) {
+  const isNonRingingCallingxRegisteredCall = (c: Call) =>
+    !c.ringing &&
+    !c.isOwnTracksLoopbackAllowed &&
+    CallingxModule.isOngoingCallsEnabled;
+
+  // should we not register this call in callingx?
+  if (!call.ringing && !CallingxModule.isOngoingCallsEnabled) {
     return;
   }
 
   try {
+    logger.debug('joinCallingxCall: checking active calls');
     const activeCallsToLeave = activeCalls.filter(
       (c) =>
         c.cid !== call.cid &&
-        (c.ringing || isOngoingCall(c)) &&
+        (c.ringing || isNonRingingCallingxRegisteredCall(c)) &&
         c.state.callingState !== CallingState.LEFT,
     );
     for (const activeCall of activeCallsToLeave) {
       logger.debug(
-        `leaving currently-active-call:${activeCall.cid} before joining the call:${call.cid}`,
+        `joinCallingxCall: leaving currently-active-call:${activeCall.cid} before joining the call:${call.cid}`,
       );
       await activeCall.leave({ reason: 'cancel' }).catch((e) => {
-        logger.error(`failed to leave active call ${activeCall.cid}`, e);
+        logger.error(
+          `joinCallingxCall: failed to leave active call ${activeCall.cid}`,
+          e,
+        );
       });
     }
     // Leaving the other calls above can take arbitrarily long, and this join may
@@ -166,21 +170,21 @@ export async function joinCallingxCall(
       return;
     }
     logger.debug(
-      `joinCallingxCall: Joining call ${call.cid} isIncoming: ${isIncomingCall} isOutgoing: ${isOutcomingCall}`,
+      `joinCallingxCall: Joining call ${call.cid} ringingType:${call.ringing} isCreatedByMe: ${call.isCreatedByMe}`,
     );
     const callArgs = getCallingxCallArgs(call);
-    if (isIncomingCall) {
+    if (call.ringing && !call.isCreatedByMe) {
       await CallingxModule.displayIncomingCall(...callArgs);
       // never answer a call that was hung up while the OS was displaying it -
       // the cleanup below ends the registration instead
       if (isCancelled?.()) return;
-      await CallingxModule.answerIncomingCall(call.cid);
+      CallingxModule.answerIncomingCall(call.cid);
     } else {
       await CallingxModule.startCall(...callArgs);
     }
   } catch (error) {
     logger.error(
-      `startCallingxCall: Error starting call in callingx: ${call.cid} isIncoming: ${isIncomingCall} isOutgoing: ${isOutcomingCall}`,
+      `joinCallingxCall: Error starting call in callingx: ${call.cid} ringingType:${call.ringing} isCreatedByMe: ${call.isCreatedByMe}`,
       error,
     );
   } finally {
@@ -211,7 +215,7 @@ export async function endCallingxCall(call: Call, reason?: EndCallReason) {
   const logger = videoLoggerSystem.getLogger('callingx');
   try {
     logger.debug(`endCallingxCall: Ending call ${call.cid}`);
-    await CallingxModule.endCallWithReason(call.cid, reason ?? 'local');
+    CallingxModule.endCallWithReason(call.cid, reason ?? 'local');
   } catch (error) {
     logger.error(
       `endCallingxCall: Error ending call in callingx: ${call.cid}`,

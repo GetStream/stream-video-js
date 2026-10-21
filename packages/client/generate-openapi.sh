@@ -1,46 +1,27 @@
 #!/bin/bash
 set -euo pipefail
 
-FROM_REPO=$1;
+PKG_DIR="$(cd "$(dirname "$0")" && pwd)"
+CHAT_DIR="$(cd "${1:-$PKG_DIR/../../../chat}" && pwd)"
+OUTPUT_DIR="$PKG_DIR/src/gen/coordinator"
+SPEC_DIR="$(mktemp -d)"
+trap 'rm -rf "$SPEC_DIR"' EXIT
 
-if  [ "$FROM_REPO" == 'chat' ]; then
-  PROTOCOL_REPO_DIR="../../../chat"
-else
-  PROTOCOL_REPO_DIR="../../../protocol"
-fi
-if  [ "$FROM_REPO" == 'chat' ]; then
-  SCHEMA_FILE="$PROTOCOL_REPO_DIR/releases/video-openapi-clientside.yaml"
-elif [ "$FROM_REPO" == 'protocol' ]; then
-  SCHEMA_FILE="$PROTOCOL_REPO_DIR/openapi/video-openapi-clientside.yaml"
-else
-  SCHEMA_FILE=$FROM_REPO
-fi
+make -C "$CHAT_DIR/tools/openapi" build
 
-if  [ "$FROM_REPO" == 'chat' ]; then
-  # Generate the Coordinator OpenAPI schema
-  make -C $PROTOCOL_REPO_DIR openapi
-fi
+(
+  cd "$CHAT_DIR"
+  ./build/openapi generate-spec \
+    -products video -version v2 -clientside -encode-time-as-unix-timestamp \
+    -output "$SPEC_DIR/video-clientside-api"
+  rm -rf "$OUTPUT_DIR"
+  ./build/openapi generate-client \
+    --language ts --spec "$SPEC_DIR/video-clientside-api.yaml" --output "$OUTPUT_DIR" \
+    --opt response_dates_as_number=true \
+    --opt typed_filters=true \
+    --opt separate_path_params=true
+)
 
-OUTPUT_DIR="./src/gen/coordinator"
-TEMP_OUTPUT_DIR="./src/gen/openapi-temp"
+echo "export * from './models';" >"$OUTPUT_DIR/index.ts"
 
-# Clean previous output
-rm -rf $TEMP_OUTPUT_DIR
-rm -rf $OUTPUT_DIR
-
-# NOTE: https://openapi-generator.tech/docs/generators/typescript-fetch/
-# Generate the Coordinator API models
-yarn openapi-generator-cli generate \
-  -i "$SCHEMA_FILE" \
-  -g typescript-fetch \
-  -o "$TEMP_OUTPUT_DIR" \
-  --additional-properties=supportsES6=true \
-  --additional-properties=modelPropertyNaming=original \
-  --additional-properties=enumPropertyNaming=UPPERCASE \
-  --additional-properties=withoutRuntimeChecks=true
-
-# Remove the generated API client, just keep the models
-cp -r $TEMP_OUTPUT_DIR/models $OUTPUT_DIR
-rm -rf $TEMP_OUTPUT_DIR
-
-yarn prettier --write $OUTPUT_DIR
+(cd "$PKG_DIR/../.." && yarn lint:gen)

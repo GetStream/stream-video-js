@@ -10,7 +10,6 @@ import {
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/createToken';
-import { useCustomTheme } from '../theme';
 import axios, { AxiosResponseTransformer } from 'axios';
 import { Alert } from 'react-native';
 import { useRegisterNonRingingPushToken } from '../hooks/useRegisterNonRingingPushToken';
@@ -34,7 +33,6 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const disableRingStatePolling = useAppGlobalStoreValue(
     (store) => store.disableRingStatePolling,
   );
-  const customTheme = useCustomTheme(themeMode);
   const setState = useAppGlobalStoreSetState();
 
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
@@ -70,18 +68,22 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
           baseURL: coordinatorBaseUrl || undefined,
           ringStatePolling: disableRingStatePolling ? false : undefined,
           rejectCallWhenBusy: false,
-          logLevel: 'debug',
-          logger: (level, message, ...args) => {
-            if (
-              message.startsWith('[Dispatcher]') &&
-              /audioLevelChanged|dominantSpeakerChanged/.test(message)
-            ) {
-              // reduce noise from audioLevelChanged and dominantSpeakerChanged events
-              return;
-            }
+          logOptions: {
+            default: {
+              level: 'debug',
+              sink: (level, message, ...args) => {
+                if (
+                  message.startsWith('[Dispatcher]') &&
+                  /audioLevelChanged|dominantSpeakerChanged/.test(message)
+                ) {
+                  // reduce noise from audioLevelChanged and dominantSpeakerChanged events
+                  return;
+                }
 
-            // Call the SDK's default log method
-            logToConsole(level, message, ...args);
+                // Call the SDK's default log method
+                logToConsole(level, message, ...args);
+              },
+            },
           },
           transformResponse: useLocalSfu
             ? getCustomSfuResponseTransformers(localIpAddress)
@@ -131,7 +133,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   }
 
   return (
-    <StreamVideo client={videoClient} style={customTheme}>
+    <StreamVideo client={videoClient} colorScheme={themeMode}>
       <NonRingingPushTokenRegistration />
       {children}
     </StreamVideo>

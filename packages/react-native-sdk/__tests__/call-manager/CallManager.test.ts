@@ -20,6 +20,9 @@ const makeNativeManager = () => ({
   chooseAudioDeviceEndpoint: jest.fn(),
   getAudioDeviceStatus: jest.fn(),
   setForceSpeakerphoneOn: jest.fn(),
+  reapplyAudioRoute: jest.fn(),
+  onAudioDeviceChanged: jest.fn().mockReturnValue({ remove: jest.fn() }),
+  onAudioInterruption: jest.fn().mockReturnValue({ remove: jest.fn() }),
 });
 
 const makeCallingx = (overrides: Partial<any> = {}) => ({
@@ -30,7 +33,7 @@ const makeCallingx = (overrides: Partial<any> = {}) => ({
   isCallTracked: jest.fn().mockReturnValue(true),
   getRegisteredCallIds: jest.fn().mockReturnValue(['type:id']),
   getAvailableAudioEndpoints: jest.fn(),
-  requestAudioEndpointChange: jest.fn().mockResolvedValue(undefined),
+  requestAudioEndpointChange: jest.fn(),
   setDefaultAudioDeviceEndpointType: jest.fn(),
   addEventListener: jest.fn().mockReturnValue({ remove: jest.fn() }),
   ...overrides,
@@ -54,15 +57,10 @@ const loadCallManager = ({
   jest.isolateModules(() => {
     jest.doMock('react-native', () => ({
       Platform: { OS: os, select: (o: any) => o[os] },
-      NativeModules: {
-        StreamInCallManager: nativeManager,
-        StreamVideoReactNative: {},
-      }, // mock to avoid pulling the video-client / react-native-webrtc runtime into the test
-      NativeEventEmitter: class {
-        addListener() {
-          return { remove: jest.fn() };
-        }
-      },
+    }));
+    jest.doMock('../../src/native/NativeStreamInCallManager', () => ({
+      __esModule: true,
+      default: nativeManager,
     }));
     jest.doMock('../../src/utils/push/libs/callingx', () => ({
       getCallingxLibIfAvailable: () => callingx,
@@ -110,7 +108,7 @@ describe('CallManager Android Telecom branch', () => {
   it('adapts a callingx snapshot to AudioDevicesState', async () => {
     const nativeManager = makeNativeManager();
     const callingx = makeCallingx({
-      getAvailableAudioEndpoints: jest.fn().mockResolvedValue(speakerSnapshot),
+      getAvailableAudioEndpoints: jest.fn().mockReturnValue(speakerSnapshot),
     });
     const { CallManager } = loadCallManager({
       os: 'android',
@@ -135,7 +133,7 @@ describe('CallManager Android Telecom branch', () => {
   it('select routes via Telecom directly by endpoint id', async () => {
     const nativeManager = makeNativeManager();
     const callingx = makeCallingx({
-      getAvailableAudioEndpoints: jest.fn().mockResolvedValue(speakerSnapshot),
+      getAvailableAudioEndpoints: jest.fn().mockReturnValue(speakerSnapshot),
     });
     const { CallManager } = loadCallManager({
       os: 'android',
@@ -155,7 +153,7 @@ describe('CallManager Android Telecom branch', () => {
   it('setForceSpeakerphoneOn(true) routes to the speaker endpoint', async () => {
     const nativeManager = makeNativeManager();
     const callingx = makeCallingx({
-      getAvailableAudioEndpoints: jest.fn().mockResolvedValue(speakerSnapshot),
+      getAvailableAudioEndpoints: jest.fn().mockReturnValue(speakerSnapshot),
     });
     const { CallManager } = loadCallManager({
       os: 'android',
@@ -176,7 +174,7 @@ describe('CallManager Android Telecom branch', () => {
     const nativeManager = makeNativeManager();
     // No wired device present -> should pick bluetooth over earpiece.
     const callingx = makeCallingx({
-      getAvailableAudioEndpoints: jest.fn().mockResolvedValue(speakerSnapshot),
+      getAvailableAudioEndpoints: jest.fn().mockReturnValue(speakerSnapshot),
     });
     const { CallManager } = loadCallManager({
       os: 'android',
@@ -237,7 +235,7 @@ describe('CallManager Android Telecom branch', () => {
   it('addChangeListener subscribes to the signal-only route event and re-fetches state', async () => {
     const nativeManager = makeNativeManager();
     const callingx = makeCallingx({
-      getAvailableAudioEndpoints: jest.fn().mockResolvedValue(speakerSnapshot),
+      getAvailableAudioEndpoints: jest.fn().mockReturnValue(speakerSnapshot),
     });
     const { CallManager } = loadCallManager({
       os: 'android',
@@ -266,5 +264,58 @@ describe('CallManager Android Telecom branch', () => {
       selectedDeviceId: 'spk',
       currentEndpointType: 'Speaker',
     });
+  });
+});
+
+describe('CallManager native events (StreamInCallManager TurboModule)', () => {
+  afterEach(() => {
+    jest.resetModules();
+    delete (globalThis as any).streamRNVideoSDK;
+  });
+
+  it('addChangeListener subscribes to onAudioDeviceChanged and removes it on cleanup', () => {
+    const nativeManager = makeNativeManager();
+    const remove = jest.fn();
+    nativeManager.onAudioDeviceChanged.mockReturnValue({ remove });
+    const { CallManager } = loadCallManager({
+      os: 'android',
+      nativeManager,
+      callingx: undefined,
+    });
+    const onChange = jest.fn();
+    const unsubscribe = new CallManager().audioDevices.addChangeListener(
+      onChange,
+    );
+
+    expect(nativeManager.onAudioDeviceChanged).toHaveBeenCalledTimes(1);
+    const state = { devices: [], currentEndpointType: 'Speaker' };
+    nativeManager.onAudioDeviceChanged.mock.calls[0][0](state);
+    expect(onChange).toHaveBeenCalledWith(state);
+
+    expect(remove).not.toHaveBeenCalled();
+    unsubscribe();
+    expect(remove).toHaveBeenCalledTimes(1);
+  });
+
+  it('addAudioInterruptionListener subscribes to onAudioInterruption and removes it on cleanup (iOS)', () => {
+    const nativeManager = makeNativeManager();
+    const remove = jest.fn();
+    nativeManager.onAudioInterruption.mockReturnValue({ remove });
+    const { CallManager } = loadCallManager({
+      os: 'ios',
+      nativeManager,
+      callingx: undefined,
+    });
+    const onInterruption = jest.fn();
+    const unsubscribe = new CallManager().ios.addAudioInterruptionListener(
+      onInterruption,
+    );
+
+    const event = { source: 'callmanager', phase: 'began' };
+    nativeManager.onAudioInterruption.mock.calls[0][0](event);
+    expect(onInterruption).toHaveBeenCalledWith(event);
+
+    unsubscribe();
+    expect(remove).toHaveBeenCalledTimes(1);
   });
 });

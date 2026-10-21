@@ -10,3 +10,5 @@ export type {
   EmbeddedAnonymousUser,
   LayoutOption,
 } from './types';
+
+export type { StreamThemeMode } from '../components/StreamTheme';

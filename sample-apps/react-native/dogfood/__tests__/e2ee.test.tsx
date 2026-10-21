@@ -20,8 +20,6 @@ jest.mock(
       static isSupported: () => boolean = () => true;
       static create = jest.fn();
     },
-    EncryptionSettingsRequestModeEnum: { AUTO_ON: 'auto-on' },
-    EncryptionSettingsResponseModeEnum: { AUTO_ON: 'auto-on' },
     CallingState: { LEFT: 'left' },
     useCall: () => mockCall,
     useI18n: () => ({ t: (key: string) => key }),

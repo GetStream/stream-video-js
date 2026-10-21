@@ -5,7 +5,6 @@ import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
-import { appTheme } from '../theme';
 import { TextInput } from './TextInput';
 import { isE2EESupported } from '../utils/e2ee';
 import { useAppI18n } from '../hooks/useAppI18n';
@@ -72,12 +71,14 @@ export const E2EEKeyInput = () => {
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          marginTop: appTheme.spacing.lg,
+          marginTop: primitives.spacingLg,
         },
         // The shared TextInput is `flex: 1` for row layouts; in this column it
         // would collapse to zero height.
@@ -85,17 +86,17 @@ const useStyles = () => {
           flex: 0,
         },
         label: {
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           fontSize: 14,
           fontWeight: '500',
-          marginBottom: appTheme.spacing.sm,
+          marginBottom: primitives.spacingSm,
         },
         status: {
-          color: appTheme.colors.light_gray,
+          color: semantics.textSecondary,
           fontSize: 12,
-          marginTop: appTheme.spacing.sm,
+          marginTop: primitives.spacingSm,
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };

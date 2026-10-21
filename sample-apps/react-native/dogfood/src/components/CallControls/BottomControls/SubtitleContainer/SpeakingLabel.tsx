@@ -18,19 +18,20 @@ export const SpeakingLabel = () => {
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
-
+  const {
+    theme: { semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         speakingLabelContainer: {
-          backgroundColor: theme.colors.sheetPrimary,
+          backgroundColor: semantics.backgroundCoreApp,
         },
         label: {
           textAlign: 'center',
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
         },
       }),
-    [theme],
+    [semantics],
   );
 };

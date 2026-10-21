@@ -4,7 +4,6 @@ import {
   CompositeButton,
   Icon,
   OwnCapability,
-  TranscriptionSettingsResponseClosedCaptionModeEnum,
   useCall,
   useCallStateHooks,
   WithTooltip,
@@ -22,8 +21,7 @@ export const ToggleClosedCaptionsButton = () => {
   const canStop = useHasPermissions(OwnCapability.STOP_CLOSED_CAPTIONS_CALL);
   const canToggle = isCaptioned ? canStop : canStart;
   const isClosedCaptionsEnabled =
-    settings?.transcription.closed_caption_mode !==
-    TranscriptionSettingsResponseClosedCaptionModeEnum.DISABLED;
+    settings?.transcription.closed_caption_mode !== 'disabled';
 
   if (!isClosedCaptionsEnabled || (!canStart && !canStop)) return null;
 
@@ -89,7 +87,7 @@ const ClosedCaptionList = (props: { queue: CallClosedCaption[] }) => {
   return queue.map(({ user, text, start_time }) => (
     <p className="rd__closed-captions__line" key={`${user.id}-${start_time}`}>
       <span className="rd__closed-captions__speaker">{user.name}:</span>
-      <span className="rd__closed-captions__text">{text}</span>
+      <span>{text}</span>
     </p>
   ));
 };

@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { useTheme } from '../../../contexts';
+import React, { useEffect, useState } from 'react';
+import { DurationIndicator } from '../../utility/DurationIndicator';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
+  convertTimestampToDate,
   type CallSessionResponse,
   type StreamCallEvent,
 } from '@stream-io/video-client';
@@ -18,23 +18,18 @@ export type DurationBadgeProps = {
  * The HostDurationBadge component displays the duration while the live stream is active.
  */
 export const DurationBadge = ({ mode }: DurationBadgeProps) => {
-  const styles = useStyles();
   const { useCallSession } = useCallStateHooks();
   const session = useCallSession();
 
   const [duration, setDuration] = useState(() => {
-    if (!session || !session.live_started_at) {
+    const liveStartTime = convertTimestampToDate(session?.live_started_at);
+    if (!liveStartTime) {
       return 0;
     }
-    const liveStartTime = new Date(session.live_started_at);
-    const now = new Date();
-    return Math.floor((now.getTime() - liveStartTime.getTime()) / 1000);
+    return Math.floor((Date.now() - liveStartTime.getTime()) / 1000);
   });
 
   const call = useCall();
-  const {
-    theme: { colors, durationBadge },
-  } = useTheme();
 
   // for host
   useEffect(() => {
@@ -115,56 +110,5 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
     }${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
-  return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: colors.sheetTertiary },
-        durationBadge.container,
-      ]}
-    >
-      <View style={[styles.dot, durationBadge.icon]} />
-      <Text
-        style={[
-          styles.label,
-          { color: colors.textPrimary },
-          durationBadge.label,
-        ]}
-      >
-        {formatDuration(duration)}
-      </Text>
-    </View>
-  );
-};
-
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          paddingHorizontal: theme.variants.spacingSizes.sm,
-          paddingVertical: theme.variants.spacingSizes.sm,
-          borderRadius: theme.variants.borderRadiusSizes.sm,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-        dot: {
-          backgroundColor: theme.colors.iconWarning,
-          marginRight: theme.variants.spacingSizes.xs,
-          borderRadius: 90,
-          height: 10,
-          width: 10,
-        },
-        label: {
-          textAlign: 'center',
-          fontSize: theme.variants.fontSizes.md,
-          fontWeight: '600',
-          flexShrink: 1,
-          paddingLeft: theme.variants.spacingSizes.xs,
-        },
-      }),
-    [theme],
-  );
+  return <DurationIndicator duration={formatDuration(duration)} />;
 };

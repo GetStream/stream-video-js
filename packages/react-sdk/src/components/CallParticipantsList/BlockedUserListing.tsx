@@ -21,7 +21,7 @@ const BlockedUserListingItem = ({ userId }: { userId: string }) => {
   const call = useCall();
 
   const unblockUserClickHandler = () => {
-    if (userId) call?.unblockUser(userId);
+    if (userId) call?.unblockUser({ user_id: userId });
   };
 
   return (

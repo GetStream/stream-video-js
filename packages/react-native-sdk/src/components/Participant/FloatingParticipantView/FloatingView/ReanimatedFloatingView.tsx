@@ -55,6 +55,8 @@ try {
     const translationY = useSharedValue(0);
     // we don't want to show the floating view until we have the layout rectangle
     const opacity = useSharedValue(0);
+    // the corner the view is snapped to, kept across container resizes
+    const currentAlignment = useSharedValue(initialAlignment);
     const [rectangle, setRectangle] = React.useState<LayoutRectangle>();
 
     const snapAlignments = useMemo(() => {
@@ -112,16 +114,21 @@ try {
           position,
           snapAlignments,
         });
-        translationX.value = withTiming(closestAlignment.x);
-        translationY.value = withTiming(closestAlignment.y);
+        currentAlignment.value = closestAlignment;
+        translationX.value = withTiming(snapAlignments[closestAlignment].x);
+        translationY.value = withTiming(snapAlignments[closestAlignment].y);
       });
 
-    /* Move to the initial position */
+    useEffect(() => {
+      currentAlignment.value = initialAlignment;
+    }, [initialAlignment, currentAlignment]);
+
+    /* Move to the current alignment, on mount and whenever the container or view resizes */
     useEffect(() => {
       if (!rectangle) {
         return;
       }
-      const alignment = snapAlignments[initialAlignment];
+      const alignment = snapAlignments[currentAlignment.value];
       start.value = alignment;
 
       translationX.value = alignment.x;
@@ -134,6 +141,7 @@ try {
       rectangle,
       snapAlignments,
       initialAlignment,
+      currentAlignment,
       opacity,
       translationX,
       translationY,

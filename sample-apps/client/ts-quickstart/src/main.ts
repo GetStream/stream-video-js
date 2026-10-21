@@ -43,7 +43,7 @@ const client = new StreamVideoClient({
     return token;
   },
   user: { id: userId, name: 'Luke' },
-  options: { logLevel: 'debug' },
+  options: { logOptions: { default: { level: 'debug' } } },
 });
 
 const call = client.call('default', callId);

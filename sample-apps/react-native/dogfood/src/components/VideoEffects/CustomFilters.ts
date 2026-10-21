@@ -6,9 +6,9 @@ import { useRef, useCallback, useState } from 'react';
 
 import { MediaStream } from '@stream-io/react-native-webrtc';
 
-import { NativeModules, Platform } from 'react-native';
+import { Platform } from 'react-native';
 
-const VideoEffectsModule = NativeModules.VideoEffectsModule;
+import NativeVideoEffectsModule from '../../specs/NativeVideoEffectsModule';
 
 const isSupported = Platform.OS === 'android' || Platform.OS === 'ios';
 
@@ -20,12 +20,12 @@ export const useCustomVideoFilters = () => {
   const { disableAllFilters } = useBackgroundFilters();
   const [currentCustomFilter, setCustomFilter] = useState<CustomFilters>();
 
-  const applyGrayScaleFilter = useCallback(async () => {
+  const applyGrayScaleFilter = useCallback(() => {
     if (!isSupported) {
       return;
     }
     if (!isGrayScaleRegisteredRef.current) {
-      await VideoEffectsModule?.registerVideoFilters();
+      NativeVideoEffectsModule.registerVideoFilters();
       isGrayScaleRegisteredRef.current = true;
     }
     disableAllFilters();

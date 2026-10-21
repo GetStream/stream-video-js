@@ -12,15 +12,17 @@ export const AuthenticationProgress = () => {
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
           flex: 1,
-          backgroundColor: theme.colors.sheetPrimary,
+          backgroundColor: semantics.backgroundCoreApp,
         },
       }),
-    [theme],
+    [semantics],
   );
 };

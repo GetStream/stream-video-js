@@ -18,7 +18,7 @@ import { useRouter } from 'next/router';
 import { isAndroid, isIOS, isSafari } from 'mobile-device-detect';
 
 import { DisabledVideoPreview } from './DisabledVideoPreview';
-import { LatencyMap } from './LatencyMap/LatencyMap';
+import { LatencyMap } from './LatencyMap';
 import { MobileAppBanner } from './MobileAppBanner';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { ToggleEffectsButton } from './ToggleEffectsButton';
@@ -36,6 +36,7 @@ import {
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
 import { useLobbyE2EE } from '../context/LobbyE2EEContext';
+import { useSettings } from '../context/SettingsContext';
 import { isCallEncrypted } from '../lib/e2ee';
 import { getRandomName } from '../lib/names';
 import { ToggleNoiseCancellationButton } from './ToggleNoiseCancellationButton';
@@ -67,6 +68,9 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const callSession = useCallSession();
   const members = useCallMembers();
   const settings = useCallSettings();
+  const {
+    settings: { speakingDetectionEnabled },
+  } = useSettings();
   const currentUser = useConnectedUser();
   const isProntoEnvironment = useIsProntoEnvironment();
   const isDemoEnvironment = useIsDemoEnvironment();
@@ -168,7 +172,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                   <div className="rd__lobby-video-preview">
                     {settings?.video.enabled ? (
                       <VideoPreview
-                        speakingIndicatorVisible
+                        speakingIndicatorVisible={speakingDetectionEnabled}
                         DisabledVideoPreview={
                           hasBrowserMediaPermission
                             ? DisabledVideoPreview
@@ -181,10 +185,10 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                     <div className="rd__lobby-media-toggle">
                       <MicCaptureErrorNotification placement="top">
                         <ToggleAudioPreviewButton Menu={null} />
+                        {settings?.video.enabled && (
+                          <ToggleVideoPreviewButton Menu={null} />
+                        )}
                       </MicCaptureErrorNotification>
-                      {settings?.video.enabled && (
-                        <ToggleVideoPreviewButton Menu={null} />
-                      )}
                     </div>
                   </div>
                   <div className="rd__lobby-controls">
@@ -224,7 +228,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                   width={36}
                   height={24}
                 />
-                <p className="rd__lobby-edge-network__description">
+                <p>
                   You are about to {hasOtherParticipants ? 'join' : 'start '} a
                   private test call via Stream. Once you{' '}
                   {hasOtherParticipants ? 'join' : 'start '} the call, you can
@@ -250,10 +254,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
               call.type === 'restricted' &&
               !isCurrentUserCallMember ? (
                 <button
-                  className={clsx(
-                    'rd__button rd__button--primary rd__button--large rd__lobby-join',
-                    isRequestToJoinCallSent && 'rd__button--disabled',
-                  )}
+                  className="rd__button rd__button--primary rd__button--large rd__lobby-join"
                   type="button"
                   data-testid="request-join-call-button"
                   disabled={isRequestToJoinCallSent}

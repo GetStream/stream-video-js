@@ -6,6 +6,7 @@ import {
   type Call,
   type StreamVideoClient,
 } from '@stream-io/video-react-sdk';
+import { useSettings } from '../../context/SettingsContext';
 import { PreCallTest } from './PreCallTest';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import { getClient } from '../../helpers/client';
@@ -20,6 +21,9 @@ export const PreCallTestApp = ({
   const environment = useAppEnvironment();
   const [client, setClient] = useState<StreamVideoClient>();
   const [call, setCall] = useState<Call>();
+  const {
+    settings: { themeMode },
+  } = useSettings();
 
   useEffect(() => {
     const _client = getClient({ apiKey, user, userToken }, environment);
@@ -52,7 +56,7 @@ export const PreCallTestApp = ({
   }
 
   return (
-    <StreamTheme className="rd__pre-call-test-theme">
+    <StreamTheme className="rd__pre-call-test-theme" theme={themeMode}>
       <div className="rd__pre-call-test-page">
         <StreamVideo client={client}>
           <StreamCall call={call}>

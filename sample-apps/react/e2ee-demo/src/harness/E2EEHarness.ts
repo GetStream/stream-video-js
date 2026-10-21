@@ -3,7 +3,7 @@ import {
   EncryptionManager,
   StreamVideoClient,
   type Call,
-  type EncryptionSettingsResponseModeEnum,
+  type EncryptionSettingsResponse,
   type KeyStateReport,
   type PerfReport,
 } from '@stream-io/video-react-sdk';
@@ -74,7 +74,7 @@ export const defaultDeps = (): HarnessDeps => ({
       token,
       // Debug level surfaces the SDK's "E2EE encryptor attached to sender" line
       // and any worker errors, which is most of the point of this harness.
-      options: { logLevel: 'debug' },
+      options: { logOptions: { default: { level: 'debug' } } },
       tokenProvider: () => fetchCredentials(userId).then((c) => c.token),
     }),
   createManager: (userId) => EncryptionManager.create(userId),
@@ -114,7 +114,7 @@ export class E2EEHarness {
   private activeSharedKeyIndex = -1;
   private sharedKeyBytes: ArrayBuffer | null = null;
   private resolvedEncryptionMode:
-    EncryptionSettingsResponseModeEnum | undefined;
+    EncryptionSettingsResponse['mode'] | undefined;
   private e2eeEnabled = false;
 
   constructor(

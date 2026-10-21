@@ -6,17 +6,22 @@ import {
   ToggleAudioPublishingButton,
   useI18n,
 } from '@stream-io/video-react-sdk';
+import { useSettings } from '../context/SettingsContext';
 
 export const ToggleDualMicButton = () => {
   const { t } = useI18n();
+  const {
+    settings: { speakingDetectionEnabled },
+  } = useSettings();
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]} hasPermissionsOnly>
-      <div className="rd__dual-toggle">
+      <div>
         <ToggleAudioPublishingButton
           Menu={
             <>
               <DeviceSelectorAudioInput
                 visualType="list"
+                volumeIndicatorVisible={speakingDetectionEnabled}
                 title={t('common.microphone.label', 'Microphone')}
               />
               <DeviceSelectorAudioOutput

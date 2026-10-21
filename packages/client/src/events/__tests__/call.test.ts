@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 import { describe, expect, it, vi } from 'vitest';
 import { CallingState, ClientState } from '../../store';
 import { watchCallEnded, watchSfuCallEnded } from '../call';
@@ -11,6 +13,9 @@ import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
 import { SfuEvent } from '../../gen/video/sfu/event/events';
 import { CallEndedReason } from '../../gen/video/sfu/models/models';
+import type { StreamResponse } from '../../coordinator/connection/api-client';
+import { fromPartial } from '@total-typescript/shoehorn';
+import { msToNs } from '../../helpers/time';
 
 describe('Call lifecycle events', () => {
   describe(`call.ended`, () => {
@@ -140,7 +145,7 @@ describe('Call lifecycle events', () => {
         .spyOn(call, 'reject')
         .mockImplementation(async () => {
           console.log('TEST: reject() called');
-          return {} as RejectCallResponse;
+          return fromPartial<StreamResponse<RejectCallResponse>>({});
         });
 
       await call.leave({ reject: false });
@@ -155,7 +160,7 @@ describe('Call lifecycle events', () => {
         .spyOn(call, 'reject')
         .mockImplementation(async () => {
           console.log('TEST: reject() called');
-          return {} as RejectCallResponse;
+          return fromPartial<StreamResponse<RejectCallResponse>>({});
         });
 
       await call.leave({ reject: true });
@@ -169,8 +174,8 @@ const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
   const store = new ClientState();
   store.setConnectedUser({
     id: currentUserId,
-    created_at: '',
-    updated_at: '',
+    created_at: msToNs(0),
+    updated_at: msToNs(0),
     role: '',
     custom: {},
     teams: [],
@@ -184,6 +189,7 @@ const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
     clientState: store,
     streamClient: client,
     clientEventReporter: new ClientEventReporter({ streamClient: client }),
+    videoApi: new VideoApi(new ApiClient(client)),
     ringing: ring,
   });
 };

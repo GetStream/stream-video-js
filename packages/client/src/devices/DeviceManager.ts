@@ -298,6 +298,7 @@ export abstract class DeviceManager<
         : (forceStopOrOptions?.forceStop ?? false);
 
     this.state.prevStatus = this.state.optimisticStatus;
+    this.state.setError(undefined);
     if (!forceStop && this.state.optimisticStatus === 'disabled') {
       return;
     }
@@ -310,6 +311,7 @@ export abstract class DeviceManager<
           forceStop || this.state.disableMode === 'stop-tracks';
         await this.muteStream(stopTracks);
         this.state.setStatus('disabled');
+        this.state.setError(undefined);
       } finally {
         if (!signal.aborted) {
           this.state.setPendingStatus(this.state.status);
@@ -638,7 +640,11 @@ export abstract class DeviceManager<
 
       // the rootStream represents the stream coming from the actual device
       // e.g. camera or microphone stream
+      this.state.setError(undefined);
       rootStreamPromise = this.getSelectedStream(constraints as C);
+      rootStreamPromise.catch((error) => {
+        this.state.setError(error);
+      });
       // we publish the last MediaStream of the chain
       stream = await this.filters.reduce(
         (parent, entry) =>
@@ -666,6 +672,9 @@ export abstract class DeviceManager<
       this.state.setMediaStream(stream, rootStream);
       if (rootStream) {
         const handleTrackEnded = async () => {
+          this.call.tracer.trace('navigator.mediaDevices.trackEnded', {
+            trackType: TrackType[this.trackType],
+          });
           this.setLocalInterrupted(false);
           await this.statusChangeSettled();
           if (this.enabled) {
@@ -837,10 +846,29 @@ export abstract class DeviceManager<
     const devices = getCurrentValue(this.listDevices()) || [];
     const currentDevice =
       this.findDevice(devices, selectedDevice) ??
-      createSyntheticDevice(selectedDevice, deviceKind);
+      createSyntheticDevice(
+        selectedDevice,
+        deviceKind,
+        this.getActiveTrackLabel(selectedDevice),
+      );
 
     writePreferences(currentDevice, deviceKey, muted, storageKey);
   }
+
+  /**
+   * Returns the label of the active track if it was captured from the given
+   * device. Used as a fallback when the device list hasn't been enumerated yet,
+   * so the persisted preference still carries the device label.
+   */
+  private getActiveTrackLabel = (deviceId: string) => {
+    const stream = this.state.rootMediaStream;
+    const tracks =
+      this.trackType === TrackType.AUDIO
+        ? stream?.getAudioTracks()
+        : stream?.getVideoTracks();
+    const track = tracks?.find((t) => t.getSettings().deviceId === deviceId);
+    return track?.label;
+  };
 
   protected async applyPersistedPreferences(
     enabledInCallType: boolean,

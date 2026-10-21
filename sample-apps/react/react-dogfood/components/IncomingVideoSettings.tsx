@@ -113,7 +113,11 @@ export const IncomingVideoSettingsButton = () => {
         <Icon icon="sliders-fill" />
         {shortQualityLabel(t, currentSetting)}
       </span>
-      <MenuToggle placement="top" ToggleButton={QualityControlCaret}>
+      <MenuToggle
+        placement="top"
+        offset={16}
+        ToggleButton={QualityControlCaret}
+      >
         <IncomingVideoSettingsMenu value={currentSetting} onChange={onChange} />
       </MenuToggle>
     </div>

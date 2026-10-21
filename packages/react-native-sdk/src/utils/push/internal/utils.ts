@@ -19,7 +19,7 @@ type CanAddPushWSSubscriptionsRef = { current: boolean };
 
 /**
  * This function is used to check if the call should be ended based on the push notification
- * Useful for callkeep management to end the call if necessary (with reportEndCallWithUUID)
+ * Used to end the CallKit/Telecom call (through callingx) if necessary.
  */
 export const shouldCallBeEnded = (
   callFromPush: Call,
@@ -62,7 +62,7 @@ export const shouldCallBeEnded = (
   return { mustEndCall, endCallReason };
 };
 
-/* An action for the notification or callkeep and app does not have JS context setup yet, so we need to do two steps:
+/* An action from the incoming-call UI arrived before the app has its JS context set up, so we need to do two steps:
   1. we need to create a new client and connect the user to decline the call
   2. this is because the app is in background state and we don't have a client to get the call and do an action
 */
@@ -94,18 +94,18 @@ export const processCallFromPushInBackground = async (
     return;
   }
 
-  let callFromPush: Call;
-  try {
-    callFromPush = await videoClient.onRingingCall(call_cid);
-  } catch (e) {
-    logger.error(
-      'processCallFromPushInBackground: failed to fetch call from push notification',
-      e,
-    );
-    onIOSActionCanBeFulfilled(true);
-    return;
-  }
   if (action === 'accept') {
+    let callFromPush: Call;
+    try {
+      callFromPush = await videoClient.onRingingCall(call_cid);
+    } catch (e) {
+      logger.error(
+        'processCallFromPushInBackground: failed to fetch call from push notification',
+        e,
+      );
+      onIOSActionCanBeFulfilled(true);
+      return;
+    }
     if (pushConfig.publishOptions) {
       callFromPush.updatePublishOptions(pushConfig.publishOptions);
     }
@@ -137,6 +137,24 @@ export const processCallFromPushInBackground = async (
       onIOSActionCanBeFulfilled(true);
     }
   } else if (action === 'decline') {
+    let callFromPush: Call;
+    try {
+      // decline must act on the live instance if one exists (e.g. an active non-ringing call),
+      // onRingingCall only matches ringing calls and would create a duplicate instance otherwise
+      const existingCall = videoClient.state.calls.find(
+        (c) => c.cid === call_cid && c.state.callingState !== CallingState.LEFT,
+      );
+      callFromPush =
+        existingCall ?? (await videoClient.onRingingCall(call_cid));
+    } catch (e) {
+      logger.error(
+        'processCallFromPushInBackground: failed to fetch call from push notification',
+        e,
+      );
+      onIOSActionCanBeFulfilled(true);
+      return;
+    }
+
     const alreadyLeft = callFromPush.state.callingState === CallingState.LEFT;
     if (alreadyLeft) {
       onIOSActionCanBeFulfilled(false);

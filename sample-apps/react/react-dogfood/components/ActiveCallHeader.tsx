@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  convertTimestampToDate,
   CallingState,
   CancelCallConfirmButton,
   humanize,
@@ -7,6 +8,7 @@ import {
   Notification,
   useCallStateHooks,
   WithTooltip,
+  TimestampNS,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 
@@ -44,11 +46,11 @@ const LatencyIndicator = () => {
   );
 };
 
-const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
+const Elapsed = ({ startedAt }: { startedAt: TimestampNS | undefined }) => {
   const [elapsed, setElapsed] = useState<string>();
   const startedAtDate = useMemo(
     // eslint-disable-next-line react-hooks/purity
-    () => (startedAt ? new Date(startedAt).getTime() : Date.now()),
+    () => convertTimestampToDate(startedAt)?.getTime() ?? Date.now(),
     [startedAt],
   );
   useEffect(() => {
@@ -70,7 +72,7 @@ const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
   return (
     <div className="rd__header__elapsed">
       <Icon className="rd__header__elapsed-icon" icon="verified" />
-      <div className="rd__header__elapsed-time">
+      <div>
         <span className="rd__header__elapsed-time__lead">
           {elapsed?.slice(0, elapsed.lastIndexOf(':') + 1)}
         </span>

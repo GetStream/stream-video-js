@@ -18,7 +18,7 @@ export default function Stats(props: ServerSideCredentialsProps) {
     const useLocalCoordinator =
       router.query['use_local_coordinator'] === 'true';
     const coordinatorUrl = useLocalCoordinator
-      ? 'http://localhost:3030/video'
+      ? 'http://localhost:3030'
       : (router.query['coordinator_url'] as string | undefined);
     const callSessionId = router.query['call_session_id'] as string | undefined;
     const _client = getClient(

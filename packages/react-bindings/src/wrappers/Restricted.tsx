@@ -1,7 +1,4 @@
-import {
-  OwnCapability,
-  RequestPermissionRequestPermissionsEnum,
-} from '@stream-io/video-client';
+import { OwnCapability } from '@stream-io/video-client';
 
 import { PropsWithChildren } from 'react';
 import { useCall } from '../contexts';
@@ -45,10 +42,7 @@ export const Restricted = ({
   if (hasPermissionsOnly) return hasPermissions ? <>{children}</> : null;
 
   const canRequest = requiredGrants.some((capability) =>
-    call?.permissionsContext.canRequest(
-      capability as RequestPermissionRequestPermissionsEnum,
-      settings,
-    ),
+    call?.permissionsContext.canRequest(capability, settings),
   );
 
   if (canRequestOnly) return canRequest ? <>{children}</> : null;

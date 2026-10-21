@@ -112,7 +112,10 @@ export type TranslationCatalog = {
   'lobby.join.label': 'Join';
   'lobby.setUpYourCall.title': 'Set up your call before joining';
   'lobby.videoPreviewFallbacks.grantBrowserPermission.text': 'Please grant your browser permission to access your camera and microphone.';
-  'notification.micCaptureError.text': 'Your microphone is not capturing audio. Please check your setup.';
+  'notification.cameraUnavailable.description': 'Close other apps that might be using your camera and try again.';
+  'notification.cameraUnavailable.title': 'Camera unavailable';
+  'notification.micCaptureError.description': 'Please check your setup.';
+  'notification.micCaptureError.title': 'Your microphone is not capturing audio.';
   'notification.recordingInProgress.text': 'Recording in progress...';
   'notification.speakingWhileMuted.text': 'You are muted. Unmute to speak.';
   'participantList.anonymousCount.text': ', and ({{ anonymousCount }}) anonymous';

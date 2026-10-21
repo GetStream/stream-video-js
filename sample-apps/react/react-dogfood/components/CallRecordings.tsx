@@ -15,7 +15,7 @@ export const CallRecordings = () => {
   const fetchCallRecordings = useCallback(() => {
     if (!call) return;
     call
-      .queryRecordings()
+      .listRecordings()
       .then(({ recordings }) => {
         setCallRecordings(recordings);
         setLoadingCallRecordings(false);

@@ -6,5 +6,6 @@
       "@stream-io/video-filters-react-native": ["./src/index"]
     },
     "verbatimModuleSyntax": true
-  }
+  },
+  "include": ["src"]
 }

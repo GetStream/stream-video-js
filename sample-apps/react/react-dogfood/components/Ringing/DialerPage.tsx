@@ -59,7 +59,7 @@ export const DialerPage = ({
   const pinnedCallId = router.query['call_id'] as string | undefined;
   const useLocalCoordinator = router.query['use_local_coordinator'] === 'true';
   const coordinatorUrl = useLocalCoordinator
-    ? 'http://localhost:3030/video'
+    ? 'http://localhost:3030'
     : (router.query['coordinator_url'] as string | undefined);
   const [userIds, setUserIds] = useState(['']);
   const [ringingCall, setRingingCall] = useState<Call | undefined>(undefined);
@@ -267,9 +267,7 @@ export const DialerPage = ({
               state="error"
               isVisible={!!error}
               close={handleClearError}
-              message={
-                <div className="rd__dialer-notification">{error?.message}</div>
-              }
+              message={<div>{error?.message}</div>}
               placement="top-end"
             />
           </div>

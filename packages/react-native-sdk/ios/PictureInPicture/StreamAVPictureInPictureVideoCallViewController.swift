@@ -4,6 +4,7 @@
 
 import AVKit
 import Foundation
+import WebRTC
 
 /// Describes an object that can be used to present picture-in-picture content.
 protocol StreamAVPictureInPictureViewControlling: AnyObject {
@@ -74,7 +75,6 @@ protocol StreamAVPictureInPictureViewControlling: AnyObject {
     var content: PictureInPictureContent { get set }
 }
 
-@available(iOS 15.0, *)
 final class StreamAVPictureInPictureVideoCallViewController: AVPictureInPictureVideoCallViewController,
                                                              StreamAVPictureInPictureViewControlling {
 

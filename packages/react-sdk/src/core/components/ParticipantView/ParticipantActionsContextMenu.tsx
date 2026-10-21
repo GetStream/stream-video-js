@@ -7,8 +7,6 @@ import {
   hasScreenShareAudio,
   hasVideo,
   OwnCapability,
-  UpdateUserPermissionsRequestGrantPermissionsEnum,
-  UpdateUserPermissionsRequestRevokePermissionsEnum,
 } from '@stream-io/video-client';
 import { useParticipantViewContext } from './ParticipantViewContext';
 import {
@@ -37,7 +35,7 @@ export const ParticipantActionsContextMenu = () => {
   const hasScreenShareTrack = hasScreenShare(participant);
   const hasScreenShareAudioTrack = hasScreenShareAudio(participant);
 
-  const blockUser = () => call?.blockUser(userId);
+  const blockUser = () => call?.blockUser({ user_id: userId });
   const kickUser = () => call?.kickUser({ user_id: userId });
   const muteAudio = () => call?.muteUser(userId, 'audio');
   const muteVideo = () => call?.muteUser(userId, 'video');
@@ -45,21 +43,19 @@ export const ParticipantActionsContextMenu = () => {
   const muteScreenShareAudio = () =>
     call?.muteUser(userId, 'screenshare_audio');
 
-  const grantPermission =
-    (permission: UpdateUserPermissionsRequestGrantPermissionsEnum) => () => {
-      call?.updateUserPermissions({
-        user_id: userId,
-        grant_permissions: [permission],
-      });
-    };
+  const grantPermission = (permission: OwnCapability) => () => {
+    call?.updateUserPermissions({
+      user_id: userId,
+      grant_permissions: [permission],
+    });
+  };
 
-  const revokePermission =
-    (permission: UpdateUserPermissionsRequestRevokePermissionsEnum) => () => {
-      call?.updateUserPermissions({
-        user_id: userId,
-        revoke_permissions: [permission],
-      });
-    };
+  const revokePermission = (permission: OwnCapability) => () => {
+    call?.updateUserPermissions({
+      user_id: userId,
+      revoke_permissions: [permission],
+    });
+  };
 
   const toggleParticipantPin = () => {
     if (pin) {

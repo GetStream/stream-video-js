@@ -1,76 +1,55 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   CallContent,
   NoiseCancellationProvider,
-  StreamTheme,
   useCall,
-  useIsInPiPMode,
   useModeration,
   useTheme,
-  useToggleCallRecording,
   BackgroundFiltersProvider,
+  useIsInPiPMode,
 } from '@stream-io/video-react-native-sdk';
 import {
   ActivityIndicator,
   Alert,
-  StatusBar,
   StyleSheet,
-  View,
+  useWindowDimensions,
 } from 'react-native';
-import { ParticipantsInfoListModal } from './ParticipantsInfoListModal';
 import { E2EEKeyNotification } from './E2EEKeyNotification';
 import { BottomControls } from './CallControls/BottomControls';
+import { CustomTopBar } from './CallControls/TopControls/CustomTopBar';
 import { useOrientation } from '../hooks/useOrientation';
-import { Z_INDEX } from '../constants';
-import { TopControls } from './CallControls/TopControls';
+import { FoldAwareCallArea } from './FoldAwareCallArea';
+import { FoldAwareTopBar } from '../contexts/FoldAwareBarLayoutContext';
+import { useFoldDivision } from '../hooks/useFoldDivision';
 import { useLayout } from '../contexts/LayoutContext';
-import { useAppGlobalStoreValue } from '../contexts/AppContext';
-import DeviceInfo from 'react-native-device-info';
 import Toast from 'react-native-toast-message';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+// Windows shorter than this use the landscape layout (controls on the side).
+// Taller windows, such as tablets or a large foldable display, keep the
+// stacked layout even when wider than tall.
+const LANDSCAPE_LAYOUT_MAX_HEIGHT = 500;
 
 type ActiveCallProps = {
   onHangupCallHandler?: () => void;
   onCallEnded: () => void;
-  onChatOpenHandler: (() => void) | null;
-};
-
-// Since we are adding CustomTopControls, we need to override the callContent container paddingTop to 0
-const CustomCallContentThemeOverride = ({
-  children,
-}: React.PropsWithChildren<{}>) => {
-  const { theme } = useTheme();
-  const customTheme = {
-    ...theme,
-    callContent: {
-      ...theme.callContent,
-      container: {
-        ...theme.callContent.container,
-        paddingTop: 0,
-      },
-    },
-  };
-  return <StreamTheme theme={customTheme}>{children}</StreamTheme>;
 };
 
 export const ActiveCall = ({
-  onChatOpenHandler,
   onHangupCallHandler,
   onCallEnded,
 }: ActiveCallProps) => {
-  const [isCallParticipantsVisible, setIsCallParticipantsVisible] =
-    useState<boolean>(false);
   const call = useCall();
   const styles = useStyles();
   const { selectedLayout } = useLayout();
-  const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
   const isInPiPMode = useIsInPiPMode();
   const currentOrientation = useOrientation();
-  const isTablet = DeviceInfo.isTablet();
-  const isLandscape = !isTablet && currentOrientation === 'landscape';
-
-  const onOpenCallParticipantsInfo = useCallback(() => {
-    setIsCallParticipantsVisible(true);
-  }, []);
+  const { height: windowHeight } = useWindowDimensions();
+  const isLandscape =
+    currentOrientation === 'landscape' &&
+    windowHeight < LANDSCAPE_LAYOUT_MAX_HEIGHT;
+  // on a foldable, keep the grid split at the hinge
+  const hasHinge = !!useFoldDivision();
 
   useEffect(() => {
     return call?.on('call.moderation_warning', (event) => {
@@ -99,37 +78,6 @@ export const ActiveCall = ({
     });
   }, [call, onCallEnded]);
 
-  const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
-    useToggleCallRecording();
-
-  const CustomBottomControls = useCallback(() => {
-    return (
-      <BottomControls
-        onParticipantInfoPress={onOpenCallParticipantsInfo}
-        onChatOpenHandler={onChatOpenHandler}
-        toggleCallRecording={toggleCallRecording}
-        isCallRecordingInProgress={isCallRecordingInProgress}
-        isAwaitingResponse={isAwaitingResponse}
-      />
-    );
-  }, [
-    onChatOpenHandler,
-    onOpenCallParticipantsInfo,
-    toggleCallRecording,
-    isAwaitingResponse,
-    isCallRecordingInProgress,
-  ]);
-
-  const CustomTopControls = useCallback(() => {
-    return (
-      <TopControls
-        isAwaitingResponse={isAwaitingResponse}
-        isCallRecordingInProgress={isCallRecordingInProgress}
-        onHangupCallHandler={onHangupCallHandler}
-      />
-    );
-  }, [isAwaitingResponse, isCallRecordingInProgress, onHangupCallHandler]);
-
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
@@ -137,76 +85,43 @@ export const ActiveCall = ({
   return (
     <BackgroundFiltersProvider>
       <NoiseCancellationProvider>
-        <View style={styles.container}>
-          <StatusBar
-            barStyle={themeMode === 'light' ? 'dark-content' : 'light-content'}
-          />
-          {!isInPiPMode && <CustomTopControls />}
-          {!isInPiPMode && <E2EEKeyNotification />}
-          <CustomCallContentThemeOverride>
+        <SafeAreaView style={styles.container}>
+          <FoldAwareCallArea>
+            <FoldAwareTopBar>
+              {/* {!isInPiPMode && <CustomTopControls />} */}
+              {!isInPiPMode && <E2EEKeyNotification />}
+            </FoldAwareTopBar>
             <CallContent
               iOSPiPIncludeLocalParticipantVideo
-              onHangupCallHandler={onHangupCallHandler}
-              CallControls={CustomBottomControls}
+              CallAppBar={CustomTopBar}
+              CallControls={BottomControls}
               landscape={isLandscape}
               layout={selectedLayout}
+              evenGridColumns={hasHinge}
+              onHangupPressHandler={onHangupCallHandler}
             />
-          </CustomCallContentThemeOverride>
-          <ParticipantsInfoListModal
-            isCallParticipantsInfoVisible={isCallParticipantsVisible}
-            setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
-          />
-        </View>
+          </FoldAwareCallArea>
+        </SafeAreaView>
       </NoiseCancellationProvider>
     </BackgroundFiltersProvider>
   );
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
           flex: 1,
-          paddingTop: theme.variants.insets.top,
-          backgroundColor: theme.colors.sheetPrimary,
+          backgroundColor: semantics.backgroundCoreApp,
         },
-        callContent: { flex: 1 },
-        topUnsafeArea: {
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: theme.variants.insets.top,
-          backgroundColor: theme.colors.sheetPrimary,
-          zIndex: Z_INDEX.IN_FRONT,
-        },
-        bottomUnsafeArea: {
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: theme.variants.insets.bottom,
-          backgroundColor: theme.colors.sheetPrimary,
-        },
-        leftUnsafeArea: {
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          left: 0,
-          width: theme.variants.insets.left,
-          backgroundColor: theme.colors.sheetPrimary,
-        },
-        rightUnsafeArea: {
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          right: 0,
-          width: theme.variants.insets.right,
-          backgroundColor: theme.colors.sheetPrimary,
+        callContent: {
+          flex: 1,
         },
       }),
-    [theme],
+    [semantics],
   );
 };

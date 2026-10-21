@@ -13,23 +13,20 @@ import android.util.Log
 import android.util.Rational
 import androidx.annotation.RequiresApi
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.streamvideo.reactnative.StreamVideoReactNative
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 object PiPHelper {
     private const val NAME = "StreamVideoReactNative"
-    private const val PIP_CHANGE_EVENT =  NAME + "_PIP_CHANGE_EVENT"
 
     fun onPiPChange(
         reactApplicationContext: ReactApplicationContext,
         isInPictureInPictureMode: Boolean,
-        newConfig: Configuration
+        newConfig: Configuration,
+        emitPiPChange: (Boolean) -> Unit,
     ) {
-        // Send event to JavaScript
-        reactApplicationContext.getJSModule(
-            RCTDeviceEventEmitter::class.java
-        ).emit(PIP_CHANGE_EVENT, isInPictureInPictureMode)
+        // Send event to JavaScript (through the live module instance)
+        emitPiPChange(isInPictureInPictureMode)
         // inform activity
         reactApplicationContext.currentActivity?.let { activity ->
             if (isInPictureInPictureMode && hasPiPSupport(reactApplicationContext)) {

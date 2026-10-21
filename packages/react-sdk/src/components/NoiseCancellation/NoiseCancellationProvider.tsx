@@ -7,10 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import {
-  NoiseCancellationSettingsModeEnum,
-  OwnCapability,
-} from '@stream-io/video-client';
+import { OwnCapability } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 
@@ -81,8 +78,7 @@ export const NoiseCancellationProvider = (
   const noiseCancellationAllowed = !!(
     settings &&
     settings.audio.noise_cancellation &&
-    settings.audio.noise_cancellation.mode !==
-      NoiseCancellationSettingsModeEnum.DISABLED
+    settings.audio.noise_cancellation.mode !== 'disabled'
   );
 
   const hasCapability = useHasPermissions(

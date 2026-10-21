@@ -106,6 +106,14 @@ $scope-name: 'str-video__participant-view';
     }
   }
 
+  .str-video__notification {
+    max-width: min(
+      var(--str-video__size-480),
+      calc(100% - 2 * var(--str-video__space-8))
+    );
+    padding-inline: var(--str-video__spacing-xs);
+  }
+
   .str-video__connection-quality-indicator {
     position: absolute;
     inset: auto var(--str-video__space-8) var(--str-video__space-8) auto;

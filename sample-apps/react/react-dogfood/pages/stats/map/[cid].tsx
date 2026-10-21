@@ -33,16 +33,14 @@ export default function MapStats(props: ServerSideCredentialsProps) {
     (async () => {
       try {
         await _call.get();
-        const stats = await _call.getCallStatsMap(
-          {
-            start_time,
-            end_time,
-            exclude_publishers: exclude_publishers === 'true',
-            exclude_subscribers: exclude_subscribers === 'true',
-            exclude_sfus: exclude_sfus === 'true',
-          },
-          callSessionId,
-        );
+        const stats = await _call.getCallStatsMap({
+          session: callSessionId,
+          start_time: start_time ? new Date(start_time) : undefined,
+          end_time: end_time ? new Date(end_time) : undefined,
+          exclude_publishers: exclude_publishers === 'true',
+          exclude_subscribers: exclude_subscribers === 'true',
+          exclude_sfus: exclude_sfus === 'true',
+        });
         console.log('Call participants stats:', stats);
         setData(stats);
       } catch (err) {

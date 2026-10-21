@@ -135,7 +135,7 @@ const CustomParticipantActionsContextMenu = () => {
     document.pictureInPictureElement,
   );
 
-  const blockUser = () => call?.blockUser(userId);
+  const blockUser = () => call?.blockUser({ user_id: userId });
   const kickUser = () => call?.kickUser({ user_id: userId });
   const muteAudio = () => call?.muteUser(userId, 'audio');
   const muteVideo = () => call?.muteUser(userId, 'video');

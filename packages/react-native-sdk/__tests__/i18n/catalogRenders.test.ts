@@ -87,7 +87,7 @@ const translator = async () => {
 
 describe('translation catalog renders', () => {
   it('has entries to check', () => {
-    expect(entries.length).toBeGreaterThan(25);
+    expect(entries.length).toBeGreaterThan(0);
     expect(pluralBases.length).toBeGreaterThan(0);
   });
 

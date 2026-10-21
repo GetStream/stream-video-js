@@ -46,13 +46,4 @@
     width: 70%;
     text-align: center;
   }
-
-  &__participants-preview__call-preview {
-    display: flex;
-    flex-direction: column;
-    background-color: var(--str-video__background-core-surface-default);
-    border-radius: 0 var(--str-video__radius-3xl) var(--str-video__radius-3xl) 0;
-    padding: var(--str-video__spacing-sm);
-    width: 100%;
-  }
 }

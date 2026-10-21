@@ -1,4 +1,4 @@
-import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import type {
   AudioDeviceEndpointType,
   AudioDevicesState,
@@ -11,11 +11,9 @@ import type {
 } from '@stream-io/react-native-callingx';
 import { videoLoggerSystem } from '@stream-io/video-client';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs';
+import NativeManager from '../../native/NativeStreamInCallManager';
 
-const NativeManager = NativeModules.StreamInCallManager;
 const CallingxModule = getCallingxLibIfAvailable();
-const AUDIO_INTERRUPTION_EVENT = 'StreamInCallManagerAudioInterruption';
-const AUDIO_DEVICE_CHANGED_EVENT = 'onAudioDeviceChanged';
 
 const invariant = (condition: boolean, message: string) => {
   if (!condition) throw new Error(message);
@@ -103,7 +101,6 @@ const snapshotToState = (
  * Cross-platform audio output device picker.
  */
 class AudioDevicesManager {
-  private eventEmitter?: NativeEventEmitter;
   private interruptionReassertSetup = false;
 
   /**
@@ -134,7 +131,7 @@ class AudioDevicesManager {
     // Android Telecom owns routing: read the endpoint snapshot from callingx.
     const tc = getTelecomContext();
     if (tc) {
-      const snapshot = await tc.cx.getAvailableAudioEndpoints(tc.callId);
+      const snapshot = tc.cx.getAvailableAudioEndpoints(tc.callId);
       return snapshotToState(snapshot);
     }
     return NativeManager.getAudioDeviceStatus();
@@ -151,14 +148,16 @@ class AudioDevicesManager {
     const tc = getTelecomContext();
     if (tc) {
       const { cx, callId } = tc;
-      cx.requestAudioEndpointChange(callId, deviceId).catch((error) => {
+      try {
+        cx.requestAudioEndpointChange(callId, deviceId);
+      } catch (error) {
         videoLoggerSystem
           .getLogger('CallManager')
           .warn(
             `select: failed to route to "${deviceId}" for call ${callId} via Telecom`,
             error,
           );
-      });
+      }
       return;
     }
     this.ensureInterruptionReassert();
@@ -200,12 +199,7 @@ class AudioDevicesManager {
     }
 
     // SDK-managed route changes (non-callingx calls).
-    this.eventEmitter =
-      this.eventEmitter ?? new NativeEventEmitter(NativeManager);
-    const sdkSub = this.eventEmitter.addListener(
-      AUDIO_DEVICE_CHANGED_EVENT,
-      onChange,
-    );
+    const sdkSub = NativeManager.onAudioDeviceChanged(onChange);
     unsubscribes.push(() => sdkSub.remove());
 
     return () => {
@@ -216,8 +210,6 @@ class AudioDevicesManager {
 }
 
 class IOSCallManager {
-  private eventEmitter?: NativeEventEmitter;
-
   /**
    * Will trigger the iOS device selector.
    */
@@ -235,10 +227,8 @@ class IOSCallManager {
     onInterruption: (event: IOSAudioInterruptionEvent) => void,
   ): (() => void) => {
     invariant(Platform.OS === 'ios', 'Supported only on iOS');
-    this.eventEmitter ??= new NativeEventEmitter(NativeManager);
-    const s = this.eventEmitter.addListener(
-      AUDIO_INTERRUPTION_EVENT,
-      onInterruption,
+    const s = NativeManager.onAudioInterruption((event) =>
+      onInterruption(event as IOSAudioInterruptionEvent),
     );
     return () => s.remove();
   };
@@ -265,31 +255,29 @@ class SpeakerManager {
       const { cx, callId } = tc;
       // Telecom owns routing: map on -> speaker endpoint, off -> highest-priority
       // non-speaker endpoint (wired > bluetooth > earpiece), mirroring classic behavior.
-      cx.getAvailableAudioEndpoints(callId)
-        .then((snapshot) => {
-          let target: CallingxAudioEndpoint | undefined;
-          if (force) {
-            target = snapshot.endpoints.find((e) => e.type === 'speaker');
-          } else {
-            // Priority for the "speakerphone off" fallback: prefer wired, then bluetooth, then earpiece.
-            for (const type of ['wired_headset', 'bluetooth', 'earpiece']) {
-              target = snapshot.endpoints.find((e) => e.type === type);
-              if (target) break;
-            }
+      try {
+        const snapshot = cx.getAvailableAudioEndpoints(callId);
+        let target: CallingxAudioEndpoint | undefined;
+        if (force) {
+          target = snapshot.endpoints.find((e) => e.type === 'speaker');
+        } else {
+          // Priority for the "speakerphone off" fallback: prefer wired, then bluetooth, then earpiece.
+          for (const type of ['wired_headset', 'bluetooth', 'earpiece']) {
+            target = snapshot.endpoints.find((e) => e.type === type);
+            if (target) break;
           }
-          if (target) {
-            return cx.requestAudioEndpointChange(callId, target.id);
-          }
-          return undefined;
-        })
-        .catch((error) => {
-          videoLoggerSystem
-            .getLogger('CallManager')
-            .warn(
-              `setForceSpeakerphoneOn(${force}): failed to route for call ${callId} via Telecom`,
-              error,
-            );
-        });
+        }
+        if (target) {
+          cx.requestAudioEndpointChange(callId, target.id);
+        }
+      } catch (error) {
+        videoLoggerSystem
+          .getLogger('CallManager')
+          .warn(
+            `setForceSpeakerphoneOn(${force}): failed to route for call ${callId} via Telecom`,
+            error,
+          );
+      }
       return;
     }
     NativeManager.setForceSpeakerphoneOn(force);

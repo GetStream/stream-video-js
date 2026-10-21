@@ -89,7 +89,7 @@ const createStreamVideoClient = async () => {
       ringStatePolling: readPersistedString('disableRingStatePolling')
         ? false
         : undefined,
-      logLevel: 'warn',
+      logOptions: { default: { level: 'warn' } },
       rejectCallWhenBusy: false,
     },
   });

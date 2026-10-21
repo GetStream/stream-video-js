@@ -12,41 +12,48 @@
     "prebuild": "expo prebuild --clean"
   },
   "dependencies": {
-    "@config-plugins/react-native-webrtc": "^15.0.1",
+    "@config-plugins/react-native-webrtc": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/netinfo": "12.0.1",
     "@stream-io/react-native-callingx": "workspace:^",
     "@stream-io/react-native-webrtc": "145.4.1",
     "@stream-io/video-react-native-sdk": "workspace:^",
-    "expo": "~57.0.9",
-    "expo-build-properties": "~57.0.8",
-    "expo-constants": "~57.0.8",
-    "expo-dev-client": "~57.0.10",
-    "expo-font": "~57.0.1",
-    "expo-linking": "~57.0.4",
-    "expo-router": "~57.0.9",
-    "expo-splash-screen": "~57.0.5",
-    "expo-system-ui": "~57.0.2",
-    "expo-web-browser": "~57.0.2",
-    "react": "19.2.3",
-    "react-native": "0.86.2",
-    "react-native-gesture-handler": "~2.32.0",
-    "react-native-reanimated": "4.5.3",
-    "react-native-safe-area-context": "~5.8.0",
-    "react-native-screens": "4.26.2",
-    "react-native-svg": "15.15.5",
-    "react-native-worklets": "0.10.1"
+    "expo": "~58.0.14",
+    "expo-build-properties": "~58.0.11",
+    "expo-constants": "~58.0.12",
+    "expo-dev-client": "~58.0.14",
+    "expo-font": "~58.0.8",
+    "expo-linking": "~58.0.13",
+    "expo-router": "~58.0.23",
+    "expo-splash-screen": "~58.0.10",
+    "expo-system-ui": "~58.0.6",
+    "expo-web-browser": "~58.0.6",
+    "react": "19.3.0",
+    "react-native": "0.88.0",
+    "react-native-gesture-handler": "~3.4.0",
+    "react-native-reanimated": "4.7.1",
+    "react-native-safe-area-context": "~5.10.1",
+    "react-native-screens": "~4.30.0",
+    "react-native-svg": "15.16.0",
+    "react-native-worklets": "0.13.0"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
     "@babel/preset-env": "^7.29.7",
     "@babel/runtime": "^7.29.7",
-    "@react-native/metro-config": "^0.86.2",
-    "@types/react": "~19.2.18",
-    "react-dom": "19.2.3",
+    "@react-native/metro-config": "^0.88.0",
+    "@types/react": "~19.3.0",
+    "react-dom": "19.3.0",
     "typescript": "^6.0.3"
   },
   "installConfig": {
     "hoistingLimits": "workspaces"
+  },
+  "expo": {
+    "install": {
+      "exclude": [
+        "react-native-gesture-handler"
+      ]
+    }
   }
 }

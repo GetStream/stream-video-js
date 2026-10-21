@@ -1,40 +1,35 @@
 import React from 'react';
-import {
-  CallControlsButton,
-  useTheme,
-} from '@stream-io/video-react-native-sdk';
-import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { CallControlsButton, useCall } from '@stream-io/video-react-native-sdk';
+import { ControlButtonIcon } from '@stream-io/video-react-native-sdk/src/icons';
 import { BadgeCountIndicator } from './BadgeCountIndicator';
-import Chat from '../../../assets/Chat';
+import { MessageBubbles } from '../../../assets/MessageBubbles';
 import { useUnreadCount } from '../../../hooks/useUnreadCount';
-
-/**
- * The props for the Chat Button in the Call Controls.
- */
-export type ChatButtonProps = {
-  /**
-   * Handler to be called when the chat button is pressed.
-   * @returns void
-   */
-  onPressHandler?: () => void;
-};
+import { MeetingStackParamList } from '../../../../types';
 
 /**
  * Button to open the Chat window while in the call.
  *
  * This call also display the unread count indicator/badge is there messages that are unread.
  */
-export const ChatButton = ({ onPressHandler }: ChatButtonProps) => {
-  const {
-    theme: { colors, chatButton, variants },
-  } = useTheme();
+export const ChatButton = () => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<MeetingStackParamList>>();
+  const call = useCall();
   const unreadCountIndicator = useUnreadCount();
+
+  const canOpenChat = !!navigation
+    .getState()
+    ?.routeNames.includes('ChatScreen');
+  if (!call || !canOpenChat) return null;
+
   return (
-    <CallControlsButton onPress={onPressHandler} style={chatButton}>
+    <CallControlsButton
+      onPress={() => navigation.navigate('ChatScreen', { callId: call.id })}
+    >
       <BadgeCountIndicator count={unreadCountIndicator} />
-      <IconWrapper>
-        <Chat color={colors.iconPrimary} size={variants.iconSizes.md} />
-      </IconWrapper>
+      <ControlButtonIcon icon={MessageBubbles} />
     </CallControlsButton>
   );
 };

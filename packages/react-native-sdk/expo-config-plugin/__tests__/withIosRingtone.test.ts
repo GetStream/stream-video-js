@@ -123,7 +123,7 @@ describe('withIosRingtone', () => {
     };
 
     expect(() => withIosRingtone(config, props)).toThrow(
-      /iOS ringtone file not found/,
+      /iOS sound file not found/,
     );
   });
 
@@ -134,7 +134,7 @@ describe('withIosRingtone', () => {
     };
 
     expect(() => withIosRingtone(config, props)).toThrow(
-      /Invalid iOS ringtone format/,
+      /Invalid iOS sound format/,
     );
   });
 

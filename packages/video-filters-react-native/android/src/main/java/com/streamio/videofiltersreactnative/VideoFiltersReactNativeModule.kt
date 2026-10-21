@@ -1,33 +1,17 @@
 package com.streamio.videofiltersreactnative
 
-import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
 import com.oney.WebRTCModule.videoEffects.ProcessorProvider
 import com.streamio.videofiltersreactnative.factories.*
 
 class VideoFiltersReactNativeModule(reactContext: ReactApplicationContext) :
-  ReactContextBaseJavaModule(reactContext) {
+  NativeVideoFiltersReactNativeSpec(reactContext) {
 
   // Names we add to the global ProcessorProvider, so unregisterAllFilters can
   // release them. Otherwise factories accumulate for the app's lifetime.
   private val registeredNames = mutableSetOf<String>()
 
-  override fun getName(): String {
-    return NAME
-  }
-
-  @ReactMethod
-  fun addListener(eventName: String?) {
-  }
-
-  @ReactMethod
-  fun removeListeners(count: Int) {
-  }
-
-  @ReactMethod
-  fun registerBackgroundBlurVideoFilters(promise: Promise) {
+  override fun registerBackgroundBlurVideoFilters(): Boolean {
     ProcessorProvider.addProcessor(
       "BackgroundBlurLight",
       BackgroundBlurFactory(BlurIntensity.LIGHT)
@@ -41,39 +25,36 @@ class VideoFiltersReactNativeModule(reactContext: ReactApplicationContext) :
       BackgroundBlurFactory(BlurIntensity.HEAVY)
     )
     registeredNames.addAll(listOf("BackgroundBlurLight", "BackgroundBlurMedium", "BackgroundBlurHeavy"))
-    promise.resolve(true)
+    return true
   }
 
-  @ReactMethod
-  fun registerVirtualBackgroundFilter(backgroundImageUrlString: String, promise: Promise) {
+  override fun registerVirtualBackgroundFilter(backgroundImageUrlString: String): Boolean {
     val name = "VirtualBackground-$backgroundImageUrlString"
     ProcessorProvider.addProcessor(
       name,
       VirtualBackgroundFactory(reactApplicationContext, backgroundImageUrlString)
     )
     registeredNames.add(name)
-    promise.resolve(true)
+    return true
   }
 
-  @ReactMethod
-  fun registerBlurVideoFilters(promise: Promise) {
+  override fun registerBlurVideoFilters(): Boolean {
     ProcessorProvider.addProcessor("BlurLight", VideoBlurFactory(VideoBlurIntensity.LIGHT))
     ProcessorProvider.addProcessor("BlurMedium", VideoBlurFactory(VideoBlurIntensity.MEDIUM))
     ProcessorProvider.addProcessor("BlurHeavy", VideoBlurFactory(VideoBlurIntensity.HEAVY))
     registeredNames.addAll(listOf("BlurLight", "BlurMedium", "BlurHeavy"))
-    promise.resolve(true)
+    return true
   }
 
-  @ReactMethod
-  fun unregisterAllFilters(promise: Promise) {
+  override fun unregisterAllFilters(): Boolean {
     for (name in registeredNames) {
       ProcessorProvider.removeProcessor(name)
     }
     registeredNames.clear()
-    promise.resolve(true)
+    return true
   }
 
   companion object {
-    const val NAME = "VideoFiltersReactNative"
+    const val NAME = NativeVideoFiltersReactNativeSpec.NAME
   }
 }

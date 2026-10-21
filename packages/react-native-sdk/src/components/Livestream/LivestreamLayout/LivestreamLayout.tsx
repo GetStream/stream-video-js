@@ -1,7 +1,7 @@
 import React from 'react';
 import { hasScreenShare } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import { usePaginatedLayoutSortPreset } from '../../../hooks/usePaginatedLayoutSortPreset';
 import { useTheme } from '../../../contexts';
 import {
@@ -27,6 +27,10 @@ export type LivestreamLayoutProps = {
    * Component to customize the ScreenShareOverlay.
    */
   ScreenShareOverlay?: React.ComponentType<ScreenShareOverlayProps> | null;
+  /**
+   * Style to apply to the component.
+   */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -36,11 +40,12 @@ export const LivestreamLayout = ({
   landscape,
   VideoRenderer = DefaultVideoRenderer,
   ScreenShareOverlay,
+  style,
 }: LivestreamLayoutProps) => {
   const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
   const call = useCall();
   const {
-    theme: { colors, livestreamLayout },
+    theme: { livestreamLayout },
   } = useTheme();
   const participants = useParticipants();
   const [currentSpeaker] = participants;
@@ -60,8 +65,8 @@ export const LivestreamLayout = ({
       style={[
         styles.container,
         landScapeStyles,
-        { backgroundColor: colors.sheetPrimary },
         livestreamLayout.container,
+        style,
       ]}
     >
       {VideoRenderer &&
@@ -82,5 +87,6 @@ export const LivestreamLayout = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    overflow: 'hidden',
   },
 });

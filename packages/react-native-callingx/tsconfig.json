@@ -1,5 +1,6 @@
 {
   "extends": "@stream-io/typescript-config/library-rn.json",
+  "include": ["src"],
   "compilerOptions": {
     "rootDir": ".",
     "paths": {

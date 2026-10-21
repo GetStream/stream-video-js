@@ -75,7 +75,7 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     } else if (eventName === 'providerReset') {
       onProviderReset(pushConfig)(params as EventParams['providerReset']);
     } else if (eventName === 'ringCallPushReceived') {
-      onRingNotificationReceived(params).catch((error) => {
+      onRingNotificationReceived(params, pushConfig).catch((error) => {
         logger.error(`Error in onRingNotificationReceived: ${error}`);
       });
     }

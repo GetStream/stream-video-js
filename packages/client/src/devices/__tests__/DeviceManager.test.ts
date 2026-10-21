@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 /* @vitest-environment happy-dom */
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
@@ -22,6 +24,7 @@ import { firstValueFrom, of } from 'rxjs';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { PermissionsContext } from '../../permissions';
 import { defaultDeviceId, readPreferences } from '../devicePersistence';
+import { promiseWithResolvers } from '../../helpers/promise';
 
 vi.mock('../../reporting/ClientEventReporter', () => ({
   ClientEventReporter: vi.fn(function () {
@@ -98,6 +101,7 @@ describe('Device Manager', () => {
         id: '',
         type: '',
         streamClient,
+        videoApi: new VideoApi(new ApiClient(streamClient)),
         clientEventReporter: new ClientEventReporter({ streamClient }),
         clientState: new ClientState(),
       }),
@@ -170,6 +174,34 @@ describe('Device Manager', () => {
     expect(manager.stopPublishStream).toHaveBeenCalled();
     expect(manager.state.mediaStream).toBeUndefined();
     expect(manager.state.status).toBe('disabled');
+  });
+
+  it('clears a startup error when disabling an already disabled device', async () => {
+    await manager.disable();
+    const error = new Error('Camera failed to start');
+    manager.getStream.mockRejectedValueOnce(error);
+
+    await expect(manager.enable()).rejects.toThrow(error);
+    expect(manager.state.status).toBe('disabled');
+    expect(manager.state.error).toBe(error);
+
+    await manager.disable();
+
+    expect(manager.state.error).toBeUndefined();
+  });
+
+  it('clears a pending startup error when the queued disable completes', async () => {
+    const { promise, reject } = promiseWithResolvers<MediaStream>();
+    const error = new Error('Camera failed to start');
+    manager.getStream.mockReturnValueOnce(promise);
+
+    const enabling = expect(manager.enable()).rejects.toThrow(error);
+    const disabling = manager.disable();
+    reject(error);
+    await Promise.all([enabling, disabling]);
+
+    expect(manager.state.status).toBe('disabled');
+    expect(manager.state.error).toBeUndefined();
   });
 
   it('toggle device', async () => {

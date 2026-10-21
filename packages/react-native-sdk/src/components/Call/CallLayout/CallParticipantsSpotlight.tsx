@@ -56,9 +56,8 @@ export const CallParticipantsSpotlight = ({
   landscape,
 }: CallParticipantsSpotlightProps) => {
   const {
-    theme: { callParticipantsSpotlight, variants },
+    theme: { callParticipantsSpotlight },
   } = useTheme();
-  const styles = useStyles();
   const call = useCall();
   const [allParticipants, setAllParticipants] = useState<
     StreamVideoParticipant[]
@@ -107,16 +106,10 @@ export const CallParticipantsSpotlight = ({
           ]
         : [
             styles.spotlightContainer,
-            { marginHorizontal: landscape ? 0 : variants.spacingSizes.xs },
             callParticipantsSpotlight.spotlightContainer,
+            landscape ? { marginHorizontal: 0 } : undefined,
           ],
-    [
-      isUserAloneInCall,
-      landscape,
-      styles,
-      callParticipantsSpotlight,
-      variants.spacingSizes.xs,
-    ],
+    [isUserAloneInCall, landscape, callParticipantsSpotlight],
   );
 
   const showShareScreenOverlay =
@@ -129,8 +122,8 @@ export const CallParticipantsSpotlight = ({
       testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
       style={[
         styles.container,
-        landscape ? landscapeStyles.row : landscapeStyles.column,
         callParticipantsSpotlight.container,
+        landscape ? styles.row : styles.column,
       ]}
     >
       {participantInSpotlight &&
@@ -175,33 +168,24 @@ export const CallParticipantsSpotlight = ({
   );
 };
 
-const landscapeStyles = StyleSheet.create({
-  row: { flexDirection: 'row' },
-  column: { flexDirection: 'column' },
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  column: {
+    flexDirection: 'column',
+  },
+  fullScreenSpotlightContainer: {
+    flex: 1,
+  },
+  spotlightContainer: {
+    flex: 2,
+    overflow: 'hidden',
+  },
+  callParticipantsListContainer: {
+    flex: 1,
+  },
 });
-
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          flex: 1,
-          backgroundColor: theme.colors.sheetPrimary,
-        },
-        fullScreenSpotlightContainer: {
-          flex: 1,
-        },
-        spotlightContainer: {
-          flex: 2,
-          overflow: 'hidden',
-          borderRadius: theme.variants.borderRadiusSizes.sm,
-          marginHorizontal: theme.variants.spacingSizes.sm,
-        },
-        callParticipantsListContainer: {
-          flex: 1,
-        },
-      }),
-    [theme],
-  );
-};

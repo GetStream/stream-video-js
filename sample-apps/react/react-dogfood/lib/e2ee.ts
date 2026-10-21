@@ -1,8 +1,6 @@
-import {
-  EncryptionSettingsRequestModeEnum,
-  EncryptionSettingsResponseModeEnum,
-  type CallSettingsResponse,
-  type EncryptionSettingsRequest,
+import type {
+  CallSettingsResponse,
+  EncryptionSettingsRequest,
 } from '@stream-io/video-react-sdk';
 
 /**
@@ -16,7 +14,7 @@ import {
  * button on a key would be gating something the call does not actually require.
  */
 export const ENCRYPTION_OVERRIDE: EncryptionSettingsRequest = {
-  mode: EncryptionSettingsRequestModeEnum.AUTO_ON,
+  mode: 'auto-on',
 };
 
 /**
@@ -69,5 +67,4 @@ export const deriveKeyFromPassphrase = async (
  */
 export const isCallEncrypted = (
   settings: CallSettingsResponse | undefined,
-): boolean =>
-  settings?.encryption?.mode === EncryptionSettingsResponseModeEnum.AUTO_ON;
+): boolean => settings?.encryption?.mode === 'auto-on';

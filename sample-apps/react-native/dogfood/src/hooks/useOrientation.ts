@@ -1,26 +1,14 @@
-import { useEffect, useState } from 'react';
-import { Dimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 
 type Orientation = 'portrait' | 'landscape';
 
-const getOrientation = (): Orientation => {
-  const dimensions = Dimensions.get('screen');
-  return dimensions.height >= dimensions.width ? 'portrait' : 'landscape';
-};
-
 /**
- * A hook that returns device orientation.
+ * A hook that returns the orientation of the app's window.
+ * The window can differ from the device screen (Split View, resizable
+ * windows), so this is derived from the window's shape, not the device.
  * @returns 'portrait' : 'landscape'
  */
-export const useOrientation = () => {
-  const [orientation, setOrientation] = useState<Orientation>(getOrientation());
-
-  useEffect(() => {
-    const subscription = Dimensions.addEventListener('change', ({ screen }) => {
-      setOrientation(screen.height >= screen.width ? 'portrait' : 'landscape');
-    });
-    return () => subscription?.remove();
-  }, []);
-
-  return orientation;
+export const useOrientation = (): Orientation => {
+  const { width, height } = useWindowDimensions();
+  return height >= width ? 'portrait' : 'landscape';
 };

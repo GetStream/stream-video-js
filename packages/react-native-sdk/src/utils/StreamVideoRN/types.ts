@@ -95,10 +95,6 @@ export type StreamVideoConfig = {
    */
   push?: {
     /**
-     * @deprecated Expo is auto-detected; this value is ignored and the property will be removed in a future major version.
-     */
-    isExpo?: boolean;
-    /**
      * The publish options to be used when joining a call from a push notification.
      *
      * @internal
@@ -129,7 +125,9 @@ export type StreamVideoConfig = {
        */
       callsHistory?: boolean;
       /**
-       * Timeout to display an incoming call. When the call is displayed for more than the timeout, the call will be rejected.
+       * iOS: time in ms after which an incoming call that is still unanswered is ended
+       * natively as unanswered (shown as a missed call), including calls reported from
+       * VoIP pushes. Set to 0 to disable.
        * @default 60000 (1 minute)
        */
       displayCallTimeout?: number;

@@ -10,6 +10,7 @@ import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { pushToIfMissing, removeFromIfPresent } from '../helpers/array';
 import { enableStereo, removeCodecsExcept } from './helpers/sdp';
+import { promiseWithResolvers, PromiseWithResolvers } from '../helpers/promise';
 
 /**
  * A wrapper around the `RTCPeerConnection` that handles the incoming
@@ -26,6 +27,8 @@ export class Subscriber extends BasePeerConnection {
    */
   private trackedStreams?: WeakSet<MediaStream>;
   private negotiationFailures = 0;
+  private offerTask?: PromiseWithResolvers<boolean>;
+  private readonly offerTimeoutMs = 5000;
 
   /**
    * Constructs a new `Subscriber` instance.
@@ -35,6 +38,7 @@ export class Subscriber extends BasePeerConnection {
     this.pc.addEventListener('track', this.handleOnTrack);
 
     this.on('subscriberOffer', async (subscriberOffer) => {
+      this.resolveOfferWait(true);
       try {
         const result = await this.negotiate(subscriberOffer);
         this.negotiationFailures = 0;
@@ -65,7 +69,31 @@ export class Subscriber extends BasePeerConnection {
   detachEventHandlers() {
     super.detachEventHandlers();
     this.pc.removeEventListener('track', this.handleOnTrack);
+    this.resolveOfferWait(true);
   }
+
+  /**
+   * Resolves `true` once the SFU sends a `subscriberOffer`, or `false` if
+   * none arrives within `offerTimeoutMs`. Never rejects. Resolves `true`
+   * right away if this subscriber was never negotiated (e.g. alone in the
+   * call), as the SFU has nothing to restart then.
+   */
+  waitForOffer = (): Promise<boolean> => {
+    if (!this.pc.remoteDescription) return Promise.resolve(true);
+    this.resolveOfferWait(true);
+    const task = (this.offerTask = promiseWithResolvers<boolean>());
+    setTimeout(() => {
+      if (this.offerTask !== task) return;
+      this.tracer?.trace('subscriber.offerTimeout', this.offerTimeoutMs);
+      this.resolveOfferWait(false);
+    }, this.offerTimeoutMs);
+    return task.promise;
+  };
+
+  private resolveOfferWait = (received: boolean) => {
+    this.offerTask?.resolve(received);
+    this.offerTask = undefined;
+  };
 
   /**
    * Restarts the ICE connection and renegotiates with the SFU.

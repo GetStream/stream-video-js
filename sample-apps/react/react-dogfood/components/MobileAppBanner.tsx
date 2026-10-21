@@ -94,10 +94,7 @@ export const MobileAppBanner = (props: {
             {nativeAppLabel(t, link.app)}
           </a>
         ))}
-      <button
-        className="rd__try-native__use-browser rd__button rd__button--secondary"
-        onClick={onDismiss}
-      >
+      <button className="rd__button rd__button--secondary" onClick={onDismiss}>
         {t('mobileBanner.continueWithBrowser.label', 'Continue With Browser')}
       </button>
     </div>

@@ -36,7 +36,7 @@ export const CallRecordingModal: React.FC<CallRecordingModalProps> = ({
 }) => {
   const styles = useStyles(isEndRecordingModal);
   const {
-    theme: { colors, variants },
+    theme: { components, semantics },
   } = useTheme();
 
   return (
@@ -55,8 +55,8 @@ export const CallRecordingModal: React.FC<CallRecordingModalProps> = ({
                 <View style={styles.iconContainer}>
                   <IconWrapper>
                     <RecordCall
-                      color={colors.iconWarning}
-                      size={variants.roundButtonSizes.sm}
+                      color={semantics.accentWarning}
+                      size={components.iconSizeSm}
                     />
                   </IconWrapper>
                 </View>
@@ -92,7 +92,9 @@ export const CallRecordingModal: React.FC<CallRecordingModalProps> = ({
 };
 
 const useStyles = (isEndRecordingModal: boolean) => {
-  const { theme } = useTheme();
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
@@ -102,65 +104,65 @@ const useStyles = (isEndRecordingModal: boolean) => {
           alignItems: 'center',
         },
         modalView: {
-          backgroundColor: theme.colors.sheetSecondary,
-          borderRadius: theme.variants.borderRadiusSizes.lg,
-          padding: theme.variants.spacingSizes.xl,
+          backgroundColor: semantics.backgroundCoreApp,
+          borderRadius: primitives.radiusLg,
+          padding: primitives.spacingXl,
           width: '80%',
           maxWidth: 380,
         },
         content: {
-          marginBottom: theme.variants.spacingSizes.xl,
+          marginBottom: primitives.spacingXl,
         },
         headerContainer: {
           flexDirection: 'row',
           alignItems: 'center',
-          marginBottom: theme.variants.spacingSizes.sm,
+          marginBottom: primitives.spacingSm,
         },
         iconContainer: {
           display: 'flex',
-          marginRight: theme.variants.spacingSizes.sm,
+          marginRight: primitives.spacingSm,
         },
         title: {
-          color: theme.colors.textPrimary,
-          fontSize: theme.variants.fontSizes.lg,
-          fontWeight: '600',
+          color: semantics.textPrimary,
+          fontSize: primitives.typographyFontSizeLg,
+          fontWeight: primitives.typographyFontWeightSemiBold,
           textAlign: 'center',
         },
         message: {
-          color: theme.colors.textSecondary,
-          fontSize: theme.variants.fontSizes.md,
+          color: semantics.textSecondary,
+          fontSize: primitives.typographyFontSizeMd,
           fontWeight: '400',
           textAlign: 'left',
         },
         buttonContainer: {
           flexDirection: 'row',
           justifyContent: 'space-between',
-          gap: theme.variants.spacingSizes.md,
+          gap: primitives.spacingMd,
         },
         button: {
           flex: 1,
-          borderRadius: theme.variants.roundButtonSizes.md,
+          borderRadius: primitives.radiusMd,
           justifyContent: 'center',
           alignItems: 'center',
         },
         cancelButton: {
-          backgroundColor: theme.colors.sheetSecondary,
+          backgroundColor: semantics.backgroundCoreApp,
           height: 32,
           borderWidth: 1,
-          borderColor: theme.colors.sheetTertiary,
+          borderColor: semantics.backgroundUtilityDisabled,
         },
         confirmButton: {
           height: 32,
           backgroundColor: isEndRecordingModal
-            ? theme.colors.iconWarning
-            : theme.colors.buttonPrimary,
+            ? semantics.accentWarning
+            : semantics.accentPrimary,
         },
         buttonText: {
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           fontSize: 13,
           fontWeight: '600',
         },
       }),
-    [theme, isEndRecordingModal],
+    [primitives, semantics, isEndRecordingModal],
   );
 };

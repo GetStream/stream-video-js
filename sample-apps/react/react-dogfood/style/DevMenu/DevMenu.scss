@@ -69,6 +69,16 @@
   }
 }
 
+.str-video__portal-content > .rd__dev-menu {
+  box-sizing: border-box;
+  max-width: calc(100vw - 2 * var(--str-video__spacing-md));
+  max-height: calc(100vh - 2 * var(--str-video__spacing-md));
+  overflow-y: auto;
+  background-color: var(--str-video__background-core-elevation-2);
+  border-radius: var(--str-video__radius-lg);
+  box-shadow: var(--str-video__box-shadow-3);
+}
+
 @include breakpoints.respond-above(sm) {
   .rd__dev-menu {
     width: 40vw;

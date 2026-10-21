@@ -500,7 +500,10 @@
         "key": "callFeedback.thankYouScreen.feedbackHelpsImprove.text"
       },
       "Your microphone is not capturing audio. Please check your setup.": {
-        "key": "notification.micCaptureError.text"
+        "split": [
+          "notification.micCaptureError.title",
+          "notification.micCaptureError.description"
+        ]
       },
       "{{ count }} participants joined early": {
         "key": "livestream.backstage.participantsJoinedEarly.text",

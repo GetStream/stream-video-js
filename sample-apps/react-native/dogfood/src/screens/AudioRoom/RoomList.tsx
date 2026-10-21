@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   Button,
@@ -9,11 +15,14 @@ import {
   StyleSheet,
   Text,
 } from 'react-native';
-import { appTheme } from '../../theme';
-import { Call, useStreamVideoClient } from '@stream-io/video-react-native-sdk';
-import { useAppI18n } from '../../hooks/useAppI18n';
+import {
+  Call,
+  useStreamVideoClient,
+  useTheme,
+} from '@stream-io/video-react-native-sdk';
 import CreateRoomModal from './CreateRoomModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAppI18n } from '../../hooks/useAppI18n';
 
 type RoomFlatList = FlatListProps<Call>;
 
@@ -29,6 +38,7 @@ const RoomList = (props: Props) => {
   const [loadingCalls, setLoadingCalls] = useState(true);
   const [loadingError, setLoadingError] = useState<Error>();
   const { t } = useAppI18n();
+  const styles = useStyles();
   // state for the pull to refresh
   const [refreshing, setRefreshing] = React.useState(false);
   // holds the cursor to the next page of calls
@@ -128,7 +138,7 @@ const RoomList = (props: Props) => {
         </Pressable>
       );
     },
-    [setCall],
+    [setCall, styles],
   );
 
   const renderFooter: RoomFlatList['ListFooterComponent'] = useCallback(() => {
@@ -143,7 +153,7 @@ const RoomList = (props: Props) => {
         title={t('roomList.loadMore.label', 'Load more')}
       />
     );
-  }, [loadingCalls, queryLiveCalls, t]);
+  }, [loadingCalls, queryLiveCalls, t, styles]);
 
   const renderEmpty: RoomFlatList['ListEmptyComponent'] = useCallback(() => {
     let text = 'No live audio rooms found';
@@ -153,7 +163,7 @@ const RoomList = (props: Props) => {
       text = 'Error loading calls';
     }
     return <Text style={[styles.emptyListText, styles.title]}>{text}</Text>;
-  }, [loadingCalls, loadingError]);
+  }, [loadingCalls, loadingError, styles]);
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
@@ -181,58 +191,67 @@ const RoomList = (props: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  fabText: {
-    fontSize: 24,
-    color: 'white',
-    textAlignVertical: 'center',
-  },
-  fab: {
-    position: 'absolute',
-    width: 48,
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    right: 20,
-    bottom: 20,
-    backgroundColor: appTheme.colors.primary,
-    borderRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
-  },
-  emptyListText: {
-    textAlign: 'center',
-  },
-  title: {
-    color: 'black',
-    fontSize: 20,
-    fontWeight: '500',
-  },
-  subTitle: {
-    color: 'black',
-    fontSize: 16,
-    marginTop: 2,
-  },
-  button: {
-    margin: appTheme.spacing.sm,
-  },
-  activityIndicator: {
-    paddingVertical: appTheme.spacing.sm,
-  },
-  callItem: {
-    padding: appTheme.spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: 'black',
-  },
-});
+const useStyles = () => {
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+        },
+        fabText: {
+          fontSize: 24,
+          color: 'white',
+          textAlignVertical: 'center',
+        },
+        fab: {
+          position: 'absolute',
+          width: 48,
+          height: 48,
+          alignItems: 'center',
+          justifyContent: 'center',
+          right: 20,
+          bottom: 20,
+          backgroundColor: semantics.accentPrimary,
+          borderRadius: 24,
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: 4,
+          },
+          shadowOpacity: 0.3,
+          shadowRadius: 4.65,
+          elevation: 8,
+        },
+        emptyListText: {
+          textAlign: 'center',
+        },
+        title: {
+          color: 'black',
+          fontSize: 20,
+          fontWeight: '500',
+        },
+        subTitle: {
+          color: 'black',
+          fontSize: 16,
+          marginTop: 2,
+        },
+        button: {
+          margin: primitives.spacingSm,
+        },
+        activityIndicator: {
+          paddingVertical: primitives.spacingSm,
+        },
+        callItem: {
+          padding: primitives.spacingSm,
+          borderBottomWidth: 1,
+          borderBottomColor: semantics.textPrimary,
+        },
+      }),
+    [primitives, semantics],
+  );
+};
 
 export default RoomList;

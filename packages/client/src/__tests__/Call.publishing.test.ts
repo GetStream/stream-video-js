@@ -1,3 +1,5 @@
+import { VideoApi } from '../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../coordinator/connection/api-client';
 import '../rtc/__tests__/mocks/webrtc.mocks';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,6 +23,7 @@ describe('Publishing and Unpublishing tracks', () => {
       type: 'test',
       id: generateUUIDv4(),
       streamClient,
+      videoApi: new VideoApi(new ApiClient(streamClient)),
       clientEventReporter: new ClientEventReporter({ streamClient }),
       clientState: new ClientState(),
     });
@@ -436,29 +439,6 @@ describe('Publishing and Unpublishing tracks', () => {
       expect(originalParticipant?.audioStream).toBeUndefined();
       expect(replacementParticipant?.publishedTracks).toEqual([]);
       expect(replacementParticipant?.audioStream).toBeUndefined();
-    });
-  });
-
-  describe('Deprecated methods', () => {
-    it('publishVideoStream', async () => {
-      const ms = new MediaStream();
-      call.publish = vi.fn();
-      await call.publishVideoStream(ms);
-      expect(call.publish).toHaveBeenCalledWith(ms, TrackType.VIDEO);
-    });
-
-    it('publishAudioStream', async () => {
-      const ms = new MediaStream();
-      call.publish = vi.fn();
-      await call.publishAudioStream(ms);
-      expect(call.publish).toHaveBeenCalledWith(ms, TrackType.AUDIO);
-    });
-
-    it('publishScreenShareStream', async () => {
-      const ms = new MediaStream();
-      call.publish = vi.fn();
-      await call.publishScreenShareStream(ms);
-      expect(call.publish).toHaveBeenCalledWith(ms, TrackType.SCREEN_SHARE);
     });
   });
 });

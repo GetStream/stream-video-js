@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { LoopbackRecordingState } from '@stream-io/video-react-native-sdk';
-import { appTheme } from '../../../theme';
+import { useTheme } from '@stream-io/video-react-native-sdk/src/contexts/ThemeContext';
 
 type RecordingControlsProps = {
   buttonLabel: string;
@@ -49,24 +49,27 @@ export const RecordingControls = ({
 };
 
 const useStyles = () => {
+  const {
+    theme: { primitives, semantics, button },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         recordingContainer: {
           flexDirection: 'row',
-          gap: appTheme.spacing.sm,
+          gap: primitives.spacingSm,
           alignItems: 'stretch',
         },
         recordButton: {
           flex: 1,
-          backgroundColor: appTheme.colors.primary,
-          borderRadius: 8,
-          paddingVertical: appTheme.spacing.lg,
           justifyContent: 'center',
           alignItems: 'center',
+          ...button.container,
+          ...button.primary.container,
+          ...button.large,
         },
         recordButtonActive: {
-          backgroundColor: appTheme.colors.error,
+          backgroundColor: semantics.accentError,
         },
         recordButtonDisabled: {
           opacity: 0.5,
@@ -75,11 +78,9 @@ const useStyles = () => {
           opacity: 0.8,
         },
         recordButtonText: {
-          color: appTheme.colors.static_white,
-          fontWeight: '600',
-          fontSize: 14,
+          ...button.primary.text,
         },
       }),
-    [],
+    [primitives, semantics, button],
   );
 };

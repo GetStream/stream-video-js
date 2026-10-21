@@ -18,6 +18,7 @@ import { Call } from '../Call';
 import { StreamVideoParticipant } from '../types';
 import { TrackType } from '../gen/video/sfu/models/models';
 import type { E2EEManager } from '../rtc/e2ee/E2EEManager';
+import { nowNs } from '../helpers/time';
 
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
@@ -69,7 +70,7 @@ it('stops reacting to events when not watching', async () => {
     fromPartial({
       type: 'call.transcription_started',
       call_cid: call.cid,
-      created_at: new Date().toISOString(),
+      created_at: nowNs(),
     }),
   );
   expect(call.state.transcribing).toBeTruthy();
@@ -78,7 +79,7 @@ it('stops reacting to events when not watching', async () => {
     fromPartial({
       type: 'call.transcription_stopped',
       call_cid: call.cid,
-      created_at: new Date().toISOString(),
+      created_at: nowNs(),
     }),
   );
   expect(call.state.transcribing).toBeTruthy();
@@ -104,7 +105,7 @@ it('keeps user handlers for SFU and coordinator events', async () => {
     fromPartial({
       type: 'call.transcription_started',
       call_cid: call.cid,
-      created_at: new Date().toISOString(),
+      created_at: nowNs(),
     }),
   );
   expect(sfuEventHandler).toBeCalled();
@@ -277,7 +278,9 @@ describe('muting logic', () => {
 
     spy = vi
       .spyOn(call, 'muteUser')
-      .mockImplementation(() => Promise.resolve({ duration: '0ms' }));
+      .mockImplementation(() =>
+        Promise.resolve(fromPartial({ duration: '0ms' })),
+      );
   });
 
   it('should mute self', async () => {

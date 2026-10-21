@@ -125,7 +125,7 @@ export const CallStats = (props: CallStatsProps) => {
             </p>
           </div>
 
-          <div className="rd__call-stats__latency-chart">
+          <div>
             <Suspense fallback={LatencyChartSuspenseFallback}>
               <CallStatsLatencyChart values={latencyBuffer} />
             </Suspense>

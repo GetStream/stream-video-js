@@ -1,3 +1,5 @@
+import { VideoApi } from '../../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../../coordinator/connection/api-client';
 import { describe, expect, it, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { reconcileRingState } from '../reconcileRingState';
@@ -12,6 +14,7 @@ import { StreamClient } from '../../coordinator/connection/client';
 import type { JoinSource } from '../../reporting';
 import { ClientEventReporter } from '../../reporting';
 import { settled } from '../../helpers/concurrency';
+import { nowNs } from '../../helpers/time';
 
 describe('reconcileRingState', () => {
   describe('acceptance', () => {
@@ -202,6 +205,39 @@ describe('reconcileRingState', () => {
         message: 'ring: call ended',
       });
     });
+
+    describe('as the callee', () => {
+      const ended = { reason: 'ended', message: 'ring: call ended' };
+
+      it('leaves when the session has ended', async () => {
+        const call = ringingCall({ currentUserId: 'm2', createdById: 'm1' });
+        setSession(call, { ended_at: timestamp() });
+
+        expect(await reconcile(call)).toBe(true);
+        expect(call.leave).toHaveBeenCalledWith(ended);
+      });
+
+      it('leaves when the call itself has ended', async () => {
+        const call = ringingCall({ currentUserId: 'm2', createdById: 'm1' });
+        setSession(call, {});
+        call.state.setEndedAt(new Date());
+
+        expect(await reconcile(call)).toBe(true);
+        expect(call.leave).toHaveBeenCalledWith(ended);
+      });
+
+      it('leaves once with the ended message when the creator also rejected', async () => {
+        const call = ringingCall({ currentUserId: 'm2', createdById: 'm1' });
+        setSession(call, {
+          ended_at: timestamp(),
+          rejected_by: { m1: timestamp() },
+        });
+
+        expect(await reconcile(call)).toBe(true);
+        expect(call.leave).toHaveBeenCalledTimes(1);
+        expect(call.leave).toHaveBeenCalledWith(ended);
+      });
+    });
   });
 
   it('is terminal once the call is no longer ringing', async () => {
@@ -227,7 +263,7 @@ describe('reconcileRingState', () => {
       fromPartial({
         type: 'call.accepted',
         call_cid: call.cid,
-        created_at: new Date().toISOString(),
+        created_at: nowNs(),
         user: { id: 'm2' },
         call: {
           ...callResponse('m1'),
@@ -265,7 +301,7 @@ describe('reconcileRingState', () => {
 const reconcile = (call: Call, joinSource: JoinSource = 'ring-ws') =>
   reconcileRingState(call, joinSource);
 
-const timestamp = () => new Date().toISOString();
+const timestamp = () => nowNs();
 
 const callResponse = (createdById: string) =>
   fromPartial<CallResponse>({
@@ -313,6 +349,7 @@ const ringingCall = ({
     id: '12345',
     clientState: store,
     streamClient,
+    videoApi: new VideoApi(new ApiClient(streamClient)),
     clientEventReporter: new ClientEventReporter({ streamClient }),
     ringing: true,
   });

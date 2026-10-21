@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
-import { AcceptCallButton } from './AcceptCallButton';
-import { RejectCallButton } from './RejectCallButton';
+import { useI18n } from '../../../i18n';
+import { AcceptCallButton, RejectCallButton } from '.';
 
 /**
  * Props for the IncomingCallControls Component.
@@ -16,26 +16,40 @@ export type IncomingCallControlsProps = {
    * Handler to be executed when an incoming call is rejected
    */
   onRejectCallHandler?: (err?: Error) => void;
+
+  disabled?: boolean;
 };
 
 export const IncomingCallControls = ({
   onAcceptCallHandler,
   onRejectCallHandler,
+  disabled = false,
 }: IncomingCallControlsProps) => {
   const {
-    theme: {
-      incomingCall,
-      variants: { buttonSizes },
-    },
+    theme: { incomingCall },
   } = useTheme();
+  const { t } = useI18n();
   return (
     <View style={[styles.buttonGroup, incomingCall.buttonGroup]}>
-      <RejectCallButton
-        onRejectCallHandler={onRejectCallHandler}
-        size={buttonSizes.md}
-        rejectReason="decline"
-      />
-      <AcceptCallButton onAcceptCallHandler={onAcceptCallHandler} />
+      <View style={incomingCall.button}>
+        <RejectCallButton
+          onRejectCallHandler={onRejectCallHandler}
+          rejectReason="decline"
+          disabled={disabled}
+        />
+        <Text style={[incomingCall.buttonText]}>
+          {t('incomingCall.decline.label', 'Decline')}
+        </Text>
+      </View>
+      <View style={incomingCall.button}>
+        <AcceptCallButton
+          onAcceptCallHandler={onAcceptCallHandler}
+          disabled={disabled}
+        />
+        <Text style={[incomingCall.buttonText]}>
+          {t('incomingCall.accept.label', 'Accept')}
+        </Text>
+      </View>
     </View>
   );
 };
@@ -43,7 +57,6 @@ export const IncomingCallControls = ({
 const styles = StyleSheet.create({
   buttonGroup: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
     alignItems: 'center',
   },
 });

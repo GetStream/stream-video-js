@@ -1,6 +1,5 @@
-import { NativeModules, Platform } from 'react-native';
-
-const StreamVideoReactNative = NativeModules.StreamVideoReactNative;
+import { Platform } from 'react-native';
+import NativeStreamVideoReactNative from '../native/NativeStreamVideoReactNative';
 
 export class ScreenShareAudioManager {
   /**
@@ -10,7 +9,7 @@ export class ScreenShareAudioManager {
    * audio via AudioPlaybackCaptureConfiguration and mixes it into the mic buffer.
    */
   async startScreenShareAudioMixing(): Promise<void> {
-    return StreamVideoReactNative?.startScreenShareAudioMixing();
+    return NativeStreamVideoReactNative.startScreenShareAudioMixing();
   }
 
   /**
@@ -18,7 +17,7 @@ export class ScreenShareAudioManager {
    * and restores the original audio pipeline.
    */
   async stopScreenShareAudioMixing(): Promise<void> {
-    return StreamVideoReactNative?.stopScreenShareAudioMixing();
+    return NativeStreamVideoReactNative.stopScreenShareAudioMixing();
   }
 
   /**
@@ -32,7 +31,7 @@ export class ScreenShareAudioManager {
     if (Platform.OS !== 'ios') {
       return;
     }
-    return StreamVideoReactNative?.startInAppScreenCapture(includeAudio);
+    return NativeStreamVideoReactNative.startInAppScreenCapture(includeAudio);
   }
 
   /**
@@ -42,7 +41,7 @@ export class ScreenShareAudioManager {
     if (Platform.OS !== 'ios') {
       return;
     }
-    return StreamVideoReactNative?.stopInAppScreenCapture();
+    return NativeStreamVideoReactNative.stopInAppScreenCapture();
   }
 }
 

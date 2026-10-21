@@ -1,16 +1,20 @@
 import { Fragment, ReactNode, useEffect, useState } from 'react';
 import {
   asDynamicKey,
+  CallTranscription,
   DropDownSelect,
   DropDownSelectOption,
-  TranscriptionSettingsRequestLanguageEnum,
-  TranscriptionSettingsRequestModeEnum,
+  OwnCapability,
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { StatCard, StatCardGrid, StatCardTag } from '../StatCard';
+import { TranscriptionDownloadList } from '../TranscriptionDownloadList';
 import { useAppI18n } from '../../hooks/useAppI18n';
-import type { LooseTranslateFunction } from '@stream-io/video-react-sdk';
+import type {
+  LooseTranslateFunction,
+  TranscriptionSettingsRequest,
+} from '@stream-io/video-react-sdk';
 
 /**
  * The transcription languages the backend accepts, in the order the dropdown lists them. The
@@ -68,50 +72,48 @@ const languageLabel = (t: LooseTranslateFunction, code: string) =>
 export const TranscriptionSettings = () => {
   const call = useCall();
   const { t } = useAppI18n();
-  const [transcriptionLanguage, setTranscriptionLanguage] = useState<
-    string | undefined
-  >('en');
+  const { useCallSettings } = useCallStateHooks();
+  const settings = useCallSettings();
+  const currentLanguage = settings?.transcription.language;
+  const selectedLanguage =
+    currentLanguage && currentLanguage !== 'auto'
+      ? currentLanguage
+      : DEFAULT_TRANSCRIPTION_LANGUAGE;
+  const selectedIndex = languages.findIndex(
+    ({ code }) => code === selectedLanguage,
+  );
 
-  useEffect(() => {
+  const updateLanguage = (code: string | undefined) => {
     if (!call) return;
-    const language = transcriptionLanguage
-      ? // @ts-expect-error - TS doesn't know about the enum values
-        TranscriptionSettingsRequestLanguageEnum[
-          transcriptionLanguage.toUpperCase()
-        ]
-      : TranscriptionSettingsRequestLanguageEnum.AUTO;
+    const language = (code ??
+      'auto') as TranscriptionSettingsRequest['language'];
     call
       .update({
         settings_override: {
-          transcription: {
-            ...call.state.settings?.transcription,
-            mode: TranscriptionSettingsRequestModeEnum.AUTO_ON,
-            language,
-          },
+          transcription: { ...call.state.settings?.transcription, language },
         },
       })
       .catch((err) => {
         console.error('Error updating call settings:', err);
       });
-  }, [call, transcriptionLanguage]);
+  };
 
   return (
-    <div className="rd__transcriptions">
+    <div>
       <div className="rd__transcriptions__status">
         <StatCardGrid>
           <ClosedCaptionStatus />
           <TranscriptionStatus />
         </StatCardGrid>
       </div>
+      <TranscriptionControls />
 
       <h4>{t('common.language.label', 'Language')}</h4>
       <DropDownSelect
         icon="language-sign"
-        defaultSelectedLabel={languageLabel(t, DEFAULT_TRANSCRIPTION_LANGUAGE)}
-        defaultSelectedIndex={1}
-        handleSelect={(index) =>
-          setTranscriptionLanguage(languages[index + 1].code)
-        }
+        defaultSelectedLabel={languageLabel(t, selectedLanguage)}
+        defaultSelectedIndex={Math.max(selectedIndex - 1, 0)}
+        handleSelect={(index) => updateLanguage(languages[index + 1].code)}
       >
         {languages.map((language) =>
           language.code ? (
@@ -125,7 +127,108 @@ export const TranscriptionSettings = () => {
           ),
         )}
       </DropDownSelect>
+
+      <TranscriptionDownloads />
     </div>
+  );
+};
+
+const TranscriptionControls = () => {
+  const call = useCall();
+  const { t } = useAppI18n();
+  const {
+    useCallSettings,
+    useIsCallTranscribingInProgress,
+    useHasPermissions,
+  } = useCallStateHooks();
+  const settings = useCallSettings();
+  const isTranscribing = useIsCallTranscribingInProgress();
+  const canStart = useHasPermissions(OwnCapability.START_TRANSCRIPTION_CALL);
+  const canStop = useHasPermissions(OwnCapability.STOP_TRANSCRIPTION_CALL);
+  const [pending, setPending] = useState(false);
+
+  if (settings?.transcription.mode === 'disabled') {
+    return (
+      <p className="rd__transcriptions__hint">
+        {t(
+          'settings.transcription.disabled.text',
+          'Transcription is disabled for this call type.',
+        )}
+      </p>
+    );
+  }
+  if (!canStart && !canStop) return null;
+
+  const toggleTranscription = async () => {
+    if (!call) return;
+    setPending(true);
+    try {
+      if (isTranscribing) {
+        await call.stopTranscription();
+      } else {
+        await call.startTranscription();
+      }
+      // the backend doesn't always emit transcription_started/stopped
+      // (e.g. while closed captions are running), so re-sync the call state
+      await call.get();
+    } catch (err) {
+      console.error('Failed to toggle transcription', err);
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <div className="rd__transcriptions__controls">
+      <button
+        type="button"
+        className={`rd__button ${isTranscribing ? 'rd__button--secondary' : 'rd__button--primary'}`}
+        disabled={pending || (isTranscribing ? !canStop : !canStart)}
+        onClick={toggleTranscription}
+      >
+        {isTranscribing
+          ? t('settings.transcription.stop.label', 'Stop transcription')
+          : t('settings.transcription.start.label', 'Start transcription')}
+      </button>
+    </div>
+  );
+};
+
+const TranscriptionDownloads = () => {
+  const call = useCall();
+  const { t } = useAppI18n();
+  const [transcriptions, setTranscriptions] = useState<CallTranscription[]>([]);
+
+  useEffect(() => {
+    if (!call) return;
+    const addTranscriptions = (added: CallTranscription[]) =>
+      setTranscriptions((prev) => [
+        ...prev,
+        ...added.filter((a) => !prev.some((p) => p.filename === a.filename)),
+      ]);
+    call
+      .listTranscriptions()
+      .then(({ transcriptions: listed }) => addTranscriptions(listed))
+      .catch((err) => console.warn('Failed to list transcriptions', err));
+    return call.on('call.transcription_ready', (e) =>
+      addTranscriptions([e.call_transcription]),
+    );
+  }, [call]);
+
+  return (
+    <>
+      <h4>{t('recordings.transcriptions.title', 'Transcripts')}</h4>
+      {transcriptions.length ? (
+        <TranscriptionDownloadList transcriptions={transcriptions} />
+      ) : (
+        <p className="rd__transcriptions__hint">
+          {t(
+            'settings.transcription.downloads.empty.text',
+            'No transcripts yet. They show up here once a transcription stops.',
+          )}
+        </p>
+      )}
+    </>
   );
 };
 
@@ -155,7 +258,7 @@ const TranscriptionStatus = () => {
   return (
     <StatusCard
       label={t('settings.transcription.label', 'Transcription')}
-      value={settings?.transcription.closed_caption_mode}
+      value={settings?.transcription.mode}
       status={inProgress ? 'on' : 'off'}
     />
   );

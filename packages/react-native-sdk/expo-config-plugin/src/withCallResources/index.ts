@@ -3,24 +3,26 @@ import type { ConfigProps } from '../common/types';
 import withIosRingtone from './withIosRingtone';
 import withIosCallkitIcon from './withIosCallkitIcon';
 import withAndroidRingtone from './withAndroidRingtone';
+import withCallSounds from './withCallSounds';
 
 const withCallResources: ConfigPlugin<ConfigProps> = (config, props) => {
-  //we don't need to add call resources if ringing is not enabled
-  if (!props?.ringing) {
-    return config;
-  }
-
   const plugins: ConfigPlugin[] = [];
-  if (props?.iosRingtone) {
-    plugins.push(() => withIosRingtone(config, props));
+  if (props?.iosCallSounds || props?.androidCallSounds) {
+    plugins.push(() => withCallSounds(config, props));
   }
 
-  if (props?.iosCallKitIcon) {
-    plugins.push(() => withIosCallkitIcon(config, props));
-  }
+  if (props?.ringing) {
+    if (props?.iosRingtone) {
+      plugins.push(() => withIosRingtone(config, props));
+    }
 
-  if (props?.androidRingtone) {
-    plugins.push(() => withAndroidRingtone(config, props));
+    if (props?.iosCallKitIcon) {
+      plugins.push(() => withIosCallkitIcon(config, props));
+    }
+
+    if (props?.androidRingtone) {
+      plugins.push(() => withAndroidRingtone(config, props));
+    }
   }
 
   //if no plugins are added, return the config

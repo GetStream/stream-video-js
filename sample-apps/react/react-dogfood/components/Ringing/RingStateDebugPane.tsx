@@ -88,7 +88,7 @@ const Row = ({ label, value }: { label: string; value?: string }) => (
   </div>
 );
 
-const formatMap = (map?: { [key: string]: string }) => {
+const formatMap = (map?: Record<string, number>) => {
   const userIds = Object.keys(map ?? {});
   return userIds.length > 0 ? userIds.join(', ') : undefined;
 };

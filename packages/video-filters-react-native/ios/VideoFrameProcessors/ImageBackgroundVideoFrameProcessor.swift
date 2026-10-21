@@ -4,13 +4,13 @@
 
 import CoreImage
 import Foundation
+import React
 
 /// A video filter that applies a custom image as the background.
 ///
 /// This filter uses a provided image taken from `backgroundImageUrl` as the background and combines it with
 /// the foreground objects using a filter processor. It caches processed background images to optimize
 /// performance for matching input sizes and orientations.
-@available(iOS 15.0, *)
 final class ImageBackgroundVideoFrameProcessor: VideoFilter {
     
     private struct CacheValue: Hashable {

@@ -85,7 +85,7 @@ describe('ParticipantView', () => {
       screen.getByText(/Testy van der Test is sharing their screen/i),
     ).toBeOnTheScreen();
     expect(
-      await screen.findByTestId(IconTestIds.SCREEN_SHARE_INDICATOR),
+      await screen.findByTestId(IconTestIds.SCREEN_SHARE),
     ).toBeOnTheScreen();
   });
 

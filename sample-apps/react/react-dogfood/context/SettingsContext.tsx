@@ -1,9 +1,12 @@
 import { createContext, PropsWithChildren, useContext, useState } from 'react';
+import { StreamTheme } from '@stream-io/video-react-sdk';
 import { useLanguage } from '../hooks/useLanguage';
 import {
   DeviceSelectionPreference,
   useDeviceSelectionPreference,
 } from '../hooks/useDeviceSelectionPreference';
+import { ThemeMode, useThemeMode } from '../hooks/useThemeMode';
+import { usePersistedToggle } from '../hooks/usePersistedToggle';
 
 export type SegmentationModel =
   | 'selfie_segmenter_landscape'
@@ -19,8 +22,12 @@ const VALID_SEGMENTATION_MODELS: SegmentationModel[] = [
 const defaultState: Settings = {
   deviceSelectionPreference: 'recent',
   setDeviceSelectionPreference: () => {},
+  speakingDetectionEnabled: true,
+  setSpeakingDetectionEnabled: () => {},
   segmentationModel: 'selfie_segmenter_landscape',
   setSegmentationModel: () => {},
+  themeMode: 'dark',
+  setThemeMode: () => {},
 };
 
 export type Settings = {
@@ -28,8 +35,12 @@ export type Settings = {
   setLanguage?: (value: string) => void;
   deviceSelectionPreference: DeviceSelectionPreference;
   setDeviceSelectionPreference: (value: DeviceSelectionPreference) => void;
+  speakingDetectionEnabled: boolean;
+  setSpeakingDetectionEnabled: (value: boolean) => void;
   segmentationModel: SegmentationModel;
   setSegmentationModel: (value: SegmentationModel) => void;
+  themeMode: ThemeMode;
+  setThemeMode: (value: ThemeMode) => void;
 };
 
 export type SettingsContextValue = {
@@ -44,6 +55,9 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
   const { language, setLanguage } = useLanguage();
   const { deviceSelectionPreference, setDeviceSelectionPreference } =
     useDeviceSelectionPreference();
+  const [speakingDetectionEnabled, setSpeakingDetectionEnabled] =
+    usePersistedToggle('@pronto/speaking-detection-enabled', true);
+  const { themeMode, setThemeMode } = useThemeMode();
 
   const [segmentationModel, setSegmentationModel] = useState<SegmentationModel>(
     () => {
@@ -64,8 +78,12 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
     setLanguage,
     deviceSelectionPreference,
     setDeviceSelectionPreference,
+    speakingDetectionEnabled,
+    setSpeakingDetectionEnabled,
     segmentationModel,
     setSegmentationModel,
+    themeMode,
+    setThemeMode,
   };
 
   return (
@@ -74,7 +92,7 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
         settings,
       }}
     >
-      {children}
+      <StreamTheme theme={themeMode}>{children}</StreamTheme>
     </SettingsContext.Provider>
   );
 };

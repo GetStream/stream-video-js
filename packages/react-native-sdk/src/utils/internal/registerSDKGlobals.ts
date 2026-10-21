@@ -2,7 +2,9 @@ import {
   StreamRNVideoSDKGlobals,
   videoLoggerSystem,
 } from '@stream-io/video-client';
-import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
+import { PermissionsAndroid, Platform } from 'react-native';
+import NativeStreamInCallManager from '../../native/NativeStreamInCallManager';
+import NativeStreamVideoReactNative from '../../native/NativeStreamVideoReactNative';
 import {
   AudioEngineMuteMode,
   audioDeviceModuleEvents,
@@ -19,10 +21,7 @@ import { registerCallMediaEngine } from './registerMediaEngine';
 import { beforeJoin, onJoinFailed, onLeave } from './ringingCallLifecycle';
 import { callManager as publicCallManager } from '../../modules/call-manager';
 
-const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
-const StreamVideoReactNativeModule = NativeModules.StreamVideoReactNative as {
-  checkPermission: StreamRNVideoSDKGlobals['permissions']['check'] | undefined;
-};
+const StreamInCallManagerNativeModule = NativeStreamInCallManager;
 
 const CallingxModule = getCallingxLibIfAvailable();
 
@@ -116,6 +115,11 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       }
     },
     start: ({ isRingingTypeCall, cid }) => {
+      safeNativeCall('stopRingtone', () =>
+        //stop the ringtone if it is playing before audio session setup
+        StreamInCallManagerNativeModule.stopSound(),
+      );
+
       // Apply the audio config a consumer recorded via `callManager.start(config)` at this single
       // join-time start, before the native audio manager is activated.
       const config = publicCallManager.getStoredConfig();
@@ -217,7 +221,7 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
 
       // use our own service on iOS
       return Boolean(
-        await StreamVideoReactNativeModule.checkPermission?.(permission),
+        await NativeStreamVideoReactNative.checkPermission(permission),
       );
     },
   },

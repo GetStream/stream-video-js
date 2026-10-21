@@ -35,6 +35,7 @@
     &-chevron {
       inline-size: var(--str-video__icon-size-sm);
       block-size: var(--str-video__icon-size-sm);
+      background-color: currentColor;
     }
 
     &-container {

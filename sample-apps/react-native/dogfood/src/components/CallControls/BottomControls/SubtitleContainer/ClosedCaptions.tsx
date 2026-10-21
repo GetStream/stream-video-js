@@ -24,29 +24,31 @@ export const ClosedCaptions = () => {
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { primitives, semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         rootContainer: {
-          backgroundColor: theme.colors.sheetPrimary,
-          padding: theme.variants.spacingSizes.sm,
+          backgroundColor: semantics.backgroundCoreApp,
+          padding: primitives.spacingSm,
           width: '100%',
         },
         closedCaptionItem: {
           flexDirection: 'row',
           flexWrap: 'wrap',
-          columnGap: theme.variants.spacingSizes.xs,
+          columnGap: primitives.spacingXs,
         },
         speakerName: {
-          color: theme.colors.textSecondary,
+          color: semantics.textSecondary,
         },
         closedCaption: {
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           flexShrink: 1,
           flex: 1,
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };

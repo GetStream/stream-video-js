@@ -10,7 +10,6 @@ import { MeetingStackParamList } from '../../../types';
 import { MeetingUI } from '../../components/MeetingUI';
 import { createToken } from '../../modules/helpers/createToken';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
-import { useCustomTheme } from '../../theme';
 import {
   LobbyE2EEContext,
   type LobbyE2EEContextValue,
@@ -30,8 +29,6 @@ export const GuestMeetingScreen = (props: Props) => {
   const appEnvironment = useAppGlobalStoreValue(
     (store) => store.appEnvironment,
   );
-  const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
-  const customTheme = useCustomTheme(themeMode);
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
     undefined,
   );
@@ -57,7 +54,10 @@ export const GuestMeetingScreen = (props: Props) => {
         appEnvironment,
       );
 
-      const options = { logLevel: 'warn', rejectCallWhenBusy: false } as const;
+      const options = {
+        logOptions: { default: { level: 'warn' } },
+        rejectCallWhenBusy: false,
+      } as const;
       if (mode === 'guest') {
         _videoClient = StreamVideoClient.getOrCreateInstance({
           apiKey,
@@ -119,7 +119,7 @@ export const GuestMeetingScreen = (props: Props) => {
   }
 
   return (
-    <StreamVideo client={videoClient} style={customTheme}>
+    <StreamVideo client={videoClient}>
       <LobbyE2EEContext.Provider value={allowEncryption ? e2eeControls : null}>
         <StreamCall call={call}>
           <MeetingUI callId={callId} {...props} />

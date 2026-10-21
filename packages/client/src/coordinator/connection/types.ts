@@ -1,5 +1,6 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
+import { ConnectedEvent, TimestampNS, VideoEvent } from '../../gen/coordinator';
+import type { UserRequest } from '../../gen/shims';
 import { AllSfuEvents } from '../../rtc';
 import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
 import type { DevicePersistenceOptions } from '../../devices/devicePersistence';
@@ -171,7 +172,12 @@ export type StreamVideoEvent = (
   | ConnectionRecoveredEvent
   | MicCaptureReportEvent
   | DeviceDisconnectedEvent
-) & { received_at?: string | Date };
+) & {
+  /**
+   * When this client received the frame, as a unix-nanosecond timestamp.
+   */
+  received_at?: TimestampNS;
+};
 
 // TODO: we should use WSCallEvent here but that needs fixing
 export type StreamCallEvent = Extract<StreamVideoEvent, { call_cid: string }>;
@@ -202,7 +208,7 @@ export type Logger = (
 
 export type RingStatePollingOptions = {
   /**
-   * Quiet time after the ring starts, before the first poll. Defaults to 15_000.
+   * Quiet time after the ring starts, before the first poll. Defaults to 9_000.
    */
   startAfterMs?: number;
 
@@ -213,10 +219,6 @@ export type RingStatePollingOptions = {
 };
 
 export type StreamClientOptions = Partial<AxiosRequestConfig> & {
-  /**
-   * Used to disable warnings that are triggered by using connectUser or connectAnonymousUser server-side.
-   */
-  allowServerSideConnect?: boolean;
   axiosRequestConfig?: AxiosRequestConfig;
   /**
    * Base url to use for API
@@ -231,20 +233,6 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * where the telemetry adds no value. Defaults to `true`.
    */
   clientEventsReportingEnabled?: boolean;
-
-  /**
-   *  @deprecated Use `logOptions` instead.
-   *  Custom logger instance used to handle log messages.
-   *  Will be removed in a future release.
-   */
-  logger?: Logger;
-
-  /**
-   *  @deprecated Use `logOptions` instead.
-   *  Sets the minimum log level for all logs.
-   *  Will be removed in a future release.
-   */
-  logLevel?: LogLevel;
 
   /**
    * Configuration options where keys are logger scopes.
@@ -272,11 +260,6 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * persist even if connectUser call fails.
    */
   persistUserOnConnectionFailure?: boolean;
-
-  /**
-   * The secret key for the API key. This is only needed for server side authentication.
-   */
-  secret?: string;
 
   /**
    * The WebSocket implementation to use. This is mainly useful for testing.

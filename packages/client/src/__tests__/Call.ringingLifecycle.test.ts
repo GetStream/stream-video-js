@@ -11,6 +11,8 @@ import { StreamClient } from '../coordinator/connection/client';
 import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { ClientState } from '../store';
+import { VideoApi } from '../gen/coordinator/video/VideoApi';
+import { ApiClient } from '../coordinator/connection/api-client';
 
 /**
  * The core's whole part in the React Native ringing lifecycle: await RN's
@@ -26,6 +28,7 @@ const createCall = (ringing: boolean) => {
     id: generateUUIDv4(),
     ringing,
     streamClient,
+    videoApi: new VideoApi(new ApiClient(streamClient)),
     clientEventReporter: new ClientEventReporter({
       streamClient,
       enabled: false,

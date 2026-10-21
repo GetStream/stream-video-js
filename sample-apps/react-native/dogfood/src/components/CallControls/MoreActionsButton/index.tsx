@@ -17,8 +17,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
-import MoreActions from '../../../assets/MoreActions';
+import {
+  ControlButtonIcon,
+  IconWrapper,
+  MoreVert,
+} from '@stream-io/video-react-native-sdk/src/icons';
 import { BottomControlsDrawer, DrawerOption } from './BottomControlsDrawer';
 import Feedback from '../../../assets/Feedback';
 import FeedbackModal from '../../FeedbackModal';
@@ -44,9 +47,9 @@ type MoreActionsButtonProps = {
    */
   onPressHandler?: () => void;
   /**
-   * The height of the bottom controls container.
+   * The height of the bottom controls container, undefined until measured.
    */
-  controlsContainerHeight: number;
+  controlsContainerHeight: number | undefined;
 };
 
 /**
@@ -59,7 +62,7 @@ export const MoreActionsButton = ({
   controlsContainerHeight,
 }: MoreActionsButtonProps) => {
   const {
-    theme: { colors, variants, moreActionsButton, defaults },
+    theme: { components, semantics },
   } = useTheme();
   const {
     isSupported,
@@ -103,7 +106,8 @@ export const MoreActionsButton = ({
 
   const handleRating = async (rating: number) => {
     await call
-      ?.submitFeedback(Math.min(Math.max(1, rating), 5), {
+      ?.submitFeedback({
+        rating: Math.min(Math.max(1, rating), 5),
         reason: '<no-message-provided>',
       })
       .catch((err) => console.warn('Failed to submit call feedback', err));
@@ -169,8 +173,8 @@ export const MoreActionsButton = ({
       icon: (
         <IconWrapper>
           <Feedback
-            color={colors.iconPrimary}
-            size={variants.roundButtonSizes.sm}
+            color={semantics.accentNeutral}
+            size={components.iconSizeMd}
           />
         </IconWrapper>
       ),
@@ -187,10 +191,7 @@ export const MoreActionsButton = ({
       label: 'Call stats',
       icon: (
         <IconWrapper>
-          <Stats
-            color={colors.iconPrimary}
-            size={variants.roundButtonSizes.sm}
-          />
+          <Stats color={semantics.accentNeutral} size={components.iconSizeMd} />
         </IconWrapper>
       ),
       onPress: () => {
@@ -204,8 +205,8 @@ export const MoreActionsButton = ({
       icon: (
         <IconWrapper>
           <LightDark
-            color={colors.iconPrimary}
-            size={variants.roundButtonSizes.sm}
+            color={semantics.accentNeutral}
+            size={components.iconSizeMd}
           />
         </IconWrapper>
       ),
@@ -224,8 +225,8 @@ export const MoreActionsButton = ({
       icon: (
         <IconWrapper>
           <Screenshot
-            color={colors.iconPrimary}
-            size={variants.roundButtonSizes.sm}
+            color={semantics.accentNeutral}
+            size={components.iconSizeMd}
           />
         </IconWrapper>
       ),
@@ -237,8 +238,8 @@ export const MoreActionsButton = ({
       icon: (
         <IconWrapper>
           <AudioOutput
-            color={colors.iconPrimary}
-            size={variants.roundButtonSizes.sm}
+            color={semantics.accentNeutral}
+            size={components.iconSizeMd}
           />
         </IconWrapper>
       ),
@@ -256,8 +257,8 @@ export const MoreActionsButton = ({
             icon: (
               <IconWrapper>
                 <Hearing
-                  color={colors.iconPrimary}
-                  size={variants.roundButtonSizes.sm}
+                  color={semantics.accentNeutral}
+                  size={components.iconSizeMd}
                 />
               </IconWrapper>
             ),
@@ -273,8 +274,8 @@ export const MoreActionsButton = ({
             icon: (
               <IconWrapper>
                 <ClosedCaptions
-                  color={colors.iconPrimary}
-                  size={variants.roundButtonSizes.sm}
+                  color={semantics.accentNeutral}
+                  size={components.iconSizeMd}
                 />
               </IconWrapper>
             ),
@@ -291,10 +292,6 @@ export const MoreActionsButton = ({
       : []),
   ];
 
-  const buttonColor = isDrawerVisible
-    ? colors.buttonPrimary
-    : colors.buttonSecondary;
-
   return (
     <CallControlsButton
       onPress={() => {
@@ -303,10 +300,8 @@ export const MoreActionsButton = ({
         }
         setIsDrawerVisible(!isDrawerVisible);
       }}
-      style={moreActionsButton}
-      color={buttonColor}
     >
-      {!!controlsContainerHeight && (
+      {controlsContainerHeight !== undefined && (
         <AudioRoutePickerDrawer
           isVisible={isAudioRoutePickerDrawerVisible}
           bottomControlsHeight={controlsContainerHeight}
@@ -315,7 +310,7 @@ export const MoreActionsButton = ({
           }}
         />
       )}
-      {!!controlsContainerHeight && (
+      {controlsContainerHeight !== undefined && (
         <BottomControlsDrawer
           isVisible={isDrawerVisible}
           bottomControlsHeight={controlsContainerHeight}
@@ -359,9 +354,7 @@ export const MoreActionsButton = ({
           </View>
         </View>
       </Modal>
-      <IconWrapper>
-        <MoreActions color={colors.iconPrimary} size={defaults.iconSize} />
-      </IconWrapper>
+      <ControlButtonIcon icon={MoreVert} />
     </CallControlsButton>
   );
 };

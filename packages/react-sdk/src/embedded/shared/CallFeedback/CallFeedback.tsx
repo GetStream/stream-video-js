@@ -24,7 +24,8 @@ export const CallFeedback = ({ onJoin }: CallFeedbackProps) => {
 
       const clampedRating = Math.min(Math.max(1, rating), 5);
       try {
-        await call.submitFeedback(clampedRating, {
+        await call.submitFeedback({
+          rating: clampedRating,
           reason: message,
           custom: { message },
         });

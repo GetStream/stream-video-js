@@ -1,5 +1,9 @@
 import { StreamSfuClient } from './StreamSfuClient';
+import { CallApi } from './gen/coordinator/video/CallApi';
+import type { VideoApi } from './gen/coordinator/video/VideoApi';
+import type { StreamResponse } from './coordinator/connection/api-client';
 import { SfuJoinError } from './errors';
+import { FastReconnectRejectedError } from './errors/FastReconnectRejectedError';
 import {
   BasePeerConnectionOpts,
   type CallMediaEngine,
@@ -30,9 +34,6 @@ import {
 } from './store/rxUtils';
 import { ScopedLogger, videoLoggerSystem } from './logger';
 import {
-  AcceptCallResponse,
-  BlockUserRequest,
-  BlockUserResponse,
   CallRingEvent,
   CallSettingsResponse,
   CallStateResponseFields,
@@ -40,79 +41,37 @@ import {
   CollectUserFeedbackResponse,
   Credentials,
   DeleteCallRequest,
-  DeleteCallResponse,
-  DeleteRecordingResponse,
-  DeleteTranscriptionResponse,
-  EndCallResponse,
-  GetCallReportResponse,
   GetCallResponse,
-  GetCallRingStateResponse,
   GetCallSessionParticipantStatsDetailsResponse,
   GetOrCreateCallRequest,
-  GetOrCreateCallResponse,
   GoLiveRequest,
-  GoLiveResponse,
-  JoinCallRequest,
   JoinCallResponse,
+  BlockUserRequest,
   KickUserRequest,
-  KickUserResponse,
-  ListRecordingsResponse,
-  ListTranscriptionsResponse,
-  MuteUsersRequest,
-  MuteUsersResponse,
+  UnblockUserRequest,
   PinRequest,
-  PinResponse,
   QueryCallMembersRequest,
-  QueryCallMembersResponse,
   QueryCallParticipantsRequest,
-  QueryCallParticipantsResponse,
   QueryCallSessionParticipantStatsResponse,
   QueryCallSessionParticipantStatsTimelineResponse,
   QueryCallStatsMapResponse,
-  RejectCallRequest,
-  RejectCallResponse,
   RequestPermissionRequest,
   RequestPermissionResponse,
   RingCallRequest,
-  RingCallResponse,
-  SendCallEventRequest,
-  SendCallEventResponse,
   SendVideoReactionRequest,
-  SendVideoReactionResponse,
   StartClosedCaptionsRequest,
-  StartClosedCaptionsResponse,
   StartFrameRecordingRequest,
-  StartFrameRecordingResponse,
-  StartHLSBroadcastingResponse,
-  StartRecordingRequest,
-  StartRecordingResponse,
   StartRTMPBroadcastsRequest,
-  StartRTMPBroadcastsResponse,
+  StartRecordingRequest,
   StartTranscriptionRequest,
-  StartTranscriptionResponse,
   StatsOptions,
-  StopAllRTMPBroadcastsResponse,
   StopClosedCaptionsRequest,
-  StopClosedCaptionsResponse,
-  StopFrameRecordingResponse,
-  StopHLSBroadcastingResponse,
   StopLiveRequest,
-  StopLiveResponse,
-  StopRecordingResponse,
-  StopRTMPBroadcastsResponse,
-  StopTranscriptionResponse,
-  UnblockUserRequest,
-  UnblockUserResponse,
+  StopTranscriptionRequest,
   UnpinRequest,
-  UnpinResponse,
   UpdateCallMembersRequest,
-  UpdateCallMembersResponse,
   UpdateCallRequest,
-  UpdateCallResponse,
   UpdateUserPermissionsRequest,
-  UpdateUserPermissionsRequestGrantPermissionsEnum,
-  UpdateUserPermissionsRequestRevokePermissionsEnum,
-  UpdateUserPermissionsResponse,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
 import {
@@ -123,7 +82,6 @@ import {
   ClientPublishOptions,
   ClosedCaptionsSettings,
   JoinCallData,
-  StartCallRecordingFnType,
   TrackMuteType,
   VideoTrackType,
 } from './types';
@@ -155,7 +113,9 @@ import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
+import { createInboundAudioStallDetector } from './helpers/inboundAudioStallDetector';
 import { ViewportTracker } from './helpers/ViewportTracker';
+import { tracePageLifecycle } from './helpers/pageLifecycle';
 import { PermissionsContext } from './permissions';
 import { RingStatePoller, RingTimeout, resolveOwnRingOutcome } from './ringing';
 import { CallTypes } from './CallType';
@@ -179,6 +139,7 @@ import {
 import { normalize } from './devices/devicePersistence';
 import {
   hasPending,
+  settled,
   singleFlight,
   withoutConcurrency,
 } from './helpers/concurrency';
@@ -189,7 +150,6 @@ import {
   PromiseWithResolvers,
   promiseWithResolvers,
 } from './helpers/promise';
-import { GetCallStatsResponse } from './gen/shims';
 import { isReactNative } from './helpers/platforms';
 
 /**
@@ -197,12 +157,12 @@ import { isReactNative } from './helpers/platforms';
  */
 export class Call {
   /**
-   * The type of the call.
+   * The call type.
    */
   readonly type: string;
 
   /**
-   * The ID of the call.
+   * The call ID.
    */
   readonly id: string;
 
@@ -210,6 +170,13 @@ export class Call {
    * The call CID.
    */
   readonly cid: string;
+
+  /**
+   * The generated API for this call.
+   */
+  readonly api: CallApi;
+
+  protected readonly videoApi: VideoApi;
 
   /**
    * The state of this call.
@@ -298,6 +265,8 @@ export class Call {
   private currentPublishOptions?: PublishOption[];
   private statsReportingIntervalInMs: number = 2000;
   private statsReporter?: StatsReporter;
+  private stopInboundAudioStallDetector?: () => void;
+  private fastReconnectOffer?: Promise<boolean>;
   private sfuStatsReporter?: SfuStatsReporter;
   private lastStatsOptions?: StatsOptions;
   private ringTimeout: RingTimeout | undefined;
@@ -321,6 +290,15 @@ export class Call {
 
   // (10 attempts per rolling 120 s window).
   private readonly rejoinRateLimiter = new SlidingWindowRateLimiter(10, 120000);
+  // Backstop for slow REJOIN loops that stay under the short window
+  // (20 attempts per rolling 30 min window). Dropped once the integrator
+  // takes over the budget through `setRejoinAttemptLimit`.
+  private rejoinLongWindowRateLimiter?: SlidingWindowRateLimiter =
+    new SlidingWindowRateLimiter(20, 30 * 60 * 1000);
+  // In-flight `doJoin` runs, awaited before acting on peer connections that
+  // gathered no local ICE candidates.
+  private readonly joinTasks = new Set<Promise<void>>();
+  private noLocalCandidatesCheckScheduled = false;
   // "Network doesn't support WebRTC" detector: counts peer-connection
   // failures where ICE never reached `connected`/`completed`.
   private maxIceFailuresWithoutConnect = 2;
@@ -337,6 +315,7 @@ export class Call {
   private joinCallData?: JoinCallData;
   private allowOwnTracksLoopback = false;
   private hasJoinedOnce = false;
+  private stopTracingPageLifecycle?: () => void;
   private deviceSettingsAppliedOnce = false;
   private callManagerStarted = false;
   private leaveGeneration = 0;
@@ -353,7 +332,6 @@ export class Call {
    */
   private readonly leaveCallHooks: Set<Function> = new Set();
 
-  private readonly streamClientBasePath: string;
   private streamClientEventHandlers = new Map<Function, () => void>();
 
   /**
@@ -387,9 +365,12 @@ export class Call {
     ownCapabilities,
     sortParticipantsBy,
     clientState,
+    videoApi,
     ringing = false,
     watching = false,
   }: CallConstructor) {
+    this.videoApi = videoApi;
+    this.api = new CallApi(videoApi, type, id);
     this.type = type;
     this.id = id;
     this.cid = `${type}:${id}`;
@@ -398,7 +379,6 @@ export class Call {
     this.streamClient = streamClient;
     this.clientEventReporter = clientEventReporter;
     this.clientState = clientState;
-    this.streamClientBasePath = `/call/${this.type}/${this.id}`;
     this.logger = videoLoggerSystem.getLogger('Call');
 
     const callTypeConfig = CallTypes.get(type);
@@ -740,14 +720,14 @@ export class Call {
             reasonToEndCallReason[
               rejectReason as keyof typeof reasonToEndCallReason
             ] ?? 'rejected';
-          await this.reject(rejectReason);
+          await this.reject({ reason: rejectReason });
           globalThis.streamRNVideoSDK?.callingX?.endCall(this, endCallReason);
         } else {
           // if reject was undefined, we still have to cancel the call automatically
           // when I am the creator and everyone else left the call
           const hasOtherParticipants = this.state.remoteParticipants.length > 0;
           if (this.isCreatedByMe && !hasOtherParticipants) {
-            await this.reject('cancel');
+            await this.reject({ reason: 'cancel' });
             globalThis.streamRNVideoSDK?.callingX?.endCall(this, 'canceled');
           }
         }
@@ -759,6 +739,10 @@ export class Call {
 
       this.statsReporter?.stop();
       this.statsReporter = undefined;
+      this.stopInboundAudioStallDetector?.();
+      this.stopInboundAudioStallDetector = undefined;
+      this.stopTracingPageLifecycle?.();
+      this.stopTracingPageLifecycle = undefined;
 
       const leaveReason = message ?? reason ?? 'user is leaving the call';
       this.tracer.trace('call.leaveReason', leaveReason);
@@ -806,6 +790,7 @@ export class Call {
       // `joinFlow` never runs, leaving stale values that would make the next
       // fresh `join()` send a stale `ReconnectDetails` to the SFU.
       this.rejoinRateLimiter.reset();
+      this.rejoinLongWindowRateLimiter?.reset();
       this.iceFailuresWithoutConnect = 0;
       this.consecutiveNegotiationFailures = 0;
       this.reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
@@ -979,18 +964,15 @@ export class Call {
    * @param params.video if set to true, in a ringing scenario, mobile SDKs will show "incoming video call", audio only otherwise.
    */
   get = async (params?: {
+    members_limit?: number;
     ring?: boolean;
     notify?: boolean;
-    members_limit?: number;
     video?: boolean;
-  }): Promise<GetCallResponse> => {
+  }): Promise<StreamResponse<GetCallResponse>> => {
     const getLeaveGeneration = this.leaveGeneration;
     await this.setup();
 
-    const response = await this.streamClient.get<GetCallResponse>(
-      this.streamClientBasePath,
-      params,
-    );
+    const response = await this.api.get(params);
     if (this.leaveGeneration !== getLeaveGeneration) return response;
 
     this.updateFromCallStateResponse(response);
@@ -1016,10 +998,7 @@ export class Call {
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
     await this.setup();
 
-    const response = await this.streamClient.post<
-      GetOrCreateCallResponse,
-      GetOrCreateCallRequest
-    >(this.streamClientBasePath, data);
+    const response = await this.api.getOrCreate(data);
 
     this.updateFromCallStateResponse(response);
 
@@ -1047,54 +1026,30 @@ export class Call {
   };
 
   /**
-   * Deletes the call.
-   */
-  delete = async (
-    data: DeleteCallRequest = {},
-  ): Promise<DeleteCallResponse> => {
-    return this.streamClient.post<DeleteCallResponse, DeleteCallRequest>(
-      `${this.streamClientBasePath}/delete`,
-      data,
-    );
-  };
-
-  /**
-   * Sends a ring notification to the provided users who are not already in the call.
-   * All users should be members of the call.
-   */
-  ring = async (data: RingCallRequest = {}): Promise<RingCallResponse> => {
-    return this.streamClient.post<RingCallResponse, RingCallRequest>(
-      `${this.streamClientBasePath}/ring`,
-      data,
-    );
-  };
-
-  /**
    * Returns who accepted, rejected or missed the ring for a call session.
    * Safe to poll: it performs no writes and emits no events.
-   *
-   * @param callSessionId the call session to read. Defaults to the current one.
-   * Pass it explicitly to read a session that has already ended, as ending a
-   * call clears its current session.
    */
-  getRingState = async (
-    callSessionId?: string,
-  ): Promise<GetCallRingStateResponse> => {
-    const sessionId = callSessionId ?? this.state.session?.id;
-    if (!sessionId) {
+  getRingState = async ({
+    call_session_id = this.state.session?.id,
+  }: {
+    /**
+     * The call session to read, the current one by default. Pass it explicitly
+     * to read a session that has already ended, as ending a call clears its
+     * current session.
+     */
+    call_session_id?: string;
+  } = {}) => {
+    if (!call_session_id) {
       throw new Error('Cannot read the ring state: the call has no session');
     }
-    return this.streamClient.get<GetCallRingStateResponse>(
-      `${this.streamClientBasePath}/ring_state`,
-      { call_session_id: sessionId },
-    );
+    return this.api.getCallRingState({ call_session_id });
   };
 
   /**
    * A shortcut for {@link Call.get} with `notify` parameter set to `true`.
    * Will send a `call.notification` event to the call members.
    */
-  notify = async (): Promise<GetCallResponse> => {
+  notify = async (): Promise<StreamResponse<GetCallResponse>> => {
     return await this.get({ notify: true });
   };
 
@@ -1108,9 +1063,7 @@ export class Call {
   accept = async () => {
     return withoutConcurrency(this.acceptRejectConcurrencyTag, () => {
       this.tracer.trace('call.accept', '');
-      return this.streamClient.post<AcceptCallResponse>(
-        `${this.streamClientBasePath}/accept`,
-      );
+      return this.api.accept();
     });
   };
 
@@ -1120,18 +1073,16 @@ export class Call {
    * This method should be used only for "ringing" call flows.
    * {@link Call.leave} invokes this method automatically for you when you leave or reject this call.
    * Unless you are implementing a custom "ringing" flow, you should not use this method.
-   *
-   * @param reason the reason for rejecting the call.
    */
-  reject = async (
-    reason: RejectReason = 'decline',
-  ): Promise<RejectCallResponse> => {
+  reject = async ({
+    reason = 'decline',
+  }: {
+    /** The reason for rejecting the call, `'decline'` by default. */
+    reason?: RejectReason;
+  } = {}) => {
     return withoutConcurrency(this.acceptRejectConcurrencyTag, () => {
       this.tracer.trace('call.reject', reason);
-      return this.streamClient.post<RejectCallResponse, RejectCallRequest>(
-        `${this.streamClientBasePath}/reject`,
-        { reason },
-      );
+      return this.api.reject({ reason });
     });
   };
 
@@ -1173,6 +1124,8 @@ export class Call {
       const joinLeaveGeneration = this.leaveGeneration;
       const supersededByLeave = () =>
         this.leaveGeneration !== joinLeaveGeneration;
+
+      this.dynascaleManager?.keepAudioPlaybackUnlocked();
 
       // we need this to be set before the callingx.joinCall() is
       // called to avoid registering the test call in the CallKit/Telecom
@@ -1293,6 +1246,7 @@ export class Call {
           },
         );
       } catch (error) {
+        this.dynascaleManager?.releaseAudioPlaybackUnlock();
         callingX?.endCall(this, 'error');
         // Ends the failed ringing flow and releases what its setup installed.
         // Never rejects, so `error` is what the caller sees.
@@ -1309,6 +1263,18 @@ export class Call {
    * @returns a promise which resolves once the call join-flow has finished.
    */
   private doJoin = async (data?: JoinCallData): Promise<void> => {
+    const task = this.performJoin(data);
+    this.joinTasks.add(task);
+    try {
+      await task;
+    } finally {
+      this.joinTasks.delete(task);
+    }
+  };
+
+  private performJoin = async (data?: JoinCallData): Promise<void> => {
+    // only a fast reconnect arms this, never carry one over from a previous join
+    this.fastReconnectOffer = undefined;
     const connectStartTime = Date.now();
     const callingState = this.state.callingState;
     const joinLeaveGeneration = this.leaveGeneration;
@@ -1443,26 +1409,39 @@ export class Call {
       const unifiedSessionId = this.unifiedSessionId;
       const capabilities = Array.from(this.clientCapabilities);
       try {
-        const { callState, fastReconnectDeadlineSeconds, publishOptions } =
-          await this.clientEventReporter.track(this.cid, 'WSJoin', () =>
-            sfuClient.join({
-              unifiedSessionId,
-              subscriberSdp,
-              publisherSdp,
-              clientDetails,
-              fastReconnect: performingFastReconnect,
-              reconnectDetails,
-              preferredPublishOptions,
-              preferredSubscribeOptions,
-              capabilities,
-              source: ParticipantSource.WEBRTC_UNSPECIFIED,
-            }),
-          );
+        const {
+          callState,
+          fastReconnectDeadlineSeconds,
+          publishOptions,
+          reconnected,
+        } = await this.clientEventReporter.track(this.cid, 'WSJoin', () =>
+          sfuClient.join({
+            unifiedSessionId,
+            subscriberSdp,
+            publisherSdp,
+            clientDetails,
+            fastReconnect: performingFastReconnect,
+            reconnectDetails,
+            preferredPublishOptions,
+            preferredSubscribeOptions,
+            capabilities,
+            source: ParticipantSource.WEBRTC_UNSPECIFIED,
+          }),
+        );
         if (supersededByLeave()) {
           this.logger.debug(
             'Join superseded by leave; not applying SFU response',
           );
           return;
+        }
+
+        if (performingFastReconnect && !reconnected) {
+          // The SFU couldn't resume our session (e.g. it was cleaned up while
+          // this client was frozen). It won't restart the subscriber, so the
+          // call would stay silent while reporting JOINED: rejoin instead.
+          throw new FastReconnectRejectedError(
+            'SFU did not resume the session after a fast reconnect',
+          );
         }
 
         this.currentPublishOptions = publishOptions;
@@ -1502,12 +1481,29 @@ export class Call {
       this.state.setCallingState(CallingState.JOINED);
     }
     this.hasJoinedOnce = true;
+    this.stopTracingPageLifecycle ??= tracePageLifecycle({
+      tracer: this.tracer,
+      onHidden: () => {
+        if (!this.lastStatsOptions?.enable_rtc_stats) return;
+        this.sfuStatsReporter?.flush().catch((err) => {
+          this.logger.warn('Failed to flush stats on page hide', err);
+        });
+      },
+    });
 
     // when performing fast reconnect, or when we reuse the same SFU client,
     // (ws remained healthy), we just need to restore the ICE connection
     if (performingFastReconnect) {
       // the SFU automatically issues an ICE restart on the subscriber
-      // we don't have to do it ourselves
+      // we don't have to do it ourselves, but `reconnectFast` rejoins if it
+      // never arrives. Armed before `restoreICE` moves the subscriber to the
+      // new SFU client, as no offer from that client can reach it before.
+      // The SFU only restarts the subscriber in response to a fast-reconnect
+      // join: when the healthy client was reused, no join was sent and no
+      // offer is coming, so don't wait for one.
+      if (previousSfuClient !== sfuClient) {
+        this.fastReconnectOffer = this.subscriber?.waitForOffer();
+      }
       await this.restoreICE(sfuClient, { includeSubscriber: false });
     } else {
       const connectionConfig = toRtcConfiguration(this.credentials.ice_servers);
@@ -1757,6 +1753,9 @@ export class Call {
         // "ICE never connected" failure budget can be cleared.
         this.iceFailuresWithoutConnect = 0;
       },
+      onNoLocalCandidates: () => {
+        this.checkNoLocalCandidates();
+      },
       onPeerConnectionStateChange: (event) => {
         this.clientEventReporter.onPeerConnectionStateChange(this.cid, event);
       },
@@ -1801,6 +1800,16 @@ export class Call {
       });
     }
 
+    this.stopInboundAudioStallDetector?.();
+    this.stopInboundAudioStallDetector =
+      enableTracing && this.subscriber
+        ? createInboundAudioStallDetector({
+            state: this.state,
+            subscriber: this.subscriber,
+            tracer: this.tracer,
+          })
+        : undefined;
+
     this.tracer.setEnabled(enableTracing);
     if (statsOptions?.reporting_interval_ms > 0) {
       this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
@@ -1808,13 +1817,66 @@ export class Call {
         options: statsOptions,
         subscriber: this.subscriber,
         publisher: this.publisher,
-        microphone: this.microphone,
-        camera: this.camera,
-        state: this.state,
         tracer: this.tracer,
         unifiedSessionId,
       });
       this.sfuStatsReporter.start();
+    }
+  };
+
+  /**
+   * Escalates to REJOIN with `ICE_NEVER_CONNECTED` when the current peer
+   * connections never connected and one of them completed ICE gathering
+   * without a single local candidate, which means WebRTC networking is
+   * blocked on this device.
+   *
+   * `reconnect` ignores requests while a join or another reconnect is in
+   * flight, so the check is postponed until those settle and then re-run
+   * against the peer connections current at that time.
+   */
+  private checkNoLocalCandidates = () => {
+    if (this.noLocalCandidatesCheckScheduled) return;
+    if (this.joinTasks.size > 0 || hasPending(this.reconnectConcurrencyTag)) {
+      this.noLocalCandidatesCheckScheduled = true;
+      const leaveGeneration = this.leaveGeneration;
+      this.waitForJoinsAndReconnects()
+        .then(() => {
+          this.noLocalCandidatesCheckScheduled = false;
+          if (this.leaveGeneration !== leaveGeneration) return;
+          this.checkNoLocalCandidates();
+        })
+        .catch((err) => {
+          this.noLocalCandidatesCheckScheduled = false;
+          this.logger.warn('[Reconnect] No-candidates check failed', err);
+        });
+      return;
+    }
+
+    if (this.state.callingState !== CallingState.JOINED) return;
+    // without network, gathering legitimately yields no candidates
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+    const peerConnections = [this.publisher, this.subscriber];
+    if (peerConnections.some((pc) => pc?.hasIceEverConnected())) return;
+    if (!peerConnections.some((pc) => pc?.hasNoLocalCandidates())) return;
+
+    this.reconnect(
+      WebsocketReconnectStrategy.REJOIN,
+      ReconnectReason.ICE_NEVER_CONNECTED,
+    ).catch((err) => {
+      this.logger.warn('[Reconnect] Error reconnecting', err);
+    });
+  };
+
+  /**
+   * Resolves once no `doJoin` run and no reconnect is in flight.
+   */
+  private waitForJoinsAndReconnects = async () => {
+    while (
+      this.joinTasks.size > 0 ||
+      hasPending(this.reconnectConcurrencyTag)
+    ) {
+      await Promise.allSettled(this.joinTasks);
+      await settled(this.reconnectConcurrencyTag);
     }
   };
 
@@ -1837,11 +1899,7 @@ export class Call {
       return;
     }
     const e2ee = !!this.e2eeManager;
-    const request: JoinCallRequest = { ...data, location, e2ee };
-    const joinResponse = await this.streamClient.post<
-      JoinCallResponse,
-      JoinCallRequest
-    >(`${this.streamClientBasePath}/join`, request);
+    const joinResponse = await this.api.join({ ...data, location, e2ee });
 
     if (this.leaveGeneration !== joinLeaveGeneration) {
       this.logger.debug(
@@ -2059,6 +2117,16 @@ export class Call {
             return;
           }
         }
+        // MIGRATE is server-driven (e.g. SFU drains), so it doesn't count
+        // toward the long-window backstop.
+        if (
+          this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN &&
+          this.rejoinLongWindowRateLimiter &&
+          !this.rejoinLongWindowRateLimiter.tryRegister()
+        ) {
+          await giveUpAndLeave('rejoin_attempt_limit_exceeded');
+          return;
+        }
 
         // we don't increment reconnect attempts for the FAST strategy.
         if (this.reconnectStrategy !== WebsocketReconnectStrategy.FAST) {
@@ -2177,6 +2245,7 @@ export class Call {
           // in some cases, we immediately switch to the REJOIN strategy.
           const shouldRejoin =
             mustPerformRejoin || // if we are past the fast reconnect deadline
+            error instanceof FastReconnectRejectedError || // SFU didn't resume
             wasMigrating || // if we were migrating, but the migration failed
             attempt >= 3 || // after 3 failed attempts
             !(this.publisher?.isHealthy() ?? true) || // if the publisher is not healthy
@@ -2215,6 +2284,20 @@ export class Call {
     this.state.setCallingState(CallingState.RECONNECTING);
     await this.doJoin(this.joinCallData);
     if (this.leaveGeneration !== reconnectLeaveGeneration) return;
+    // The SFU restarts the subscriber by sending an offer after the join. If
+    // none comes, the session wasn't resumed and the call would stay silent
+    // while JOINED: rejoin. Awaited here rather than reported through
+    // `onReconnectionNeeded`, which `reconnect()` drops while this flow runs,
+    // and before `get()`, so a coordinator hiccup can't skip the check.
+    const offerReceived = await this.fastReconnectOffer;
+    this.fastReconnectOffer = undefined;
+    if (this.leaveGeneration !== reconnectLeaveGeneration) return;
+    if (offerReceived === false) {
+      this.state.setCallingState(CallingState.RECONNECTING);
+      throw new FastReconnectRejectedError(
+        'No subscriber offer after a fast reconnect',
+      );
+    }
     await this.get(); // fetch the latest call state, as it might have changed
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.FAST,
@@ -2339,7 +2422,12 @@ export class Call {
     });
 
     // handles the "error" event, through which the SFU can request a reconnect
-    const unregisterOnError = this.on('error', (e) => {
+    // Only the active SFU client may drive a reconnect: a superseded one can
+    // still report errors about its own (replaced) session, and none may
+    // while `leave()` tears the call down.
+    const activeSfuTag = () => this.sfuClient?.tag ?? '*';
+    const unregisterOnError = this.dispatcher.on('error', activeSfuTag, (e) => {
+      if (!this.sfuClient) return;
       const { reconnectStrategy: strategy, error } = e;
       if (!SfuJoinError.isJoinErrorCode(e)) {
         const code = error?.code ? ErrorCode[error.code] : undefined;
@@ -2359,10 +2447,17 @@ export class Call {
           this.logger.warn(`Can't leave call after disconnect request`, err);
         });
       } else {
-        this.reconnect(
-          strategy,
-          error?.message || ReconnectReason.SFU_ERROR,
-        ).catch((err) => {
+        // A media transport failure on a session whose peer connections
+        // never connected is an "ICE never connected" failure, and must
+        // count toward the unsupported-network budget.
+        const neverConnected =
+          error?.code === ErrorCode.PARTICIPANT_MEDIA_TRANSPORT_FAILURE &&
+          !this.publisher?.hasIceEverConnected() &&
+          !this.subscriber?.hasIceEverConnected();
+        const reason = neverConnected
+          ? ReconnectReason.ICE_NEVER_CONNECTED
+          : error?.message || ReconnectReason.SFU_ERROR;
+        this.reconnect(strategy, reason).catch((err) => {
           this.logger.warn('[Reconnect] Error reconnecting', err);
         });
       }
@@ -2469,30 +2564,6 @@ export class Call {
     const { remoteParticipants } = this.state;
     if (remoteParticipants.length <= 0) return;
     this.trackSubscriptionManager.apply(undefined);
-  };
-
-  /**
-   * Starts publishing the given video stream to the call.
-   * @deprecated use `call.publish()`.
-   */
-  publishVideoStream = async (videoStream: MediaStream) => {
-    await this.publish(videoStream, TrackType.VIDEO);
-  };
-
-  /**
-   * Starts publishing the given audio stream to the call.
-   * @deprecated use `call.publish()`
-   */
-  publishAudioStream = async (audioStream: MediaStream) => {
-    await this.publish(audioStream, TrackType.AUDIO);
-  };
-
-  /**
-   * Starts publishing the given screen-share stream to the call.
-   * @deprecated use `call.publish()`
-   */
-  publishScreenShareStream = async (screenShareStream: MediaStream) => {
-    await this.publish(screenShareStream, TrackType.SCREEN_SHARE);
   };
 
   /**
@@ -2752,52 +2823,8 @@ export class Call {
    *
    * @param reaction the reaction to send.
    */
-  sendReaction = async (
-    reaction: SendVideoReactionRequest,
-  ): Promise<SendVideoReactionResponse> => {
-    return this.streamClient.post(
-      `${this.streamClientBasePath}/reaction`,
-      reaction,
-    );
-  };
-
-  /**
-   * Blocks the user with the given `userId`.
-   *
-   * @param userId the id of the user to block.
-   */
-  blockUser = async (userId: string) => {
-    return this.streamClient.post<BlockUserResponse, BlockUserRequest>(
-      `${this.streamClientBasePath}/block`,
-      {
-        user_id: userId,
-      },
-    );
-  };
-
-  /**
-   * Unblocks the user with the given `userId`.
-   *
-   * @param userId the id of the user to unblock.
-   */
-  unblockUser = async (userId: string) => {
-    return this.streamClient.post<UnblockUserResponse, UnblockUserRequest>(
-      `${this.streamClientBasePath}/unblock`,
-      {
-        user_id: userId,
-      },
-    );
-  };
-
-  /**
-   * Kicks the user with the given `userId`.
-   * @param data the kick request.
-   */
-  kickUser = async (data: KickUserRequest): Promise<KickUserResponse> => {
-    return this.streamClient.post<KickUserResponse, KickUserRequest>(
-      `${this.streamClientBasePath}/kick`,
-      data,
-    );
+  sendReaction = async (reaction: SendVideoReactionRequest) => {
+    return this.api.sendVideoReaction(reaction);
   };
 
   /**
@@ -2838,13 +2865,10 @@ export class Call {
    * @param type the type of the mute operation.
    */
   muteUser = (userId: string | string[], type: TrackMuteType) => {
-    return this.streamClient.post<MuteUsersResponse, MuteUsersRequest>(
-      `${this.streamClientBasePath}/mute_users`,
-      {
-        user_ids: Array.isArray(userId) ? userId : [userId],
-        [type]: true,
-      },
-    );
+    return this.api.muteUsers({
+      user_ids: Array.isArray(userId) ? userId : [userId],
+      [type]: true,
+    });
   };
 
   /**
@@ -2853,83 +2877,41 @@ export class Call {
    * @param type the type of the mute operation.
    */
   muteAllUsers = (type: TrackMuteType) => {
-    return this.streamClient.post<MuteUsersResponse, MuteUsersRequest>(
-      `${this.streamClientBasePath}/mute_users`,
-      {
-        mute_all_users: true,
-        [type]: true,
-      },
-    );
+    return this.api.muteUsers({ mute_all_users: true, [type]: true });
   };
 
   /**
-   * Starts recording the call
+   * Starts recording the call.
    */
-  startRecording: StartCallRecordingFnType = async (
-    dataOrType?: StartRecordingRequest | CallRecordingType,
-    type?: CallRecordingType,
-  ): Promise<StartRecordingResponse> => {
-    type = typeof dataOrType === 'string' ? dataOrType : type;
-    dataOrType = typeof dataOrType === 'string' ? undefined : dataOrType;
-
-    const endpoint = !type
-      ? `/start_recording`
-      : `/recordings/${encodeURIComponent(type)}/start`;
-
-    return this.streamClient.post<
-      StartRecordingResponse,
-      StartRecordingRequest
-    >(`${this.streamClientBasePath}${endpoint}`, dataOrType);
+  startRecording = ({
+    recording_type = 'composite',
+    ...request
+  }: StartRecordingRequest & {
+    /** The kind of recording to start, `'composite'` by default. */
+    recording_type?: CallRecordingType;
+  } = {}) => {
+    return this.api.startRecording({ recording_type }, request);
   };
 
   /**
-   * Stops recording the call
+   * Stops recording the call.
    */
-  stopRecording = async (type?: CallRecordingType) => {
-    const endpoint = !type
-      ? `/stop_recording`
-      : `/recordings/${encodeURIComponent(type)}/stop`;
-
-    return this.streamClient.post<StopRecordingResponse>(
-      `${this.streamClientBasePath}${endpoint}`,
-    );
-  };
-
-  /**
-   * Starts the transcription of the call.
-   *
-   * @param request the request data.
-   */
-  startTranscription = async (
-    request?: StartTranscriptionRequest,
-  ): Promise<StartTranscriptionResponse> => {
-    return this.streamClient.post<
-      StartTranscriptionResponse,
-      StartTranscriptionRequest
-    >(`${this.streamClientBasePath}/start_transcription`, request);
-  };
-
-  /**
-   * Stops the transcription of the call.
-   */
-  stopTranscription = async (): Promise<StopTranscriptionResponse> => {
-    return this.streamClient.post<StopTranscriptionResponse>(
-      `${this.streamClientBasePath}/stop_transcription`,
-    );
+  stopRecording = ({
+    recording_type = 'composite',
+  }: {
+    /** The kind of recording to stop, `'composite'` by default. */
+    recording_type?: CallRecordingType;
+  } = {}) => {
+    return this.api.stopRecording({ recording_type });
   };
 
   /**
    * Starts the closed captions of the call.
    */
-  startClosedCaptions = async (
-    options?: StartClosedCaptionsRequest,
-  ): Promise<StartClosedCaptionsResponse> => {
+  startClosedCaptions = async (options?: StartClosedCaptionsRequest) => {
     const trx = this.state.setCaptioning(true); // optimistic update
     try {
-      return await this.streamClient.post<
-        StartClosedCaptionsResponse,
-        StartClosedCaptionsRequest
-      >(`${this.streamClientBasePath}/start_closed_captions`, options);
+      return await this.api.startClosedCaptions(options);
     } catch (err) {
       trx.rollback(); // revert the optimistic update
       throw err;
@@ -2939,15 +2921,10 @@ export class Call {
   /**
    * Stops the closed captions of the call.
    */
-  stopClosedCaptions = async (
-    options?: StopClosedCaptionsRequest,
-  ): Promise<StopClosedCaptionsResponse> => {
+  stopClosedCaptions = async (options?: StopClosedCaptionsRequest) => {
     const trx = this.state.setCaptioning(false); // optimistic update
     try {
-      return await this.streamClient.post<
-        StopClosedCaptionsResponse,
-        StopClosedCaptionsRequest
-      >(`${this.streamClientBasePath}/stop_closed_captions`, options);
+      return await this.api.stopClosedCaptions(options);
     } catch (err) {
       trx.rollback(); // revert the optimistic update
       throw err;
@@ -2969,8 +2946,10 @@ export class Call {
    * (for example, a user might be allowed to request permission to publish audio, but not video).
    */
   requestPermissions = async (
-    data: RequestPermissionRequest,
-  ): Promise<RequestPermissionResponse> => {
+    data: Omit<RequestPermissionRequest, 'permissions'> & {
+      permissions: OwnCapability[];
+    },
+  ): Promise<StreamResponse<RequestPermissionResponse>> => {
     const { permissions } = data;
     const canRequestPermissions = permissions.every((permission) =>
       this.permissionsContext.canRequest(permission),
@@ -2980,10 +2959,7 @@ export class Call {
         `You are not allowed to request permissions: ${permissions.join(', ')}`,
       );
     }
-    return this.streamClient.post<
-      RequestPermissionResponse,
-      RequestPermissionRequest
-    >(`${this.streamClientBasePath}/request_permission`, data);
+    return this.api.requestPermission(data);
   };
 
   /**
@@ -3000,12 +2976,11 @@ export class Call {
    */
   grantPermissions = async (
     userId: string,
-    permissions: string[] | UpdateUserPermissionsRequestGrantPermissionsEnum[],
+    permissions: OwnCapability[] | string[],
   ) => {
     return this.updateUserPermissions({
       user_id: userId,
-      grant_permissions:
-        permissions as UpdateUserPermissionsRequestGrantPermissionsEnum[],
+      grant_permissions: permissions,
     });
   };
 
@@ -3023,125 +2998,26 @@ export class Call {
    */
   revokePermissions = async (
     userId: string,
-    permissions: string[] | UpdateUserPermissionsRequestRevokePermissionsEnum[],
+    permissions: OwnCapability[] | string[],
   ) => {
     return this.updateUserPermissions({
       user_id: userId,
-      revoke_permissions:
-        permissions as UpdateUserPermissionsRequestRevokePermissionsEnum[],
+      revoke_permissions: permissions,
     });
-  };
-
-  /**
-   * Allows you to grant or revoke a specific permission to a user in a call. The permissions are specific to the call experience and do not survive the call itself.
-   * When revoking a permission, this endpoint will also mute the relevant track from the user. This is similar to muting a user with the difference that the user will not be able to unmute afterwards.
-   * Supported permissions that can be granted or revoked: `send-audio`, `send-video` and `screenshare`.
-   *
-   * `call.permissions_updated` event is sent to all members of the call.
-   */
-  updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
-    return this.streamClient.post<
-      UpdateUserPermissionsResponse,
-      UpdateUserPermissionsRequest
-    >(`${this.streamClientBasePath}/user_permissions`, data);
-  };
-
-  /**
-   * Starts the livestreaming of the call.
-   *
-   * @param data the request data.
-   * @param params the request params.
-   */
-  goLive = async (data: GoLiveRequest = {}, params?: { notify?: boolean }) => {
-    return this.streamClient.post<GoLiveResponse, GoLiveRequest>(
-      `${this.streamClientBasePath}/go_live`,
-      data,
-      params,
-    );
-  };
-
-  /**
-   * Stops the livestreaming of the call.
-   */
-  stopLive = async (data: StopLiveRequest = {}) => {
-    return this.streamClient.post<StopLiveResponse>(
-      `${this.streamClientBasePath}/stop_live`,
-      data,
-    );
   };
 
   /**
    * Starts the broadcasting of the call.
    */
   startHLS = async () => {
-    return this.streamClient.post<StartHLSBroadcastingResponse>(
-      `${this.streamClientBasePath}/start_broadcasting`,
-      {},
-    );
+    return this.api.startHLSBroadcasting();
   };
 
   /**
    * Stops the broadcasting of the call.
    */
   stopHLS = async () => {
-    return this.streamClient.post<StopHLSBroadcastingResponse>(
-      `${this.streamClientBasePath}/stop_broadcasting`,
-      {},
-    );
-  };
-
-  /**
-   * Starts the RTMP-out broadcasting of the call.
-   */
-  startRTMPBroadcasts = async (
-    data: StartRTMPBroadcastsRequest,
-  ): Promise<StartRTMPBroadcastsResponse> => {
-    return this.streamClient.post<
-      StartRTMPBroadcastsResponse,
-      StartRTMPBroadcastsRequest
-    >(`${this.streamClientBasePath}/rtmp_broadcasts`, data);
-  };
-
-  /**
-   * Stops all RTMP-out broadcasting of the call.
-   */
-  stopAllRTMPBroadcasts = async (): Promise<StopAllRTMPBroadcastsResponse> => {
-    return this.streamClient.post<StopAllRTMPBroadcastsResponse>(
-      `${this.streamClientBasePath}/rtmp_broadcasts/stop`,
-    );
-  };
-
-  /**
-   * Stops the RTMP-out broadcasting of the call specified by it's name.
-   */
-  stopRTMPBroadcast = async (
-    name: string,
-  ): Promise<StopRTMPBroadcastsResponse> => {
-    return this.streamClient.post<StopRTMPBroadcastsResponse>(
-      `${this.streamClientBasePath}/rtmp_broadcasts/${name}/stop`,
-    );
-  };
-
-  /**
-   * Starts frame by frame recording.
-   * Sends call.frame_recording_started events
-   */
-  startFrameRecording = async (
-    data: StartFrameRecordingRequest,
-  ): Promise<StartFrameRecordingResponse> => {
-    return this.streamClient.post<
-      StartFrameRecordingResponse,
-      StartFrameRecordingRequest
-    >(`${this.streamClientBasePath}/start_frame_recording`, data);
-  };
-
-  /**
-   * Stops frame recording.
-   */
-  stopFrameRecording = async (): Promise<StopFrameRecordingResponse> => {
-    return this.streamClient.post<StopFrameRecordingResponse>(
-      `${this.streamClientBasePath}/stop_frame_recording`,
-    );
+    return this.api.stopHLSBroadcasting();
   };
 
   /**
@@ -3149,11 +3025,8 @@ export class Call {
    *
    * @param updates the updates to apply to the call.
    */
-  update = async (updates: UpdateCallRequest) => {
-    const response = await this.streamClient.patch<
-      UpdateCallResponse,
-      UpdateCallRequest
-    >(`${this.streamClientBasePath}`, updates);
+  update = async (updates?: UpdateCallRequest) => {
+    const response = await this.api.update(updates);
 
     const { call, members, own_capabilities } = response;
     this.state.updateFromCallResponse(call);
@@ -3167,9 +3040,7 @@ export class Call {
    * Ends the call. Once the call is ended, it cannot be re-joined.
    */
   endCall = async () => {
-    return this.streamClient.post<EndCallResponse>(
-      `${this.streamClientBasePath}/mark_ended`,
-    );
+    return this.api.end();
   };
 
   /**
@@ -3205,10 +3076,7 @@ export class Call {
    * @param request the request object.
    */
   pinForEveryone = async (request: PinRequest) => {
-    return this.streamClient.post<PinResponse, PinRequest>(
-      `${this.streamClientBasePath}/pin`,
-      request,
-    );
+    return this.api.videoPin(request);
   };
 
   /**
@@ -3219,10 +3087,7 @@ export class Call {
    * @param request the request object.
    */
   unpinForEveryone = async (request: UnpinRequest) => {
-    return this.streamClient.post<UnpinResponse, UnpinRequest>(
-      `${this.streamClientBasePath}/unpin`,
-      request,
-    );
+    return this.api.videoUnpin(request);
   };
 
   /**
@@ -3231,10 +3096,7 @@ export class Call {
    * @returns
    */
   queryMembers = (request?: Omit<QueryCallMembersRequest, 'type' | 'id'>) => {
-    return this.streamClient.post<
-      QueryCallMembersResponse,
-      QueryCallMembersRequest
-    >('/call/members', {
+    return this.videoApi.queryCallMembers({
       ...(request || {}),
       id: this.id,
       type: this.type,
@@ -3242,33 +3104,18 @@ export class Call {
   };
 
   /**
-   * Query call participants with optional filters.
+   * Queries the call participants that match the filter.
    *
-   * @param data the request data.
-   * @param params optional query parameters.
+   * @param data.filter_conditions which participants to return (required by the API).
+   * @param data.limit the maximum number of participants to return.
    */
   queryParticipants = async (
-    data: QueryCallParticipantsRequest = {},
-    params: { limit?: number } = {},
-  ): Promise<QueryCallParticipantsResponse> => {
-    return this.streamClient.post<
-      QueryCallParticipantsResponse,
-      QueryCallParticipantsRequest
-    >(`${this.streamClientBasePath}/participants`, data, params);
-  };
-
-  /**
-   * Will update the call members.
-   *
-   * @param data the request data.
-   */
-  updateCallMembers = async (
-    data: UpdateCallMembersRequest,
-  ): Promise<UpdateCallMembersResponse> => {
-    return this.streamClient.post<
-      UpdateCallMembersResponse,
-      UpdateCallMembersRequest
-    >(`${this.streamClientBasePath}/members`, data);
+    data: QueryCallParticipantsRequest &
+      Required<Pick<QueryCallParticipantsRequest, 'filter_conditions'>> & {
+        limit?: number;
+      },
+  ) => {
+    return this.api.queryCallParticipants(data);
   };
 
   /**
@@ -3313,124 +3160,6 @@ export class Call {
   };
 
   /**
-   * Retrieves the list of recordings for the current call or call session.
-   *
-   * If `callSessionId` is provided, it will return the recordings for that call session.
-   * Otherwise, all recordings for the current call will be returned.
-   *
-   * @param callSessionId the call session id to retrieve recordings for.
-   * @deprecated use {@link listRecordings} instead.
-   */
-  queryRecordings = async (
-    callSessionId?: string,
-  ): Promise<ListRecordingsResponse> => {
-    return this.listRecordings(callSessionId);
-  };
-
-  /**
-   * Retrieves the list of recordings for the current call or call session.
-   *
-   * If `callSessionId` is provided, it will return the recordings for that call session.
-   * Otherwise, all recordings for the current call will be returned.
-   *
-   * @param callSessionId the call session id to retrieve recordings for.
-   */
-  listRecordings = async (
-    callSessionId?: string,
-  ): Promise<ListRecordingsResponse> => {
-    let endpoint = this.streamClientBasePath;
-    if (callSessionId) {
-      endpoint = `${endpoint}/${callSessionId}`;
-    }
-    return this.streamClient.get<ListRecordingsResponse>(
-      `${endpoint}/recordings`,
-    );
-  };
-
-  /**
-   * Deletes a recording for the given call session.
-   *
-   * @param callSessionId the call session id that the recording belongs to.
-   * @param filename the recording filename.
-   */
-  deleteRecording = async (
-    callSessionId: string,
-    filename: string,
-  ): Promise<DeleteRecordingResponse> => {
-    return this.streamClient.delete<DeleteRecordingResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(
-        callSessionId,
-      )}/recordings/${encodeURIComponent(filename)}`,
-    );
-  };
-
-  /**
-   * Deletes a transcription for the given call session.
-   *
-   * @param callSessionId the call session id that the transcription belongs to.
-   * @param filename the transcription filename.
-   */
-  deleteTranscription = async (
-    callSessionId: string,
-    filename: string,
-  ): Promise<DeleteTranscriptionResponse> => {
-    return this.streamClient.delete<DeleteTranscriptionResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(
-        callSessionId,
-      )}/transcriptions/${encodeURIComponent(filename)}`,
-    );
-  };
-
-  /**
-   * Retrieves the list of transcriptions for the current call.
-   *
-   * @returns the list of transcriptions.
-   * @deprecated use {@link listTranscriptions} instead.
-   */
-  queryTranscriptions = async (): Promise<ListTranscriptionsResponse> => {
-    return this.listTranscriptions();
-  };
-
-  /**
-   * Retrieves the list of transcriptions for the current call.
-   *
-   * @returns the list of transcriptions.
-   */
-  listTranscriptions = async (): Promise<ListTranscriptionsResponse> => {
-    return this.streamClient.get<ListTranscriptionsResponse>(
-      `${this.streamClientBasePath}/transcriptions`,
-    );
-  };
-
-  /**
-   * Retrieve call statistics for a particular call session (historical).
-   * Here `callSessionID` is mandatory.
-   *
-   * @param callSessionID the call session ID to retrieve statistics for.
-   * @returns The call stats.
-   * @deprecated use `call.getCallReport` instead.
-   * @internal
-   */
-  getCallStats = async (callSessionID: string) => {
-    const endpoint = `${this.streamClientBasePath}/stats/${callSessionID}`;
-    return this.streamClient.get<GetCallStatsResponse>(endpoint);
-  };
-
-  /**
-   * Retrieve call report. If the `callSessionID` is not specified, then the
-   * report for the latest call session is retrieved. If it is specified, then
-   * the report for that particular session is retrieved if it exists.
-   *
-   * @param callSessionID the optional call session ID to retrieve statistics for
-   * @returns the call report
-   */
-  getCallReport = async (callSessionID: string = '') => {
-    const endpoint = `${this.streamClientBasePath}/report`;
-    const params = callSessionID !== '' ? { session_id: callSessionID } : {};
-    return this.streamClient.get<GetCallReportResponse>(endpoint, params);
-  };
-
-  /**
    * Loads the call participant stats for the given parameters.
    */
   getCallParticipantsStats = async (opts: {
@@ -3439,9 +3168,9 @@ export class Call {
     userSessionId?: string;
     kind?: 'timeline' | 'details';
   }): Promise<
-    | QueryCallSessionParticipantStatsResponse
-    | GetCallSessionParticipantStatsDetailsResponse
-    | QueryCallSessionParticipantStatsTimelineResponse
+    | StreamResponse<QueryCallSessionParticipantStatsResponse>
+    | StreamResponse<GetCallSessionParticipantStatsDetailsResponse>
+    | StreamResponse<QueryCallSessionParticipantStatsTimelineResponse>
     | undefined
   > => {
     const {
@@ -3451,43 +3180,44 @@ export class Call {
       kind = 'details',
     } = opts;
     if (!sessionId) return;
-    const base = `${this.streamClient.baseURL}/call_stats/${this.type}/${this.id}/${sessionId}`;
+    const scope = {
+      call_type: this.type,
+      call_id: this.id,
+      session: sessionId,
+    };
     if (!userId || !userSessionId) {
-      return this.streamClient.get<QueryCallSessionParticipantStatsResponse>(
-        `${base}/participants`,
-      );
+      return this.videoApi.queryCallSessionParticipantStats(scope);
     }
+    const participant = {
+      ...scope,
+      user: userId,
+      user_session: userSessionId,
+    };
     if (kind === 'details') {
-      return this.streamClient.get<GetCallSessionParticipantStatsDetailsResponse>(
-        `${base}/participant/${userId}/${userSessionId}/details`,
-      );
+      return this.videoApi.getCallSessionParticipantStatsDetails(participant);
     }
-    return this.streamClient.get<QueryCallSessionParticipantStatsTimelineResponse>(
-      `${base}/participants/${userId}/${userSessionId}/timeline`,
-    );
+    return this.videoApi.getCallSessionParticipantStatsTimeline(participant);
   };
 
   /**
    * Submit user feedback for the call
-   *
-   * @param rating Rating between 1 and 5 denoting the experience of the user in the call
-   * @param reason The reason/description for the rating
-   * @param custom Custom data
    */
-  submitFeedback = async (
-    rating: number,
-    {
-      reason,
-      custom,
-    }: Pick<CollectUserFeedbackRequest, 'reason' | 'custom'> = {},
-  ): Promise<CollectUserFeedbackResponse> => {
+  submitFeedback = async ({
+    rating,
+    reason,
+    custom,
+  }: {
+    /** Rating between 1 and 5 denoting the experience of the user in the call. */
+    rating: CollectUserFeedbackRequest['rating'];
+    /** The reason/description for the rating. */
+    reason?: CollectUserFeedbackRequest['reason'];
+    /** Custom data. */
+    custom?: CollectUserFeedbackRequest['custom'];
+  }): Promise<StreamResponse<CollectUserFeedbackResponse>> => {
     const { sdkName, sdkVersion, ...platform } = getSdkSignature(
       await getClientDetails(),
     );
-    return this.streamClient.post<
-      CollectUserFeedbackResponse,
-      CollectUserFeedbackRequest
-    >(`${this.streamClientBasePath}/feedback`, {
+    return this.api.collectUserFeedback({
       rating,
       reason,
       user_session_id: this.sfuClient?.sessionId,
@@ -3504,19 +3234,20 @@ export class Call {
    * Retrieves the call stats for the current call session in a format suitable
    * for displaying in map-like UIs.
    */
-  getCallStatsMap = async (
-    params: {
-      start_time?: Date | string;
-      end_time?: Date | string;
-      exclude_publishers?: boolean;
-      exclude_subscribers?: boolean;
-      exclude_sfus?: boolean;
-    } = {},
-    callSessionId: string | undefined = this.state.session?.id,
-  ): Promise<QueryCallStatsMapResponse> => {
-    if (!callSessionId) throw new Error('callSessionId is required');
-    return this.streamClient.get<QueryCallStatsMapResponse>(
-      `${this.streamClient.baseURL}/call_stats/${this.type}/${this.id}/${callSessionId}/map`,
+  getCallStatsMap = async ({
+    session = this.state.session?.id,
+    ...params
+  }: {
+    session?: string;
+    start_time?: Date;
+    end_time?: Date;
+    exclude_publishers?: boolean;
+    exclude_subscribers?: boolean;
+    exclude_sfus?: boolean;
+  } = {}): Promise<StreamResponse<QueryCallStatsMapResponse>> => {
+    if (!session) throw new Error('session is required');
+    return this.videoApi.getCallStatsMap(
+      { call_type: this.type, call_id: this.id, session },
       params,
     );
   };
@@ -3527,10 +3258,167 @@ export class Call {
    * @param payload the payload to send.
    */
   sendCustomEvent = async (payload: { [key: string]: any }) => {
-    return this.streamClient.post<SendCallEventResponse, SendCallEventRequest>(
-      `${this.streamClientBasePath}/event`,
-      { custom: payload },
-    );
+    return this.api.sendCallEvent({ custom: payload });
+  };
+
+  /**
+   * Deletes the call.
+   */
+  delete = (data: DeleteCallRequest = {}) => {
+    return this.api.delete(data);
+  };
+
+  /**
+   * Starts the livestream of the call.
+   */
+  goLive = (data: GoLiveRequest = {}) => {
+    return this.api.goLive(data);
+  };
+
+  /**
+   * Kicks a user from the call.
+   */
+  kickUser = (data: KickUserRequest) => {
+    return this.api.kickUser(data);
+  };
+
+  /**
+   * Lists the recordings of the call.
+   */
+  listRecordings = () => {
+    return this.api.listRecordings();
+  };
+
+  /**
+   * Lists the transcriptions of the call.
+   */
+  listTranscriptions = () => {
+    return this.api.listTranscriptions();
+  };
+
+  /**
+   * Rings the call, notifying its members.
+   */
+  ring = (data: RingCallRequest = {}) => {
+    return this.api.ring(data);
+  };
+
+  /**
+   * Starts frame recording of the call.
+   */
+  startFrameRecording = (data: StartFrameRecordingRequest) => {
+    return this.api.startFrameRecording(data);
+  };
+
+  /**
+   * Starts RTMP broadcasts of the call.
+   */
+  startRTMPBroadcasts = (data: StartRTMPBroadcastsRequest) => {
+    return this.api.startRTMPBroadcasts(data);
+  };
+
+  /**
+   * Starts transcribing the call.
+   */
+  startTranscription = (request?: StartTranscriptionRequest) => {
+    return this.api.startTranscription(request);
+  };
+
+  /**
+   * Stops all RTMP broadcasts of the call.
+   */
+  stopAllRTMPBroadcasts = () => {
+    return this.api.stopAllRTMPBroadcasts();
+  };
+
+  /**
+   * Stops frame recording of the call.
+   */
+  stopFrameRecording = () => {
+    return this.api.stopFrameRecording();
+  };
+
+  /**
+   * Stops the livestream of the call.
+   */
+  stopLive = (data: StopLiveRequest = {}) => {
+    return this.api.stopLive(data);
+  };
+
+  /**
+   * Stops transcribing the call.
+   */
+  stopTranscription = (request?: StopTranscriptionRequest) => {
+    return this.api.stopTranscription(request);
+  };
+
+  /**
+   * Updates the members of the call.
+   */
+  updateCallMembers = (data: UpdateCallMembersRequest) => {
+    return this.api.updateCallMembers(data);
+  };
+
+  /**
+   * Grants or revokes permissions for a user.
+   */
+  updateUserPermissions = (data: UpdateUserPermissionsRequest) => {
+    return this.api.updateUserPermissions(data);
+  };
+
+  /**
+   * Blocks a user from the call.
+   *
+   * @param data.user_id the id of the user to block.
+   */
+  blockUser = (data: BlockUserRequest) => {
+    return this.api.blockUser(data);
+  };
+
+  /**
+   * Unblocks a previously blocked user.
+   *
+   * @param data.user_id the id of the user to unblock.
+   */
+  unblockUser = (data: UnblockUserRequest) => {
+    return this.api.unblockUser(data);
+  };
+
+  /**
+   * Deletes a recording of the call.
+   *
+   * @param data.session the session the recording belongs to.
+   * @param data.filename the name of the recording to delete.
+   */
+  deleteRecording = (data: { session: string; filename: string }) => {
+    return this.api.deleteRecording(data);
+  };
+
+  /**
+   * Deletes a transcription of the call.
+   *
+   * @param data.session the session the transcription belongs to.
+   * @param data.filename the name of the transcription to delete.
+   */
+  deleteTranscription = (data: { session: string; filename: string }) => {
+    return this.api.deleteTranscription(data);
+  };
+
+  /**
+   * Returns the report of the call, optionally scoped to one session.
+   *
+   * @param data.session_id the session to report on; the current session, or
+   * the most recent one, when omitted.
+   */
+  getCallReport = (data: { session_id?: string } = {}) => {
+    return this.api.getCallReport(data);
+  };
+
+  /**
+   * Stops a single RTMP broadcast of the call.
+   */
+  stopRTMPBroadcast = ({ name }: { name: string }) => {
+    return this.api.stopRTMPBroadcast({ name });
   };
 
   /**
@@ -3800,9 +3688,11 @@ export class Call {
    * `rejoin_attempt_limit_exceeded` leave message.
    *
    * Defaults: 10 attempts per 120 seconds (aligned with the Swift SDK).
-   * Both arguments are clamped to a minimum of 1.
+   * Both arguments are clamped to a minimum of 1. Unless this method is
+   * called, an additional cap of 20 REJOIN attempts per 30 minutes applies.
    */
   setRejoinAttemptLimit = (maxAttempts: number, windowSeconds: number) => {
+    this.rejoinLongWindowRateLimiter = undefined;
     this.rejoinRateLimiter.setLimits(
       Math.max(1, maxAttempts),
       Math.max(1, windowSeconds) * 1000,

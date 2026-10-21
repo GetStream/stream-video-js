@@ -1,4 +1,4 @@
-import React, { type ComponentType, useMemo } from 'react';
+import React, { type ComponentType } from 'react';
 import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import {
   type StreamVideoParticipant,
@@ -25,7 +25,9 @@ import {
   type VideoRendererProps,
 } from './VideoRenderer';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
 import type { CallContentProps } from '../../Call';
+import { Z_INDEX } from '../../../constants';
 
 export type ParticipantViewComponentProps = {
   /**
@@ -117,32 +119,35 @@ export const ParticipantView = React.memo(
     supportedReactions,
   }: ParticipantViewProps) => {
     const {
-      theme: { colors, participantView },
+      theme: { participantView },
     } = useTheme();
+    const isInPiPMode = useIsInPiPMode();
     const { isSpeaking, userId } = participant;
-    const styles = useStyles();
     const isScreenSharing = trackType === 'screenShareTrack';
     const applySpeakerStyle = isSpeaking && !isScreenSharing;
-    const speakerStyle = applySpeakerStyle && [
-      { borderColor: colors.buttonPrimary },
-      participantView.highlightedContainer,
-    ];
 
     return (
       <View
-        style={[styles.container, style, speakerStyle]}
+        style={[
+          styles.container,
+          participantView.container,
+          style,
+          isInPiPMode ? styles.squaredInPiP : null,
+        ]}
         testID={
           isSpeaking
             ? `participant-${userId}-is-speaking`
             : `participant-${userId}-is-not-speaking`
         }
       >
-        {ParticipantReaction && (
-          <ParticipantReaction
-            participant={participant}
-            supportedReactions={supportedReactions}
-          />
-        )}
+        <View style={[styles.headerContainer, participantView.headerContainer]}>
+          {ParticipantReaction && (
+            <ParticipantReaction
+              participant={participant}
+              supportedReactions={supportedReactions}
+            />
+          )}
+        </View>
         {VideoRenderer && (
           <VideoRenderer
             isVisible={isVisible}
@@ -168,6 +173,17 @@ export const ParticipantView = React.memo(
             <ParticipantNetworkQualityIndicator participant={participant} />
           )}
         </View>
+        {applySpeakerStyle && (
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              styles.highlight,
+              participantView.highlightedContainer,
+              isInPiPMode ? styles.squaredInPiP : null,
+            ]}
+            pointerEvents="none"
+          />
+        )}
       </View>
     );
   },
@@ -175,25 +191,31 @@ export const ParticipantView = React.memo(
 
 ParticipantView.displayName = 'ParticipantView';
 
-const useStyles = () => {
-  const { theme } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          overflow: 'hidden',
-          justifyContent: 'flex-end',
-          borderRadius: theme.variants.borderRadiusSizes.md,
-          borderWidth: 2,
-          borderColor: 'transparent',
-        },
-        footerContainer: {
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        },
-        networkIndicatorOnly: { justifyContent: 'flex-end' },
-      }),
-    [theme],
-  );
-};
+const styles = StyleSheet.create({
+  container: {
+    overflow: 'hidden',
+    justifyContent: 'space-between',
+  },
+  headerContainer: {
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    zIndex: Z_INDEX.IN_FRONT,
+  },
+  footerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    zIndex: Z_INDEX.IN_FRONT,
+  },
+  networkIndicatorOnly: {
+    justifyContent: 'flex-end',
+  },
+  squaredInPiP: {
+    borderRadius: 0,
+  },
+  highlight: {
+    zIndex: Z_INDEX.IN_FRONT,
+  },
+});

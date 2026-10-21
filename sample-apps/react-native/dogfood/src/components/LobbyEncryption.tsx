@@ -21,7 +21,6 @@ import { useAppI18n } from '../hooks/useAppI18n';
 import { getRandomWords } from '../modules/helpers/randomWords';
 import { getInviteUrl } from '../utils/inviteLink';
 import { isCallEncrypted } from '../utils/e2ee';
-import { appTheme } from '../theme';
 
 /**
  * Lobby card for an end-to-end encrypted call: the shared key, the invite link
@@ -44,7 +43,9 @@ export const LobbyEncryption = () => {
   const settings = useCallSettings();
   const createdBy = useCallCreatedBy();
   const connectedUser = useConnectedUser();
-  const { theme } = useTheme();
+  const {
+    theme: { semantics },
+  } = useTheme();
   const styles = useStyles();
 
   const [copied, setCopied] = useState(false);
@@ -83,7 +84,7 @@ export const LobbyEncryption = () => {
     return (
       <View style={styles.container}>
         <View style={styles.switchRow}>
-          <LockIcon color={theme.colors.iconWarning} size={18} />
+          <LockIcon color={semantics.accentWarning} size={18} />
           <View style={styles.text}>
             <Text style={styles.title}>
               {t(
@@ -112,7 +113,7 @@ export const LobbyEncryption = () => {
   return (
     <View style={[styles.container, styles.containerOn]}>
       <View style={styles.switchRow}>
-        <LockIcon color={theme.colors.iconPrimary} size={18} />
+        <LockIcon color={semantics.accentPrimary} size={18} />
         <View style={styles.text}>
           <Text style={styles.title}>
             {t(
@@ -196,79 +197,81 @@ export const LobbyEncryption = () => {
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics, primitives },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
           alignSelf: 'stretch',
-          backgroundColor: theme.colors.sheetSecondary,
-          borderColor: theme.colors.buttonDisabled,
+          backgroundColor: semantics.backgroundCoreApp,
+          borderColor: semantics.borderCoreDefault,
           borderRadius: 12,
           borderWidth: 1,
-          marginTop: appTheme.spacing.md,
-          padding: appTheme.spacing.md,
+          marginTop: primitives.spacingMd,
+          padding: primitives.spacingMd,
         },
         containerOn: {
-          borderColor: theme.colors.buttonPrimary,
+          borderColor: semantics.accentPrimary,
         },
         switchRow: {
           alignItems: 'center',
           flexDirection: 'row',
-          gap: appTheme.spacing.md,
+          gap: primitives.spacingMd,
         },
         text: {
           flex: 1,
         },
         title: {
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           fontSize: 15,
           fontWeight: '600',
         },
         subtitle: {
-          color: appTheme.colors.light_gray,
+          color: semantics.textSecondary,
           fontSize: 13,
           marginTop: 2,
         },
         details: {
-          marginTop: appTheme.spacing.md,
+          marginTop: primitives.spacingMd,
         },
         keyLabel: {
-          color: appTheme.colors.light_gray,
+          color: semantics.textSecondary,
           fontSize: 12,
           fontWeight: '500',
         },
         keyRow: {
           alignItems: 'center',
           flexDirection: 'row',
-          gap: appTheme.spacing.sm,
+          gap: primitives.spacingSm,
         },
         iconButton: {
           alignItems: 'center',
           justifyContent: 'center',
-          paddingHorizontal: appTheme.spacing.sm,
+          paddingHorizontal: primitives.spacingSm,
         },
         iconButtonText: {
-          color: theme.colors.textPrimary,
+          color: semantics.textPrimary,
           fontSize: 22,
         },
         copyButton: {
-          backgroundColor: theme.colors.buttonPrimary,
+          backgroundColor: semantics.accentPrimary,
           borderRadius: 8,
-          paddingHorizontal: appTheme.spacing.md,
-          paddingVertical: appTheme.spacing.sm,
+          paddingHorizontal: primitives.spacingMd,
+          paddingVertical: primitives.spacingSm,
         },
         copyButtonText: {
-          color: theme.colors.textPrimary,
+          color: semantics.textOnAccent,
           fontSize: 14,
           fontWeight: '600',
         },
         hint: {
-          color: appTheme.colors.light_gray,
+          color: semantics.textSecondary,
           fontSize: 12,
-          marginTop: appTheme.spacing.xs,
+          marginTop: primitives.spacingXs,
         },
       }),
-    [theme],
+    [primitives, semantics],
   );
 };

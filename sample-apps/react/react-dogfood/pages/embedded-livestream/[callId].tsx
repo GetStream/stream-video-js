@@ -10,6 +10,7 @@ export default function EmbeddedPage(props: ServerSideCredentialsProps) {
   const router = useRouter();
 
   const callId = router.query.callId as string;
+  const theme = router.query.theme === 'light' ? 'light' : 'dark';
 
   return (
     <EmbeddedLivestream
@@ -23,6 +24,7 @@ export default function EmbeddedPage(props: ServerSideCredentialsProps) {
       callId={callId}
       callType="livestream"
       token={userToken}
+      theme={theme}
     />
   );
 }

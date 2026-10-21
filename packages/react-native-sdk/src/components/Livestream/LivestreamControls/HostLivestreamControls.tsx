@@ -24,7 +24,7 @@ export type HostLivestreamControlsProps = HostStartStreamButtonProps & {
    */
   LivestreamMediaControls?: React.ComponentType<LivestreamMediaControlsProps> | null;
   onLayout?: ViewProps['onLayout'];
-};
+} & Pick<LivestreamMediaControlsProps, 'onMorePress'>;
 
 /**
  * The HostLivestreamControls component displays the call controls for the live stream at host's end.
@@ -32,38 +32,31 @@ export type HostLivestreamControlsProps = HostStartStreamButtonProps & {
 export const HostLivestreamControls = ({
   HostStartStreamButton = DefaultHostStartStreamButton,
   LivestreamMediaControls = DefaultLivestreamMediaControls,
-  onEndStreamHandler,
+  onMorePress,
   onStartStreamHandler,
-  hls,
-  disableStopPublishedStreamsOnEndStream,
   onLayout,
+  hls,
 }: HostLivestreamControlsProps) => {
   const {
-    theme: { colors, hostLivestreamControls },
+    theme: { hostLivestreamControls },
   } = useTheme();
   return (
     <View
-      style={[
-        styles.container,
-        { backgroundColor: colors.sheetOverlay },
-        hostLivestreamControls.container,
-      ]}
+      style={[styles.container, hostLivestreamControls.container]}
       onLayout={onLayout}
     >
       <View style={[styles.leftElement, hostLivestreamControls.leftElement]}>
-        {HostStartStreamButton && (
-          <HostStartStreamButton
-            onEndStreamHandler={onEndStreamHandler}
-            onStartStreamHandler={onStartStreamHandler}
-            hls={hls}
-            disableStopPublishedStreamsOnEndStream={
-              disableStopPublishedStreamsOnEndStream
-            }
-          />
+        {LivestreamMediaControls && (
+          <LivestreamMediaControls onMorePress={onMorePress} />
         )}
       </View>
       <View style={[styles.rightElement, hostLivestreamControls.rightElement]}>
-        {LivestreamMediaControls && <LivestreamMediaControls />}
+        {HostStartStreamButton && (
+          <HostStartStreamButton
+            onStartStreamHandler={onStartStreamHandler}
+            hls={hls}
+          />
+        )}
       </View>
     </View>
   );
@@ -71,12 +64,8 @@ export const HostLivestreamControls = ({
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    bottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 8,
     zIndex: Z_INDEX.IN_FRONT,
   },
   leftElement: {

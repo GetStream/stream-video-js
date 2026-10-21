@@ -26,11 +26,13 @@ import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
 import { VideoEffectsSettings } from './VideoEffects';
 import { TranscriptionSettings } from './Transcriptions';
 import { LanguageMenu } from './LanguageMenu';
+import { ThemeMenu } from './ThemeMenu';
 import { CallRecordings } from '../CallRecordings';
 import { useSettings } from '../../context/SettingsContext';
-import { useIsProntoEnvironment } from '../../context/AppEnvironmentContext';
+import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import { IncomingVideoSettingsDropdown } from '../IncomingVideoSettings';
 import { DeviceSelectionSettingsDropdown } from './DeviceSelection';
+import { OnOffSettingsDropdown } from './OnOffSettingsDropdown';
 import { useAppI18n } from '../../hooks/useAppI18n';
 
 type ToggleSettingsTabModalProps = {
@@ -137,12 +139,19 @@ export const SettingsTabModalMenu = (props: {
   layoutProps: LayoutSelectorProps;
 }) => {
   const {
-    settings: { language, setLanguage },
+    settings: {
+      language,
+      setLanguage,
+      speakingDetectionEnabled,
+      setSpeakingDetectionEnabled,
+    },
   } = useSettings();
   const { t } = useAppI18n();
 
   const { tabModalProps, layoutProps } = props;
-  const isPronto = useIsProntoEnvironment();
+  const appEnvironment = useAppEnvironment();
+  const showTranscriptions =
+    appEnvironment === 'pronto' || appEnvironment === 'pronto-sales';
 
   return (
     <SettingsTabModal {...tabModalProps}>
@@ -157,6 +166,7 @@ export const SettingsTabModalMenu = (props: {
         />
         <DeviceSelectorAudioInput
           visualType="dropdown"
+          volumeIndicatorVisible={speakingDetectionEnabled}
           title={t('deviceSettings.selectMic.title', 'Select a Mic')}
         />
         <DeviceSelectorAudioOutput
@@ -184,6 +194,17 @@ export const SettingsTabModalMenu = (props: {
             'Default device preference',
           )}
         />
+        <OnOffSettingsDropdown
+          title={t('settings.speakingDetection.title', 'Speaking detection')}
+          enabled={speakingDetectionEnabled}
+          setEnabled={setSpeakingDetectionEnabled}
+        />
+        <div className="rd__tab-panel__note">
+          {t(
+            'settings.speakingDetection.description',
+            'Listens to your microphone to show level meters and the lobby speaking indicator, and warn you when you speak while muted. Turn it off if your audio device misbehaves.',
+          )}
+        </div>
       </TabWrapper>
       <TabWrapper
         icon="video-effects"
@@ -214,7 +235,7 @@ export const SettingsTabModalMenu = (props: {
         icon="transcriptions"
         label={t('settings.transcriptions.label', 'Transcriptions')}
         inMeeting
-        hidden={!isPronto}
+        hidden={!showTranscriptions}
       >
         <TranscriptionSettings />
       </TabWrapper>
@@ -225,6 +246,14 @@ export const SettingsTabModalMenu = (props: {
         inMeeting
       >
         <LanguageMenu language={language} setLanguage={setLanguage!} />
+      </TabWrapper>
+
+      <TabWrapper
+        icon="theme"
+        label={t('settings.theme.label', 'Theme')}
+        inMeeting
+      >
+        <ThemeMenu />
       </TabWrapper>
 
       <TabWrapper

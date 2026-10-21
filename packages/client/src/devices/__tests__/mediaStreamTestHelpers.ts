@@ -10,6 +10,7 @@ const createTrack = (
     getSettings: () => settings,
     enabled: true,
     readyState: 'live',
+    clone: () => createTrack(settings, extras),
     stop: () => {
       // @ts-expect-error read-only property
       track.readyState = 'ended';
@@ -43,13 +44,17 @@ export const createAudioStreamForDevice = (
 export const createVideoStreamForDevice = (
   deviceId: string,
   facingMode: 'user' | 'environment' = 'user',
+  label = '',
 ): MediaStream => {
-  const track = createTrack({
-    deviceId,
-    width: 1280,
-    height: 720,
-    facingMode,
-  });
+  const track = createTrack(
+    {
+      deviceId,
+      width: 1280,
+      height: 720,
+      facingMode,
+    },
+    { label },
+  );
 
   return {
     getTracks: () => [track],

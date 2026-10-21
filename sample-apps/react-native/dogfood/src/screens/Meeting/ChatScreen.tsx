@@ -102,13 +102,15 @@ export const ChatScreen = ({ route }: ChatScreenProps) => {
 };
 
 const useStyles = () => {
-  const { theme } = useTheme();
+  const {
+    theme: { semantics },
+  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
           flex: 1,
-          backgroundColor: theme.colors.sheetSecondary,
+          backgroundColor: semantics.backgroundCoreElevation2,
         },
         header: {
           padding: 10,
@@ -117,7 +119,7 @@ const useStyles = () => {
         },
         headerText: { flex: 1, color: 'white' },
         notedButton: {
-          backgroundColor: theme.colors.buttonPrimary,
+          backgroundColor: semantics.buttonPrimaryBg,
           justifyContent: 'center',
           padding: 10,
           borderRadius: 10,
@@ -128,6 +130,6 @@ const useStyles = () => {
           fontWeight: '500',
         },
       }),
-    [theme],
+    [semantics],
   );
 };

@@ -48,7 +48,7 @@ export default function Home({
   const router = useRouter();
   const useLocalCoordinator = router.query['use_local_coordinator'] === 'true';
   const coordinatorUrl = useLocalCoordinator
-    ? 'http://localhost:3030/video'
+    ? 'http://localhost:3030'
     : (router.query['coordinator_url'] as string | undefined);
 
   useEffect(() => {
@@ -148,7 +148,7 @@ const HomeContent = () => {
             />
             <button
               className={clsx(
-                'rd__home-new rd__button rd__button__join',
+                'rd__button rd__button__join',
                 !disabled && 'rd__button--primary',
               )}
               data-testid="join-call-button"
@@ -164,7 +164,7 @@ const HomeContent = () => {
               <Link
                 href={`/join/${meetingId()}`}
                 className={clsx(
-                  'rd__home-new rd__link rd__link--faux-button',
+                  'rd__link rd__link--faux-button',
                   disabled && 'rd__link--primary',
                 )}
                 data-testid="create-and-join-meeting-button"
@@ -175,7 +175,7 @@ const HomeContent = () => {
               <div className="rd__home-button-group">
                 <Link
                   href={`/join/${meetingId()}?type=restricted`}
-                  className="rd__home-new rd__link rd__link--faux-button"
+                  className="rd__link rd__link--faux-button"
                   data-testid="create-and-join-restricted-meeting-button"
                 >
                   <Icon className="rd__link__icon" icon="camera-add" />
