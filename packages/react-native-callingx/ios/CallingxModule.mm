@@ -155,6 +155,11 @@
   return @YES;
 }
 
+- (NSNumber *)setVoipTokenRegistered:(BOOL)registered {
+  [Settings setVoipTokenRegistered:registered];
+  return @YES;
+}
+
 #pragma mark - Call State
 
 - (NSArray<NSString *> *)getRegisteredCallIds {

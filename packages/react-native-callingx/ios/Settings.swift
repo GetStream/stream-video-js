@@ -48,6 +48,31 @@ import UIKit
         setSettings(["shouldRejectCallWhenBusy": shouldReject])
     }
 
+    /// Wiped with UserDefaults on uninstall, so a reinstall doesn't register PushKit at
+    /// launch for a token still bound to a previous user.
+    public static func getVoipTokenRegistered() -> Bool {
+        guard let registered = getSettings()["voipTokenRegistered"] as? Bool else {
+            return false
+        }
+        return registered
+    }
+
+    public static func setVoipTokenRegistered(_ registered: Bool) {
+        setSettings(["voipTokenRegistered": registered])
+    }
+
+    public static func migrateVoipTokenRegisteredIfNeeded() {
+        let settings = getSettings()
+        guard settings["voipTokenRegistered"] == nil, !settings.isEmpty else { return }
+        CallingxLog.settings.debugPublic("[migrateVoipTokenRegisteredIfNeeded] legacy install, marking VoIP token as registered")
+        setVoipTokenRegistered(true)
+    }
+
+    public static func initVoipTokenRegisteredIfNeeded() {
+        guard getSettings()["voipTokenRegistered"] == nil else { return }
+        setVoipTokenRegistered(false)
+    }
+
     public static func getSkipIncomingPushInForeground() -> Bool {
         guard let skip = getSettings()["skipIncomingPushInForeground"] as? Bool else {
             return false

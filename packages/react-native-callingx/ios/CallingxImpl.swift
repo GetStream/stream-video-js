@@ -401,6 +401,7 @@ import stream_react_native_webrtc
     // MARK: - Setup Methods
     @objc public func setup(options: [String: Any]) {
         Settings.setSettings(options)
+        Settings.initVoipTokenRegisteredIfNeeded()
         CallingxImpl.sharedProvider?.configuration = Settings.getProviderConfiguration()
         isSetup = true
     }
