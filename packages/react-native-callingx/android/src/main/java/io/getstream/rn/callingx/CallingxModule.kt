@@ -169,21 +169,17 @@ class CallingxModule(reactContext: ReactApplicationContext) :
 
     override fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
         impl.fulfillAnswerCallAction(callId, didFail)
-        return true
     }
 
-    override fun fulfillEndCallAction(callId: String, didFail: Boolean): Boolean {
+    override fun fulfillEndCallAction(callId: String, didFail: Boolean) {
         impl.fulfillEndCallAction(callId, didFail)
-        return true
     }
 
-    override fun log(message: String, level: String): Boolean {
+    override fun log(message: String, level: String) {
         impl.log(message, level)
-        return true
     }
 
-    override fun stopService(): Boolean {
+    override fun stopService() {
         impl.stopService()
-        return true
     }
 }

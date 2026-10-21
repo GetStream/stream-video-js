@@ -166,15 +166,15 @@ export interface Spec extends TurboModule {
 
   startBackgroundTask(taskName: string, timeout: number): boolean;
 
-  fulfillAnswerCallAction(callId: string, didFail: boolean): boolean;
-
   getFcmToken(): Promise<string>;
 
   fulfillAnswerCallAction(callId: string, didFail: boolean): void;
 
+  fulfillEndCallAction(callId: string, didFail: boolean): void;
+
   registerVoipToken(): boolean;
 
-  stopService(): boolean;
+  stopService(): void;
 
   readonly onNewEvent: EventEmitter<{
     eventName: string;
@@ -231,7 +231,7 @@ export interface Spec extends TurboModule {
     };
   }>;
 
-  log(message: string, level: 'debug' | 'info' | 'warn' | 'error'): boolean;
+  log(message: string, level: 'debug' | 'info' | 'warn' | 'error'): void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('Callingx');
