@@ -49,10 +49,10 @@ final class LiveCommunicationKitBackend: CallingxBackend {
     /// each match their own UUID. Guarded by `pendingActionsQueue`.
     private var appInitiatedMuteActionIds: Set<UUID> = []
 
-    /// Members/capabilities update of outgoing calls whose start action was fulfilled but whose
-    /// conversation hasn't appeared in `conversations` yet. LCK adds it only after
-    /// `fulfill(dateStarted:)` (`conversationChanged` follows), so the start events are reported
-    /// from there. Guarded by `pendingActionsQueue`.
+    /// Members/capabilities update of outgoing calls, reported with `startedConnectingAt` once the
+    /// start action is fulfilled and the conversation is in `conversations`. The conversation can
+    /// appear before or after the fulfill (both seen on device), so it is reported right after the
+    /// fulfill if present, else on its next `conversationChanged`. Guarded by `pendingActionsQueue`.
     private var pendingOutgoingConversationReports: [UUID: Conversation.Update] = [:]
 
     /// `startCall` phone number per outgoing call UUID, reported as `didReceiveStartCallAction`'s
@@ -684,13 +684,14 @@ extension LiveCommunicationKitBackend: ConversationManagerDelegate {
         let phoneNumber = pendingActionsQueue.sync {
             outgoingCallPhoneNumbers.removeValue(forKey: action.conversationUUID)
         }
+        let handle = phoneNumber ?? action.handles.first?.value ?? ""
+        CallingxLog.core.debugPublic("[ConversationManagerDelegate][performStartConversationAction] handle = \(handle), fromStartCall = \(phoneNumber != nil)")
         sendEvent(CallingxEvents.didReceiveStartCallAction, body: [
             "callId": call.cid,
-            "handle": phoneNumber ?? action.handles.first?.value ?? ""
+            "handle": handle
         ])
 
-        // The conversation appears in `conversations` only after the fulfill below; its start
-        // events are reported from `conversationChanged`.
+        // Start events are reported after the fulfill below, once the conversation exists.
         let update = Conversation.Update(
             members: Set(action.handles),
             activeRemoteMembers: Set(action.handles),
@@ -700,15 +701,24 @@ extension LiveCommunicationKitBackend: ConversationManagerDelegate {
             pendingOutgoingConversationReports[call.uuid] = update
         }
         action.fulfill(dateStarted: Date())
+
+        // Often already added (its `conversationChanged` came before this action); otherwise the
+        // next `conversationChanged` reports it.
+        if let conversation = conversationManager?.conversations.first(where: { $0.uuid == action.conversationUUID }) {
+            reportOutgoingConversationStarted(conversation)
+        }
     }
 
     /// Reports an outgoing call's members, capabilities and `startedConnectingAt` (set in
-    /// startCall) once its conversation exists.
+    /// startCall) once its start action is fulfilled and its conversation exists. Reported once:
+    /// the pending entry is taken here. Dropped if the conversation already left.
     private func reportOutgoingConversationStarted(_ conversation: Conversation) {
         let update = pendingActionsQueue.sync {
             pendingOutgoingConversationReports.removeValue(forKey: conversation.uuid)
         }
-        guard let update, let call = uuidStorage?.getCallByUUID(conversation.uuid) else { return }
+        guard let update, conversation.state != .left,
+              let call = uuidStorage?.getCallByUUID(conversation.uuid) else { return }
+        CallingxLog.core.debugPublic("[reportOutgoingConversationStarted] uuid = \(conversation.uuid) state = \(conversation.state)")
 
         reportConversationEvent(.conversationUpdated(update), uuid: call.uuid)
         reportConversationEvent(
