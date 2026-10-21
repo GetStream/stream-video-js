@@ -1720,17 +1720,9 @@ export class Call {
       enable_rtc_stats: enableTracing,
       reporting_interval_ms: reportingIntervalMs,
     } = statsOptions;
-    // Flush the previous reporter's final sample while its peer connections are
-    // still alive, before we dispose them below. Awaits only the sampling step.
-    await this.sfuStatsReporter?.flush();
-    if (this.leaveGeneration !== joinLeaveGeneration) return;
-    this.sfuStatsReporter?.stop();
+    const previousSubscriber = this.subscriber;
+    const previousSfuStatsReporter = this.sfuStatsReporter;
     this.sfuStatsReporter = undefined;
-    if (closePreviousInstances && this.subscriber) {
-      await this.subscriber.dispose();
-      if (this.leaveGeneration !== joinLeaveGeneration) return;
-      this.state.removeAllOrphanedTracks();
-    }
     const basePeerConnectionOptions: BasePeerConnectionOpts = {
       sfuClient,
       dispatcher: this.dispatcher,
@@ -1770,7 +1762,18 @@ export class Call {
       },
     };
 
+    // The SFU sends the subscriber offer right after the join response, and
+    // the dispatcher drops events nobody listens to. Create the subscriber
+    // (which registers the offer listener) before awaiting anything.
+    if (closePreviousInstances) this.state.removeAllOrphanedTracks();
     this.subscriber = new Subscriber(basePeerConnectionOptions);
+
+    // Flush the previous reporter's final sample while its peer connections are
+    // still alive, before we dispose them below. Awaits only the sampling step.
+    await previousSfuStatsReporter?.flush();
+    previousSfuStatsReporter?.stop();
+    if (closePreviousInstances) await previousSubscriber?.dispose();
+    if (this.leaveGeneration !== joinLeaveGeneration) return;
 
     // anonymous users can't publish anything hence, there is no need
     // to create Publisher Peer Connection for them

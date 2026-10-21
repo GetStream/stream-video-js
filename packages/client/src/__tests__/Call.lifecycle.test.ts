@@ -575,6 +575,52 @@ describe('Call lifecycle wiring', () => {
     },
   );
 
+  // The SFU sends the subscriber offer right after the join response and the
+  // dispatcher drops events nobody listens to, so the new subscriber must exist
+  // (and listen) while the previous reporter's final flush is still pending.
+  it('call.join() creates the subscriber before awaiting the stats flush', async () => {
+    const pending = promiseWithResolvers<void>();
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    call['credentials'] = fromPartial({ ice_servers: [] });
+    call['lastStatsOptions'] = fromPartial({ reporting_interval_ms: 0 });
+    call['sfuClient'] = fromPartial({
+      isHealthy: true,
+      sessionId: 'test-session',
+      leaveAndClose: vi.fn().mockResolvedValue(undefined),
+    });
+    const flush = vi.fn().mockReturnValueOnce(pending.promise);
+    const stop = vi.fn();
+    const oldSubscriber = makePeer();
+    call['sfuStatsReporter'] = fromPartial({ flush, stop });
+    call['subscriber'] = fromPartial(oldSubscriber);
+    call['publisher'] = fromPartial(makePeer());
+    const newSubscriber = makePeer();
+    const createSubscriber = vi
+      .spyOn(rtc, 'Subscriber')
+      .mockImplementation(function () {
+        return fromPartial<rtc.Subscriber>(newSubscriber);
+      });
+    vi.spyOn(rtc, 'Publisher').mockImplementation(function () {
+      return fromPartial<rtc.Publisher>(makePeer());
+    });
+
+    const joinTask = call.join();
+    await vi.waitFor(() => expect(flush).toHaveBeenCalledOnce());
+    expect(createSubscriber).toHaveBeenCalledOnce();
+    expect(call['subscriber']).toBe(newSubscriber);
+    // the previous peers stay alive until their final sample is taken
+    expect(oldSubscriber.dispose).not.toHaveBeenCalled();
+    expect(stop).not.toHaveBeenCalled();
+
+    pending.resolve();
+    await joinTask;
+    expect(stop).toHaveBeenCalledOnce();
+    expect(oldSubscriber.dispose).toHaveBeenCalledOnce();
+    expect(newSubscriber.dispose).not.toHaveBeenCalled();
+    expect(call['subscriber']).toBe(newSubscriber);
+    await call.leave();
+  });
+
   // Controls: without a leave, the retry loop must behave exactly as before.
   it('call.join() still retries a recoverable failure', async () => {
     sleepControl.onSleep = () => Promise.resolve();
