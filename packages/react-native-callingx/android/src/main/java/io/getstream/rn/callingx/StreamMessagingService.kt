@@ -1,6 +1,5 @@
 package io.getstream.rn.callingx
 
-import android.os.Bundle
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
@@ -34,7 +33,6 @@ open class StreamMessagingService : FirebaseMessagingService() {
 
   override fun onNewToken(token: String) {
     debugLog(TAG, "onNewToken")
-    val extras = Bundle().apply { putString(EXTRA_TOKEN, token) }
-    CallEventBus.publish(CallEvent(CallingxModuleImpl.CALL_FCM_TOKEN_REFRESH_ACTION, extras))
+    StreamMessagingHelper.forwardNewToken(token)
   }
 }
