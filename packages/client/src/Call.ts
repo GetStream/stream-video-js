@@ -319,6 +319,7 @@ export class Call {
   private deviceSettingsAppliedOnce = false;
   private callManagerStarted = false;
   private leaveGeneration = 0;
+  private leavesInProgress = 0;
   private credentials?: Credentials;
 
   private initialized = false;
@@ -687,6 +688,10 @@ export class Call {
     this.ringTimeout?.pause();
     this.ringStatePoller?.pause();
 
+    // also before the first await: `reconnect()` reads it to tell a teardown
+    // in progress from a live call, as the calling state stays JOINED until
+    // the very end.
+    this.leavesInProgress += 1;
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       const callingState = this.state.callingState;
 
@@ -848,18 +853,22 @@ export class Call {
             this.logger.warn('Failed to dispose media engine', err);
           });
       }
-    }).catch((err) => {
-      if (
-        !hasPending(this.joinLeaveConcurrencyTag) &&
-        this.state.callingState === CallingState.RINGING
-      ) {
-        // resume, never re-arm: a fresh watchdog would restart the ring
-        // window this leave was already most of the way through
-        this.ringTimeout?.start();
-        this.ringStatePoller?.resume();
-      }
-      throw err;
-    });
+    })
+      .catch((err) => {
+        if (
+          !hasPending(this.joinLeaveConcurrencyTag) &&
+          this.state.callingState === CallingState.RINGING
+        ) {
+          // resume, never re-arm: a fresh watchdog would restart the ring
+          // window this leave was already most of the way through
+          this.ringTimeout?.start();
+          this.ringStatePoller?.resume();
+        }
+        throw err;
+      })
+      .finally(() => {
+        this.leavesInProgress -= 1;
+      });
   };
 
   /**
@@ -2038,7 +2047,7 @@ export class Call {
     // A leave in progress (e.g. the SFU closed the socket on `callEnded`)
     // bumped the generation before this snapshot, so `supersededByLeave`
     // couldn't catch it: a reconnect here would rejoin the call it tears down.
-    if (hasPending(this.joinLeaveConcurrencyTag)) {
+    if (this.leavesInProgress > 0) {
       this.logger.debug('[Reconnect] Leave in progress; not reconnecting');
       return;
     }

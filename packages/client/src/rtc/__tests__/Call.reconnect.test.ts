@@ -23,7 +23,7 @@ import { StreamSfuClient } from '../../StreamSfuClient';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { SfuJoinError } from '../../errors';
 import { FastReconnectRejectedError } from '../../errors/FastReconnectRejectedError';
-import { settled, withoutConcurrency } from '../../helpers/concurrency';
+import { settled } from '../../helpers/concurrency';
 import { promiseWithResolvers } from '../../helpers/promise';
 
 vi.mock('../../StreamSfuClient', () => ({
@@ -710,24 +710,6 @@ describe('Call reconnect entry-condition bails', () => {
     expect(strategies.migrate).not.toHaveBeenCalled();
   });
 
-  it('bails immediately while a leave is in progress', async () => {
-    const strategies = stubAllStrategies();
-    call.state.setCallingState(CallingState.JOINED);
-    const leaving = promiseWithResolvers<void>();
-    const leave = withoutConcurrency(
-      call['joinLeaveConcurrencyTag'],
-      () => leaving.promise,
-    );
-
-    await call['reconnect'](WebsocketReconnectStrategy.FAST, 'test');
-
-    expect(strategies.fast).not.toHaveBeenCalled();
-    expect(strategies.rejoin).not.toHaveBeenCalled();
-    expect(strategies.migrate).not.toHaveBeenCalled();
-    leaving.resolve();
-    await leave;
-  });
-
   it('drops duplicate reconnect calls while one is already pending', async () => {
     let resolveFirst: () => void = () => {};
     const firstStrategy = new Promise<void>((resolve) => {
@@ -1203,29 +1185,41 @@ describe('Call.handleSfuSignalClose superseded-client guard', () => {
  * leave and rejoins the ended call.
  */
 describe('Call reconnect vs leave race', () => {
-  it('does not reconnect when the SFU signal closes during leave()', async () => {
-    const call = makeCall();
+  let call: Call;
+  let fast: ReturnType<typeof vi.spyOn>;
+  let rejoin: ReturnType<typeof vi.spyOn>;
+  let sfuClient: {
+    isLeaving: boolean;
+    isClosingClean: boolean;
+    leaveAndClose: () => Promise<void>;
+  };
+  let disposing: ReturnType<typeof promiseWithResolvers<void>>;
+  let publisherDisposed: ReturnType<typeof promiseWithResolvers<void>>;
+
+  beforeEach(() => {
+    call = makeCall();
     call.state.setCallingState(CallingState.JOINED);
-    const fast = vi
+    fast = vi
       .spyOn(
         call as unknown as { reconnectFast: () => Promise<void> },
         'reconnectFast',
       )
       .mockResolvedValue(undefined);
-    const rejoin = vi
+    rejoin = vi
       .spyOn(
         call as unknown as { reconnectRejoin: () => Promise<void> },
         'reconnectRejoin',
       )
       .mockResolvedValue(undefined);
 
-    const sfuClient = {
+    sfuClient = {
       isLeaving: false,
       isClosingClean: false,
       leaveAndClose: vi.fn().mockResolvedValue(undefined),
     };
-    const disposing = promiseWithResolvers<void>();
-    const publisherDisposed = promiseWithResolvers<void>();
+    // leave() stalls on the publisher dispose, with the call still JOINED
+    disposing = promiseWithResolvers<void>();
+    publisherDisposed = promiseWithResolvers<void>();
     Object.assign(call as unknown as Record<string, unknown>, {
       sfuClient,
       subscriber: { isHealthy: () => true, dispose: vi.fn() },
@@ -1237,7 +1231,13 @@ describe('Call reconnect vs leave race', () => {
         },
       },
     });
+  });
 
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('does not reconnect when the SFU signal closes during leave()', async () => {
     const leave = call.leave();
     await disposing.promise;
     call['handleSfuSignalClose'](
@@ -1251,6 +1251,31 @@ describe('Call reconnect vs leave race', () => {
     expect(fast).not.toHaveBeenCalled();
     expect(rejoin).not.toHaveBeenCalled();
     expect(call.state.callingState).toBe(CallingState.LEFT);
+    expect(call['leavesInProgress']).toBe(0);
+  });
+
+  it('bails on any reconnect trigger while leave() is in progress', async () => {
+    const leave = call.leave();
+    await disposing.promise;
+
+    await call['reconnect'](WebsocketReconnectStrategy.FAST, 'test');
+    await call['reconnect'](WebsocketReconnectStrategy.REJOIN, 'test');
+
+    expect(fast).not.toHaveBeenCalled();
+    expect(rejoin).not.toHaveBeenCalled();
+    publisherDisposed.resolve();
+    await leave;
+  });
+
+  it('still reconnects while setup() holds the join/leave lock', async () => {
+    call['initialized'] = true;
+    // get(), getOrCreate() and ring events run setup() on a live call
+    const setup = call.setup();
+
+    await call['reconnect'](WebsocketReconnectStrategy.FAST, 'test');
+    await setup;
+
+    expect(fast).toHaveBeenCalledTimes(1);
   });
 });
 
