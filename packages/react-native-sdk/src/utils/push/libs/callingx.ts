@@ -84,6 +84,9 @@ export function extractCallingExpOptions(
       androidOptions.skipIncomingPushInForeground =
         pushConfig.android.skipIncomingPushInForeground;
     }
+    if (pushConfig.android.callsHistory !== undefined) {
+      androidOptions.callsHistory = pushConfig.android.callsHistory;
+    }
     if (pushConfig.android.defaultDeviceEndpointType !== undefined) {
       androidOptions.defaultDeviceEndpointType =
         pushConfig.android.defaultDeviceEndpointType;

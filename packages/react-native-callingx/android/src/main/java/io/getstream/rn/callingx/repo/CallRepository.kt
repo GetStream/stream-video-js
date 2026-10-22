@@ -12,6 +12,7 @@ import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.CallService
 import io.getstream.rn.callingx.debugLog
+import io.getstream.rn.callingx.utils.SettingsStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -171,6 +172,9 @@ abstract class CallRepository(protected val context: Context) {
           CallAttributesCompat.SUPPORTS_STREAM or
           CallAttributesCompat.SUPPORTS_TRANSFER,
       preferredStartingCallEndpoint = preferredStartingCallEndpoint,
+      // Applied by Telecom on API 36.1+ only. Always set explicitly so that calls never reach
+      // the system call log while calls history is disabled.
+      isLogExcluded = !SettingsStore.isCallsHistoryEnabled(context),
     )
   }
 

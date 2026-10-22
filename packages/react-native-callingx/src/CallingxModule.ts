@@ -108,6 +108,7 @@ class CallingxModule implements ICallingxModule {
         ongoingChannel,
         notificationTexts,
         skipIncomingPushInForeground = false,
+        callsHistory = defaultAndroidOptions.callsHistory,
         defaultDeviceEndpointType,
       } = options.android ?? {};
 
@@ -125,6 +126,7 @@ class CallingxModule implements ICallingxModule {
         },
         notificationTexts,
         skipIncomingPushInForeground,
+        callsHistory,
       };
 
       if (

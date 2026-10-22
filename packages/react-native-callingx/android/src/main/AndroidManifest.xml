@@ -17,6 +17,23 @@
       android:taskAffinity=""
       android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
+    <!-- Opts the app into the system call log. Disabled by default; toggled at runtime by the
+         `callsHistory` setup option (see CallBackActivity). -->
+    <activity
+      android:name="io.getstream.rn.callingx.CallBackActivity"
+      android:enabled="false"
+      android:excludeFromRecents="true"
+      android:exported="true"
+      android:noHistory="true"
+      android:taskAffinity=""
+      android:theme="@android:style/Theme.Translucent.NoTitleBar">
+      <intent-filter>
+        <action android:name="android.telecom.action.CALL_BACK" />
+        <!-- Required: Telecom resolves the callback as an implicit activity intent. -->
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+    </activity>
+
     <service
       android:name="io.getstream.rn.callingx.notifications.NotificationReceiverService"
       android:exported="false" />

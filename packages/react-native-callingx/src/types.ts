@@ -350,6 +350,13 @@ export type InternalAndroidOptions = {
    */
   skipIncomingPushInForeground?: boolean;
   /**
+   * Enable calls history. When enabled, the call will be added to the system call log.
+   * Requires Android 16 QPR2 (API 36.1) or newer and a dialer that shows VoIP calls;
+   * no-op on older versions. Tapping a call log entry opens the app.
+   * @default false
+   */
+  callsHistory?: boolean;
+  /**
    * Default audio endpoint for Telecom-managed calls on Android.
    * Applied at call registration as `CallAttributesCompat.preferredStartingCallEndpoint`
    * Note: Works only before the call is registered.

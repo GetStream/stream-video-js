@@ -32,6 +32,8 @@ CallingxModule.setup({
       id: 'incoming_calls_channel',
       name: 'Incoming calls',
     },
+    // Android 16 QPR2 (API 36.1)+ only
+    callsHistory: false,
   },
 });
 

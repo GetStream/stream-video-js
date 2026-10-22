@@ -60,7 +60,7 @@ class CallService : Service(), CallRepository.Listener {
         /**
          * A null-scheme address reboots ColorOS devices (Telecom NPE), so the handle is wrapped
          * with the package name like the Android SDK ("$packageName:$callId"). The address is
-         * never displayed or dialed.
+         * never dialed; it is only stored in the system call log when calls history is enabled.
          */
         internal fun toTelecomAddress(context: Context, handle: String): Uri =
                 Uri.fromParts(context.packageName, handle, null)

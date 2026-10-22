@@ -32,6 +32,7 @@ export interface Spec extends TurboModule {
       rejecting?: string;
     };
     skipIncomingPushInForeground: boolean;
+    callsHistory: boolean;
   }): boolean;
 
   wireAudioEngineSubscription(): boolean;

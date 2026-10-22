@@ -128,6 +128,10 @@ class CallingxModuleImpl(
                 skipIncomingPushInForeground,
         )
 
+        val callsHistory = options.hasKey("callsHistory") && options.getBoolean("callsHistory")
+        SettingsStore.setCallsHistoryEnabled(reactApplicationContext, callsHistory)
+        CallBackActivity.setEnabled(reactApplicationContext, callsHistory)
+
         isModuleInitialized = true
     }
 

@@ -1,8 +1,8 @@
 buildscript {
   ext.Callingx = [
-    kotlinVersion: "2.0.21",
+    kotlinVersion: "2.2.0",
     minSdkVersion: 24,
-    compileSdkVersion: 35
+    compileSdkVersion: 37
   ]
 
   ext.getExtOrDefault = { prop ->
@@ -65,7 +65,7 @@ kotlin {
 
 dependencies {
   implementation "com.facebook.react:react-android"
-  implementation "androidx.core:core-telecom:1.0.1"
+  implementation "androidx.core:core-telecom:1.1.0-rc01"
   // Compile-time only dependency so StreamMessagingService can reference RemoteMessage.
   // The consuming app (via @react-native-firebase/messaging) must provide the actual runtime version.
   compileOnly "com.google.firebase:firebase-messaging:24.1.2"

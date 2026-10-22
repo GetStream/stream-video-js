@@ -36,6 +36,7 @@ export const defaultAndroidOptions: Omit<
     name: 'Ongoing calls',
   },
   enableOngoingCalls: false,
+  callsHistory: false,
 };
 
 // iOS: maps to CXCallEndedReason raw values.

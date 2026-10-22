@@ -32,6 +32,7 @@ export function setPushConfig() {
     },
     android: {
       pushProviderName: 'rn-fcm-video',
+      callsHistory: true,
     },
     shouldRejectCallWhenBusy: false,
     createStreamVideoClient,
