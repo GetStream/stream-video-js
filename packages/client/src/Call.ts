@@ -1794,17 +1794,8 @@ export class Call {
       enable_rtc_stats: enableTracing,
       reporting_interval_ms: reportingIntervalMs,
     } = statsOptions;
-    // Flush the previous reporter's final sample while its peer connections are
-    // still alive, before we dispose them below. Awaits only the sampling step.
-    await this.sfuStatsReporter?.flush();
-    if (this.leaveGeneration !== joinLeaveGeneration) return;
-    this.sfuStatsReporter?.stop();
-    this.sfuStatsReporter = undefined;
-    if (closePreviousInstances && this.subscriber) {
-      await this.subscriber.dispose();
-      if (this.leaveGeneration !== joinLeaveGeneration) return;
-      this.state.removeAllOrphanedTracks();
-    }
+    const previousSubscriber = this.subscriber;
+    const previousSfuStatsReporter = this.sfuStatsReporter;
     const basePeerConnectionOptions: BasePeerConnectionOpts = {
       sfuClient,
       dispatcher: this.dispatcher,
@@ -1839,12 +1830,31 @@ export class Call {
           (isReactNative() && trackType === TrackType.VIDEO);
 
         if (!reportable) return;
-
         this.clientEventReporter.reportFirstFrame(this.cid, trackType, trackId);
       },
     };
 
-    this.subscriber = new Subscriber(basePeerConnectionOptions);
+    // The SFU sends the subscriber offer right after the join response, and
+    // the dispatcher drops events nobody listens to. Create the subscriber
+    // (which registers the offer listener) before awaiting anything.
+    if (closePreviousInstances) {
+      // Keep the old peer alive for stats, but prevent late tracks from
+      // replacing and stopping streams received by the new subscriber.
+      previousSubscriber?.detachEventHandlers();
+      this.state.removeAllOrphanedTracks();
+    }
+    try {
+      this.subscriber = new Subscriber(basePeerConnectionOptions);
+
+      await previousSfuStatsReporter?.flush();
+    } finally {
+      previousSfuStatsReporter?.stop();
+      if (this.sfuStatsReporter === previousSfuStatsReporter) {
+        this.sfuStatsReporter = undefined;
+      }
+    }
+    if (closePreviousInstances) await previousSubscriber?.dispose();
+    if (this.leaveGeneration !== joinLeaveGeneration) return;
 
     // anonymous users can't publish anything hence, there is no need
     // to create Publisher Peer Connection for them
