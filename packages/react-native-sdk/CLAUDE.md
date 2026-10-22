@@ -31,7 +31,7 @@ The public `callManager` (`src/modules/call-manager/CallManager.ts`) is a **conf
 
 - `audioDevices` (`AudioDevicesManager`) — cross-platform picker: `getStatus`, `select(id)`, `addChangeListener`. On Android Telecom-managed calls it adapts callingx's endpoints; otherwise reads native.
 - `speaker` (`SpeakerManager`) — `setMute`, `setForceSpeakerphoneOn`. Routes via callingx on Telecom-managed Android.
-- `ios` (`IOSCallManager`) — iOS-only: `showDeviceSelector`, `addAudioInterruptionListener`.
+- `ios` (`IOSCallManager`) — iOS-only: `showDeviceSelector`, `addAudioInterruptionListener`, `addAudioSessionDiagnosticListener`, `getAudioSessionState`.
 - `start(config?)` / `stop()` — config store (see above).
 - `logAudioState`, `getAudioStateLog` — debug.
 

@@ -48,6 +48,7 @@ private enum Constants {
 @objc public protocol StreamInCallManagerEventEmitter: AnyObject {
     func emitAudioDeviceChanged(_ payload: [String: Any])
     func emitAudioInterruption(_ payload: [String: Any])
+    func emitAudioSessionDiagnostic(_ payload: [String: Any])
 }
 
 /// Stable device-id scheme for the JS layer. The built-in speaker is synthetic; every
@@ -243,6 +244,7 @@ private enum AudioDeviceId {
             } catch {
                 // String(describing:) shows the real error; localizedDescription prints a useless "error 0".
                 log("Error setting audio session: \(String(describing: error))")
+                sendAudioSessionDiagnostic("setupError", error: error)
             }
 
             // Subscribe to the AudioDeviceModule's engine lifecycle (idempotent).
@@ -283,6 +285,7 @@ private enum AudioDeviceId {
     private func applyConfigForEngineEnable() {
         if Self.callingxOwnsSession() {
             log("engineWillEnable: callingx owns the session, skipping")
+            sendAudioSessionDiagnostic("engineEnableSkipped")
             return
         }
 
@@ -297,8 +300,10 @@ private enum AudioDeviceId {
                 try applyOutputRouting(selectedOutput)
             }
             log("engineWillEnable: applied category=\(rtcConfig.category) mode=\(rtcConfig.mode) activated=true")
+            sendAudioSessionDiagnostic("engineEnableApplied")
         } catch {
             log("engineWillEnable error: \(String(describing: error))")
+            sendAudioSessionDiagnostic("engineEnableError", error: error)
         }
     }
 
@@ -370,6 +375,7 @@ private enum AudioDeviceId {
             } catch {
                 // String(describing:) surfaces the real error code (see setup()).
                 log("Error starting playout: \(String(describing: error))")
+                sendAudioSessionDiagnostic("startPlayoutError", error: error)
             }
 
             audioManagerActivated = true
@@ -610,6 +616,22 @@ private enum AudioDeviceId {
             result["selectedDeviceId"] = selectedDeviceId
         }
         return result
+    }
+
+    /// Snapshot of the shared audio session, attached to the JS-side diagnostics traces.
+    @objc public func getAudioSessionState() -> [String: Any] {
+        let session = AVAudioSession.sharedInstance()
+        let route = session.currentRoute
+        return [
+            "category": session.category.rawValue,
+            "mode": session.mode.rawValue,
+            "categoryOptions": session.categoryOptions.rawValue,
+            "isActive": RTCAudioSession.sharedInstance().isActive,
+            "isOtherAudioPlaying": session.isOtherAudioPlaying,
+            "callingxOwnsSession": Self.callingxOwnsSession(),
+            "inputs": route.inputs.map { $0.portType.rawValue },
+            "outputs": route.outputs.map { $0.portType.rawValue },
+        ]
     }
 
     @objc
@@ -887,6 +909,16 @@ private enum AudioDeviceId {
     @objc(stopSound)
     public func stopSound() {
         soundPlayer.stopSound()
+    }
+
+    /// Surfaces native audio-session failures (otherwise only NSLog'd) to the JS call tracer.
+    private func sendAudioSessionDiagnostic(_ event: String, error: Error? = nil) {
+        var body = getAudioSessionState()
+        body["event"] = event
+        if let error {
+            body["error"] = String(describing: error)
+        }
+        eventEmitter?.emitAudioSessionDiagnostic(body)
     }
 
     // MARK: - Helper Methods

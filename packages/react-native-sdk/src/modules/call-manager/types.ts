@@ -49,6 +49,36 @@ export type IOSAudioInterruptionEvent = {
   shouldResume?: boolean;
 };
 
+/**
+ * Snapshot of the iOS shared `AVAudioSession`.
+ */
+export type IOSAudioSessionState = {
+  category: string;
+  mode: string;
+  categoryOptions: number;
+  isActive: boolean;
+  isOtherAudioPlaying: boolean;
+  callingxOwnsSession: boolean;
+  inputs: string[];
+  outputs: string[];
+};
+
+/**
+ * Emitted by the iOS in-call manager when it configures or activates the audio
+ * session for a (non-CallKit) call, including failures that would otherwise
+ * only be visible in the native device logs.
+ */
+export type IOSAudioSessionDiagnosticEvent = IOSAudioSessionState & {
+  event:
+    | 'setupError'
+    | 'engineEnableApplied'
+    | 'engineEnableSkipped'
+    | 'engineEnableError'
+    | 'startPlayoutError'
+    | (string & {});
+  error?: string;
+};
+
 export type StreamInCallManagerConfig =
   | {
       audioRole: 'communicator';
