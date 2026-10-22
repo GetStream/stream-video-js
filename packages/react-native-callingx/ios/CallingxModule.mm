@@ -236,16 +236,20 @@
   return @([_moduleImpl setOnHoldCall:callId isOnHold:isOnHold]);
 }
 
-- (NSNumber *)fulfillAnswerCallAction:(NSString *)callId
+- (void)fulfillAnswerCallAction:(NSString *)callId
                               didFail:(BOOL)didFail {
   [_moduleImpl fulfillAnswerCallAction:callId didFail:didFail];
-  return @YES;
 }
 
-- (NSNumber *)fulfillEndCallAction:(NSString *)callId
+- (void)fulfillEndCallAction:(NSString *)callId
                            didFail:(BOOL)didFail {
   [_moduleImpl fulfillEndCallAction:callId didFail:didFail];
-  return @YES;
+}
+
+- (void)getFcmToken:(RCTPromiseResolveBlock)resolve
+             reject:(RCTPromiseRejectBlock)reject {
+  // Android-only feature; iOS uses VoIP push and has no FCM token to return.
+  resolve(@"");
 }
 
 #pragma mark - Background Tasks and Service
@@ -256,17 +260,15 @@
   return @YES;
 }
 
-- (NSNumber *)stopService {
+- (void)stopService {
   // Not implemented on iOS
-  return @YES;
 }
 
 #pragma mark - Logging
 
-- (NSNumber *)log:(NSString *)message
+- (void)log:(NSString *)message
             level:(NSString *)level {
   [CallingxLogBridge js:message level:level];
-  return @YES;
 }
 
 @end

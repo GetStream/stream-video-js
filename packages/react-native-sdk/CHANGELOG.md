@@ -2,6 +2,33 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-2.0.0-beta.3...@stream-io/video-react-native-sdk-2.0.0-beta.4) (2026-10-20)
+
+## [2.0.0-beta.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-2.0.0-beta.2...@stream-io/video-react-native-sdk-2.0.0-beta.3) (2026-10-16)
+
+### ⚠ BREAKING CHANGES
+
+- **react-native-sdk:** migrate to the New Architecture (#2501)
+- remove deprecated APIs and legacy code for v2 (#2498)
+- **react-native-callingx:** migrate to the New Architecture (#2493)
+- **react-native:** migrate video filters to the New Architecture (#2459)
+
+### Features
+
+- **client:** integrate OpenAPI generated client ([#2454](https://github.com/GetStream/stream-video-js/issues/2454)) ([710afe0](https://github.com/GetStream/stream-video-js/commit/710afe0ce976f7c0c54436055102e6dd2bc14236))
+- **react-native-callingx:** migrate to the New Architecture ([#2493](https://github.com/GetStream/stream-video-js/issues/2493)) ([afb4657](https://github.com/GetStream/stream-video-js/commit/afb4657cf90abcf2a9cf2e9dff9d50085a7816a6)), closes [#2459](https://github.com/GetStream/stream-video-js/issues/2459) [#2466](https://github.com/GetStream/stream-video-js/issues/2466)
+- **react-native-sdk:** migrate to the New Architecture ([#2501](https://github.com/GetStream/stream-video-js/issues/2501)) ([7f29f01](https://github.com/GetStream/stream-video-js/commit/7f29f013bb413440a324f03c1ac138f6552986db))
+- **react-native:** added ringing call ringtone player ([#2457](https://github.com/GetStream/stream-video-js/issues/2457)) ([fd61a31](https://github.com/GetStream/stream-video-js/commit/fd61a31e17d38b0a41962186182fea3f25b1bbe8))
+- **react-native:** migrate video filters to the New Architecture ([#2459](https://github.com/GetStream/stream-video-js/issues/2459)) ([608e617](https://github.com/GetStream/stream-video-js/commit/608e617af47688150e364ec7fa3952256d4ea72f))
+- remove deprecated APIs and legacy code for v2 ([#2498](https://github.com/GetStream/stream-video-js/issues/2498)) ([7a20921](https://github.com/GetStream/stream-video-js/commit/7a209213d0eddb7ad8f1d21e55bd43910391666e)), closes [#2493](https://github.com/GetStream/stream-video-js/issues/2493)
+- updated sdk components with new design system ([#2437](https://github.com/GetStream/stream-video-js/issues/2437)) ([482751b](https://github.com/GetStream/stream-video-js/commit/482751b4cf0892c25cbc4a5a992e141bb41cf85b))
+
+### Bug Fixes
+
+- callingx outgoing calls decline fix ([#2478](https://github.com/GetStream/stream-video-js/issues/2478)) ([e8e1d68](https://github.com/GetStream/stream-video-js/commit/e8e1d68b43c2000d05741bf91400246c19173954))
+- **react-native:** iPhone Duo and iOS 27 resizable-window fixes ([#2466](https://github.com/GetStream/stream-video-js/issues/2466)) ([b1cebf6](https://github.com/GetStream/stream-video-js/commit/b1cebf6f03b8f0b470579f18ee016c1708418af6)), closes [#2467](https://github.com/GetStream/stream-video-js/issues/2467) [#2467](https://github.com/GetStream/stream-video-js/issues/2467)
+- **react-native:** only process stream.video call.ring VoIP pushes on iOS ([#2486](https://github.com/GetStream/stream-video-js/issues/2486)) ([bf6d27f](https://github.com/GetStream/stream-video-js/commit/bf6d27f87137791bf5eb2ebe0666f74d508293d5))
+
 ## [2.0.0-beta.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-2.0.0-beta.1...@stream-io/video-react-native-sdk-2.0.0-beta.2) (2026-09-28)
 
 ### ⚠ BREAKING CHANGES

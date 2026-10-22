@@ -1,5 +1,8 @@
-import messaging, {
-  FirebaseMessagingTypes,
+import {
+  getMessaging,
+  setBackgroundMessageHandler,
+  onMessage,
+  RemoteMessage,
 } from '@react-native-firebase/messaging';
 import { isFirebaseStreamVideoMessage } from '@stream-io/video-react-native-sdk';
 import notifee, { AndroidImportance } from '@notifee/react-native';
@@ -8,9 +11,7 @@ import {
   displayNonRingingNotification,
 } from './notificationUtils';
 
-async function handleNonRingingMessage(
-  msg: FirebaseMessagingTypes.RemoteMessage,
-): Promise<void> {
+async function handleNonRingingMessage(msg: RemoteMessage): Promise<void> {
   // If FCM has a notification payload, the system already displayed it
   if (msg.notification) {
     return;
@@ -37,15 +38,17 @@ export const setNotificationListeners = () => {
       console.error('Error creating notification channel', error);
     });
 
+  const messagingInstance = getMessaging();
+
   // Background message handler
-  messaging().setBackgroundMessageHandler(async (msg) => {
+  setBackgroundMessageHandler(messagingInstance, async (msg) => {
     if (isFirebaseStreamVideoMessage(msg)) {
       await handleNonRingingMessage(msg);
     }
   });
 
   // Foreground message handler
-  messaging().onMessage(async (msg) => {
+  onMessage(messagingInstance, async (msg) => {
     if (isFirebaseStreamVideoMessage(msg)) {
       await handleNonRingingMessage(msg);
     }

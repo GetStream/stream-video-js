@@ -2,6 +2,41 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-2.0.0-beta.2...@stream-io/video-client-2.0.0-beta.3) (2026-10-20)
+
+### Features
+
+- **client:** trace page lifecycle and flush stats when hidden ([#2518](https://github.com/GetStream/stream-video-js/issues/2518)) ([1755225](https://github.com/GetStream/stream-video-js/commit/17552250fc3275a8befbff9f2dcd44dbcd1b0829))
+
+### Bug Fixes
+
+- **client:** rejoin when the SFU did not resume the session ([#2519](https://github.com/GetStream/stream-video-js/issues/2519)) ([81ca2e0](https://github.com/GetStream/stream-video-js/commit/81ca2e047c758cf1dd155c59263b0f89628291f8))
+- keep remote audio elements mounted across mute/unmute ([#2524](https://github.com/GetStream/stream-video-js/issues/2524)) ([916cbc6](https://github.com/GetStream/stream-video-js/commit/916cbc6aa3d040aa6cc6e43271d0a7e9ec3641e9))
+
+## [2.0.0-beta.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-2.0.0-beta.1...@stream-io/video-client-2.0.0-beta.2) (2026-10-16)
+
+### ⚠ BREAKING CHANGES
+
+- remove deprecated APIs and legacy code for v2 (#2498)
+
+### Features
+
+- **client:** integrate OpenAPI generated client ([#2454](https://github.com/GetStream/stream-video-js/issues/2454)) ([710afe0](https://github.com/GetStream/stream-video-js/commit/710afe0ce976f7c0c54436055102e6dd2bc14236))
+- **client:** upgrade webrtc-adapter to v9.0.6 ([#2475](https://github.com/GetStream/stream-video-js/issues/2475)) ([b36dd27](https://github.com/GetStream/stream-video-js/commit/b36dd27121bf19dde58dde5e93daeaa8f9cd8996))
+- **react-sdk:** show a notification when the camera can't start ([#2462](https://github.com/GetStream/stream-video-js/issues/2462)) ([794144f](https://github.com/GetStream/stream-video-js/commit/794144fbb3497981ad0657274d4427ac23a9bd22))
+- remove deprecated APIs and legacy code for v2 ([#2498](https://github.com/GetStream/stream-video-js/issues/2498)) ([7a20921](https://github.com/GetStream/stream-video-js/commit/7a209213d0eddb7ad8f1d21e55bd43910391666e)), closes [#2493](https://github.com/GetStream/stream-video-js/issues/2493)
+
+### Bug Fixes
+
+- **client:** don't call setSinkId on Safari and other WebKit browsers ([#2505](https://github.com/GetStream/stream-video-js/issues/2505)) ([25496c5](https://github.com/GetStream/stream-video-js/commit/25496c53932cc9a43314efa1d63a4232af57726a))
+- **client:** give up on devices that gather no ICE candidates ([#2509](https://github.com/GetStream/stream-video-js/issues/2509)) ([d8a173f](https://github.com/GetStream/stream-video-js/commit/d8a173fe412db3eb9693006924eeff78587daed9)), closes [GetStream/video-sfu#1728](https://github.com/GetStream/video-sfu/issues/1728)
+- **client:** keep the mic captured across mute for speaking-while-muted ([#2507](https://github.com/GetStream/stream-video-js/issues/2507)) ([1ee12ed](https://github.com/GetStream/stream-video-js/commit/1ee12ed85ef16f29384e53c83445cea8359ed81d))
+- **client:** reconcile ringing calls after a WS rewatch ([#2497](https://github.com/GetStream/stream-video-js/issues/2497)) ([6f4c17f](https://github.com/GetStream/stream-video-js/commit/6f4c17fbaca6c448e0feda2e01be37ba924a2b7e)), closes [#2493](https://github.com/GetStream/stream-video-js/issues/2493)
+- **client:** recover remote playback after media interruptions ([#2500](https://github.com/GetStream/stream-video-js/issues/2500)) ([bf7c859](https://github.com/GetStream/stream-video-js/commit/bf7c859288883bcdf28b1ba0d6193a3caff57167))
+- **client:** remove deprecated SendStats fields ([#2488](https://github.com/GetStream/stream-video-js/issues/2488)) ([9f31f62](https://github.com/GetStream/stream-video-js/commit/9f31f62bb593d806fe1fef46f062dfbf1b179de2))
+- **client:** start ring state polling after 9s instead of 15s ([#2492](https://github.com/GetStream/stream-video-js/issues/2492)) ([f5cdb62](https://github.com/GetStream/stream-video-js/commit/f5cdb626cfa6336e89ff0a21515fa30edce2debe))
+- **client:** stop endless rejoin loop when ICE never connects ([#2482](https://github.com/GetStream/stream-video-js/issues/2482)) ([4a06bff](https://github.com/GetStream/stream-video-js/commit/4a06bff76d91e2e02b619f05efc28f0df29fd996))
+
 ## [2.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-2.0.0-beta.0...@stream-io/video-client-2.0.0-beta.1) (2026-09-28)
 
 ### Features

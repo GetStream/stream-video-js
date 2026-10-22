@@ -155,6 +155,43 @@ describe('BlockedAudioTracker', () => {
     expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(false);
   });
 
+  it.each(['click', 'keydown'])(
+    'resumes blocked audio on a %s anywhere on the page',
+    async (type) => {
+      const el = createAudioElement();
+      const play = vi.spyOn(el, 'play').mockResolvedValue();
+      tracker.markBlocked(el, true, 'session-id');
+
+      document.body.dispatchEvent(new Event(type, { bubbles: true }));
+
+      expect(play).toHaveBeenCalledTimes(1);
+      await vi.waitFor(() =>
+        expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(false),
+      );
+    },
+  );
+
+  it('stops listening for user gestures once nothing is blocked', () => {
+    const el = createAudioElement();
+    const play = vi.spyOn(el, 'play').mockResolvedValue();
+    tracker.markBlocked(el, true, 'session-id');
+    tracker.markBlocked(el, false);
+
+    document.body.dispatchEvent(new Event('click', { bubbles: true }));
+
+    expect(play).not.toHaveBeenCalled();
+    expect(tracer.trace).not.toHaveBeenCalledWith('resumeAudio', null);
+  });
+
+  it('stops listening for user gestures after reset', () => {
+    tracker.markBlocked(createAudioElement(), true, 'session-id');
+    tracker.reset();
+
+    document.body.dispatchEvent(new Event('click', { bubbles: true }));
+
+    expect(tracer.trace).not.toHaveBeenCalledWith('resumeAudio', null);
+  });
+
   it('traces resumeAudio', async () => {
     await tracker.resumeAudio();
     expect(tracer.trace).toHaveBeenCalledWith('resumeAudio', null);

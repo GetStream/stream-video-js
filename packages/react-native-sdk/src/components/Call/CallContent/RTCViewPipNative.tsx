@@ -44,6 +44,7 @@ type RTCViewPipNativeProps = {
   isSpeaking?: boolean;
   /** The connection quality level (0: unknown, 1: poor, 2: good, 3: excellent) */
   connectionQuality?: number;
+  ref?: React.Ref<RTCViewPipNativeRef>;
 };
 
 export function onNativeCallClosed(ref: RTCViewPipNativeRef | null) {
@@ -69,42 +70,29 @@ export function onNativeDimensionsUpdated(
 
 /** Wrapper for the native view
  * meant to stay private and not exposed */
-export const RTCViewPipNative = React.memo(
-  React.forwardRef<RTCViewPipNativeRef, RTCViewPipNativeProps>((props, ref) => {
-    if (Platform.OS !== 'ios') return null;
+export const RTCViewPipNative = React.memo((props: RTCViewPipNativeProps) => {
+  if (Platform.OS !== 'ios') return null;
 
-    return (
-      <NativeComponent
-        style={StyleSheet.absoluteFill}
-        pointerEvents={'none'}
-        // eslint-disable-next-line react/prop-types
-        streamURL={props.streamURL}
-        // eslint-disable-next-line react/prop-types
-        mirror={props.mirror}
-        // eslint-disable-next-line react/prop-types
-        onPiPChange={props.onPiPChange}
-        // eslint-disable-next-line react/prop-types
-        onPiPBoundsChange={props.onPiPBoundsChange}
-        // eslint-disable-next-line react/prop-types
-        participantName={props.participantName}
-        // eslint-disable-next-line react/prop-types
-        participantImageURL={props.participantImageURL}
-        // eslint-disable-next-line react/prop-types
-        isReconnecting={props.isReconnecting}
-        // eslint-disable-next-line react/prop-types
-        isScreenSharing={props.isScreenSharing}
-        // eslint-disable-next-line react/prop-types
-        hasAudio={props.hasAudio}
-        // eslint-disable-next-line react/prop-types
-        isTrackPaused={props.isTrackPaused}
-        // eslint-disable-next-line react/prop-types
-        isPinned={props.isPinned}
-        // eslint-disable-next-line react/prop-types
-        isSpeaking={props.isSpeaking}
-        // eslint-disable-next-line react/prop-types
-        connectionQuality={props.connectionQuality}
-        ref={ref}
-      />
-    );
-  }),
-);
+  return (
+    <NativeComponent
+      style={StyleSheet.absoluteFill}
+      pointerEvents={'none'}
+      streamURL={props.streamURL}
+      mirror={props.mirror}
+      onPiPChange={props.onPiPChange}
+      onPiPBoundsChange={props.onPiPBoundsChange}
+      participantName={props.participantName}
+      participantImageURL={props.participantImageURL}
+      isReconnecting={props.isReconnecting}
+      isScreenSharing={props.isScreenSharing}
+      hasAudio={props.hasAudio}
+      isTrackPaused={props.isTrackPaused}
+      isPinned={props.isPinned}
+      isSpeaking={props.isSpeaking}
+      connectionQuality={props.connectionQuality}
+      ref={props.ref}
+    />
+  );
+});
+
+RTCViewPipNative.displayName = 'RTCViewPipNative';

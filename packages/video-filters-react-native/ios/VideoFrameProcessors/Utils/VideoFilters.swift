@@ -4,6 +4,8 @@
 
 import CoreImage
 import Foundation
+import stream_react_native_webrtc
+import WebRTC
 
 extension RTCVideoRotation {
     /// Maps the capture pipeline's frame rotation to the image orientation used when orienting

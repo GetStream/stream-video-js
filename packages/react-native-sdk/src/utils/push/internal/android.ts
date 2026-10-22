@@ -4,13 +4,10 @@ import {
   CallingState,
   StreamVideoClient,
 } from '@stream-io/video-client';
+import type { RingCallPushPayload } from '@stream-io/react-native-callingx';
 import { AppState, Platform } from 'react-native';
-import {
-  type FirebaseRemoteMessage,
-  getCallingxLib,
-  getCallingxLibIfAvailable,
-} from '../libs';
-import type { StreamVideoConfig } from '../../StreamVideoRN/types';
+import { getCallingxLib, getCallingxLibIfAvailable } from '../libs';
+import { StreamVideoRN } from '../../StreamVideoRN';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { canListenToWS, shouldCallBeClosed } from './utils';
 
@@ -20,8 +17,7 @@ import { canListenToWS, shouldCallBeClosed } from './utils';
  * ignored (their display is app responsibility). Android-only; a no-op on other platforms.
  */
 export const onRingNotificationReceived = async (
-  data: FirebaseRemoteMessage['data'],
-  pushConfig: NonNullable<StreamVideoConfig['push']>,
+  data: RingCallPushPayload | undefined,
 ) => {
   /* Example data from firebase
     "message": {
@@ -49,11 +45,18 @@ export const onRingNotificationReceived = async (
       level,
     );
 
-  if (!data || data.sender !== 'stream.video' || data.type !== 'call.ring') {
+  const pushConfig = StreamVideoRN.getConfig().push;
+  if (
+    !pushConfig ||
+    !data ||
+    data.sender !== 'stream.video' ||
+    data.type !== 'call.ring' ||
+    !data.call_cid
+  ) {
     return;
   }
 
-  const call_cid = data.call_cid as string;
+  const call_cid = data.call_cid;
   const callingx = getCallingxLib();
 
   if (pushUnsubscriptionCallbacks.has(call_cid)) {

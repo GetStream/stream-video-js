@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Theme } from '../../theme';
-import { RecordCall, ScreenShare } from '../../icons';
+import { RecordCall, ScreenShare, Verified } from '../../icons';
 import {
   useCallStateHooks,
   useToggleCallRecording,
@@ -44,22 +44,38 @@ const getDurationTextParts = (formatted: string): DurationTextPart[] => {
   return parts;
 };
 
-const getIcon = (
-  hasPublishedScreenShare: boolean,
+const getIcons = (
+  isE2eeEnabled: boolean,
   isCallRecordingInProgress: boolean,
+  hasPublishedScreenShare: boolean,
   semantics: Theme['semantics'],
   iconSize: number,
 ) => {
-  if (hasPublishedScreenShare) {
-    return <ScreenShare color={semantics.accentPrimary} size={iconSize} />;
+  const icons: React.ReactNode[] = [];
+  if (isE2eeEnabled) {
+    icons.push(
+      <Verified key="e2ee" color={semantics.accentSuccess} size={iconSize} />,
+    );
   }
   if (isCallRecordingInProgress) {
-    return <RecordCall color={semantics.accentError} size={iconSize} />;
+    icons.push(
+      <RecordCall
+        key="recording"
+        color={semantics.accentError}
+        size={iconSize}
+      />,
+    );
   }
-  // if (/*e2e encrypted call*/) {
-  //   return <Verified color={semantics.accentSuccess} size={iconSize} />;
-  // }
-  return null;
+  if (hasPublishedScreenShare) {
+    icons.push(
+      <ScreenShare
+        key="screenShare"
+        color={semantics.accentPrimary}
+        size={iconSize}
+      />,
+    );
+  }
+  return icons;
 };
 
 /**
@@ -107,9 +123,10 @@ export const DurationIndicator = ({
     theme: { callDurationIndicator, semantics, components },
   } = useTheme();
 
-  const { useLocalParticipant } = useCallStateHooks();
+  const { useLocalParticipant, useE2eeEnabled } = useCallStateHooks();
   const { isCallRecordingInProgress } = useToggleCallRecording();
   const localParticipant = useLocalParticipant();
+  const isE2eeEnabled = useE2eeEnabled();
   const hasPublishedScreenShare =
     localParticipant && hasScreenShare(localParticipant);
 
@@ -122,18 +139,18 @@ export const DurationIndicator = ({
     ? getDurationTextParts(duration)
     : [{ text: duration, highlight: false }];
 
-  const icon =
-    iconProp ??
-    getIcon(
-      !!hasPublishedScreenShare,
-      isCallRecordingInProgress,
-      semantics,
-      components.iconSizeMd,
-    );
+  const icons = getIcons(
+    isE2eeEnabled,
+    isCallRecordingInProgress,
+    !!hasPublishedScreenShare,
+    semantics,
+    components.iconSizeMd,
+  );
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {icon}
+      {iconProp ??
+        (icons.length > 0 && <View style={styles.icons}>{icons}</View>)}
       <Text style={textStyle}>
         {durationParts.map((part, index) => (
           <Text
@@ -153,5 +170,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  icons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
 });

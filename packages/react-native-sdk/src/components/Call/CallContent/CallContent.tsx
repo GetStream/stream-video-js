@@ -10,8 +10,8 @@ import {
   type CallParticipantsSpotlightProps,
 } from '../CallLayout';
 import {
-  CallAppBar,
-  CallAppBarProps,
+  CallAppBar as DefaultCallAppBar,
+  type CallAppBarProps,
   type CallControlProps,
   CallControls as DefaultCallControls,
 } from '../CallControls';
@@ -46,6 +46,10 @@ export type StreamReactionType = StreamReaction & {
 type CallContentComponentProps = ParticipantViewComponentProps &
   Pick<CallParticipantsListComponentProps, 'ParticipantView' | 'mirror'> & {
     /**
+     * Component to customize the CallAppBar component.
+     */
+    CallAppBar?: React.ComponentType<CallAppBarProps> | null;
+    /**
      * Component to customize the CallControls component.
      */
     CallControls?: React.ComponentType<CallControlProps> | null;
@@ -67,13 +71,7 @@ export type CallContentProps = Pick<
   CallAppBarProps,
   'onHangupCallHandler' | 'onHangupPressHandler'
 > &
-  Pick<
-    CallControlProps,
-    | 'onMorePress'
-    | 'onUsersPress'
-    | 'onMessageBubblesPress'
-    | 'onControlsHeightChange'
-  > &
+  Pick<CallControlProps, 'onControlsHeightChange'> &
   CallContentComponentProps & {
     /**
      * This switches the participant's layout between the grid and the spotlight mode.
@@ -102,12 +100,6 @@ export type CallContentProps = Pick<
      */
     disablePictureInPicture?: boolean;
     /**
-     * Handler to be called when the layout toggle button is pressed.
-     * @param newLayout - The new layout to be set.
-     * @returns void
-     */
-    onLayoutToggleHandler?: (newLayout: 'grid' | 'spotlight') => void;
-    /**
      * Style applied to the CallContent component.
      */
     style?: StyleProp<ViewStyle>;
@@ -116,12 +108,9 @@ export type CallContentProps = Pick<
 export const CallContent = ({
   onHangupPressHandler,
   onHangupCallHandler,
-  onLayoutToggleHandler,
-  onMorePress,
-  onUsersPress,
-  onMessageBubblesPress,
   onControlsHeightChange,
   CallParticipantsList,
+  CallAppBar = DefaultCallAppBar,
   CallControls = DefaultCallControls,
   FloatingParticipantView = DefaultFloatingParticipantView,
   ScreenShareOverlay = DefaultScreenShareOverlay,
@@ -272,10 +261,8 @@ export const CallContent = ({
 
   return (
     <View style={[styles.container, callContent?.container, style]}>
-      {!isInPiPMode && (
+      {!isInPiPMode && CallAppBar && (
         <CallAppBar
-          layout={layout}
-          onLayoutToggleHandler={onLayoutToggleHandler}
           onHangupPressHandler={onHangupPressHandler}
           onHangupCallHandler={onHangupCallHandler}
         />
@@ -322,9 +309,6 @@ export const CallContent = ({
       {!isInPiPMode && CallControls && (
         <CallControls
           landscape={landscape}
-          onMorePress={onMorePress}
-          onUsersPress={onUsersPress}
-          onMessageBubblesPress={onMessageBubblesPress}
           onControlsHeightChange={onControlsHeightChange}
         />
       )}

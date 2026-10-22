@@ -62,5 +62,9 @@
                 <data android:pathPrefix="/video/demos/join" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name="io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService"
+            tools:node="remove" />
     </application>
 </manifest>

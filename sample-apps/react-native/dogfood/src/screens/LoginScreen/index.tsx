@@ -7,7 +7,7 @@ import {
   Text,
   View,
   ViewStyle,
-  TextInput as NativeTextInput,
+  type TextInputInstance,
   TouchableWithoutFeedback,
 } from 'react-native';
 import {
@@ -48,7 +48,7 @@ const LoginScreen = () => {
     (store) => store.localIpAddress,
   );
 
-  const sfuIpInputRef = useRef<NativeTextInput>(null);
+  const sfuIpInputRef = useRef<TextInputInstance>(null);
 
   const loginHandler = async () => {
     try {

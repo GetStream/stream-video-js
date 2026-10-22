@@ -61,7 +61,7 @@ const dimensionOf = (
 
 /** Drives the native events of the rendered picture in picture view. */
 const pipView = () => {
-  const props = screen.UNSAFE_getByType(RTCViewPipNative).props;
+  const props = screen.UNSAFE_getByType(RTCViewPipNative.type).props;
   return {
     change: (active: boolean) =>
       act(() => props.onPiPChange({ nativeEvent: { active } })),
