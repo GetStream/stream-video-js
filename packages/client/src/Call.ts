@@ -856,7 +856,9 @@ export class Call {
     })
       .catch((err) => {
         if (
-          !hasPending(this.joinLeaveConcurrencyTag) &&
+          // only this leave (still counted until `finally`): a leave queued
+          // behind it owns the watchdogs now, a queued `setup()` doesn't
+          this.leavesInProgress === 1 &&
           this.state.callingState === CallingState.RINGING
         ) {
           // resume, never re-arm: a fresh watchdog would restart the ring
