@@ -1176,6 +1176,106 @@ describe('Call.handleSfuSignalClose superseded-client guard', () => {
 });
 
 /**
+ * The SFU closes its socket on `callEnded` while `leave()` is still tearing
+ * down (state JOINED). That close must not start a reconnect that outlives the
+ * leave and rejoins the ended call.
+ */
+describe('Call reconnect vs leave race', () => {
+  let call: Call;
+  let fast: ReturnType<typeof vi.spyOn>;
+  let rejoin: ReturnType<typeof vi.spyOn>;
+  let sfuClient: {
+    isLeaving: boolean;
+    isClosingClean: boolean;
+    leaveAndClose: () => Promise<void>;
+  };
+  let disposing: ReturnType<typeof promiseWithResolvers<void>>;
+  let publisherDisposed: ReturnType<typeof promiseWithResolvers<void>>;
+
+  beforeEach(() => {
+    call = makeCall();
+    call.state.setCallingState(CallingState.JOINED);
+    fast = vi
+      .spyOn(
+        call as unknown as { reconnectFast: () => Promise<void> },
+        'reconnectFast',
+      )
+      .mockResolvedValue(undefined);
+    rejoin = vi
+      .spyOn(
+        call as unknown as { reconnectRejoin: () => Promise<void> },
+        'reconnectRejoin',
+      )
+      .mockResolvedValue(undefined);
+
+    sfuClient = {
+      isLeaving: false,
+      isClosingClean: false,
+      leaveAndClose: vi.fn().mockResolvedValue(undefined),
+    };
+    // leave() stalls on the publisher dispose, with the call still JOINED
+    disposing = promiseWithResolvers<void>();
+    publisherDisposed = promiseWithResolvers<void>();
+    Object.assign(call as unknown as Record<string, unknown>, {
+      sfuClient,
+      subscriber: { isHealthy: () => true, dispose: vi.fn() },
+      publisher: {
+        isHealthy: () => true,
+        dispose: () => {
+          disposing.resolve();
+          return publisherDisposed.promise;
+        },
+      },
+    });
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('does not reconnect when the SFU signal closes during leave()', async () => {
+    const leave = call.leave();
+    await disposing.promise;
+    call['handleSfuSignalClose'](
+      sfuClient as unknown as StreamSfuClient,
+      '1006 ',
+    );
+    publisherDisposed.resolve();
+    await leave;
+    await settled(call['reconnectConcurrencyTag']);
+
+    expect(fast).not.toHaveBeenCalled();
+    expect(rejoin).not.toHaveBeenCalled();
+    expect(call.state.callingState).toBe(CallingState.LEFT);
+    expect(call['leavesInProgress']).toBe(0);
+  });
+
+  it('bails on any reconnect trigger while leave() is in progress', async () => {
+    const leave = call.leave();
+    await disposing.promise;
+
+    await call['reconnect'](WebsocketReconnectStrategy.FAST, 'test');
+    await call['reconnect'](WebsocketReconnectStrategy.REJOIN, 'test');
+
+    expect(fast).not.toHaveBeenCalled();
+    expect(rejoin).not.toHaveBeenCalled();
+    publisherDisposed.resolve();
+    await leave;
+  });
+
+  it('still reconnects while setup() holds the join/leave lock', async () => {
+    call['initialized'] = true;
+    // get(), getOrCreate() and ring events run setup() on a live call
+    const setup = call.setup();
+
+    await call['reconnect'](WebsocketReconnectStrategy.FAST, 'test');
+    await setup;
+
+    expect(fast).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
  * `leave()` runs after both the success path (end of `joinFlow`) and the
  * giveUpAndLeave path. Only the success path resets `reconnectStrategy` /
  * `reconnectReason`. Without resetting them in `leave()` itself, a Call
