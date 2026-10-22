@@ -1757,7 +1757,6 @@ export class Call {
           (isReactNative() && trackType === TrackType.VIDEO);
 
         if (!reportable) return;
-
         this.clientEventReporter.reportFirstFrame(this.cid, trackType, trackId);
       },
     };
