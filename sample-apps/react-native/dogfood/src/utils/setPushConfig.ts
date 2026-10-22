@@ -29,6 +29,7 @@ export function setPushConfig() {
       pushProviderName: 'rn-apn-video',
       callsHistory: true,
       enableOngoingCalls: true,
+      useLiveCommunicationKit: true,
     },
     android: {
       pushProviderName: 'rn-fcm-video',

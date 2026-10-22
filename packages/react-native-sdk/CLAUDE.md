@@ -3,7 +3,7 @@
 - Never use RxJS observables from the client directly here; all state access goes through the bindings hooks.
 - Apps must import from this SDK (not `@stream-io/video-client` directly): importing it registers the WebRTC globals and polyfills (`src/index.ts`).
 - The SDK's own natives are New Architecture only (codegen); see "Native modules" below.
-- CallKit (iOS) and Telecom (Android) go through the workspace package `@stream-io/react-native-callingx`.
+- CallKit / LiveCommunicationKit (iOS) and Telecom (Android) go through the workspace package `@stream-io/react-native-callingx`.
 - `StreamCall` runs its side effects (app-state, keep-alive, callingx sync, screen-share audio mixing, device stats) as renderless child components.
 - Theming: `<StreamVideo style={...}>` takes a `DeepPartial<Theme>`; theme tokens are `semantics` and `components` (`src/theme/theme.ts`).
 
@@ -76,7 +76,7 @@ The client (`packages/client`) is platform-agnostic and can't `import` React Nat
 ## Push notifications
 
 - **The SDK only handles ringing call pushes.** Non-ringing notifications (call.missed, call.live_started, call.notification) are delivered by the backend directly to the device; displaying them and handling taps is the app's responsibility.
-- iOS: VoIP push → callingx shows the CallKit UI. iOS kills the app if the CallKit UI isn't shown within ~30 seconds of a VoIP push, and the CallKit call must end when the Stream call ends. Apps register with `StreamVideoReactNative.voipRegistration()` in the AppDelegate.
+- iOS: VoIP push → callingx shows the CallKit UI, or the LiveCommunicationKit UI when `useLiveCommunicationKit` is set. The incoming call must be reported to the system before the PushKit delegate returns (callingx does it natively; Apple FB16655952 workaround), otherwise iOS kills the app and may stop delivering VoIP pushes. The system call must end when the Stream call ends. Apps register with `StreamVideoReactNative.voipRegistration()` in the AppDelegate.
 - Android: Firebase (`@react-native-firebase/messaging`) → callingx shows the incoming call via Telecom.
 
 ## Gotchas

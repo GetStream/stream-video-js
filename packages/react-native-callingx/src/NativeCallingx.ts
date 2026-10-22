@@ -14,6 +14,7 @@ export interface Spec extends TurboModule {
     callsHistory: boolean;
     displayCallTimeout: number;
     skipIncomingPushInForeground: boolean;
+    useLiveCommunicationKit: boolean;
   }): boolean;
 
   setupAndroid(options: {
@@ -46,7 +47,7 @@ export interface Spec extends TurboModule {
 
   /**
    * Whether audio routing is backed by the Jetpack Telecom stack on this device.
-   * Android: true on API 26+. iOS: always false (CallKit path uses its own bypass).
+   * Android: true on API 26+. iOS: always false (iOS uses its own bypass).
    */
   isTelecomBacked(): boolean;
 

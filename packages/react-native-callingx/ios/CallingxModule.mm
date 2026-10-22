@@ -1,8 +1,5 @@
 #import "CallingxModule.h"
 
-// Compiled without modules, so the Swift header's @imports are skipped; import its dependencies first.
-#import <CallKit/CallKit.h>
-
 #if __has_include("Callingx-Swift.h")
 #import "Callingx-Swift.h"
 #else
@@ -83,7 +80,8 @@
     @"imageName" : options.imageName() ?: @"",
     @"includesCallsInRecents" : @(options.callsHistory()),
     @"displayCallTimeout" : @(options.displayCallTimeout()),
-    @"skipIncomingPushInForeground" : @(options.skipIncomingPushInForeground())
+    @"skipIncomingPushInForeground" : @(options.skipIncomingPushInForeground()),
+    @"useLiveCommunicationKit" : @(options.useLiveCommunicationKit())
   };
 
   [_moduleImpl setupWithOptions:optionsDict];
@@ -136,7 +134,7 @@
 }
 
 - (NSNumber *)isTelecomBacked {
-  // Android-only Telecom routing; iOS uses the CallKit bypass instead.
+  // Android-only Telecom routing; iOS uses its own bypass instead.
   return @NO;
 }
 

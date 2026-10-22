@@ -1,5 +1,6 @@
 import Foundation
 import CallKit
+import LiveCommunicationKit
 import UIKit
 
 @objcMembers public class Settings: NSObject {
@@ -55,9 +56,21 @@ import UIKit
         return skip
     }
 
-    public static func getProviderConfiguration() -> CXProviderConfiguration {
+    /// `true` when the integrator opted into LiveCommunicationKit. Read once per process by
+    /// `CallingxImpl.currentBackend()`.
+    public static func getUseLiveCommunicationKit() -> Bool {
+        guard let useLiveCommunicationKit = getSettings()["useLiveCommunicationKit"] as? Bool else {
+            return false
+        }
+        return useLiveCommunicationKit
+    }
+
+    // MARK: - CallKit
+
+    /// `@nonobjc` keeps CallKit types out of the ObjC header (the `.m`/`.mm` files don't import CallKit).
+    @nonobjc public static func getProviderConfiguration() -> CXProviderConfiguration {
         CallingxLog.settings.debugPublic("[getProviderConfiguration]")
-      
+
         let settings = getSettings()
         let providerConfiguration = CXProviderConfiguration()
         providerConfiguration.supportsVideo = true
@@ -92,7 +105,7 @@ import UIKit
         return providerConfiguration
     }
 
-  public static func getSupportedHandleTypes(_ handleType: Any?) -> Set<CXHandle.HandleType> {
+    @nonobjc public static func getSupportedHandleTypes(_ handleType: Any?) -> Set<CXHandle.HandleType> {
         if let handleTypeArray = handleType as? [String] {
             var types = Set<CXHandle.HandleType>()
             for type in handleTypeArray {
@@ -100,14 +113,92 @@ import UIKit
             }
             return types
         } else if let handleTypeString = handleType as? String {
-            let type = getHandleType(handleTypeString)
+            let type: CXHandle.HandleType = getHandleType(handleTypeString)
             return Set([type])
         } else {
             return Set([CXHandle.HandleType.phoneNumber])
         }
     }
 
-    public static func getHandleType(_ handleType: String?) -> CXHandle.HandleType {
+    @nonobjc public static func getHandleType(_ handleType: String?) -> CXHandle.HandleType {
+        guard let handleType = handleType else { return .generic }
+
+        switch handleType {
+        case "generic":
+            return .generic
+        case "number", "phone":
+            return .phoneNumber
+        case "email":
+            return .emailAddress
+        default:
+            return .generic
+        }
+    }
+
+    // MARK: - LiveCommunicationKit
+
+    /// LCK types have no ObjC representation, hence `@nonobjc` on the members below. LCK is
+    /// weak-linked (iOS 17.4+), hence `@available`.
+    @available(iOS 17.4, *)
+    @nonobjc public static func getConversationManagerConfiguration() -> ConversationManager.Configuration {
+        CallingxLog.settings.debugPublic("[getConversationManagerConfiguration]")
+
+        let settings = getSettings()
+        var configuration = ConversationManager.Configuration(
+            ringtoneName: nil,
+            iconTemplateImageData: nil,
+            maximumConversationGroups: 1,
+            maximumConversationsPerConversationGroup: 1,
+            includesConversationInRecents: false,
+            supportsVideo: true,
+            supportedHandleTypes: getSupportedHandleTypes(settings["handleType"])
+        )
+
+        if let supportsVideo = settings["supportsVideo"] as? Bool {
+            configuration.supportsVideo = supportsVideo
+        }
+        if let maximumCallGroups = settings["maximumCallGroups"] as? Int {
+            configuration.maximumConversationGroups = maximumCallGroups
+        }
+        if let maximumCallsPerCallGroup = settings["maximumCallsPerCallGroup"] as? Int {
+            configuration.maximumConversationsPerConversationGroup = maximumCallsPerCallGroup
+        }
+
+        if let imageName = settings["imageName"] as? String, !imageName.isEmpty {
+            if let image = UIImage(named: imageName) {
+                configuration.iconTemplateImageData = image.pngData()
+            }
+        }
+
+        if let ringtoneSound = settings["ringtoneSound"] as? String, !ringtoneSound.isEmpty {
+            configuration.ringtoneName = ringtoneSound
+        }
+
+        if let includesCallsInRecents = settings["includesCallsInRecents"] as? Bool {
+            configuration.includesConversationInRecents = includesCallsInRecents
+        }
+
+        return configuration
+    }
+
+    @available(iOS 17.4, *)
+    @nonobjc public static func getSupportedHandleTypes(_ handleType: Any?) -> Set<Handle.Kind> {
+        if let handleTypeArray = handleType as? [String] {
+            var types = Set<Handle.Kind>()
+            for type in handleTypeArray {
+                types.insert(getHandleType(type))
+            }
+            return types
+        } else if let handleTypeString = handleType as? String {
+            let type: Handle.Kind = getHandleType(handleTypeString)
+            return Set([type])
+        } else {
+            return Set([Handle.Kind.phoneNumber])
+        }
+    }
+
+    @available(iOS 17.4, *)
+    @nonobjc public static func getHandleType(_ handleType: String?) -> Handle.Kind {
         guard let handleType = handleType else { return .generic }
 
         switch handleType {

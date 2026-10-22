@@ -47,7 +47,7 @@ final class SoundPlayer {
         player.stop()
     }
 
-    /// Resolves the sound against the app bundle, mirroring how CallKit resolves its
+    /// Resolves the sound against the app bundle, mirroring how the system call UI resolves its
     /// `ringtoneSound`. The SDK ships no sound of its own.
     private func resolveSoundURL(_ soundName: String?) -> URL? {
         guard let soundName, !soundName.isEmpty else { return nil }
