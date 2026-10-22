@@ -142,6 +142,27 @@ describe('Auto drop ringing calls', () => {
     expect(poller!['stopped']).toBe(false);
   });
 
+  it('restores both watchdogs when a setup is queued behind the failed leave', async () => {
+    call['scheduleAutoDrop']();
+    call['scheduleRingStatePolling']();
+    const timeout = call['ringTimeout'];
+    const poller = call['ringStatePoller'];
+    vi.spyOn(call, 'leave').mockRestore();
+    vi.spyOn(call, 'reject').mockRejectedValueOnce(new Error('transient'));
+    call['initialized'] = true;
+
+    const leaving = call.leave({ reject: true });
+    // e.g. `get()` or a ring event while the leave is still running
+    const setup = call.setup();
+
+    await expect(leaving).rejects.toThrow('transient');
+    await setup;
+
+    expect(timeout!['timeoutId']).toBeDefined();
+    expect(poller!['stopped']).toBe(false);
+    expect(poller!['idleTimeoutId']).toBeDefined();
+  });
+
   it('replaces a previously armed timeout', async () => {
     call['scheduleAutoDrop']();
     const first = call['ringTimeout'];
