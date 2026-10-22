@@ -4,13 +4,7 @@ import {
   PermissionsAndroid,
   Platform,
 } from 'react-native';
-
-const mockQuery = jest.fn();
-
-jest.mock('@stream-io/react-native-webrtc', () => ({
-  ...jest.requireActual('@stream-io/react-native-webrtc'),
-  permissions: { query: (...args: unknown[]) => mockQuery(...args) },
-}));
+import NativeStreamVideoReactNative from '../../src/native/NativeStreamVideoReactNative';
 
 jest.mock('../../src/utils/internal/registerMediaEngine', () => ({
   registerCallMediaEngine: jest.fn(),
@@ -26,18 +20,23 @@ describe('registerSDKGlobals permissions', () => {
   });
 
   it('queries the native permission state', async () => {
-    const query = globalThis.streamRNVideoSDK!.permissions.query!;
+    const { check, query } = globalThis.streamRNVideoSDK!.permissions;
+    const nativeCheck = jest.mocked(
+      NativeStreamVideoReactNative.checkPermission,
+    );
 
     // iOS
-    mockQuery.mockResolvedValueOnce('denied');
-    await expect(query('microphone')).resolves.toBe('denied');
-    mockQuery.mockResolvedValueOnce('tvOS is not supported');
-    await expect(query('camera')).rejects.toThrow('Unexpected');
+    nativeCheck.mockResolvedValueOnce('denied');
+    await expect(query!('microphone')).resolves.toBe('denied');
+    nativeCheck.mockResolvedValueOnce('unknown');
+    await expect(query!('camera')).rejects.toThrow('Unexpected');
+    nativeCheck.mockResolvedValueOnce('prompt');
+    await expect(check('microphone')).resolves.toBe(false);
 
     // Android
     Platform.OS = 'android';
     jest.spyOn(PermissionsAndroid, 'check').mockResolvedValueOnce(false);
-    await expect(query('microphone')).resolves.toBe('prompt');
+    await expect(query!('microphone')).resolves.toBe('prompt');
     Platform.OS = 'ios';
   });
 

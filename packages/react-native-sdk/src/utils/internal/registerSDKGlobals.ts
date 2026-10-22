@@ -8,7 +8,6 @@ import NativeStreamVideoReactNative from '../../native/NativeStreamVideoReactNat
 import {
   AudioEngineMuteMode,
   audioDeviceModuleEvents,
-  permissions as webRTCPermissions,
 } from '@stream-io/react-native-webrtc';
 import { getCallingxLibIfAvailable } from '../push/libs/callingx';
 import {
@@ -222,9 +221,9 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       }
 
       // use our own service on iOS
-      return Boolean(
-        await NativeStreamVideoReactNative.checkPermission(permission),
-      );
+      const state =
+        await NativeStreamVideoReactNative.checkPermission(permission);
+      return state === 'granted';
     },
     query: async (permission) => {
       if (Platform.OS === 'android') {
@@ -237,9 +236,8 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       }
 
       // iOS: reads the AVCaptureDevice authorization status, never prompts
-      const state: unknown = await webRTCPermissions.query({
-        name: permission,
-      });
+      const state =
+        await NativeStreamVideoReactNative.checkPermission(permission);
       if (state === 'granted' || state === 'denied' || state === 'prompt') {
         return state;
       }
