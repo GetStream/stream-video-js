@@ -523,7 +523,7 @@ export class Call {
           callingState: this.state.callingState,
         });
         if (settledByMe) this.cancelAutoDrop();
-        if (!leaveReason || hasPending(this.joinLeaveConcurrencyTag)) return;
+        if (!leaveReason || this.leavesInProgress > 0) return;
 
         globalThis.streamRNVideoSDK?.callingX?.endCall(this, leaveReason);
         this.leave().catch(() => {
