@@ -2,12 +2,13 @@ import {
   StreamRNVideoSDKGlobals,
   videoLoggerSystem,
 } from '@stream-io/video-client';
-import { PermissionsAndroid, Platform } from 'react-native';
+import { AppState, PermissionsAndroid, Platform } from 'react-native';
 import NativeStreamInCallManager from '../../native/NativeStreamInCallManager';
 import NativeStreamVideoReactNative from '../../native/NativeStreamVideoReactNative';
 import {
   AudioEngineMuteMode,
   audioDeviceModuleEvents,
+  permissions as webRTCPermissions,
 } from '@stream-io/react-native-webrtc';
 import { getCallingxLibIfAvailable } from '../push/libs/callingx';
 import {
@@ -82,6 +83,11 @@ const isAndroidTelecomManaged = ({ cid }: { cid: string }): boolean => {
   // to the classic path — this is where audio recovery happens.
   return CallingxModule.isCallTracked(cid);
 };
+
+const toAndroidPermission = (permission: 'microphone' | 'camera') =>
+  permission === 'camera'
+    ? PermissionsAndroid.PERMISSIONS.CAMERA
+    : PermissionsAndroid.PERMISSIONS.RECORD_AUDIO;
 
 const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   callingX: {
@@ -212,17 +218,31 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   permissions: {
     check: async (permission) => {
       if (Platform.OS === 'android') {
-        const nativeAndroidPermission =
-          permission === 'camera'
-            ? PermissionsAndroid.PERMISSIONS.CAMERA
-            : PermissionsAndroid.PERMISSIONS.RECORD_AUDIO;
-        return PermissionsAndroid.check(nativeAndroidPermission);
+        return PermissionsAndroid.check(toAndroidPermission(permission));
       }
 
       // use our own service on iOS
       return Boolean(
         await NativeStreamVideoReactNative.checkPermission(permission),
       );
+    },
+    query: async (permission) => {
+      if (Platform.OS === 'android') {
+        // denied and never-requested can't be told apart without requesting
+        const granted = await PermissionsAndroid.check(
+          toAndroidPermission(permission),
+        );
+        return granted ? 'granted' : 'prompt';
+      }
+
+      // iOS: AVCaptureDevice authorization status
+      const state: unknown = await webRTCPermissions.query({
+        name: permission,
+      });
+      if (state === 'granted' || state === 'denied' || state === 'prompt') {
+        return state;
+      }
+      throw new Error(`Unexpected ${permission} permission state: ${state}`);
     },
   },
   nativeEvents: {
@@ -233,6 +253,16 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
             cb({ isSoundDetected: data.event === 'started' });
           },
         );
+        return () => subscription.remove();
+      },
+    },
+    appForeground: {
+      subscribe(cb) {
+        let previous = AppState.currentState;
+        const subscription = AppState.addEventListener('change', (next) => {
+          if (previous !== 'active' && next === 'active') cb();
+          previous = next;
+        });
         return () => subscription.remove();
       },
     },

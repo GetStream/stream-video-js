@@ -544,6 +544,15 @@ export type StreamRNVideoSDKGlobals = {
      * Checks whether a native device permission has been granted.
      */
     check(permission: 'microphone' | 'camera'): Promise<boolean>;
+
+    /**
+     * Queries the real native permission status. On Android, a denied
+     * permission is reported as `prompt`, as the OS can't tell it apart from
+     * a never-requested one without requesting it.
+     */
+    query?(
+      permission: 'microphone' | 'camera',
+    ): Promise<'granted' | 'denied' | 'prompt'>;
   };
   nativeEvents: {
     speechActivity: {
@@ -552,6 +561,13 @@ export type StreamRNVideoSDKGlobals = {
        * Returns an unsubscribe function.
        */
       subscribe(cb: (state: { isSoundDetected: boolean }) => void): () => void;
+    };
+    appForeground?: {
+      /**
+       * Subscribes to the app returning to the foreground (becoming active).
+       * Returns an unsubscribe function.
+       */
+      subscribe(cb: () => void): () => void;
     };
   };
 };
