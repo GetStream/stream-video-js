@@ -1722,7 +1722,6 @@ export class Call {
     } = statsOptions;
     const previousSubscriber = this.subscriber;
     const previousSfuStatsReporter = this.sfuStatsReporter;
-    this.sfuStatsReporter = undefined;
     const basePeerConnectionOptions: BasePeerConnectionOpts = {
       sfuClient,
       dispatcher: this.dispatcher,
@@ -1770,12 +1769,16 @@ export class Call {
       previousSubscriber?.detachEventHandlers();
       this.state.removeAllOrphanedTracks();
     }
-    this.subscriber = new Subscriber(basePeerConnectionOptions);
+    try {
+      this.subscriber = new Subscriber(basePeerConnectionOptions);
 
-    // Flush the previous reporter's final sample while its peer connections are
-    // still alive, before we dispose them below. Awaits only the sampling step.
-    await previousSfuStatsReporter?.flush();
-    previousSfuStatsReporter?.stop();
+      await previousSfuStatsReporter?.flush();
+    } finally {
+      previousSfuStatsReporter?.stop();
+      if (this.sfuStatsReporter === previousSfuStatsReporter) {
+        this.sfuStatsReporter = undefined;
+      }
+    }
     if (closePreviousInstances) await previousSubscriber?.dispose();
     if (this.leaveGeneration !== joinLeaveGeneration) return;
 
