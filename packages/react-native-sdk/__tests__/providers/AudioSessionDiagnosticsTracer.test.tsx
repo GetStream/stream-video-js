@@ -50,6 +50,7 @@ const iosCallManager = callManager.ios as unknown as {
 const sessionState = {
   category: 'PlayAndRecord',
   route: 'MicrophoneBuiltIn>Speaker',
+  micPermission: 'undetermined',
 };
 
 const makeCall = () => {

@@ -56,6 +56,7 @@ export interface Spec extends TurboModule {
     isOtherAudioPlaying?: boolean;
     callingxOwnsSession?: boolean;
     route?: string;
+    micPermission?: string;
   };
 
   /** `playIfMuted` is Android only. */
@@ -94,6 +95,7 @@ export interface Spec extends TurboModule {
     isOtherAudioPlaying?: boolean;
     callingxOwnsSession?: boolean;
     route?: string;
+    micPermission?: string;
   }>;
 }
 

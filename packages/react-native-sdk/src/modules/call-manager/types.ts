@@ -64,6 +64,8 @@ export type IOSAudioSessionState = {
   callingxOwnsSession: boolean;
   /** Input port types `>` output port types, e.g. `MicrophoneBuiltIn>Speaker`. */
   route: string;
+  /** Anything but `granted` makes the SDK use an output-only `.playback` session. */
+  micPermission: 'granted' | 'denied' | 'undetermined' | (string & {});
 };
 
 /**

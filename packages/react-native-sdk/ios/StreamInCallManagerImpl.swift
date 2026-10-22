@@ -225,6 +225,25 @@ private enum AudioDeviceId {
         }
     }
 
+    /// `granted` / `denied` / `undetermined`; anything but `granted` selects the `.playback` session.
+    private func micPermissionState() -> String {
+        if #available(iOS 17.0, *) {
+            switch AVAudioApplication.shared.recordPermission {
+            case .granted: return "granted"
+            case .denied: return "denied"
+            case .undetermined: return "undetermined"
+            @unknown default: return "unknown"
+            }
+        } else {
+            switch AVAudioSession.sharedInstance().recordPermission {
+            case .granted: return "granted"
+            case .denied: return "denied"
+            case .undetermined: return "undetermined"
+            @unknown default: return "unknown"
+            }
+        }
+    }
+
     @objc
     public func setup() {
         audioSessionQueue.async { [self] in
@@ -642,6 +661,7 @@ private enum AudioDeviceId {
             "isOtherAudioPlaying": session.isOtherAudioPlaying,
             "callingxOwnsSession": Self.callingxOwnsSession(),
             "route": "\(inputs)>\(outputs)",
+            "micPermission": micPermissionState(),
         ]
     }
 
