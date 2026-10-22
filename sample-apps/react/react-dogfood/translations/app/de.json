@@ -7,6 +7,8 @@
   "callControls.noiseCancellation.active.title": "Rauschunterdrückung ist aktiv",
   "callControls.noiseCancellation.inactive.title": "Rauschunterdrückung ist inaktiv",
   "callControls.noiseCancellation.loading.title": "Rauschunterdrückung wird geladen",
+  "callControls.noiseCancellation.overloaded.title": "Rauschunterdrückung wurde deaktiviert, weil dein Gerät überlastet ist",
+  "callControls.noiseCancellation.suspended.title": "Rauschunterdrückung ist pausiert, weil dein Gerät überlastet ist. Sie wird in Kürze fortgesetzt.",
   "callControls.statsButton.stats.title": "Statistiken",
   "callStats.audioBitratePublish.label": "Audio-Bitrate (Senden)",
   "callStats.audioBitrateReceive.label": "Audio-Bitrate (Empfangen)",

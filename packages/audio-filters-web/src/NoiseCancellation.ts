@@ -11,6 +11,19 @@ import { simd } from 'wasm-feature-detect';
 import type { Tracer } from './tracer';
 
 /**
+ * Krisp stalls once shortly after its first frames are processed (seen in
+ * Safari about 1s after the first enable) and drops the backlog on its own.
+ * Overflows reported within this window after the first enable are ignored.
+ */
+const WARM_UP_GRACE_MS = 3000;
+
+/**
+ * Krisp reports a single stall as a burst of overflow events.
+ * Overflows within this window after a handled one count as the same overload.
+ */
+const OVERLOAD_DEBOUNCE_MS = 1000;
+
+/**
  * Options to pass to the NoiseCancellation instance.
  */
 export type NoiseCancellationOptions = {
@@ -64,6 +77,26 @@ export interface INoiseCancellation {
 }
 
 /**
+ * The payload of the `overload` event.
+ */
+export type NoiseCancellationOverloadEvent = {
+  /**
+   * `true` when Noise Cancellation will be turned back on automatically
+   * after `restoreInMs`, `false` when it stays off.
+   */
+  willRestore: boolean;
+  /**
+   * The number of overloads detected so far.
+   */
+  overflowCount: number;
+  /**
+   * The delay before Noise Cancellation is turned back on.
+   * Set only when `willRestore` is `true`.
+   */
+  restoreInMs?: number;
+};
+
+/**
  * A list of events one can subscribe to.
  */
 export type Events = {
@@ -73,6 +106,15 @@ export type Events = {
    * @param enabled true when enabled, false otherwise.
    */
   change: (enabled: boolean) => void;
+
+  /**
+   * Fires when Noise Cancellation is turned off automatically because
+   * the device can't keep up with the audio processing (CPU overload).
+   * Fires after the corresponding `change` event.
+   *
+   * @param event the overload details.
+   */
+  overload: (event: NoiseCancellationOverloadEvent) => void;
 };
 
 /**
@@ -85,6 +127,9 @@ export class NoiseCancellation implements INoiseCancellation {
   private recovery?: AudioContextRecovery;
   private restoreTimeoutId?: number;
   private tracer?: Tracer;
+  private overloadCount = 0;
+  private lastOverloadAt = -Infinity;
+  private warmUpEndsAt?: number;
 
   private readonly initializing: Promise<void>;
   private readonly resolveInitialized!: () => void;
@@ -189,22 +234,16 @@ export class NoiseCancellation implements INoiseCancellation {
    * Enables the noise cancellation.
    */
   enable = async () => {
-    if (!this.filterNode) return;
-    await this.initializing;
-
-    this.filterNode.enable();
-    this.dispatch('change', true);
+    window.clearTimeout(this.restoreTimeoutId);
+    await this.setFilterEnabled(true);
   };
 
   /**
    * Disables the noise cancellation.
    */
   disable = async () => {
-    if (!this.filterNode) return;
-    await this.initializing;
-
-    this.filterNode.disable();
-    this.dispatch('change', false);
+    window.clearTimeout(this.restoreTimeoutId);
+    await this.setFilterEnabled(false);
   };
 
   /**
@@ -238,6 +277,9 @@ export class NoiseCancellation implements INoiseCancellation {
       this.sdk.dispose();
       this.sdk = undefined;
     }
+    this.overloadCount = 0;
+    this.lastOverloadAt = -Infinity;
+    this.warmUpEndsAt = undefined;
   };
 
   /**
@@ -304,6 +346,23 @@ export class NoiseCancellation implements INoiseCancellation {
   };
 
   /**
+   * Toggles the filter and notifies the `change` listeners.
+   * Unlike `enable()` and `disable()`, it keeps a pending restore scheduled.
+   */
+  private setFilterEnabled = async (enabled: boolean) => {
+    if (!this.filterNode) return;
+    await this.initializing;
+
+    if (enabled) {
+      this.warmUpEndsAt ??= performance.now() + WARM_UP_GRACE_MS;
+      this.filterNode.enable();
+    } else {
+      this.filterNode.disable();
+    }
+    this.dispatch('change', enabled);
+  };
+
+  /**
    * Dispatches a new event payload for the given event type.
    *
    * @param event the event.
@@ -343,6 +402,8 @@ export class NoiseCancellation implements INoiseCancellation {
   /**
    * Handles the buffer overflow event.
    * Disables the filter and waits for the restore timeout before enabling it again.
+   * Notifies the `overload` listeners once the filter is disabled.
+   * Overflows during the warm-up window, or within the same burst, are ignored.
    *
    * Based on: https://sdk-docs.krisp.ai/docs/getting-started-js#system-overload-handling
    */
@@ -360,23 +421,42 @@ export class NoiseCancellation implements INoiseCancellation {
     const isBufferDropped = (e && e.data && e.data.isBufferDropped) ?? false;
 
     this.tracer?.trace('noiseCancellation.bufferOverflowCount', String(count));
-
-    window.clearTimeout(this.restoreTimeoutId);
-    this.disable().catch((err) =>
-      console.error('Failed to disable noise cancellation ', err),
-    );
-
     if (isBufferDropped) {
       this.tracer?.trace('noiseCancellation.bufferDropped', 'true');
-      return;
     }
 
-    if (count < this.restoreAttempts) {
+    const now = performance.now();
+    if (this.warmUpEndsAt !== undefined && now < this.warmUpEndsAt) {
+      this.tracer?.trace('noiseCancellation.bufferOverflowIgnored', 'warm-up');
+      return;
+    }
+    if (now - this.lastOverloadAt < OVERLOAD_DEBOUNCE_MS) {
+      this.tracer?.trace('noiseCancellation.bufferOverflowIgnored', 'burst');
+      return;
+    }
+    this.lastOverloadAt = now;
+    this.overloadCount++;
+
+    const willRestore = this.overloadCount < this.restoreAttempts;
+    window.clearTimeout(this.restoreTimeoutId);
+    if (willRestore) {
       this.restoreTimeoutId = window.setTimeout(() => {
-        this.enable().catch((err) =>
+        this.setFilterEnabled(true).catch((err) =>
           console.error('Failed to enable noise cancellation ', err),
         );
       }, this.restoreTimeoutMs);
     }
+
+    this.setFilterEnabled(false)
+      .then(() => {
+        this.dispatch('overload', {
+          willRestore,
+          overflowCount: this.overloadCount,
+          restoreInMs: willRestore ? this.restoreTimeoutMs : undefined,
+        });
+      })
+      .catch((err) =>
+        console.error('Failed to disable noise cancellation ', err),
+      );
   };
 }
