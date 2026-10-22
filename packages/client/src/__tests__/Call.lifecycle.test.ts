@@ -536,7 +536,10 @@ describe('Call lifecycle wiring', () => {
       const disposeSubscriber = vi.fn().mockResolvedValue(undefined);
       const disposePublisher = vi.fn().mockResolvedValue(undefined);
       call['sfuStatsReporter'] = fromPartial({ flush, stop: vi.fn() });
-      call['subscriber'] = fromPartial({ dispose: disposeSubscriber });
+      call['subscriber'] = fromPartial({
+        ...makePeer(),
+        dispose: disposeSubscriber,
+      });
       call['publisher'] = fromPartial({ dispose: disposePublisher });
       const pause = {
         'stats flush': flush,
@@ -619,6 +622,89 @@ describe('Call lifecycle wiring', () => {
     expect(newSubscriber.dispose).not.toHaveBeenCalled();
     expect(call['subscriber']).toBe(newSubscriber);
     await call.leave();
+  });
+
+  it('ignores old subscriber tracks while flushing stats during replacement', async () => {
+    // Use real event dispatch so detaching a listener prevents late delivery.
+    vi.spyOn(globalThis, 'RTCPeerConnection').mockImplementation(function () {
+      const events = new EventTarget();
+      return fromPartial<RTCPeerConnection>({
+        addEventListener: events.addEventListener.bind(events),
+        removeEventListener: events.removeEventListener.bind(events),
+        dispatchEvent: events.dispatchEvent.bind(events),
+        close: vi.fn(),
+      });
+    });
+    vi.spyOn(rtc, 'Publisher').mockImplementation(function () {
+      return fromPartial<rtc.Publisher>(makePeer());
+    });
+    call['statsReportingIntervalInMs'] = 0;
+    call.state.setParticipants([
+      fromPartial({
+        sessionId: 'remote-session',
+        userId: 'remote',
+        trackLookupPrefix: 'remote-prefix',
+        publishedTracks: [],
+      }),
+    ]);
+    const oldSubscriber = new rtc.Subscriber({
+      sfuClient: fromPartial({ tag: 'old' }),
+      dispatcher: call['dispatcher'],
+      state: call.state,
+      tag: 'old',
+      connectionConfig: {},
+      enableTracing: false,
+    });
+    call['subscriber'] = oldSubscriber;
+    const pending = promiseWithResolvers<void>();
+    const flush = vi.fn(() => pending.promise);
+    call['sfuStatsReporter'] = fromPartial({ flush, stop: vi.fn() });
+    const init = call['initPublisherAndSubscriber']({
+      sfuClient: fromPartial({ tag: 'new' }),
+      connectionConfig: {},
+      statsOptions: fromPartial({
+        enable_rtc_stats: false,
+        reporting_interval_ms: 0,
+      }),
+      clientDetails: fromPartial({}),
+      publishOptions: [],
+      closePreviousInstances: true,
+      unifiedSessionId: 'test-session',
+    });
+
+    const emitTrack = (subscriber: rtc.Subscriber) => {
+      const track = fromPartial<MediaStreamTrack>({
+        id: generateUUIDv4(),
+        kind: 'audio',
+        addEventListener: vi.fn(),
+        stop: vi.fn(),
+      });
+      const stream = fromPartial<MediaStream>({
+        id: 'remote-prefix:TRACK_TYPE_AUDIO',
+        getTracks: () => [track],
+        removeTrack: vi.fn(),
+      });
+      subscriber['pc'].dispatchEvent(
+        Object.assign(new Event('track'), { track, streams: [stream] }),
+      );
+      return { track, stream };
+    };
+
+    try {
+      await vi.waitFor(() => expect(flush).toHaveBeenCalledOnce());
+      const replacement = emitTrack(call['subscriber']!);
+      expect(call.state.participants[0].audioStream).toBe(replacement.stream);
+      // An in-flight negotiation on the old connection completes during flush.
+      emitTrack(oldSubscriber);
+      expect(replacement.track.stop).not.toHaveBeenCalled();
+      expect(call.state.participants[0].audioStream).toBe(replacement.stream);
+      expect(oldSubscriber['pc'].close).not.toHaveBeenCalled();
+    } finally {
+      pending.resolve();
+      await init;
+      await call.leave();
+    }
+    expect(oldSubscriber['pc'].close).toHaveBeenCalledOnce();
   });
 
   // Controls: without a leave, the retry loop must behave exactly as before.

@@ -1765,7 +1765,12 @@ export class Call {
     // The SFU sends the subscriber offer right after the join response, and
     // the dispatcher drops events nobody listens to. Create the subscriber
     // (which registers the offer listener) before awaiting anything.
-    if (closePreviousInstances) this.state.removeAllOrphanedTracks();
+    if (closePreviousInstances) {
+      // Keep the old peer alive for stats, but prevent late tracks from
+      // replacing and stopping streams received by the new subscriber.
+      previousSubscriber?.detachEventHandlers();
+      this.state.removeAllOrphanedTracks();
+    }
     this.subscriber = new Subscriber(basePeerConnectionOptions);
 
     // Flush the previous reporter's final sample while its peer connections are
