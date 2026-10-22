@@ -27,8 +27,10 @@ const RECHECK_DELAY_MS = 10000;
  *
  * The recording state detects silent-mic calls (mic track live, zero audio RTP
  * sent) caused by an audio engine that never started, both on the CallKit
- * (callingx) and on the in-call manager path. Healthy calls are traced too so
- * the failure rate is measurable. Detection only.
+ * (callingx) and on the in-call manager path. Healthy calls are traced too
+ * (minimal payload) so the failure rate is measurable; unhealthy samples add
+ * the mute mode, recording-prepared mode and the audio session snapshot.
+ * Detection only.
  */
 export const AudioSessionDiagnosticsTracer = () => {
   const call = useCall();
@@ -49,6 +51,10 @@ export const AudioSessionDiagnosticsTracer = () => {
       timeouts.add(timeout);
     };
 
+    // traces are stored with the call stats: healthy samples stay minimal and
+    // identical consecutive healthy samples are not traced again
+    let lastHealthyKey: string | undefined;
+
     const traceRecordingState = (trigger: string) => {
       if (call.state.callingState !== CallingState.JOINED) return;
       if (call.microphone.state.status !== 'enabled') return;
@@ -56,30 +62,44 @@ export const AudioSessionDiagnosticsTracer = () => {
       let state;
       try {
         state = {
-          trigger,
           isRecording: AudioDeviceModule.isRecording(),
+          isPlaying: AudioDeviceModule.isPlaying(),
           isEngineRunning: AudioDeviceModule.isEngineRunning(),
           isMicrophoneMuted: AudioDeviceModule.isMicrophoneMuted(),
-          session: callManager.ios.getAudioSessionState(),
         };
       } catch (error: unknown) {
         logger.warn('failed to read the ADM recording state', error);
         return;
       }
 
-      call.tracer.trace('ios.audioRecording.state', state);
-      if (!state.isRecording) {
-        logger.warn('mic is enabled but ADM is not recording', state);
-      } else if (!state.isEngineRunning) {
-        logger.warn(
-          'mic is enabled but the audio engine is not running',
-          state,
-        );
+      const healthy =
+        state.isRecording && state.isEngineRunning && !state.isMicrophoneMuted;
+      if (healthy) {
+        const key = JSON.stringify(state);
+        if (key === lastHealthyKey) return;
+        lastHealthyKey = key;
+        call.tracer.trace('ios.audioRecording.state', { trigger, ...state });
+        return;
       }
-      if (
-        (!state.isRecording || !state.isEngineRunning) &&
-        trigger !== 'recheck'
-      ) {
+
+      lastHealthyKey = undefined;
+      let details;
+      try {
+        details = {
+          muteMode: AudioDeviceModule.getMuteMode(),
+          alwaysPrepared: AudioDeviceModule.isRecordingAlwaysPreparedMode(),
+          session: callManager.ios.getAudioSessionState(),
+        };
+      } catch (error: unknown) {
+        logger.warn('failed to read the audio session state', error);
+      }
+      const unhealthyState = { trigger, ...state, ...details };
+      call.tracer.trace('ios.audioRecording.state', unhealthyState);
+      logger.warn(
+        'mic is enabled but the ADM is not capturing',
+        unhealthyState,
+      );
+      if (trigger !== 'recheck') {
         // tells a transient bring-up apart from an engine that never starts
         scheduleCheck('recheck', RECHECK_DELAY_MS);
       }
@@ -97,7 +117,7 @@ export const AudioSessionDiagnosticsTracer = () => {
       callManager.ios.addAudioSessionDiagnosticListener(
         (event: IOSAudioSessionDiagnosticEvent) => {
           call.tracer.trace(`ios.audioSession.${event.event}`, event);
-          if (event.error || event.event === 'engineEnableSkipped') {
+          if (event.event !== 'engineEnableApplied') {
             logger.warn(`ios.audioSession.${event.event}`, event);
           }
         },

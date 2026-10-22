@@ -51,12 +51,11 @@ export interface Spec extends TurboModule {
   getAudioSessionState(): {
     category?: string;
     mode?: string;
-    categoryOptions?: number;
+    options?: number;
     isActive?: boolean;
     isOtherAudioPlaying?: boolean;
     callingxOwnsSession?: boolean;
-    inputs?: string[];
-    outputs?: string[];
+    route?: string;
   };
 
   /** `playIfMuted` is Android only. */
@@ -85,14 +84,16 @@ export interface Spec extends TurboModule {
   readonly onAudioSessionDiagnostic: EventEmitter<{
     event: string;
     error?: string;
-    category: string;
-    mode: string;
-    categoryOptions: number;
-    isActive: boolean;
-    isOtherAudioPlaying: boolean;
-    callingxOwnsSession: boolean;
-    inputs: string[];
-    outputs: string[];
+    muteMode?: number;
+    enabled?: boolean;
+    result?: number;
+    category?: string;
+    mode?: string;
+    options?: number;
+    isActive?: boolean;
+    isOtherAudioPlaying?: boolean;
+    callingxOwnsSession?: boolean;
+    route?: string;
   }>;
 }
 

@@ -14,8 +14,11 @@ jest.mock('@stream-io/video-react-bindings', () => ({
 jest.mock('@stream-io/react-native-webrtc', () => ({
   AudioDeviceModule: {
     isRecording: jest.fn(),
+    isPlaying: jest.fn(),
     isEngineRunning: jest.fn(),
     isMicrophoneMuted: jest.fn(),
+    getMuteMode: jest.fn(),
+    isRecordingAlwaysPreparedMode: jest.fn(),
   },
 }));
 jest.mock('../../src/modules/call-manager', () => ({
@@ -33,15 +36,21 @@ jest.mock('../../src/utils/push/libs/callingx', () => ({
 
 const adm = AudioDeviceModule as unknown as {
   isRecording: jest.Mock;
+  isPlaying: jest.Mock;
   isEngineRunning: jest.Mock;
   isMicrophoneMuted: jest.Mock;
+  getMuteMode: jest.Mock;
+  isRecordingAlwaysPreparedMode: jest.Mock;
 };
 const iosCallManager = callManager.ios as unknown as {
   getAudioSessionState: jest.Mock;
   addAudioSessionDiagnosticListener: jest.Mock;
   addAudioInterruptionListener: jest.Mock;
 };
-const sessionState = { category: 'AVAudioSessionCategoryPlayAndRecord' };
+const sessionState = {
+  category: 'PlayAndRecord',
+  route: 'MicrophoneBuiltIn>Speaker',
+};
 
 const makeCall = () => {
   const callingState$ = new BehaviorSubject(CallingState.JOINING);
@@ -85,6 +94,9 @@ describe('AudioSessionDiagnosticsTracer', () => {
       },
     );
     adm.isRecording.mockReturnValue(true);
+    adm.isPlaying.mockReturnValue(true);
+    adm.getMuteMode.mockReturnValue(0);
+    adm.isRecordingAlwaysPreparedMode.mockReturnValue(false);
     adm.isEngineRunning.mockReturnValue(true);
     adm.isMicrophoneMuted.mockReturnValue(false);
   });
@@ -93,7 +105,7 @@ describe('AudioSessionDiagnosticsTracer', () => {
     jest.useRealTimers();
   });
 
-  it('samples the recording state with the session state after joining, without callingx', () => {
+  it('traces a minimal healthy sample after joining, without callingx', () => {
     const call = makeCall();
     mockUseCall.mockReturnValue(call);
     render(<AudioSessionDiagnosticsTracer />);
@@ -107,20 +119,41 @@ describe('AudioSessionDiagnosticsTracer', () => {
         {
           trigger: 'joined',
           isRecording: true,
+          isPlaying: true,
           isEngineRunning: true,
           isMicrophoneMuted: false,
-          session: sessionState,
         },
       ],
     ]);
+    expect(iosCallManager.getAudioSessionState).not.toHaveBeenCalled();
 
     // healthy: no re-check
     jest.advanceTimersByTime(20000);
     expect(recordingStateTraces(call)).toHaveLength(1);
   });
 
-  it('re-checks once when the engine is not running', () => {
+  it('does not re-trace an unchanged healthy state', () => {
+    const call = makeCall();
+    call.callingState$.next(CallingState.JOINED);
+    mockUseCall.mockReturnValue(call);
+    render(<AudioSessionDiagnosticsTracer />);
+    jest.advanceTimersByTime(3000);
+
+    interruptionListener({ source: 'callmanager', phase: 'ended' });
+    jest.advanceTimersByTime(1000);
+    expect(recordingStateTraces(call)).toHaveLength(1);
+
+    adm.isPlaying.mockReturnValue(false);
+    interruptionListener({ source: 'callmanager', phase: 'ended' });
+    jest.advanceTimersByTime(1000);
+    expect(recordingStateTraces(call)).toHaveLength(2);
+  });
+
+  it('adds details to unhealthy samples and re-checks once', () => {
+    adm.isRecording.mockReturnValue(false);
+    adm.isPlaying.mockReturnValue(false);
     adm.isEngineRunning.mockReturnValue(false);
+    adm.isMicrophoneMuted.mockReturnValue(true);
     const call = makeCall();
     mockUseCall.mockReturnValue(call);
     render(<AudioSessionDiagnosticsTracer />);
@@ -130,10 +163,18 @@ describe('AudioSessionDiagnosticsTracer', () => {
     jest.advanceTimersByTime(10000);
     jest.advanceTimersByTime(30000);
 
-    expect(recordingStateTraces(call).map(([, s]) => s.trigger)).toEqual([
-      'joined',
-      'recheck',
-    ]);
+    const traces = recordingStateTraces(call);
+    expect(traces.map(([, s]) => s.trigger)).toEqual(['joined', 'recheck']);
+    expect(traces[0][1]).toEqual({
+      trigger: 'joined',
+      isRecording: false,
+      isPlaying: false,
+      isEngineRunning: false,
+      isMicrophoneMuted: true,
+      muteMode: 0,
+      alwaysPrepared: false,
+      session: sessionState,
+    });
   });
 
   it('traces native audio session diagnostics', () => {
@@ -151,6 +192,7 @@ describe('AudioSessionDiagnosticsTracer', () => {
   });
 
   it('re-samples after an interruption ends', () => {
+    adm.isEngineRunning.mockReturnValue(false);
     const call = makeCall();
     call.callingState$.next(CallingState.JOINED);
     mockUseCall.mockReturnValue(call);
@@ -169,6 +211,7 @@ describe('AudioSessionDiagnosticsTracer', () => {
   });
 
   it('samples after a callingx audio session activation', () => {
+    adm.isEngineRunning.mockReturnValue(false);
     const listeners: Partial<Record<string, () => void>> = {};
     (getCallingxLibIfAvailable as jest.Mock).mockReturnValue({
       isSetup: true,

@@ -137,7 +137,11 @@ private enum AudioDeviceId {
                 return
             }
             let muteMode = RTCAudioEngineMuteMode(rawValue: mode) ?? .voiceProcessing
-            _ = adm.setMuteMode(muteMode)
+            let result = adm.setMuteMode(muteMode)
+            if result != 0 {
+                log("setMuteMode(\(mode)) failed: \(result)")
+                sendAudioSessionDiagnostic("setMuteModeError", extra: ["muteMode": mode, "result": result], includeSession: false)
+            }
         }
     }
 
@@ -148,7 +152,11 @@ private enum AudioDeviceId {
                 log("setRecordingAlwaysPreparedMode(\(enabled)) skipped: no live call ADM")
                 return
             }
-            _ = adm.setRecordingAlwaysPreparedMode(enabled)
+            let result = adm.setRecordingAlwaysPreparedMode(enabled)
+            if result != 0 {
+                log("setRecordingAlwaysPreparedMode(\(enabled)) failed: \(result)")
+                sendAudioSessionDiagnostic("setRecordingAlwaysPreparedModeError", extra: ["enabled": enabled, "result": result], includeSession: false)
+            }
         }
     }
 
@@ -618,19 +626,22 @@ private enum AudioDeviceId {
         return result
     }
 
-    /// Snapshot of the shared audio session, attached to the JS-side diagnostics traces.
+    /// Compact snapshot of the shared audio session, attached to the JS-side diagnostics traces
+    /// (stored with the call stats, so keep it small).
     @objc public func getAudioSessionState() -> [String: Any] {
         let session = AVAudioSession.sharedInstance()
         let route = session.currentRoute
+        let inputs = route.inputs.map { $0.portType.rawValue }.joined(separator: ",")
+        let outputs = route.outputs.map { $0.portType.rawValue }.joined(separator: ",")
         return [
-            "category": session.category.rawValue,
-            "mode": session.mode.rawValue,
-            "categoryOptions": session.categoryOptions.rawValue,
+            // e.g. "PlayAndRecord" / "VoiceChat" instead of "AVAudioSessionCategoryPlayAndRecord"
+            "category": session.category.rawValue.replacingOccurrences(of: "AVAudioSessionCategory", with: ""),
+            "mode": session.mode.rawValue.replacingOccurrences(of: "AVAudioSessionMode", with: ""),
+            "options": session.categoryOptions.rawValue,
             "isActive": RTCAudioSession.sharedInstance().isActive,
             "isOtherAudioPlaying": session.isOtherAudioPlaying,
             "callingxOwnsSession": Self.callingxOwnsSession(),
-            "inputs": route.inputs.map { $0.portType.rawValue },
-            "outputs": route.outputs.map { $0.portType.rawValue },
+            "route": "\(inputs)>\(outputs)",
         ]
     }
 
@@ -911,12 +922,18 @@ private enum AudioDeviceId {
         soundPlayer.stopSound()
     }
 
-    /// Surfaces native audio-session failures (otherwise only NSLog'd) to the JS call tracer.
-    private func sendAudioSessionDiagnostic(_ event: String, error: Error? = nil) {
-        var body = getAudioSessionState()
+    /// Surfaces native audio-session results/failures (otherwise only NSLog'd) to the JS call tracer.
+    private func sendAudioSessionDiagnostic(
+        _ event: String,
+        error: Error? = nil,
+        extra: [String: Any] = [:],
+        includeSession: Bool = true
+    ) {
+        var body = includeSession ? getAudioSessionState() : [:]
+        body.merge(extra) { _, new in new }
         body["event"] = event
         if let error {
-            body["error"] = String(describing: error)
+            body["error"] = String(String(describing: error).prefix(200))
         }
         eventEmitter?.emitAudioSessionDiagnostic(body)
     }
