@@ -336,6 +336,7 @@ final class LiveCommunicationKitBackend: CallingxBackend {
                 // Only drop our entry if it still belongs to this report (cid not re-used).
                 if self.uuidStorage?.getUUID(forCid: callId) == uuid {
                     self.uuidStorage?.removeCid(callId)
+                    self.applyPendingConversationManagerConfiguration()
                 }
                 reject?("DISPLAY_INCOMING_CALL_ERROR", error?.localizedDescription, error)
             }
@@ -402,7 +403,7 @@ final class LiveCommunicationKitBackend: CallingxBackend {
 
     // MARK: - Call Management
     /// Performs a conversation action through the manager. On failure, resets the call's
-    /// action-source flags (the delegate never ran for it) and drops a call that failed to start.
+    /// action-source flags (the delegate never ran for it) and drops a call that failed to start or end.
     private func performConversationAction(_ action: ConversationAction) {
         guard let manager = conversationManager else {
             CallingxLog.core.errorPublic("[performConversationAction] no conversation manager")
@@ -423,7 +424,7 @@ final class LiveCommunicationKitBackend: CallingxBackend {
                 }
                 if let call = self?.uuidStorage?.getCallByUUID(action.conversationUUID) {
                     call.resetAllSelfFlags()
-                    if action is StartConversationAction {
+                    if action is StartConversationAction || action is EndConversationAction {
                         self?.uuidStorage?.removeCid(call.cid)
                         self?.applyPendingConversationManagerConfiguration()
                     }
@@ -587,6 +588,7 @@ final class LiveCommunicationKitBackend: CallingxBackend {
         let elapsedMs = elapsedMilliseconds(since: pending.enqueuedAt)
         CallingxLog.core.debugPublic("[fulfillAnswerCallAction] callId: \(callId), didFail: \(didFail), elapsedMs=\(elapsedMs)")
         if didFail {
+            removeFailedJoinCall(callId, uuid: pending.action.conversationUUID)
             pending.action.fail()
         } else {
             let connectedAt = Date()
@@ -603,6 +605,17 @@ final class LiveCommunicationKitBackend: CallingxBackend {
         let elapsedMs = elapsedMilliseconds(since: pending.enqueuedAt)
         CallingxLog.core.debugPublic("[fulfillEndCallAction] callId: \(callId), didFail: \(didFail), elapsedMs=\(elapsedMs)")
         if didFail { pending.action.fail() } else { pending.action.fulfill(dateEnded: Date()) }
+    }
+
+    /// A failed system answer never connects: marks the call ended (it was marked connected when the
+    /// join was deferred) and drops it, unless the cid was re-used. Also runs from the answer timeout on
+    /// `pendingActionsQueue`, so it must not sync on that queue.
+    private func removeFailedJoinCall(_ callId: String, uuid: UUID) {
+        guard let call = uuidStorage?.getCall(forCid: callId), call.uuid == uuid else { return }
+        CallingxLog.core.debugPublic("[removeFailedJoinCall] callId = \(callId)")
+        call.markEnded()
+        uuidStorage?.removeCid(callId)
+        applyPendingConversationManagerConfiguration()
     }
 
     // MARK: - Audio Engine
@@ -835,6 +848,7 @@ extension LiveCommunicationKitBackend: ConversationManagerDelegate {
             pendingActionsQueue.asyncAfter(deadline: timeout) { [weak self] in
                 if let pending = self?.pendingAnswerActions.removeValue(forKey: cid) {
                     CallingxLog.core.debugPublic("[ConversationManagerDelegate][performJoinConversationAction] answer timeout for callId: \(cid)")
+                    self?.removeFailedJoinCall(cid, uuid: pending.action.conversationUUID)
                     pending.action.fail()
                 }
             }

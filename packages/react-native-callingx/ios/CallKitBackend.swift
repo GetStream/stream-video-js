@@ -149,7 +149,11 @@ final class CallKitBackend: NSObject, CallingxBackend {
                 self.scheduleUnansweredCallTimeout(callId: callId, uuid: uuid)
                 resolve?(true)
             } else {
-              reject?("DISPLAY_INCOMING_CALL_ERROR", error?.localizedDescription, error)
+                // Only drop our entry if it still belongs to this report (cid not re-used).
+                if self.uuidStorage?.getUUID(forCid: callId) == uuid {
+                    self.uuidStorage?.removeCid(callId)
+                }
+                reject?("DISPLAY_INCOMING_CALL_ERROR", error?.localizedDescription, error)
             }
 
             completion?()
@@ -210,7 +214,8 @@ final class CallKitBackend: NSObject, CallingxBackend {
             if let error = error {
                 CallingxLog.core.errorPublic("[requestTransaction] Error requesting transaction (\(transaction.actions)): (\(error))")
 
-                // Reset per-call action-source flags for all actions in the failed transaction
+                // Reset per-call action-source flags for all actions in the failed transaction,
+                // and drop a call that failed to start or end.
                 for action in transaction.actions {
                     if let mutedAction = action as? CXSetMutedCallAction {
                         self?.pendingActionsQueue.sync {
@@ -220,6 +225,9 @@ final class CallKitBackend: NSObject, CallingxBackend {
                     if let callAction = action as? CXCallAction,
                        let call = self?.uuidStorage?.getCallByUUID(callAction.callUUID) {
                         call.resetAllSelfFlags()
+                        if action is CXStartCallAction || action is CXEndCallAction {
+                            self?.uuidStorage?.removeCid(call.cid)
+                        }
                     }
                 }
             } else {
@@ -406,8 +414,23 @@ final class CallKitBackend: NSObject, CallingxBackend {
             }
             let elapsedMs = elapsedMilliseconds(since: pending.enqueuedAt)
             CallingxLog.core.debugPublic("[fulfillAnswerCallAction] callId: \(callId), didFail: \(didFail), elapsedMs=\(elapsedMs)")
-            if didFail { pending.action.fail() } else { pending.action.fulfill() }
+            if didFail {
+                removeFailedAnswerCall(callId, uuid: pending.action.callUUID)
+                pending.action.fail()
+            } else {
+                pending.action.fulfill()
+            }
         }
+    }
+
+    /// A failed system answer never connects: marks the call ended (it was marked connected when the
+    /// answer was deferred) and drops it, unless the cid was re-used. Runs on `pendingActionsQueue`
+    /// (fulfill and timeout), so it must not sync on that queue.
+    private func removeFailedAnswerCall(_ callId: String, uuid: UUID) {
+        guard let call = uuidStorage?.getCall(forCid: callId), call.uuid == uuid else { return }
+        CallingxLog.core.debugPublic("[removeFailedAnswerCall] callId = \(callId)")
+        call.markEnded()
+        uuidStorage?.removeCid(callId)
     }
 
     func fulfillEndCallAction(_ callId: String, didFail: Bool) {
@@ -533,6 +556,7 @@ extension CallKitBackend: CXProviderDelegate {
             pendingActionsQueue.asyncAfter(deadline: timeout) { [weak self] in
                 if let pending = self?.pendingAnswerActions.removeValue(forKey: cid) {
                     CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performAnswerCallAction] answer timeout for callId: \(cid)")
+                    self?.removeFailedAnswerCall(cid, uuid: pending.action.callUUID)
                     pending.action.fail()
                 }
             }
