@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import { BehaviorSubject } from 'rxjs';
 import { CallingState } from '@stream-io/video-client';
 import { AudioDeviceModule } from '@stream-io/react-native-webrtc';
@@ -8,8 +8,33 @@ import { getCallingxLibIfAvailable } from '../../src/utils/push/libs/callingx';
 import { AudioSessionDiagnosticsTracer } from '../../src/providers/StreamCall/AudioSessionDiagnosticsTracer';
 
 const mockUseCall = jest.fn();
-jest.mock('@stream-io/video-react-bindings', () => ({
-  useCall: () => mockUseCall(),
+jest.mock('@stream-io/video-react-bindings', () => {
+  const { useEffect, useState } = require('react');
+  const useValue = <T,>(subject: {
+    getValue: () => T;
+    subscribe: (cb: (v: T) => void) => { unsubscribe: () => void };
+  }) => {
+    const [value, setValue] = useState(subject.getValue());
+    useEffect(() => {
+      const s = subject.subscribe(setValue);
+      return () => s.unsubscribe();
+    }, [subject]);
+    return value;
+  };
+  return {
+    useCall: () => mockUseCall(),
+    useCallStateHooks: () => ({
+      useCallCallingState: () => useValue(mockUseCall().state.callingState$),
+      useMicrophoneState: () => ({
+        status: useValue(mockUseCall().microphone.state.status$),
+      }),
+    }),
+  };
+});
+const mockLogger = { warn: jest.fn(), info: jest.fn(), debug: jest.fn() };
+jest.mock('@stream-io/video-client', () => ({
+  ...jest.requireActual('@stream-io/video-client'),
+  videoLoggerSystem: { getLogger: () => mockLogger },
 }));
 jest.mock('@stream-io/react-native-webrtc', () => ({
   AudioDeviceModule: {
@@ -55,8 +80,10 @@ const sessionState = {
 
 const makeCall = () => {
   const callingState$ = new BehaviorSubject(CallingState.JOINING);
+  const status$ = new BehaviorSubject<string | undefined>('enabled');
   return {
     callingState$,
+    status$,
     tracer: { trace: jest.fn() },
     state: {
       callingState$,
@@ -64,7 +91,14 @@ const makeCall = () => {
         return callingState$.getValue();
       },
     },
-    microphone: { state: { status: 'enabled' } },
+    microphone: {
+      state: {
+        status$,
+        get status() {
+          return status$.getValue();
+        },
+      },
+    },
   };
 };
 
@@ -111,7 +145,9 @@ describe('AudioSessionDiagnosticsTracer', () => {
     mockUseCall.mockReturnValue(call);
     render(<AudioSessionDiagnosticsTracer />);
 
-    call.callingState$.next(CallingState.JOINED);
+    act(() => {
+      call.callingState$.next(CallingState.JOINED);
+    });
     jest.advanceTimersByTime(3000);
 
     expect(recordingStateTraces(call)).toEqual([
@@ -135,7 +171,9 @@ describe('AudioSessionDiagnosticsTracer', () => {
 
   it('does not re-trace an unchanged healthy state', () => {
     const call = makeCall();
-    call.callingState$.next(CallingState.JOINED);
+    act(() => {
+      call.callingState$.next(CallingState.JOINED);
+    });
     mockUseCall.mockReturnValue(call);
     render(<AudioSessionDiagnosticsTracer />);
     jest.advanceTimersByTime(3000);
@@ -159,7 +197,9 @@ describe('AudioSessionDiagnosticsTracer', () => {
     mockUseCall.mockReturnValue(call);
     render(<AudioSessionDiagnosticsTracer />);
 
-    call.callingState$.next(CallingState.JOINED);
+    act(() => {
+      call.callingState$.next(CallingState.JOINED);
+    });
     jest.advanceTimersByTime(3000);
     jest.advanceTimersByTime(10000);
     jest.advanceTimersByTime(30000);
@@ -176,6 +216,59 @@ describe('AudioSessionDiagnosticsTracer', () => {
       alwaysPrepared: false,
       session: sessionState,
     });
+  });
+
+  it('samples once the mic is enabled after joining muted', () => {
+    const call = makeCall();
+    call.status$.next('disabled');
+    mockUseCall.mockReturnValue(call);
+    render(<AudioSessionDiagnosticsTracer />);
+
+    act(() => {
+      call.callingState$.next(CallingState.JOINED);
+    });
+    jest.advanceTimersByTime(10000);
+    expect(recordingStateTraces(call)).toHaveLength(0);
+
+    act(() => {
+      call.status$.next('enabled');
+    });
+    jest.advanceTimersByTime(3000);
+    expect(recordingStateTraces(call).map(([, s]) => s.trigger)).toEqual([
+      'joined',
+    ]);
+
+    // toggling the mic again does not re-schedule the initial sample
+    act(() => {
+      call.status$.next('disabled');
+    });
+    act(() => {
+      call.status$.next('enabled');
+    });
+    jest.advanceTimersByTime(3000);
+    expect(recordingStateTraces(call)).toHaveLength(1);
+  });
+
+  it('does not warn for an expected callingx-owned engine enable skip', () => {
+    const call = makeCall();
+    mockUseCall.mockReturnValue(call);
+    render(<AudioSessionDiagnosticsTracer />);
+
+    const skip = { event: 'engineEnableSkipped', callingxOwnsSession: true };
+    diagnosticListener(skip);
+    expect(call.tracer.trace).toHaveBeenCalledWith(
+      'ios.audioSession.engineEnableSkipped',
+      skip,
+    );
+    expect(mockLogger.warn).not.toHaveBeenCalled();
+
+    diagnosticListener({ event: 'engineEnableSkipped' });
+    diagnosticListener({ event: 'setMuteModeError', result: -1 });
+    diagnosticListener({ event: 'engineEnableApplied' });
+    expect(mockLogger.warn.mock.calls.map(([msg]) => msg)).toEqual([
+      'ios.audioSession.engineEnableSkipped',
+      'ios.audioSession.setMuteModeError',
+    ]);
   });
 
   it('traces native audio session diagnostics', () => {
@@ -195,7 +288,9 @@ describe('AudioSessionDiagnosticsTracer', () => {
   it('re-samples after an interruption ends', () => {
     adm.isEngineRunning.mockReturnValue(false);
     const call = makeCall();
-    call.callingState$.next(CallingState.JOINED);
+    act(() => {
+      call.callingState$.next(CallingState.JOINED);
+    });
     mockUseCall.mockReturnValue(call);
     render(<AudioSessionDiagnosticsTracer />);
     jest.advanceTimersByTime(3000);
@@ -222,7 +317,9 @@ describe('AudioSessionDiagnosticsTracer', () => {
       }),
     });
     const call = makeCall();
-    call.callingState$.next(CallingState.JOINED);
+    act(() => {
+      call.callingState$.next(CallingState.JOINED);
+    });
     mockUseCall.mockReturnValue(call);
     render(<AudioSessionDiagnosticsTracer />);
     jest.advanceTimersByTime(3000);
