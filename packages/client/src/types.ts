@@ -546,9 +546,9 @@ export type StreamRNVideoSDKGlobals = {
     check(permission: 'microphone' | 'camera'): Promise<boolean>;
 
     /**
-     * Queries the real native permission status. On Android, a denied
-     * permission is reported as `prompt`, as the OS can't tell it apart from
-     * a never-requested one without requesting it.
+     * Reads the real native permission status. Read-only, never prompts.
+     * On Android, a denied permission is reported as `prompt`: a read-only
+     * check can't tell it apart from a never-requested one.
      */
     query?(
       permission: 'microphone' | 'camera',

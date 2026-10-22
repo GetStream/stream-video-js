@@ -228,14 +228,15 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
     },
     query: async (permission) => {
       if (Platform.OS === 'android') {
-        // denied and never-requested can't be told apart without requesting
+        // check() is read-only: false = denied or never requested
+        // (indistinguishable without requesting)
         const granted = await PermissionsAndroid.check(
           toAndroidPermission(permission),
         );
         return granted ? 'granted' : 'prompt';
       }
 
-      // iOS: AVCaptureDevice authorization status
+      // iOS: reads the AVCaptureDevice authorization status, never prompts
       const state: unknown = await webRTCPermissions.query({
         name: permission,
       });

@@ -148,9 +148,9 @@ export class BrowserPermission {
   }
 
   /**
-   * React Native only: re-queries the real OS permission status and notifies
-   * the native listeners on change. Resolves with the latest known status, or
-   * `undefined` when it can't be queried (e.g., on web).
+   * React Native only: re-reads the real OS permission status (never prompts)
+   * and notifies the native listeners on change. Resolves with the latest
+   * known status, or `undefined` when it can't be queried (e.g., on web).
    */
   refreshNativeState = async (): Promise<PermissionState | undefined> => {
     const query = globalThis.streamRNVideoSDK?.permissions?.query;
@@ -217,7 +217,8 @@ export class BrowserPermission {
   private setState(state: BrowserPermissionState) {
     if (this.state !== state) {
       // on React Native, the state is hardcoded to 'granted', so the real
-      // native state is traced per call instead (see `listenNative`)
+      // native state is traced per call instead
+      // (see `Call.traceNativePermissions`)
       if (!isReactNative()) {
         const { tracer, queryName } = this.permission;
         const traceKey = `navigator.mediaDevices.${queryName}.permission`;
