@@ -775,7 +775,7 @@ export class Call {
       this.sfuClient = undefined;
       this.trackSubscriptionManager.setSfuClient(undefined);
       this.trackSubscriptionManager.dispose();
-      this.audioBindingsWatchdog?.dispose();
+      this.audioBindingsWatchdog?.reset();
       await this.dynascaleManager?.dispose();
 
       this.state.setCallingState(CallingState.LEFT);
