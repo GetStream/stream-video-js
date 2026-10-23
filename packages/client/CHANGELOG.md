@@ -2,6 +2,21 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.63.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.62.0...@stream-io/video-client-1.63.0) (2026-10-23)
+
+### Features
+
+- **client:** trace page lifecycle and flush stats when hidden ([#2518](https://github.com/GetStream/stream-video-js/issues/2518)) ([bc88ae8](https://github.com/GetStream/stream-video-js/commit/bc88ae8d0104c02c6d3aa78b9fac93a1da299e7c))
+
+### Bug Fixes
+
+- **client:** don't reconnect while the call is leaving ([#2526](https://github.com/GetStream/stream-video-js/issues/2526)) ([898649f](https://github.com/GetStream/stream-video-js/commit/898649ff62063c3053d23c8f8fa472c302043ec0))
+- **client:** keep remote audio playing on WebKit with a silent audio element ([#2510](https://github.com/GetStream/stream-video-js/issues/2510)) ([c10528a](https://github.com/GetStream/stream-video-js/commit/c10528a29abd8da1d02088bc841fe7437e7ad499))
+- **client:** listen for the subscriber offer before flushing stats on rejoin ([#2527](https://github.com/GetStream/stream-video-js/issues/2527)) ([96901cc](https://github.com/GetStream/stream-video-js/commit/96901cc965edad66997e68ea6392e0e07ae0297f))
+- **client:** rejoin when the SFU did not resume the session ([#2519](https://github.com/GetStream/stream-video-js/issues/2519)) ([36749df](https://github.com/GetStream/stream-video-js/commit/36749dfb9e3eba7069f0eb7df09ec6ee7e8b6aaa))
+- **client:** reset remote audio to the default output when the selected speaker disconnects ([#2533](https://github.com/GetStream/stream-video-js/issues/2533)) ([6f57cef](https://github.com/GetStream/stream-video-js/commit/6f57cefbd415daf25d6e36d292b1a3305a944b05))
+- keep remote audio elements mounted across mute/unmute ([#2524](https://github.com/GetStream/stream-video-js/issues/2524)) ([daedde9](https://github.com/GetStream/stream-video-js/commit/daedde99bb8d8e610d3323ee7e9b7ca66e1462ed))
+
 ## [1.62.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.61.2...@stream-io/video-client-1.62.0) (2026-10-16)
 
 ### Features
