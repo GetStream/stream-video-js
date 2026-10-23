@@ -3,6 +3,8 @@ import type {
   AudioDeviceEndpointType,
   AudioDevicesState,
   IOSAudioInterruptionEvent,
+  IOSAudioSessionDiagnosticEvent,
+  IOSAudioSessionState,
   StreamInCallManagerConfig,
 } from './types';
 import type {
@@ -231,6 +233,31 @@ class IOSCallManager {
       onInterruption(event as IOSAudioInterruptionEvent),
     );
     return () => s.remove();
+  };
+
+  /**
+   * Register a listener for iOS audio session diagnostics (configuration,
+   * activation and engine start results of the in-call manager).
+   *
+   * @param onDiagnostic callback to be called for every diagnostic event.
+   */
+  addAudioSessionDiagnosticListener = (
+    onDiagnostic: (event: IOSAudioSessionDiagnosticEvent) => void,
+  ): (() => void) => {
+    invariant(Platform.OS === 'ios', 'Supported only on iOS');
+    const s = NativeManager.onAudioSessionDiagnostic((event) =>
+      onDiagnostic(event as IOSAudioSessionDiagnosticEvent),
+    );
+    return () => s.remove();
+  };
+
+  /**
+   * Returns a snapshot of the shared iOS audio session.
+   * Meant for debugging purposes.
+   */
+  getAudioSessionState = (): IOSAudioSessionState => {
+    invariant(Platform.OS === 'ios', 'Supported only on iOS');
+    return NativeManager.getAudioSessionState() as IOSAudioSessionState;
   };
 }
 

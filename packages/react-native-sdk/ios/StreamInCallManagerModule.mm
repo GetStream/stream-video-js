@@ -70,6 +70,13 @@
   [self emitOnAudioInterruption:payload];
 }
 
+- (void)emitAudioSessionDiagnostic:(NSDictionary *)payload {
+  if (!_eventEmitterCallback) {
+    return;
+  }
+  [self emitOnAudioSessionDiagnostic:payload];
+}
+
 #pragma mark - Configuration
 
 - (void)setAudioRole:(NSString *)role {
@@ -147,6 +154,10 @@
 
 - (NSString *)getAudioStateLog {
   return [_impl getAudioStateLog];
+}
+
+- (NSDictionary *)getAudioSessionState {
+  return [_impl getAudioSessionState];
 }
 
 #pragma mark - Sounds

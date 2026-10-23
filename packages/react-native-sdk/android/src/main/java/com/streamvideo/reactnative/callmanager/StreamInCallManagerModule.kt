@@ -2,11 +2,13 @@ package com.streamvideo.reactnative.callmanager
 
 import android.util.Log
 import android.view.WindowManager
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
+import com.facebook.react.bridge.WritableMap
 import com.streamvideo.reactnative.NativeStreamInCallManagerSpec
 import com.streamvideo.reactnative.audio.AudioDeviceManager
 import com.streamvideo.reactnative.audio.utils.CallAudioRole
@@ -225,6 +227,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     override fun showAudioRoutePicker() {}
 
     override fun reapplyAudioRoute() {}
+
+    override fun getAudioSessionState(): WritableMap = Arguments.createMap()
 
 
     override fun onHostResume() {

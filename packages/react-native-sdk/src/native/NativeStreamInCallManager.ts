@@ -47,6 +47,18 @@ export interface Spec extends TurboModule {
 
   getAudioStateLog(): string;
 
+  /** iOS only. Snapshot of the shared `AVAudioSession`; empty on Android. */
+  getAudioSessionState(): {
+    category?: string;
+    mode?: string;
+    options?: number;
+    isActive?: boolean;
+    isOtherAudioPlaying?: boolean;
+    callingxOwnsSession?: boolean;
+    route?: string;
+    micPermission?: string;
+  };
+
   /** `playIfMuted` is Android only. */
   playSound(soundName: string, playIfMuted: boolean): void;
   stopSound(): void;
@@ -67,6 +79,23 @@ export interface Spec extends TurboModule {
     phase: string;
     reason?: string;
     shouldResume?: boolean;
+  }>;
+
+  /** iOS only. In-call manager audio session configuration/activation results. */
+  readonly onAudioSessionDiagnostic: EventEmitter<{
+    event: string;
+    error?: string;
+    muteMode?: number;
+    enabled?: boolean;
+    result?: number;
+    category?: string;
+    mode?: string;
+    options?: number;
+    isActive?: boolean;
+    isOtherAudioPlaying?: boolean;
+    callingxOwnsSession?: boolean;
+    route?: string;
+    micPermission?: string;
   }>;
 }
 

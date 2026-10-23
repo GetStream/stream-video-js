@@ -48,6 +48,7 @@ private enum Constants {
 @objc public protocol StreamInCallManagerEventEmitter: AnyObject {
     func emitAudioDeviceChanged(_ payload: [String: Any])
     func emitAudioInterruption(_ payload: [String: Any])
+    func emitAudioSessionDiagnostic(_ payload: [String: Any])
 }
 
 /// Stable device-id scheme for the JS layer. The built-in speaker is synthetic; every
@@ -136,7 +137,11 @@ private enum AudioDeviceId {
                 return
             }
             let muteMode = RTCAudioEngineMuteMode(rawValue: mode) ?? .voiceProcessing
-            _ = adm.setMuteMode(muteMode)
+            let result = adm.setMuteMode(muteMode)
+            if result != 0 {
+                log("setMuteMode(\(mode)) failed: \(result)")
+                sendAudioSessionDiagnostic("setMuteModeError", extra: ["muteMode": mode, "result": result], includeSession: false)
+            }
         }
     }
 
@@ -147,7 +152,11 @@ private enum AudioDeviceId {
                 log("setRecordingAlwaysPreparedMode(\(enabled)) skipped: no live call ADM")
                 return
             }
-            _ = adm.setRecordingAlwaysPreparedMode(enabled)
+            let result = adm.setRecordingAlwaysPreparedMode(enabled)
+            if result != 0 {
+                log("setRecordingAlwaysPreparedMode(\(enabled)) failed: \(result)")
+                sendAudioSessionDiagnostic("setRecordingAlwaysPreparedModeError", extra: ["enabled": enabled, "result": result], includeSession: false)
+            }
         }
     }
 
@@ -216,6 +225,25 @@ private enum AudioDeviceId {
         }
     }
 
+    /// `granted` / `denied` / `undetermined`; anything but `granted` selects the `.playback` session.
+    private func micPermissionState() -> String {
+        if #available(iOS 17.0, *) {
+            switch AVAudioApplication.shared.recordPermission {
+            case .granted: return "granted"
+            case .denied: return "denied"
+            case .undetermined: return "undetermined"
+            @unknown default: return "unknown"
+            }
+        } else {
+            switch AVAudioSession.sharedInstance().recordPermission {
+            case .granted: return "granted"
+            case .denied: return "denied"
+            case .undetermined: return "undetermined"
+            @unknown default: return "unknown"
+            }
+        }
+    }
+
     @objc
     public func setup() {
         audioSessionQueue.async { [self] in
@@ -243,6 +271,7 @@ private enum AudioDeviceId {
             } catch {
                 // String(describing:) shows the real error; localizedDescription prints a useless "error 0".
                 log("Error setting audio session: \(String(describing: error))")
+                sendAudioSessionDiagnostic("setupError", error: error)
             }
 
             // Subscribe to the AudioDeviceModule's engine lifecycle (idempotent).
@@ -283,6 +312,7 @@ private enum AudioDeviceId {
     private func applyConfigForEngineEnable() {
         if Self.callingxOwnsSession() {
             log("engineWillEnable: callingx owns the session, skipping")
+            sendAudioSessionDiagnostic("engineEnableSkipped")
             return
         }
 
@@ -297,8 +327,10 @@ private enum AudioDeviceId {
                 try applyOutputRouting(selectedOutput)
             }
             log("engineWillEnable: applied category=\(rtcConfig.category) mode=\(rtcConfig.mode) activated=true")
+            sendAudioSessionDiagnostic("engineEnableApplied")
         } catch {
             log("engineWillEnable error: \(String(describing: error))")
+            sendAudioSessionDiagnostic("engineEnableError", error: error)
         }
     }
 
@@ -370,6 +402,7 @@ private enum AudioDeviceId {
             } catch {
                 // String(describing:) surfaces the real error code (see setup()).
                 log("Error starting playout: \(String(describing: error))")
+                sendAudioSessionDiagnostic("startPlayoutError", error: error)
             }
 
             audioManagerActivated = true
@@ -610,6 +643,26 @@ private enum AudioDeviceId {
             result["selectedDeviceId"] = selectedDeviceId
         }
         return result
+    }
+
+    /// Compact snapshot of the shared audio session, attached to the JS-side diagnostics traces
+    /// (stored with the call stats, so keep it small).
+    @objc public func getAudioSessionState() -> [String: Any] {
+        let session = AVAudioSession.sharedInstance()
+        let route = session.currentRoute
+        let inputs = route.inputs.map { $0.portType.rawValue }.joined(separator: ",")
+        let outputs = route.outputs.map { $0.portType.rawValue }.joined(separator: ",")
+        return [
+            // e.g. "PlayAndRecord" / "VoiceChat" instead of "AVAudioSessionCategoryPlayAndRecord"
+            "category": session.category.rawValue.replacingOccurrences(of: "AVAudioSessionCategory", with: ""),
+            "mode": session.mode.rawValue.replacingOccurrences(of: "AVAudioSessionMode", with: ""),
+            "options": session.categoryOptions.rawValue,
+            "isActive": RTCAudioSession.sharedInstance().isActive,
+            "isOtherAudioPlaying": session.isOtherAudioPlaying,
+            "callingxOwnsSession": Self.callingxOwnsSession(),
+            "route": "\(inputs)>\(outputs)",
+            "micPermission": micPermissionState(),
+        ]
     }
 
     @objc
@@ -887,6 +940,22 @@ private enum AudioDeviceId {
     @objc(stopSound)
     public func stopSound() {
         soundPlayer.stopSound()
+    }
+
+    /// Surfaces native audio-session results/failures (otherwise only NSLog'd) to the JS call tracer.
+    private func sendAudioSessionDiagnostic(
+        _ event: String,
+        error: Error? = nil,
+        extra: [String: Any] = [:],
+        includeSession: Bool = true
+    ) {
+        var body = includeSession ? getAudioSessionState() : [:]
+        body.merge(extra) { _, new in new }
+        body["event"] = event
+        if let error {
+            body["error"] = String(String(describing: error).prefix(200))
+        }
+        eventEmitter?.emitAudioSessionDiagnostic(body)
     }
 
     // MARK: - Helper Methods
