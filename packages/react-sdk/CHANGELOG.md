@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.44.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.44.0...@stream-io/video-react-sdk-1.44.1) (2026-10-23)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.63.0`
+- `@stream-io/video-react-bindings` updated to version `1.21.1`
+
+### Bug Fixes
+
+- keep remote audio elements mounted across mute/unmute ([#2524](https://github.com/GetStream/stream-video-js/issues/2524)) ([daedde9](https://github.com/GetStream/stream-video-js/commit/daedde99bb8d8e610d3323ee7e9b7ca66e1462ed))
+
 ## [1.44.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.43.4...@stream-io/video-react-sdk-1.44.0) (2026-10-16)
 
 ### Dependency Updates
