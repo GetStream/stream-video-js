@@ -103,20 +103,23 @@ export class AudioBindingsWatchdog {
    */
   setEnabled = (enabled: boolean) => {
     this.enabled = enabled;
-    if (enabled) {
-      this.start();
-    } else if (this.state.callingState !== CallingState.JOINED) {
-      this.stop();
-    }
   };
 
   /**
-   * Stops the watchdog and unsubscribes from callingState changes.
+   * Stops the watchdog and clears the tracked bindings.
+   * The watchdog stays usable afterwards and restarts on the next JOINED.
    */
-  dispose = () => {
+  reset = () => {
     this.stop();
     this.bindings.clear();
     this.tracedStates.clear();
+  };
+
+  /**
+   * Resets the watchdog and unsubscribes from callingState changes.
+   */
+  dispose = () => {
+    this.reset();
     this.unsubscribeCallingState();
   };
 

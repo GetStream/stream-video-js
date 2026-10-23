@@ -102,16 +102,13 @@ describe('Call lifecycle wiring', () => {
   // sfuStatsReporter) require a real join and are out of scope.
   it('call.leave() tears down all Call-owned helpers exactly once', async () => {
     const trackSubDispose = vi.spyOn(call.trackSubscriptionManager, 'dispose');
-    const audioBindingsDispose = vi.spyOn(
-      call.audioBindingsWatchdog!,
-      'dispose',
-    );
+    const audioBindingsReset = vi.spyOn(call.audioBindingsWatchdog!, 'reset');
     const dynascaleDispose = vi.spyOn(call.dynascaleManager!, 'dispose');
 
     await call.leave();
 
     expect(trackSubDispose).toHaveBeenCalledTimes(1);
-    expect(audioBindingsDispose).toHaveBeenCalledTimes(1);
+    expect(audioBindingsReset).toHaveBeenCalledTimes(1);
     expect(dynascaleDispose).toHaveBeenCalledTimes(1);
   });
 
@@ -121,16 +118,13 @@ describe('Call lifecycle wiring', () => {
   // happy-dom). This is the contract the leave() teardown chain encodes.
   it('call.leave() tears down helpers in the documented order', async () => {
     const trackSubDispose = vi.spyOn(call.trackSubscriptionManager, 'dispose');
-    const audioBindingsDispose = vi.spyOn(
-      call.audioBindingsWatchdog!,
-      'dispose',
-    );
+    const audioBindingsReset = vi.spyOn(call.audioBindingsWatchdog!, 'reset');
     const dynascaleDispose = vi.spyOn(call.dynascaleManager!, 'dispose');
 
     await call.leave();
 
     const trackSubOrder = trackSubDispose.mock.invocationCallOrder[0];
-    const audioBindingsOrder = audioBindingsDispose.mock.invocationCallOrder[0];
+    const audioBindingsOrder = audioBindingsReset.mock.invocationCallOrder[0];
     const dynascaleOrder = dynascaleDispose.mock.invocationCallOrder[0];
 
     expect(trackSubOrder).toBeLessThan(audioBindingsOrder);
