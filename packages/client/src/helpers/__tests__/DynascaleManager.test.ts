@@ -144,6 +144,47 @@ describe('DynascaleManager', () => {
       cleanup?.();
     });
 
+    it('audio: resets the sinkId to the default output when the speaker is deselected', () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      vi.spyOn(audioElement, 'play').mockResolvedValue();
+      let sinkId = '';
+      Object.defineProperty(audioElement, 'sinkId', { get: () => sinkId });
+      audioElement.setSinkId = vi.fn(async (id: string) => {
+        sinkId = id;
+      });
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+      call.state.updateParticipant('session-id', {
+        audioStream: new MediaStream(),
+      });
+      vi.runAllTimers();
+      // already on the default output, nothing to reset
+      expect(audioElement.setSinkId).not.toHaveBeenCalled();
+
+      call.speaker.select('headset-id');
+      expect(audioElement.setSinkId).toHaveBeenLastCalledWith('headset-id');
+
+      // what SpeakerManager selects when the chosen device disconnects
+      call.speaker.select('');
+      expect(audioElement.setSinkId).toHaveBeenLastCalledWith('');
+      expect(audioElement.setSinkId).toHaveBeenCalledTimes(2);
+
+      cleanup?.();
+    });
+
     it('audio: tracks the blocked session and clears it once the element plays', async () => {
       vi.useFakeTimers();
       let cleanup: ReturnType<typeof dynascaleManager.bindAudioElement>;
