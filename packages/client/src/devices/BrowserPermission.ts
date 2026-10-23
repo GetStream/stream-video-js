@@ -13,16 +13,33 @@ interface BrowserPermissionConfig {
 
 export type BrowserPermissionState = PermissionState | 'prompting';
 
+type NativePermissionName = 'microphone' | 'camera';
+
 export class BrowserPermission {
   private ready: Promise<void>;
   private disposeController = new AbortController();
   private state: BrowserPermissionState | undefined;
   private wasPrompted: boolean = false;
   private listeners = new Set<(state: BrowserPermissionState) => void>();
+  /**
+   * React Native only: the real OS permission status. The behavioral `state`
+   * is always `granted` on React Native, so this one is diagnostics-only.
+   */
+  private nativeState: PermissionState | undefined;
+  private nativeListeners = new Set<(state: PermissionState) => void>();
   private logger = videoLoggerSystem.getLogger('permissions');
 
   constructor(private readonly permission: BrowserPermissionConfig) {
     const signal = this.disposeController.signal;
+
+    if (isReactNative()) {
+      const unsubscribe =
+        globalThis.streamRNVideoSDK?.nativeEvents?.appForeground?.subscribe(
+          () => void this.refreshNativeState(),
+        );
+      if (unsubscribe) signal.addEventListener('abort', unsubscribe);
+      void this.refreshNativeState();
+    }
 
     this.ready = (async () => {
       const assumeGranted = () => {
@@ -57,6 +74,7 @@ export class BrowserPermission {
 
   dispose() {
     this.state = undefined;
+    this.nativeState = undefined;
     this.disposeController.abort();
   }
 
@@ -129,6 +147,40 @@ export class BrowserPermission {
     );
   }
 
+  /**
+   * React Native only: re-reads the real OS permission status (never prompts)
+   * and notifies the native listeners on change. Resolves with the latest
+   * known status, or `undefined` when it can't be queried (e.g., on web).
+   */
+  refreshNativeState = async (): Promise<PermissionState | undefined> => {
+    const query = globalThis.streamRNVideoSDK?.permissions?.query;
+    if (!isReactNative() || !query) return this.nativeState;
+    try {
+      const { queryName } = this.permission;
+      const state = await query(queryName as NativePermissionName);
+      if (this.disposeController.signal.aborted) return undefined;
+      if (this.nativeState !== state) {
+        this.nativeState = state;
+        this.nativeListeners.forEach((listener) => listener(state));
+      }
+    } catch (err) {
+      this.logger.debug('Failed to query native permission status', err);
+    }
+    return this.nativeState;
+  };
+
+  /**
+   * React Native only: listens for real OS permission status changes.
+   * Invokes the callback immediately with the latest known status, if any.
+   */
+  listenNative = (cb: (state: PermissionState) => void) => {
+    this.nativeListeners.add(cb);
+    if (this.nativeState) cb(this.nativeState);
+    return () => {
+      this.nativeListeners.delete(cb);
+    };
+  };
+
   listen(cb: (state: BrowserPermissionState) => void) {
     this.listeners.add(cb);
     if (this.state) cb(this.state);
@@ -164,9 +216,14 @@ export class BrowserPermission {
 
   private setState(state: BrowserPermissionState) {
     if (this.state !== state) {
-      const { tracer, queryName } = this.permission;
-      const traceKey = `navigator.mediaDevices.${queryName}.permission`;
-      tracer?.trace(traceKey, { previous: this.state, state });
+      // on React Native, the state is hardcoded to 'granted', so the real
+      // native state is traced per call instead
+      // (see `Call.traceNativePermissions`)
+      if (!isReactNative()) {
+        const { tracer, queryName } = this.permission;
+        const traceKey = `navigator.mediaDevices.${queryName}.permission`;
+        tracer?.trace(traceKey, { previous: this.state, state });
+      }
       this.state = state;
       this.listeners.forEach((listener) => listener(state));
     }

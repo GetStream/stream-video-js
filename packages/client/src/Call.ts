@@ -132,6 +132,8 @@ import {
 import { getClientDetails } from './helpers/client-details';
 import {
   CameraManager,
+  getAudioBrowserPermission,
+  getVideoBrowserPermission,
   MicrophoneManager,
   ScreenShareManager,
   SpeakerManager,
@@ -465,6 +467,32 @@ export class Call {
     });
   };
 
+  /**
+   * React Native only: traces the real OS microphone/camera permission status
+   * into this call's tracer, once on setup and then on every change.
+   * The permission singletons are bound to the first call's tracer, and their
+   * behavioral state is always `granted` on React Native.
+   */
+  private traceNativePermissions = () => {
+    const permissions = {
+      microphone: getAudioBrowserPermission(this.tracer),
+      camera: getVideoBrowserPermission(this.tracer),
+    };
+    for (const [name, permission] of Object.entries(permissions)) {
+      let previous: PermissionState | undefined;
+      this.leaveCallHooks.add(
+        permission.listenNative((state) => {
+          this.tracer.trace(`navigator.mediaDevices.${name}.permission`, {
+            previous,
+            state,
+          });
+          previous = state;
+        }),
+      );
+      void permission.refreshNativeState();
+    }
+  };
+
   private registerEffects = () => {
     this.leaveCallHooks.add(
       // handles updating the permissions context when the settings change.
@@ -496,6 +524,8 @@ export class Call {
         }
       }),
     );
+
+    if (isReactNative()) this.traceNativePermissions();
 
     if (this.ringing) {
       // if the call is ringing, we need to register the ringing call effects
