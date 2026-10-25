@@ -903,6 +903,26 @@ describe('MicrophoneManager', () => {
         expect(cleanupFn).toHaveBeenCalled();
       });
     });
+    it('should return false once the test time is up twice over when the detector stays silent', async () => {
+      vi.useFakeTimers();
+      try {
+        const mock = vi.mocked(createNoAudioDetector);
+        const cleanupFn = vi.fn(async () => {});
+        mock.mockImplementationOnce(() => cleanupFn);
+
+        const result = manager.performTest('test-device-id', {
+          testDurationMs: 1000,
+        });
+        await vi.advanceTimersByTimeAsync(1999);
+        expect(cleanupFn).not.toHaveBeenCalled();
+        await vi.advanceTimersByTimeAsync(1);
+
+        await expect(result).resolves.toBe(false);
+        expect(cleanupFn).toHaveBeenCalledTimes(1);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 
   describe('no-audio detector configuration', () => {

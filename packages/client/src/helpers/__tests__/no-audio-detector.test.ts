@@ -11,6 +11,7 @@ import {
 describe('no-audio-detector (browser)', () => {
   let mockAudioContext: ReturnType<typeof setupAudioContextMock>;
   let audioStream: MediaStream;
+  let stopDetectors: Array<() => Promise<void>> = [];
   type MockAnalyserNode = ReturnType<typeof createMockAnalyserNode> & {
     getByteTimeDomainData: ReturnType<typeof vi.fn>;
   };
@@ -25,13 +26,14 @@ describe('no-audio-detector (browser)', () => {
 
   const createDetector = (overrides?: Partial<NoAudioDetectorOptions>) => {
     const onCaptureStatusChange = vi.fn();
-    createNoAudioDetector(audioStream, {
+    const stop = createNoAudioDetector(audioStream, {
       onCaptureStatusChange,
       noAudioThresholdMs: 5000,
       emitIntervalMs: 5000,
       detectionFrequencyInMs: 500,
       ...overrides,
     });
+    stopDetectors.push(stop);
 
     return { onCaptureStatusChange, analyserNode: getAnalyserNode() };
   };
@@ -58,7 +60,9 @@ describe('no-audio-detector (browser)', () => {
     audioStream = mockAudioStream();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await Promise.all(stopDetectors.map((stop) => stop()));
+    stopDetectors = [];
     vi.restoreAllMocks();
     vi.useRealTimers();
     cleanupAudioContextMock();

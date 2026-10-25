@@ -11,7 +11,11 @@ export type MediaPlaybackWatchdogOptions = {
   sessionId?: string;
   trackType?: string;
   isBlocked?: () => boolean;
+  isInterrupted?: () => boolean;
+  retryOnPause?: boolean;
+  rearmDelay?: number;
   onGiveUp?: () => void;
+  onPlayBlocked?: () => void;
 };
 
 /**
@@ -20,20 +24,25 @@ export type MediaPlaybackWatchdogOptions = {
  */
 export class MediaPlaybackWatchdog {
   private logger = videoLoggerSystem.getLogger('MediaPlaybackWatchdog');
-  private readonly kind: MediaKind;
+  readonly kind: MediaKind;
   private readonly traceInfo: {
     kind: MediaKind;
     sessionId?: string;
     trackType?: string;
   };
   private readonly isBlocked: () => boolean;
+  private readonly isInterrupted: () => boolean;
+  private readonly retryOnPause: boolean;
+  private readonly rearmDelay: number;
   private readonly onGiveUp: () => void;
+  private readonly onPlayBlocked: () => void;
   private element: HTMLMediaElement;
   private tracer: Tracer;
   private controller = new AbortController();
   private pendingTimer: ReturnType<typeof setTimeout> | undefined;
   private settleTimer: ReturnType<typeof setTimeout> | undefined;
   private attempt = 0;
+  private ownPause = false;
   private disposed = false;
   private stopped = false;
 
@@ -47,7 +56,11 @@ export class MediaPlaybackWatchdog {
     };
     this.tracer = opts.tracer;
     this.isBlocked = opts.isBlocked ?? (() => false);
+    this.isInterrupted = opts.isInterrupted ?? (() => false);
+    this.retryOnPause = opts.retryOnPause ?? true;
+    this.rearmDelay = opts.rearmDelay ?? 0;
     this.onGiveUp = opts.onGiveUp ?? (() => {});
+    this.onPlayBlocked = opts.onPlayBlocked ?? (() => {});
     this.attach();
   }
 
@@ -79,7 +92,41 @@ export class MediaPlaybackWatchdog {
     this.stopped = false;
     const { paused, srcObject, ended } = this.element;
     if (!paused || !srcObject || ended) return;
-    this.pendingTimer = setTimeout(this.attemptPlay, 0);
+    this.pendingTimer = setTimeout(this.attemptPlay, this.rearmDelay);
+  };
+
+  /**
+   * Cancels a scheduled recovery attempt, e.g. one a restart replaces.
+   */
+  cancel = () => {
+    this.clearTimers();
+  };
+
+  /**
+   * Pauses a playing element as the first half of a restart, without that
+   * pause starting a recovery. {@link playNow} completes the restart.
+   */
+  pauseForRestart = () => {
+    if (this.disposed) return;
+    this.clearTimers();
+    const { paused, srcObject, ended } = this.element;
+    if (paused || !srcObject || ended) return;
+    this.tracer.trace('mediaPlayback.recover.restart', this.traceInfo);
+    this.ownPause = true;
+    this.element.pause();
+  };
+
+  /**
+   * Plays a paused element right away, with a fresh recovery budget.
+   */
+  playNow = () => {
+    if (this.disposed) return;
+    this.clearTimers();
+    this.attempt = 0;
+    this.stopped = false;
+    const { paused, srcObject, ended } = this.element;
+    if (!paused || !srcObject || ended) return;
+    void this.attemptPlay();
   };
 
   private clearTimers = () => {
@@ -114,6 +161,10 @@ export class MediaPlaybackWatchdog {
    * is rare and always traced, along with the reason recovery was skipped.
    */
   private onPauseOrSuspend = (event: Event) => {
+    if (event.type === 'pause' && this.ownPause) {
+      this.ownPause = false;
+      return;
+    }
     if (this.disposed || this.stopped || this.pendingTimer) return;
     const skipReason = this.computeSkipReason();
     if (skipReason) {
@@ -122,6 +173,16 @@ export class MediaPlaybackWatchdog {
           ...this.traceInfo,
           reason: event.type,
           skipped: skipReason,
+        });
+      }
+      return;
+    }
+    if (!this.retryOnPause) {
+      if (event.type === 'pause') {
+        this.tracer.trace('mediaPlayback.paused', {
+          ...this.traceInfo,
+          reason: event.type,
+          skipped: 'awaitingRearm',
         });
       }
       return;
@@ -164,6 +225,7 @@ export class MediaPlaybackWatchdog {
     if (this.disposed) return 'disposed';
     if (!this.element.srcObject) return 'noSrc';
     if (this.element.ended) return 'ended';
+    if (this.isInterrupted()) return 'interrupted';
     if (this.isBlocked()) return 'blocked';
     const HAVE_CURRENT_DATA = 2;
     if (this.element.readyState < HAVE_CURRENT_DATA) return 'notReady';
@@ -174,6 +236,13 @@ export class MediaPlaybackWatchdog {
   private attemptPlay = async () => {
     this.pendingTimer = undefined;
     if (this.disposed) return;
+    if (this.isInterrupted()) {
+      this.tracer.trace('mediaPlayback.recover.skipped', {
+        ...this.traceInfo,
+        reason: 'interrupted',
+      });
+      return;
+    }
     this.attempt += 1;
     this.tracer.trace('mediaPlayback.recover.attempt', {
       ...this.traceInfo,
@@ -184,6 +253,14 @@ export class MediaPlaybackWatchdog {
     } catch (err) {
       if (this.disposed) return;
       this.logger.warn(`Failed to recover ${this.kind} playback`, err);
+      if (
+        this.kind === 'audio' &&
+        (err as Error | undefined)?.name === 'NotAllowedError'
+      ) {
+        this.tracer.trace('mediaPlayback.recover.blocked', this.traceInfo);
+        this.onPlayBlocked();
+        return;
+      }
       this.scheduleRecovery();
     }
   };
