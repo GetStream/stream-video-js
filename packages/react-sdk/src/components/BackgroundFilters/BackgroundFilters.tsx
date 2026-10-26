@@ -12,10 +12,11 @@ import { Call, disposeOfMediaStream } from '@stream-io/video-client';
 import {
   BackgroundBlurLevel,
   BackgroundEffectOptions,
+  BackgroundProcessor,
+  createVirtualBackground,
   isMediaPipePlatformSupported,
   loadMediaPipe,
   PerformanceStats,
-  VirtualBackground,
 } from '@stream-io/video-filters-web';
 import type {
   BackgroundFiltersPerformance,
@@ -442,7 +443,7 @@ const useRenderer = (
     segmentationOptions,
   };
 
-  const processorRef = useRef<VirtualBackground | undefined>(undefined);
+  const processorRef = useRef<BackgroundProcessor | undefined>(undefined);
 
   const start = useCallback(
     (
@@ -451,7 +452,7 @@ const useRenderer = (
       onStats?: (stats: PerformanceStats) => void,
     ) => {
       let outputStream: MediaStream | undefined;
-      let processor: VirtualBackground | undefined;
+      let processor: BackgroundProcessor | undefined;
 
       const output = new Promise<MediaStream>((resolve, reject) => {
         const options = optionsRef.current;
@@ -472,7 +473,7 @@ const useRenderer = (
           modelFilePath,
         });
 
-        processor = new VirtualBackground(
+        processor = createVirtualBackground(
           track,
           { ...options, basePath, modelPath: modelFilePath },
           { onError, onStats },

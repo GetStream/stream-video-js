@@ -2,6 +2,7 @@ import {
   BACKGROUND_BLUR_MAP,
   BackgroundEffectOptions,
   BackgroundOptions,
+  BackgroundProcessor,
   SegmenterOptions,
   VideoTrackProcessorHooks,
 } from './types';
@@ -15,7 +16,10 @@ import { BaseVideoProcessor } from './BaseVideoProcessor';
  * Incoming frames are processed through a transformer and re-emitted
  * on a new MediaStreamVideoTrack for downstream consumption.
  */
-export class VirtualBackground extends BaseVideoProcessor {
+export class VirtualBackground
+  extends BaseVideoProcessor
+  implements BackgroundProcessor
+{
   private segmenter: ImageSegmenter | null = null;
   private isSegmenterReady = false;
   private webGlRenderer!: WebGLRenderer;

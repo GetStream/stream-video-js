@@ -82,9 +82,35 @@ type VideoTrackGeneratorConstructor = new (
   options: TrackGeneratorOptions,
 ) => MediaStreamTrackGenerator<VideoFrame>;
 
+/**
+ * The spec'd generator (Safari 18+, DedicatedWorker only). Unlike
+ * MediaStreamTrackGenerator it is not a track itself: it exposes `track`
+ * and `writable` separately.
+ */
+declare class VideoTrackGenerator {
+  readonly track: MediaStreamVideoTrack;
+  readonly writable: WritableStream<VideoFrame>;
+}
+
+/**
+ * Adapts VideoTrackGenerator to the MediaStreamTrackGenerator shape by
+ * exposing the writable on the generated track, as FallbackGenerator does.
+ */
+class SpecTrackGenerator {
+  constructor({ signalTarget }: TrackGeneratorOptions) {
+    const generator = new VideoTrackGenerator();
+    const track = generator.track as MediaStreamTrackGenerator<VideoFrame>;
+    track.writable = generator.writable;
+    signalTarget?.addEventListener('ended', () => track.stop());
+    return track;
+  }
+}
+
 const TrackGenerator: VideoTrackGeneratorConstructor =
   typeof MediaStreamTrackGenerator !== 'undefined'
     ? (MediaStreamTrackGenerator as unknown as VideoTrackGeneratorConstructor)
-    : (FallbackGenerator as unknown as VideoTrackGeneratorConstructor);
+    : typeof VideoTrackGenerator !== 'undefined'
+      ? (SpecTrackGenerator as unknown as VideoTrackGeneratorConstructor)
+      : (FallbackGenerator as unknown as VideoTrackGeneratorConstructor);
 
 export { TrackGenerator };
