@@ -8,6 +8,7 @@ import {
 import { isFirefox } from '../helpers/browsers';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { isReactNative } from '../helpers/platforms';
+import { promiseWithResolvers } from '../helpers/promise';
 import { BasePeerConnection } from './BasePeerConnection';
 import { isSvcCodec } from './codecs';
 import {
@@ -41,6 +42,7 @@ export class Publisher extends BasePeerConnection {
   private publishOptions: PublishOption[];
   private readonly selfSubEnabled: boolean;
   private readonly transceiverLockKey = `pub.tx.${this.lock}`;
+  private readonly disposed = promiseWithResolvers<void>();
 
   /**
    * Constructs a new `Publisher` instance.
@@ -87,6 +89,7 @@ export class Publisher extends BasePeerConnection {
     await super.dispose();
     this.stopAllTracks();
     this.clonedTracks.clear();
+    this.disposed.resolve();
   }
 
   /**
@@ -376,9 +379,13 @@ export class Publisher extends BasePeerConnection {
 
   /**
    * Stops the cloned track that is being published to the SFU.
+   *
+   * Settles once this Publisher is disposed, as dispose() stops every track:
+   * a `changePublishQuality` handler stuck on a `setParameters()` that never
+   * settles after close would otherwise keep this call queued forever.
    */
   stopTracks = async (...trackTypes: TrackType[]) => {
-    return withoutConcurrency(
+    const stopping = withoutConcurrency(
       this.eventLockKey('changePublishQuality'),
       async () => {
         for (const item of this.transceiverCache.items()) {
@@ -390,6 +397,7 @@ export class Publisher extends BasePeerConnection {
         }
       },
     );
+    return Promise.race([stopping, this.disposed.promise]);
   };
 
   /**
@@ -673,7 +681,11 @@ export class Publisher extends BasePeerConnection {
 
   private stopTrack = (track: MediaStreamTrack | null | undefined) => {
     if (!track) return;
-    track.stop();
+    try {
+      track.stop();
+    } catch (err) {
+      this.logger.warn('Failed to stop track', err);
+    }
     this.clonedTracks.delete(track);
   };
 

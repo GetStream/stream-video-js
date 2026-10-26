@@ -597,16 +597,18 @@ describe('Publisher', () => {
   });
 
   describe('dispose', () => {
-    it('does not wait for a changePublishQuality handler stuck in setParameters', async () => {
+    /**
+     * Publishes a video sender whose setParameters() never settles, as
+     * Chromium does for one still pending when its peer connection closes,
+     * and leaves a changePublishQuality handler stuck on it.
+     */
+    const stallQualityChange = () => {
       const transceiver = new RTCRtpTransceiver();
       const track = new MediaStreamTrack();
       vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
-      const trackStopSpy = vi.spyOn(track, 'stop');
       vi.spyOn(transceiver.sender, 'getParameters').mockReturnValue(
         fromPartial({ codecs: [], encodings: [{ rid: 'q', active: true }] }),
       );
-      // Chromium never settles a setParameters() that is still pending when
-      // its peer connection closes
       const setParametersSpy = vi
         .spyOn(transceiver.sender, 'setParameters')
         .mockReturnValue(new Promise(() => {}));
@@ -635,10 +637,50 @@ describe('Publisher', () => {
         'test',
       );
       expect(setParametersSpy).toHaveBeenCalled();
+      return track;
+    };
+
+    it('does not wait for a changePublishQuality handler stuck in setParameters', async () => {
+      const track = stallQualityChange();
+      const trackStopSpy = vi.spyOn(track, 'stop');
 
       await publisher.dispose();
 
       expect(trackStopSpy).toHaveBeenCalled();
+    });
+
+    it('releases a stopTracks() queued behind a stuck changePublishQuality handler', async () => {
+      const track = stallQualityChange();
+      const trackStopSpy = vi.spyOn(track, 'stop');
+      const stopping = publisher.stopTracks(TrackType.VIDEO);
+
+      await publisher.dispose();
+      await stopping;
+
+      expect(trackStopSpy).toHaveBeenCalled();
+    });
+
+    it('does not wait for the stuck lock when stopTracks() runs after dispose', async () => {
+      stallQualityChange();
+      await publisher.dispose();
+
+      await publisher.stopTracks(TrackType.VIDEO);
+    });
+
+    it('stops the remaining tracks when one of them fails to stop', async () => {
+      const failing = new MediaStreamTrack();
+      vi.spyOn(failing, 'stop').mockImplementation(() => {
+        throw new Error('already released');
+      });
+      const healthy = new MediaStreamTrack();
+      const healthyStopSpy = vi.spyOn(healthy, 'stop');
+      publisher['clonedTracks'].add(failing);
+      publisher['clonedTracks'].add(healthy);
+
+      await publisher.dispose();
+
+      expect(healthyStopSpy).toHaveBeenCalled();
+      expect(publisher['clonedTracks'].size).toBe(0);
     });
   });
 
