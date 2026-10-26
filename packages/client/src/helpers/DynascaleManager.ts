@@ -287,6 +287,7 @@ export class DynascaleManager {
     });
 
     const trackKey = isVideoTrack ? 'videoStream' : 'screenShareStream';
+    let rebindTimer: ReturnType<typeof setTimeout> | undefined;
     const streamSubscription = participant$
       .pipe(distinctUntilKeyChanged(trackKey))
       .subscribe((p) => {
@@ -294,7 +295,8 @@ export class DynascaleManager {
         if (videoElement.srcObject === source) return;
         videoElement.srcObject = source ?? null;
         if (isSafari() || isFirefox()) {
-          setTimeout(async () => {
+          clearTimeout(rebindTimer);
+          rebindTimer = setTimeout(async () => {
             videoElement.srcObject = source ?? null;
             try {
               await timeboxed([videoElement.play()], 2000);
@@ -312,6 +314,8 @@ export class DynascaleManager {
       streamSubscription.unsubscribe();
       resizeObserver?.disconnect();
       this.disposePlaybackWatchdog(playbackWatchdog);
+      clearTimeout(rebindTimer);
+      videoElement.srcObject = null;
     };
   };
 
