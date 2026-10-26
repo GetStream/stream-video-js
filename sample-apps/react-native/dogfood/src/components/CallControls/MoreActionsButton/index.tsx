@@ -17,8 +17,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
-import MoreActions from '../../../assets/MoreActions';
+import {
+  ControlButtonIcon,
+  IconWrapper,
+  MoreVert,
+} from '@stream-io/video-react-native-sdk/src/icons';
 import { BottomControlsDrawer, DrawerOption } from './BottomControlsDrawer';
 import Feedback from '../../../assets/Feedback';
 import FeedbackModal from '../../FeedbackModal';
@@ -59,7 +62,7 @@ export const MoreActionsButton = ({
   controlsContainerHeight,
 }: MoreActionsButtonProps) => {
   const {
-    theme: { moreActionsButton, components, primitives, semantics },
+    theme: { components, semantics },
   } = useTheme();
   const {
     isSupported,
@@ -289,10 +292,6 @@ export const MoreActionsButton = ({
       : []),
   ];
 
-  const buttonColor = isDrawerVisible
-    ? semantics.accentPrimary
-    : semantics.accentNeutral;
-
   return (
     <CallControlsButton
       onPress={() => {
@@ -301,8 +300,6 @@ export const MoreActionsButton = ({
         }
         setIsDrawerVisible(!isDrawerVisible);
       }}
-      style={moreActionsButton}
-      color={buttonColor}
     >
       {controlsContainerHeight !== undefined && (
         <AudioRoutePickerDrawer
@@ -357,12 +354,7 @@ export const MoreActionsButton = ({
           </View>
         </View>
       </Modal>
-      <IconWrapper>
-        <MoreActions
-          color={semantics.accentNeutral}
-          size={components.iconSizeMd}
-        />
-      </IconWrapper>
+      <ControlButtonIcon icon={MoreVert} />
     </CallControlsButton>
   );
 };

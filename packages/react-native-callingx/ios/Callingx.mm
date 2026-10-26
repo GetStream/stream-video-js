@@ -51,10 +51,15 @@
   return [CallingxImpl canRegisterCall];
 }
 
++ (BOOL)hasAnyActiveCall {
+  return [CallingxImpl hasAnyActiveCall];
+}
+
 + (BOOL)shouldSkipIncomingPushInForeground {
   return [Settings getSkipIncomingPushInForeground];
 }
 
+// `reason` keeps the int contract; the active backend maps it to `CXCallEndedReason` (CallKit) or `Conversation.EndedReason` (LiveCommunicationKit).
 + (void)endCall:(NSString *)callId reason:(int)reason {
   [CallingxImpl endCall:callId reason:reason];
 }

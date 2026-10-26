@@ -137,6 +137,9 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
         return;
       }
       const source = Image.resolveAssetSource(imageSource);
+      if (!source) {
+        return;
+      }
       const imageUri = source.uri;
       const filterName = `VirtualBackground-${imageUri}`;
       const registeredImageFiltersSet = registeredImageFiltersSetRef.current;

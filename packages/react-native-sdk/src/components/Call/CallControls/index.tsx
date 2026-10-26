@@ -9,7 +9,6 @@ export * from './Buttons/ToggleCameraFaceButton';
 export * from './Buttons/ReactionsButton';
 export * from './Buttons/CallControlsButton';
 export * from './Buttons/ScreenShareToggleButton';
-export * from './Buttons/LayoutSwitchButton';
 
 export * from './IncomingCallControls';
 export * from './OutgoingCallControls';

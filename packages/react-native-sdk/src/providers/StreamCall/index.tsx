@@ -52,7 +52,7 @@ const AndroidKeepCallAlive = () => {
 };
 
 /**
- * This is a renderless component to sync state between stream call and CallKit/Telecom.
+ * This is a renderless component to sync state between stream call and the system call UI (CallKit/LiveCommunicationKit/Telecom).
  * useCallingExpWithCallingStateEffect needs to called inside a child of StreamCallProvider.
  */
 const CallingExpWithCallingState = () => {

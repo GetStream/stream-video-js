@@ -40,7 +40,7 @@ export interface ICallingxModule {
 
   /**
    * Setup the module. This method must be called before any other method.
-   * For iOS, the module will setup CallKit parameters.
+   * For iOS, the module will setup CallKit / LiveCommunicationKit parameters.
    *    See: {@link InternalIOSOptions}
    * For Android, the module will create notification channels.
    *    See: {@link InternalAndroidOptions}
@@ -62,14 +62,14 @@ export interface ICallingxModule {
 
   /**
    * Set whether to reject calls when the user is busy.
-   * The value is used in iOS native module to prevent calls registration in CallKit when the user is busy.
+   * The value is used in iOS native module to prevent calls registration in the system call UI when the user is busy.
    * @param shouldReject - Whether to reject calls when the user is busy.
    */
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;
 
   /**
    * Set the default audio endpoint applied when the OS activates the call's audio session.
-   * - iOS: applied next time CallKit activates the session.
+   * - iOS: applied next time the system activates the session.
    * - Android (Telecom): applied once when the call becomes active and no wired/bluetooth
    *   device is connected.
    * Sticky preference.
@@ -201,6 +201,11 @@ export interface ICallingxModule {
   releaseBackgroundTask(owner: string): void;
 
   /**
+   * Returns the current FCM device token (Android). Resolves an empty string on iOS.
+   */
+  getFcmToken(): Promise<string>;
+
+  /**
    * Fulfill or fail a pending CXAnswerCallAction on iOS.
    * Must be called after starting the JS-side joining process (e.g: without awaiting for call.join() to complete)
    * @param callId - The call id.
@@ -285,7 +290,7 @@ export type InternalIOSOptions = {
   enableOngoingCalls?: boolean;
   /**
    * When true, ringing pushes that arrive while the app is in the foreground
-   * are not shown by CallKit. The push is still delivered to JS via
+   * are not shown by the system call UI. The push is still delivered to JS via
    * `voipNotificationReceived`, so the app must show its own ringing UI.
    * Background pushes are unaffected. Requires iOS 26.4+; no-op on older
    * versions.
@@ -293,10 +298,16 @@ export type InternalIOSOptions = {
    */
   skipIncomingPushInForeground?: boolean;
   /**
-   * Default audio endpoint when CallKit activates the session.
+   * Default audio endpoint when the system activates the session.
    * `'earpiece'` omits `.defaultToSpeaker` for voice-only call UX.
    */
   defaultDeviceEndpointType?: DefaultDeviceEndpointType;
+  /**
+   * @experimental Use Apple LiveCommunicationKit (iOS 17.4+) instead of CallKit for the system call UI.
+   * On iOS versions below 17.4 CallKit is used. Read once per app launch: a change takes effect on the next launch.
+   * @default false
+   */
+  useLiveCommunicationKit?: boolean;
 };
 type iOSOptions = Omit<
   InternalIOSOptions,
@@ -394,10 +405,12 @@ export type EventName =
   | 'didAudioInterruption'
   | 'didReceiveStartCallAction'
   | 'didPerformSetMutedCallAction'
+  | 'didPerformDTMFAction'
   | 'didActivateAudioSession'
   | 'didDeactivateAudioSession'
   | 'providerReset'
-  | 'ringCallPushReceived';
+  | 'ringCallPushReceived'
+  | 'fcmTokenRefresh';
 
 export type RingCallPushPayload = {
   call_cid?: string;
@@ -439,6 +452,10 @@ export type EventParams = {
     callId: string;
     muted: boolean;
   };
+  didPerformDTMFAction: {
+    callId: string;
+    digits: string;
+  };
   didChangeAudioRoute: undefined;
   didAudioInterruption: IOSAudioInterruptionEvent;
   didReceiveStartCallAction: {
@@ -450,6 +467,10 @@ export type EventParams = {
     callCids: string[];
   };
   ringCallPushReceived: RingCallPushPayload;
+  /** Fired on Android when Firebase rotates the device's FCM token. */
+  fcmTokenRefresh: {
+    token: string;
+  };
 };
 
 export type VoipEventName =
@@ -488,10 +509,10 @@ export type VoipEventParams = {
 /**
  * The reason for ending a call. These values are mapped to platform-specific
  * constants on each platform:
- * - iOS: `CXCallEndedReason` (CallKit)
+ * - iOS: `CXCallEndedReason` (CallKit) / `Conversation.EndedReason` (LiveCommunicationKit)
  * - Android: `DisconnectCause` (Telecom)
  *
- * @see https://developer.apple.com/documentation/callkit/cxcallendedreason
+ * @see https://developer.apple.com/documentation/livecommunicationkit/conversation/endedreason
  * @see https://developer.android.com/reference/android/telecom/DisconnectCause
  */
 export type EndCallReason =

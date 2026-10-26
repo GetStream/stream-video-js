@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
+  type ViewProps,
   ViewStyle,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -46,7 +47,7 @@ interface ButtonProps {
    * Invoked on mount and layout changes with
    * {nativeEvent: { layout: {x, y, width, height}}}.
    */
-  onLayout?: View['props']['onLayout'];
+  onLayout?: ViewProps['onLayout'];
 }
 
 export const Button = (props: React.PropsWithChildren<ButtonProps>) => {

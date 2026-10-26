@@ -60,6 +60,10 @@ export function extractCallingExpOptions(
       iosOptions.defaultDeviceEndpointType =
         pushConfig.ios.defaultDeviceEndpointType;
     }
+    if (pushConfig.ios.useLiveCommunicationKit !== undefined) {
+      iosOptions.useLiveCommunicationKit =
+        pushConfig.ios.useLiveCommunicationKit;
+    }
 
     if (Object.keys(iosOptions).length > 0) {
       callingExpOptions.ios = iosOptions;

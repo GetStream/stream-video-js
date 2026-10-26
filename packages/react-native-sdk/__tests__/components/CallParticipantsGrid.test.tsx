@@ -8,7 +8,7 @@ import { act, render, screen, within } from '../utils/RNTLTools';
 import { CallParticipantsList } from '../../src/components/Call/CallParticipantsList/CallParticipantsList';
 import { ParticipantView } from '../../src/components/Participant/ParticipantView/ParticipantView';
 import { VideoRenderer } from '../../src/components/Participant/ParticipantView/VideoRenderer';
-import { ViewToken } from 'react-native';
+import type { ListViewToken } from 'react-native';
 import { CallParticipantsGrid } from '../../src/components/Call/CallLayout/CallParticipantsGrid';
 
 console.warn = jest.fn();
@@ -117,7 +117,7 @@ describe('CallParticipantsGrid', () => {
     const visibleParticipantsItems = call.state.participants.map((p) => ({
       key: p.sessionId,
       item: 'some-item',
-      index: null,
+      index: undefined,
       isViewable: true,
     }));
 
@@ -147,7 +147,7 @@ describe('CallParticipantsGrid', () => {
 });
 
 const simulateOnViewableItemsChanged = async (
-  viewableItems: Array<ViewToken>,
+  viewableItems: Array<ListViewToken>,
 ) => {
   const flatList = await screen.findByTestId(
     ComponentTestIds.CALL_PARTICIPANTS_LIST,

@@ -5,7 +5,12 @@
     "lib": ["esnext", "dom"],
     "paths": {
       "react": ["./node_modules/@types/react"],
-      "react-native": ["./node_modules/react-native"]
+      "react-native": [
+        "./node_modules/react-native/types_generated/index.d.ts"
+      ],
+      "react-native/Libraries/Types/CodegenTypes": [
+        "./node_modules/react-native/types_generated/Libraries/Types/CodegenTypes.d.ts"
+      ]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

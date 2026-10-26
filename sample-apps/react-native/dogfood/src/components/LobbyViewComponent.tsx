@@ -1,5 +1,6 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
+  Button,
   JoinCallButton,
   Lobby,
   useTheme,
@@ -17,7 +18,6 @@ import { useOrientation } from '../hooks/useOrientation';
 import { isCallEncrypted } from '../utils/e2ee';
 import { useLobbyE2EE } from '../contexts/LobbyE2EEContext';
 import { LobbyEncryption } from './LobbyEncryption';
-import { Button } from './Button';
 import { useAppI18n } from '../hooks/useAppI18n';
 import { NavigationHeader } from './NavigationHeader';
 
@@ -59,7 +59,7 @@ const LobbyJoinSection = ({ onJoinCallHandler }: JoinCallButtonProps) => {
       {needsEncryptionKey ? (
         <Button
           disabled
-          title={t(
+          text={t(
             'lobby.enterEncryptionKey.text',
             'Enter the shared encryption key to join',
           )}
