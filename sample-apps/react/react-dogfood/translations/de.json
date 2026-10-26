@@ -265,6 +265,8 @@
   "Noise cancellation is loading": "Rauschunterdrückung wird geladen",
   "Noise cancellation is active": "Rauschunterdrückung ist aktiv",
   "Noise cancellation is inactive": "Rauschunterdrückung ist inaktiv",
+  "Noise cancellation is paused because your device is overloaded. It will resume shortly.": "Rauschunterdrückung ist pausiert, weil dein Gerät überlastet ist. Sie wird in Kürze fortgesetzt.",
+  "Noise cancellation was turned off because your device is overloaded": "Rauschunterdrückung wurde deaktiviert, weil dein Gerät überlastet ist",
   "Video effects": "Videoeffekte",
   "Video effects are not supported on this device": "Videoeffekte werden auf diesem Gerät nicht unterstützt",
   "Enable Hi-Fi Audio": "Hi-Fi-Audio aktivieren",

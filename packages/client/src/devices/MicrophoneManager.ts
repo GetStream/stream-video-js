@@ -1,5 +1,8 @@
 import { combineLatest, firstValueFrom, Observable } from 'rxjs';
-import type { INoiseCancellation } from '@stream-io/audio-filters-web';
+import type {
+  INoiseCancellation,
+  NoiseCancellationOverloadEvent,
+} from '@stream-io/audio-filters-web';
 import { Call } from '../Call';
 import {
   AudioDeviceManager,
@@ -36,7 +39,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   private soundDetectorDeviceId?: string;
   private noAudioDetectorCleanup?: () => Promise<void>;
   private noiseCancellation: INoiseCancellation | undefined;
-  private noiseCancellationChangeUnsubscribe: (() => void) | undefined;
+  private noiseCancellationUnsubscribers: Array<() => void> = [];
   private noiseCancellationRegistration?: Promise<void>;
   private unregisterNoiseCancellation?: () => Promise<void>;
 
@@ -249,10 +252,12 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       this.noiseCancellation = noiseCancellation;
 
       // listen for change events and notify the SFU
-      this.noiseCancellationChangeUnsubscribe = this.noiseCancellation.on(
-        'change',
-        (enabled: boolean) => {
+      this.noiseCancellationUnsubscribers.push(
+        this.noiseCancellation.on('change', (enabled: boolean) => {
           this.call.tracer.trace('noiseCancellation.enabled', enabled);
+          this.state.setNoiseCancellationStatus(
+            enabled ? 'enabled' : 'disabled',
+          );
           if (enabled) {
             this.call.notifyNoiseCancellationStarting().catch((err) => {
               this.logger.warn(`notifyNoiseCancellationStart failed`, err);
@@ -262,7 +267,16 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
               this.logger.warn(`notifyNoiseCancellationStop failed`, err);
             });
           }
-        },
+        }),
+        this.noiseCancellation.on(
+          'overload',
+          (event: NoiseCancellationOverloadEvent) => {
+            this.call.tracer.trace('noiseCancellation.overload', event);
+            this.state.setNoiseCancellationStatus(
+              event.willRestore ? 'suspended' : 'overloaded',
+            );
+          },
+        ),
       );
 
       if (isReactNative()) {
@@ -309,10 +323,17 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   async disableNoiseCancellation() {
     await (this.unregisterNoiseCancellation?.() ?? Promise.resolve())
       .then(() => this.noiseCancellation?.disable())
-      .then(() => this.noiseCancellationChangeUnsubscribe?.())
+      .then(() => {
+        this.noiseCancellationUnsubscribers.forEach((unsubscribe) =>
+          unsubscribe(),
+        );
+        this.noiseCancellationUnsubscribers = [];
+      })
       .catch((err) => {
         this.logger.warn('Failed to unregister noise cancellation', err);
       });
+
+    this.state.setNoiseCancellationStatus('disabled');
 
     this.call.tracer.trace('noiseCancellation.disabled', true);
     await this.call.notifyNoiseCancellationStopped();
