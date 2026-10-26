@@ -429,6 +429,9 @@ export const useMicrophoneState = ({
     state.isPromptingPermission$,
   );
   const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
+  const noiseCancellationStatus = useObservableValue(
+    state.noiseCancellationStatus$,
+  );
   const audioBitrateProfile = useObservableValue(state.audioBitrateProfile$);
   const error = useObservableValue(state.error$);
 
@@ -442,6 +445,7 @@ export const useMicrophoneState = ({
     hasBrowserPermission,
     isPromptingPermission,
     isSpeakingWhileMuted,
+    noiseCancellationStatus,
     audioBitrateProfile,
     error,
     ...getComputedStatus(
