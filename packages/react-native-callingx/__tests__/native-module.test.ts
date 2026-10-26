@@ -207,3 +207,30 @@ describe('callBackRequested (sticky)', () => {
     expect(late).not.toHaveBeenCalled();
   });
 });
+
+describe('setup (iOS)', () => {
+  const setupiOS = jest.fn(() => true);
+
+  beforeEach(() => {
+    platform.OS = 'ios';
+    Object.assign(nativeModule, {
+      setupiOS,
+      setShouldRejectCallWhenBusy: jest.fn(() => true),
+      setDefaultAudioDeviceEndpointType: jest.fn(() => true),
+    });
+  });
+
+  test('defaults useLiveCommunicationKit to false', () => {
+    load().setup({});
+    expect(setupiOS).toHaveBeenCalledWith(
+      expect.objectContaining({ useLiveCommunicationKit: false }),
+    );
+  });
+
+  test('forwards useLiveCommunicationKit to the native module', () => {
+    load().setup({ ios: { useLiveCommunicationKit: true } });
+    expect(setupiOS).toHaveBeenCalledWith(
+      expect.objectContaining({ useLiveCommunicationKit: true }),
+    );
+  });
+});

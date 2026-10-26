@@ -346,8 +346,8 @@ export class DynascaleManager {
       deviceId: string,
       audioContext: AudioContext | undefined,
     ) => {
-      if (!deviceId || !this.speaker.state.isDeviceSelectionSupported) return;
-      if ('setSinkId' in audioElement) {
+      if (!this.speaker.state.isDeviceSelectionSupported) return;
+      if ('setSinkId' in audioElement && audioElement.sinkId !== deviceId) {
         audioElement.setSinkId(deviceId).catch((e) => {
           this.logger.warn(`Can't to set AudioElement sinkId`, e);
         });

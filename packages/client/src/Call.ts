@@ -319,6 +319,7 @@ export class Call {
   private deviceSettingsAppliedOnce = false;
   private callManagerStarted = false;
   private leaveGeneration = 0;
+  private leavesInProgress = 0;
   private credentials?: Credentials;
 
   private initialized = false;
@@ -448,13 +449,15 @@ export class Call {
       this.registerEffects();
       this.registerReconnectHandlers();
 
-      // Set up the device managers again. Although this is already done
-      // in the DeviceManager's constructor, they'll need to be re-set up
-      // in the cases where a call instance is recycled (join -> leave -> join).
+      // Set up the device managers and the audio bindings watchdog again.
+      // Although this is already done in their constructors, they'll need to
+      // be re-set up in the cases where a call instance is recycled
+      // (join -> leave -> join).
       this.camera.setup();
       this.microphone.setup();
       this.screenShare.setup();
       this.speaker.setup();
+      this.audioBindingsWatchdog?.setup();
 
       if (this.state.callingState === CallingState.LEFT) {
         this.state.setCallingState(CallingState.IDLE);
@@ -522,7 +525,7 @@ export class Call {
           callingState: this.state.callingState,
         });
         if (settledByMe) this.cancelAutoDrop();
-        if (!leaveReason || hasPending(this.joinLeaveConcurrencyTag)) return;
+        if (!leaveReason || this.leavesInProgress > 0) return;
 
         globalThis.streamRNVideoSDK?.callingX?.endCall(this, leaveReason);
         this.leave().catch(() => {
@@ -687,6 +690,10 @@ export class Call {
     this.ringTimeout?.pause();
     this.ringStatePoller?.pause();
 
+    // also before the first await: `reconnect()` reads it to tell a teardown
+    // in progress from a live call, as the calling state stays JOINED until
+    // the very end.
+    this.leavesInProgress += 1;
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       const callingState = this.state.callingState;
 
@@ -848,18 +855,24 @@ export class Call {
             this.logger.warn('Failed to dispose media engine', err);
           });
       }
-    }).catch((err) => {
-      if (
-        !hasPending(this.joinLeaveConcurrencyTag) &&
-        this.state.callingState === CallingState.RINGING
-      ) {
-        // resume, never re-arm: a fresh watchdog would restart the ring
-        // window this leave was already most of the way through
-        this.ringTimeout?.start();
-        this.ringStatePoller?.resume();
-      }
-      throw err;
-    });
+    })
+      .catch((err) => {
+        if (
+          // only this leave (still counted until `finally`): a leave queued
+          // behind it owns the watchdogs now, a queued `setup()` doesn't
+          this.leavesInProgress === 1 &&
+          this.state.callingState === CallingState.RINGING
+        ) {
+          // resume, never re-arm: a fresh watchdog would restart the ring
+          // window this leave was already most of the way through
+          this.ringTimeout?.start();
+          this.ringStatePoller?.resume();
+        }
+        throw err;
+      })
+      .finally(() => {
+        this.leavesInProgress -= 1;
+      });
   };
 
   /**
@@ -1720,17 +1733,8 @@ export class Call {
       enable_rtc_stats: enableTracing,
       reporting_interval_ms: reportingIntervalMs,
     } = statsOptions;
-    // Flush the previous reporter's final sample while its peer connections are
-    // still alive, before we dispose them below. Awaits only the sampling step.
-    await this.sfuStatsReporter?.flush();
-    if (this.leaveGeneration !== joinLeaveGeneration) return;
-    this.sfuStatsReporter?.stop();
-    this.sfuStatsReporter = undefined;
-    if (closePreviousInstances && this.subscriber) {
-      await this.subscriber.dispose();
-      if (this.leaveGeneration !== joinLeaveGeneration) return;
-      this.state.removeAllOrphanedTracks();
-    }
+    const previousSubscriber = this.subscriber;
+    const previousSfuStatsReporter = this.sfuStatsReporter;
     const basePeerConnectionOptions: BasePeerConnectionOpts = {
       sfuClient,
       dispatcher: this.dispatcher,
@@ -1765,12 +1769,31 @@ export class Call {
           (isReactNative() && trackType === TrackType.VIDEO);
 
         if (!reportable) return;
-
         this.clientEventReporter.reportFirstFrame(this.cid, trackType, trackId);
       },
     };
 
-    this.subscriber = new Subscriber(basePeerConnectionOptions);
+    // The SFU sends the subscriber offer right after the join response, and
+    // the dispatcher drops events nobody listens to. Create the subscriber
+    // (which registers the offer listener) before awaiting anything.
+    if (closePreviousInstances) {
+      // Keep the old peer alive for stats, but prevent late tracks from
+      // replacing and stopping streams received by the new subscriber.
+      previousSubscriber?.detachEventHandlers();
+      this.state.removeAllOrphanedTracks();
+    }
+    try {
+      this.subscriber = new Subscriber(basePeerConnectionOptions);
+
+      await previousSfuStatsReporter?.flush();
+    } finally {
+      previousSfuStatsReporter?.stop();
+      if (this.sfuStatsReporter === previousSfuStatsReporter) {
+        this.sfuStatsReporter = undefined;
+      }
+    }
+    if (closePreviousInstances) await previousSubscriber?.dispose();
+    if (this.leaveGeneration !== joinLeaveGeneration) return;
 
     // anonymous users can't publish anything hence, there is no need
     // to create Publisher Peer Connection for them
@@ -2037,6 +2060,14 @@ export class Call {
     // queueing more entries just replays the full REJOIN cycle (one extra
     // `POST /join` per entry) once the call is already healthy again.
     if (hasPending(this.reconnectConcurrencyTag)) return;
+
+    // A leave in progress (e.g. the SFU closed the socket on `callEnded`)
+    // bumped the generation before this snapshot, so `supersededByLeave`
+    // couldn't catch it: a reconnect here would rejoin the call it tears down.
+    if (this.leavesInProgress > 0) {
+      this.logger.debug('[Reconnect] Leave in progress; not reconnecting');
+      return;
+    }
 
     const reconnectLeaveGeneration = this.leaveGeneration;
     const supersededByLeave = () =>

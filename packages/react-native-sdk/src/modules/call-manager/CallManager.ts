@@ -104,7 +104,7 @@ class AudioDevicesManager {
   private interruptionReassertSetup = false;
 
   /**
-   * iOS + CallKit only: re-assert the user's output pick after an interruption ends.
+   * iOS + callingx only: re-assert the user's output pick after an interruption ends.
    *
    * On interruption-end iOS clears the ephemeral route override (`setPreferredInput` /
    * `overrideOutputAudioPort`) and doesn't restore it, and callingx re-applies its config
@@ -177,7 +177,7 @@ class AudioDevicesManager {
     let active = true;
     const unsubscribes: Array<() => void> = [];
 
-    // callingx-owned route changes (Android Telecom + iOS CallKit). The event is
+    // callingx-owned route changes (Android Telecom + iOS CallKit/LiveCommunicationKit). The event is
     // signal-only, so re-read the current state — ignoring a resolve that lands
     // after unsubscribe, and swallowing bridge rejections.
     if (CallingxModule) {

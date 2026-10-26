@@ -49,7 +49,7 @@ export class AudioBindingsWatchdog {
   private tracedStates = new Map<string, string>();
   private enabled = true;
   private watchdogInterval?: NodeJS.Timeout;
-  private readonly unsubscribeCallingState: () => void;
+  private unsubscribeCallingState?: () => void;
   private logger = videoLoggerSystem.getLogger('AudioBindingsWatchdog');
 
   private readonly state: CallState;
@@ -58,8 +58,17 @@ export class AudioBindingsWatchdog {
   constructor(state: CallState, tracer: Tracer) {
     this.tracer = tracer;
     this.state = state;
+    this.setup();
+  }
+
+  /**
+   * Starts and stops the watchdog with the callingState.
+   * Called again when a disposed call instance is reused.
+   */
+  setup = () => {
+    if (this.unsubscribeCallingState) return;
     this.unsubscribeCallingState = createSubscription(
-      state.callingState$,
+      this.state.callingState$,
       (callingState) => {
         if (callingState !== CallingState.JOINED) {
           this.stop();
@@ -68,7 +77,7 @@ export class AudioBindingsWatchdog {
         }
       },
     );
-  }
+  };
 
   /**
    * Registers an audio element binding for the given session and track type.
@@ -103,21 +112,18 @@ export class AudioBindingsWatchdog {
    */
   setEnabled = (enabled: boolean) => {
     this.enabled = enabled;
-    if (enabled) {
-      this.start();
-    } else if (this.state.callingState !== CallingState.JOINED) {
-      this.stop();
-    }
   };
 
   /**
-   * Stops the watchdog and unsubscribes from callingState changes.
+   * Stops the watchdog, clears the tracked bindings and unsubscribes from
+   * callingState changes. Call {@link setup} to use it again.
    */
   dispose = () => {
     this.stop();
     this.bindings.clear();
     this.tracedStates.clear();
-    this.unsubscribeCallingState();
+    this.unsubscribeCallingState?.();
+    this.unsubscribeCallingState = undefined;
   };
 
   private start = () => {

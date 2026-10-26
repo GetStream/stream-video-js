@@ -7,7 +7,10 @@ import {
 import type { StreamVideoConfig } from '../../StreamVideoRN/types';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { AppState } from 'react-native';
-import type { EndCallReason } from '@stream-io/react-native-callingx';
+import type {
+  EndCallReason,
+  RingCallPushPayload,
+} from '@stream-io/react-native-callingx';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -16,7 +19,7 @@ type CanAddPushWSSubscriptionsRef = { current: boolean };
 
 /**
  * This function is used to check if the call should be ended based on the push notification
- * Used to end the CallKit/Telecom call (through callingx) if necessary.
+ * Used to end the system (CallKit/LiveCommunicationKit/Telecom) call (through callingx) if necessary.
  */
 export const shouldCallBeEnded = (
   callFromPush: Call,
@@ -68,8 +71,8 @@ export const processCallFromPushInBackground = async (
   call_cid: string,
   action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered',
   /**
-   * Callback to inform iOS CallKit that the action can be fulfilled
-   * Needed for iOS CallKit fullfillment of action
+   * Callback to inform iOS that the action can be fulfilled
+   * Needed for iOS system fulfillment of action
    * as per ios docs "Instead, wait until you establish a connection and then fulfill the object."
    * This means we wait until call.get() is done and call.join() or call.leave() is invoked (not completed) to fulfill the action
    */
@@ -205,15 +208,12 @@ export const canListenToWS = () =>
 
 export const shouldCallBeClosed = (
   call: Call,
-  pushData: { [key: string]: string | object },
+  pushData: RingCallPushPayload | undefined,
 ) => {
-  const created_by_id = pushData?.created_by_id as string;
-  const receiver_id = pushData?.receiver_id as string;
-
   const { mustEndCall, endCallReason } = shouldCallBeEnded(
     call,
-    created_by_id,
-    receiver_id,
+    pushData?.created_by_id,
+    pushData?.receiver_id,
   );
   return { mustEndCall, endCallReason };
 };

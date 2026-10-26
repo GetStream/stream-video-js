@@ -147,6 +147,18 @@ export abstract class BasePeerConnection {
    * Disposes the `RTCPeerConnection` instance.
    */
   async dispose(): Promise<void> {
+    this.isDisposed = true;
+    this.detachEventHandlers();
+    this.pc.close();
+    this.tracer?.dispose();
+  }
+
+  /**
+   * Detaches the event handlers from the `RTCPeerConnection`, and silences
+   * its callbacks and pending timers, so a replaced instance can't act on
+   * the call while it's kept alive (e.g. for a final stats sample).
+   */
+  detachEventHandlers() {
     clearTimeout(this.iceRestartTimeout);
     this.iceRestartTimeout = undefined;
     clearTimeout(this.preConnectStuckTimeout);
@@ -156,16 +168,6 @@ export abstract class BasePeerConnection {
     this.onNoLocalCandidates = undefined;
     this.onPeerConnectionStateChange = undefined;
     this.onRemoteTrackUnmute = undefined;
-    this.isDisposed = true;
-    this.detachEventHandlers();
-    this.pc.close();
-    this.tracer?.dispose();
-  }
-
-  /**
-   * Detaches the event handlers from the `RTCPeerConnection`.
-   */
-  detachEventHandlers() {
     const pc = this.pc;
     pc.removeEventListener('icecandidate', this.onIceCandidate);
     pc.removeEventListener('icecandidateerror', this.onIceCandidateError);

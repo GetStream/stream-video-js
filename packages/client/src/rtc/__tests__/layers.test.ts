@@ -102,6 +102,38 @@ describe('videoLayers', () => {
     ]);
   });
 
+  it('should not scale the screen share bitrate down by its capture size', () => {
+    const track = new MediaStreamTrack();
+    vi.spyOn(track, 'getSettings').mockReturnValue({ width: 640, height: 360 });
+    const layers = computeVideoLayers(
+      track,
+      fromPartial({
+        trackType: TrackType.SCREEN_SHARE,
+        bitrate: 3_000_000,
+        codec: { name: 'vp8' },
+        fps: 30,
+        videoDimension: { width: 2560, height: 1440 },
+      }),
+    );
+    expect(layers?.map((l) => l.maxBitrate)).toEqual([1_500_000, 3_000_000]);
+  });
+
+  it('should scale the camera bitrate down by its capture size', () => {
+    const track = new MediaStreamTrack();
+    vi.spyOn(track, 'getSettings').mockReturnValue({ width: 640, height: 360 });
+    const layers = computeVideoLayers(
+      track,
+      fromPartial({
+        trackType: TrackType.VIDEO,
+        bitrate: 3_000_000,
+        codec: { name: 'vp8' },
+        fps: 30,
+        videoDimension: { width: 2560, height: 1440 },
+      }),
+    );
+    expect(layers?.map((l) => l.maxBitrate)).toEqual([93_750, 187_500]);
+  });
+
   it('should announce one simulcast layer for resolutions less than 320px wide', () => {
     const track = new MediaStreamTrack();
     const width = 320;

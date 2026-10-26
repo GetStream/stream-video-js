@@ -1,8 +1,5 @@
 #import "CallingxModule.h"
 
-// Compiled without modules, so the Swift header's @imports are skipped; import its dependencies first.
-#import <CallKit/CallKit.h>
-
 #if __has_include("Callingx-Swift.h")
 #import "Callingx-Swift.h"
 #else
@@ -83,7 +80,8 @@
     @"imageName" : options.imageName() ?: @"",
     @"includesCallsInRecents" : @(options.callsHistory()),
     @"displayCallTimeout" : @(options.displayCallTimeout()),
-    @"skipIncomingPushInForeground" : @(options.skipIncomingPushInForeground())
+    @"skipIncomingPushInForeground" : @(options.skipIncomingPushInForeground()),
+    @"useLiveCommunicationKit" : @(options.useLiveCommunicationKit())
   };
 
   [_moduleImpl setupWithOptions:optionsDict];
@@ -136,7 +134,7 @@
 }
 
 - (NSNumber *)isTelecomBacked {
-  // Android-only Telecom routing; iOS uses the CallKit bypass instead.
+  // Android-only Telecom routing; iOS uses its own bypass instead.
   return @NO;
 }
 
@@ -238,16 +236,20 @@
   return @([_moduleImpl setOnHoldCall:callId isOnHold:isOnHold]);
 }
 
-- (NSNumber *)fulfillAnswerCallAction:(NSString *)callId
+- (void)fulfillAnswerCallAction:(NSString *)callId
                               didFail:(BOOL)didFail {
   [_moduleImpl fulfillAnswerCallAction:callId didFail:didFail];
-  return @YES;
 }
 
-- (NSNumber *)fulfillEndCallAction:(NSString *)callId
+- (void)fulfillEndCallAction:(NSString *)callId
                            didFail:(BOOL)didFail {
   [_moduleImpl fulfillEndCallAction:callId didFail:didFail];
-  return @YES;
+}
+
+- (void)getFcmToken:(RCTPromiseResolveBlock)resolve
+             reject:(RCTPromiseRejectBlock)reject {
+  // Android-only feature; iOS uses VoIP push and has no FCM token to return.
+  resolve(@"");
 }
 
 #pragma mark - Background Tasks and Service
@@ -258,17 +260,15 @@
   return @YES;
 }
 
-- (NSNumber *)stopService {
+- (void)stopService {
   // Not implemented on iOS
-  return @YES;
 }
 
 #pragma mark - Logging
 
-- (NSNumber *)log:(NSString *)message
+- (void)log:(NSString *)message
             level:(NSString *)level {
   [CallingxLogBridge js:message level:level];
-  return @YES;
 }
 
 @end

@@ -7,6 +7,8 @@
   "callControls.noiseCancellation.active.title": "La cancelación de ruido está activa",
   "callControls.noiseCancellation.inactive.title": "La cancelación de ruido está inactiva",
   "callControls.noiseCancellation.loading.title": "La cancelación de ruido se está cargando",
+  "callControls.noiseCancellation.overloaded.title": "La cancelación de ruido se desactivó porque tu dispositivo está sobrecargado",
+  "callControls.noiseCancellation.suspended.title": "La cancelación de ruido está en pausa porque tu dispositivo está sobrecargado. Se reanudará en breve.",
   "callControls.statsButton.stats.title": "Estadísticas",
   "callStats.audioBitratePublish.label": "Tasa de bits de audio (publicación)",
   "callStats.audioBitrateReceive.label": "Tasa de bits de audio (recepción)",

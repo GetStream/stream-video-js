@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-2.0.0-beta.4...@stream-io/video-react-native-sdk-2.0.0-beta.5) (2026-10-26)
+
+### Features
+
+- **react-native-callingx:** LiveCommunicationKit opt-in on iOS (CallKit stays default) ([#2504](https://github.com/GetStream/stream-video-js/issues/2504)) ([36de25c](https://github.com/GetStream/stream-video-js/commit/36de25cbd2d7561e766ff7618f3a0b8f052b2d39))
+- react-native-firebase dependency removal ([#2483](https://github.com/GetStream/stream-video-js/issues/2483)) ([dc0b4a7](https://github.com/GetStream/stream-video-js/commit/dc0b4a7d50d56e04d3353e7553b32554fde4293f))
+
 ## [2.0.0-beta.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-2.0.0-beta.3...@stream-io/video-react-native-sdk-2.0.0-beta.4) (2026-10-20)
 
 ## [2.0.0-beta.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-2.0.0-beta.2...@stream-io/video-react-native-sdk-2.0.0-beta.3) (2026-10-16)

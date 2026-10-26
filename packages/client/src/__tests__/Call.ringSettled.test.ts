@@ -64,6 +64,27 @@ describe('Leaving a call settled by the current user', () => {
     expect(call.leave).toHaveBeenCalled();
   });
 
+  it('does not leave again while a leave is in progress', async () => {
+    await createCall(true);
+    // e.g. our own `leave({ reject: true })` lands `rejected_by` mid-teardown
+    call['leavesInProgress'] = 1;
+
+    settleByMe();
+
+    expect(call.leave).not.toHaveBeenCalled();
+  });
+
+  it('still leaves while setup() holds the join/leave lock', async () => {
+    await createCall(true);
+    // e.g. a `get()` or ring event on the live call
+    const setup = call.setup();
+
+    settleByMe();
+    await setup;
+
+    expect(call.leave).toHaveBeenCalled();
+  });
+
   it('ignores the same session on a call that is not ringing', async () => {
     await createCall(false);
     expect(call.state.callingState).toBe(CallingState.IDLE);

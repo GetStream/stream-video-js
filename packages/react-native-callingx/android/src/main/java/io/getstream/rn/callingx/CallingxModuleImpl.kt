@@ -14,6 +14,8 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeArray
+import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.google.firebase.messaging.FirebaseMessaging
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.getstream.rn.callingx.notifications.NotificationsConfig
@@ -52,6 +54,7 @@ class CallingxModuleImpl(
         // Published directly to CallEventBus (not a broadcast), so no manifest intent-filter entry.
         const val CALL_RING_PUSH_ACTION = "io.getstream.CALL_RING_PUSH"
         const val CALL_BACK_ACTION = "io.getstream.CALL_BACK"
+        const val CALL_FCM_TOKEN_REFRESH_ACTION = "io.getstream.FCM_TOKEN_REFRESH"
         // Background task name
         const val HEADLESS_TASK_NAME = "HandleCallBackgroundState"
     }
@@ -372,6 +375,20 @@ class CallingxModuleImpl(
         }
     }
 
+    fun getFcmToken(promise: Promise) {
+        try {
+            FirebaseMessaging.getInstance().token
+                .addOnSuccessListener { token -> promise.resolve(token) }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "[module] getFcmToken: Failed to get FCM token: ${e.message}", e)
+                    promise.reject("FCM_TOKEN_ERROR", e.message, e)
+                }
+        } catch (e: Exception) {
+            Log.e(TAG, "[module] getFcmToken: Failed to get FCM token: ${e.message}", e)
+            promise.reject("FCM_TOKEN_ERROR", e.message, e)
+        }
+    }
+
     fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
         // no-op: Android Telecom doesn't require explicit action fulfillment
     }
@@ -526,6 +543,13 @@ class CallingxModuleImpl(
                 extras.getString(EXTRA_DISPLAY_NAME)?.let { params.putString("displayName", it) }
                 params.putBoolean("isVideo", extras.getBoolean(EXTRA_IS_VIDEO, false))
                 sendJSEvent("callBackRequested", params)
+            }
+            CALL_FCM_TOKEN_REFRESH_ACTION -> {
+                val token = extras.getString(StreamMessagingService.EXTRA_TOKEN)
+                if (token != null) {
+                    params.putString("token", token)
+                }
+                sendJSEvent("fcmTokenRefresh", params)
             }
         }
     }

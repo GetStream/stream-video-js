@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-2.0.0-beta.3...@stream-io/video-client-2.0.0-beta.4) (2026-10-26)
+
+### Bug Fixes
+
+- **client:** don't reconnect while the call is leaving ([#2526](https://github.com/GetStream/stream-video-js/issues/2526)) ([a5c1d95](https://github.com/GetStream/stream-video-js/commit/a5c1d95955d2bc8c30b5b0936360224ce988dde5))
+- **client:** keep remote audio playing on WebKit with a silent audio element ([#2510](https://github.com/GetStream/stream-video-js/issues/2510)) ([d49ac67](https://github.com/GetStream/stream-video-js/commit/d49ac671eb029e7e7529c4edcfb0b8618e265823))
+- **client:** keep the audio bindings watchdog running after the call is left and re-joined ([#2536](https://github.com/GetStream/stream-video-js/issues/2536)) ([71c71ef](https://github.com/GetStream/stream-video-js/commit/71c71ef35156fd715a64bb8b00211d31715d4575))
+- **client:** listen for the subscriber offer before flushing stats on rejoin ([#2527](https://github.com/GetStream/stream-video-js/issues/2527)) ([348abd2](https://github.com/GetStream/stream-video-js/commit/348abd28079c772cdd633a0295295d3cb03dc858))
+- **client:** reset remote audio to the default output when the selected speaker disconnects ([#2533](https://github.com/GetStream/stream-video-js/issues/2533)) ([d67d595](https://github.com/GetStream/stream-video-js/commit/d67d595ce8769feac9f659b174d57965349cb43d))
+
 ## [2.0.0-beta.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-2.0.0-beta.2...@stream-io/video-client-2.0.0-beta.3) (2026-10-20)
 
 ### Features

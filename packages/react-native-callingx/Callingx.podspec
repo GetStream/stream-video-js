@@ -17,6 +17,9 @@ Pod::Spec.new do |s|
   s.private_header_files = "ios/CallingxModule.h"
   s.public_header_files = "ios/CallingxPublic.h", "ios/VoipPushHandler.h"
   s.swift_version = "5.0"
+  s.frameworks = "CallKit", "PushKit", "AVFoundation"
+  # LiveCommunicationKit (opt-in backend) needs iOS 17.4
+  s.weak_frameworks = "LiveCommunicationKit"
 
   s.dependency "stream-react-native-webrtc"
 

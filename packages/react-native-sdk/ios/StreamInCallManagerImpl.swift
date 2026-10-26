@@ -222,9 +222,9 @@ private enum AudioDeviceId {
             let adm = getAudioDeviceModule()
             selectedOutput = nil
 
-            // This path (no CallKit) owns audio-session activation itself, so the
+            // This path (no system call UI) owns audio-session activation itself, so the
             // engine must be allowed to start. Restores availability in case a
-            // prior CallKit call had gated it off.
+            // prior system call had gated it off.
             _ = adm?.setEngineAvailability(.default)
 
             // Stereo is listener-only and applies live. Cleared by stop()'s reset().
@@ -248,8 +248,8 @@ private enum AudioDeviceId {
             // Subscribe to the AudioDeviceModule's engine lifecycle (idempotent).
             // The sink does the authoritative reapply on every engine rebuild
             // (interruption recovery, mode swap) and owns `setActive(true/false)`
-            // since there's no CallKit on this path.
-            // Skipped when callingx owns the session (CallKit-managed call active).
+            // since there's no system call UI on this path.
+            // Skipped when callingx owns the session (callingx-managed call active).
             if engineSubscription == nil {
                 #if DEBUG
                 NSLog("%@","[StreamInCallManager][wireEngineSubscription]")
@@ -275,7 +275,7 @@ private enum AudioDeviceId {
         }
     }
 
-    // MARK: - Engine Lifecycle Handlers (non-CallKit path)
+    // MARK: - Engine Lifecycle Handlers (non-callingx path)
 
     /// Reapplies the same `AVAudioSessionConfiguration` that `setup()` writes
     /// on every engine rebuild, then activates the session.

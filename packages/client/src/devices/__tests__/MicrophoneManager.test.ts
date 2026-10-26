@@ -583,6 +583,45 @@ describe('MicrophoneManager', () => {
       expect(call.notifyNoiseCancellationStopped).toBeCalled();
     });
 
+    it('should track the noise cancellation status', async () => {
+      const noiseCancellation = new NoiseCancellationStub();
+      await manager.enableNoiseCancellation(noiseCancellation);
+      expect(manager.state.noiseCancellationStatus).toBe('disabled');
+
+      await noiseCancellation.enable();
+      expect(manager.state.noiseCancellationStatus).toBe('enabled');
+
+      noiseCancellation.emit('change', false);
+      noiseCancellation.emit('overload', {
+        willRestore: true,
+        overflowCount: 1,
+        restoreInMs: 15000,
+      });
+      expect(manager.state.noiseCancellationStatus).toBe('suspended');
+
+      noiseCancellation.emit('change', true);
+      expect(manager.state.noiseCancellationStatus).toBe('enabled');
+
+      noiseCancellation.emit('change', false);
+      noiseCancellation.emit('overload', {
+        willRestore: false,
+        overflowCount: 3,
+      });
+      expect(manager.state.noiseCancellationStatus).toBe('overloaded');
+
+      await noiseCancellation.enable();
+      expect(manager.state.noiseCancellationStatus).toBe('enabled');
+
+      await manager.disableNoiseCancellation();
+      expect(manager.state.noiseCancellationStatus).toBe('disabled');
+
+      noiseCancellation.emit('overload', {
+        willRestore: true,
+        overflowCount: 1,
+      });
+      expect(manager.state.noiseCancellationStatus).toBe('disabled');
+    });
+
     it('should throw when own capabilities are missing', async () => {
       call.state.setOwnCapabilities([]);
 
