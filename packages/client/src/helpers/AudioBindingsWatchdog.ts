@@ -49,7 +49,6 @@ export class AudioBindingsWatchdog {
   private tracedStates = new Map<string, string>();
   private enabled = true;
   private watchdogInterval?: NodeJS.Timeout;
-  private readonly unsubscribeCallingState: () => void;
   private logger = videoLoggerSystem.getLogger('AudioBindingsWatchdog');
 
   private readonly state: CallState;
@@ -58,16 +57,14 @@ export class AudioBindingsWatchdog {
   constructor(state: CallState, tracer: Tracer) {
     this.tracer = tracer;
     this.state = state;
-    this.unsubscribeCallingState = createSubscription(
-      state.callingState$,
-      (callingState) => {
-        if (callingState !== CallingState.JOINED) {
-          this.stop();
-        } else {
-          this.start();
-        }
-      },
-    );
+    // the subscription lives as long as the call state, so it needs no teardown
+    createSubscription(state.callingState$, (callingState) => {
+      if (callingState !== CallingState.JOINED) {
+        this.stop();
+      } else {
+        this.start();
+      }
+    });
   }
 
   /**
@@ -113,14 +110,6 @@ export class AudioBindingsWatchdog {
     this.stop();
     this.bindings.clear();
     this.tracedStates.clear();
-  };
-
-  /**
-   * Resets the watchdog and unsubscribes from callingState changes.
-   */
-  dispose = () => {
-    this.reset();
-    this.unsubscribeCallingState();
   };
 
   private start = () => {

@@ -37,9 +37,11 @@ describe('AudioBindingsWatchdog', () => {
     watchdog = new AudioBindingsWatchdog(call.state, call.tracer);
   });
 
-  afterEach(() => {
-    watchdog.dispose();
-    call.leave();
+  afterEach(async () => {
+    watchdog.reset();
+    if (call.state.callingState !== CallingState.LEFT) {
+      await call.leave();
+    }
     vi.useRealTimers();
   });
 
@@ -357,7 +359,7 @@ describe('AudioBindingsWatchdog', () => {
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
-  it('dispose should stop the watchdog', () => {
+  it('reset should stop the watchdog', () => {
     // @ts-expect-error private property
     const warnSpy = vi.spyOn(watchdog.logger, 'warn');
 
@@ -371,7 +373,7 @@ describe('AudioBindingsWatchdog', () => {
 
     warnSpy.mockClear();
 
-    watchdog.dispose();
+    watchdog.reset();
     vi.advanceTimersByTime(6000);
 
     expect(warnSpy).not.toHaveBeenCalled();
