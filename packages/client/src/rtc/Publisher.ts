@@ -150,6 +150,16 @@ export class Publisher extends BasePeerConnection {
     const sendEncodings = isSvcCodec(publishOption.codec?.name)
       ? toSvcEncodings(encodings)
       : encodings;
+    // on a constrained uplink, let the screen share out-bid the camera.
+    // priority is per sender: Chrome and Safari reject it on any encoding
+    // other than the first one. networkPriority is left unset on purpose:
+    // a non-default value takes audio out of libwebrtc's bitrate allocation.
+    const priority: RTCPriorityType | undefined = isAudioTrackType(trackType)
+      ? 'high'
+      : trackType === TrackType.SCREEN_SHARE
+        ? 'medium'
+        : undefined;
+    if (priority && sendEncodings?.[0]) sendEncodings[0].priority = priority;
     // An E2EE sender must never have media before its transform is attached,
     // including when another track or an ICE restart negotiates this PC.
     const transceiver = this.pc.addTransceiver(this.e2ee ? track.kind : track, {

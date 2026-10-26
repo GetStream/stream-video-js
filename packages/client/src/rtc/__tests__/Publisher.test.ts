@@ -355,6 +355,58 @@ describe('Publisher', () => {
       expect(negotiateSpy).toHaveBeenCalled();
     });
 
+    it('should set the sender priority on the first encoding only', async () => {
+      publisher.dispose();
+      publisher = new Publisher(
+        { sfuClient, dispatcher, state, tag: 'test', enableTracing: false },
+        [
+          // @ts-expect-error - incomplete data
+          { id: 1, trackType: TrackType.AUDIO, codec: { name: 'opus' } },
+          {
+            id: 2,
+            trackType: TrackType.SCREEN_SHARE,
+            bitrate: 3_000_000,
+            // @ts-expect-error - incomplete data
+            codec: { name: 'vp8' },
+            fps: 30,
+            videoDimension: { width: 2560, height: 1440 },
+          },
+          // @ts-expect-error - incomplete data
+          {
+            id: 3,
+            trackType: TrackType.SCREEN_SHARE_AUDIO,
+            codec: { name: 'opus' },
+          },
+        ],
+      );
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
+
+      const encodingsOf = async (trackType: TrackType) => {
+        vi.mocked(publisher['pc'].addTransceiver).mockClear();
+        const track = new MediaStreamTrack();
+        vi.spyOn(track, 'clone').mockReturnValue(new MediaStreamTrack());
+        await publisher.publish(track, trackType);
+        const [, init] = vi.mocked(publisher['pc'].addTransceiver).mock
+          .calls[0];
+        return init!.sendEncodings!;
+      };
+
+      const [audio] = await encodingsOf(TrackType.AUDIO);
+      expect(audio.priority).toBe('high');
+      expect(audio.networkPriority).toBeUndefined();
+
+      const [screenShareAudio] = await encodingsOf(
+        TrackType.SCREEN_SHARE_AUDIO,
+      );
+      expect(screenShareAudio.priority).toBe('high');
+
+      const [first, ...rest] = await encodingsOf(TrackType.SCREEN_SHARE);
+      expect(first.priority).toBe('medium');
+      expect(first.networkPriority).toBeUndefined();
+      expect(rest.length).toBeGreaterThan(0);
+      for (const encoding of rest) expect(encoding.priority).toBeUndefined();
+    });
+
     it('should attach an encryptor when E2EE manager is provided', async () => {
       const e2eeMock = {
         encrypt: vi.fn(),
