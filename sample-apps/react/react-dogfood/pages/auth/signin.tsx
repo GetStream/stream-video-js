@@ -1,6 +1,5 @@
 import { Icon, LoadingIndicator } from '@stream-io/video-react-sdk';
 import { type GetServerSidePropsContext } from 'next';
-import { getServerSession } from 'next-auth';
 import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect } from 'react';
@@ -10,7 +9,7 @@ import {
 } from '../../context/AppEnvironmentContext';
 import { getRandomName } from '../../lib/names';
 
-import { authOptions } from '../api/auth/[...nextauth]';
+import { authOptions, getValidServerSession } from '../api/auth/[...nextauth]';
 import clsx from 'clsx';
 import { useAppI18n } from '../../hooks/useAppI18n';
 
@@ -37,13 +36,14 @@ export default function SignIn({
 
   useEffect(() => {
     if (signInAutomatically) {
-      signIn('stream-demo-login', { name: getRandomName(), callbackUrl }).catch(
-        (err) => {
-          console.error('Error logging in:', err);
-        },
-      );
+      const pendingSignIn = providers['stream-demo-login']
+        ? signIn('stream-demo-login', { name: getRandomName(), callbackUrl })
+        : signIn('google', { callbackUrl });
+      pendingSignIn.catch((err) => {
+        console.error('Error logging in:', err);
+      });
     }
-  }, [signInAutomatically, callbackUrl]);
+  }, [signInAutomatically, callbackUrl, providers]);
 
   if (signInAutomatically) {
     return (
@@ -150,7 +150,7 @@ const GuestLoginItem = (props: {
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context.req, context.res, authOptions);
+  const session = await getValidServerSession(context.req, context.res);
   if (session) {
     const { query } = context;
     const params = new URLSearchParams(query as Record<string, string>);

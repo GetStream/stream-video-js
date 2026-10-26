@@ -1,6 +1,5 @@
 import { GetServerSidePropsContext, GetServerSidePropsResult } from 'next';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../pages/api/auth/[...nextauth]';
+import { getValidServerSession } from '../pages/api/auth/[...nextauth]';
 import { createToken, decodeToken } from '../helpers/jwt';
 import type { User } from '@stream-io/video-react-sdk';
 import { getEnvironmentConfig } from './environmentConfig';
@@ -29,11 +28,7 @@ export const getServerSideCredentialsPropsWithOptions =
   async (
     context: GetServerSidePropsContext,
   ): Promise<GetServerSidePropsResult<ServerSideCredentialsProps>> => {
-    const session = await getServerSession(
-      context.req,
-      context.res,
-      authOptions,
-    );
+    const session = await getValidServerSession(context.req, context.res);
     if (!session) {
       const url = context.req.url;
       const params = new URLSearchParams();
