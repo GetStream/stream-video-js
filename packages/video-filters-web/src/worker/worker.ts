@@ -1,17 +1,16 @@
 /// <reference lib="webworker" />
+/**
+ * Worker entry for the background effect. It runs as a classic worker
+ * because tasks-vision loads its WASM with importScripts(). Safari exposes
+ * MediaStreamTrackProcessor and VideoTrackGenerator inside workers,
+ * so the regular VirtualBackground pipeline runs here unchanged.
+ */
 import { VirtualBackground } from '../VirtualBackground';
 import type { FromWorkerMessage, ToWorkerMessage } from './protocol';
 
 const messageOf = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
-/**
- * Worker entry for the background effect. It must run as a classic worker:
- * tasks-vision loads its WASM loader with importScripts().
- *
- * Inside a Safari worker MediaStreamTrackProcessor and VideoTrackGenerator
- * exist, so the unmodified VirtualBackground pipeline runs here as-is.
- */
 const scope = self as unknown as DedicatedWorkerGlobalScope;
 const post = (message: FromWorkerMessage, transfer: Transferable[] = []) =>
   scope.postMessage(message, transfer);
@@ -58,9 +57,6 @@ scope.onmessage = async (e: MessageEvent<ToWorkerMessage>) => {
       break;
     }
     case 'update': {
-      // Acknowledged, so the main thread's updateOptions() keeps the
-      // main-thread semantics: it settles when the new effect is in place and
-      // rejects when e.g. the background image can't be loaded.
       const { id } = message;
       (processor?.updateOptions(message.options) ?? Promise.resolve()).then(
         () => post({ type: 'updated', id }),

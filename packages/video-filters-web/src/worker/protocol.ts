@@ -5,11 +5,8 @@ import type {
 } from '../types';
 
 /**
- * Messages from the main thread to the background-effect worker.
- *
- * The input track is transferred in, the worker builds
- * MediaStreamTrackProcessor + VideoTrackGenerator (Safari exposes them only
- * in workers), and the generated track is transferred back.
+ * Messages from the main thread to the worker.
+ * The input track is transferred with `start`.
  */
 export type ToWorkerMessage =
   | { type: 'start'; track: MediaStreamTrack; options: BackgroundOptions }
@@ -17,7 +14,8 @@ export type ToWorkerMessage =
   | { type: 'stop' };
 
 /**
- * Messages from the background-effect worker to the main thread.
+ * Messages from the worker to the main thread.
+ * The processed track is transferred with `started`.
  */
 export type FromWorkerMessage =
   | { type: 'started'; track: MediaStreamTrack }

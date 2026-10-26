@@ -1,11 +1,9 @@
 let tracksTransferable: boolean | undefined;
 
 /**
- * Whether a MediaStreamTrack can be transferred to a dedicated worker, which
- * is where Safari (18+) exposes MediaStreamTrackProcessor and
- * VideoTrackGenerator. Probed once, by transferring a canvas-captured track
- * through a MessageChannel: browsers that don't support it throw a
- * DataCloneError. No user agent sniffing involved.
+ * Whether a MediaStreamTrack can be transferred to a worker (Safari 18+).
+ * Probed once by posting a canvas track through a MessageChannel;
+ * browsers without support throw a DataCloneError.
  */
 export const canTransferTracks = (): boolean => {
   if (tracksTransferable !== undefined) return tracksTransferable;

@@ -7,9 +7,9 @@ import { VirtualBackground } from './VirtualBackground';
 import { WorkerVirtualBackground } from './worker/WorkerVirtualBackground';
 
 /**
- * Creates the background-effect processor for the current browser: the
+ * Creates the background processor for the current browser:
  * {@link WorkerVirtualBackground} where the track APIs exist only in workers
- * (Safari 18+), the main-thread {@link VirtualBackground} everywhere else.
+ * (Safari 18+), {@link VirtualBackground} everywhere else.
  */
 export const createVirtualBackground = (
   track: MediaStreamVideoTrack,

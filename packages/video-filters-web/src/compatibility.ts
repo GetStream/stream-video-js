@@ -5,11 +5,10 @@ export type PlatformSupportFlags = {
   forceMobileSupport?: boolean;
 
   /**
-   * Enables Safari. On Safari 18+ `createVirtualBackground` runs the effect
-   * in a worker, which keeps the frame rate when the tab is in the background
-   * but requires `worker-src blob:` in the Content-Security-Policy. On older
-   * Safari versions processing runs on the main thread, where the FPS can
-   * drop significantly or freeze when the tab is put in the background.
+   * Enables Safari. On Safari 18+ the effect runs in a worker, which keeps
+   * the frame rate in background tabs but requires `worker-src blob:` in the
+   * Content-Security-Policy. Older versions process on the main thread,
+   * where the FPS drops or freezes when the tab goes to the background.
    */
   forceSafariSupport?: boolean;
 };

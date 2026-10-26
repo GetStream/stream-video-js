@@ -83,9 +83,8 @@ type VideoTrackGeneratorConstructor = new (
 ) => MediaStreamTrackGenerator<VideoFrame>;
 
 /**
- * The spec'd generator (Safari 18+, DedicatedWorker only). Unlike
- * MediaStreamTrackGenerator it is not a track itself: it exposes `track`
- * and `writable` separately.
+ * The generator of the mediacapture-transform spec (Safari 18+, workers only).
+ * Unlike MediaStreamTrackGenerator it is not a track itself.
  */
 declare class VideoTrackGenerator {
   readonly track: MediaStreamVideoTrack;
@@ -93,8 +92,7 @@ declare class VideoTrackGenerator {
 }
 
 /**
- * Adapts VideoTrackGenerator to the MediaStreamTrackGenerator shape by
- * exposing the writable on the generated track, as FallbackGenerator does.
+ * Adapts VideoTrackGenerator to the MediaStreamTrackGenerator shape.
  */
 class SpecTrackGenerator {
   constructor({ signalTarget }: TrackGeneratorOptions) {

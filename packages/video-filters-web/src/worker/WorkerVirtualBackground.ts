@@ -13,8 +13,8 @@ type Deferred<T> = {
 };
 
 /**
- * A `blob:` worker can't resolve relative URLs (its base URL is the blob),
- * so resolve them against the page before they cross into the worker.
+ * Relative URLs don't resolve inside a `blob:` worker,
+ * so they are resolved against the page first.
  */
 const withAbsoluteUrls = <T extends BackgroundOptions>(options: T): T => {
   const resolved = { ...options };
@@ -28,11 +28,10 @@ const withAbsoluteUrls = <T extends BackgroundOptions>(options: T): T => {
 /**
  * Runs {@link VirtualBackground} in a dedicated worker, for browsers that
  * expose MediaStreamTrackProcessor and VideoTrackGenerator only in workers
- * (Safari 18+). A clone of the camera track is transferred in and the
- * processed track is transferred back, so no frame touches the main thread.
- * This is the pattern of the mediacapture-transform spec.
+ * (Safari 18+). A clone of the input track is transferred in and the
+ * processed track is transferred back.
  *
- * The worker bundle is inlined by the build and started from a `blob:` URL,
+ * The worker is inlined into the bundle and started from a `blob:` URL,
  * so the Content-Security-Policy has to allow `worker-src blob:`.
  *
  * @experimental
@@ -62,10 +61,8 @@ export class WorkerVirtualBackground implements BackgroundProcessor {
   }
 
   /**
-   * Whether the worker pipeline applies here: the track APIs are missing on
-   * the main thread but tracks can be transferred to a worker, which is how
-   * Safari 18+ exposes them. Chrome keeps its main-thread APIs; Firefox has
-   * neither and uses the main-thread fallback.
+   * Whether the track APIs are missing on the main thread
+   * but tracks can be transferred to a worker (Safari 18+).
    */
   static isSupported = (): boolean =>
     typeof Worker !== 'undefined' &&
@@ -90,9 +87,6 @@ export class WorkerVirtualBackground implements BackgroundProcessor {
     const previous = this.options;
     this.options = { basePath, modelPath, ...options };
     if (!this.worker) {
-      // While the worker chunk loads, start() sends the merged options itself
-      // and this update settles with it; once the worker is gone (stopped,
-      // failed) there is nothing left to update.
       if (this.starting && !this.output) await this.starting;
       return;
     }
@@ -120,10 +114,6 @@ export class WorkerVirtualBackground implements BackgroundProcessor {
     this.post({ type: 'stop' });
   };
 
-  /**
-   * Loads the worker, transfers a clone of the track into it and resolves
-   * with the processed track it sends back.
-   */
   private startWorker = async (): Promise<MediaStreamTrack> => {
     const { default: VideoFiltersWorker } =
       await import('./worker?worker&inline');
