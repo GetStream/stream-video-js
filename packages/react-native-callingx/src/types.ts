@@ -224,6 +224,17 @@ export interface ICallingxModule {
   registerVoipToken(): void;
 
   /**
+   * Marks whether the VoIP token was registered with the backend for a logged-in user.
+   * iOS-only; no-op on Android.
+   *
+   * The native PushKit registration at app launch (`voipRegistration()` in the AppDelegate)
+   * only runs while this is `true`. Set it after the token was added for a user and clear it
+   * on logout, so a reinstall doesn't revive a token still bound to a previous user.
+   * @param registered - Whether the token is registered for a logged-in user.
+   */
+  setVoipTokenRegistered(registered: boolean): void;
+
+  /**
    * Asks the Android call service to stop. Android-only; no-op on iOS.
    * Runs synchronously; throws if the native call fails.
    *

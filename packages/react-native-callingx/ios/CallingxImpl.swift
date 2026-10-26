@@ -283,6 +283,7 @@ import stream_react_native_webrtc
     @objc public func setup(options: [String: Any]) {
         // Persist first: the backend is chosen from the persisted settings when it is created.
         Settings.setSettings(options)
+        Settings.initVoipTokenRegisteredIfNeeded()
         let backend = CallingxImpl.currentBackend()
         backend.applyConfiguration()
         let requestedKind = CallingxImpl.preferredBackendKind()
