@@ -99,11 +99,39 @@ Call events:
 - `didReceiveStartCallAction`
 - `didActivateAudioSession`
 - `didDeactivateAudioSession`
+- `callBackRequested` (see below)
 
 VoIP events:
 
 - `voipNotificationsRegistered`
 - `voipNotificationReceived`
+
+## Calls history and call-back
+
+With `ios.callsHistory` / `android.callsHistory` enabled, calls appear in the system call history
+(iOS Recents; Android 16 QPR2+ call log, where the dialer supports VoIP calls). Tapping an entry
+opens the app and emits `callBackRequested`:
+
+```ts
+CallingxModule.addEventListener('callBackRequested', ({ callId, isVideo }) => {
+  // callId: the cid of the original call. Fetch it to get its members and ring them again
+  // in a new call. On iOS, calls are reported to CallKit with the cid as their handle.
+});
+```
+
+The event is sticky: when the tap launched the app, it's delivered to the first listener,
+even if that listener subscribes after the event arrived.
+
+On iOS, forward user activities to callingx:
+
+```swift
+// application(_:continue:restorationHandler:), and with UIScene also
+// scene(_:willConnectTo:options:) (connectionOptions.userActivities) and scene(_:continue:)
+_ = Callingx.handle(userActivity) // or StreamVideoReactNative.handle(userActivity)
+// (ObjC: +[Callingx handleUserActivity:]; Swift imports it as handle(_:))
+```
+
+and add `INStartCallIntent` to `NSUserActivityTypes` in `Info.plist`.
 
 ## Skip CallKit when the app is in the foreground (iOS 26.4+)
 

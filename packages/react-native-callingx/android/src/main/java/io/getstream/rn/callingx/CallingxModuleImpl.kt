@@ -17,6 +17,7 @@ import com.facebook.react.bridge.WritableNativeArray
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.getstream.rn.callingx.notifications.NotificationsConfig
+import io.getstream.rn.callingx.utils.CallLogStore
 import io.getstream.rn.callingx.utils.LifecycleListener
 import io.getstream.rn.callingx.utils.SettingsStore
 
@@ -34,6 +35,8 @@ class CallingxModuleImpl(
         const val EXTRA_DISCONNECT_CAUSE = "disconnect_cause"
         const val EXTRA_SOURCE = "source"
         const val EXTRA_ACTION = "action_name"
+        const val EXTRA_DISPLAY_NAME = "display_name"
+        const val EXTRA_IS_VIDEO = "is_video"
 
         // Action names must match intent-filter entries in AndroidManifest.xml
         const val CALL_REGISTERED_ACTION = "io.getstream.CALL_REGISTERED"
@@ -48,6 +51,7 @@ class CallingxModuleImpl(
         const val CALL_OPTIMISTIC_ACCEPT_ACTION = "io.getstream.ACCEPT_CALL_OPTIMISTIC"
         // Published directly to CallEventBus (not a broadcast), so no manifest intent-filter entry.
         const val CALL_RING_PUSH_ACTION = "io.getstream.CALL_RING_PUSH"
+        const val CALL_BACK_ACTION = "io.getstream.CALL_BACK"
         // Background task name
         const val HEADLESS_TASK_NAME = "HandleCallBackgroundState"
     }
@@ -131,6 +135,9 @@ class CallingxModuleImpl(
         val callsHistory = options.hasKey("callsHistory") && options.getBoolean("callsHistory")
         SettingsStore.setCallsHistoryEnabled(reactApplicationContext, callsHistory)
         CallBackActivity.setEnabled(reactApplicationContext, callsHistory)
+        if (!callsHistory) {
+            CallLogStore.clear(reactApplicationContext)
+        }
 
         isModuleInitialized = true
     }
@@ -514,6 +521,11 @@ class CallingxModuleImpl(
                     params.putString(key, extras.getString(key))
                 }
                 sendJSEvent("ringCallPushReceived", params)
+            }
+            CALL_BACK_ACTION -> {
+                extras.getString(EXTRA_DISPLAY_NAME)?.let { params.putString("displayName", it) }
+                params.putBoolean("isVideo", extras.getBoolean(EXTRA_IS_VIDEO, false))
+                sendJSEvent("callBackRequested", params)
             }
         }
     }

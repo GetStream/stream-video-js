@@ -59,8 +59,8 @@ class CallService : Service(), CallRepository.Listener {
         internal const val EXTRA_URI = "extra_uri"
         /**
          * A null-scheme address reboots ColorOS devices (Telecom NPE), so the handle is wrapped
-         * with the package name like the Android SDK ("$packageName:$callId"). The address is
-         * never dialed; it is only stored in the system call log when calls history is enabled.
+         * with the package name ("$packageName:$callCid"). The address is never dialed; it is
+         * only stored in the system call log when calls history is enabled.
          */
         internal fun toTelecomAddress(context: Context, handle: String): Uri =
                 Uri.fromParts(context.packageName, handle, null)
@@ -135,7 +135,7 @@ class CallService : Service(), CallRepository.Listener {
                     Intent(context, CallService::class.java).apply {
                         action = ACTION_INCOMING_CALL
                         putExtra(EXTRA_CALL_ID, callCid)
-                        putExtra(EXTRA_URI, toTelecomAddress(context, callCid.substringAfter(':')))
+                        putExtra(EXTRA_URI, toTelecomAddress(context, callCid))
                         putExtra(EXTRA_NAME, callDisplayName)
                         putExtra(EXTRA_IS_VIDEO, isVideo)
                     }

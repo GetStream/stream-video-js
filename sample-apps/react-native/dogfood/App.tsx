@@ -27,6 +27,7 @@ import { ChatWrapper } from './src/components/ChatWrapper';
 import { AppMode } from './src/navigators/AppMode';
 import { setPushConfig } from './src/utils/setPushConfig';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
+import { useCallBackEffect } from './src/hooks/useCallBackEffect';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Appearance, LogBox, StatusBar } from 'react-native';
@@ -174,6 +175,7 @@ const StackNavigator = () => {
 const RingingWatcher = () => {
   const setState = useAppGlobalStoreSetState();
   const hasRingingCall = useCalls().some((c) => c.ringing);
+  useCallBackEffect();
 
   useEffect(() => {
     if (hasRingingCall) {

@@ -28,6 +28,24 @@
     [voipManagerClass voipRegistration];
 }
 
++ (BOOL)handleUserActivity:(NSUserActivity *)userActivity {
+    Class callingxClass = NSClassFromString(@"Callingx");
+    SEL selector = @selector(handleUserActivity:);
+    if (!callingxClass || ![callingxClass respondsToSelector:selector]) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][handleUserActivity] Callingx not available");
+        #endif
+        return NO;
+    }
+
+    BOOL (*handleUserActivity)(id, SEL, NSUserActivity *) = (BOOL (*)(id, SEL, NSUserActivity *))[callingxClass methodForSelector:selector];
+    BOOL handled = handleUserActivity(callingxClass, selector, userActivity);
+    #if DEBUG
+    NSLog(@"[StreamVideoReactNative][handleUserActivity] type: %@, handled: %d", userActivity.activityType, handled);
+    #endif
+    return handled;
+}
+
 //current implementation will return any registered calls not only stream calls
 + (BOOL)hasAnyActiveCall
 {

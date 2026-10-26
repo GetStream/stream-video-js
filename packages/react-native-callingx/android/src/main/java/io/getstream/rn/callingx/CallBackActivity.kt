@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.telecom.TelecomManager
 import android.util.Log
+import io.getstream.rn.callingx.utils.CallLogStore
 
 /**
  * Invisible trampoline for call log callbacks (Android 16 QPR2+ unified call history).
@@ -15,7 +16,7 @@ import android.util.Log
  * Declaring a `TelecomManager.ACTION_CALL_BACK` handler is what opts the app into call logging,
  * so the component ships disabled and is toggled at runtime from the `callsHistory` setup option.
  * When the user taps a call log entry, the system starts this activity with
- * `TelecomManager.EXTRA_UUID` (the Telecom call id). It opens the app's launch activity.
+ * `TelecomManager.EXTRA_UUID` (the Telecom call id).
  */
 class CallBackActivity : Activity() {
 
@@ -60,6 +61,7 @@ class CallBackActivity : Activity() {
 
         val uuid = intent.getStringExtra(TelecomManager.EXTRA_UUID)
         debugLog(TAG, "[callback] handleIntent: Call back requested for $uuid")
+        publishCallBack(uuid)
 
         val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
         if (launchIntent == null) {
@@ -75,5 +77,19 @@ class CallBackActivity : Activity() {
         } catch (e: Exception) {
             Log.e(TAG, "[callback] handleIntent: Failed to open launch activity: ${e.message}", e)
         }
+    }
+
+    private fun publishCallBack(uuid: String?) {
+        val entry = uuid?.let { CallLogStore.get(this, it) }
+        if (entry == null) {
+            Log.w(TAG, "[callback] publishCallBack: No call found for $uuid")
+            return
+        }
+        val extras = Bundle().apply {
+            putString(CallingxModuleImpl.EXTRA_CALL_ID, entry.callId)
+            putString(CallingxModuleImpl.EXTRA_DISPLAY_NAME, entry.displayName)
+            putBoolean(CallingxModuleImpl.EXTRA_IS_VIDEO, entry.isVideo)
+        }
+        CallEventBus.publish(CallEvent(CallingxModuleImpl.CALL_BACK_ACTION, extras))
     }
 }

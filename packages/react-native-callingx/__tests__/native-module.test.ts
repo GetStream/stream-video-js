@@ -18,6 +18,8 @@ const nativeModule = {
   getAvailableAudioEndpoints: jest.fn(() => JSON.stringify(snapshot)),
   onNewEvent: jest.fn(() => subscription),
   onNewVoipEvent: jest.fn(() => subscription),
+  setShouldRejectCallWhenBusy: jest.fn(() => true),
+  setupAndroid: jest.fn(() => true),
 };
 const getEnforcing = jest.fn(() => nativeModule);
 const platform = { OS: 'android' };
@@ -129,4 +131,79 @@ test('addEventListener subscribes once and removes after the last listener', () 
   expect(nativeModule.onNewVoipEvent).toHaveBeenCalledTimes(1);
   voip.remove();
   expect(subscription.remove).toHaveBeenCalledTimes(2);
+});
+
+describe('setup (Android) callsHistory', () => {
+  test('defaults to false', () => {
+    load().setup({});
+    expect(nativeModule.setupAndroid).toHaveBeenCalledWith(
+      expect.objectContaining({ callsHistory: false }),
+    );
+  });
+
+  test('forwards the configured value', () => {
+    load().setup({ android: { callsHistory: true } });
+    expect(nativeModule.setupAndroid).toHaveBeenCalledWith(
+      expect.objectContaining({ callsHistory: true }),
+    );
+  });
+});
+
+describe('callBackRequested (sticky)', () => {
+  const callBack = { callId: 'default:abc', isVideo: true };
+  let emit: (event: unknown) => void;
+
+  beforeEach(() => {
+    nativeModule.onNewEvent.mockImplementation((handler) => {
+      emit = handler;
+      return subscription;
+    });
+  });
+
+  test('holds a call back from the initial events for the first listener', () => {
+    const getInitialEvents = jest.fn(() => [
+      { eventName: 'answerCall', params: { callId: 'c', source: 'sys' } },
+      { eventName: 'callBackRequested', params: callBack },
+    ]);
+    Object.assign(nativeModule, { getInitialEvents });
+    const module = load();
+
+    expect(module.getInitialEvents()).toEqual([
+      { eventName: 'answerCall', params: { callId: 'c', source: 'sys' } },
+    ]);
+
+    const first = jest.fn();
+    const second = jest.fn();
+    module.addEventListener('callBackRequested', first);
+    module.addEventListener('callBackRequested', second);
+    expect(first).toHaveBeenCalledWith(callBack);
+    expect(second).not.toHaveBeenCalled();
+  });
+
+  test('holds a live call back until a listener subscribes', () => {
+    const module = load();
+    module.setup({});
+    emit({ eventName: 'callBackRequested', params: callBack });
+
+    const listener = jest.fn();
+    module.addEventListener('callBackRequested', listener);
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenCalledWith(callBack);
+  });
+
+  test('delivers live call backs to current listeners without holding them', () => {
+    const module = load();
+    const listener = jest.fn();
+    const subscriptionHandle = module.addEventListener(
+      'callBackRequested',
+      listener,
+    );
+    emit({ eventName: 'callBackRequested', params: callBack });
+    expect(listener).toHaveBeenCalledWith(callBack);
+
+    subscriptionHandle.remove();
+    const late = jest.fn();
+    module.addEventListener('callBackRequested', late);
+    expect(late).not.toHaveBeenCalled();
+  });
 });

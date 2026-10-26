@@ -85,6 +85,9 @@ export interface Spec extends TurboModule {
       receiver_id?: string;
       video?: string;
       version?: string;
+      // `callBackRequested`
+      displayName?: string;
+      isVideo?: boolean;
     };
   }>;
 
@@ -194,6 +197,9 @@ export interface Spec extends TurboModule {
       receiver_id?: string;
       video?: string;
       version?: string;
+      // `callBackRequested`
+      displayName?: string;
+      isVideo?: boolean;
     };
   }>;
 

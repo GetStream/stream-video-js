@@ -404,7 +404,8 @@ export type EventName =
   | 'didActivateAudioSession'
   | 'didDeactivateAudioSession'
   | 'providerReset'
-  | 'ringCallPushReceived';
+  | 'ringCallPushReceived'
+  | 'callBackRequested';
 
 export type RingCallPushPayload = {
   call_cid?: string;
@@ -457,6 +458,17 @@ export type EventParams = {
     callCids: string[];
   };
   ringCallPushReceived: RingCallPushPayload;
+  callBackRequested: CallBackRequestedParams;
+};
+
+/**
+ * Sent when the user taps a call entry in the system call history (Android call log, iOS
+ * Recents) to call back. Requires `callsHistory`. The app decides how to call back.
+ */
+export type CallBackRequestedParams = {
+  callId: string; // cid of the call the history entry belongs to
+  displayName?: string;
+  isVideo: boolean;
 };
 
 export type VoipEventName =

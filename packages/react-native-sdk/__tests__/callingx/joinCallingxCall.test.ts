@@ -62,7 +62,7 @@ describe('joinCallingxCall', () => {
 
     expect(mockCallingxModule.displayIncomingCall).toHaveBeenCalledWith(
       'default:target',
-      'caller',
+      'default:target',
       expect.anything(),
       false,
     );
@@ -205,5 +205,23 @@ describe('joinCallingxCall', () => {
       'canceled',
     );
     expect(mockTracked.has('default:ongoing')).toBe(false);
+  });
+});
+
+describe('joinCallingxCall handle (iOS Recents call-back target)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockTracked.clear();
+  });
+
+  it('reports an own outgoing call with its cid as the handle', async () => {
+    const {
+      joinCallingxCall,
+    } = require('../../src/utils/internal/callingx/callingx');
+    const call = makeCall({ isCreatedByMe: true, currentUserId: 'me' });
+    await joinCallingxCall(call, [], () => false);
+    expect(mockCallingxModule.startCall.mock.calls[0][1]).toBe(
+      'default:target',
+    );
   });
 });

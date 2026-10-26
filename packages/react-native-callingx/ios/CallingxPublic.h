@@ -71,6 +71,16 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (BOOL)canRegisterCall;
 
+/**
+ * Handles a call back from a CallKit Recents entry (`INStartCallIntent`) by emitting the
+ * `callBackRequested` event. Call it with every user activity the app receives:
+ * `application:continueUserActivity:restorationHandler:`, and with the UIScene lifecycle also
+ * `scene:willConnectToSession:options:` (cold start) and `scene:continueUserActivity:`.
+ *
+ * @return YES if the activity was a call intent and was handled, NO otherwise.
+ */
++ (BOOL)handleUserActivity:(NSUserActivity *)userActivity;
+
 @end
 
 NS_ASSUME_NONNULL_END

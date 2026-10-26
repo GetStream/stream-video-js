@@ -12,4 +12,14 @@
  */
 + (void)voipRegistration;
 
+/**
+ * Handles a call back from a CallKit Recents entry: emits the callingx `callBackRequested`
+ * event. Requires `push.ios.callsHistory`. Call it with every user activity the app receives:
+ * `application:continueUserActivity:restorationHandler:`, and with the UIScene lifecycle also
+ * `scene:willConnectToSession:options:` (cold start) and `scene:continueUserActivity:`.
+ *
+ * @return YES if the activity was a call back and was handled, NO otherwise.
+ */
++ (BOOL)handleUserActivity:(NSUserActivity *)userActivity;
+
 @end

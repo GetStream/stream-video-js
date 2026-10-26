@@ -3,6 +3,7 @@ import CallKit
 import AVFoundation
 import UIKit
 import Combine
+import Intents
 import stream_react_native_webrtc
 
 // MARK: - Event Names
@@ -19,6 +20,7 @@ import stream_react_native_webrtc
     public static let performEndCallAction = "endCall"
     public static let performPlayDTMFCallAction = "didPerformDTMFAction"
     public static let providerReset = "providerReset"
+    public static let callBackRequested = "callBackRequested"
 }
 
 // MARK: - Event Emitter Protocol
@@ -174,7 +176,7 @@ import stream_react_native_webrtc
         callUpdate.supportsUngrouping = supportsUngrouping
         callUpdate.hasVideo = hasVideo
         callUpdate.localizedCallerName = localizedCallerName
-        
+
         sharedProvider?.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
             CallingxLog.core.debugPublic("[reportNewIncomingCall] callId = \(callId), error = \(String(describing: error))")
             let errorCode = error != nil ? CallingxImpl.getIncomingCallErrorCode(error!) : ""
@@ -320,6 +322,9 @@ import stream_react_native_webrtc
             }
             
             if self.canSendEvents {
+                if name == CallingxEvents.callBackRequested {
+                    CallingxLog.core.debugPublic("[sendEvent] emitting \(name), hasEmitter = \(self.eventEmitter != nil)")
+                }
                 self.eventEmitter?.emitEvent(dictionary)
             } else {
                 CallingxImpl.delayedEvents.append(dictionary)
@@ -403,6 +408,67 @@ import stream_react_native_webrtc
         Settings.setSettings(options)
         CallingxImpl.sharedProvider?.configuration = Settings.getProviderConfiguration()
         isSetup = true
+    }
+
+    // MARK: - Call History Callback
+
+    private static let legacyCallIntentNames: Set<String> = [
+        "INStartVideoCallIntent",
+        "INStartAudioCallIntent",
+    ]
+
+    private static func isValidHandle(_ value: String) -> Bool {
+        let parts = value.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
+        return parts.count == 2 && !parts[0].isEmpty && !parts[1].isEmpty
+    }
+
+    /// Handles a call back from a Recents entry (`INStartCallIntent`, or the legacy
+    /// `INStartVideoCallIntent` / `INStartAudioCallIntent` Recents still sends).
+    /// Returns false for any other activity so the app's other handlers can process it.
+    /// Safe to call before React Native starts: the event is queued until JS reads initial events.
+    @objc public static func handleUserActivity(_ userActivity: NSUserActivity) -> Bool {
+        guard Settings.getCallsHistory() else { return false }
+
+        let interaction = userActivity.interaction
+        guard let intent = interaction?.intent else {
+            CallingxLog.core.debugPublic("[handleUserActivity] no intent, ignoring")
+            return false
+        }
+
+        let contacts: [INPerson]?
+        let isVideo: Bool
+        if let callIntent = intent as? INStartCallIntent {
+            contacts = callIntent.contacts
+            isVideo = callIntent.callCapability == .videoCall
+        } else if legacyCallIntentNames.contains(userActivity.activityType) {
+            // CallKit Recents still sends the pre-iOS 13 INStartVideoCallIntent /
+            // INStartAudioCallIntent. Both are deprecated, so read them via KVC instead of
+            // referencing the types (which would add deprecation warnings).
+            contacts = intent.value(forKey: "contacts") as? [INPerson]
+            isVideo = userActivity.activityType == "INStartVideoCallIntent"
+        } else {
+            CallingxLog.core.debugPublic("[handleUserActivity] not a call intent, ignoring")
+            return false
+        }
+
+        let person = contacts?.first
+        guard let handle = person?.personHandle?.value, !handle.isEmpty else {
+            CallingxLog.core.debugPublic("[handleUserActivity] call intent without a handle")
+            return false
+        }
+
+        guard isValidHandle(handle) else {
+            CallingxLog.core.debugPublic("[handleUserActivity] handle is not a call cid, ignoring")
+            return false
+        }
+
+        var body: [String: Any] = ["callId": handle, "isVideo": isVideo]
+        if let displayName = person?.displayName, !displayName.isEmpty {
+            body["displayName"] = displayName
+        }
+
+        getSharedInstance().sendEvent(CallingxEvents.callBackRequested, body: body)
+        return true
     }
 
     /// Wires the ADM engine-lifecycle subscription to the live call factory's ADM. A no-op when
@@ -635,7 +701,7 @@ import stream_react_native_webrtc
         let startCallAction = CXStartCallAction(call: call.uuid, handle: callHandle)
         startCallAction.isVideo = hasVideo
         startCallAction.contactIdentifier = callerName
-        
+
         let transaction = CXTransaction(action: startCallAction)
         requestTransaction(transaction)
     }
