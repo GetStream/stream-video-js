@@ -2,6 +2,7 @@ import { isSvcCodec } from './codecs';
 import {
   AudioBitrateProfile,
   PublishOption,
+  TrackType,
   VideoDimension,
   VideoLayer,
   VideoQuality,
@@ -115,12 +116,10 @@ export const computeVideoLayers = (
   } = publishOption;
   const { width = videoDimension.width, height = videoDimension.height } =
     videoTrack.getSettings();
-  const maxBitrate = getComputedMaxBitrate(
-    videoDimension,
-    width,
-    height,
-    bitrate,
-  );
+  const isScreenShare = publishOption.trackType === TrackType.SCREEN_SHARE;
+  const maxBitrate = isScreenShare
+    ? bitrate
+    : getComputedMaxBitrate(videoDimension, width, height, bitrate);
   let downscaleFactor = 1;
   let bitrateFactor = 1;
   const svcCodec = isSvcCodec(codec?.name);
