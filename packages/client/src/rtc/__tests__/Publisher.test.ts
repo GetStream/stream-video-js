@@ -596,6 +596,52 @@ describe('Publisher', () => {
     });
   });
 
+  describe('dispose', () => {
+    it('does not wait for a changePublishQuality handler stuck in setParameters', async () => {
+      const transceiver = new RTCRtpTransceiver();
+      const track = new MediaStreamTrack();
+      vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
+      const trackStopSpy = vi.spyOn(track, 'stop');
+      vi.spyOn(transceiver.sender, 'getParameters').mockReturnValue(
+        fromPartial({ codecs: [], encodings: [{ rid: 'q', active: true }] }),
+      );
+      // Chromium never settles a setParameters() that is still pending when
+      // its peer connection closes
+      const setParametersSpy = vi
+        .spyOn(transceiver.sender, 'setParameters')
+        .mockReturnValue(new Promise(() => {}));
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
+        transceiver,
+        options: {},
+      });
+
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'changePublishQuality',
+            changePublishQuality: {
+              audioSenders: [],
+              videoSenders: [
+                fromPartial({
+                  publishOptionId: 1,
+                  trackType: TrackType.VIDEO,
+                  layers: [],
+                }),
+              ],
+            },
+          },
+        }) as DispatchableMessage<'changePublishQuality'>,
+        'test',
+      );
+      expect(setParametersSpy).toHaveBeenCalled();
+
+      await publisher.dispose();
+
+      expect(trackStopSpy).toHaveBeenCalled();
+    });
+  });
+
   describe('Publisher ICE Restart', () => {
     it('should perform ICE restart when iceRestart event is received', () => {
       vi.spyOn(publisher, 'restartIce').mockResolvedValue();
@@ -1673,7 +1719,7 @@ describe('Publisher', () => {
       const track = cache['cache'][0].transceiver.sender.track!;
       vi.spyOn(track, 'stop');
       expect(publisher['clonedTracks'].size).toBe(3);
-      await publisher.stopAllTracks();
+      publisher.stopAllTracks();
       expect(track!.stop).toHaveBeenCalled();
       expect(publisher['clonedTracks'].size).toBe(0);
     });
@@ -1920,45 +1966,6 @@ describe('Publisher', () => {
       expect(setParametersSpy).not.toHaveBeenCalled();
       expect(replaceTrackSpy).not.toHaveBeenCalled();
       expect(trackStopSpy).toHaveBeenCalled();
-    });
-
-    it('on Firefox, stopAllTracks deactivates video encodings and clears audio sender tracks', async () => {
-      vi.mocked(isFirefox).mockReturnValue(true);
-
-      const videoTransceiver = new RTCRtpTransceiver();
-      vi.spyOn(videoTransceiver.sender, 'track', 'get').mockReturnValue(
-        new MediaStreamTrack(),
-      );
-      const { setParametersSpy: videoSetParams } = mockSenderParams(
-        videoTransceiver,
-        [{ rid: 'q', active: true }],
-      );
-
-      const audioTransceiver = new RTCRtpTransceiver();
-      vi.spyOn(audioTransceiver.sender, 'track', 'get').mockReturnValue(
-        new MediaStreamTrack(),
-      );
-      const audioReplaceTrack = vi
-        .spyOn(audioTransceiver.sender, 'replaceTrack')
-        .mockResolvedValue();
-
-      publisher['transceiverCache'].add({
-        publishOption: publisher['publishOptions'][0],
-        transceiver: videoTransceiver,
-        options: {},
-      });
-      publisher['transceiverCache'].add({
-        // @ts-expect-error incomplete data
-        publishOption: { trackType: TrackType.AUDIO, id: 99 },
-        transceiver: audioTransceiver,
-        options: {},
-      });
-
-      await publisher.stopAllTracks();
-
-      // each track type uses the lever that actually works for it on Firefox
-      expect(videoSetParams).toHaveBeenCalledTimes(1);
-      expect(audioReplaceTrack).toHaveBeenCalledWith(null);
     });
 
     it('on Firefox, re-publishing a video track on an existing transceiver re-activates encodings', async () => {

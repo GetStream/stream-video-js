@@ -15,7 +15,12 @@ import { StreamClient } from '../coordinator/connection/client';
 import { ErrorFromResponse } from '../coordinator/connection/types';
 import { ClientEventReporter } from '../reporting';
 import type { GetCallResponse, JoinCallResponse } from '../gen/coordinator';
-import { WebsocketReconnectStrategy } from '../gen/video/sfu/models/models';
+import {
+  TrackType,
+  WebsocketReconnectStrategy,
+} from '../gen/video/sfu/models/models';
+import { SfuEvent } from '../gen/video/sfu/event/events';
+import type { DispatchableMessage } from '../rtc/Dispatcher';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { CallingState, ClientState } from '../store';
 import { promiseWithResolvers } from '../helpers/promise';
@@ -135,6 +140,61 @@ describe('Call lifecycle wiring', () => {
 
     expect(trackSubOrder).toBeLessThan(audioBindingsOrder);
     expect(audioBindingsOrder).toBeLessThan(dynascaleOrder);
+  });
+
+  it('call.leave() sends the leave request while a quality change is stuck in setParameters', async () => {
+    const publisher = new rtc.Publisher(
+      {
+        sfuClient: fromPartial({}),
+        dispatcher: call['dispatcher'],
+        state: call.state,
+        tag: 'test',
+      },
+      [fromPartial({ id: 1, trackType: TrackType.VIDEO })],
+    );
+    const transceiver = new RTCRtpTransceiver();
+    vi.spyOn(transceiver.sender, 'getParameters').mockReturnValue(
+      fromPartial({ codecs: [], encodings: [{ rid: 'q', active: true }] }),
+    );
+    // Chromium never settles a setParameters() that is still pending when
+    // its peer connection closes
+    const setParameters = vi
+      .spyOn(transceiver.sender, 'setParameters')
+      .mockReturnValue(new Promise(() => {}));
+    publisher['transceiverCache'].add({
+      publishOption: publisher['publishOptions'][0],
+      transceiver,
+      options: {},
+    });
+    const leaveAndClose = vi.fn().mockResolvedValue(undefined);
+    call['sfuClient'] = fromPartial({ leaveAndClose });
+    call['publisher'] = publisher;
+    call.state.setCallingState(CallingState.JOINED);
+
+    call['dispatcher'].dispatch(
+      SfuEvent.create({
+        eventPayload: {
+          oneofKind: 'changePublishQuality',
+          changePublishQuality: {
+            audioSenders: [],
+            videoSenders: [
+              fromPartial({
+                publishOptionId: 1,
+                trackType: TrackType.VIDEO,
+                layers: [],
+              }),
+            ],
+          },
+        },
+      }) as DispatchableMessage<'changePublishQuality'>,
+      'test',
+    );
+    expect(setParameters).toHaveBeenCalled();
+
+    await call.leave();
+
+    expect(leaveAndClose).toHaveBeenCalled();
+    expect(call.state.callingState).toBe(CallingState.LEFT);
   });
 
   // `joinSource` is reporting-only: it must reach the event reporter and never

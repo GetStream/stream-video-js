@@ -85,11 +85,7 @@ export class Publisher extends BasePeerConnection {
    */
   async dispose(): Promise<void> {
     await super.dispose();
-    try {
-      await this.stopAllTracks();
-    } catch (err) {
-      this.logger.warn('Failed to stop tracks during dispose', err);
-    }
+    this.stopAllTracks();
     this.clonedTracks.clear();
   }
 
@@ -398,21 +394,18 @@ export class Publisher extends BasePeerConnection {
 
   /**
    * Stops all the cloned tracks that are being published to the SFU.
+   *
+   * Takes no lock, as it runs after the peer connection is closed: a
+   * `setParameters()` pending at that point may never settle (Chromium),
+   * so a `changePublishQuality` handler awaiting it never releases its lock.
    */
-  stopAllTracks = async () => {
-    return withoutConcurrency(
-      this.eventLockKey('changePublishQuality'),
-      async () => {
-        for (const item of this.transceiverCache.items()) {
-          const track = item.transceiver.sender.track;
-          await this.silenceSenderOnFirefox(item);
-          this.stopTrack(track);
-        }
-        for (const track of this.clonedTracks) {
-          this.stopTrack(track);
-        }
-      },
-    );
+  stopAllTracks = () => {
+    for (const item of this.transceiverCache.items()) {
+      this.stopTrack(item.transceiver.sender.track);
+    }
+    for (const track of this.clonedTracks) {
+      this.stopTrack(track);
+    }
   };
 
   private changePublishQuality = async (
