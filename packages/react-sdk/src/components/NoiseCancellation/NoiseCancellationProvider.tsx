@@ -9,6 +9,7 @@ import {
 } from 'react';
 import {
   NoiseCancellationSettingsModeEnum,
+  type NoiseCancellationStatus,
   OwnCapability,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
@@ -38,6 +39,13 @@ export type NoiseCancellationAPI = {
    * Provides information whether Noise Cancellation is active or not.
    */
   isEnabled: boolean;
+  /**
+   * Provides the Noise Cancellation status. Besides `enabled` and `disabled`,
+   * it can be `suspended` when Noise Cancellation was turned off because the
+   * device is overloaded and will be turned back on shortly, or `overloaded`
+   * when it was turned off for the same reason and stays off.
+   */
+  status: NoiseCancellationStatus;
   /**
    * Allows you to temporarily enable or disable the Noise Cancellation filters.
    *
@@ -76,8 +84,10 @@ export const NoiseCancellationProvider = (
 ) => {
   const { children, noiseCancellation } = props;
   const call = useCall();
-  const { useCallSettings, useHasPermissions } = useCallStateHooks();
+  const { useCallSettings, useHasPermissions, useMicrophoneState } =
+    useCallStateHooks();
   const settings = useCallSettings();
+  const { noiseCancellationStatus } = useMicrophoneState();
   const noiseCancellationAllowed = !!(
     settings &&
     settings.audio.noise_cancellation &&
@@ -139,6 +149,7 @@ export const NoiseCancellationProvider = (
       isSupported,
       isReady,
       isEnabled,
+      status: noiseCancellationStatus,
       setSuppressionLevel: (level) => {
         if (!noiseCancellation) return;
         noiseCancellation.setSuppressionLevel(level);
@@ -160,7 +171,13 @@ export const NoiseCancellationProvider = (
         }
       },
     }),
-    [isEnabled, isReady, isSupported, noiseCancellation],
+    [
+      isEnabled,
+      isReady,
+      isSupported,
+      noiseCancellation,
+      noiseCancellationStatus,
+    ],
   );
   return (
     <NoiseCancellationContext.Provider value={contextValue}>

@@ -265,6 +265,8 @@
   "Noise cancellation is loading": "La cancelación de ruido se está cargando",
   "Noise cancellation is active": "La cancelación de ruido está activa",
   "Noise cancellation is inactive": "La cancelación de ruido está inactiva",
+  "Noise cancellation is paused because your device is overloaded. It will resume shortly.": "La cancelación de ruido está en pausa porque tu dispositivo está sobrecargado. Se reanudará en breve.",
+  "Noise cancellation was turned off because your device is overloaded": "La cancelación de ruido se desactivó porque tu dispositivo está sobrecargado",
   "Video effects": "Efectos de video",
   "Video effects are not supported on this device": "Los efectos de video no son compatibles con este dispositivo",
   "Enable Hi-Fi Audio": "Activar audio Hi-Fi",

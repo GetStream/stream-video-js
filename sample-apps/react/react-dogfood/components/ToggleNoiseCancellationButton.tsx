@@ -8,7 +8,7 @@ import {
 } from '@stream-io/video-react-sdk';
 
 export const ToggleNoiseCancellationButton = () => {
-  const { isSupported, isEnabled, isReady, setEnabled } =
+  const { isSupported, isEnabled, isReady, status, setEnabled } =
     useNoiseCancellation();
   const { t } = useI18n();
 
@@ -16,9 +16,17 @@ export const ToggleNoiseCancellationButton = () => {
 
   const title = !isReady
     ? t('Noise cancellation is loading')
-    : isEnabled
-      ? t('Noise cancellation is active')
-      : t('Noise cancellation is inactive');
+    : status === 'suspended'
+      ? t(
+          'Noise cancellation is paused because your device is overloaded. It will resume shortly.',
+        )
+      : status === 'overloaded'
+        ? t(
+            'Noise cancellation was turned off because your device is overloaded',
+          )
+        : isEnabled
+          ? t('Noise cancellation is active')
+          : t('Noise cancellation is inactive');
 
   return (
     <WithTooltip title={title}>
