@@ -38,7 +38,7 @@ describe('AudioBindingsWatchdog', () => {
   });
 
   afterEach(async () => {
-    watchdog.reset();
+    watchdog.dispose();
     if (call.state.callingState !== CallingState.LEFT) {
       await call.leave();
     }
@@ -359,7 +359,7 @@ describe('AudioBindingsWatchdog', () => {
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
-  it('reset should stop the watchdog', () => {
+  it('dispose should stop the watchdog', () => {
     // @ts-expect-error private property
     const warnSpy = vi.spyOn(watchdog.logger, 'warn');
 
@@ -373,13 +373,13 @@ describe('AudioBindingsWatchdog', () => {
 
     warnSpy.mockClear();
 
-    watchdog.reset();
+    watchdog.dispose();
     vi.advanceTimersByTime(6000);
 
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
-  it('reset should clear bindings and resume on the next JOINED', () => {
+  it('setup should resume the watchdog after dispose', () => {
     // @ts-expect-error private property
     const warnSpy = vi.spyOn(watchdog.logger, 'warn');
 
@@ -396,12 +396,13 @@ describe('AudioBindingsWatchdog', () => {
     vi.advanceTimersByTime(3000);
     expect(warnSpy).not.toHaveBeenCalled();
 
-    watchdog.reset();
+    watchdog.dispose();
     call.state.setCallingState(CallingState.LEFT);
+    call.state.setCallingState(CallingState.JOINED);
     vi.advanceTimersByTime(6000);
     expect(warnSpy).not.toHaveBeenCalled();
 
-    call.state.setCallingState(CallingState.JOINED);
+    watchdog.setup();
     vi.advanceTimersByTime(3000);
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining('Dangling audio bindings detected'),
@@ -423,6 +424,7 @@ describe('AudioBindingsWatchdog', () => {
     vi.advanceTimersByTime(6000);
     expect(traceSpy).not.toHaveBeenCalled();
 
+    await call.setup();
     addRemoteParticipant('session-2', 'user-2', {
       audioStream: new MediaStream(),
     });

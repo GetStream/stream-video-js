@@ -449,13 +449,15 @@ export class Call {
       this.registerEffects();
       this.registerReconnectHandlers();
 
-      // Set up the device managers again. Although this is already done
-      // in the DeviceManager's constructor, they'll need to be re-set up
-      // in the cases where a call instance is recycled (join -> leave -> join).
+      // Set up the device managers and the audio bindings watchdog again.
+      // Although this is already done in their constructors, they'll need to
+      // be re-set up in the cases where a call instance is recycled
+      // (join -> leave -> join).
       this.camera.setup();
       this.microphone.setup();
       this.screenShare.setup();
       this.speaker.setup();
+      this.audioBindingsWatchdog?.setup();
 
       if (this.state.callingState === CallingState.LEFT) {
         this.state.setCallingState(CallingState.IDLE);
@@ -775,7 +777,7 @@ export class Call {
       this.sfuClient = undefined;
       this.trackSubscriptionManager.setSfuClient(undefined);
       this.trackSubscriptionManager.dispose();
-      this.audioBindingsWatchdog?.reset();
+      this.audioBindingsWatchdog?.dispose();
       await this.dynascaleManager?.dispose();
 
       this.state.setCallingState(CallingState.LEFT);
