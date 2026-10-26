@@ -606,6 +606,56 @@ describe('DynascaleManager', () => {
       });
     });
 
+    it('video: releases the stream when the element is unbound', () => {
+      vi.useFakeTimers();
+
+      const mediaStream = new MediaStream();
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [TrackType.VIDEO],
+        videoStream: mediaStream,
+      });
+
+      const cleanup = dynascaleManager.bindVideoElement(
+        videoElement,
+        'session-id',
+        'videoTrack',
+      );
+      vi.runAllTimers();
+      expect(videoElement.srcObject).toBe(mediaStream);
+
+      cleanup?.();
+
+      expect(videoElement.srcObject).toBeNull();
+    });
+
+    it('video: Safari does not re-attach the stream after the element is unbound', () => {
+      globalThis._isSafari = true;
+      vi.useFakeTimers();
+      const play = vi.spyOn(videoElement, 'play').mockResolvedValue();
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [TrackType.VIDEO],
+        videoStream: new MediaStream(),
+      });
+
+      const cleanup = dynascaleManager.bindVideoElement(
+        videoElement,
+        'session-id',
+        'videoTrack',
+      );
+      cleanup?.();
+      vi.runAllTimers();
+
+      expect(videoElement.srcObject).toBeNull();
+      expect(play).not.toHaveBeenCalled();
+    });
+
     it('video: should update subscription when element becomes visible', () => {
       // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {
