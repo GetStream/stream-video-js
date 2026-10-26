@@ -11,9 +11,12 @@ declare class AudioFilterNode
   private sessionStatsCounterIntervalRef;
   private sessionStatsIntervalMS;
   private worker;
+  private holdsWorkerUrl;
+  private workerUrlReleaseTimer;
   private onModelLoaded?;
   private _disposed;
   private _boundOnWasmWorkerMessage;
+  private _boundOnWorkerError;
   private get debugLogs();
   constructor(
     audioContext: BaseAudioContext,
@@ -22,6 +25,7 @@ declare class AudioFilterNode
     onDispose?: EventListener,
     onModelLoaded?: (models: PartialRecord<ModelNames, string>) => void,
   );
+  private _onWorkerError;
   private _onWasmWorkerMessage;
   postMessage(message: EventMessagesTypes, transfer?: Transferable[]): void;
   checkReadiness(): void;
@@ -37,6 +41,12 @@ declare class AudioFilterNode
   getPerFrameStats(): void;
   isNcEnabled(): boolean;
   toggle(): void;
+  /**
+   * Releases the one-off worker blob URL. The worker script has been fetched by
+   * the time this runs, and keeping the URL alive would pin a multi-megabyte Blob
+   * copy of the worker source for the document lifetime.
+   */
+  private releaseWorkerUrlOnce;
   dispose(): void;
   setNoiseSuppressionLevel(level: number): void;
   private startSessionStatsCounter;
@@ -96,6 +106,13 @@ declare class SharedRingBuffer {
    * Prints currently available read and write.
    */
   printAvailableReadAndWrite(): void;
+  /**
+   * Drops all samples currently available for read. Concurrent index stores
+   * from the other thread are tolerated: READ = an observed WRITE is always a
+   * valid (empty) ring state, and a frame pushed or pulled mid-clear only
+   * shifts how much of the backlog is dropped, never corrupts the indices.
+   */
+  clear(): void;
   /**
    * Returns number of samples available for read
    */
@@ -186,6 +203,9 @@ export declare const enum WorkerErrorTypes {
   MODEL_URL_FETCH_ERROR = 'MODEL_URL_FETCH_ERROR',
   MODEL_LOAD_ERROR = 'MODEL_LOAD_ERROR',
   SAMPLING_RATE_NOT_SUPPORTED = 'SAMPLING_RATE_NOT_SUPPORTED',
+  AR_SESSION_INIT_ERROR = 'AR_SESSION_INIT_ERROR',
+  NC_SESSION_INIT_ERROR = 'NC_SESSION_INIT_ERROR',
+  WASM_INIT_ERROR = 'WASM_INIT_ERROR',
 }
 export declare type EventMessagesTypes =
   | MessageDataItem<EventMessages.INIT_WASM_PROCESSOR, IWasmParams>
