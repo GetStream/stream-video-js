@@ -166,10 +166,14 @@ export class NoiseCancellation implements INoiseCancellation {
       tracer: this.tracer,
     });
 
-    const filterNode = await sdk.createNoiseFilter(this.audioContext, () => {
-      this.tracer?.trace('noiseCancellation.started', 'true');
-      this.resolveInitialized();
-    });
+    const filterNode = await sdk.createNoiseFilter(
+      this.audioContext,
+      () => {
+        this.tracer?.trace('noiseCancellation.started', 'true');
+        this.resolveInitialized();
+      },
+      this.handleUnexpectedDispose,
+    );
     filterNode.addEventListener('buffer_overflow', this.handleBufferOverflow);
     filterNode.addEventListener('error', this.handleError);
     this.filterNode = filterNode;
@@ -221,6 +225,10 @@ export class NoiseCancellation implements INoiseCancellation {
         console.warn('Failed to disable noise cancellation on dispose', err),
       );
       this.filterNode.removeEventListener('error', this.handleError);
+      this.filterNode.removeEventListener(
+        'dispose',
+        this.handleUnexpectedDispose,
+      );
       this.filterNode.removeEventListener(
         'buffer_overflow',
         this.handleBufferOverflow,
@@ -322,9 +330,11 @@ export class NoiseCancellation implements INoiseCancellation {
   /**
    * Traces errors reported by the Krisp SDK.
    *
-   * The SDK surfaces model fetch/load and unsupported sample-rate failures
-   * (`MODEL_URL_FETCH_ERROR`, `MODEL_LOAD_ERROR`, `SAMPLING_RATE_NOT_SUPPORTED`)
-   * via an `error` event on the filter node, separately from the `ready` callback.
+   * The SDK surfaces model fetch/load, unsupported sample-rate and WASM/session
+   * init failures (`MODEL_URL_FETCH_ERROR`, `MODEL_LOAD_ERROR`,
+   * `SAMPLING_RATE_NOT_SUPPORTED`, `NC_SESSION_INIT_ERROR`,
+   * `AR_SESSION_INIT_ERROR`, `WASM_INIT_ERROR`) via an `error` event on the
+   * filter node, separately from the `ready` callback.
    * We record them for diagnostics.
    */
   private handleError = (
@@ -336,6 +346,24 @@ export class NoiseCancellation implements INoiseCancellation {
     this.rejectInitialized(
       new Error(
         `NoiseCancellation failed to initialize: ${code} ${message}`.trim(),
+      ),
+    );
+  };
+
+  /**
+   * Handles a `dispose` of the filter node that we didn't initiate.
+   *
+   * Since 2.3.10, the Krisp SDK disposes the filter node on its own when its
+   * web worker fails to start (e.g., a CSP that blocks `blob:` workers). This
+   * happens after `createNoiseFilter` has resolved, and `dispose` is the only
+   * signal we get, so without this `init()` would never settle.
+   * Our own `dispose()` unregisters this handler before disposing the node.
+   */
+  private handleUnexpectedDispose = () => {
+    this.tracer?.trace('noiseCancellation.error', 'FILTER_NODE_DISPOSED');
+    this.rejectInitialized(
+      new Error(
+        'NoiseCancellation failed to initialize: FILTER_NODE_DISPOSED the filter was disposed before it became ready',
       ),
     );
   };
