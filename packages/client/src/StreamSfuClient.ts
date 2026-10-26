@@ -26,7 +26,7 @@ import {
   TrackMuteState,
   TrackSubscriptionDetails,
 } from './gen/video/sfu/signal_rpc/signal';
-import { ICETrickle } from './gen/video/sfu/models/models';
+import { ErrorCode, ICETrickle } from './gen/video/sfu/models/models';
 import { StreamClient } from './coordinator/connection/client';
 import { generateUUIDv4, sleep } from './coordinator/connection/utils';
 import { Credentials } from './gen/coordinator';
@@ -42,6 +42,7 @@ import { getTimers } from './timers';
 import { getSdkInfo } from './helpers/client-details';
 import { getStreamClientId, Tracer, TraceSlice } from './stats';
 import { SfuJoinError, SfuTimeoutError } from './errors';
+import { FastReconnectRejectedError } from './errors/FastReconnectRejectedError';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -647,6 +648,19 @@ export class StreamSfuClient {
         if (SfuJoinError.isJoinErrorCode(event)) {
           cleanupJoinSubscriptions();
           current.reject(new SfuJoinError(event));
+        } else if (
+          data.fastReconnect &&
+          event.error?.code === ErrorCode.PARTICIPANT_NOT_FOUND
+        ) {
+          // The SFU already dropped our session, so it can't be resumed.
+          // Fail now instead of waiting for the join timeout, the reconnect
+          // loop then rejoins.
+          cleanupJoinSubscriptions();
+          current.reject(
+            new FastReconnectRejectedError(
+              event.error.message || 'SFU did not find the participant',
+            ),
+          );
         }
       },
     );

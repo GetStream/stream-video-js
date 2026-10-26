@@ -1,9 +1,5 @@
 import { ComponentProps, Fragment } from 'react';
-import {
-  hasAudio,
-  hasScreenShareAudio,
-  StreamVideoParticipant,
-} from '@stream-io/video-client';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 import { Audio } from './Audio';
 
 export type ParticipantsAudioProps = {
@@ -26,8 +22,9 @@ export const ParticipantsAudio = (props: ParticipantsAudioProps) => {
         if (participant.isLocalParticipant) return null;
         const { audioStream, screenShareAudioStream, sessionId } = participant;
 
-        const hasAudioTrack = hasAudio(participant);
-        const audioTrackElement = hasAudioTrack && audioStream && (
+        // gate on the stream, not on publishedTracks: the stream survives a
+        // mute, so the <audio> element isn't remounted on every unmute
+        const audioTrackElement = audioStream && (
           <Audio
             {...audioProps}
             trackType="audioTrack"
@@ -35,15 +32,13 @@ export const ParticipantsAudio = (props: ParticipantsAudioProps) => {
           />
         );
 
-        const hasScreenShareAudioTrack = hasScreenShareAudio(participant);
-        const screenShareAudioTrackElement = hasScreenShareAudioTrack &&
-          screenShareAudioStream && (
-            <Audio
-              {...audioProps}
-              trackType="screenShareAudioTrack"
-              participant={participant}
-            />
-          );
+        const screenShareAudioTrackElement = screenShareAudioStream && (
+          <Audio
+            {...audioProps}
+            trackType="screenShareAudioTrack"
+            participant={participant}
+          />
+        );
 
         return (
           <Fragment key={sessionId}>

@@ -15,7 +15,9 @@ const isAndroid8OrAbove = () =>
 // 2. Handle PiP mode in Android
 export const AppStateListener = () => {
   const call = useCall();
-  const appState = useRef<AppStateStatus>(AppState.currentState);
+  const appState = useRef<AppStateStatus>(
+    AppState.currentState as AppStateStatus,
+  );
   const cameraDisabledByAppState = useRef<boolean>(false);
 
   // on mount: set initial PiP mode and listen to PiP events

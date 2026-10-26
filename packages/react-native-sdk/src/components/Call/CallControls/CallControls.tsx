@@ -2,9 +2,6 @@ import React, { useCallback } from 'react';
 import { StyleSheet, View, type ViewProps } from 'react-native';
 import { Z_INDEX } from '../../../constants';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { MoreVert } from '../../../icons/MoreVert';
-import { MessageBubbles, ControlButtonIcon, Users } from '../../../icons';
-import { CallControlsButton } from './Buttons/CallControlsButton';
 import { ToggleAudioPublishingButton } from './Buttons/ToggleAudioPublishingButton';
 import { ToggleVideoPublishingButton } from './Buttons/ToggleVideoPublishingButton';
 
@@ -17,16 +14,12 @@ export type CallControlProps = Pick<ViewProps, 'style'> & {
    * This will apply the landscape mode styles to the component.
    */
   landscape?: boolean;
-  onMorePress?: () => void;
-  onUsersPress?: () => void;
-  onMessageBubblesPress?: () => void;
   /**
    * Reports the measured height of the controls container whenever it changes.
    *
-   * Surfaces that have to sit directly above the controls — a bottom sheet
-   * opened from `onMorePress`, for example — need this to position themselves,
-   * and they cannot measure it themselves when the controls are rendered by the
-   * SDK.
+   * Surfaces that have to sit directly above the controls — a bottom sheet,
+   * for example — need this to position themselves, and they cannot measure
+   * it themselves when the controls are rendered by the SDK.
    */
   onControlsHeightChange?: (height: number) => void;
 };
@@ -37,9 +30,6 @@ export type CallControlProps = Pick<ViewProps, 'style'> & {
  */
 export const CallControls = ({
   style,
-  onMorePress,
-  onUsersPress,
-  onMessageBubblesPress,
   onControlsHeightChange,
 }: CallControlProps) => {
   const {
@@ -57,25 +47,8 @@ export const CallControls = ({
       onLayout={onControlsHeightChange ? onLayout : undefined}
     >
       <View style={styles.leftGroup}>
-        {onMorePress && (
-          <CallControlsButton onPress={onMorePress}>
-            <ControlButtonIcon icon={MoreVert} />
-          </CallControlsButton>
-        )}
         <ToggleAudioPublishingButton />
         <ToggleVideoPublishingButton />
-      </View>
-      <View style={styles.rightGroup}>
-        {onUsersPress && (
-          <CallControlsButton onPress={onUsersPress}>
-            <ControlButtonIcon icon={Users} />
-          </CallControlsButton>
-        )}
-        {onMessageBubblesPress && (
-          <CallControlsButton onPress={onMessageBubblesPress}>
-            <ControlButtonIcon icon={MessageBubbles} />
-          </CallControlsButton>
-        )}
       </View>
     </View>
   );
@@ -88,9 +61,6 @@ const styles = StyleSheet.create({
     zIndex: Z_INDEX.IN_FRONT,
   },
   leftGroup: {
-    flexDirection: 'row',
-  },
-  rightGroup: {
     flexDirection: 'row',
   },
 });

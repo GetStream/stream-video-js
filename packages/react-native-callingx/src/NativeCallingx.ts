@@ -14,6 +14,7 @@ export interface Spec extends TurboModule {
     callsHistory: boolean;
     displayCallTimeout: number;
     skipIncomingPushInForeground: boolean;
+    useLiveCommunicationKit: boolean;
   }): boolean;
 
   setupAndroid(options: {
@@ -46,7 +47,7 @@ export interface Spec extends TurboModule {
 
   /**
    * Whether audio routing is backed by the Jetpack Telecom stack on this device.
-   * Android: true on API 26+. iOS: always false (CallKit path uses its own bypass).
+   * Android: true on API 26+. iOS: always false (iOS uses its own bypass).
    */
   isTelecomBacked(): boolean;
 
@@ -84,6 +85,8 @@ export interface Spec extends TurboModule {
       receiver_id?: string;
       video?: string;
       version?: string;
+      // `fcmTokenRefresh` — rotated FCM device token (Android)
+      token?: string;
     };
   }>;
 
@@ -164,9 +167,11 @@ export interface Spec extends TurboModule {
 
   startBackgroundTask(taskName: string, timeout: number): boolean;
 
-  fulfillAnswerCallAction(callId: string, didFail: boolean): boolean;
+  getFcmToken(): Promise<string>;
 
-  fulfillEndCallAction(callId: string, didFail: boolean): boolean;
+  fulfillAnswerCallAction(callId: string, didFail: boolean): void;
+
+  fulfillEndCallAction(callId: string, didFail: boolean): void;
 
   registerVoipToken(): boolean;
 
@@ -195,6 +200,8 @@ export interface Spec extends TurboModule {
       receiver_id?: string;
       video?: string;
       version?: string;
+      // `fcmTokenRefresh` — rotated FCM device token (Android)
+      token?: string;
     };
   }>;
 
@@ -227,7 +234,7 @@ export interface Spec extends TurboModule {
     };
   }>;
 
-  log(message: string, level: 'debug' | 'info' | 'warn' | 'error'): boolean;
+  log(message: string, level: 'debug' | 'info' | 'warn' | 'error'): void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('Callingx');

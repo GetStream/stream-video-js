@@ -29,7 +29,7 @@ const encryptedDeepLink$ = new BehaviorSubject<
 
 export const useDeepLinkEffect = () => {
   useEffect(() => {
-    const parseAndSetCallID = (url: string | null) => {
+    const parseAndSetCallID = (url: string | null | undefined) => {
       if (!url) return;
       let link: URL;
       try {
