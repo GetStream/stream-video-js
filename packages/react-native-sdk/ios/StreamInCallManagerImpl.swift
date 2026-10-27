@@ -364,7 +364,9 @@ private enum AudioDeviceId {
     /// Not run for rebuilds without an enable edge (device change, stop recording with playout on,
     /// interruption-end restart). Idempotent and cheap.
     /// Must not touch `audioSessionQueue`, the main queue (sync) or ADM APIs.
-    /// Non-zero fails the enable, so WebRTC rolls it back instead of starting a broken engine.
+    /// Non-zero fails the enable (configuration/activation errors only), so WebRTC rolls it back
+    /// instead of starting a broken engine. A routing re-apply failure is logged and never fails
+    /// the enable: WebRTC does not retry, so it would kill every voice-processing/speaker fallback.
     private func handleEngineWillEnable(isPlayoutEnabled: Bool, isRecordingEnabled: Bool) -> Int {
         if Self.callingxOwnsSession() {
             return 0
@@ -372,7 +374,7 @@ private enum AudioDeviceId {
 
         let inputs = configInputsSnapshot()
         do {
-            let (rtcConfig, activated) = try AudioSessionConfigLock.run { session in
+            let (rtcConfig, activated, routingError) = try AudioSessionConfigLock.run { session in
                 let rtcConfig = makeAudioConfiguration(
                     inputs: inputs,
                     routing: inputs.selectedOutput,
@@ -391,14 +393,23 @@ private enum AudioDeviceId {
                     activated = true
                 }
                 // Re-apply the explicit pick (if any) so it survives the engine rebuild.
+                var routingError: Error?
                 if let selectedOutput = inputs.selectedOutput {
-                    try applyOutputRouting(selectedOutput)
+                    do {
+                        try applyOutputRouting(selectedOutput)
+                    } catch {
+                        log("engineWillEnable routing error: \(String(describing: error))")
+                        routingError = error
+                    }
                 }
-                return (rtcConfig, activated)
+                return (rtcConfig, activated, routingError)
             }
             log("engineWillEnable: applied category=\(rtcConfig.category) mode=\(rtcConfig.mode) activated=\(activated) playout=\(isPlayoutEnabled) recording=\(isRecordingEnabled)")
+            let extra: [String: Any] = routingError.map {
+                ["routingError": String(String(describing: $0).prefix(200))]
+            } ?? [:]
             DispatchQueue.main.async { [weak self] in
-                self?.sendAudioSessionDiagnostic("engineEnableApplied")
+                self?.sendAudioSessionDiagnostic("engineEnableApplied", extra: extra)
             }
             return 0
         } catch {
