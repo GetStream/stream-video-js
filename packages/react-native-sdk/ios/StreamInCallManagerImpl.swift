@@ -67,6 +67,9 @@ private enum AudioDeviceId {
     private let audioSessionQueue = DispatchQueue(label: "io.getstream.rn.audioSessionQueue")
 
     private var audioManagerActivated = false
+    /// `start()` could not activate (no ADM or `setPlayout` threw); `waitForAudioSessionActive`
+    /// resolves at once instead of polling. Only touched on `audioSessionQueue`.
+    private var startFailed = false
 
     /// Inputs of the session config. Written on `audioSessionQueue`, read by the engine hooks on the
     /// WebRTC worker thread, so guarded by `configInputsLock`.
@@ -478,6 +481,7 @@ private enum AudioDeviceId {
             if audioManagerActivated {
                 return
             }
+            startFailed = false
             DispatchQueue.main.async {
                 // Enable wake lock to prevent the screen from dimming/locking during a call
                 UIApplication.shared.isIdleTimerDisabled = true
@@ -490,14 +494,19 @@ private enum AudioDeviceId {
             }
             // setPlayout(true) runs the willEnable hook, which synchronously applies the
             // preset and calls setActive(true). No explicit session.setActive(true) here.
-            do {
-                let adm = getAudioDeviceModule()
-                try adm?.setPlayout(true)
-                self.log("adm.setPlayout(true) done")
-            } catch {
-                // String(describing:) surfaces the real error code (see setup()).
-                log("Error starting playout: \(String(describing: error))")
-                sendAudioSessionDiagnostic("startPlayoutError", error: error)
+            if let adm = getAudioDeviceModule() {
+                do {
+                    try adm.setPlayout(true)
+                    self.log("adm.setPlayout(true) done")
+                } catch {
+                    // String(describing:) surfaces the real error code (see setup()).
+                    log("Error starting playout: \(String(describing: error))")
+                    sendAudioSessionDiagnostic("startPlayoutError", error: error)
+                    startFailed = true
+                }
+            } else {
+                log("start: no audio device module, playout not started")
+                startFailed = true
             }
 
             audioManagerActivated = true
@@ -506,6 +515,7 @@ private enum AudioDeviceId {
 
     /// Resolves whether the shared session is active. Enqueued on `audioSessionQueue`, so it runs
     /// after a pending `start()`; polls every 100 ms (without blocking the queue) until the timeout.
+    /// Resolves at once when `start()` failed or callingx owns the session (we never activate it).
     @objc(waitForAudioSessionActiveWithTimeoutMs:resolve:)
     public func waitForAudioSessionActive(timeoutMs: Double, resolve: @escaping (Bool) -> Void) {
         audioSessionQueue.async { [self] in
@@ -516,6 +526,11 @@ private enum AudioDeviceId {
 
     private func pollAudioSessionActive(until deadline: DispatchTime, resolve: @escaping (Bool) -> Void) {
         let isActive = RTCAudioSession.sharedInstance().isActive
+        if !isActive && (startFailed || Self.callingxOwnsSession()) {
+            log("waitForAudioSessionActive: not waiting, \(startFailed ? "start failed" : "callingx owns the session")")
+            resolve(isActive)
+            return
+        }
         if isActive || DispatchTime.now() >= deadline {
             if !isActive {
                 log("waitForAudioSessionActive: session still inactive at timeout")
@@ -535,6 +550,7 @@ private enum AudioDeviceId {
     @objc
     public func stop() {
         audioSessionQueue.async { [self] in
+            startFailed = false
             if !audioManagerActivated {
                 // start() never ran, but the willEnable hook may have activated the session
                 // (e.g. the engine enabled before start); release it. No-op otherwise.
