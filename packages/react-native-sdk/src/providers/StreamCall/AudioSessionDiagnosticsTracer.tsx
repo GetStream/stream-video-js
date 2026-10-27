@@ -57,7 +57,8 @@ const isMicPermissionGranted = async () => {
  * WebRTC's iOS ADM can keep a failed engine start as "running", which leaves
  * the mic (or the playout) dead for the rest of the call. On every trigger
  * (join, mic enabled, CallKit activation, interruption end, app foreground,
- * route change, reconnect) the engine state is sampled; an unhealthy engine
+ * route change, reconnect) the engine state is sampled, except during an
+ * audio interruption; an unhealthy engine
  * is restarted with `AudioDeviceModule.recoverEngineIfNeeded`, at most
  * {@link MAX_EPISODE_ATTEMPTS} times per failure episode (re-checked
  * {@link ATTEMPT_INTERVAL_MS} after each failed attempt) and
@@ -115,6 +116,10 @@ export const AudioSessionDiagnosticsTracer = () => {
     let lastAttemptAt: number | undefined;
     // the native recovery blocks (up to ~2 s): one check at a time
     let inFlight: Promise<void> | undefined;
+    // iOS owns the audio during an interruption (phone call, Siri, alarm):
+    // no checks until it ends, the session is re-activated or the app is
+    // active again (WebRTC treats the latter as an interruption end too)
+    let interrupted = false;
 
     const runCheck = (trigger: string) => {
       if (inFlight) {
@@ -132,6 +137,10 @@ export const AudioSessionDiagnosticsTracer = () => {
 
     const checkEngine = async (trigger: string) => {
       if (call.state.callingState !== CallingState.JOINED) return;
+      if (interrupted) {
+        logger.debug(`check '${trigger}' skipped, the audio is interrupted`);
+        return;
+      }
       const wantsRecording = call.microphone.state.status === 'enabled';
 
       const state = await AudioDeviceModule.getEngineState();
@@ -233,6 +242,7 @@ export const AudioSessionDiagnosticsTracer = () => {
     const rejoinIfAllowed = (lastResult: string) => {
       const canRejoin =
         !rejoined &&
+        !interrupted &&
         call.state.callingState === CallingState.JOINED &&
         AppState.currentState === 'active' &&
         call.microphone.state.status === 'enabled';
@@ -334,7 +344,12 @@ export const AudioSessionDiagnosticsTracer = () => {
 
     // delayed so WebRTC's engine restart can run first
     const onInterruption = (event: IOSAudioInterruptionEvent) => {
-      if (event.phase === 'ended') scheduleCheck('interruptionEnded', 1000);
+      if (event.phase === 'began') {
+        interrupted = true;
+      } else if (event.phase === 'ended') {
+        interrupted = false;
+        scheduleCheck('interruptionEnded', 1000);
+      }
     };
     const removeInterruptionListener =
       callManager.ios.addAudioInterruptionListener(onInterruption);
@@ -346,7 +361,9 @@ export const AudioSessionDiagnosticsTracer = () => {
     const appStateSubscription = AppState.addEventListener(
       'change',
       (appState) => {
-        if (appState === 'active') scheduleCheck('appActive', 1000);
+        if (appState !== 'active') return;
+        interrupted = false;
+        scheduleCheck('appActive', 1000);
       },
     );
 
@@ -356,7 +373,10 @@ export const AudioSessionDiagnosticsTracer = () => {
           callingx.addEventListener(
             'didActivateAudioSession',
             // delayed so the activation-driven engine start can run first
-            () => scheduleCheck('audioSessionActivated', 1000),
+            () => {
+              interrupted = false;
+              scheduleCheck('audioSessionActivated', 1000);
+            },
           ),
           (
             callingx as unknown as CallingxAudioInterruptionEvents

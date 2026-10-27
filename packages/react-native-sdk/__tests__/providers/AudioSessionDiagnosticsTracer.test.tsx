@@ -716,6 +716,88 @@ describe('AudioSessionDiagnosticsTracer', () => {
     ]);
   });
 
+  it('does not check the engine while the audio is interrupted', async () => {
+    const call = await renderJoined();
+    adm.getEngineState.mockClear();
+    adm.getEngineState.mockResolvedValue(deadEngine);
+
+    interruptionListener({ source: 'callmanager', phase: 'began' });
+    routeListener();
+    act(() => {
+      call.status$.next('disabled');
+    });
+    act(() => {
+      call.status$.next('enabled');
+    });
+    await advance(5000);
+    expect(adm.getEngineState).not.toHaveBeenCalled();
+    expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+
+    interruptionListener({ source: 'callmanager', phase: 'ended' });
+    await advance(1000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(1);
+    expect(recoveryTraces(call).map((t) => [t.trigger, t.attempt])).toEqual([
+      ['interruptionEnded', 1],
+    ]);
+  });
+
+  it('resumes the checks when the app becomes active during an interruption', async () => {
+    const call = await renderJoined();
+    adm.getEngineState.mockResolvedValue(deadEngine);
+
+    interruptionListener({ source: 'callmanager', phase: 'began' });
+    routeListener();
+    await advance(1000);
+    expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+
+    appStateListener('active');
+    await advance(1000);
+    expect(recoveryTraces(call).map((t) => t.trigger)).toEqual(['appActive']);
+  });
+
+  it('resumes the checks after a callingx audio session activation during an interruption', async () => {
+    const listeners: Partial<Record<string, (event?: unknown) => void>> = {};
+    (getCallingxLibIfAvailable as jest.Mock).mockReturnValue({
+      isSetup: true,
+      addEventListener: jest.fn(
+        (name: string, listener: (event?: unknown) => void) => {
+          listeners[name] = listener;
+          return { remove: jest.fn() };
+        },
+      ),
+    });
+    const call = await renderJoined();
+    adm.getEngineState.mockResolvedValue(deadEngine);
+
+    listeners.didAudioInterruption?.({ source: 'callingx', phase: 'began' });
+    routeListener();
+    await advance(1000);
+    expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+
+    listeners.didActivateAudioSession?.();
+    await advance(1000);
+    expect(recoveryTraces(call).map((t) => t.trigger)).toEqual([
+      'audioSessionActivated',
+    ]);
+  });
+
+  it('does not rejoin while the audio is interrupted', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    // the interruption begins during the last attempt of the episode
+    adm.recoverEngineIfNeeded.mockImplementation(async () => {
+      if (adm.recoverEngineIfNeeded.mock.calls.length === 3) {
+        interruptionListener({ source: 'callmanager', phase: 'began' });
+      }
+      return { result: 'failed', before: deadEngine, codes: {} };
+    });
+    const call = await renderJoined();
+    await advance(6000);
+
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
+    expect(call.rejoinForAudioEngineRecovery).not.toHaveBeenCalled();
+    expect(tracesOf(call, 'ios.audioEngine.rejoin')).toEqual([]);
+  });
+
   it('traces audio engine errors and unsubscribes on unmount', () => {
     const call = makeCall();
     mockUseCall.mockReturnValue(call);
