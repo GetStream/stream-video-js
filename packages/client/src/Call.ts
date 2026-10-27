@@ -1549,6 +1549,15 @@ export class Call {
       this.state.settings &&
       !supersededByLeave()
     ) {
+      // the native default device must be set before the audio session is
+      // activated (prepare); the native setter rejects it afterwards
+      await this.speaker
+        .apply(this.state.settings)
+        .catch((err) => this.logger.warn('Speaker init failed', err));
+      if (supersededByLeave()) {
+        this.logger.debug('Join superseded by leave; not completing join flow');
+        return;
+      }
       await this.prepareAudioSessionForPublish();
       if (supersededByLeave()) {
         // leave() already stopped what prepare started (callManagerStarted)
@@ -1557,7 +1566,7 @@ export class Call {
       }
       await this.applyDeviceConfig(this.state.settings, {
         publish: true,
-        skipSpeakerApply: false,
+        skipSpeakerApply: true,
       });
       this.deviceSettingsAppliedOnce = true;
     }

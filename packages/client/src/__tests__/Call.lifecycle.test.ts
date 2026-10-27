@@ -733,6 +733,10 @@ describe('Call lifecycle wiring', () => {
             : { prepareAudioSessionForPublish: prepare }),
         },
       };
+      const speaker = vi.spyOn(call.speaker, 'apply').mockImplementation(() => {
+        order.push('speaker');
+        return Promise.resolve();
+      });
       const configure = vi
         .spyOn(internalCall, 'applyDeviceConfig')
         .mockImplementation(async () => {
@@ -749,19 +753,25 @@ describe('Call lifecycle wiring', () => {
           cid: call.cid,
         });
         // the publish waits for the session to be prepared
+        expect(speaker).toHaveBeenCalledOnce();
         expect(configure).not.toHaveBeenCalled();
         pending.resolve();
       }
       await joinTask;
 
       const prepared = mode === 'resolves' || mode === 'rejects';
+      // the default device is set before the session is prepared;
       // prepare already started the call manager; otherwise join starts it
       expect(order).toEqual(
         prepared
-          ? ['prepare', 'publish']
+          ? ['speaker', 'prepare', 'publish']
           : mode === 'missing'
-            ? ['publish', 'start']
-            : ['prepare', 'publish', 'start'],
+            ? ['speaker', 'publish', 'start']
+            : ['speaker', 'prepare', 'publish', 'start'],
+      );
+      expect(configure).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ publish: true, skipSpeakerApply: true }),
       );
       expect(call.state.callingState).toBe(CallingState.JOINED);
       const prepareTraces = trace.mock.calls.filter(
