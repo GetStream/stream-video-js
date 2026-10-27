@@ -63,7 +63,8 @@ const isMicPermissionGranted = async () => {
  * {@link MAX_EPISODE_ATTEMPTS} times per failure episode (re-checked
  * {@link ATTEMPT_INTERVAL_MS} after each failed attempt) and
  * {@link MAX_CALL_ATTEMPTS} times per call. When a whole episode fails, the
- * call is rejoined once (last resort, mic wanted and app in the foreground).
+ * call is rejoined once (last resort, mic wanted and app in the foreground;
+ * skipped when the rejoin would make the call leave).
  * Healthy samples are traced too (minimal payload) so the failure rate is
  * measurable.
  *
@@ -263,17 +264,24 @@ export const AudioSessionDiagnosticsTracer = () => {
         });
         return;
       }
-      rejoined = true;
-      episodeAttempts = 0;
+      // skipped (not started) when a rejoin would make the call leave, e.g.
+      // the rejoin rate limiter has no room: give up for this episode only
+      const started = call.rejoinForAudioEngineRecovery();
       call.tracer.trace('ios.audioEngine.rejoin', {
         trigger: 'budgetExhausted',
         lastResult,
+        started,
       });
+      if (!started) {
+        logger.warn('audio engine recovery failed, rejoin skipped', {
+          result: lastResult,
+        });
+        return;
+      }
+      rejoined = true;
+      episodeAttempts = 0;
       logger.warn('audio engine recovery failed, rejoining the call', {
         result: lastResult,
-      });
-      call.rejoinForAudioEngineRecovery().catch((error: unknown) => {
-        logger.warn('failed to rejoin for the audio engine recovery', error);
       });
     };
 

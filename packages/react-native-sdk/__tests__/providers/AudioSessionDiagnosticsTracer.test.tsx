@@ -102,7 +102,7 @@ const makeCall = () => {
     callingState$,
     status$,
     tracer: { trace: jest.fn() },
-    rejoinForAudioEngineRecovery: jest.fn().mockResolvedValue(undefined),
+    rejoinForAudioEngineRecovery: jest.fn().mockReturnValue(true),
     state: {
       callingState$,
       get callingState() {
@@ -377,7 +377,7 @@ describe('AudioSessionDiagnosticsTracer', () => {
     expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
     expect(call.rejoinForAudioEngineRecovery).toHaveBeenCalledTimes(1);
     expect(tracesOf(call, 'ios.audioEngine.rejoin')).toEqual([
-      { trigger: 'budgetExhausted', lastResult: 'failed' },
+      { trigger: 'budgetExhausted', lastResult: 'failed', started: true },
     ]);
 
     // the rejoin brings the call back to JOINED: one more episode, no rejoin
@@ -400,6 +400,41 @@ describe('AudioSessionDiagnosticsTracer', () => {
       ['recheck', 3],
     ]);
     expect(call.rejoinForAudioEngineRecovery).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the rejoin for a later episode when it did not start', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    const call = makeCall();
+    call.rejoinForAudioEngineRecovery.mockReturnValueOnce(false);
+    call.callingState$.next(CallingState.JOINED);
+    mockUseCall.mockReturnValue(call);
+    render(<AudioSessionDiagnosticsTracer />);
+    await advance(3000 + 6000);
+
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
+    expect(call.rejoinForAudioEngineRecovery).toHaveBeenCalledTimes(1);
+    expect(tracesOf(call, 'ios.audioEngine.rejoin')).toEqual([
+      { trigger: 'budgetExhausted', lastResult: 'failed', started: false },
+    ]);
+
+    // given up for this episode: no retry loop
+    await advance(30000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
+    expect(call.rejoinForAudioEngineRecovery).toHaveBeenCalledTimes(1);
+
+    // a healthy sample ends the episode; the next failed episode rejoins
+    adm.getEngineState.mockResolvedValueOnce(healthyEngine);
+    appStateListener('active');
+    await advance(1000);
+    appStateListener('active');
+    await advance(1000 + 6000);
+
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(6);
+    expect(call.rejoinForAudioEngineRecovery).toHaveBeenCalledTimes(2);
+    expect(tracesOf(call, 'ios.audioEngine.rejoin')).toEqual([
+      { trigger: 'budgetExhausted', lastResult: 'failed', started: false },
+      { trigger: 'budgetExhausted', lastResult: 'failed', started: true },
+    ]);
   });
 
   it('does not rejoin when the app is in the background', async () => {

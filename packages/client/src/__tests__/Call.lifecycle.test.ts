@@ -19,6 +19,7 @@ import { WebsocketReconnectStrategy } from '../gen/video/sfu/models/models';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { CallingState, ClientState } from '../store';
 import { promiseWithResolvers } from '../helpers/promise';
+import { withoutConcurrency } from '../helpers/concurrency';
 import type { StreamResponse } from '../coordinator/connection/api-client';
 
 // A controlled stand-in for the retry backoff. Unless a test installs a hook,
@@ -484,17 +485,70 @@ describe('Call lifecycle wiring', () => {
     },
   );
 
-  it('rejoinForAudioEngineRecovery() rejoins with the audio engine reason', async () => {
-    const reconnect = vi
-      .spyOn(call as unknown as { reconnect: Call['leave'] }, 'reconnect')
-      .mockResolvedValue(undefined);
+  describe('rejoinForAudioEngineRecovery()', () => {
+    const spyReconnect = () =>
+      vi
+        .spyOn(call as unknown as { reconnect: Call['leave'] }, 'reconnect')
+        .mockResolvedValue(undefined);
 
-    await call.rejoinForAudioEngineRecovery();
+    it('rejoins with the audio engine reason when JOINED', () => {
+      call.state.setCallingState(CallingState.JOINED);
+      const reconnect = spyReconnect();
 
-    expect(reconnect).toHaveBeenCalledExactlyOnceWith(
-      WebsocketReconnectStrategy.REJOIN,
-      'audio_engine_dead',
+      expect(call.rejoinForAudioEngineRecovery()).toBe(true);
+      expect(reconnect).toHaveBeenCalledExactlyOnceWith(
+        WebsocketReconnectStrategy.REJOIN,
+        'audio_engine_dead',
+      );
+    });
+
+    it.each(['short', 'long'] as const)(
+      'skips the rejoin without leaving when the %s window limiter is full',
+      (window) => {
+        call.state.setCallingState(CallingState.JOINED);
+        const limiter =
+          window === 'short'
+            ? call['rejoinRateLimiter']
+            : call['rejoinLongWindowRateLimiter']!;
+        while (limiter.tryRegister()) {
+          // fill the window
+        }
+        const reconnect = spyReconnect();
+        const leave = vi.spyOn(call, 'leave');
+
+        expect(call.rejoinForAudioEngineRecovery()).toBe(false);
+        expect(reconnect).not.toHaveBeenCalled();
+        expect(leave).not.toHaveBeenCalled();
+        expect(call.state.callingState).toBe(CallingState.JOINED);
+      },
     );
+
+    it('skips the rejoin while a reconnect is pending', async () => {
+      call.state.setCallingState(CallingState.JOINED);
+      const pending = promiseWithResolvers<void>();
+      const running = withoutConcurrency(
+        call['reconnectConcurrencyTag'],
+        () => pending.promise,
+      );
+      const reconnect = spyReconnect();
+
+      expect(call.rejoinForAudioEngineRecovery()).toBe(false);
+      expect(reconnect).not.toHaveBeenCalled();
+      pending.resolve();
+      await running;
+    });
+
+    it.each([
+      CallingState.JOINING,
+      CallingState.RECONNECTING,
+      CallingState.LEFT,
+    ])('skips the rejoin when the call is %s', (state) => {
+      call.state.setCallingState(state);
+      const reconnect = spyReconnect();
+
+      expect(call.rejoinForAudioEngineRecovery()).toBe(false);
+      expect(reconnect).not.toHaveBeenCalled();
+    });
   });
 
   it.each([false, true])(

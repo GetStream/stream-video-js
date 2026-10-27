@@ -1919,13 +1919,30 @@ export class Call {
   /**
    * Rejoins the call to rebuild the media stack, the last resort of the
    * React Native SDK when the iOS audio engine can't be restarted.
-   * The usual reconnect guards apply (no-op while joining, reconnecting,
-   * migrating or after leaving).
+   * Skipped (returns `false`) when the call isn't JOINED, a reconnect is
+   * already pending, or the rejoin rate limiters have no room: the
+   * reconnect would then leave the call, which is worse than a dead mic.
    *
    * @internal
+   * @returns `true` if the rejoin started.
    */
-  rejoinForAudioEngineRecovery = async (): Promise<void> =>
-    this.reconnect(WebsocketReconnectStrategy.REJOIN, 'audio_engine_dead');
+  rejoinForAudioEngineRecovery = (): boolean => {
+    if (
+      this.state.callingState !== CallingState.JOINED ||
+      hasPending(this.reconnectConcurrencyTag) ||
+      !this.rejoinRateLimiter.canRegister() ||
+      this.rejoinLongWindowRateLimiter?.canRegister() === false
+    ) {
+      return false;
+    }
+    this.reconnect(
+      WebsocketReconnectStrategy.REJOIN,
+      'audio_engine_dead',
+    ).catch((err) => {
+      this.logger.warn('[Reconnect] Error rejoining for the audio engine', err);
+    });
+    return true;
+  };
 
   /**
    * Resolves once no `doJoin` run and no reconnect is in flight.
