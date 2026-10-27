@@ -23,7 +23,10 @@ type CallingxAudioInterruptionEvents = {
   ) => { remove: () => void };
 };
 
-/** Recovery attempts per failure episode (reset by a healthy sample). */
+/**
+ * Recovery attempts per failure episode. An episode ends with a healthy
+ * sample, a recovery, or the end of the episode's rejoin decision.
+ */
 const MAX_EPISODE_ATTEMPTS = 3;
 /** Recovery attempts per call. */
 const MAX_CALL_ATTEMPTS = 6;
@@ -64,7 +67,8 @@ const isMicPermissionGranted = async () => {
  * {@link ATTEMPT_INTERVAL_MS} after each failed attempt) and
  * {@link MAX_CALL_ATTEMPTS} times per call. When a whole episode fails, the
  * call is rejoined once (last resort, mic wanted and app in the foreground;
- * skipped when the rejoin would make the call leave).
+ * skipped when the rejoin would make the call leave). Either way the episode
+ * ends there: the next trigger starts a new one (nothing is rescheduled).
  * Healthy samples are traced too (minimal payload) so the failure rate is
  * measurable.
  *
@@ -252,6 +256,9 @@ export const AudioSessionDiagnosticsTracer = () => {
     // back-to-JOINED check samples the engine once more afterwards.
     let rejoined = false;
     const rejoinIfAllowed = (lastResult: string) => {
+      // the episode ends here, rejoined or not: the next trigger starts a new
+      // one (still bounded by the call budget and the attempt spacing)
+      episodeAttempts = 0;
       const canRejoin =
         !rejoined &&
         !interrupted &&
@@ -279,7 +286,6 @@ export const AudioSessionDiagnosticsTracer = () => {
         return;
       }
       rejoined = true;
-      episodeAttempts = 0;
       logger.warn('audio engine recovery failed, rejoining the call', {
         result: lastResult,
       });

@@ -357,15 +357,19 @@ describe('AudioSessionDiagnosticsTracer', () => {
     await advance(3000);
     expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
 
-    // episode budget exhausted: no more re-checks nor attempts on triggers
+    // episode over (rejoin not allowed): no self-loop
     await advance(30000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
+
+    // the next trigger starts a new episode
     appStateListener('active');
     await advance(1000);
-    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(4);
     expect(recoveryTraces(call).map((t) => [t.trigger, t.attempt])).toEqual([
       ['joined', 1],
       ['recheck', 2],
       ['recheck', 3],
+      ['appActive', 1],
     ]);
   });
 
@@ -402,7 +406,7 @@ describe('AudioSessionDiagnosticsTracer', () => {
     expect(call.rejoinForAudioEngineRecovery).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps the rejoin for a later episode when it did not start', async () => {
+  it('starts a new episode on the next trigger when the rejoin did not start', async () => {
     adm.getEngineState.mockResolvedValue(deadEngine);
     const call = makeCall();
     call.rejoinForAudioEngineRecovery.mockReturnValueOnce(false);
@@ -417,15 +421,12 @@ describe('AudioSessionDiagnosticsTracer', () => {
       { trigger: 'budgetExhausted', lastResult: 'failed', started: false },
     ]);
 
-    // given up for this episode: no retry loop
+    // episode over: no retry loop
     await advance(30000);
     expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
     expect(call.rejoinForAudioEngineRecovery).toHaveBeenCalledTimes(1);
 
-    // a healthy sample ends the episode; the next failed episode rejoins
-    adm.getEngineState.mockResolvedValueOnce(healthyEngine);
-    appStateListener('active');
-    await advance(1000);
+    // the next trigger starts a new episode without a healthy sample
     appStateListener('active');
     await advance(1000 + 6000);
 
@@ -433,6 +434,26 @@ describe('AudioSessionDiagnosticsTracer', () => {
     expect(call.rejoinForAudioEngineRecovery).toHaveBeenCalledTimes(2);
     expect(tracesOf(call, 'ios.audioEngine.rejoin')).toEqual([
       { trigger: 'budgetExhausted', lastResult: 'failed', started: false },
+      { trigger: 'budgetExhausted', lastResult: 'failed', started: true },
+    ]);
+  });
+
+  it('starts a new episode on the next trigger when the rejoin was not allowed', async () => {
+    AppState.currentState = 'background';
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    const call = await renderJoined();
+    await advance(6000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
+    expect(call.rejoinForAudioEngineRecovery).not.toHaveBeenCalled();
+
+    // back in the foreground: recovery runs again and may rejoin now
+    AppState.currentState = 'active';
+    appStateListener('active');
+    // the first attempt is deferred to keep it 3 s after the last one
+    await advance(1000 + 2000 + 6000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(6);
+    expect(call.rejoinForAudioEngineRecovery).toHaveBeenCalledTimes(1);
+    expect(tracesOf(call, 'ios.audioEngine.rejoin')).toEqual([
       { trigger: 'budgetExhausted', lastResult: 'failed', started: true },
     ]);
   });
