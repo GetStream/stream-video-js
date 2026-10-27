@@ -50,6 +50,8 @@ import stream_react_native_webrtc
     /// The ADM `engineSubscription` is bound to. Tracked so we can detect a new ADM
     /// (a JS reload recreates WebRTCModule) and re-wire instead of staying on a dead publisher.
     private weak var subscribedADM: AudioDeviceModule?
+    /// Token for the process-wide ADM engine hooks registered in `init`.
+    private var engineHooksToken: NSObject?
     /// Backing storage for the backend's view of the desired engine gate.
     private var desiredEngineAvailability: RTCAudioEngineAvailability = .default
     private let engineAvailabilityQueue = DispatchQueue(label: "io.getstream.callingx.engineAvailability")
@@ -80,6 +82,17 @@ import stream_react_native_webrtc
             object: nil
         )
 
+        // Process-wide (every per-call ADM), run synchronously on the WebRTC worker thread, so an
+        // engine rebuild re-applies the callingx category/mode before it starts. Activation stays
+        // with the system call backend (`didActivate`).
+        engineHooksToken = AudioDeviceModule.addEngineHooks(
+            willEnable: { _, isRecordingEnabled in
+                guard CallingxSessionOwnership.callingxOwnsSession else { return 0 }
+                return AudioSessionManager.shared.applyConfigurationForEngineEnable(isRecordingEnabled: isRecordingEnabled)
+            },
+            didDisable: nil
+        )
+
         CallingxImpl.sharedInstance = self
 
         if CallingxImpl.uuidStorage == nil {
@@ -90,6 +103,9 @@ import stream_react_native_webrtc
     
     deinit {
         NotificationCenter.default.removeObserver(self)
+        if let engineHooksToken {
+            AudioDeviceModule.removeEngineHooks(engineHooksToken)
+        }
         engineSubscription?.cancel()
         engineSubscription = nil
         canSendEvents = false
@@ -322,8 +338,8 @@ import stream_react_native_webrtc
             guard CallingxSessionOwnership.callingxOwnsSession else { return }
             switch event {
             case .willEnableAudioEngine:
+                // Session config is applied synchronously by the willEnable engine hook (see `init`).
                 CallingxImpl.existingBackend()?.setAudioEngineStarting(true)
-                AudioSessionManager.shared.engineWillEnable()
             case .willStartAudioEngine:
                 // Engine is now rendering; voice-processing mute reflects real intent again.
                 CallingxImpl.existingBackend()?.setAudioEngineStarting(false)

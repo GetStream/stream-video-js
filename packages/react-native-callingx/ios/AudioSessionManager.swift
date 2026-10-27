@@ -16,10 +16,10 @@ enum DefaultAudioDevice {
     /// The pre-join default endpoint (from `setPushConfig` / `start()`).
     private var defaultAudioDevice: DefaultAudioDevice = .speaker
 
-    /// Serializes engine-driven session writes against each other (multiple
-    /// `.willEnableAudioEngine` events in arrival order). Cross-path
-    /// serialization vs `stateQueue` / WebRTC's own paths is via
-    /// `RTCAudioSession.lockForConfiguration`, not via this queue.
+    /// Serializes callingx's session writes (system call callbacks and the engine willEnable
+    /// hook) in arrival order. Never calls `AudioDeviceModule` APIs, so the hook may `.sync` onto
+    /// it from the WebRTC worker thread. The `RTCAudioSession` lock itself is taken only via
+    /// `AudioSessionConfigLock`.
     private let audioSessionQueue = DispatchQueue(label: "io.getstream.callingx.audioSession")
 
     /// Whether the AVAudioSession route-change observer is registered.
@@ -33,7 +33,7 @@ enum DefaultAudioDevice {
     }
 
     /// Applies category/mode/options on the calling thread, blocking until complete.
-    /// Serializes with `engineWillEnable` via `audioSessionQueue`. Does not call
+    /// Serializes with `applyConfigurationForEngineEnable` via `audioSessionQueue`. Does not call
     /// `setActive` — the system call backend (CallKit/LiveCommunicationKit) owns activation.
     ///
     /// Call sites:
@@ -41,24 +41,22 @@ enum DefaultAudioDevice {
     /// - `conversationManager(_:didActivate:)` (after the system activates, before the engine starts)
     public func applySystemCallConfigurationSync() {
         audioSessionQueue.sync {
-            self.applySystemCallConfiguration()
+            _ = self.applySystemCallConfiguration(isRecordingEnabled: false, skipIfUnchanged: false)
         }
         startRouteObserver()
     }
 
-    /// Called from the AudioDeviceModule publisher's `.willEnableAudioEngine` event.
-    /// Reapplies the callingx audio-session configuration on every engine rebuild
-    /// (initial activation, interruption recovery, mode change). The system call backend owns
-    /// activation, so we never call `setActive`.
-    ///
-    /// Hops onto `audioSessionQueue` because the sink is Combine-driven with no
-    /// synchronous caller waiting; this serializes back-to-back engine events
-    /// against each other.
-    public func engineWillEnable() {
-        audioSessionQueue.async { [weak self] in
-            CallingxLog.audio.debugPublic("[engineWillEnable]")
-            self?.applySystemCallConfiguration()
+    /// `AudioDeviceModule` willEnable hook body (see `CallingxImpl`), run synchronously on the
+    /// WebRTC worker thread before every fresh engine (initial activation, interruption recovery,
+    /// voice-processing retries, speaker-only fallback), so a rebuilt engine starts with the
+    /// callingx category/mode. The system call backend owns activation, so we never call `setActive`.
+    /// Cheap when nothing changed: `setConfiguration` is skipped.
+    /// - Returns: `0`, or `-4100` when `setConfiguration` throws (WebRTC rolls the enable back).
+    public func applyConfigurationForEngineEnable(isRecordingEnabled: Bool) -> Int {
+        let applied = audioSessionQueue.sync {
+            self.applySystemCallConfiguration(isRecordingEnabled: isRecordingEnabled, skipIfUnchanged: true)
         }
+        return applied ? 0 : -4100
     }
 
     /// Called from the AudioDeviceModule publisher's `.didDisableAudioEngine` event.
@@ -102,18 +100,56 @@ enum DefaultAudioDevice {
 
     // MARK: - Private
 
-    private func applySystemCallConfiguration() {
+    /// - Parameters:
+    ///   - isRecordingEnabled: whether the engine being enabled records (`false` outside the hook).
+    ///   - skipIfUnchanged: skip `setConfiguration` when category/mode/options already match.
+    /// - Returns: `false` if `setConfiguration` threw.
+    private func applySystemCallConfiguration(isRecordingEnabled: Bool, skipIfUnchanged: Bool) -> Bool {
         let currentDevice = stateQueue.sync { defaultAudioDevice }
+        do {
+            let (rtcConfig, changed) = try AudioSessionConfigLock.run { session in
+                let rtcConfig = makeConfiguration(
+                    device: currentDevice,
+                    isRecordingEnabled: isRecordingEnabled,
+                    currentCategory: session.category
+                )
+                let changed = session.category != rtcConfig.category
+                    || session.mode != rtcConfig.mode
+                    || session.categoryOptions != rtcConfig.categoryOptions
+                if changed || !skipIfUnchanged {
+                    try session.setConfiguration(rtcConfig)
+                }
+                return (rtcConfig, changed)
+            }
+            CallingxLog.audio.debugPublic("[applySystemCallConfiguration] category=\(rtcConfig.category) mode=\(rtcConfig.mode) changed=\(changed) recording=\(isRecordingEnabled)")
+            return true
+        } catch {
+            CallingxLog.audio.errorPublic("[applySystemCallConfiguration] Error: \(error)")
+            return false
+        }
+    }
 
-        let rtcSession = RTCAudioSession.sharedInstance()
-
-        // Relax to a pure-output (.playback) session when mic permission is missing
-        // same logic as in StreamInCallManager
-        let usePlaybackFallback = !micPermissionGranted()
+    /// Builds the callingx audio config and sets it as WebRTC's default.
+    private func makeConfiguration(
+        device: DefaultAudioDevice,
+        isRecordingEnabled: Bool,
+        currentCategory: String
+    ) -> RTCAudioSessionConfiguration {
+        // Same rule as StreamInCallManager: .playAndRecord when the engine records, the mic
+        // permission is granted, or the session is already .playAndRecord.
+        let wantsPlayAndRecord = isRecordingEnabled
+            || micPermissionGranted()
+            || currentCategory == AVAudioSession.Category.playAndRecord.rawValue
 
         // webRTC() singleton hardcodes sampleRate=48000 / ioBufferDuration=0.02 — keep those.
         let rtcConfig = RTCAudioSessionConfiguration.webRTC()
-        if usePlaybackFallback {
+        if !wantsPlayAndRecord {
+            // No mic permission (denied or not yet asked) and nothing recording yet: a pure-output,
+            // no-VPIO session so the output-only engine renders remote audio. Not self-healing on
+            // its own: a later recording enable (mic published after the grant) runs the willEnable
+            // hook with isRecordingEnabled=true, which upgrades to .playAndRecord before the engine
+            // starts. Once in .playAndRecord we stay there: the speaker-only fallback enables with
+            // isRecordingEnabled=false and must not downgrade the session mid-call.
             // Known gap: .playback can't route to the receiver (earpiece) — that route
             // only exists under .playAndRecord.
             rtcConfig.category = AVAudioSession.Category.playback.rawValue
@@ -129,7 +165,7 @@ enum DefaultAudioDevice {
             #endif
 
             var categoryOptions: AVAudioSession.CategoryOptions = [bluetoothOption, .allowBluetoothA2DP, .mixWithOthers]
-            if currentDevice == .speaker {
+            if device == .speaker {
                 categoryOptions.insert(.defaultToSpeaker)
             }
 
@@ -138,17 +174,7 @@ enum DefaultAudioDevice {
             rtcConfig.categoryOptions = categoryOptions
         }
         RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
-
-        CallingxLog.audio.debugPublic("[applySystemCallConfiguration] category=\(rtcConfig.category) mode=\(rtcConfig.mode)")
-
-        rtcSession.lockForConfiguration()
-        defer { rtcSession.unlockForConfiguration() }
-
-        do {
-            try rtcSession.setConfiguration(rtcConfig)
-        } catch {
-            CallingxLog.audio.errorPublic("[applySystemCallConfiguration] Error: \(error)")
-        }
+        return rtcConfig
     }
 
     private func micPermissionGranted() -> Bool {
