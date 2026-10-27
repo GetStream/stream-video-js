@@ -116,6 +116,12 @@ import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
 import { createInboundAudioStallDetector } from './helpers/inboundAudioStallDetector';
 import { ViewportTracker } from './helpers/ViewportTracker';
 import { tracePageLifecycle } from './helpers/pageLifecycle';
+import { countInboundPackets } from './helpers/inboundPackets';
+import {
+  isBrowserOffline,
+  isBrowserOnline,
+  scheduleOfflineRechecks,
+} from './helpers/offlineRechecks';
 import { PermissionsContext } from './permissions';
 import { RingStatePoller, RingTimeout, resolveOwnRingOutcome } from './ringing';
 import { CallTypes } from './CallType';
@@ -151,6 +157,12 @@ import {
   promiseWithResolvers,
 } from './helpers/promise';
 import { isReactNative } from './helpers/platforms';
+
+/**
+ * What proved the network reachable: a round trip over the SFU signal
+ * connection or the coordinator connection, or inbound media still arriving.
+ */
+type NetworkReachability = 'sfu' | 'coordinator' | 'media' | 'unreachable';
 
 /**
  * An object representation of a `Call`.
@@ -286,7 +298,11 @@ export class Call {
   private fastReconnectDeadlineSeconds: number = 0;
   private disconnectionTimeoutSeconds: number = 0;
   private lastOfflineTimestamp: number = 0;
-  private networkAvailableTask: PromiseWithResolvers<void> | undefined;
+  private networkAvailableTask: PromiseWithResolvers<boolean> | undefined;
+  private callingStateBeforeOffline: CallingState | undefined;
+  private verifyingOfflineEvent = false;
+  private reachabilityCheck: Promise<NetworkReachability> | undefined;
+  private stopOfflineRechecks?: () => void;
 
   // (10 attempts per rolling 120 s window).
   private readonly rejoinRateLimiter = new SlidingWindowRateLimiter(10, 120000);
@@ -750,6 +766,8 @@ export class Call {
       this.stopInboundAudioStallDetector = undefined;
       this.stopTracingPageLifecycle?.();
       this.stopTracingPageLifecycle = undefined;
+      // release a reconnect waiting for the network; it sees the leave and stops
+      this.endOffline(false);
 
       const leaveReason = message ?? reason ?? 'user is leaving the call';
       this.tracer.trace('call.leaveReason', leaveReason);
@@ -1877,7 +1895,7 @@ export class Call {
 
     if (this.state.callingState !== CallingState.JOINED) return;
     // without network, gathering legitimately yields no candidates
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+    if (isBrowserOffline()) return;
     const peerConnections = [this.publisher, this.subscriber];
     if (peerConnections.some((pc) => pc?.hasIceEverConnected())) return;
     if (!peerConnections.some((pc) => pc?.hasNoLocalCandidates())) return;
@@ -2021,6 +2039,17 @@ export class Call {
       return;
     // normal close, no need to reconnect
     if (sfuClient.isLeaving || sfuClient.isClosingClean) return;
+    // the browser can't reach the network: wait for it rather than spending
+    // the reconnect budget. A cleared stale `offline` event means no new one
+    // arrives for this outage. Other states are left to `reconnect()`.
+    if (
+      (callingState === CallingState.JOINED ||
+        callingState === CallingState.OFFLINE) &&
+      isBrowserOffline()
+    ) {
+      this.goOffline();
+      return;
+    }
 
     const strategy =
       this.publisher?.isHealthy() && this.subscriber?.isHealthy()
@@ -2234,6 +2263,7 @@ export class Call {
             }
           }
 
+          if (isBrowserOffline()) this.goOffline();
           if (this.state.callingState === CallingState.OFFLINE) {
             this.logger.debug(
               `[Reconnect] Can't reconnect while offline, stopping reconnection attempts`,
@@ -2501,50 +2531,16 @@ export class Call {
         if (!e.online) {
           this.logger.debug('[Reconnect] Going offline');
           if (!this.hasJoinedOnce) return;
-          this.lastOfflineTimestamp = Date.now();
-          // create a new task that would resolve when the network is available
-          const networkAvailableTask = promiseWithResolvers();
-          networkAvailableTask.promise.then(() => {
-            let strategy = WebsocketReconnectStrategy.FAST;
-            if (this.lastOfflineTimestamp) {
-              const offline = (Date.now() - this.lastOfflineTimestamp) / 1000;
-              if (offline > this.fastReconnectDeadlineSeconds) {
-                // We shouldn't attempt FAST if we have exceeded the deadline.
-                // The SFU would have already wiped out the session.
-                strategy = WebsocketReconnectStrategy.REJOIN;
-              }
-            }
-
-            this.reconnect(strategy, ReconnectReason.NETWORK_BACK_ONLINE).catch(
-              (err) => {
-                this.logger.warn(
-                  '[Reconnect] Error reconnecting after going online',
-                  err,
-                );
-              },
-            );
-          });
-          this.networkAvailableTask = networkAvailableTask;
-          this.sfuStatsReporter?.stop();
-          this.state.setCallingState(CallingState.OFFLINE);
-        } else {
-          if (!this.networkAvailableTask) return;
-          this.logger.debug('[Reconnect] Going online');
-          // Only discard the socket when no reconnect is already in flight. A
-          // running reconnect owns the SFU-client lifecycle (`doJoin` closes
-          // the previous client once the new session is up). Closing here would
-          // tear down the socket it's mid-join on, leaving the in-flight rejoin
-          // to spin on SIGNAL_LOST.
-          if (!hasPending(this.reconnectConcurrencyTag)) {
-            this.sfuClient?.close(
-              StreamSfuClient.DISPOSE_OLD_SOCKET,
-              'Closing WS to reconnect after going online',
-            );
+          // the browser reports being online right now, so the event may be
+          // stale (a resumed page can receive `online` and `offline` out of
+          // order): confirm the network is down before going offline
+          if (isBrowserOnline()) {
+            this.verifyOfflineEvent();
+          } else {
+            this.goOffline();
           }
-          // we went online, release the previous waiters and reset the state
-          this.networkAvailableTask?.resolve();
-          this.networkAvailableTask = undefined;
-          this.sfuStatsReporter?.start();
+        } else {
+          this.goOnline();
         }
       },
     );
@@ -2553,6 +2549,184 @@ export class Call {
       .add(unregisterGoAway)
       .add(unregisterOnError)
       .add(unregisterNetworkChanged);
+  };
+
+  /**
+   * Checks an `offline` event that the browser contradicts, and goes offline
+   * only if the network can't be reached.
+   */
+  private verifyOfflineEvent = () => {
+    if (this.networkAvailableTask || this.verifyingOfflineEvent) return;
+    this.verifyingOfflineEvent = true;
+    const leaveGeneration = this.leaveGeneration;
+    this.checkReachability()
+      .then((reachability) => {
+        if (this.leaveGeneration !== leaveGeneration) return;
+        this.tracer.trace('network.offlineChecked', { reachability });
+        if (reachability === 'unreachable') this.goOffline();
+      })
+      .catch((err) => {
+        this.logger.warn('[Reconnect] Failed to check an offline event', err);
+        if (this.leaveGeneration === leaveGeneration) this.goOffline();
+      })
+      .finally(() => {
+        this.verifyingOfflineEvent = false;
+      });
+  };
+
+  /**
+   * Moves the call to OFFLINE until the network is back, which the next
+   * `online` event or a successful reachability check confirms.
+   */
+  private goOffline = () => {
+    // `leave()` releases the OFFLINE state early and then tears the call down
+    if (this.networkAvailableTask || this.leavesInProgress > 0) return;
+    this.lastOfflineTimestamp = Date.now();
+    this.callingStateBeforeOffline = this.state.callingState;
+    // resolves with whether to reconnect once the network is available
+    const networkAvailableTask = promiseWithResolvers<boolean>();
+    networkAvailableTask.promise.then((shouldReconnect) => {
+      if (!shouldReconnect) return;
+      let strategy = WebsocketReconnectStrategy.FAST;
+      if (this.lastOfflineTimestamp) {
+        const offline = (Date.now() - this.lastOfflineTimestamp) / 1000;
+        if (offline > this.fastReconnectDeadlineSeconds) {
+          // We shouldn't attempt FAST if we have exceeded the deadline.
+          // The SFU would have already wiped out the session.
+          strategy = WebsocketReconnectStrategy.REJOIN;
+        }
+      }
+
+      this.reconnect(strategy, ReconnectReason.NETWORK_BACK_ONLINE).catch(
+        (err) => {
+          this.logger.warn(
+            '[Reconnect] Error reconnecting after going online',
+            err,
+          );
+        },
+      );
+    });
+    this.networkAvailableTask = networkAvailableTask;
+    this.sfuStatsReporter?.stop();
+    this.state.setCallingState(CallingState.OFFLINE);
+    this.stopOfflineRechecks?.();
+    this.stopOfflineRechecks = scheduleOfflineRechecks({
+      check: this.recheckWhileOffline,
+      logger: this.logger,
+    });
+  };
+
+  /**
+   * Leaves OFFLINE and reconnects.
+   */
+  private goOnline = () => {
+    if (!this.networkAvailableTask) return;
+    this.logger.debug('[Reconnect] Going online');
+    // Only discard the socket when no reconnect is already in flight. A
+    // running reconnect owns the SFU-client lifecycle (`doJoin` closes
+    // the previous client once the new session is up). Closing here would
+    // tear down the socket it's mid-join on, leaving the in-flight rejoin
+    // to spin on SIGNAL_LOST.
+    if (!hasPending(this.reconnectConcurrencyTag)) {
+      this.sfuClient?.close(
+        StreamSfuClient.DISPOSE_OLD_SOCKET,
+        'Closing WS to reconnect after going online',
+      );
+    }
+    this.endOffline(true);
+    this.sfuStatsReporter?.start();
+  };
+
+  /**
+   * Releases the waiters of the OFFLINE state and resets it.
+   */
+  private endOffline = (shouldReconnect: boolean) => {
+    this.stopOfflineRechecks?.();
+    this.stopOfflineRechecks = undefined;
+    this.callingStateBeforeOffline = undefined;
+    this.networkAvailableTask?.resolve(shouldReconnect);
+    this.networkAvailableTask = undefined;
+  };
+
+  /**
+   * Leaves OFFLINE once the network is reachable again. When the call was
+   * joined before and its SFU connection and peer connections survived, the
+   * call resumes as is, otherwise it reconnects.
+   */
+  private recheckWhileOffline = async () => {
+    const networkAvailableTask = this.networkAvailableTask;
+    if (!networkAvailableTask) return;
+    const reachability = await this.checkReachability();
+    if (networkAvailableTask !== this.networkAvailableTask) return;
+    if (reachability === 'unreachable') return;
+    this.tracer.trace('network.offlineCleared', { reachability });
+    if (this.state.callingState !== CallingState.OFFLINE) {
+      // a reconnect moved the call on while it was marked offline
+      this.endOffline(false);
+      this.sfuStatsReporter?.start();
+      return;
+    }
+    // ICE changes are ignored while offline, so a dropped ICE connection
+    // would not recover by itself: only an intact one can resume as is
+    const canResume =
+      reachability === 'sfu' &&
+      this.callingStateBeforeOffline === CallingState.JOINED &&
+      !hasPending(this.reconnectConcurrencyTag) &&
+      (this.publisher?.isIceConnected() ?? true) &&
+      (this.subscriber?.isIceConnected() ?? true);
+    if (canResume) {
+      this.logger.debug('[Reconnect] Network reachable, resuming the call');
+      this.state.setCallingState(CallingState.JOINED);
+      this.endOffline(false);
+      this.sfuStatsReporter?.start();
+    } else {
+      this.goOnline();
+    }
+  };
+
+  /**
+   * Checks whether the network is reachable. Round trips over the SFU signal
+   * connection, round trips over the coordinator connection and inbound
+   * media still arriving are checked in parallel; the SFU is preferred, as
+   * only it proves the call can resume as is. Concurrent callers share one
+   * check.
+   */
+  private checkReachability = (): Promise<NetworkReachability> => {
+    this.reachabilityCheck ??= this.runReachabilityCheck().finally(() => {
+      this.reachabilityCheck = undefined;
+    });
+    return this.reachabilityCheck;
+  };
+
+  private runReachabilityCheck = async (): Promise<NetworkReachability> => {
+    const sfuClient = this.sfuClient;
+    const [sfu, coordinator, media] = await Promise.all([
+      sfuClient?.isHealthy ? sfuClient.probe(2, 1500) : false,
+      this.streamClient.probeConnection(),
+      this.isReceivingMedia(),
+    ]);
+    if (sfu) return 'sfu';
+    if (coordinator) return 'coordinator';
+    if (media) return 'media';
+    return 'unreachable';
+  };
+
+  /**
+   * Whether the subscriber keeps receiving packets, sampled 1 s apart.
+   * No inbound streams count as not receiving.
+   */
+  private isReceivingMedia = async () => {
+    const subscriber = this.subscriber;
+    if (!subscriber) return false;
+    try {
+      const before = await countInboundPackets(subscriber);
+      if (before === 0) return false;
+      await sleep(1000);
+      return (await countInboundPackets(subscriber)) > before;
+    } catch (err) {
+      this.logger.debug('[Reconnect] Failed to sample inbound media', err);
+      return false;
+    }
   };
 
   /**

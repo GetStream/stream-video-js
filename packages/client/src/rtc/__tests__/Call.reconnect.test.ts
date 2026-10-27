@@ -1133,6 +1133,29 @@ describe('Call reconnect wiring (PC event → leave)', () => {
       expect(onIceConnected).toHaveBeenCalledTimes(1);
     },
   );
+
+  it.each([
+    ['connected', true],
+    ['completed', true],
+    ['checking', false],
+    ['disconnected', false],
+    ['failed', false],
+  ] as const)('reports ICE %s as connected: %s', (iceState, connected) => {
+    const publisher = new Publisher(
+      {
+        sfuClient,
+        dispatcher,
+        state: call.state,
+        tag: 'test',
+        enableTracing: false,
+      },
+      [],
+    );
+    // @ts-expect-error private field
+    publisher['pc'].iceConnectionState = iceState;
+
+    expect(publisher.isIceConnected()).toBe(connected);
+  });
 });
 
 /**
@@ -1704,6 +1727,429 @@ describe('Call reconnect: fast reconnect rejected by the SFU', () => {
       stubDoJoin(true);
       await expect(call['reconnectFast']()).resolves.toBeUndefined();
       expect(call.state.callingState).toBe(CallingState.JOINED);
+    });
+  });
+});
+
+/**
+ * A resumed page can receive `online` and `offline` out of order, leaving a
+ * stale `offline` event on a working network. The call must not stay in
+ * OFFLINE when the network is reachable, and must not reconnect when its
+ * connections survived.
+ */
+describe('Call offline handling', () => {
+  let call: Call;
+  let sfuClient: {
+    isHealthy: boolean;
+    isLeaving: boolean;
+    isClosingClean: boolean;
+    probe: ReturnType<typeof vi.fn>;
+    close: ReturnType<typeof vi.fn>;
+    leaveAndClose: ReturnType<typeof vi.fn>;
+  };
+  let publisher: {
+    isHealthy: ReturnType<typeof vi.fn>;
+    isIceConnected: ReturnType<typeof vi.fn>;
+    dispose: ReturnType<typeof vi.fn>;
+  };
+  let subscriber: {
+    isHealthy: ReturnType<typeof vi.fn>;
+    isIceConnected: ReturnType<typeof vi.fn>;
+    getStats: ReturnType<typeof vi.fn>;
+    dispose: ReturnType<typeof vi.fn>;
+  };
+  let probeConnection: ReturnType<typeof vi.spyOn>;
+  let reconnect: ReturnType<typeof vi.spyOn>;
+  let callingStates: CallingState[];
+
+  const setBrowserOnline = (onLine: boolean) => {
+    vi.stubGlobal('navigator', { onLine });
+  };
+
+  const dispatchNetworkChanged = (online: boolean) => {
+    call.streamClient.dispatchEvent({ type: 'network.changed', online });
+  };
+
+  const inboundPackets = (...counts: number[]) => {
+    for (const packetsReceived of counts) {
+      subscriber.getStats.mockResolvedValueOnce(
+        new Map([['in', { type: 'inbound-rtp', packetsReceived }]]),
+      );
+    }
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    setBrowserOnline(true);
+    call = makeCall();
+    call.state.setCallingState(CallingState.JOINED);
+    call['hasJoinedOnce'] = true;
+    call['fastReconnectDeadlineSeconds'] = 30;
+    sfuClient = {
+      isHealthy: true,
+      isLeaving: false,
+      isClosingClean: false,
+      probe: vi.fn().mockResolvedValue(true),
+      close: vi.fn(),
+      leaveAndClose: vi.fn().mockResolvedValue(undefined),
+    };
+    publisher = {
+      isHealthy: vi.fn().mockReturnValue(true),
+      isIceConnected: vi.fn().mockReturnValue(true),
+      dispose: vi.fn().mockResolvedValue(undefined),
+    };
+    subscriber = {
+      isHealthy: vi.fn().mockReturnValue(true),
+      isIceConnected: vi.fn().mockReturnValue(true),
+      getStats: vi.fn().mockResolvedValue(new Map()),
+      dispose: vi.fn().mockResolvedValue(undefined),
+    };
+    probeConnection = vi
+      .spyOn(call.streamClient, 'probeConnection')
+      .mockResolvedValue(false);
+    Object.assign(call as unknown as Record<string, unknown>, {
+      sfuClient,
+      publisher,
+      subscriber,
+    });
+    reconnect = vi
+      .spyOn(call as unknown as { reconnect: () => Promise<void> }, 'reconnect')
+      .mockResolvedValue(undefined);
+    call['registerReconnectHandlers']();
+    callingStates = [];
+    call.state.callingState$.subscribe((s) => callingStates.push(s));
+  });
+
+  afterEach(() => {
+    call['endOffline'](false);
+    call['leaveCallHooks'].forEach((hook) => hook());
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.clearAllMocks();
+  });
+
+  describe('an offline event the browser contradicts', () => {
+    it('keeps the call joined when the SFU answers', async () => {
+      dispatchNetworkChanged(false);
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(sfuClient.probe).toHaveBeenCalledTimes(1);
+      expect(callingStates).not.toContain(CallingState.OFFLINE);
+      expect(reconnect).not.toHaveBeenCalled();
+    });
+
+    it('keeps the call joined when inbound media keeps flowing', async () => {
+      sfuClient.probe.mockResolvedValue(false);
+      inboundPackets(100, 150);
+
+      dispatchNetworkChanged(false);
+      await vi.advanceTimersByTimeAsync(1000);
+
+      expect(callingStates).not.toContain(CallingState.OFFLINE);
+    });
+
+    it('goes offline when the network is unreachable', async () => {
+      sfuClient.probe.mockResolvedValue(false);
+      inboundPackets(100, 100);
+
+      dispatchNetworkChanged(false);
+      await vi.advanceTimersByTimeAsync(1000);
+
+      expect(call.state.callingState).toBe(CallingState.OFFLINE);
+    });
+
+    it('treats no inbound streams as unreachable', async () => {
+      sfuClient.probe.mockResolvedValue(false);
+
+      dispatchNetworkChanged(false);
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(call.state.callingState).toBe(CallingState.OFFLINE);
+    });
+
+    it('keeps the call joined when only the coordinator answers', async () => {
+      sfuClient.isHealthy = false;
+      probeConnection.mockResolvedValue(true);
+
+      dispatchNetworkChanged(false);
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(callingStates).not.toContain(CallingState.OFFLINE);
+    });
+
+    it('checks once for repeated offline events', async () => {
+      sfuClient.probe.mockReturnValue(new Promise(() => {}));
+
+      dispatchNetworkChanged(false);
+      dispatchNetworkChanged(false);
+
+      expect(sfuClient.probe).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('while offline', () => {
+    beforeEach(async () => {
+      setBrowserOnline(false);
+      sfuClient.probe.mockResolvedValue(false);
+      dispatchNetworkChanged(false);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(call.state.callingState).toBe(CallingState.OFFLINE);
+    });
+
+    it('resumes without reconnecting once the SFU answers again', async () => {
+      sfuClient.probe.mockResolvedValue(true);
+      await vi.advanceTimersByTimeAsync(2000);
+
+      expect(call.state.callingState).toBe(CallingState.JOINED);
+      expect(reconnect).not.toHaveBeenCalled();
+      expect(sfuClient.close).not.toHaveBeenCalled();
+      expect(call['networkAvailableTask']).toBeUndefined();
+    });
+
+    it('ignores a late online event after resuming', async () => {
+      sfuClient.probe.mockResolvedValue(true);
+      await vi.advanceTimersByTimeAsync(2000);
+
+      dispatchNetworkChanged(true);
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(reconnect).not.toHaveBeenCalled();
+      expect(sfuClient.close).not.toHaveBeenCalled();
+    });
+
+    it('waits for the first delay before rechecking', async () => {
+      expect(sfuClient.probe).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(1999);
+      expect(sfuClient.probe).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1);
+      expect(sfuClient.probe).toHaveBeenCalledTimes(1);
+    });
+
+    it('reconnects when ICE dropped while offline', async () => {
+      subscriber.isIceConnected.mockReturnValue(false);
+      sfuClient.probe.mockResolvedValue(true);
+      await vi.advanceTimersByTimeAsync(2000);
+
+      expect(reconnect).toHaveBeenCalledTimes(1);
+      expect(call.state.callingState).toBe(CallingState.OFFLINE);
+    });
+
+    it('reconnects when only the coordinator proves the network', async () => {
+      probeConnection.mockResolvedValue(true);
+      await vi.advanceTimersByTimeAsync(2000);
+
+      expect(reconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('reconnects when a peer connection failed while offline', async () => {
+      publisher.isIceConnected.mockReturnValue(false);
+      sfuClient.probe.mockResolvedValue(true);
+      await vi.advanceTimersByTimeAsync(2000);
+
+      expect(reconnect).toHaveBeenCalledWith(
+        WebsocketReconnectStrategy.FAST,
+        ReconnectReason.NETWORK_BACK_ONLINE,
+      );
+      expect(sfuClient.close).toHaveBeenCalledWith(
+        StreamSfuClient.DISPOSE_OLD_SOCKET,
+        expect.any(String),
+      );
+    });
+
+    it('reconnects when only inbound media proves the network', async () => {
+      inboundPackets(100, 150);
+      await vi.advanceTimersByTimeAsync(3000);
+
+      expect(reconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays offline while the network is unreachable', async () => {
+      await vi.advanceTimersByTimeAsync(30_000);
+
+      expect(call.state.callingState).toBe(CallingState.OFFLINE);
+      expect(reconnect).not.toHaveBeenCalled();
+    });
+
+    it('keeps one offline episode across repeated offline events', () => {
+      const task = call['networkAvailableTask'];
+
+      dispatchNetworkChanged(false);
+
+      expect(call['networkAvailableTask']).toBe(task);
+    });
+
+    it('reconnects on the online event', async () => {
+      dispatchNetworkChanged(true);
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(reconnect).toHaveBeenCalledTimes(1);
+      expect(sfuClient.close).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('reconnects instead of resuming when the call was reconnecting before going offline', async () => {
+    setBrowserOnline(false);
+    sfuClient.probe.mockResolvedValue(false);
+    call.state.setCallingState(CallingState.RECONNECTING);
+    dispatchNetworkChanged(false);
+    await vi.advanceTimersByTimeAsync(0);
+
+    sfuClient.probe.mockResolvedValue(true);
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(reconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('goes offline instead of reconnecting when the SFU signal closes while the browser is offline', () => {
+    setBrowserOnline(false);
+    sfuClient.probe.mockReturnValue(new Promise(() => {}));
+
+    call['handleSfuSignalClose'](
+      sfuClient as unknown as StreamSfuClient,
+      '1006 ',
+    );
+
+    expect(call.state.callingState).toBe(CallingState.OFFLINE);
+    expect(reconnect).not.toHaveBeenCalled();
+  });
+
+  it('releases the offline state without reconnecting once an in-flight reconnect rejoined', async () => {
+    setBrowserOnline(false);
+    sfuClient.probe.mockResolvedValue(false);
+    call.state.setCallingState(CallingState.RECONNECTING);
+    dispatchNetworkChanged(false);
+    // the reconnect that was running when the call went offline succeeds
+    call.state.setCallingState(CallingState.JOINED);
+
+    sfuClient.probe.mockResolvedValue(true);
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(call['networkAvailableTask']).toBeUndefined();
+    expect(call['stopOfflineRechecks']).toBeUndefined();
+    expect(reconnect).not.toHaveBeenCalled();
+    expect(sfuClient.close).not.toHaveBeenCalled();
+  });
+
+  it('leaves a signal close during a migration to reconnect()', () => {
+    setBrowserOnline(false);
+    call.state.setCallingState(CallingState.MIGRATING);
+
+    call['handleSfuSignalClose'](
+      sfuClient as unknown as StreamSfuClient,
+      '1006 ',
+    );
+
+    expect(reconnect).toHaveBeenCalledTimes(1);
+    expect(call.state.callingState).toBe(CallingState.MIGRATING);
+    expect(call['networkAvailableTask']).toBeUndefined();
+  });
+
+  it('shares one reachability check between an offline event and the rechecks', async () => {
+    sfuClient.probe.mockReturnValue(new Promise(() => {}));
+    dispatchNetworkChanged(false);
+    setBrowserOnline(false);
+    call['handleSfuSignalClose'](
+      sfuClient as unknown as StreamSfuClient,
+      '1006 ',
+    );
+
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(call.state.callingState).toBe(CallingState.OFFLINE);
+    expect(sfuClient.probe).toHaveBeenCalledTimes(1);
+  });
+
+  it('rechecks when the page resumes', async () => {
+    vi.stubGlobal('document', new EventTarget());
+    vi.stubGlobal('window', new EventTarget());
+    setBrowserOnline(false);
+    dispatchNetworkChanged(false);
+    sfuClient.probe.mockResolvedValue(true);
+
+    document.dispatchEvent(new Event('resume'));
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(sfuClient.probe).toHaveBeenCalledTimes(1);
+    expect(call.state.callingState).toBe(CallingState.JOINED);
+  });
+
+  it('does not go offline while leaving', async () => {
+    const disposing = promiseWithResolvers<void>();
+    const publisherDisposed = promiseWithResolvers<void>();
+    publisher.dispose.mockImplementation(() => {
+      disposing.resolve();
+      return publisherDisposed.promise;
+    });
+    const leave = call.leave();
+    await disposing.promise;
+
+    setBrowserOnline(false);
+    call['handleSfuSignalClose'](
+      sfuClient as unknown as StreamSfuClient,
+      '1006 ',
+    );
+    dispatchNetworkChanged(false);
+    publisherDisposed.resolve();
+    await leave;
+    await vi.advanceTimersByTimeAsync(30_000);
+
+    expect(call.state.callingState).toBe(CallingState.LEFT);
+    expect(callingStates).not.toContain(CallingState.OFFLINE);
+    expect(call['networkAvailableTask']).toBeUndefined();
+    expect(call['stopOfflineRechecks']).toBeUndefined();
+    expect(sfuClient.probe).not.toHaveBeenCalled();
+    expect(reconnect).not.toHaveBeenCalled();
+  });
+
+  describe('with a running reconnect', () => {
+    beforeEach(() => {
+      reconnect.mockRestore();
+      vi.spyOn(connectionUtils, 'sleep').mockResolvedValue(undefined);
+      vi.spyOn(call, 'get').mockResolvedValue({} as never);
+      sfuClient.probe.mockReturnValue(new Promise(() => {}));
+    });
+
+    it('stops and waits offline when the browser loses the network mid-reconnect', async () => {
+      const rejoin = vi
+        .spyOn(
+          call as unknown as { reconnectRejoin: () => Promise<void> },
+          'reconnectRejoin',
+        )
+        .mockImplementation(async () => {
+          setBrowserOnline(false);
+          throw new Error('rejoin stub');
+        });
+
+      await call['reconnect'](WebsocketReconnectStrategy.REJOIN, 'test');
+
+      expect(rejoin).toHaveBeenCalledTimes(1);
+      expect(call.state.callingState).toBe(CallingState.OFFLINE);
+      expect(call['networkAvailableTask']).toBeDefined();
+    });
+
+    it('lets leave() release a reconnect waiting for the network', async () => {
+      const fast = vi
+        .spyOn(
+          call as unknown as { reconnectFast: () => Promise<void> },
+          'reconnectFast',
+        )
+        .mockResolvedValue(undefined);
+      setBrowserOnline(false);
+      dispatchNetworkChanged(false);
+      const reconnecting = call['reconnect'](
+        WebsocketReconnectStrategy.FAST,
+        'test',
+      );
+
+      await call.leave();
+      await reconnecting;
+      await settled(call['reconnectConcurrencyTag']);
+
+      expect(fast).not.toHaveBeenCalled();
+      expect(call.state.callingState).toBe(CallingState.LEFT);
+      expect(call['networkAvailableTask']).toBeUndefined();
+      expect(call['stopOfflineRechecks']).toBeUndefined();
     });
   });
 });

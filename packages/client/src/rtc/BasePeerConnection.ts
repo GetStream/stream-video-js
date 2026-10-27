@@ -324,6 +324,14 @@ export abstract class BasePeerConnection {
   };
 
   /**
+   * Whether ICE is currently `connected` or `completed`.
+   */
+  isIceConnected = () => {
+    const iceState = this.pc.iceConnectionState;
+    return iceState === 'connected' || iceState === 'completed';
+  };
+
+  /**
    * Handles the ICECandidate event and
    * Initiates an ICE Trickle process with the SFU.
    */

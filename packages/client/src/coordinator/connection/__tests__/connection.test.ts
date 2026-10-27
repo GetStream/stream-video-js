@@ -549,3 +549,95 @@ describe('StableWSConnection - silent handshake hang', () => {
     await connectAttemptOutcome;
   });
 });
+
+/**
+ * A resumed page can receive `online` and `offline` out of order. The
+ * `offline` event marks the connection unhealthy, and health checks answered
+ * over the still-open socket must restore it, as no `online` event follows.
+ */
+describe('StableWSConnection - stale offline event', () => {
+  let wsConnection: StableWSConnection;
+  let dispatchEvent: ReturnType<typeof vi.spyOn>;
+  let sentHealthChecks: () => number;
+
+  const receiveHealthCheck = async () => {
+    wsConnection.onmessage(wsConnection.wsID, {
+      data: JSON.stringify({ type: 'health.check' }),
+    } as MessageEvent);
+    await vi.advanceTimersByTimeAsync(0);
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.stubGlobal('WebSocket', ManualWebSocket);
+    vi.spyOn(getTimers(), 'setTimeout').mockReturnValue(1 as unknown as number);
+    const client = buildClient();
+    dispatchEvent = vi.spyOn(client, 'dispatchEvent');
+    wsConnection = new StableWSConnection(client);
+    const ws = new ManualWebSocket('wss://test.invalid');
+    ws.readyState = ManualWebSocket.OPEN;
+    const send = vi.spyOn(ws, 'send');
+    sentHealthChecks = () =>
+      send.mock.calls.filter(([data]) => String(data).includes('health.check'))
+        .length;
+    wsConnection.ws = ws as unknown as WebSocket;
+    wsConnection.isConnectionOpenResolved = true;
+    wsConnection.isHealthy = true;
+    wsConnection.onlineStatusChanged(new Event('offline'));
+    dispatchEvent.mockClear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('restores the health after two health checks answered in a row', async () => {
+    expect(wsConnection.isHealthy).toBe(false);
+    expect(sentHealthChecks()).toBe(1);
+
+    await receiveHealthCheck();
+    expect(wsConnection.isHealthy).toBe(false);
+    expect(sentHealthChecks()).toBe(2);
+
+    await receiveHealthCheck();
+    expect(wsConnection.isHealthy).toBe(true);
+    expect(dispatchEvent).toHaveBeenCalledWith({
+      type: 'connection.changed',
+      online: true,
+    });
+  });
+
+  it('stays unhealthy when the second health check goes unanswered', async () => {
+    await receiveHealthCheck();
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(wsConnection.isHealthy).toBe(false);
+    expect(dispatchEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'connection.changed' }),
+    );
+  });
+
+  it('does not restore the health once the socket was replaced', async () => {
+    vi.spyOn(wsConnection, '_reconnect').mockImplementation(async () => {
+      wsConnection._destroyCurrentWSConnection();
+    });
+    wsConnection.onlineStatusChanged(new Event('online'));
+
+    await receiveHealthCheck();
+    await receiveHealthCheck();
+
+    expect(wsConnection._reconnect).toHaveBeenCalledTimes(1);
+    expect(wsConnection.isHealthy).toBe(false);
+  });
+
+  it('shares one probe between concurrent callers', async () => {
+    const probe = wsConnection.probe();
+
+    expect(sentHealthChecks()).toBe(1);
+    await receiveHealthCheck();
+    await receiveHealthCheck();
+    await expect(probe).resolves.toBe(true);
+  });
+});
