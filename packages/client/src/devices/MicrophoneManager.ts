@@ -42,6 +42,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   private noiseCancellationUnsubscribers: Array<() => void> = [];
   private noiseCancellationRegistration?: Promise<void>;
   private unregisterNoiseCancellation?: () => Promise<void>;
+  private disableBrowserNoiseSuppression = false;
 
   private silenceThresholdMs = 5000;
 
@@ -283,6 +284,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
         // no filter registration in React Native, its done in the native code on app init
         this.noiseCancellationRegistration = Promise.resolve();
       } else {
+        this.disableBrowserNoiseSuppression = true;
         const registrationResult = this.registerFilter(
           noiseCancellation.toFilter(),
         );
@@ -321,6 +323,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
    * Disables noise cancellation for the microphone.
    */
   async disableNoiseCancellation() {
+    this.disableBrowserNoiseSuppression = false;
     await (this.unregisterNoiseCancellation?.() ?? Promise.resolve())
       .then(() => this.noiseCancellation?.disable())
       .then(() => {
@@ -456,6 +459,18 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
   protected override getDevices(): Observable<MediaDeviceInfo[]> {
     return getAudioDevices(this.call.tracer);
+  }
+
+  /**
+   * Turns off the browser's own noise suppression while the noise
+   * cancellation filter is registered, so the audio isn't suppressed twice.
+   * Echo cancellation and auto gain control stay as configured.
+   */
+  protected override getResolvedConstraints(
+    constraints: MediaTrackConstraints,
+  ): MediaTrackConstraints {
+    if (!this.disableBrowserNoiseSuppression) return constraints;
+    return { ...constraints, noiseSuppression: false };
   }
 
   protected override async getStream(
