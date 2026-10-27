@@ -1,11 +1,10 @@
-import { isIOS, isSafari } from './browsers';
+import { isIOS } from './browsers';
 import { sharedAudioContext } from './SharedAudioContext';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
 
 /**
- * Keeps a silent, MediaStream-backed `<audio>` element playing in WebKit
- * (iOS and desktop Safari).
+ * Keeps a silent, MediaStream-backed `<audio>` element playing on iOS.
  *
  * WebKit lets a MediaStream-backed media element start playing without a
  * user gesture only while the page captures the mic or camera, or already
@@ -14,11 +13,8 @@ import { Tracer } from '../stats';
  * the user taps the page. A playing silent element keeps the page in the
  * "already playing audio" state, so remote audio keeps autoplaying.
  *
- * On desktop Safari the remote elements are created after the join's
- * gesture has expired, so the same element keeps them autoplaying; the tab
- * then shows as playing audio for the whole call. The element only does
- * what it is told: its owner decides when it plays, from page visibility,
- * user gestures and interruptions.
+ * The element only does what it is told: its owner decides when it plays,
+ * from page visibility, user gestures and interruptions.
  */
 export class SilentAudioPlayer {
   private logger = videoLoggerSystem.getLogger('SilentAudioPlayer');
@@ -38,12 +34,10 @@ export class SilentAudioPlayer {
    * Starts the silent element, or resumes it if it was paused.
    * Succeeds only while WebKit permits playback: within a user gesture,
    * while capturing, or while other audio is playing. Otherwise it is a
-   * no-op until the next call. Does nothing outside WebKit.
+   * no-op until the next call. Does nothing outside iOS.
    */
   play = () => {
-    if (!(isIOS() || isSafari()) || typeof AudioContext === 'undefined') {
-      return;
-    }
+    if (!isIOS() || typeof AudioContext === 'undefined') return;
     this.element ??= this.create();
     this.resume();
   };

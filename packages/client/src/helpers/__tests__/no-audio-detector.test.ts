@@ -69,6 +69,19 @@ describe('no-audio-detector (browser)', () => {
   });
 
   describe('detector lifecycle', () => {
+    it('releases the shared audio context when the setup throws', () => {
+      vi.mocked(mockAudioContext.createMediaStreamSource!).mockImplementation(
+        () => {
+          throw new DOMException('', 'InvalidStateError');
+        },
+      );
+
+      expect(() =>
+        createNoAudioDetector(audioStream, { onCaptureStatusChange: vi.fn() }),
+      ).toThrow();
+      expect(mockAudioContext.close).toHaveBeenCalledTimes(1);
+    });
+
     it('should clean up AudioContext and clear interval on stop', async () => {
       const onCaptureStatusChange = vi.fn();
 

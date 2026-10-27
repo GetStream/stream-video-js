@@ -129,6 +129,18 @@ export class MediaPlaybackWatchdog {
     void this.attemptPlay();
   };
 
+  /**
+   * Plays a paused element inside a user gesture, unless a recovery attempt
+   * is already scheduled. Unlike {@link playNow}, it keeps the recovery
+   * budget, so repeated gestures don't restart a failing recovery.
+   */
+  playOnGesture = () => {
+    if (this.disposed || this.pendingTimer) return;
+    const { paused, srcObject, ended } = this.element;
+    if (!paused || !srcObject || ended) return;
+    void this.attemptPlay();
+  };
+
   private clearTimers = () => {
     if (this.pendingTimer) clearTimeout(this.pendingTimer);
     this.pendingTimer = undefined;

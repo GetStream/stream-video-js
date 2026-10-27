@@ -123,11 +123,17 @@ const createAudioAnalyzer = (audioStream: MediaStream, fftSize: number) => {
   const shared = sharedAudioContext.acquire();
   if (!shared) throw new Error('Web Audio is not supported');
   const { context: audioContext, release } = shared;
-  const analyser = audioContext.createAnalyser();
-  analyser.fftSize = fftSize;
-
-  const microphone = audioContext.createMediaStreamSource(audioStream);
-  microphone.connect(analyser);
+  let analyser: AnalyserNode;
+  let microphone: MediaStreamAudioSourceNode;
+  try {
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = fftSize;
+    microphone = audioContext.createMediaStreamSource(audioStream);
+    microphone.connect(analyser);
+  } catch (err) {
+    release();
+    throw err;
+  }
 
   const dispose = () => {
     microphone.disconnect();

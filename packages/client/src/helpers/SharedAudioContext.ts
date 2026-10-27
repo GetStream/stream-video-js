@@ -1,4 +1,5 @@
 import type { RTCStatsDataType, Tracer } from '../stats';
+import { isWebKit } from './browsers';
 
 /**
  * A reference to the shared {@link AudioContext}. Call `release` once done
@@ -181,9 +182,10 @@ export class SharedAudioContext {
 
   /**
    * Traces a running context whose clock stopped advancing: its audio
-   * processing has stalled while it still reports running. On iOS this
+   * processing has stalled while it still reports running. In WebKit this
    * follows a resume whose rendering never started, so a visible page
    * restarts it once, the way a silent media element is paused and played.
+   * Other browsers only trace it.
    */
   private watchClock = (context: AudioContext) => {
     const isVisible = () => typeof document !== 'undefined' && !document.hidden;
@@ -217,7 +219,7 @@ export class SharedAudioContext {
         restarted = false;
         this.trace('audioContext.shared.unstuck', { currentTime });
       }
-      if (stuck && !restarted && canRestart) {
+      if (stuck && !restarted && canRestart && isWebKit()) {
         restarted = true;
         void this.restart(context);
       }

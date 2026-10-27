@@ -89,11 +89,11 @@ export class DynascaleManager {
   };
 
   /**
-   * Keeps a silent audio element playing on iOS and desktop Safari, so remote
-   * audio can autoplay later without another user gesture, and plays it and
-   * any paused remote audio on the next tap. On iOS it also recovers remote
-   * audio after audio interruptions. Call it from a user gesture or while
-   * audio is playing. On every platform it traces the shared audio context.
+   * Keeps a silent audio element playing on iOS, so remote audio can autoplay
+   * later without another user gesture, and recovers remote audio after
+   * audio interruptions. On iOS and desktop Safari, the next tap plays any
+   * paused remote audio. Call it from a user gesture or while audio is
+   * playing. On every platform it traces the shared audio context.
    */
   keepAudioPlaybackUnlocked = () => {
     this.stopTracingAudioContext ??= sharedAudioContext.addTracer(this.tracer);
@@ -120,6 +120,11 @@ export class DynascaleManager {
     this.stopWatchingGestures?.();
     this.stopWatchingGestures = undefined;
     this.restartOnRearm = false;
+    if (this.restartTimer) {
+      this.playbackWatchdogs.forEach((watchdog) => {
+        if (watchdog.kind === 'audio') watchdog.playNow();
+      });
+    }
     this.clearRestartTimer();
     clearTimeout(this.silentAudioResumeTimer);
     this.silentAudioResumeTimer = undefined;
@@ -551,14 +556,11 @@ export class DynascaleManager {
    * interruption (backgrounding, phone call, Siri) ends.
    */
   private createPlaybackWatchdog = (opts: MediaPlaybackWatchdogOptions) => {
-    const isAudio = opts.kind === 'audio';
     const watchdog = new MediaPlaybackWatchdog({
       ...opts,
-      ...(isAudio && {
-        isInterrupted: this.isPlaybackInterrupted,
-        retryOnPause: !isIOS(),
-        rearmDelay: isIOS() ? 1000 : 0,
-      }),
+      isInterrupted: this.isPlaybackInterrupted,
+      retryOnPause: !isIOS(),
+      rearmDelay: isIOS() ? 1000 : 0,
     });
     this.playbackWatchdogs.add(watchdog);
     this.watchPageVisibility();
@@ -616,17 +618,20 @@ export class DynascaleManager {
 
   /**
    * Audio rejected outside a user gesture starts on the next one: the silent
-   * element and any paused or autoplay-blocked remote audio. Skipped during
-   * an interruption, as play() then can keep the audio output from
-   * recovering, and while a restart is pending, which plays them itself.
+   * element and any paused or autoplay-blocked remote audio. A tap on the
+   * visible page means the user is back, so it also lifts an interruption
+   * WebKit never ended and runs a restart one left pending. Skipped while
+   * a restart is in progress, which plays the elements itself.
    */
   private watchGestures = () => {
     if (this.stopWatchingGestures) return;
     const onGesture = () => {
-      if (this.isPlaybackInterrupted() || this.restartTimer) return;
+      if (document.hidden || this.restartTimer) return;
+      sharedAudioContext.clearInterruption();
+      if (isIOS() && this.restartOnRearm) return this.restartAudioPlayback();
       this.silentAudioPlayer.resume();
       this.playbackWatchdogs.forEach((watchdog) => {
-        if (watchdog.kind === 'audio') watchdog.playNow();
+        if (watchdog.kind === 'audio') watchdog.playOnGesture();
       });
     };
     const controller = new AbortController();
@@ -692,8 +697,10 @@ export class DynascaleManager {
   };
 
   private clearRestartTimer = () => {
-    if (this.restartTimer) clearTimeout(this.restartTimer);
+    if (!this.restartTimer) return;
+    clearTimeout(this.restartTimer);
     this.restartTimer = undefined;
+    this.silentAudioPlayer.release();
   };
 
   private getOrCreateAudioContext = (): AudioContext | undefined => {
