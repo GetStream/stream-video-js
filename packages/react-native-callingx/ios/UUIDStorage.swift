@@ -1,57 +1,32 @@
 import Foundation
-import CallKit
 
-@objcMembers public class UUIDStorage: NSObject, CXCallObserverDelegate {
+@objcMembers public class UUIDStorage: NSObject {
     /// Primary storage: cid -> CallingxCall
     private var callsByCid: [String: CallingxCall] = [:]
     /// Reverse lookup: lowercased UUID string -> CallingxCall
     private var callsByUUID: [String: CallingxCall] = [:]
     private let queue = DispatchQueue(label: "com.stream.uuidstorage", attributes: [])
 
-    /// Warm, long-lived observer of CallKit's call state — a cold observer can report empty even for a
-    /// call that's been live for a while.
-    private let callObserver = CXCallObserver()
-    /// CallKit's live view, maintained from observer callbacks. NOTE: contains UUIDs of ALL
-    /// system calls. Only ever intersect it with our own UUIDs — never treat it as "our calls".
-    private var liveCallKitUUIDs: Set<UUID> = []
+    /// UUIDs of the system's live calls, supplied by the backend (`CallingxBackend.liveCallUUIDs()`).
+    /// Invoked outside `queue` so it never runs while our lock is held.
+    @nonobjc public var liveCallUUIDsProvider: (() -> Set<UUID>)?
 
-    public override init() {
-        super.init()
-        callObserver.setDelegate(self, queue: queue)
-        queue.async { [weak self] in
-            guard let self = self else { return }
-            self.liveCallKitUUIDs = Set(
-                self.callObserver.calls.filter { !$0.hasEnded }.map { $0.uuid }
-            )
-        }
-    }
-
-    // MARK: - CXCallObserverDelegate
-
-    /// IMPORTANT: delivered on `queue`, NEVER call the `queue.sync` helpers below —
-    /// re-entering the serial queue would deadlock.
-    public func callObserver(_ callObserver: CXCallObserver, callChanged call: CXCall) {
-        if call.hasEnded {
-            liveCallKitUUIDs.remove(call.uuid)
-        } else {
-            liveCallKitUUIDs.insert(call.uuid)
-        }
-    }
-
-    // MARK: - CallKit liveness queries
+    // MARK: - Conversation liveness queries
 
     public func hasRegisteredCall() -> Bool {
+        let live = liveCallUUIDsProvider?() ?? []
         return queue.sync {
             guard !callsByCid.isEmpty else { return false }
             let ours = Set(callsByCid.values.map { $0.uuid })
-            return !ours.isDisjoint(with: liveCallKitUUIDs)
+            return !ours.isDisjoint(with: live)
         }
     }
 
     public func isCallTracked(forCid cid: String) -> Bool {
+        let live = liveCallUUIDsProvider?() ?? []
         return queue.sync {
             guard let call = callsByCid[cid] else { return false }
-            return liveCallKitUUIDs.contains(call.uuid)
+            return live.contains(call.uuid)
         }
     }
 

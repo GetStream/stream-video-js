@@ -51,11 +51,15 @@ const setup = (
       canListenToWS: () => listenToWS,
       shouldCallBeClosed: () => ({ mustEndCall, endCallReason: 'remote' }),
     }));
+    jest.doMock('../../src/utils/StreamVideoRN', () => ({
+      StreamVideoRN: {
+        getConfig: () => ({ push: { createStreamVideoClient } }),
+      },
+    }));
     const {
       onRingNotificationReceived,
     } = require('../../src/utils/push/internal/android');
-    handler = (data) =>
-      onRingNotificationReceived(data, { createStreamVideoClient });
+    handler = (data) => onRingNotificationReceived(data);
     subscriptions =
       require('../../src/utils/push/internal/constants').pushUnsubscriptionCallbacks;
   });

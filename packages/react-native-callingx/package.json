@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/react-native-callingx",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0-beta.3",
   "description": "CallKit and Telecom API capabilities for React Native",
   "main": "./dist/module/index.js",
   "module": "./dist/module/index.js",
@@ -79,8 +79,6 @@
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
-    "@react-native-firebase/app": ">=23.0.0",
-    "@react-native-firebase/messaging": ">=23.0.0",
     "@stream-io/react-native-webrtc": "^145.3.1",
     "react": "*",
     "react-native": ">=0.79.0"

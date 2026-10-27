@@ -148,6 +148,47 @@ describe('DynascaleManager', () => {
       cleanup?.();
     });
 
+    it('audio: resets the sinkId to the default output when the speaker is deselected', () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      vi.spyOn(audioElement, 'play').mockResolvedValue();
+      let sinkId = '';
+      Object.defineProperty(audioElement, 'sinkId', { get: () => sinkId });
+      audioElement.setSinkId = vi.fn(async (id: string) => {
+        sinkId = id;
+      });
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+      call.state.updateParticipant('session-id', {
+        audioStream: new MediaStream(),
+      });
+      vi.runAllTimers();
+      // already on the default output, nothing to reset
+      expect(audioElement.setSinkId).not.toHaveBeenCalled();
+
+      call.speaker.select('headset-id');
+      expect(audioElement.setSinkId).toHaveBeenLastCalledWith('headset-id');
+
+      // what SpeakerManager selects when the chosen device disconnects
+      call.speaker.select('');
+      expect(audioElement.setSinkId).toHaveBeenLastCalledWith('');
+      expect(audioElement.setSinkId).toHaveBeenCalledTimes(2);
+
+      cleanup?.();
+    });
+
     it('audio: tracks the blocked session and clears it once the element plays', async () => {
       vi.useFakeTimers();
       let cleanup: ReturnType<typeof dynascaleManager.bindAudioElement>;
@@ -564,6 +605,56 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenLastCalledWith('videoTrack', {
         'session-id': { dimension: undefined },
       });
+    });
+
+    it('video: releases the stream when the element is unbound', () => {
+      vi.useFakeTimers();
+
+      const mediaStream = new MediaStream();
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [TrackType.VIDEO],
+        videoStream: mediaStream,
+      });
+
+      const cleanup = dynascaleManager.bindVideoElement(
+        videoElement,
+        'session-id',
+        'videoTrack',
+      );
+      vi.runAllTimers();
+      expect(videoElement.srcObject).toBe(mediaStream);
+
+      cleanup?.();
+
+      expect(videoElement.srcObject).toBeNull();
+    });
+
+    it('video: Safari does not re-attach the stream after the element is unbound', () => {
+      globalThis._isSafari = true;
+      vi.useFakeTimers();
+      const play = vi.spyOn(videoElement, 'play').mockResolvedValue();
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [TrackType.VIDEO],
+        videoStream: new MediaStream(),
+      });
+
+      const cleanup = dynascaleManager.bindVideoElement(
+        videoElement,
+        'session-id',
+        'videoTrack',
+      );
+      cleanup?.();
+      vi.runAllTimers();
+
+      expect(videoElement.srcObject).toBeNull();
+      expect(play).not.toHaveBeenCalled();
     });
 
     it('video: should update subscription when element becomes visible', () => {

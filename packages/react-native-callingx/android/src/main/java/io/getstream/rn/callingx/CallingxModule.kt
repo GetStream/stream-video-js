@@ -84,6 +84,11 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         return true
     }
 
+    override fun setVoipTokenRegistered(registered: Boolean): Boolean {
+        // leave empty
+        return true
+    }
+
     override fun getInitialEvents(): WritableArray {
         return impl.getInitialEvents()
     }
@@ -163,23 +168,23 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         return true
     }
 
-    override fun fulfillAnswerCallAction(callId: String, didFail: Boolean): Boolean {
+    override fun getFcmToken(promise: Promise) {
+        impl.getFcmToken(promise)
+    }
+
+    override fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
         impl.fulfillAnswerCallAction(callId, didFail)
-        return true
     }
 
-    override fun fulfillEndCallAction(callId: String, didFail: Boolean): Boolean {
+    override fun fulfillEndCallAction(callId: String, didFail: Boolean) {
         impl.fulfillEndCallAction(callId, didFail)
-        return true
     }
 
-    override fun log(message: String, level: String): Boolean {
+    override fun log(message: String, level: String) {
         impl.log(message, level)
-        return true
     }
 
-    override fun stopService(): Boolean {
+    override fun stopService() {
         impl.stopService()
-        return true
     }
 }
