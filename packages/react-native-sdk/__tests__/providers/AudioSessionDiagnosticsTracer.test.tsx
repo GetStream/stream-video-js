@@ -698,12 +698,16 @@ describe('AudioSessionDiagnosticsTracer', () => {
     await advance(1000);
     expect(adm.getEngineState).toHaveBeenCalledTimes(1);
 
+    // the queued triggers run as one follow-up check when the first settles
     await act(async () => {
       resolveRecovery({ result: 'recovered', before: deadEngine, codes: {} });
     });
-    appStateListener('active');
     await advance(1000);
     expect(adm.getEngineState).toHaveBeenCalledTimes(2);
+
+    appStateListener('active');
+    await advance(1000);
+    expect(adm.getEngineState).toHaveBeenCalledTimes(3);
   });
 
   it('checks again when the mic is enabled', async () => {

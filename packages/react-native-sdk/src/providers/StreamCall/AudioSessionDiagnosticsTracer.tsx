@@ -119,8 +119,10 @@ export const AudioSessionDiagnosticsTracer = () => {
     let episodeAttempts = 0;
     let callAttempts = 0;
     let lastAttemptAt: number | undefined;
-    // the native recovery blocks (up to ~2 s): one check at a time
+    // the native recovery blocks (up to ~2 s): one check at a time, a trigger
+    // arriving meanwhile is kept (the latest one) and checked once afterwards
     let inFlight: Promise<void> | undefined;
+    let pendingTrigger: string | undefined;
     // iOS owns the audio during an interruption (phone call, Siri, alarm):
     // no checks until it ends, the session is re-activated or the app is
     // active again (WebRTC treats the latter as an interruption end too)
@@ -128,7 +130,8 @@ export const AudioSessionDiagnosticsTracer = () => {
 
     const runCheck = (trigger: string) => {
       if (inFlight) {
-        logger.debug(`check '${trigger}' skipped, another check is running`);
+        logger.debug(`check '${trigger}' queued, another check is running`);
+        pendingTrigger = trigger;
         return;
       }
       inFlight = checkEngine(trigger)
@@ -137,6 +140,9 @@ export const AudioSessionDiagnosticsTracer = () => {
         })
         .finally(() => {
           inFlight = undefined;
+          const pending = pendingTrigger;
+          pendingTrigger = undefined;
+          if (pending && !disposed) runCheck(pending);
         });
     };
 
