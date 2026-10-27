@@ -2,7 +2,9 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import {
   AudioDeviceModule,
+  audioDeviceModuleEvents,
   type AudioEngineStateSnapshot,
+  type EngineErrorEventData,
   type RecoverEngineResult,
 } from '@stream-io/react-native-webrtc';
 import { useEffect, useRef } from 'react';
@@ -30,6 +32,8 @@ const ATTEMPT_INTERVAL_MS = 3000;
 /** Engine error lines attached to a failed recovery trace. */
 const MAX_TRACED_ERRORS = 10;
 const MAX_ERROR_MESSAGE_LENGTH = 200;
+/** Time after the first JOINED to wait for an active audio session. */
+const SESSION_TIMEOUT_MS = 10000;
 
 const isEngineHealthy = (
   state: AudioEngineStateSnapshot,
@@ -59,6 +63,10 @@ const isMicPermissionGranted = async () => {
  * {@link ATTEMPT_INTERVAL_MS} after each failed attempt) and
  * {@link MAX_CALL_ATTEMPTS} times per call. Healthy samples are traced too
  * (minimal payload) so the failure rate is measurable.
+ *
+ * It also traces the ADM engine errors (the actual failure reasons), and an
+ * `audio.session.timeout` when the SDK-owned audio session is still inactive
+ * {@link SESSION_TIMEOUT_MS} after joining.
  */
 export const AudioSessionDiagnosticsTracer = () => {
   const call = useCall();
@@ -71,6 +79,10 @@ export const AudioSessionDiagnosticsTracer = () => {
     ((trigger: string, delayMs: number) => void) | undefined
   >(undefined);
   const initialCheckScheduledRef = useRef(false);
+  const scheduleSessionTimeoutCheckRef = useRef<(() => void) | undefined>(
+    undefined,
+  );
+  const sessionTimeoutScheduledRef = useRef(false);
   const prevCallingStateRef = useRef(callingState);
   const prevMicStatusRef = useRef(micStatus);
 
@@ -236,8 +248,46 @@ export const AudioSessionDiagnosticsTracer = () => {
       if (failed) logger.warn(`audio engine recovery: ${result}`, recovery);
     };
 
+    // same name as the stream-video-swift trace; trace only, a rejoin would
+    // not activate a session that iOS refuses to activate
+    let sessionTimeout: ReturnType<typeof setTimeout> | undefined;
+    const checkSessionActive = async () => {
+      if (call.state.callingState !== CallingState.JOINED) return;
+      // CallKit activates a callingx-owned session, possibly much later
+      if (callManager.ios.getAudioSessionState().callingxOwnsSession) return;
+      const state = await AudioDeviceModule.getEngineState();
+      if (disposed || state?.sessionActive !== false) return;
+      call.tracer.trace('audio.session.timeout', {
+        category: state.sessionCategory,
+      });
+      logger.warn('the audio session is not active after joining', state);
+    };
+    const scheduleSessionTimeoutCheck = () => {
+      if (disposed || sessionTimeout) return;
+      sessionTimeout = setTimeout(() => {
+        checkSessionActive().catch((error: unknown) => {
+          logger.warn('audio session timeout check failed', error);
+        });
+      }, SESSION_TIMEOUT_MS);
+    };
+
     scheduleCheckRef.current = scheduleCheck;
     initialCheckScheduledRef.current = false;
+    scheduleSessionTimeoutCheckRef.current = scheduleSessionTimeoutCheck;
+    sessionTimeoutScheduledRef.current = false;
+
+    // the ADM's own error lines: the actual reasons of a failed engine start
+    const engineErrorSubscription =
+      audioDeviceModuleEvents.addEngineErrorListener(
+        ({ message, severity, repeat, dropped }: EngineErrorEventData) => {
+          call.tracer.trace('ios.audioEngine.error', {
+            message: message.slice(0, MAX_ERROR_MESSAGE_LENGTH),
+            severity,
+            ...(repeat !== undefined && { repeat }),
+            ...(dropped !== undefined && { dropped }),
+          });
+        },
+      );
 
     const removeDiagnosticListener =
       callManager.ios.addAudioSessionDiagnosticListener(
@@ -288,6 +338,9 @@ export const AudioSessionDiagnosticsTracer = () => {
     return () => {
       disposed = true;
       scheduleCheckRef.current = undefined;
+      scheduleSessionTimeoutCheckRef.current = undefined;
+      clearTimeout(sessionTimeout);
+      engineErrorSubscription.remove();
       removeDiagnosticListener();
       removeInterruptionListener();
       removeRouteListener();
@@ -309,6 +362,11 @@ export const AudioSessionDiagnosticsTracer = () => {
     prevMicStatusRef.current = micStatus;
     const scheduleCheck = scheduleCheckRef.current;
     if (!scheduleCheck || callingState !== CallingState.JOINED) return;
+
+    if (!sessionTimeoutScheduledRef.current) {
+      sessionTimeoutScheduledRef.current = true;
+      scheduleSessionTimeoutCheckRef.current?.();
+    }
 
     if (!initialCheckScheduledRef.current) {
       if (micStatus !== 'enabled') return;

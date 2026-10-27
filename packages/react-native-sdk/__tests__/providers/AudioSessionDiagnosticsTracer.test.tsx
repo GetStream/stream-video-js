@@ -1,9 +1,12 @@
 import React from 'react';
 import { act, render } from '@testing-library/react-native';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { BehaviorSubject } from 'rxjs';
 import { CallingState } from '@stream-io/video-client';
-import { AudioDeviceModule } from '@stream-io/react-native-webrtc';
+import {
+  AudioDeviceModule,
+  audioDeviceModuleEvents,
+} from '@stream-io/react-native-webrtc';
 import { callManager } from '../../src/modules/call-manager';
 import { getCallingxLibIfAvailable } from '../../src/utils/push/libs/callingx';
 import { AudioSessionDiagnosticsTracer } from '../../src/providers/StreamCall/AudioSessionDiagnosticsTracer';
@@ -42,6 +45,7 @@ jest.mock('@stream-io/react-native-webrtc', () => ({
     getEngineState: jest.fn(),
     recoverEngineIfNeeded: jest.fn(),
   },
+  audioDeviceModuleEvents: { addEngineErrorListener: jest.fn() },
 }));
 jest.mock('../../src/modules/call-manager', () => ({
   callManager: {
@@ -60,6 +64,9 @@ jest.mock('../../src/utils/push/libs/callingx', () => ({
 const adm = AudioDeviceModule as unknown as {
   getEngineState: jest.Mock;
   recoverEngineIfNeeded: jest.Mock;
+};
+const admEvents = audioDeviceModuleEvents as unknown as {
+  addEngineErrorListener: jest.Mock;
 };
 const iosCallManager = callManager.ios as unknown as {
   getAudioSessionState: jest.Mock;
@@ -144,6 +151,8 @@ describe('AudioSessionDiagnosticsTracer', () => {
   let interruptionListener: (event: unknown) => void;
   let routeListener: () => void;
   let appStateListener: (state: string) => void;
+  let engineErrorListener: (event: unknown) => void;
+  let removeEngineErrorListener: jest.Mock;
   let checkPermission: jest.Mock;
 
   beforeEach(() => {
@@ -167,6 +176,11 @@ describe('AudioSessionDiagnosticsTracer', () => {
         return jest.fn();
       },
     );
+    removeEngineErrorListener = jest.fn();
+    admEvents.addEngineErrorListener.mockImplementation((listener) => {
+      engineErrorListener = listener;
+      return { remove: removeEngineErrorListener };
+    });
     audioDevices.addChangeListener.mockImplementation((listener) => {
       routeListener = listener;
       return jest.fn();
@@ -434,8 +448,10 @@ describe('AudioSessionDiagnosticsTracer', () => {
         attempt: 1,
       },
     ]);
+    // no re-check (the other sample is the 10 s session timeout check)
     await advance(30000);
-    expect(adm.getEngineState).toHaveBeenCalledTimes(1);
+    expect(recordingStateTraces(call)).toHaveLength(1);
+    expect(recoveryTraces(call)).toHaveLength(1);
   });
 
   it('runs one check at a time', async () => {
@@ -622,5 +638,104 @@ describe('AudioSessionDiagnosticsTracer', () => {
       'joined',
       'audioSessionActivated',
     ]);
+  });
+
+  it('traces audio engine errors and unsubscribes on unmount', () => {
+    const call = makeCall();
+    mockUseCall.mockReturnValue(call);
+    const { unmount } = render(<AudioSessionDiagnosticsTracer />);
+
+    engineErrorListener({
+      message: 'x'.repeat(300),
+      severity: 'error',
+      timestamp: 1,
+      repeat: 2,
+    });
+    engineErrorListener({ message: 'w', severity: 'warning', timestamp: 2 });
+
+    expect(tracesOf(call, 'ios.audioEngine.error')).toEqual([
+      { message: 'x'.repeat(200), severity: 'error', repeat: 2 },
+      { message: 'w', severity: 'warning' },
+    ]);
+
+    unmount();
+    expect(removeEngineErrorListener).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not subscribe to anything on Android', async () => {
+    const originalOS = Platform.OS;
+    Platform.OS = 'android';
+    try {
+      const call = makeCall();
+      call.callingState$.next(CallingState.JOINED);
+      mockUseCall.mockReturnValue(call);
+      render(<AudioSessionDiagnosticsTracer />);
+      await advance(15000);
+
+      expect(admEvents.addEngineErrorListener).not.toHaveBeenCalled();
+      expect(adm.getEngineState).not.toHaveBeenCalled();
+      expect(call.tracer.trace).not.toHaveBeenCalled();
+    } finally {
+      Platform.OS = originalOS;
+    }
+  });
+
+  it('traces a session timeout when the session is inactive 10 s after joining', async () => {
+    adm.getEngineState.mockResolvedValue({
+      ...healthyEngine,
+      sessionActive: false,
+      sessionCategory: 'AVAudioSessionCategoryPlayback',
+    });
+    const call = makeCall();
+    call.status$.next('disabled');
+    mockUseCall.mockReturnValue(call);
+    render(<AudioSessionDiagnosticsTracer />);
+    act(() => {
+      call.callingState$.next(CallingState.JOINED);
+    });
+
+    await advance(9999);
+    expect(tracesOf(call, 'audio.session.timeout')).toEqual([]);
+    await advance(1);
+    expect(tracesOf(call, 'audio.session.timeout')).toEqual([
+      { category: 'AVAudioSessionCategoryPlayback' },
+    ]);
+
+    // once per mount, not again after a reconnect
+    act(() => {
+      call.callingState$.next(CallingState.RECONNECTING);
+    });
+    act(() => {
+      call.callingState$.next(CallingState.JOINED);
+    });
+    await advance(20000);
+    expect(tracesOf(call, 'audio.session.timeout')).toHaveLength(1);
+  });
+
+  it('does not trace a session timeout when the session is active', async () => {
+    const call = await renderJoined();
+    await advance(10000);
+
+    expect(tracesOf(call, 'audio.session.timeout')).toEqual([]);
+  });
+
+  it('does not trace a session timeout when callingx owns the session', async () => {
+    adm.getEngineState.mockResolvedValue({
+      ...healthyEngine,
+      sessionActive: false,
+    });
+    iosCallManager.getAudioSessionState.mockReturnValue({
+      ...sessionState,
+      callingxOwnsSession: true,
+    });
+    const call = makeCall();
+    call.status$.next('disabled');
+    call.callingState$.next(CallingState.JOINED);
+    mockUseCall.mockReturnValue(call);
+    render(<AudioSessionDiagnosticsTracer />);
+    await advance(10000);
+
+    expect(tracesOf(call, 'audio.session.timeout')).toEqual([]);
+    expect(adm.getEngineState).not.toHaveBeenCalled();
   });
 });
