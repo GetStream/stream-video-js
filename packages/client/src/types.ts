@@ -527,14 +527,15 @@ export type StreamRNVideoSDKGlobals = {
     }: StreamRNVideoSDKCallManagerStartParams): void;
 
     /**
-     * iOS-only (non-callingx). Starts the in call manager and waits (bounded)
-     * for the audio session to become active, so the session is configured
-     * before the microphone is published. Never rejects on platforms where it
-     * is a no-op; resolves `undefined` when nothing was prepared.
+     * iOS-only (non-callingx). Starts the in call manager synchronously and
+     * returns a promise of the bounded wait for the audio session to become
+     * active, so the session is configured before the microphone is published.
+     * Returns `undefined` synchronously (and starts nothing) when it does not
+     * apply (non-iOS, or callingx owns the session).
      */
     prepareAudioSessionForPublish?(
       params: StreamRNVideoSDKCallManagerStartParams,
-    ): Promise<StreamRNVideoSDKAudioSessionPrepareResult | undefined>;
+    ): Promise<StreamRNVideoSDKAudioSessionPrepareResult> | undefined;
 
     /**
      * Stops the in call manager.

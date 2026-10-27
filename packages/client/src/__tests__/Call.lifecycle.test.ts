@@ -637,7 +637,7 @@ describe('Call lifecycle wiring', () => {
     await call.leave();
   });
 
-  it.each(['resolves', 'missing', 'rejects'] as const)(
+  it.each(['resolves', 'missing', 'undefined', 'throws', 'rejects'] as const)(
     'call.join() prepares the audio session before the first publish: %s',
     async (mode) => {
       vi.spyOn(call, 'setup').mockResolvedValue(undefined);
@@ -659,17 +659,21 @@ describe('Call lifecycle wiring', () => {
       });
       const order: string[] = [];
       const pending = promiseWithResolvers<void>();
-      const prepare = vi.fn(async () => {
+      const prepare = vi.fn(() => {
         order.push('prepare');
-        await pending.promise;
-        if (mode === 'rejects') throw new Error('native failure');
-        return { active: true, waitedMs: 5 };
+        if (mode === 'undefined') return undefined;
+        if (mode === 'throws') throw new Error('sync failure');
+        return pending.promise.then(() => {
+          if (mode === 'rejects') throw new Error('native failure');
+          return { active: true, waitedMs: 5 };
+        });
       });
       const start = vi.fn(() => order.push('start'));
+      const stop = vi.fn();
       (globalThis as Record<string, any>).streamRNVideoSDK = {
         callManager: {
           start,
-          stop: vi.fn(),
+          stop,
           ...(mode === 'missing'
             ? {}
             : { prepareAudioSessionForPublish: prepare }),
@@ -681,9 +685,10 @@ describe('Call lifecycle wiring', () => {
           order.push('publish');
         });
       const trace = vi.spyOn(call.tracer, 'trace');
+      const warn = vi.spyOn(call.logger, 'warn');
 
       const joinTask = call.join();
-      if (mode !== 'missing') {
+      if (mode === 'resolves' || mode === 'rejects') {
         await vi.waitFor(() => expect(prepare).toHaveBeenCalledOnce());
         expect(prepare).toHaveBeenCalledWith({
           isRingingTypeCall: false,
@@ -695,9 +700,14 @@ describe('Call lifecycle wiring', () => {
       }
       await joinTask;
 
-      // prepare already started the call manager
+      const prepared = mode === 'resolves' || mode === 'rejects';
+      // prepare already started the call manager; otherwise join starts it
       expect(order).toEqual(
-        mode === 'missing' ? ['publish', 'start'] : ['prepare', 'publish'],
+        prepared
+          ? ['prepare', 'publish']
+          : mode === 'missing'
+            ? ['publish', 'start']
+            : ['prepare', 'publish', 'start'],
       );
       expect(call.state.callingState).toBe(CallingState.JOINED);
       const prepareTraces = trace.mock.calls.filter(
@@ -708,16 +718,23 @@ describe('Call lifecycle wiring', () => {
           ? [['ios.audioSession.prepare', { active: true, waitedMs: 5 }]]
           : [],
       );
-      const stop = (globalThis as Record<string, any>).streamRNVideoSDK
-        .callManager.stop;
+      const failed = mode === 'throws' || mode === 'rejects';
+      expect(warn).toHaveBeenCalledTimes(failed ? 1 : 0);
+      if (failed) {
+        expect(warn).toHaveBeenCalledWith(
+          'Failed to prepare the audio session',
+          expect.any(Error),
+        );
+      }
       await call.leave();
+      expect(stop).toHaveBeenCalledOnce();
       expect(stop).toHaveBeenCalledWith(
         expect.objectContaining({ shouldStopCallManager: true }),
       );
     },
   );
 
-  it('call.join() stops the call manager prepare started when leave() lands during the wait', async () => {
+  it('call.join() leaves the stop to leave() when it lands during the prepare wait', async () => {
     vi.spyOn(call, 'setup').mockResolvedValue(undefined);
     call['credentials'] = fromPartial({ ice_servers: [] });
     call['lastStatsOptions'] = fromPartial({ reporting_interval_ms: 0 });
@@ -736,10 +753,9 @@ describe('Call lifecycle wiring', () => {
       return fromPartial<rtc.Publisher>(makePeer());
     });
     const pending = promiseWithResolvers<void>();
-    const prepare = vi.fn(async () => {
-      await pending.promise;
-      return { active: true, waitedMs: 5 };
-    });
+    const prepare = vi.fn(() =>
+      pending.promise.then(() => ({ active: true, waitedMs: 5 })),
+    );
     const start = vi.fn();
     const stop = vi.fn();
     (globalThis as Record<string, any>).streamRNVideoSDK = {
@@ -752,15 +768,15 @@ describe('Call lifecycle wiring', () => {
     const joinTask = call.join();
     await vi.waitFor(() => expect(prepare).toHaveBeenCalledOnce());
     await call.leave();
-    expect(stop).toHaveBeenLastCalledWith(
-      expect.objectContaining({ shouldStopCallManager: false }),
+    expect(stop).toHaveBeenCalledOnce();
+    expect(stop).toHaveBeenCalledWith(
+      expect.objectContaining({ shouldStopCallManager: true }),
     );
     pending.resolve();
     await joinTask;
 
-    expect(stop).toHaveBeenLastCalledWith(
-      expect.objectContaining({ shouldStopCallManager: true }),
-    );
+    // the join continuation must not stop again (it could hit a newer call)
+    expect(stop).toHaveBeenCalledOnce();
     expect(configure).not.toHaveBeenCalled();
     expect(start).not.toHaveBeenCalled();
     expect(call.state.callingState).toBe(CallingState.LEFT);

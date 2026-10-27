@@ -82,6 +82,7 @@ import {
   ClientPublishOptions,
   ClosedCaptionsSettings,
   JoinCallData,
+  StreamRNVideoSDKGlobals,
   TrackMuteType,
   VideoTrackType,
 } from './types';
@@ -1548,21 +1549,12 @@ export class Call {
       this.state.settings &&
       !supersededByLeave()
     ) {
-      const audioSessionPrepared = await this.prepareAudioSessionForPublish();
+      await this.prepareAudioSessionForPublish();
       if (supersededByLeave()) {
-        // leave() ran during the wait, before the call manager counted as
-        // started, so it skipped the native stop; release what prepare started
-        if (audioSessionPrepared) {
-          globalThis.streamRNVideoSDK?.callManager.stop({
-            isRingingTypeCall: this.ringing,
-            shouldStopCallManager: true,
-          });
-        }
+        // leave() already stopped what prepare started (callManagerStarted)
         this.logger.debug('Join superseded by leave; not completing join flow');
         return;
       }
-      // prepare started the call manager; a leave() from here on must stop it
-      if (audioSessionPrepared) this.callManagerStarted = true;
       await this.applyDeviceConfig(this.state.settings, {
         publish: true,
         skipSpeakerApply: false,
@@ -1626,25 +1618,32 @@ export class Call {
   /**
    * React Native (iOS, non-callingx): activates the audio session before the
    * first publish, so the ADM never starts the engine on an inactive session.
-   * A failure is logged and never blocks the join.
-   *
-   * @returns whether the call manager may have been started.
+   * The call manager starts synchronously, so it counts as started before the
+   * wait: a leave() during the wait stops it. A failure is logged and never
+   * blocks the join; a synchronous throw leaves the join-time start to run.
    */
-  private prepareAudioSessionForPublish = async (): Promise<boolean> => {
+  private prepareAudioSessionForPublish = async (): Promise<void> => {
     const callManager = globalThis.streamRNVideoSDK?.callManager;
-    if (!callManager?.prepareAudioSessionForPublish) return false;
+    let wait: ReturnType<
+      NonNullable<
+        StreamRNVideoSDKGlobals['callManager']['prepareAudioSessionForPublish']
+      >
+    >;
     try {
-      const result = await callManager.prepareAudioSessionForPublish({
+      wait = callManager?.prepareAudioSessionForPublish?.({
         isRingingTypeCall: this.ringing,
         cid: this.cid,
       });
-      if (!result) return false;
-      this.tracer.trace('ios.audioSession.prepare', result);
-      return true;
     } catch (err) {
       this.logger.warn('Failed to prepare the audio session', err);
-      // the failure may come after the start; stopping is idempotent
-      return true;
+      return;
+    }
+    if (!wait) return;
+    this.callManagerStarted = true;
+    try {
+      this.tracer.trace('ios.audioSession.prepare', await wait);
+    } catch (err) {
+      this.logger.warn('Failed to prepare the audio session', err);
     }
   };
 

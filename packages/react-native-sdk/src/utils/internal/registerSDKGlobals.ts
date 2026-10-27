@@ -176,8 +176,9 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
     // iOS non-callingx only: start (configure + activate) the session before the mic is
     // published, so the ADM never starts the engine on an inactive session. Goes through
     // the full `start` so the stored audio config is applied first; the client then
-    // skips its join-time `start`.
-    prepareAudioSessionForPublish: async (params) => {
+    // skips its join-time `start`. Sync: `undefined` means nothing was started; the
+    // start happens before returning, so the client can count it as started at once.
+    prepareAudioSessionForPublish: (params) => {
       if (
         Platform.OS !== 'ios' ||
         shouldBypassForCallingx({ isRingingTypeCall: params.isRingingTypeCall })
@@ -186,11 +187,9 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       }
       streamRNVideoSDKGlobals.callManager.start(params);
       const startedAt = Date.now();
-      const active =
-        await StreamInCallManagerNativeModule.waitForAudioSessionActive(
-          AUDIO_SESSION_ACTIVE_TIMEOUT_MS,
-        );
-      return { active, waitedMs: Date.now() - startedAt };
+      return StreamInCallManagerNativeModule.waitForAudioSessionActive(
+        AUDIO_SESSION_ACTIVE_TIMEOUT_MS,
+      ).then((active) => ({ active, waitedMs: Date.now() - startedAt }));
     },
     stop: ({ isRingingTypeCall, shouldStopCallManager }) => {
       // Clear the stored audio config so it doesn't carry into the next call.

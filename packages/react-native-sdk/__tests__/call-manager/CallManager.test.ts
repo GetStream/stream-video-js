@@ -338,19 +338,23 @@ describe('internal callManager.prepareAudioSessionForPublish', () => {
       callingx: undefined,
     });
 
-    const result =
-      await internalCallManager.prepareAudioSessionForPublish!(params);
+    const wait = internalCallManager.prepareAudioSessionForPublish!(params);
 
+    // started synchronously, before the caller awaits
     expect(nativeManager.start).toHaveBeenCalledTimes(1);
     expect(nativeManager.waitForAudioSessionActive).toHaveBeenCalledWith(2000);
     const [startOrder] = nativeManager.start.mock.invocationCallOrder;
     const [waitOrder] =
       nativeManager.waitForAudioSessionActive.mock.invocationCallOrder;
     expect(startOrder).toBeLessThan(waitOrder!);
-    expect(result).toEqual({ active: true, waitedMs: expect.any(Number) });
+    expect(wait).toBeInstanceOf(Promise);
+    await expect(wait).resolves.toEqual({
+      active: true,
+      waitedMs: expect.any(Number),
+    });
   });
 
-  it('is a no-op when callingx owns the session (iOS)', async () => {
+  it('is a no-op when callingx owns the session (iOS)', () => {
     const nativeManager = makeNativeManager();
     const { internalCallManager } = loadCallManager({
       os: 'ios',
@@ -358,15 +362,15 @@ describe('internal callManager.prepareAudioSessionForPublish', () => {
       callingx: makeCallingx({ isOngoingCallsEnabled: true }),
     });
 
-    const result =
-      await internalCallManager.prepareAudioSessionForPublish!(params);
+    const result = internalCallManager.prepareAudioSessionForPublish!(params);
 
+    // synchronously undefined: nothing to await, nothing started
     expect(result).toBeUndefined();
     expect(nativeManager.start).not.toHaveBeenCalled();
     expect(nativeManager.waitForAudioSessionActive).not.toHaveBeenCalled();
   });
 
-  it('is a no-op on Android', async () => {
+  it('is a no-op on Android', () => {
     const nativeManager = makeNativeManager();
     const { internalCallManager } = loadCallManager({
       os: 'android',
@@ -374,9 +378,9 @@ describe('internal callManager.prepareAudioSessionForPublish', () => {
       callingx: undefined,
     });
 
-    const result =
-      await internalCallManager.prepareAudioSessionForPublish!(params);
+    const result = internalCallManager.prepareAudioSessionForPublish!(params);
 
+    // synchronously undefined: nothing to await, nothing started
     expect(result).toBeUndefined();
     expect(nativeManager.start).not.toHaveBeenCalled();
     expect(nativeManager.waitForAudioSessionActive).not.toHaveBeenCalled();
