@@ -3,12 +3,11 @@ import stream_react_native_webrtc
 
 /// The only place in this package that may call `RTCAudioSession.lockForConfiguration()`.
 ///
-/// `lockForConfiguration()` does `RTC_CHECK(!mutex_locked)` before taking its mutex, so a second
-/// locker crashes instead of waiting, both on the same thread (re-entry) and on another thread while
-/// the lock is held. The engine willEnable hook runs on the WebRTC worker thread while the system call
-/// callbacks run on their own queues, so every lock goes through here: a process-wide recursive lock
-/// serializes the threads, and a thread-local depth makes only the outermost entry lock/unlock the
-/// session.
+/// `lockForConfiguration()` does `RTC_CHECK(!mutex_locked)` on a thread-local flag before taking its
+/// non-reentrant mutex (webrtc `RTCAudioSession.mm:38`, :254-258): a locker on another thread waits,
+/// but the same thread locking again crashes. So every lock goes through here: a thread-local depth
+/// makes only the outermost entry lock/unlock the session, and the recursive lock keeps a compound
+/// step (e.g. configure, then activate) together within this package.
 ///
 /// Never call `AudioDeviceModule` APIs inside `body`: they hop to the WebRTC worker thread, where the
 /// engine hooks wait for this lock (deadlock).
