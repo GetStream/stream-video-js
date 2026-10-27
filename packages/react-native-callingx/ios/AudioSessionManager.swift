@@ -47,9 +47,11 @@ enum DefaultAudioDevice {
     }
 
     /// `AudioDeviceModule` willEnable hook body (see `CallingxImpl`), run synchronously on the
-    /// WebRTC worker thread before every fresh engine (initial activation, interruption recovery,
-    /// voice-processing retries, speaker-only fallback), so a rebuilt engine starts with the
-    /// callingx category/mode. The system call backend owns activation, so we never call `setActive`.
+    /// WebRTC worker thread on an enable edge only (input or output being enabled: initial enable,
+    /// voice-processing retries, speaker-only fallback), so that engine starts with the callingx
+    /// category/mode. Not run for rebuilds without an enable edge (device change, stop recording
+    /// with playout on, interruption-end restart). The system call backend owns activation, so we
+    /// never call `setActive`.
     /// Cheap when nothing changed: `setConfiguration` is skipped.
     /// - Returns: `0`, or `-4100` when `setConfiguration` throws (WebRTC rolls the enable back).
     public func applyConfigurationForEngineEnable(isRecordingEnabled: Bool) -> Int {
@@ -138,12 +140,15 @@ enum DefaultAudioDevice {
         // webRTC() singleton hardcodes sampleRate=48000 / ioBufferDuration=0.02 — keep those.
         let rtcConfig = RTCAudioSessionConfiguration.webRTC()
         if !wantsPlayAndRecord {
-            // No mic permission (denied or not yet asked) and nothing recording yet: a pure-output,
-            // no-VPIO session so the output-only engine renders remote audio. Not self-healing on
-            // its own: a later recording enable (mic published after the grant) runs the willEnable
-            // hook with isRecordingEnabled=true, which upgrades to .playAndRecord before the engine
-            // starts. Once in .playAndRecord we stay there: the speaker-only fallback enables with
-            // isRecordingEnabled=false and must not downgrade the session mid-call.
+            // No mic permission (denied or not yet asked) and nothing recording yet: an output-only
+            // engine under .playAndRecord/.voiceChat (VPIO) can render no remote audio. With the mic
+            // permission the SDK keeps the input chain prepared (always-prepared mode); without it
+            // that's impossible, so a pure-output, no-VPIO .playback session keeps remote audio
+            // audible. Not self-healing on its own: a later recording enable (mic published after
+            // the grant) runs the willEnable hook with isRecordingEnabled=true, which upgrades to
+            // .playAndRecord before the engine starts. Once in .playAndRecord we stay there: the
+            // speaker-only fallback enables with isRecordingEnabled=false and must not downgrade the
+            // session mid-call.
             // Known gap: .playback can't route to the receiver (earpiece) — that route
             // only exists under .playAndRecord.
             rtcConfig.category = AVAudioSession.Category.playback.rawValue

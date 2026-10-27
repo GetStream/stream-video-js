@@ -45,6 +45,7 @@ The public `callManager` (`src/modules/call-manager/CallManager.ts`) is a **conf
 - Sync engine hooks (`AudioDeviceModule.addEngineHooks`, WebRTC worker thread): `StreamInCallManagerImpl` configures + activates the session in willEnable (counted activation, `weActivatedSession`), callingx only re-applies category/mode. Hooks: no ADM calls, no `audioSessionQueue.sync`/`main.sync`, all `RTCAudioSession` locking via each package's `AudioSessionConfigLock` (re-locking on the same thread crashes; other threads just wait).
 - Join order (iOS, non-callingx): `Call.ts` awaits `callManager.prepareAudioSessionForPublish` (start + `waitForAudioSessionActive`) before the first mic publish.
 - Recovery: `AudioSessionDiagnosticsTracer` samples `getEngineState()`, calls `recoverEngineIfNeeded` (≤3/episode, ≤6/call, ≥3 s apart), then one `call.rejoinForAudioEngineRecovery()` per call; traces `ios.audioEngine.*` and `audio.session.timeout`.
+- Recovery is skipped while an audio interruption is active; the audio rejoin is skipped (call stays joined) when the rejoin rate limiter has no room.
 
 ## Per-Call PeerConnectionFactory (Media Engine)
 

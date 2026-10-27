@@ -243,9 +243,10 @@ private enum AudioDeviceId {
             // options = self.enableStereo ? [.allowBluetoothA2DP] : []
         } else if !wantsPlayAndRecord {
             // Communicator without mic permission (denied or not yet asked) and nothing
-            // recording yet: use a pure-output, no-VPIO session so the output-only
-            // AVAudioEngine renders remote audio. Mirrors stream-video-swift
-            // (isRecordingEnabled ? .playAndRecord : .playback).
+            // recording yet: an output-only engine under .playAndRecord/.voiceChat (VPIO)
+            // can render no remote audio. With the mic permission we keep the input chain
+            // prepared (always-prepared mode) to avoid that; without it we can't, so use a
+            // pure-output, no-VPIO .playback session to keep remote audio audible.
             // Not self-healing on its own: a later recording enable (mic published after
             // the grant) runs the willEnable hook with isRecordingEnabled=true, which
             // upgrades to .playAndRecord before the engine starts. Once in .playAndRecord we
@@ -357,9 +358,11 @@ private enum AudioDeviceId {
 
     // MARK: - Engine Hooks (non-callingx path)
 
-    /// `AudioDeviceModule` willEnable hook: runs synchronously on the WebRTC worker thread
-    /// before every fresh engine (incl. voice-processing retries and the speaker-only fallback),
-    /// so the session is configured and active before the engine starts. Idempotent and cheap.
+    /// `AudioDeviceModule` willEnable hook: runs synchronously on the WebRTC worker thread on an
+    /// enable edge only (input or output being enabled: initial enable, voice-processing retries,
+    /// speaker-only fallback), so the session is configured and active before that engine starts.
+    /// Not run for rebuilds without an enable edge (device change, stop recording with playout on,
+    /// interruption-end restart). Idempotent and cheap.
     /// Must not touch `audioSessionQueue`, the main queue (sync) or ADM APIs.
     /// Non-zero fails the enable, so WebRTC rolls it back instead of starting a broken engine.
     private func handleEngineWillEnable(isPlayoutEnabled: Bool, isRecordingEnabled: Bool) -> Int {
@@ -522,6 +525,9 @@ private enum AudioDeviceId {
     public func stop() {
         audioSessionQueue.async { [self] in
             if !audioManagerActivated {
+                // start() never ran, but the willEnable hook may have activated the session
+                // (e.g. the engine enabled before start); release it. No-op otherwise.
+                deactivateSessionIfNeeded(source: "stop")
                 return
             }
             // Outside AudioSessionConfigLock: ADM calls hop to the worker thread (hooks).
