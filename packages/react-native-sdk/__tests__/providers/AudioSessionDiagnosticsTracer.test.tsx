@@ -640,24 +640,16 @@ describe('AudioSessionDiagnosticsTracer', () => {
     ]);
   });
 
-  it('does not warn for an expected callingx-owned engine enable skip', () => {
+  it('warns only for native audio session errors', () => {
     const call = makeCall();
     mockUseCall.mockReturnValue(call);
     render(<AudioSessionDiagnosticsTracer />);
 
-    const skip = { event: 'engineEnableSkipped', callingxOwnsSession: true };
-    diagnosticListener(skip);
-    expect(call.tracer.trace).toHaveBeenCalledWith(
-      'ios.audioSession.engineEnableSkipped',
-      skip,
-    );
+    diagnosticListener({ event: 'engineEnableApplied' });
     expect(mockLogger.warn).not.toHaveBeenCalled();
 
-    diagnosticListener({ event: 'engineEnableSkipped' });
     diagnosticListener({ event: 'setMuteModeError', result: -1 });
-    diagnosticListener({ event: 'engineEnableApplied' });
     expect(mockLogger.warn.mock.calls.map(([msg]) => msg)).toEqual([
-      'ios.audioSession.engineEnableSkipped',
       'ios.audioSession.setMuteModeError',
     ]);
   });

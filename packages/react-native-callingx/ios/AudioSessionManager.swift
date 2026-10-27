@@ -59,12 +59,6 @@ enum DefaultAudioDevice {
         return applied ? 0 : -4100
     }
 
-    /// Called from the AudioDeviceModule publisher's `.didDisableAudioEngine` event.
-    /// The system call backend owns deactivation — no-op on the callingx path.
-    public func engineDidDisable() {
-        // No-op: the system deactivates the session (`provider(_:didDeactivate:)` / `conversationManager(_:didDeactivate:)`).
-    }
-
     // MARK: - Route-change observer
 
     /// Registers the AVAudioSession route-change observer for the current call.

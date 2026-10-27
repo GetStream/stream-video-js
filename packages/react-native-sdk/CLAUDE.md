@@ -40,6 +40,12 @@ The public `callManager` (`src/modules/call-manager/CallManager.ts`) is a **conf
 - `audioRole`: `'communicator'` (default — video/voice, SDK controls routing, manual device switching supported) or `'listener'` (livestream viewing, high-quality stereo, OS controls routing).
 - `deviceEndpointType`: `'speaker'` | `'earpiece'` — communicator-only override for the default endpoint (otherwise derived from call settings).
 
+**iOS audio session + engine (RN-463 dead mic):**
+
+- Sync engine hooks (`AudioDeviceModule.addEngineHooks`, WebRTC worker thread): `StreamInCallManagerImpl` configures + activates the session in willEnable (counted activation, `weActivatedSession`), callingx only re-applies category/mode. Hooks: no ADM calls, no `audioSessionQueue.sync`/`main.sync`, all `RTCAudioSession` locking via each package's `AudioSessionConfigLock` (a second `lockForConfiguration` crashes).
+- Join order (iOS, non-callingx): `Call.ts` awaits `callManager.prepareAudioSessionForPublish` (start + `waitForAudioSessionActive`) before the first mic publish.
+- Recovery: `AudioSessionDiagnosticsTracer` samples `getEngineState()`, calls `recoverEngineIfNeeded` (≤3/episode, ≤6/call, ≥3 s apart), then one `call.rejoinForAudioEngineRecovery()` per call; traces `ios.audioEngine.*` and `audio.session.timeout`.
+
 ## Per-Call PeerConnectionFactory (Media Engine)
 
 **One native `PeerConnectionFactory` per call**, built at join and disposed at leave. Each call owns its own `AudioDeviceModule`, so audio configs are baked in per call rather than on a process-global factory.

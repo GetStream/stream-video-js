@@ -343,8 +343,6 @@ import stream_react_native_webrtc
             case .willStartAudioEngine:
                 // Engine is now rendering; voice-processing mute reflects real intent again.
                 CallingxImpl.existingBackend()?.setAudioEngineStarting(false)
-            case .didDisableAudioEngine:
-                AudioSessionManager.shared.engineDidDisable()
             default:
                 break
             }

@@ -415,10 +415,11 @@ private enum AudioDeviceId {
     }
 
     /// Releases our session activation, if we hold one. Idempotent; never throws.
+    /// Runs even when callingx owns the session: ownership can flip to callingx mid-call after
+    /// we activated, and skipping would leak our activation. CallKit's own activation also
+    /// counts in RTCAudioSession, so our `setActive(false)` only decrements the count and never
+    /// really deactivates a CallKit-owned session.
     private func deactivateSessionIfNeeded(source: String) {
-        if Self.callingxOwnsSession() {
-            return
-        }
         AudioSessionConfigLock.run { session in
             guard weActivatedSession else { return }
             // RTCAudioSession decrements its activation count even when deactivation fails.

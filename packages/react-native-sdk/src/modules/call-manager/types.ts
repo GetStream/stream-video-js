@@ -77,7 +77,6 @@ export type IOSAudioSessionDiagnosticEvent = Partial<IOSAudioSessionState> & {
   event:
     | 'setupError'
     | 'engineEnableApplied'
-    | 'engineEnableSkipped'
     | 'engineEnableError'
     | 'startPlayoutError'
     | 'setMuteModeError'

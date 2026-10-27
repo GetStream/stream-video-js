@@ -326,11 +326,7 @@ export const AudioSessionDiagnosticsTracer = () => {
       callManager.ios.addAudioSessionDiagnosticListener(
         (event: IOSAudioSessionDiagnosticEvent) => {
           call.tracer.trace(`ios.audioSession.${event.event}`, event);
-          // a skip is expected when callingx owns the session (CallKit activates it)
-          const unexpectedSkip =
-            event.event === 'engineEnableSkipped' &&
-            event.callingxOwnsSession !== true;
-          if (event.error || event.event.endsWith('Error') || unexpectedSkip) {
+          if (event.error || event.event.endsWith('Error')) {
             logger.warn(`ios.audioSession.${event.event}`, event);
           }
         },
