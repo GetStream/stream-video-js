@@ -170,6 +170,11 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    override fun waitForAudioSessionActive(timeoutMs: Double, promise: Promise) {
+        // iOS only
+        promise.resolve(true)
+    }
+
     override fun getAudioDeviceStatus(promise: Promise) {
         promise.resolve(mAudioDeviceManager.audioStatusMap())
     }

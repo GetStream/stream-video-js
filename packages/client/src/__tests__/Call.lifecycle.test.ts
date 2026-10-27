@@ -624,6 +624,135 @@ describe('Call lifecycle wiring', () => {
     await call.leave();
   });
 
+  it.each(['resolves', 'missing', 'rejects'] as const)(
+    'call.join() prepares the audio session before the first publish: %s',
+    async (mode) => {
+      vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+      call['credentials'] = fromPartial({ ice_servers: [] });
+      call['lastStatsOptions'] = fromPartial({ reporting_interval_ms: 0 });
+      call['sfuClient'] = fromPartial({
+        isHealthy: true,
+        sessionId: 'test-session',
+        leaveAndClose: vi.fn().mockResolvedValue(undefined),
+      });
+      call.state['settingsSubject'].next(
+        fromPartial({ audio: {}, screensharing: {}, video: {} }),
+      );
+      vi.spyOn(rtc, 'Subscriber').mockImplementation(function () {
+        return fromPartial<rtc.Subscriber>(makePeer());
+      });
+      vi.spyOn(rtc, 'Publisher').mockImplementation(function () {
+        return fromPartial<rtc.Publisher>(makePeer());
+      });
+      const order: string[] = [];
+      const pending = promiseWithResolvers<void>();
+      const prepare = vi.fn(async () => {
+        order.push('prepare');
+        await pending.promise;
+        if (mode === 'rejects') throw new Error('native failure');
+        return { active: true, waitedMs: 5 };
+      });
+      const start = vi.fn(() => order.push('start'));
+      (globalThis as Record<string, any>).streamRNVideoSDK = {
+        callManager: {
+          start,
+          stop: vi.fn(),
+          ...(mode === 'missing'
+            ? {}
+            : { prepareAudioSessionForPublish: prepare }),
+        },
+      };
+      const configure = vi
+        .spyOn(internalCall, 'applyDeviceConfig')
+        .mockImplementation(async () => {
+          order.push('publish');
+        });
+      const trace = vi.spyOn(call.tracer, 'trace');
+
+      const joinTask = call.join();
+      if (mode !== 'missing') {
+        await vi.waitFor(() => expect(prepare).toHaveBeenCalledOnce());
+        expect(prepare).toHaveBeenCalledWith({
+          isRingingTypeCall: false,
+          cid: call.cid,
+        });
+        // the publish waits for the session to be prepared
+        expect(configure).not.toHaveBeenCalled();
+        pending.resolve();
+      }
+      await joinTask;
+
+      // prepare already started the call manager
+      expect(order).toEqual(
+        mode === 'missing' ? ['publish', 'start'] : ['prepare', 'publish'],
+      );
+      expect(call.state.callingState).toBe(CallingState.JOINED);
+      const prepareTraces = trace.mock.calls.filter(
+        ([tag]) => tag === 'ios.audioSession.prepare',
+      );
+      expect(prepareTraces).toEqual(
+        mode === 'resolves'
+          ? [['ios.audioSession.prepare', { active: true, waitedMs: 5 }]]
+          : [],
+      );
+      const stop = (globalThis as Record<string, any>).streamRNVideoSDK
+        .callManager.stop;
+      await call.leave();
+      expect(stop).toHaveBeenCalledWith(
+        expect.objectContaining({ shouldStopCallManager: true }),
+      );
+    },
+  );
+
+  it('call.join() stops the call manager prepare started when leave() lands during the wait', async () => {
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    call['credentials'] = fromPartial({ ice_servers: [] });
+    call['lastStatsOptions'] = fromPartial({ reporting_interval_ms: 0 });
+    call['sfuClient'] = fromPartial({
+      isHealthy: true,
+      sessionId: 'test-session',
+      leaveAndClose: vi.fn().mockResolvedValue(undefined),
+    });
+    call.state['settingsSubject'].next(
+      fromPartial({ audio: {}, screensharing: {}, video: {} }),
+    );
+    vi.spyOn(rtc, 'Subscriber').mockImplementation(function () {
+      return fromPartial<rtc.Subscriber>(makePeer());
+    });
+    vi.spyOn(rtc, 'Publisher').mockImplementation(function () {
+      return fromPartial<rtc.Publisher>(makePeer());
+    });
+    const pending = promiseWithResolvers<void>();
+    const prepare = vi.fn(async () => {
+      await pending.promise;
+      return { active: true, waitedMs: 5 };
+    });
+    const start = vi.fn();
+    const stop = vi.fn();
+    (globalThis as Record<string, any>).streamRNVideoSDK = {
+      callManager: { start, stop, prepareAudioSessionForPublish: prepare },
+    };
+    const configure = vi
+      .spyOn(internalCall, 'applyDeviceConfig')
+      .mockResolvedValue(undefined);
+
+    const joinTask = call.join();
+    await vi.waitFor(() => expect(prepare).toHaveBeenCalledOnce());
+    await call.leave();
+    expect(stop).toHaveBeenLastCalledWith(
+      expect.objectContaining({ shouldStopCallManager: false }),
+    );
+    pending.resolve();
+    await joinTask;
+
+    expect(stop).toHaveBeenLastCalledWith(
+      expect.objectContaining({ shouldStopCallManager: true }),
+    );
+    expect(configure).not.toHaveBeenCalled();
+    expect(start).not.toHaveBeenCalled();
+    expect(call.state.callingState).toBe(CallingState.LEFT);
+  });
+
   it('ignores old subscriber tracks while flushing stats during replacement', async () => {
     // Use real event dispatch so detaching a listener prevents late delivery.
     vi.spyOn(globalThis, 'RTCPeerConnection').mockImplementation(function () {

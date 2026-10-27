@@ -316,7 +316,10 @@ private enum AudioDeviceId {
     public func setup() {
         audioSessionQueue.async { [self] in
             let adm = getAudioDeviceModule()
-            selectedOutput = nil
+            // A repeated start() (join prepare, then the join-time start) keeps a user-picked route.
+            if !audioManagerActivated {
+                selectedOutput = nil
+            }
 
             // This path (no system call UI) owns audio-session activation itself, so the
             // engine must be allowed to start. Restores availability in case a
@@ -483,6 +486,34 @@ private enum AudioDeviceId {
             }
 
             audioManagerActivated = true
+        }
+    }
+
+    /// Resolves whether the shared session is active. Enqueued on `audioSessionQueue`, so it runs
+    /// after a pending `start()`; polls every 100 ms (without blocking the queue) until the timeout.
+    @objc(waitForAudioSessionActiveWithTimeoutMs:resolve:)
+    public func waitForAudioSessionActive(timeoutMs: Double, resolve: @escaping (Bool) -> Void) {
+        audioSessionQueue.async { [self] in
+            let deadline = DispatchTime.now() + .milliseconds(Int(max(timeoutMs, 0)))
+            pollAudioSessionActive(until: deadline, resolve: resolve)
+        }
+    }
+
+    private func pollAudioSessionActive(until deadline: DispatchTime, resolve: @escaping (Bool) -> Void) {
+        let isActive = RTCAudioSession.sharedInstance().isActive
+        if isActive || DispatchTime.now() >= deadline {
+            if !isActive {
+                log("waitForAudioSessionActive: session still inactive at timeout")
+            }
+            resolve(isActive)
+            return
+        }
+        audioSessionQueue.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
+            guard let self else {
+                resolve(false)
+                return
+            }
+            self.pollAudioSessionActive(until: deadline, resolve: resolve)
         }
     }
 

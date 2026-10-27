@@ -27,6 +27,12 @@ export interface Spec extends TurboModule {
   start(): void;
   stop(): void;
 
+  /**
+   * iOS only. Resolves whether the shared audio session is active, polling
+   * until `timeoutMs` after the pending `start()` work. Resolves `true` on Android.
+   */
+  waitForAudioSessionActive(timeoutMs: number): Promise<boolean>;
+
   /** iOS only. */
   showAudioRoutePicker(): void;
 

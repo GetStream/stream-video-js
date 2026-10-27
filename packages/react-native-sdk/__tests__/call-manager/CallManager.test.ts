@@ -17,6 +17,8 @@ const makeNativeManager = () => ({
   start: jest.fn(),
   stop: jest.fn(),
   setup: jest.fn(),
+  stopSound: jest.fn(),
+  waitForAudioSessionActive: jest.fn().mockResolvedValue(true),
   chooseAudioDeviceEndpoint: jest.fn(),
   getAudioDeviceStatus: jest.fn(),
   setForceSpeakerphoneOn: jest.fn(),
@@ -317,5 +319,66 @@ describe('CallManager native events (StreamInCallManager TurboModule)', () => {
 
     unsubscribe();
     expect(remove).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('internal callManager.prepareAudioSessionForPublish', () => {
+  afterEach(() => {
+    jest.resetModules();
+    delete (globalThis as any).streamRNVideoSDK;
+  });
+
+  const params = { isRingingTypeCall: false, cid: 'type:id' };
+
+  it('starts the call manager and waits for an active session (iOS, no callingx)', async () => {
+    const nativeManager = makeNativeManager();
+    const { internalCallManager } = loadCallManager({
+      os: 'ios',
+      nativeManager,
+      callingx: undefined,
+    });
+
+    const result =
+      await internalCallManager.prepareAudioSessionForPublish!(params);
+
+    expect(nativeManager.start).toHaveBeenCalledTimes(1);
+    expect(nativeManager.waitForAudioSessionActive).toHaveBeenCalledWith(2000);
+    const [startOrder] = nativeManager.start.mock.invocationCallOrder;
+    const [waitOrder] =
+      nativeManager.waitForAudioSessionActive.mock.invocationCallOrder;
+    expect(startOrder).toBeLessThan(waitOrder!);
+    expect(result).toEqual({ active: true, waitedMs: expect.any(Number) });
+  });
+
+  it('is a no-op when callingx owns the session (iOS)', async () => {
+    const nativeManager = makeNativeManager();
+    const { internalCallManager } = loadCallManager({
+      os: 'ios',
+      nativeManager,
+      callingx: makeCallingx({ isOngoingCallsEnabled: true }),
+    });
+
+    const result =
+      await internalCallManager.prepareAudioSessionForPublish!(params);
+
+    expect(result).toBeUndefined();
+    expect(nativeManager.start).not.toHaveBeenCalled();
+    expect(nativeManager.waitForAudioSessionActive).not.toHaveBeenCalled();
+  });
+
+  it('is a no-op on Android', async () => {
+    const nativeManager = makeNativeManager();
+    const { internalCallManager } = loadCallManager({
+      os: 'android',
+      nativeManager,
+      callingx: undefined,
+    });
+
+    const result =
+      await internalCallManager.prepareAudioSessionForPublish!(params);
+
+    expect(result).toBeUndefined();
+    expect(nativeManager.start).not.toHaveBeenCalled();
+    expect(nativeManager.waitForAudioSessionActive).not.toHaveBeenCalled();
   });
 });

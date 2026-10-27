@@ -425,6 +425,13 @@ type StreamRNVideoSDKCallManagerStartParams =
     cid: string;
   };
 
+type StreamRNVideoSDKAudioSessionPrepareResult = {
+  /** Whether the audio session reported active before the timeout. */
+  active: boolean;
+  /** How long the wait took. */
+  waitedMs: number;
+};
+
 type StreamRNVideoSDKCallManagerStopParams =
   StreamRNVideoSDKCallManagerRingingParams & {
     shouldStopCallManager: boolean;
@@ -518,6 +525,16 @@ export type StreamRNVideoSDKGlobals = {
       isRingingTypeCall,
       cid,
     }: StreamRNVideoSDKCallManagerStartParams): void;
+
+    /**
+     * iOS-only (non-callingx). Starts the in call manager and waits (bounded)
+     * for the audio session to become active, so the session is configured
+     * before the microphone is published. Never rejects on platforms where it
+     * is a no-op; resolves `undefined` when nothing was prepared.
+     */
+    prepareAudioSessionForPublish?(
+      params: StreamRNVideoSDKCallManagerStartParams,
+    ): Promise<StreamRNVideoSDKAudioSessionPrepareResult | undefined>;
 
     /**
      * Stops the in call manager.

@@ -121,6 +121,14 @@
   [_impl stop];
 }
 
+- (void)waitForAudioSessionActive:(double)timeoutMs
+                          resolve:(RCTPromiseResolveBlock)resolve
+                           reject:(RCTPromiseRejectBlock)reject {
+  [_impl waitForAudioSessionActiveWithTimeoutMs:timeoutMs resolve:^(BOOL isActive) {
+    resolve(@(isActive));
+  }];
+}
+
 #pragma mark - Audio Routing
 
 - (void)showAudioRoutePicker {
