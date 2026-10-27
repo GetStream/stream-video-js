@@ -560,8 +560,9 @@ private enum AudioDeviceId {
         audioSessionQueue.async { [self] in
             startFailed = false
             if !audioManagerActivated {
-                // start() never ran, but the willEnable hook may have activated the session
-                // (e.g. the engine enabled before start); release it. No-op otherwise.
+                // start() did not complete, but the willEnable hook only acts after `isStarted`
+                // is set inside start(): covers an enable between that point and a failed
+                // start(). Releases the activation; no-op otherwise.
                 deactivateSessionIfNeeded(source: "stop")
                 return
             }

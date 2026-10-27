@@ -425,6 +425,11 @@ type StreamRNVideoSDKCallManagerStartParams =
     cid: string;
   };
 
+/**
+ * Result of the React Native SDK's iOS audio session prepare step.
+ *
+ * @internal
+ */
 export type StreamRNVideoSDKAudioSessionPrepareResult = {
   /** Whether the audio session reported active before the timeout. */
   active: boolean;
