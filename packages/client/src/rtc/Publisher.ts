@@ -8,6 +8,7 @@ import {
 import { isFirefox } from '../helpers/browsers';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { isReactNative } from '../helpers/platforms';
+import { promiseWithResolvers } from '../helpers/promise';
 import { BasePeerConnection } from './BasePeerConnection';
 import { isSvcCodec } from './codecs';
 import {
@@ -41,6 +42,7 @@ export class Publisher extends BasePeerConnection {
   private publishOptions: PublishOption[];
   private readonly selfSubEnabled: boolean;
   private readonly transceiverLockKey = `pub.tx.${this.lock}`;
+  private readonly disposed = promiseWithResolvers<void>();
 
   /**
    * Constructs a new `Publisher` instance.
@@ -85,12 +87,9 @@ export class Publisher extends BasePeerConnection {
    */
   async dispose(): Promise<void> {
     await super.dispose();
-    try {
-      await this.stopAllTracks();
-    } catch (err) {
-      this.logger.warn('Failed to stop tracks during dispose', err);
-    }
+    this.stopAllTracks();
     this.clonedTracks.clear();
+    this.disposed.resolve();
   }
 
   /**
@@ -390,9 +389,13 @@ export class Publisher extends BasePeerConnection {
 
   /**
    * Stops the cloned track that is being published to the SFU.
+   *
+   * Settles once this Publisher is disposed, as dispose() stops every track:
+   * a `changePublishQuality` handler stuck on a `setParameters()` that never
+   * settles after close would otherwise keep this call queued forever.
    */
   stopTracks = async (...trackTypes: TrackType[]) => {
-    return withoutConcurrency(
+    const stopping = withoutConcurrency(
       this.eventLockKey('changePublishQuality'),
       async () => {
         for (const item of this.transceiverCache.items()) {
@@ -404,25 +407,23 @@ export class Publisher extends BasePeerConnection {
         }
       },
     );
+    return Promise.race([stopping, this.disposed.promise]);
   };
 
   /**
    * Stops all the cloned tracks that are being published to the SFU.
+   *
+   * Takes no lock, as it runs after the peer connection is closed: a
+   * `setParameters()` pending at that point may never settle (Chromium),
+   * so a `changePublishQuality` handler awaiting it never releases its lock.
    */
-  stopAllTracks = async () => {
-    return withoutConcurrency(
-      this.eventLockKey('changePublishQuality'),
-      async () => {
-        for (const item of this.transceiverCache.items()) {
-          const track = item.transceiver.sender.track;
-          await this.silenceSenderOnFirefox(item);
-          this.stopTrack(track);
-        }
-        for (const track of this.clonedTracks) {
-          this.stopTrack(track);
-        }
-      },
-    );
+  stopAllTracks = () => {
+    for (const item of this.transceiverCache.items()) {
+      this.stopTrack(item.transceiver.sender.track);
+    }
+    for (const track of this.clonedTracks) {
+      this.stopTrack(track);
+    }
   };
 
   private changePublishQuality = async (
@@ -690,7 +691,11 @@ export class Publisher extends BasePeerConnection {
 
   private stopTrack = (track: MediaStreamTrack | null | undefined) => {
     if (!track) return;
-    track.stop();
+    try {
+      track.stop();
+    } catch (err) {
+      this.logger.warn('Failed to stop track', err);
+    }
     this.clonedTracks.delete(track);
   };
 
