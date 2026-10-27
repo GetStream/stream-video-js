@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, render } from '@testing-library/react-native';
+import { AppState } from 'react-native';
 import { BehaviorSubject } from 'rxjs';
 import { CallingState } from '@stream-io/video-client';
 import { AudioDeviceModule } from '@stream-io/react-native-webrtc';
@@ -38,16 +39,13 @@ jest.mock('@stream-io/video-client', () => ({
 }));
 jest.mock('@stream-io/react-native-webrtc', () => ({
   AudioDeviceModule: {
-    isRecording: jest.fn(),
-    isPlaying: jest.fn(),
-    isEngineRunning: jest.fn(),
-    isMicrophoneMuted: jest.fn(),
-    getMuteMode: jest.fn(),
-    isRecordingAlwaysPreparedMode: jest.fn(),
+    getEngineState: jest.fn(),
+    recoverEngineIfNeeded: jest.fn(),
   },
 }));
 jest.mock('../../src/modules/call-manager', () => ({
   callManager: {
+    audioDevices: { addChangeListener: jest.fn() },
     ios: {
       getAudioSessionState: jest.fn(),
       addAudioSessionDiagnosticListener: jest.fn(),
@@ -60,23 +58,35 @@ jest.mock('../../src/utils/push/libs/callingx', () => ({
 }));
 
 const adm = AudioDeviceModule as unknown as {
-  isRecording: jest.Mock;
-  isPlaying: jest.Mock;
-  isEngineRunning: jest.Mock;
-  isMicrophoneMuted: jest.Mock;
-  getMuteMode: jest.Mock;
-  isRecordingAlwaysPreparedMode: jest.Mock;
+  getEngineState: jest.Mock;
+  recoverEngineIfNeeded: jest.Mock;
 };
 const iosCallManager = callManager.ios as unknown as {
   getAudioSessionState: jest.Mock;
   addAudioSessionDiagnosticListener: jest.Mock;
   addAudioInterruptionListener: jest.Mock;
 };
+const audioDevices = callManager.audioDevices as unknown as {
+  addChangeListener: jest.Mock;
+};
 const sessionState = {
   category: 'PlayAndRecord',
   route: 'MicrophoneBuiltIn>Speaker',
   micPermission: 'undetermined',
 };
+const healthyEngine = {
+  isPlaying: true,
+  isRecording: true,
+  isEngineRunning: true,
+  isMicrophoneMuted: false,
+  isRecordingAlwaysPreparedMode: false,
+  isInputAvailable: true,
+  isOutputAvailable: true,
+  isVoiceProcessingEnabled: true,
+  sessionCategory: 'AVAudioSessionCategoryPlayAndRecord',
+  sessionActive: true,
+};
+const deadEngine = { ...healthyEngine, isEngineRunning: false };
 
 const makeCall = () => {
   const callingState$ = new BehaviorSubject(CallingState.JOINING);
@@ -101,19 +111,48 @@ const makeCall = () => {
     },
   };
 };
+type TestCall = ReturnType<typeof makeCall>;
 
-const recordingStateTraces = (call: ReturnType<typeof makeCall>) =>
-  call.tracer.trace.mock.calls.filter(
-    ([tag]) => tag === 'ios.audioRecording.state',
-  );
+const tracesOf = (call: TestCall, tag: string) =>
+  call.tracer.trace.mock.calls
+    .filter(([t]) => t === tag)
+    .map(([, payload]) => payload);
+const recordingStateTraces = (call: TestCall) =>
+  tracesOf(call, 'ios.audioRecording.state');
+const recoveryTraces = (call: TestCall) =>
+  tracesOf(call, 'ios.audioEngine.recovery');
+
+/** Advances fake timers and flushes the resulting promise chains. */
+const advance = async (ms: number) => {
+  await act(async () => {
+    await jest.advanceTimersByTimeAsync(ms);
+  });
+};
+
+/** Renders the tracer for a call that is already JOINED. */
+const renderJoined = async () => {
+  const call = makeCall();
+  call.callingState$.next(CallingState.JOINED);
+  mockUseCall.mockReturnValue(call);
+  render(<AudioSessionDiagnosticsTracer />);
+  await advance(3000);
+  return call;
+};
 
 describe('AudioSessionDiagnosticsTracer', () => {
   let diagnosticListener: (event: unknown) => void;
   let interruptionListener: (event: unknown) => void;
+  let routeListener: () => void;
+  let appStateListener: (state: string) => void;
+  let checkPermission: jest.Mock;
 
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    checkPermission = jest.fn().mockResolvedValue(true);
+    (globalThis as any).streamRNVideoSDK = {
+      permissions: { check: checkPermission },
+    };
     (getCallingxLibIfAvailable as jest.Mock).mockReturnValue(undefined);
     iosCallManager.getAudioSessionState.mockReturnValue(sessionState);
     iosCallManager.addAudioSessionDiagnosticListener.mockImplementation(
@@ -128,19 +167,33 @@ describe('AudioSessionDiagnosticsTracer', () => {
         return jest.fn();
       },
     );
-    adm.isRecording.mockReturnValue(true);
-    adm.isPlaying.mockReturnValue(true);
-    adm.getMuteMode.mockReturnValue(0);
-    adm.isRecordingAlwaysPreparedMode.mockReturnValue(false);
-    adm.isEngineRunning.mockReturnValue(true);
-    adm.isMicrophoneMuted.mockReturnValue(false);
+    audioDevices.addChangeListener.mockImplementation((listener) => {
+      routeListener = listener;
+      return jest.fn();
+    });
+    jest.spyOn(AppState, 'addEventListener').mockImplementation(((
+      _: string,
+      listener: (state: string) => void,
+    ) => {
+      appStateListener = listener;
+      return { remove: jest.fn() };
+    }) as unknown as typeof AppState.addEventListener);
+    adm.getEngineState.mockResolvedValue(healthyEngine);
+    adm.recoverEngineIfNeeded.mockResolvedValue({
+      result: 'failed',
+      before: deadEngine,
+      after: deadEngine,
+      codes: { startRecording: -1 },
+    });
   });
 
   afterEach(() => {
     jest.useRealTimers();
+    jest.restoreAllMocks();
+    delete (globalThis as any).streamRNVideoSDK;
   });
 
-  it('traces a minimal healthy sample after joining, without callingx', () => {
+  it('traces a minimal healthy sample after joining, without recovery', async () => {
     const call = makeCall();
     mockUseCall.mockReturnValue(call);
     render(<AudioSessionDiagnosticsTracer />);
@@ -148,77 +201,268 @@ describe('AudioSessionDiagnosticsTracer', () => {
     act(() => {
       call.callingState$.next(CallingState.JOINED);
     });
-    jest.advanceTimersByTime(3000);
+    await advance(3000);
 
     expect(recordingStateTraces(call)).toEqual([
-      [
-        'ios.audioRecording.state',
-        {
-          trigger: 'joined',
-          isRecording: true,
-          isPlaying: true,
-          isEngineRunning: true,
-          isMicrophoneMuted: false,
-        },
-      ],
+      {
+        trigger: 'joined',
+        wantsRecording: true,
+        isRecording: true,
+        isPlaying: true,
+        isEngineRunning: true,
+        isMicrophoneMuted: false,
+      },
     ]);
     expect(iosCallManager.getAudioSessionState).not.toHaveBeenCalled();
 
-    // healthy: no re-check
-    jest.advanceTimersByTime(20000);
+    // healthy: no re-check, no recovery
+    await advance(20000);
     expect(recordingStateTraces(call)).toHaveLength(1);
+    expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
   });
 
-  it('does not re-trace an unchanged healthy state', () => {
-    const call = makeCall();
-    act(() => {
-      call.callingState$.next(CallingState.JOINED);
-    });
-    mockUseCall.mockReturnValue(call);
-    render(<AudioSessionDiagnosticsTracer />);
-    jest.advanceTimersByTime(3000);
+  it('does nothing without a live call factory', async () => {
+    adm.getEngineState.mockResolvedValue(null);
+    const call = await renderJoined();
+
+    expect(call.tracer.trace).not.toHaveBeenCalled();
+    expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+  });
+
+  it('does not re-trace an unchanged healthy state', async () => {
+    const call = await renderJoined();
 
     interruptionListener({ source: 'callmanager', phase: 'ended' });
-    jest.advanceTimersByTime(1000);
+    await advance(1000);
     expect(recordingStateTraces(call)).toHaveLength(1);
 
-    adm.isPlaying.mockReturnValue(false);
+    adm.getEngineState.mockResolvedValue({
+      ...healthyEngine,
+      isPlaying: false,
+    });
     interruptionListener({ source: 'callmanager', phase: 'ended' });
-    jest.advanceTimersByTime(1000);
+    await advance(1000);
     expect(recordingStateTraces(call)).toHaveLength(2);
   });
 
-  it('adds details to unhealthy samples and re-checks once', () => {
-    adm.isRecording.mockReturnValue(false);
-    adm.isPlaying.mockReturnValue(false);
-    adm.isEngineRunning.mockReturnValue(false);
-    adm.isMicrophoneMuted.mockReturnValue(true);
+  it('recovers a dead engine and traces the unhealthy state and the result', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    adm.recoverEngineIfNeeded.mockResolvedValue({
+      result: 'recovered',
+      before: deadEngine,
+      after: healthyEngine,
+      codes: { startRecording: 0 },
+    });
+    const call = await renderJoined();
+
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledWith(true);
+    expect(recordingStateTraces(call)).toEqual([
+      {
+        trigger: 'joined',
+        wantsRecording: true,
+        ...deadEngine,
+        session: sessionState,
+      },
+    ]);
+    expect(recoveryTraces(call)).toEqual([
+      { trigger: 'joined', result: 'recovered', attempt: 1 },
+    ]);
+
+    // recovered: no re-check
+    await advance(30000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(1);
+  });
+
+  it('checks the playout when the mic is not wanted', async () => {
+    adm.getEngineState.mockResolvedValue({
+      ...deadEngine,
+      isRecording: false,
+    });
     const call = makeCall();
+    call.callingState$.next(CallingState.JOINED);
     mockUseCall.mockReturnValue(call);
     render(<AudioSessionDiagnosticsTracer />);
-
     act(() => {
-      call.callingState$.next(CallingState.JOINED);
+      call.status$.next('disabled');
     });
-    jest.advanceTimersByTime(3000);
-    jest.advanceTimersByTime(10000);
-    jest.advanceTimersByTime(30000);
 
-    const traces = recordingStateTraces(call);
-    expect(traces.map(([, s]) => s.trigger)).toEqual(['joined', 'recheck']);
-    expect(traces[0][1]).toEqual({
+    appStateListener('active');
+    await advance(1000);
+
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledWith(false);
+    expect(checkPermission).not.toHaveBeenCalled();
+  });
+
+  it('adds the failure details to failed recovery traces', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    const recentErrors = Array.from({ length: 12 }, (_, i) => ({
+      message: `${i}`.padEnd(300, 'x'),
+      severity: 'error',
+      timestamp: i,
+    }));
+    adm.recoverEngineIfNeeded.mockResolvedValue({
+      result: 'outputOnly',
+      reason: undefined,
+      before: deadEngine,
+      after: { ...deadEngine, isEngineRunning: true },
+      codes: { startRecording: -1 },
+      recentErrors,
+    });
+    const call = await renderJoined();
+
+    const [trace] = recoveryTraces(call);
+    expect(trace).toEqual({
       trigger: 'joined',
-      isRecording: false,
-      isPlaying: false,
-      isEngineRunning: false,
-      isMicrophoneMuted: true,
-      muteMode: 0,
-      alwaysPrepared: false,
-      session: sessionState,
+      result: 'outputOnly',
+      attempt: 1,
+      before: deadEngine,
+      after: { ...deadEngine, isEngineRunning: true },
+      codes: { startRecording: -1 },
+      recentErrors: recentErrors.slice(2).map((e) => ({
+        ...e,
+        message: e.message.slice(0, 200),
+      })),
     });
   });
 
-  it('samples once the mic is enabled after joining muted', () => {
+  it('re-checks a failed recovery every 3 s, at most 3 times per episode', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    const call = await renderJoined();
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(1);
+
+    await advance(2999);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(1);
+    await advance(1);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(2);
+    await advance(3000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
+
+    // episode budget exhausted: no more re-checks nor attempts on triggers
+    await advance(30000);
+    appStateListener('active');
+    await advance(1000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
+    expect(recoveryTraces(call).map((t) => [t.trigger, t.attempt])).toEqual([
+      ['joined', 1],
+      ['recheck', 2],
+      ['recheck', 3],
+    ]);
+  });
+
+  it('caps the recovery attempts per call', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    await renderJoined();
+    await advance(6000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
+
+    // a healthy sample starts a new episode
+    adm.getEngineState.mockResolvedValue(healthyEngine);
+    appStateListener('active');
+    await advance(1000);
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    appStateListener('active');
+    // 2 s after the last attempt: deferred to keep the attempts 3 s apart
+    await advance(1000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
+    await advance(1000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(4);
+    await advance(6000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(6);
+
+    adm.getEngineState.mockResolvedValue(healthyEngine);
+    appStateListener('active');
+    await advance(1000);
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    appStateListener('active');
+    await advance(10000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(6);
+  });
+
+  it('does not spend the budget on skipped or healthy results', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    adm.recoverEngineIfNeeded.mockResolvedValue({
+      result: 'skipped',
+      reason: 'gated',
+      before: deadEngine,
+      codes: {},
+    });
+    const call = await renderJoined();
+    // skipped: no re-check
+    await advance(10000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(1);
+
+    for (let i = 0; i < 5; i++) {
+      appStateListener('active');
+      await advance(1000);
+    }
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(6);
+    expect(recoveryTraces(call).map((t) => t.attempt)).toEqual([
+      1, 1, 1, 1, 1, 1,
+    ]);
+    expect(recoveryTraces(call)[0]).toEqual({
+      trigger: 'joined',
+      result: 'skipped',
+      reason: 'gated',
+      attempt: 1,
+    });
+
+    // the full budget is still available
+    adm.recoverEngineIfNeeded.mockResolvedValue({
+      result: 'failed',
+      before: deadEngine,
+      after: deadEngine,
+      codes: {},
+    });
+    appStateListener('active');
+    await advance(1000);
+    await advance(6000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(9);
+  });
+
+  it('skips the recovery when the mic permission is missing', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    checkPermission.mockResolvedValue(false);
+    const call = await renderJoined();
+
+    expect(checkPermission).toHaveBeenCalledWith('microphone');
+    expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+    expect(recoveryTraces(call)).toEqual([
+      {
+        trigger: 'joined',
+        result: 'skipped',
+        reason: 'noMicPermission',
+        attempt: 1,
+      },
+    ]);
+    await advance(30000);
+    expect(adm.getEngineState).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs one check at a time', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    let resolveRecovery: (value: unknown) => void = () => {};
+    adm.recoverEngineIfNeeded.mockReturnValue(
+      new Promise((resolve) => {
+        resolveRecovery = resolve;
+      }),
+    );
+    await renderJoined();
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(1);
+
+    appStateListener('active');
+    interruptionListener({ source: 'callmanager', phase: 'ended' });
+    await advance(1000);
+    expect(adm.getEngineState).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveRecovery({ result: 'recovered', before: deadEngine, codes: {} });
+    });
+    appStateListener('active');
+    await advance(1000);
+    expect(adm.getEngineState).toHaveBeenCalledTimes(2);
+  });
+
+  it('checks again when the mic is enabled', async () => {
     const call = makeCall();
     call.status$.next('disabled');
     mockUseCall.mockReturnValue(call);
@@ -227,26 +471,73 @@ describe('AudioSessionDiagnosticsTracer', () => {
     act(() => {
       call.callingState$.next(CallingState.JOINED);
     });
-    jest.advanceTimersByTime(10000);
+    await advance(10000);
     expect(recordingStateTraces(call)).toHaveLength(0);
 
     act(() => {
       call.status$.next('enabled');
     });
-    jest.advanceTimersByTime(3000);
-    expect(recordingStateTraces(call).map(([, s]) => s.trigger)).toEqual([
+    await advance(3000);
+    expect(recordingStateTraces(call).map((s) => s.trigger)).toEqual([
       'joined',
     ]);
 
-    // toggling the mic again does not re-schedule the initial sample
+    adm.getEngineState.mockResolvedValue(deadEngine);
     act(() => {
       call.status$.next('disabled');
     });
     act(() => {
       call.status$.next('enabled');
     });
-    jest.advanceTimersByTime(3000);
-    expect(recordingStateTraces(call)).toHaveLength(1);
+    await advance(3000);
+    expect(recordingStateTraces(call).map((s) => s.trigger)).toEqual([
+      'joined',
+      'micEnabled',
+    ]);
+  });
+
+  it('checks again when the call is back to JOINED after a reconnect', async () => {
+    const call = await renderJoined();
+
+    act(() => {
+      call.callingState$.next(CallingState.RECONNECTING);
+    });
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    act(() => {
+      call.callingState$.next(CallingState.JOINED);
+    });
+    await advance(3000);
+
+    expect(recordingStateTraces(call).map((s) => s.trigger)).toEqual([
+      'joined',
+      'reconnected',
+    ]);
+  });
+
+  it('checks again when the app becomes active or the audio route changes', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    adm.recoverEngineIfNeeded.mockResolvedValue({
+      result: 'skipped',
+      reason: 'gated',
+      before: deadEngine,
+      codes: {},
+    });
+    const call = await renderJoined();
+
+    appStateListener('background');
+    await advance(1000);
+    appStateListener('active');
+    await advance(1000);
+    // one pending check per trigger
+    routeListener();
+    routeListener();
+    await advance(1000);
+
+    expect(recordingStateTraces(call).map((s) => s.trigger)).toEqual([
+      'joined',
+      'appActive',
+      'audioRouteChanged',
+    ]);
   });
 
   it('does not warn for an expected callingx-owned engine enable skip', () => {
@@ -285,29 +576,35 @@ describe('AudioSessionDiagnosticsTracer', () => {
     );
   });
 
-  it('re-samples after an interruption ends', () => {
-    adm.isEngineRunning.mockReturnValue(false);
-    const call = makeCall();
-    act(() => {
-      call.callingState$.next(CallingState.JOINED);
+  it('re-samples after an interruption ends', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    adm.recoverEngineIfNeeded.mockResolvedValue({
+      result: 'skipped',
+      reason: 'gated',
+      before: deadEngine,
+      codes: {},
     });
-    mockUseCall.mockReturnValue(call);
-    render(<AudioSessionDiagnosticsTracer />);
-    jest.advanceTimersByTime(3000);
+    const call = await renderJoined();
 
     interruptionListener({ source: 'callmanager', phase: 'began' });
-    jest.advanceTimersByTime(1000);
+    await advance(1000);
     interruptionListener({ source: 'callmanager', phase: 'ended' });
-    jest.advanceTimersByTime(1000);
+    await advance(1000);
 
-    expect(recordingStateTraces(call).map(([, s]) => s.trigger)).toEqual([
+    expect(recordingStateTraces(call).map((s) => s.trigger)).toEqual([
       'joined',
       'interruptionEnded',
     ]);
   });
 
-  it('samples after a callingx audio session activation', () => {
-    adm.isEngineRunning.mockReturnValue(false);
+  it('samples after a callingx audio session activation', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    adm.recoverEngineIfNeeded.mockResolvedValue({
+      result: 'skipped',
+      reason: 'gated',
+      before: deadEngine,
+      codes: {},
+    });
     const listeners: Partial<Record<string, () => void>> = {};
     (getCallingxLibIfAvailable as jest.Mock).mockReturnValue({
       isSetup: true,
@@ -316,18 +613,12 @@ describe('AudioSessionDiagnosticsTracer', () => {
         return { remove: jest.fn() };
       }),
     });
-    const call = makeCall();
-    act(() => {
-      call.callingState$.next(CallingState.JOINED);
-    });
-    mockUseCall.mockReturnValue(call);
-    render(<AudioSessionDiagnosticsTracer />);
-    jest.advanceTimersByTime(3000);
+    const call = await renderJoined();
 
     listeners.didActivateAudioSession?.();
-    jest.advanceTimersByTime(1000);
+    await advance(1000);
 
-    expect(recordingStateTraces(call).map(([, s]) => s.trigger)).toEqual([
+    expect(recordingStateTraces(call).map((s) => s.trigger)).toEqual([
       'joined',
       'audioSessionActivated',
     ]);
