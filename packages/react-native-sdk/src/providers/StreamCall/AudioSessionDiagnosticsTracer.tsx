@@ -114,8 +114,9 @@ export const AudioSessionDiagnosticsTracer = () => {
     };
 
     // traces are stored with the call stats: healthy samples stay minimal and
-    // identical consecutive healthy samples are not traced again
+    // identical consecutive healthy/unhealthy samples are not traced again
     let lastHealthyKey: string | undefined;
+    let lastUnhealthyKey: string | undefined;
     let episodeAttempts = 0;
     let callAttempts = 0;
     let lastAttemptAt: number | undefined;
@@ -168,6 +169,7 @@ export const AudioSessionDiagnosticsTracer = () => {
       };
       if (isEngineHealthy(state, wantsRecording)) {
         episodeAttempts = 0;
+        lastUnhealthyKey = undefined;
         const key = JSON.stringify(minimalState);
         if (key === lastHealthyKey) return;
         lastHealthyKey = key;
@@ -179,30 +181,44 @@ export const AudioSessionDiagnosticsTracer = () => {
       }
 
       lastHealthyKey = undefined;
-      let session;
-      try {
-        session = callManager.ios.getAudioSessionState();
-      } catch (error: unknown) {
-        logger.warn('failed to read the audio session state', error);
+      const unhealthyKey = JSON.stringify(minimalState);
+      const changed = unhealthyKey !== lastUnhealthyKey;
+      lastUnhealthyKey = unhealthyKey;
+      if (changed) {
+        let session;
+        try {
+          session = callManager.ios.getAudioSessionState();
+        } catch (error: unknown) {
+          logger.warn('failed to read the audio session state', error);
+        }
+        const unhealthyState = { trigger, wantsRecording, ...state, session };
+        call.tracer.trace('ios.audioRecording.state', unhealthyState);
+        logger.warn(
+          'the audio engine is not running as needed',
+          unhealthyState,
+        );
       }
-      const unhealthyState = { trigger, wantsRecording, ...state, session };
-      call.tracer.trace('ios.audioRecording.state', unhealthyState);
-      logger.warn('the audio engine is not running as needed', unhealthyState);
 
-      await recoverEngine(trigger, wantsRecording);
+      await recoverEngine(trigger, wantsRecording, changed);
     };
 
-    const recoverEngine = async (trigger: string, wantsRecording: boolean) => {
+    const recoverEngine = async (
+      trigger: string,
+      wantsRecording: boolean,
+      stateChanged: boolean,
+    ) => {
       const attempt = episodeAttempts + 1;
       if (wantsRecording && !(await isMicPermissionGranted())) {
         // the native recovery can restart playout without reporting the
         // missing permission, so it is checked here
-        call.tracer.trace('ios.audioEngine.recovery', {
-          trigger,
-          result: 'skipped',
-          reason: 'noMicPermission',
-          attempt,
-        });
+        if (stateChanged) {
+          call.tracer.trace('ios.audioEngine.recovery', {
+            trigger,
+            result: 'skipped',
+            reason: 'noMicPermission',
+            attempt,
+          });
+        }
         return;
       }
       if (episodeAttempts >= MAX_EPISODE_ATTEMPTS) {
@@ -328,7 +344,11 @@ export const AudioSessionDiagnosticsTracer = () => {
     const checkSessionActive = async () => {
       if (call.state.callingState !== CallingState.JOINED) return;
       // CallKit activates a callingx-owned session, possibly much later
-      if (callManager.ios.getAudioSessionState().callingxOwnsSession) return;
+      try {
+        if (callManager.ios.getAudioSessionState().callingxOwnsSession) return;
+      } catch (error: unknown) {
+        logger.warn('failed to read the audio session state', error);
+      }
       const state = await AudioDeviceModule.getEngineState();
       if (disposed || state?.sessionActive !== false) return;
       call.tracer.trace('audio.session.timeout', {

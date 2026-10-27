@@ -240,6 +240,7 @@ class IOSCallManager {
    * activation and engine start results of the in-call manager).
    *
    * @param onDiagnostic callback to be called for every diagnostic event.
+   * @internal used by the SDK's audio session diagnostics tracer.
    */
   addAudioSessionDiagnosticListener = (
     onDiagnostic: (event: IOSAudioSessionDiagnosticEvent) => void,
@@ -254,6 +255,7 @@ class IOSCallManager {
   /**
    * Returns a snapshot of the shared iOS audio session.
    * Meant for debugging purposes.
+   * @internal used by the SDK's audio session diagnostics tracer.
    */
   getAudioSessionState = (): IOSAudioSessionState => {
     invariant(Platform.OS === 'ios', 'Supported only on iOS');

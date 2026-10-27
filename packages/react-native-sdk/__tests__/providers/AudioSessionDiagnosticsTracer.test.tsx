@@ -682,6 +682,67 @@ describe('AudioSessionDiagnosticsTracer', () => {
     expect(recoveryTraces(call)).toHaveLength(1);
   });
 
+  it('traces an unchanged unhealthy state once and a changed one again', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    adm.recoverEngineIfNeeded.mockResolvedValue({
+      result: 'skipped',
+      reason: 'gated',
+      before: deadEngine,
+      codes: {},
+    });
+    const call = await renderJoined();
+    mockLogger.warn.mockClear();
+
+    appStateListener('active');
+    await advance(1000);
+    routeListener();
+    await advance(1000);
+
+    expect(adm.getEngineState).toHaveBeenCalledTimes(3);
+    expect(recordingStateTraces(call)).toHaveLength(1);
+    expect(
+      mockLogger.warn.mock.calls.filter(
+        ([msg]) => msg === 'the audio engine is not running as needed',
+      ),
+    ).toHaveLength(0);
+
+    adm.getEngineState.mockResolvedValue({ ...deadEngine, isPlaying: false });
+    appStateListener('active');
+    await advance(1000);
+    expect(recordingStateTraces(call)).toHaveLength(2);
+    expect(
+      mockLogger.warn.mock.calls.filter(
+        ([msg]) => msg === 'the audio engine is not running as needed',
+      ),
+    ).toHaveLength(1);
+
+    // healthy in between: the same unhealthy state is traced again
+    adm.getEngineState.mockResolvedValue(healthyEngine);
+    appStateListener('active');
+    await advance(1000);
+    adm.getEngineState.mockResolvedValue({ ...deadEngine, isPlaying: false });
+    appStateListener('active');
+    await advance(1000);
+    expect(
+      recordingStateTraces(call).filter((t) => t.isEngineRunning === false),
+    ).toHaveLength(3);
+  });
+
+  it('traces the missing mic permission skip once per unchanged state', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    checkPermission.mockResolvedValue(false);
+    const call = await renderJoined();
+
+    appStateListener('active');
+    await advance(1000);
+    routeListener();
+    await advance(1000);
+
+    expect(checkPermission).toHaveBeenCalledTimes(3);
+    expect(recoveryTraces(call)).toHaveLength(1);
+    expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+  });
+
   it('runs one check at a time', async () => {
     adm.getEngineState.mockResolvedValue(deadEngine);
     let resolveRecovery: (value: unknown) => void = () => {};
@@ -781,11 +842,9 @@ describe('AudioSessionDiagnosticsTracer', () => {
     routeListener();
     await advance(1000);
 
-    expect(recordingStateTraces(call).map((s) => s.trigger)).toEqual([
-      'joined',
-      'appActive',
-      'audioRouteChanged',
-    ]);
+    // joined, appActive, audioRouteChanged (the unchanged state is traced once)
+    expect(adm.getEngineState).toHaveBeenCalledTimes(3);
+    expect(recordingStateTraces(call)).toHaveLength(1);
   });
 
   it('warns only for native audio session errors', () => {
@@ -831,10 +890,9 @@ describe('AudioSessionDiagnosticsTracer', () => {
     interruptionListener({ source: 'callmanager', phase: 'ended' });
     await advance(1000);
 
-    expect(recordingStateTraces(call).map((s) => s.trigger)).toEqual([
-      'joined',
-      'interruptionEnded',
-    ]);
+    // joined, interruptionEnded
+    expect(adm.getEngineState).toHaveBeenCalledTimes(2);
+    expect(recordingStateTraces(call)).toHaveLength(1);
   });
 
   it('samples after a callingx audio session activation', async () => {
@@ -858,10 +916,9 @@ describe('AudioSessionDiagnosticsTracer', () => {
     listeners.didActivateAudioSession?.();
     await advance(1000);
 
-    expect(recordingStateTraces(call).map((s) => s.trigger)).toEqual([
-      'joined',
-      'audioSessionActivated',
-    ]);
+    // joined, audioSessionActivated
+    expect(adm.getEngineState).toHaveBeenCalledTimes(2);
+    expect(recordingStateTraces(call)).toHaveLength(1);
   });
 
   it('does not check the engine while the audio is interrupted', async () => {
@@ -1023,6 +1080,28 @@ describe('AudioSessionDiagnosticsTracer', () => {
     await advance(10000);
 
     expect(tracesOf(call, 'audio.session.timeout')).toEqual([]);
+  });
+
+  it('still traces the session timeout when the session state read throws', async () => {
+    adm.getEngineState.mockResolvedValue({
+      ...healthyEngine,
+      sessionActive: false,
+    });
+    iosCallManager.getAudioSessionState.mockImplementation(() => {
+      throw new Error('native failure');
+    });
+    const call = makeCall();
+    call.status$.next('disabled');
+    call.callingState$.next(CallingState.JOINED);
+    mockUseCall.mockReturnValue(call);
+    render(<AudioSessionDiagnosticsTracer />);
+    await advance(10000);
+
+    expect(tracesOf(call, 'audio.session.timeout')).toHaveLength(1);
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      'failed to read the audio session state',
+      expect.any(Error),
+    );
   });
 
   it('does not trace a session timeout when callingx owns the session', async () => {
