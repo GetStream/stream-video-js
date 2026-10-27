@@ -16,13 +16,6 @@ import type {
 } from '../../modules/call-manager';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
 
-type CallingxAudioInterruptionEvents = {
-  addEventListener: (
-    eventName: 'didAudioInterruption',
-    listener: (event: IOSAudioInterruptionEvent) => void,
-  ) => { remove: () => void };
-};
-
 /**
  * Recovery attempts per failure episode. An episode ends with a healthy
  * sample, a recovery, or the end of the episode's rejoin decision.
@@ -37,6 +30,7 @@ const MAX_TRACED_ERRORS = 10;
 const MAX_ERROR_MESSAGE_LENGTH = 200;
 /** Time after the first JOINED to wait for an active audio session. */
 const SESSION_TIMEOUT_MS = 10000;
+const SESSION_TIMEOUT_TRIGGER = 'sessionTimeout';
 
 const isEngineHealthy = (
   state: AudioEngineStateSnapshot,
@@ -87,9 +81,6 @@ export const AudioSessionDiagnosticsTracer = () => {
     ((trigger: string, delayMs: number) => void) | undefined
   >(undefined);
   const initialCheckScheduledRef = useRef(false);
-  const scheduleSessionTimeoutCheckRef = useRef<(() => void) | undefined>(
-    undefined,
-  );
   const sessionTimeoutScheduledRef = useRef(false);
   const prevCallingStateRef = useRef(callingState);
   const prevMicStatusRef = useRef(micStatus);
@@ -108,6 +99,12 @@ export const AudioSessionDiagnosticsTracer = () => {
       if (disposed || pendingChecks.has(trigger)) return;
       const timeout = setTimeout(() => {
         pendingChecks.delete(trigger);
+        if (trigger === SESSION_TIMEOUT_TRIGGER) {
+          checkSessionActive().catch((error: unknown) => {
+            logger.warn('audio session timeout check failed', error);
+          });
+          return;
+        }
         runCheck(trigger);
       }, delayMs);
       pendingChecks.set(trigger, timeout);
@@ -340,7 +337,6 @@ export const AudioSessionDiagnosticsTracer = () => {
 
     // same name as the stream-video-swift trace; trace only, a rejoin would
     // not activate a session that iOS refuses to activate
-    let sessionTimeout: ReturnType<typeof setTimeout> | undefined;
     const checkSessionActive = async () => {
       if (call.state.callingState !== CallingState.JOINED) return;
       // CallKit activates a callingx-owned session, possibly much later
@@ -356,18 +352,9 @@ export const AudioSessionDiagnosticsTracer = () => {
       });
       logger.warn('the audio session is not active after joining', state);
     };
-    const scheduleSessionTimeoutCheck = () => {
-      if (disposed || sessionTimeout) return;
-      sessionTimeout = setTimeout(() => {
-        checkSessionActive().catch((error: unknown) => {
-          logger.warn('audio session timeout check failed', error);
-        });
-      }, SESSION_TIMEOUT_MS);
-    };
 
     scheduleCheckRef.current = scheduleCheck;
     initialCheckScheduledRef.current = false;
-    scheduleSessionTimeoutCheckRef.current = scheduleSessionTimeoutCheck;
     sessionTimeoutScheduledRef.current = false;
 
     // the ADM's own error lines: the actual reasons of a failed engine start
@@ -429,17 +416,13 @@ export const AudioSessionDiagnosticsTracer = () => {
               scheduleCheck('audioSessionActivated', 1000);
             },
           ),
-          (
-            callingx as unknown as CallingxAudioInterruptionEvents
-          ).addEventListener('didAudioInterruption', onInterruption),
+          callingx.addEventListener('didAudioInterruption', onInterruption),
         ]
       : [];
 
     return () => {
       disposed = true;
       scheduleCheckRef.current = undefined;
-      scheduleSessionTimeoutCheckRef.current = undefined;
-      clearTimeout(sessionTimeout);
       engineErrorSubscription.remove();
       removeDiagnosticListener();
       removeInterruptionListener();
@@ -465,7 +448,7 @@ export const AudioSessionDiagnosticsTracer = () => {
 
     if (!sessionTimeoutScheduledRef.current) {
       sessionTimeoutScheduledRef.current = true;
-      scheduleSessionTimeoutCheckRef.current?.();
+      scheduleCheck(SESSION_TIMEOUT_TRIGGER, SESSION_TIMEOUT_MS);
     }
 
     if (!initialCheckScheduledRef.current) {

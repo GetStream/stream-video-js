@@ -82,7 +82,7 @@ import {
   ClientPublishOptions,
   ClosedCaptionsSettings,
   JoinCallData,
-  StreamRNVideoSDKGlobals,
+  StreamRNVideoSDKAudioSessionPrepareResult,
   TrackMuteType,
   VideoTrackType,
 } from './types';
@@ -1633,11 +1633,7 @@ export class Call {
    */
   private prepareAudioSessionForPublish = async (): Promise<void> => {
     const callManager = globalThis.streamRNVideoSDK?.callManager;
-    let wait: ReturnType<
-      NonNullable<
-        StreamRNVideoSDKGlobals['callManager']['prepareAudioSessionForPublish']
-      >
-    >;
+    let wait: Promise<StreamRNVideoSDKAudioSessionPrepareResult> | undefined;
     try {
       wait = callManager?.prepareAudioSessionForPublish?.({
         isRingingTypeCall: this.ringing,

@@ -425,7 +425,7 @@ type StreamRNVideoSDKCallManagerStartParams =
     cid: string;
   };
 
-type StreamRNVideoSDKAudioSessionPrepareResult = {
+export type StreamRNVideoSDKAudioSessionPrepareResult = {
   /** Whether the audio session reported active before the timeout. */
   active: boolean;
   /** How long the wait took. */

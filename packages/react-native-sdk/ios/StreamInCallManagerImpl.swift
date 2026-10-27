@@ -112,12 +112,6 @@ private enum AudioDeviceId {
     private var enableStereo: Bool = false
     private var previousVolume: Float = 0.75
 
-    private struct AudioSessionState {
-        let category: AVAudioSession.Category
-        let mode: AVAudioSession.Mode
-        let options: AVAudioSession.CategoryOptions
-    }
-
     private var hasRegisteredRouteObserver = false
     private var hasRegisteredInterruptionObserver = false
     private var stereoRefreshWorkItem: DispatchWorkItem?
