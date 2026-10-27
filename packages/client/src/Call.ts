@@ -1918,6 +1918,17 @@ export class Call {
   };
 
   /**
+   * Rejoins the call to rebuild the media stack, the last resort of the
+   * React Native SDK when the iOS audio engine can't be restarted.
+   * The usual reconnect guards apply (no-op while joining, reconnecting,
+   * migrating or after leaving).
+   *
+   * @internal
+   */
+  rejoinForAudioEngineRecovery = async (): Promise<void> =>
+    this.reconnect(WebsocketReconnectStrategy.REJOIN, 'audio_engine_dead');
+
+  /**
    * Resolves once no `doJoin` run and no reconnect is in flight.
    */
   private waitForJoinsAndReconnects = async () => {

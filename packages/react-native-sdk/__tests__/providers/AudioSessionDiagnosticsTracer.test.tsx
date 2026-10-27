@@ -102,6 +102,7 @@ const makeCall = () => {
     callingState$,
     status$,
     tracer: { trace: jest.fn() },
+    rejoinForAudioEngineRecovery: jest.fn().mockResolvedValue(undefined),
     state: {
       callingState$,
       get callingState() {
@@ -154,10 +155,12 @@ describe('AudioSessionDiagnosticsTracer', () => {
   let engineErrorListener: (event: unknown) => void;
   let removeEngineErrorListener: jest.Mock;
   let checkPermission: jest.Mock;
+  const originalAppState = AppState.currentState;
 
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    AppState.currentState = 'active';
     checkPermission = jest.fn().mockResolvedValue(true);
     (globalThis as any).streamRNVideoSDK = {
       permissions: { check: checkPermission },
@@ -204,6 +207,7 @@ describe('AudioSessionDiagnosticsTracer', () => {
   afterEach(() => {
     jest.useRealTimers();
     jest.restoreAllMocks();
+    AppState.currentState = originalAppState;
     delete (globalThis as any).streamRNVideoSDK;
   });
 
@@ -340,6 +344,8 @@ describe('AudioSessionDiagnosticsTracer', () => {
   });
 
   it('re-checks a failed recovery every 3 s, at most 3 times per episode', async () => {
+    // backgrounded: no rejoin (it would start a new episode)
+    AppState.currentState = 'background';
     adm.getEngineState.mockResolvedValue(deadEngine);
     const call = await renderJoined();
     expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(1);
@@ -361,6 +367,84 @@ describe('AudioSessionDiagnosticsTracer', () => {
       ['recheck', 2],
       ['recheck', 3],
     ]);
+  });
+
+  it('rejoins once per call when a whole episode fails', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    const call = await renderJoined();
+    await advance(6000);
+
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
+    expect(call.rejoinForAudioEngineRecovery).toHaveBeenCalledTimes(1);
+    expect(tracesOf(call, 'ios.audioEngine.rejoin')).toEqual([
+      { trigger: 'budgetExhausted', lastResult: 'failed' },
+    ]);
+
+    // the rejoin brings the call back to JOINED: one more episode, no rejoin
+    act(() => {
+      call.callingState$.next(CallingState.RECONNECTING);
+    });
+    act(() => {
+      call.callingState$.next(CallingState.JOINED);
+    });
+    await advance(3000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(4);
+    await advance(30000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(6);
+    expect(recoveryTraces(call).map((t) => [t.trigger, t.attempt])).toEqual([
+      ['joined', 1],
+      ['recheck', 2],
+      ['recheck', 3],
+      ['reconnected', 1],
+      ['recheck', 2],
+      ['recheck', 3],
+    ]);
+    expect(call.rejoinForAudioEngineRecovery).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not rejoin when the app is in the background', async () => {
+    AppState.currentState = 'background';
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    const call = await renderJoined();
+    await advance(6000);
+
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
+    expect(call.rejoinForAudioEngineRecovery).not.toHaveBeenCalled();
+    expect(tracesOf(call, 'ios.audioEngine.rejoin')).toEqual([]);
+  });
+
+  it('does not rejoin when the mic is off', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    const call = makeCall();
+    call.status$.next('disabled');
+    call.callingState$.next(CallingState.JOINED);
+    mockUseCall.mockReturnValue(call);
+    render(<AudioSessionDiagnosticsTracer />);
+    appStateListener('active');
+    await advance(1000 + 6000);
+
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenLastCalledWith(false);
+    expect(call.rejoinForAudioEngineRecovery).not.toHaveBeenCalled();
+  });
+
+  it('does not rejoin when the call is no longer JOINED', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    const call = makeCall();
+    call.callingState$.next(CallingState.JOINED);
+    mockUseCall.mockReturnValue(call);
+    // the call starts reconnecting during the last attempt
+    adm.recoverEngineIfNeeded.mockImplementation(async () => {
+      if (adm.recoverEngineIfNeeded.mock.calls.length === 3) {
+        call.callingState$.next(CallingState.RECONNECTING);
+      }
+      return { result: 'failed', before: deadEngine, codes: {} };
+    });
+    render(<AudioSessionDiagnosticsTracer />);
+    await advance(3000 + 6000);
+
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
+    expect(call.rejoinForAudioEngineRecovery).not.toHaveBeenCalled();
   });
 
   it('caps the recovery attempts per call', async () => {

@@ -61,8 +61,10 @@ const isMicPermissionGranted = async () => {
  * is restarted with `AudioDeviceModule.recoverEngineIfNeeded`, at most
  * {@link MAX_EPISODE_ATTEMPTS} times per failure episode (re-checked
  * {@link ATTEMPT_INTERVAL_MS} after each failed attempt) and
- * {@link MAX_CALL_ATTEMPTS} times per call. Healthy samples are traced too
- * (minimal payload) so the failure rate is measurable.
+ * {@link MAX_CALL_ATTEMPTS} times per call. When a whole episode fails, the
+ * call is rejoined once (last resort, mic wanted and app in the foreground).
+ * Healthy samples are traced too (minimal payload) so the failure rate is
+ * measurable.
  *
  * It also traces the ADM engine errors (the actual failure reasons), and an
  * `audio.session.timeout` when the SDK-owned audio session is still inactive
@@ -218,9 +220,40 @@ export const AudioSessionDiagnosticsTracer = () => {
         callAttempts < MAX_CALL_ATTEMPTS
       ) {
         scheduleCheck('recheck', ATTEMPT_INTERVAL_MS);
+      } else if (episodeAttempts >= MAX_EPISODE_ATTEMPTS) {
+        rejoinIfAllowed(result);
       } else {
         logger.warn('audio engine recovery failed, giving up', { result });
       }
+    };
+
+    // last resort, once per call: a rejoin rebuilds the media stack. The
+    // back-to-JOINED check samples the engine once more afterwards.
+    let rejoined = false;
+    const rejoinIfAllowed = (lastResult: string) => {
+      const canRejoin =
+        !rejoined &&
+        call.state.callingState === CallingState.JOINED &&
+        AppState.currentState === 'active' &&
+        call.microphone.state.status === 'enabled';
+      if (!canRejoin) {
+        logger.warn('audio engine recovery failed, giving up', {
+          result: lastResult,
+        });
+        return;
+      }
+      rejoined = true;
+      episodeAttempts = 0;
+      call.tracer.trace('ios.audioEngine.rejoin', {
+        trigger: 'budgetExhausted',
+        lastResult,
+      });
+      logger.warn('audio engine recovery failed, rejoining the call', {
+        result: lastResult,
+      });
+      call.rejoinForAudioEngineRecovery().catch((error: unknown) => {
+        logger.warn('failed to rejoin for the audio engine recovery', error);
+      });
     };
 
     const traceRecovery = (

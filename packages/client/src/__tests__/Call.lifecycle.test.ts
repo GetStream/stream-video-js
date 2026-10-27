@@ -484,6 +484,19 @@ describe('Call lifecycle wiring', () => {
     },
   );
 
+  it('rejoinForAudioEngineRecovery() rejoins with the audio engine reason', async () => {
+    const reconnect = vi
+      .spyOn(call as unknown as { reconnect: Call['leave'] }, 'reconnect')
+      .mockResolvedValue(undefined);
+
+    await call.rejoinForAudioEngineRecovery();
+
+    expect(reconnect).toHaveBeenCalledExactlyOnceWith(
+      WebsocketReconnectStrategy.REJOIN,
+      'audio_engine_dead',
+    );
+  });
+
   it.each([false, true])(
     'get() respects leave during fetch: %s',
     async (leaveDuringFetch) => {
