@@ -79,6 +79,9 @@ private enum AudioDeviceId {
         /// The user's explicit output pick, or `nil` to use the category default.
         /// Re-applied on every engine rebuild so the pick survives interruptions.
         var selectedOutput: OutputRouting?
+        /// Between `start()` and `stop()` (a live non-CallKit call). The willEnable hook is a
+        /// no-op outside it (lobby tracks, stray default-factory ADMs).
+        var isStarted = false
     }
     private let configInputsLock = NSLock()
     private var configInputs = ConfigInputs()
@@ -94,6 +97,10 @@ private enum AudioDeviceId {
     private var selectedOutput: OutputRouting? {
         get { configInputsSnapshot().selectedOutput }
         set { updateConfigInputs { $0.selectedOutput = newValue } }
+    }
+    private var isStarted: Bool {
+        get { configInputsSnapshot().isStarted }
+        set { updateConfigInputs { $0.isStarted = newValue } }
     }
 
     /// Whether we hold an `RTCAudioSession` activation (activations are counted). Only read/written
@@ -365,7 +372,8 @@ private enum AudioDeviceId {
     /// enable edge only (input or output being enabled: initial enable, voice-processing retries,
     /// speaker-only fallback), so the session is configured and active before that engine starts.
     /// Not run for rebuilds without an enable edge (device change, stop recording with playout on,
-    /// interruption-end restart). Idempotent and cheap.
+    /// interruption-end restart). Idempotent and cheap. Acts between `start()` and `stop()` only,
+    /// so a pre-join (lobby) enable never activates the call session.
     /// Must not touch `audioSessionQueue`, the main queue (sync) or ADM APIs.
     /// Non-zero fails the enable (configuration/activation errors only), so WebRTC rolls it back
     /// instead of starting a broken engine. A routing re-apply failure is logged and never fails
@@ -376,6 +384,10 @@ private enum AudioDeviceId {
         }
 
         let inputs = configInputsSnapshot()
+        guard inputs.isStarted else {
+            log("engineWillEnable: skipped, call manager not started")
+            return 0
+        }
         do {
             let (rtcConfig, activated, routingError) = try AudioSessionConfigLock.run { session in
                 let rtcConfig = makeAudioConfiguration(
@@ -494,6 +506,8 @@ private enum AudioDeviceId {
             }
             // setPlayout(true) runs the willEnable hook, which synchronously applies the
             // preset and calls setActive(true). No explicit session.setActive(true) here.
+            // Set before it so that hook passes its started guard.
+            isStarted = true
             if let adm = getAudioDeviceModule() {
                 do {
                     try adm.setPlayout(true)
@@ -563,6 +577,8 @@ private enum AudioDeviceId {
             clearOutputRouting()
             // Usually already done by the didDisable hook during reset(); covers a missing ADM.
             deactivateSessionIfNeeded(source: "stop")
+            // After reset(): later willEnable edges (lobby tracks) must not activate the session.
+            isStarted = false
             // Cancel any pending debounced stereo refresh
             stereoRefreshWorkItem?.cancel()
             stereoRefreshWorkItem = nil
