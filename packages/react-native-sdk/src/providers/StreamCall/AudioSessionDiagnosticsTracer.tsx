@@ -209,7 +209,17 @@ export const AudioSessionDiagnosticsTracer = () => {
         return;
       }
 
-      const startedAt = Date.now();
+      // the sample is stale after the awaits: a recovery with the old mic
+      // intent would unmute a muted ADM (the mic toggle checks on its own)
+      if (
+        interrupted ||
+        call.state.callingState !== CallingState.JOINED ||
+        (call.microphone.state.status === 'enabled') !== wantsRecording
+      ) {
+        logger.debug(`recovery '${trigger}' skipped, the state changed`);
+        return;
+      }
+
       const recovery =
         await AudioDeviceModule.recoverEngineIfNeeded(wantsRecording);
       if (disposed) return;
@@ -219,7 +229,8 @@ export const AudioSessionDiagnosticsTracer = () => {
       if (result === 'skipped' || result === 'healthy') return;
       episodeAttempts = attempt;
       callAttempts += 1;
-      lastAttemptAt = startedAt;
+      // measured from the end: the native recovery blocks up to ~2 s
+      lastAttemptAt = Date.now();
       if (result === 'recovered') {
         episodeAttempts = 0;
         return;

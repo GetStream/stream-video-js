@@ -476,6 +476,94 @@ describe('AudioSessionDiagnosticsTracer', () => {
     expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(6);
   });
 
+  it('skips the recovery when the mic is disabled after the sample', async () => {
+    const call = makeCall();
+    call.callingState$.next(CallingState.JOINED);
+    mockUseCall.mockReturnValue(call);
+    adm.getEngineState.mockImplementation(async () => {
+      if (adm.getEngineState.mock.calls.length === 1) {
+        call.status$.next('disabled');
+      }
+      return deadEngine;
+    });
+    render(<AudioSessionDiagnosticsTracer />);
+    await advance(3000);
+
+    expect(adm.getEngineState).toHaveBeenCalledTimes(1);
+    expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+    expect(recoveryTraces(call)).toEqual([]);
+
+    // no budget used: the next mic enable gets a full episode
+    act(() => {
+      call.status$.next('enabled');
+    });
+    await advance(3000 + 6000);
+    expect(recoveryTraces(call).map((t) => [t.trigger, t.attempt])).toEqual([
+      ['micEnabled', 1],
+      ['recheck', 2],
+      ['recheck', 3],
+    ]);
+  });
+
+  it.each([
+    [
+      'the call is no longer JOINED',
+      (call: TestCall) => call.callingState$.next(CallingState.RECONNECTING),
+    ],
+    [
+      'the audio is interrupted',
+      () => interruptionListener({ source: 'callmanager', phase: 'began' }),
+    ],
+  ])(
+    'skips the recovery when %s after the sample',
+    async (_, change: (call: TestCall) => void) => {
+      const call = makeCall();
+      call.callingState$.next(CallingState.JOINED);
+      mockUseCall.mockReturnValue(call);
+      adm.getEngineState.mockImplementation(async () => {
+        change(call);
+        return deadEngine;
+      });
+      render(<AudioSessionDiagnosticsTracer />);
+      await advance(3000 + 6000);
+
+      expect(adm.getEngineState).toHaveBeenCalledTimes(1);
+      expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+      expect(recoveryTraces(call)).toEqual([]);
+      expect(call.rejoinForAudioEngineRecovery).not.toHaveBeenCalled();
+    },
+  );
+
+  it('spaces the attempts 3 s from the end of the previous one', async () => {
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    const startedAt: number[] = [];
+    const returnedAt: number[] = [];
+    adm.recoverEngineIfNeeded.mockImplementation(async () => {
+      startedAt.push(Date.now());
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      returnedAt.push(Date.now());
+      return { result: 'failed', before: deadEngine, codes: {} };
+    });
+    await renderJoined();
+    await advance(2000);
+    expect(returnedAt).toHaveLength(1);
+
+    // 3 s after the start but only 1 s after the end: deferred
+    appStateListener('active');
+    await advance(1000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(1);
+    await advance(1999);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(1);
+    await advance(1);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(2);
+    await advance(2000 + 3000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
+
+    expect(startedAt.slice(1).map((t, i) => t - returnedAt[i]!)).toEqual([
+      3000, 3000,
+    ]);
+  });
+
   it('does not spend the budget on skipped or healthy results', async () => {
     adm.getEngineState.mockResolvedValue(deadEngine);
     adm.recoverEngineIfNeeded.mockResolvedValue({
