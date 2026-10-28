@@ -100,9 +100,9 @@ export type CallOfflineStateOptions = {
   /** Whether a reconnect is queued or running. */
   hasPendingReconnect: () => boolean;
   /**
-   * Whether the call's peer connections still have ICE connected. ICE
-   * changes are ignored while offline, so a connection that dropped then
-   * would not recover by itself and the call has to reconnect.
+   * Whether ICE on the call's peer connections hasn't dropped. ICE changes
+   * are ignored while offline, so a connection that dropped then would not
+   * recover by itself and the call has to reconnect.
    */
   connectionsIntact: () => boolean;
   /** Closes the SFU socket that the coming reconnect replaces. */

@@ -1135,12 +1135,14 @@ describe('Call reconnect wiring (PC event → leave)', () => {
   );
 
   it.each([
+    ['new', true],
+    ['checking', true],
     ['connected', true],
     ['completed', true],
-    ['checking', false],
     ['disconnected', false],
     ['failed', false],
-  ] as const)('reports ICE %s as connected: %s', (iceState, connected) => {
+    ['closed', false],
+  ] as const)('reports ICE %s as intact: %s', (iceState, intact) => {
     const publisher = new Publisher(
       {
         sfuClient,
@@ -1154,7 +1156,7 @@ describe('Call reconnect wiring (PC event → leave)', () => {
     // @ts-expect-error private field
     publisher['pc'].iceConnectionState = iceState;
 
-    expect(publisher.isIceConnected()).toBe(connected);
+    expect(publisher.isIceIntact()).toBe(intact);
   });
 });
 
@@ -1749,12 +1751,12 @@ describe('Call offline handling', () => {
   };
   let publisher: {
     isHealthy: ReturnType<typeof vi.fn>;
-    isIceConnected: ReturnType<typeof vi.fn>;
+    isIceIntact: ReturnType<typeof vi.fn>;
     dispose: ReturnType<typeof vi.fn>;
   };
   let subscriber: {
     isHealthy: ReturnType<typeof vi.fn>;
-    isIceConnected: ReturnType<typeof vi.fn>;
+    isIceIntact: ReturnType<typeof vi.fn>;
     getStats: ReturnType<typeof vi.fn>;
     dispose: ReturnType<typeof vi.fn>;
   };
@@ -1762,8 +1764,24 @@ describe('Call offline handling', () => {
   let reconnect: ReturnType<typeof vi.spyOn>;
   let callingStates: CallingState[];
 
+  // set by hand: `vi.unstubAllGlobals()` would also drop the WebRTC mocks
+  const originalGlobals = new Map<string, PropertyDescriptor | undefined>();
+  const setGlobal = (name: string, value: unknown) => {
+    if (!originalGlobals.has(name)) {
+      originalGlobals.set(
+        name,
+        Object.getOwnPropertyDescriptor(globalThis, name),
+      );
+    }
+    Object.defineProperty(globalThis, name, {
+      configurable: true,
+      writable: true,
+      value,
+    });
+  };
+
   const setBrowserOnline = (onLine: boolean) => {
-    vi.stubGlobal('navigator', { onLine });
+    setGlobal('navigator', { onLine });
   };
 
   const dispatchNetworkChanged = (online: boolean) => {
@@ -1795,12 +1813,12 @@ describe('Call offline handling', () => {
     };
     publisher = {
       isHealthy: vi.fn().mockReturnValue(true),
-      isIceConnected: vi.fn().mockReturnValue(true),
+      isIceIntact: vi.fn().mockReturnValue(true),
       dispose: vi.fn().mockResolvedValue(undefined),
     };
     subscriber = {
       isHealthy: vi.fn().mockReturnValue(true),
-      isIceConnected: vi.fn().mockReturnValue(true),
+      isIceIntact: vi.fn().mockReturnValue(true),
       getStats: vi.fn().mockResolvedValue(new Map()),
       dispose: vi.fn().mockResolvedValue(undefined),
     };
@@ -1824,7 +1842,11 @@ describe('Call offline handling', () => {
     call['offlineState'].dispose();
     call['leaveCallHooks'].forEach((hook) => hook());
     vi.useRealTimers();
-    vi.unstubAllGlobals();
+    for (const [name, descriptor] of originalGlobals) {
+      if (descriptor) Object.defineProperty(globalThis, name, descriptor);
+      else delete (globalThis as Record<string, unknown>)[name];
+    }
+    originalGlobals.clear();
     vi.clearAllMocks();
   });
 
@@ -1927,7 +1949,7 @@ describe('Call offline handling', () => {
     });
 
     it('reconnects when ICE dropped while offline', async () => {
-      subscriber.isIceConnected.mockReturnValue(false);
+      subscriber.isIceIntact.mockReturnValue(false);
       sfuClient.probe.mockResolvedValue(true);
       await vi.advanceTimersByTimeAsync(2000);
 
@@ -1943,7 +1965,7 @@ describe('Call offline handling', () => {
     });
 
     it('reconnects when a peer connection failed while offline', async () => {
-      publisher.isIceConnected.mockReturnValue(false);
+      publisher.isIceIntact.mockReturnValue(false);
       sfuClient.probe.mockResolvedValue(true);
       await vi.advanceTimersByTimeAsync(2000);
 
@@ -2061,8 +2083,8 @@ describe('Call offline handling', () => {
   });
 
   it('rechecks when the page resumes', async () => {
-    vi.stubGlobal('document', new EventTarget());
-    vi.stubGlobal('window', new EventTarget());
+    setGlobal('document', new EventTarget());
+    setGlobal('window', new EventTarget());
     setBrowserOnline(false);
     dispatchNetworkChanged(false);
     sfuClient.probe.mockResolvedValue(true);
@@ -2099,6 +2121,48 @@ describe('Call offline handling', () => {
     expect(call['offlineState']['networkAvailableTask']).toBeUndefined();
     expect(call['offlineState']['stopRechecks']).toBeUndefined();
     expect(sfuClient.probe).not.toHaveBeenCalled();
+    expect(reconnect).not.toHaveBeenCalled();
+  });
+
+  it('resumes when the peer connections never connected', async () => {
+    // nothing published or received yet: ICE never left `new`
+    setGlobal(
+      'RTCPeerConnection',
+      vi.fn(function () {
+        return {
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          getTransceivers: vi.fn().mockReturnValue([]),
+          getReceivers: vi.fn().mockReturnValue([]),
+          getSenders: vi.fn().mockReturnValue([]),
+          getConfiguration: vi.fn(),
+          close: vi.fn(),
+          iceConnectionState: 'new',
+          connectionState: 'new',
+          signalingState: 'stable',
+        };
+      }),
+    );
+    const options = {
+      sfuClient: sfuClient as unknown as StreamSfuClient,
+      dispatcher: new Dispatcher(),
+      state: call.state,
+      tag: 'test',
+      enableTracing: false,
+    };
+    const idlePublisher = new Publisher(options, []);
+    const idleSubscriber = new Subscriber(options);
+    Object.assign(call as unknown as Record<string, unknown>, {
+      publisher: idlePublisher,
+      subscriber: idleSubscriber,
+    });
+    setBrowserOnline(false);
+    dispatchNetworkChanged(false);
+
+    sfuClient.probe.mockResolvedValue(true);
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(call.state.callingState).toBe(CallingState.JOINED);
     expect(reconnect).not.toHaveBeenCalled();
   });
 

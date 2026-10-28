@@ -324,11 +324,17 @@ export abstract class BasePeerConnection {
   };
 
   /**
-   * Whether ICE is currently `connected` or `completed`.
+   * Whether ICE hasn't dropped: anything but `disconnected`, `failed` or
+   * `closed`. A connection that never connected (`new`, `checking`) counts
+   * as intact, as there is nothing to repair.
    */
-  isIceConnected = () => {
+  isIceIntact = () => {
     const iceState = this.pc.iceConnectionState;
-    return iceState === 'connected' || iceState === 'completed';
+    return (
+      iceState !== 'disconnected' &&
+      iceState !== 'failed' &&
+      iceState !== 'closed'
+    );
   };
 
   /**

@@ -393,8 +393,8 @@ export class Call {
       isLeaving: () => this.leavesInProgress > 0,
       hasPendingReconnect: () => hasPending(this.reconnectConcurrencyTag),
       connectionsIntact: () =>
-        (this.publisher?.isIceConnected() ?? true) &&
-        (this.subscriber?.isIceConnected() ?? true),
+        (this.publisher?.isIceIntact() ?? true) &&
+        (this.subscriber?.isIceIntact() ?? true),
       discardSfuConnection: () =>
         this.sfuClient?.close(
           StreamSfuClient.DISPOSE_OLD_SOCKET,
