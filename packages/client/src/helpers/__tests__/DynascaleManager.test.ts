@@ -656,6 +656,31 @@ describe('DynascaleManager', () => {
       expect(play).not.toHaveBeenCalled();
     });
 
+    it('video: resolves a bound element to its participant track until unbound', () => {
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [TrackType.SCREEN_SHARE],
+      });
+
+      const cleanup = dynascaleManager.bindVideoElement(
+        videoElement,
+        'session-id',
+        'screenShareTrack',
+      );
+      expect(dynascaleManager.findBoundVideo(videoElement)).toEqual({
+        sessionId: 'session-id',
+        trackType: 'screenShareTrack',
+      });
+      expect(
+        dynascaleManager.findBoundVideo(document.createElement('video')),
+      ).toBeUndefined();
+
+      cleanup?.();
+      expect(dynascaleManager.findBoundVideo(videoElement)).toBeUndefined();
+    });
+
     it('video: should update subscription when element becomes visible', () => {
       // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {

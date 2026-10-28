@@ -1,4 +1,5 @@
 import {
+  type AppVisibility,
   AudioTrackType,
   DebounceType,
   VideoTrackType,
@@ -51,6 +52,10 @@ export class DynascaleManager {
 
   private trackSubscriptionManager: TrackSubscriptionManager;
   private blockedAudioTracker: BlockedAudioTracker;
+  private boundVideos = new WeakMap<
+    Element,
+    { sessionId: string; trackType: VideoTrackType }
+  >();
 
   /**
    * Creates a new DynascaleManager instance.
@@ -116,6 +121,15 @@ export class DynascaleManager {
     this.tracer.trace('setUseWebAudio', useWebAudio);
     this.useWebAudio = useWebAudio;
   };
+
+  /**
+   * Resolves a video element to the participant track bound to it with
+   * `bindVideoElement`, if any.
+   */
+  findBoundVideo = (
+    element: Element,
+  ): Extract<AppVisibility, { hidden: true }>['shownTrack'] =>
+    this.boundVideos.get(element);
 
   /**
    * Binds a DOM <video> element to the given session id.
@@ -270,6 +284,7 @@ export class DynascaleManager {
             }
           });
 
+    this.boundVideos.set(videoElement, { sessionId, trackType });
     videoElement.autoplay = true;
     videoElement.playsInline = true;
 
@@ -316,6 +331,7 @@ export class DynascaleManager {
       this.disposePlaybackWatchdog(playbackWatchdog);
       clearTimeout(rebindTimer);
       videoElement.srcObject = null;
+      this.boundVideos.delete(videoElement);
     };
   };
 

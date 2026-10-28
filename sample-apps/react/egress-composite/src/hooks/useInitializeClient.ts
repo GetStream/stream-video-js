@@ -54,6 +54,10 @@ const useJoinCall = ({
         call.microphone.disable(),
       ]).catch((err) => console.error('Error disabling devices', err));
 
+      // the recording must keep receiving video even if the recorder's
+      // browser ever reports the page as hidden
+      call.setPauseIncomingVideoWhenHidden(false);
+
       await call.join({ maxJoinRetries: 100 });
     };
 

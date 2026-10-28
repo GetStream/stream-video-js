@@ -790,6 +790,39 @@ describe('Call lifecycle wiring', () => {
     expect(callingX.endCall).toHaveBeenCalledWith(call, 'error');
   });
 
+  it('call.join() watches app visibility until leave()', async () => {
+    mockJoin();
+    const stopWatching = vi.fn();
+    const appVisibility = {
+      getVisibility: vi.fn(() => ({ hidden: false as const })),
+      watch: vi.fn(() => stopWatching),
+    };
+    (globalThis as Record<string, any>).streamRNVideoSDK = {
+      appVisibility,
+      callManager: { stop: vi.fn() },
+    };
+
+    await call.join();
+    expect(appVisibility.watch).toHaveBeenCalledTimes(1);
+    expect(stopWatching).not.toHaveBeenCalled();
+
+    await call.leave();
+    expect(stopWatching).toHaveBeenCalledTimes(1);
+
+    await call.join();
+    expect(appVisibility.watch).toHaveBeenCalledTimes(2);
+  });
+
+  it('call.setPauseIncomingVideoWhenHidden() configures the subscription manager', () => {
+    const setPauseWhenHidden = vi.spyOn(
+      call.trackSubscriptionManager,
+      'setPauseWhenHidden',
+    );
+
+    call.setPauseIncomingVideoWhenHidden(false);
+    expect(setPauseWhenHidden).toHaveBeenCalledWith(false);
+  });
+
   it('call.join() is still allowed after a completed leave()', async () => {
     const doJoin = mockJoin();
 

@@ -140,6 +140,33 @@ export interface StreamVideoParticipant extends Participant {
 }
 
 export type VideoTrackType = 'videoTrack' | 'screenShareTrack';
+
+/**
+ * Whether the app is hidden: a hidden page on the web, or an app in the
+ * background on React Native. `shownTrack` names the one remote video still
+ * on screen while hidden, such as a video element in picture-in-picture.
+ */
+export type AppVisibility =
+  | { hidden: false }
+  | {
+      hidden: true;
+      shownTrack?: { sessionId: string; trackType: VideoTrackType };
+    };
+
+/**
+ * A platform's source of {@link AppVisibility}.
+ */
+export type AppVisibilitySource = {
+  /**
+   * Reads the current visibility.
+   */
+  getVisibility: () => AppVisibility;
+  /**
+   * Invokes `onChange` every time the visibility may have changed.
+   * Returns a function that stops watching.
+   */
+  watch: (onChange: () => void) => () => void;
+};
 export type AudioTrackType = 'audioTrack' | 'screenShareAudioTrack';
 export type TrackMuteType =
   'audio' | 'video' | 'screenshare' | 'screenshare_audio';
@@ -545,6 +572,11 @@ export type StreamRNVideoSDKGlobals = {
      */
     check(permission: 'microphone' | 'camera'): Promise<boolean>;
   };
+  /**
+   * Reports whether the app is in the background, with picture-in-picture
+   * counted as visible. Optional, for RN SDK versions without it.
+   */
+  appVisibility?: AppVisibilitySource;
   nativeEvents: {
     speechActivity: {
       /**
