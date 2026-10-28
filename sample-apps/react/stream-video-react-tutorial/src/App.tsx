@@ -9,7 +9,6 @@ import {
   StreamVideo,
   StreamVideoClient,
   useCallStateHooks,
-  User,
 } from '@stream-io/video-react-sdk';
 
 import '@stream-io/video-react-sdk/dist/css/styles.css';
@@ -37,7 +36,7 @@ const fetchCredentials = async () => {
   return res as { apiKey: string; token: string };
 };
 
-const user: User = {
+const user = {
   id: userId,
   name: 'Oliver',
   image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver',
