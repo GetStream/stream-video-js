@@ -10,6 +10,7 @@ import { getScreenShareStream } from './devices';
 import { ScreenShareSettings } from '../types';
 import { createSubscription } from '../store/rxUtils';
 import { normalize } from './devicePersistence';
+import { TrackPublishOptions } from '../rtc';
 
 export class ScreenShareManager extends AudioDeviceManager<
   ScreenShareState,
@@ -104,6 +105,19 @@ export class ScreenShareManager extends AudioDeviceManager<
       track.contentHint = contentHint;
     }
     return stream;
+  }
+
+  /**
+   * Overrides the default `publishStream` method to inject the content hint.
+   */
+  protected override publishStream(
+    stream: MediaStream,
+    options?: TrackPublishOptions,
+  ): Promise<void> {
+    return super.publishStream(stream, {
+      contentHint: this.state.settings?.contentHint,
+      ...options,
+    });
   }
 
   protected override doSetAudioBitrateProfile(profile: AudioBitrateProfile) {

@@ -12,6 +12,7 @@ import { promiseWithResolvers } from '../helpers/promise';
 import { BasePeerConnection } from './BasePeerConnection';
 import { isSvcCodec } from './codecs';
 import {
+  contentHintToRTCDegradationPreference,
   fromRTCDegradationPreference,
   toRTCDegradationPreference,
 } from './helpers/degradationPreference';
@@ -173,9 +174,18 @@ export class Publisher extends BasePeerConnection {
     this.logger.debug(`Added ${TrackType[trackType]} transceiver`);
 
     if (this.e2ee) {
-      await this.initEncryptedSender(transceiver, track, publishOption);
+      await this.initEncryptedSender(
+        transceiver,
+        track,
+        publishOption,
+        options,
+      );
     } else {
-      await this.setDegradationPreference(transceiver.sender, publishOption);
+      await this.setDegradationPreference(
+        transceiver.sender,
+        publishOption,
+        options,
+      );
     }
 
     await this.negotiate();
@@ -192,13 +202,14 @@ export class Publisher extends BasePeerConnection {
     transceiver: RTCRtpTransceiver,
     track: MediaStreamTrack,
     publishOption: PublishOption,
+    options: TrackPublishOptions,
   ) => {
     try {
       const { sender } = transceiver;
       const codec = publishOption.codec?.name.toLowerCase();
       this.e2ee!.encrypt(sender, codec, TrackType[publishOption.trackType]);
       this.logger.debug('E2EE encryptor attached to sender');
-      await this.setDegradationPreference(sender, publishOption);
+      await this.setDegradationPreference(sender, publishOption, options);
       await sender.replaceTrack(track);
     } catch (err) {
       this.retireTransceiver(transceiver, track);
@@ -206,12 +217,21 @@ export class Publisher extends BasePeerConnection {
     }
   };
 
+  /**
+   * Applies the degradation preference implied by the video track's content
+   * hint, falling back to the SFU's preference when the app set no hint.
+   */
   private setDegradationPreference = async (
     sender: RTCRtpSender,
     publishOption: PublishOption,
+    options: TrackPublishOptions,
   ) => {
     const params = sender.getParameters();
+    const hintedPreference = isAudioTrackType(publishOption.trackType)
+      ? undefined
+      : contentHintToRTCDegradationPreference(options.contentHint);
     params.degradationPreference =
+      hintedPreference ??
       toRTCDegradationPreference(publishOption.degradationPreference) ??
       'maintain-framerate';
     await sender.setParameters(params);
@@ -253,6 +273,17 @@ export class Publisher extends BasePeerConnection {
     const trackType = publishOption.trackType;
     const sender = transceiver.sender;
     if (sender.track) this.trackIdToTrackType.delete(sender.track.id);
+    if (
+      track &&
+      !isAudioTrackType(trackType) &&
+      bundle.options.contentHint !== options.contentHint
+    ) {
+      // changePublishQuality also writes this sender's parameters
+      await withoutConcurrency(this.eventLockKey('changePublishQuality'), () =>
+        this.setDegradationPreference(sender, publishOption, options),
+      );
+      this.transceiverCache.update(publishOption, { options });
+    }
     await sender.replaceTrack(track);
     if (track) {
       this.trackIdToTrackType.set(track.id, trackType);
@@ -496,9 +527,12 @@ export class Publisher extends BasePeerConnection {
       }
     }
 
-    const degradationPreference = toRTCDegradationPreference(
-      videoSender.degradationPreference,
-    );
+    // a content hint was applied on publish and takes precedence over the SFU
+    const degradationPreference = contentHintToRTCDegradationPreference(
+      bundle?.options.contentHint,
+    )
+      ? undefined
+      : toRTCDegradationPreference(videoSender.degradationPreference);
     if (
       degradationPreference &&
       params.degradationPreference !== degradationPreference
