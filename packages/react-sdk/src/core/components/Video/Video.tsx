@@ -19,7 +19,7 @@ import {
   DefaultVideoPlaceholder,
   VideoPlaceholderProps,
 } from './DefaultVideoPlaceholder';
-import { useCall } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { usePictureInPictureState } from '../../hooks/usePictureInPictureState';
 import {
   DefaultPictureInPicturePlaceholder,
@@ -102,6 +102,8 @@ export const Video = ({
   } = participant;
 
   const call = useCall();
+  const { useIncomingVideoSettings } = useCallStateHooks();
+  const { isParticipantVideoPaused } = useIncomingVideoSettings();
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
     null,
   );
@@ -176,6 +178,9 @@ export const Video = ({
     !isPublishingTrack ||
     isInvisible ||
     hasPausedTrack(participant, trackType);
+  // the video element stays bound underneath, keeping its subscription size
+  const isPausedWhileHidden =
+    trackType !== 'none' && isParticipantVideoPaused(sessionId, trackType);
   const mirrorVideo =
     mirror === undefined
       ? isLocalParticipant && trackType === 'videoTrack'
@@ -187,7 +192,8 @@ export const Video = ({
         <video
           {...rest}
           className={clsx('str-video__video', className, {
-            'str-video__video--not-playing': isVideoPaused,
+            'str-video__video--not-playing':
+              isVideoPaused || isPausedWhileHidden,
             'str-video__video--tall': !isWideMode,
             'str-video__video--mirror': mirrorVideo,
             'str-video__video--screen-share': isScreenShareTrack,
@@ -207,13 +213,14 @@ export const Video = ({
         />
       )}
       {/* TODO: add condition to "hold" the placeholder until track unmutes as well */}
-      {(hasNoVideoOrInvisible || isVideoPaused) && VideoPlaceholder && (
-        <VideoPlaceholder
-          style={ABSOLUTE_POSITION_STYLE}
-          participant={participant}
-          ref={refs?.setVideoPlaceholderElement}
-        />
-      )}
+      {(hasNoVideoOrInvisible || isVideoPaused || isPausedWhileHidden) &&
+        VideoPlaceholder && (
+          <VideoPlaceholder
+            style={ABSOLUTE_POSITION_STYLE}
+            participant={participant}
+            ref={refs?.setVideoPlaceholderElement}
+          />
+        )}
     </>
   );
 };

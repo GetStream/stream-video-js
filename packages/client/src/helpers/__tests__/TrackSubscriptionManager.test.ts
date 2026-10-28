@@ -1,9 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
-import { TrackSubscriptionManager } from '../TrackSubscriptionManager';
+import {
+  type PausedTrackFilter,
+  TrackSubscriptionManager,
+} from '../TrackSubscriptionManager';
 import { CallState } from '../../store';
 import { Tracer } from '../../stats';
-import { type AppVisibility, DebounceType } from '../../types';
+import {
+  type AppVisibility,
+  DebounceType,
+  type VideoTrackType,
+} from '../../types';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import type { StreamSfuClient } from '../../StreamSfuClient';
 
@@ -529,6 +536,79 @@ describe('TrackSubscriptionManager', () => {
 
       expect(tracks()).toEqual(allTracks);
       expect(updateSubscriptions).not.toHaveBeenCalled();
+    });
+
+    const isPaused = (sessionId: string, trackType?: VideoTrackType) => {
+      let paused: boolean | undefined;
+      manager.incomingVideoSettings$
+        .subscribe((settings) => {
+          paused = settings.isParticipantVideoPaused(sessionId, trackType);
+        })
+        .unsubscribe();
+      return paused;
+    };
+
+    it('reports paused remote videos, except the one in picture-in-picture', () => {
+      addParticipant('local', {
+        isLocalParticipant: true,
+        publishedTracks: [TrackType.VIDEO],
+      });
+      expect(isPaused('presenter')).toBe(false);
+
+      setVisibility({
+        hidden: true,
+        shownTrack: { sessionId: 'other', trackType: 'videoTrack' },
+      });
+      expect(isPaused('presenter')).toBe(false);
+      vi.advanceTimersByTime(3000);
+
+      expect(isPaused('presenter')).toBe(true);
+      expect(isPaused('presenter', 'screenShareTrack')).toBe(true);
+      expect(isPaused('other')).toBe(false);
+      expect(isPaused('local')).toBe(false);
+    });
+
+    it('calls resume listeners with the paused videos before resuming', () => {
+      const pausedWhenCalled: boolean[] = [];
+      const listener = vi.fn((wasPaused: PausedTrackFilter) => {
+        pausedWhenCalled.push(isPaused('presenter'));
+        expect(wasPaused('presenter', 'videoTrack')).toBe(true);
+        expect(wasPaused('other', 'videoTrack')).toBe(false);
+      });
+      const stopListening = manager.onBeforeResume(listener);
+      setVisibility({
+        hidden: true,
+        shownTrack: { sessionId: 'other', trackType: 'videoTrack' },
+      });
+      vi.advanceTimersByTime(3000);
+
+      setVisibility({ hidden: false });
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(pausedWhenCalled).toEqual([true]);
+      expect(isPaused('presenter')).toBe(false);
+
+      stopListening();
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(3000);
+      setVisibility({ hidden: false });
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps reporting a resumed video as paused while it awaits a fresh frame', () => {
+      manager.onBeforeResume(() =>
+        manager.setAwaitingFreshFrame('presenter', 'videoTrack', true),
+      );
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(3000);
+
+      setVisibility({ hidden: false });
+      expect(tracks()).toEqual(allTracks);
+      expect(isPaused('presenter')).toBe(true);
+      expect(isPaused('presenter', 'screenShareTrack')).toBe(false);
+      expect(isPaused('other')).toBe(false);
+
+      manager.setAwaitingFreshFrame('presenter', 'videoTrack', false);
+      expect(isPaused('presenter')).toBe(false);
     });
 
     it('cancels a pending pause on dispose', () => {

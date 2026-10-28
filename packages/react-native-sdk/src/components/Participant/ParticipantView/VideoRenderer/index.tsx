@@ -68,7 +68,8 @@ export const VideoRenderer = React.memo(
         new BehaviorSubject<SfuModels.VideoDimension | undefined>(undefined),
       [],
     );
-    const { isParticipantVideoEnabled } = useIncomingVideoSettings();
+    const { isParticipantVideoEnabled, isParticipantVideoPaused } =
+      useIncomingVideoSettings();
     const { direction } = useCameraState();
     const viewRef = useRef(null);
     const {
@@ -106,7 +107,8 @@ export const VideoRenderer = React.memo(
       isVisible &&
       isPublishingVideoTrack &&
       !hasPausedTrack(participant, trackType) &&
-      isParticipantVideoEnabled(participant.sessionId);
+      isParticipantVideoEnabled(participant.sessionId) &&
+      !isParticipantVideoPaused(participant.sessionId, trackType);
 
     useEffect(() => {
       if (Platform.OS !== 'ios' || !registerIosScreenshot || !canShowVideo)

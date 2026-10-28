@@ -1,8 +1,9 @@
-import { BehaviorSubject, map, shareReplay } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, shareReplay } from 'rxjs';
 import {
   type AppVisibility,
   type AppVisibilitySource,
   DebounceType,
+  type VideoTrackType,
 } from '../types';
 import type { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
 import { TrackType, VideoDimension } from '../gen/video/sfu/models/models';
@@ -50,10 +51,32 @@ const lateTimerToleranceMs = 2000;
 /** How long to wait for a visibility report after a late pause timer. */
 const lateTimerRecheckMs = 1000;
 
-const trackTypeOf = {
-  videoTrack: TrackType.VIDEO,
-  screenShareTrack: TrackType.SCREEN_SHARE,
-} as const;
+type PausedFor = Extract<AppVisibility, { hidden: true }>;
+
+/** Tells whether a remote video was paused. */
+export type PausedTrackFilter = (
+  sessionId: string,
+  trackType: VideoTrackType,
+) => boolean;
+
+const trackKey = (sessionId: string, trackType: VideoTrackType) =>
+  `${sessionId}:${trackType}`;
+
+/**
+ * Whether a remote video is left out while paused for `pausedFor`: every
+ * video except the one shown in picture-in-picture.
+ */
+const isPausedTrack = (
+  pausedFor: PausedFor | undefined,
+  sessionId: string,
+  trackType: VideoTrackType,
+) => {
+  if (!pausedFor) return false;
+  const { shownTrack } = pausedFor;
+  return (
+    shownTrack?.sessionId !== sessionId || shownTrack.trackType !== trackType
+  );
+};
 
 /** Symbol key for the "applies to all participants" override slot. */
 const globalOverrideKey = Symbol('globalOverrideKey');
@@ -97,7 +120,14 @@ export class TrackSubscriptionManager {
   private visibilitySource: AppVisibilitySource | undefined;
   private pauseWhenHidden = true;
   /** set while incoming video is paused, to the visibility it paused for */
-  private pausedFor: Extract<AppVisibility, { hidden: true }> | undefined;
+  private pausedForSubject = new BehaviorSubject<PausedFor | undefined>(
+    undefined,
+  );
+  /** resumed videos still waiting for their first fresh frame */
+  private awaitingFreshFrameSubject = new BehaviorSubject<ReadonlySet<string>>(
+    new Set(),
+  );
+  private resumeListeners = new Set<(wasPaused: PausedTrackFilter) => void>();
   private pendingPause: ReturnType<typeof setTimeout> | undefined;
 
   private overridesSubject =
@@ -109,8 +139,12 @@ export class TrackSubscriptionManager {
    * Consumer-friendly projection of the override state. Used by the
    * `useIncomingVideoSettings()` React hook.
    */
-  incomingVideoSettings$ = this.overrides$.pipe(
-    map((overrides) => {
+  incomingVideoSettings$ = combineLatest([
+    this.overrides$,
+    this.pausedForSubject,
+    this.awaitingFreshFrameSubject,
+  ]).pipe(
+    map(([overrides, pausedFor, awaitingFreshFrame]) => {
       const { [globalOverrideKey]: globalSettings, ...participants } =
         overrides;
       return {
@@ -135,6 +169,23 @@ export class TrackSubscriptionManager {
           overrides[sessionId]?.enabled ??
           overrides[globalOverrideKey]?.enabled ??
           true,
+        /**
+         * Whether the participant's video is paused while the app is
+         * hidden, or resumed but not showing a fresh frame yet. UIs show
+         * the video placeholder meanwhile.
+         */
+        isParticipantVideoPaused: (
+          sessionId: string,
+          trackType: VideoTrackType = 'videoTrack',
+        ) => {
+          if (awaitingFreshFrame.has(trackKey(sessionId, trackType))) {
+            return true;
+          }
+          if (!isPausedTrack(pausedFor, sessionId, trackType)) return false;
+          const participant =
+            this.callState.findParticipantBySessionId(sessionId);
+          return !participant?.isLocalParticipant;
+        },
       };
     }),
     shareReplay(1),
@@ -188,22 +239,14 @@ export class TrackSubscriptionManager {
     // and avoid stale data caused by shareReplay with no active subscribers
     const participants = this.callState.getParticipantsSnapshot();
     const overrides = this.overridesSubject.getValue();
-    const pausedFor = this.pausedFor;
-    const isWanted = (sessionId: string, trackType: TrackType) => {
-      if (!pausedFor) return true;
-      const { shownTrack } = pausedFor;
-      return (
-        shownTrack?.sessionId === sessionId &&
-        trackTypeOf[shownTrack.trackType] === trackType
-      );
-    };
+    const pausedFor = this.pausedForSubject.getValue();
     for (const p of participants) {
       if (p.isLocalParticipant) continue;
       // NOTE: audio tracks don't have to be requested explicitly
       // as the SFU will implicitly subscribe us to all of them,
       // once they become available.
       if (
-        isWanted(p.sessionId, TrackType.VIDEO) &&
+        !isPausedTrack(pausedFor, p.sessionId, 'videoTrack') &&
         p.videoDimension &&
         hasVideo(p)
       ) {
@@ -219,7 +262,7 @@ export class TrackSubscriptionManager {
         }
       }
       if (
-        isWanted(p.sessionId, TrackType.SCREEN_SHARE) &&
+        !isPausedTrack(pausedFor, p.sessionId, 'screenShareTrack') &&
         p.screenShareDimension &&
         hasScreenShare(p)
       ) {
@@ -290,7 +333,7 @@ export class TrackSubscriptionManager {
       if (this.visibilitySource !== source) return;
       this.visibilitySource = undefined;
       this.cancelPendingPause();
-      this.pausedFor = undefined;
+      this.pausedForSubject.next(undefined);
     };
   };
 
@@ -303,6 +346,37 @@ export class TrackSubscriptionManager {
     this.syncVideoPause();
   };
 
+  /**
+   * Registers a listener invoked right before paused incoming video
+   * resumes, with a filter telling which videos were paused.
+   *
+   * @returns a function that unregisters the listener.
+   */
+  onBeforeResume = (listener: (wasPaused: PausedTrackFilter) => void) => {
+    this.resumeListeners.add(listener);
+    return () => {
+      this.resumeListeners.delete(listener);
+    };
+  };
+
+  /**
+   * Marks a resumed video as waiting for its first fresh frame, or not.
+   * `isParticipantVideoPaused` keeps reporting it as paused meanwhile.
+   */
+  setAwaitingFreshFrame = (
+    sessionId: string,
+    trackType: VideoTrackType,
+    awaiting: boolean,
+  ) => {
+    const key = trackKey(sessionId, trackType);
+    const current = this.awaitingFreshFrameSubject.getValue();
+    if (current.has(key) === awaiting) return;
+    const next = new Set(current);
+    if (awaiting) next.add(key);
+    else next.delete(key);
+    this.awaitingFreshFrameSubject.next(next);
+  };
+
   private getHiddenVisibility = () => {
     if (!this.pauseWhenHidden) return;
     const visibility = this.visibilitySource?.getVisibility();
@@ -311,22 +385,26 @@ export class TrackSubscriptionManager {
 
   private syncVideoPause = () => {
     const hidden = this.getHiddenVisibility();
+    const pausedFor = this.pausedForSubject.getValue();
     if (!hidden) {
       this.cancelPendingPause();
-      if (!this.pausedFor) return;
-      this.pausedFor = undefined;
+      if (!pausedFor) return;
+      const wasPaused: PausedTrackFilter = (sessionId, trackType) =>
+        isPausedTrack(pausedFor, sessionId, trackType);
+      for (const listener of this.resumeListeners) listener(wasPaused);
+      this.pausedForSubject.next(undefined);
       this.tracer.trace('incomingVideo.resumed', null);
       this.apply(0);
       return;
     }
 
-    if (!this.pausedFor) {
+    if (!pausedFor) {
       if (!this.pendingPause) this.schedulePause(hiddenPauseDelayMs);
       return;
     }
 
     // already paused: follow the video shown in picture-in-picture
-    const shown = this.pausedFor.shownTrack;
+    const shown = pausedFor.shownTrack;
     const nextShown = hidden.shownTrack;
     if (
       shown?.sessionId === nextShown?.sessionId &&
@@ -334,7 +412,7 @@ export class TrackSubscriptionManager {
     ) {
       return;
     }
-    this.pausedFor = hidden;
+    this.pausedForSubject.next(hidden);
     this.apply(0);
   };
 
@@ -350,7 +428,7 @@ export class TrackSubscriptionManager {
       // inside a shadow root, are not reported
       const hidden = this.getHiddenVisibility();
       if (!hidden) return;
-      this.pausedFor = hidden;
+      this.pausedForSubject.next(hidden);
       this.tracer.trace('incomingVideo.paused', hidden.shownTrack ?? null);
       this.apply(0);
     }, delayMs);

@@ -12,7 +12,7 @@ import { isInPiPMode$ } from './rxSubjects';
  * the application process rather than of the activity; without it, the
  * React Native `AppState` is used.
  */
-const getAppState = (): string => {
+const getAppState = (): string | null | undefined => {
   if (NativeStreamVideoAppLifecycle) {
     try {
       return NativeStreamVideoAppLifecycle.getCurrentAppState();
