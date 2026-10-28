@@ -678,7 +678,7 @@ export class DynascaleManager {
   private restartAudioPlayback = () => {
     this.restartTimer = undefined;
     if (this.isPlaybackInterrupted()) return;
-    this.restartOnRearm = false;
+    this.restartOnRearm = !sharedAudioContext.isRunning();
     const watchdogs = [...this.playbackWatchdogs].filter(
       (watchdog) => watchdog.kind === 'audio',
     );

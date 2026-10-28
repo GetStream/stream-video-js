@@ -1470,6 +1470,24 @@ describe('DynascaleManager', () => {
         });
       });
 
+      it('restarts again when an interruption a tap restarted during really ends', async () => {
+        await withSharedContext(async (setContextState) => {
+          const { pause, cleanup } = bindPlayingAudioElement();
+          dynascaleManager.keepAudioPlaybackUnlocked();
+
+          setContextState('interrupted');
+          document.dispatchEvent(new Event('click'));
+          await vi.advanceTimersByTimeAsync(700);
+          expect(pause).toHaveBeenCalledTimes(1);
+
+          setContextState('running');
+          await vi.advanceTimersByTimeAsync(1100);
+          expect(pause).toHaveBeenCalledTimes(2);
+
+          cleanup?.();
+        });
+      });
+
       it('plays the elements a restart paused when the unlock is released', async () => {
         await withSharedContext(async (setContextState) => {
           const { audioElement, play, pause, cleanup } =
