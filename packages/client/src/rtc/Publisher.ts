@@ -121,14 +121,31 @@ export class Publisher extends BasePeerConnection {
         const trackToPublish = this.cloneTrack(track);
 
         const bundle = this.transceiverCache.get(publishOption);
-        if (!bundle) {
-          await this.addTransceiver(trackToPublish, publishOption, options);
-        } else {
-          const previousTrack = bundle.transceiver.sender.track;
-          await this.updateTransceiver(bundle, trackToPublish, options);
-          if (!isReactNative()) {
-            this.stopTrack(previousTrack);
+        try {
+          if (!bundle) {
+            await this.addTransceiver(trackToPublish, publishOption, options);
+          } else {
+            const previousTrack = bundle.transceiver.sender.track;
+            try {
+              await this.updateTransceiver(bundle, trackToPublish, options);
+            } catch (err) {
+              // replaced before the failure: no sender sends it any more
+              const { track: sent } = bundle.transceiver.sender;
+              if (!isReactNative() && sent !== previousTrack) {
+                this.stopTrack(previousTrack);
+              }
+              throw err;
+            }
+            if (!isReactNative()) {
+              this.stopTrack(previousTrack);
+            }
           }
+        } catch (err) {
+          // a live clone keeps the capture running, even off the sender.
+          // On React Native it shares its native source with the caller's
+          // track, so it is left to the caller (and dispose()).
+          if (!isReactNative()) this.stopTrack(trackToPublish);
+          throw err;
         }
       }
     });

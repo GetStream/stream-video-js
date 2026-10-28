@@ -2641,21 +2641,59 @@ export class Call {
       throw new Error(`Can't publish ended tracks.`);
     }
 
-    pushToIfMissing(this.trackPublishOrder, trackType);
-    await this.publisher.publish(track, trackType, options);
-
+    const publisher = this.publisher;
     const trackTypes = [trackType];
-    if (trackType === TrackType.SCREEN_SHARE) {
-      const [audioTrack] = mediaStream.getAudioTracks();
-      if (audioTrack) {
-        const screenShareAudio = TrackType.SCREEN_SHARE_AUDIO;
-        pushToIfMissing(this.trackPublishOrder, screenShareAudio);
-        await this.publisher.publish(audioTrack, screenShareAudio, options);
-        trackTypes.push(screenShareAudio);
-      }
-    }
+    const relatedTypes =
+      trackType === TrackType.SCREEN_SHARE
+        ? [trackType, TrackType.SCREEN_SHARE_AUDIO]
+        : [trackType];
+    const wasPublishing = relatedTypes.filter((t) => publisher.isPublishing(t));
+    try {
+      pushToIfMissing(this.trackPublishOrder, trackType);
+      await publisher.publish(track, trackType, options);
 
-    await this.updateLocalStreamState(mediaStream, ...trackTypes);
+      if (trackType === TrackType.SCREEN_SHARE) {
+        const [audioTrack] = mediaStream.getAudioTracks();
+        if (audioTrack) {
+          const screenShareAudio = TrackType.SCREEN_SHARE_AUDIO;
+          pushToIfMissing(this.trackPublishOrder, screenShareAudio);
+          trackTypes.push(screenShareAudio);
+          await publisher.publish(audioTrack, screenShareAudio, options);
+        }
+      }
+
+      await this.updateLocalStreamState(mediaStream, ...trackTypes);
+    } catch (err) {
+      await this.unpublishAfterFailure(publisher, wasPublishing, trackTypes);
+      throw err;
+    }
+  };
+
+  /**
+   * Unpublishes what a failed `publish()` left behind, such as the screen
+   * share when only its audio failed, so no live clone is sent. A track the
+   * failed publish didn't get to replace is still sent, and is kept.
+   */
+  private unpublishAfterFailure = async (
+    publisher: Publisher,
+    wasPublishing: TrackType[],
+    trackTypes: TrackType[],
+  ) => {
+    // a disposed publisher has stopped all of its tracks, and its
+    // replacement restores the device streams on its own
+    if (publisher !== this.publisher) return;
+    const stale = trackTypes.filter(
+      (t) => !wasPublishing.includes(t) || !publisher.isPublishing(t),
+    );
+    if (stale.length === 0) return;
+    try {
+      // on React Native a clone shares its native source, so stopping it
+      // would stop the device track too: the device releases its capture
+      if (!isReactNative()) await publisher.stopTracks(...stale);
+      await this.markUnpublished(...stale);
+    } catch (err) {
+      this.logger.warn('Failed to unpublish after a failed publish', err);
+    }
   };
 
   /**

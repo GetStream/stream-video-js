@@ -474,6 +474,99 @@ describe('Publisher', () => {
       expect(track.stop).toHaveBeenCalled();
     });
 
+    it('stops the clone when publishing a new track fails', async () => {
+      const track = new MediaStreamTrack();
+      const clone = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(clone);
+      const error = new Error('negotiation failed');
+      // @ts-expect-error - private method
+      vi.spyOn(publisher, 'negotiate').mockRejectedValue(error);
+
+      await expect(publisher.publish(track, TrackType.VIDEO)).rejects.toBe(
+        error,
+      );
+
+      expect(clone.stop).toHaveBeenCalled();
+      expect(track.stop).not.toHaveBeenCalled();
+      expect(publisher['clonedTracks'].size).toBe(0);
+    });
+
+    it('keeps the published track when replacing it fails', async () => {
+      const track = new MediaStreamTrack();
+      const clone = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(clone);
+      const previousTrack = new MediaStreamTrack();
+      const transceiver = new RTCRtpTransceiver();
+      // @ts-expect-error test setup
+      transceiver.sender.track = previousTrack;
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
+        transceiver,
+        options: {},
+        negotiated: true,
+      });
+      const error = new Error('replaceTrack failed');
+      vi.mocked(transceiver.sender.replaceTrack).mockRejectedValueOnce(error);
+
+      await expect(publisher.publish(track, TrackType.VIDEO)).rejects.toBe(
+        error,
+      );
+
+      expect(clone.stop).toHaveBeenCalled();
+      expect(previousTrack.stop).not.toHaveBeenCalled();
+    });
+
+    it('stops the replaced track when the update fails after replacing it', async () => {
+      const track = new MediaStreamTrack();
+      const clone = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(clone);
+      const previousTrack = new MediaStreamTrack();
+      const transceiver = new RTCRtpTransceiver();
+      // @ts-expect-error test setup
+      transceiver.sender.track = previousTrack;
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
+        transceiver,
+        options: {},
+        negotiated: false,
+      });
+      vi.mocked(transceiver.sender.replaceTrack).mockImplementationOnce(
+        async (t) => {
+          Object.assign(transceiver.sender, { track: t });
+        },
+      );
+      const error = new Error('negotiation failed');
+      // @ts-expect-error - private method
+      vi.spyOn(publisher, 'negotiate').mockRejectedValue(error);
+
+      await expect(publisher.publish(track, TrackType.VIDEO)).rejects.toBe(
+        error,
+      );
+
+      expect(clone.stop).toHaveBeenCalled();
+      expect(previousTrack.stop).toHaveBeenCalled();
+      expect(publisher['clonedTracks'].size).toBe(0);
+    });
+
+    it('leaves the clone of a failed publish to the caller on React Native', async () => {
+      vi.mocked(isReactNative).mockReturnValue(true);
+      try {
+        const track = new MediaStreamTrack();
+        const clone = new MediaStreamTrack();
+        vi.spyOn(track, 'clone').mockReturnValue(clone);
+        // @ts-expect-error - private method
+        vi.spyOn(publisher, 'negotiate').mockRejectedValue(new Error('failed'));
+
+        await expect(
+          publisher.publish(track, TrackType.VIDEO),
+        ).rejects.toThrow();
+
+        expect(clone.stop).not.toHaveBeenCalled();
+      } finally {
+        vi.mocked(isReactNative).mockReturnValue(false);
+      }
+    });
+
     it('should not renegotiate when reusing an already-negotiated transceiver', async () => {
       const track = new MediaStreamTrack();
       const clone = new MediaStreamTrack();
