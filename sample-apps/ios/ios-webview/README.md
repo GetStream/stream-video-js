@@ -135,6 +135,7 @@ Single nav-bar menu (`🔊 Audio & session`):
 |                | Force `mode=.default`                                                               | Strips `.voiceChat` / `.videoChat` mode - AEC + noise suppression off.                                                                                                                                                                                                                                                       |
 |                | `setActive(false)`                                                                  | Silent deactivation with no `.notifyOthersOnDeactivation`. Hostile: other audio sessions don't know to resume.                                                                                                                                                                                                               |
 |                | 440 Hz tone start / stop                                                            | `AVAudioEngine` sine source routed to the mixer - AEC test tone.                                                                                                                                                                                                                                                             |
+| Network        | Stale offline event (online → offline 0.5s)                                         | Dispatches `online`, then `offline` 0.5 s later, into the page while the network keeps working: the order a page can receive when it resumes from a frozen state. The call should stay `joined` (or be back within about 2 s) without reconnecting.                                                                          |
 
 ## Customer test scenarios - crosswalk
 
@@ -153,6 +154,20 @@ A customer-supplied test plan covers Live Calls (and, separately, Webinars
 | **Members can hear remote audio / mute/unmute**                                | Use the running React tutorial in the WKWebView. `Scenarios → 🔍 Diagnostics → Mic meter` proves mic hardware is alive outside of WebRTC for sanity-checks.                                                                                |
 | **Toggle additional microphone / audio outputs**                               | `Scenarios → Toggle route` (speaker ↔ earpiece). Other inputs are exposed by iOS Control Center / Settings.                                                                                                                                |
 | **Hi-fi audio toggle / noise cancellation toggle**                             | Web-side responsibility (`@stream-io/video-react-sdk` settings); not exposed from the native side.                                                                                                                                         |
+
+### Stale offline event - repro instructions
+
+A resumed page can receive `online` and `offline` out of order. Before the
+fix, the call went to `offline` on a working network and stayed there.
+
+1. Load the React tutorial and wait for the call to join.
+2. Tap `Scenarios → Stale offline event (online → offline 0.5s)`.
+3. Watch the page. The tutorial renders the call only while it is
+   `joined` and shows "Loading..." otherwise.
+   - **Fixed**: the call stays on screen (or returns within about 2 s),
+     with no reconnect.
+   - **Bug reproduced**: the page switches to "Loading..." and stays there
+     until a later `online` event.
 
 ### Bug A - repro instructions (live call, post-phone-call audio drift)
 
