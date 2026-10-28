@@ -1,3 +1,4 @@
+import { Browsers, type Call } from '@stream-io/video-react-sdk';
 import {
   type ReactNode,
   useCallback,
@@ -18,7 +19,7 @@ declare global {
   }
 }
 
-export function usePipWindow(key: string) {
+export function usePipWindow(key: string, call: Call) {
   const isSupported = 'documentPictureInPicture' in window;
   const [pipWindow, setPipWindow] = useState<Window | null>(null);
   const sizeRef = useRef<{ width: number; height: number }>({
@@ -51,6 +52,10 @@ export function usePipWindow(key: string) {
     );
     copyStylesheetLinks(window.document, pw.document);
 
+    if (Browsers.isFirefox()) {
+      call.setCaptureWindow(pw);
+    }
+
     pw.addEventListener('resize', () => {
       sizeRef.current = {
         width: pw.innerWidth,
@@ -59,6 +64,24 @@ export function usePipWindow(key: string) {
     });
 
     pw.addEventListener('pagehide', () => {
+      const enableCamera = Browsers.isFirefox() && call.camera.enabled;
+      const enableMic = Browsers.isFirefox() && call.microphone.enabled;
+
+      call.setCaptureWindow(undefined);
+
+      if (enableCamera) {
+        call.camera
+          .disable()
+          .then(() => call.camera.enable())
+          .catch((err) => console.warn('Failed to restart camera', err));
+      }
+
+      if (enableMic) {
+        call.microphone
+          .disable()
+          .then(() => call.camera.enable())
+          .catch((err) => console.warn('Failed to restart camera', err));
+      }
       window.localStorage.setItem(
         keyRef.current,
         JSON.stringify(sizeRef.current),
@@ -67,7 +90,7 @@ export function usePipWindow(key: string) {
     });
 
     setPipWindow(pw);
-  }, []);
+  }, [call]);
 
   const close = useCallback(() => {
     pipWindow?.close();
