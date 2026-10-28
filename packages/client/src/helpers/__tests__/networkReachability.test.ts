@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
-import { NetworkReachabilityChecker } from '../networkReachability';
+import {
+  CallOfflineState,
+  NetworkReachabilityChecker,
+} from '../networkReachability';
+import { CallingState, CallState } from '../../store';
+import { videoLoggerSystem } from '../../logger';
+import type { Tracer } from '../../stats';
 import type { StreamClient } from '../../coordinator/connection/client';
 import type { StreamSfuClient } from '../../StreamSfuClient';
 import type { Subscriber } from '../../rtc';
@@ -104,5 +110,180 @@ describe('NetworkReachabilityChecker', () => {
     await checker.check();
 
     expect(sfuClient.probe).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('CallOfflineState', () => {
+  let state: CallState;
+  let check: ReturnType<typeof vi.fn>;
+  let leaving: boolean;
+  let pendingReconnect: boolean;
+  let intact: boolean;
+  let discardSfuConnection: ReturnType<typeof vi.fn>;
+  let reconnect: ReturnType<typeof vi.fn>;
+  let setStatsPaused: ReturnType<typeof vi.fn>;
+  let offline: CallOfflineState;
+
+  const setBrowserOnline = (onLine: boolean) => {
+    vi.stubGlobal('navigator', { onLine });
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    setBrowserOnline(true);
+    state = new CallState();
+    state.setCallingState(CallingState.JOINED);
+    check = vi.fn().mockResolvedValue('unreachable');
+    leaving = false;
+    pendingReconnect = false;
+    intact = true;
+    discardSfuConnection = vi.fn();
+    reconnect = vi.fn();
+    setStatsPaused = vi.fn();
+    offline = new CallOfflineState({
+      state,
+      tracer: fromPartial<Tracer>({ trace: vi.fn() }),
+      logger: videoLoggerSystem.getLogger('test'),
+      reachability: fromPartial<NetworkReachabilityChecker>({ check }),
+      isLeaving: () => leaving,
+      hasPendingReconnect: () => pendingReconnect,
+      connectionsIntact: () => intact,
+      discardSfuConnection,
+      reconnect,
+      setStatsPaused,
+    });
+  });
+
+  afterEach(() => {
+    offline.dispose();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  describe('an offline event the browser contradicts', () => {
+    it('leaves the call alone when the network is reachable', async () => {
+      check.mockResolvedValue('sfu');
+
+      offline.handleNetworkChanged(false);
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(state.callingState).toBe(CallingState.JOINED);
+      expect(offline.networkAvailable).toBeUndefined();
+      expect(setStatsPaused).not.toHaveBeenCalled();
+    });
+
+    it('goes offline when the network is unreachable', async () => {
+      offline.handleNetworkChanged(false);
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(state.callingState).toBe(CallingState.OFFLINE);
+      expect(setStatsPaused).toHaveBeenCalledWith(true);
+    });
+
+    it('ignores a check that settles after dispose()', async () => {
+      offline.handleNetworkChanged(false);
+      offline.dispose();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(state.callingState).toBe(CallingState.JOINED);
+    });
+  });
+
+  describe('while offline', () => {
+    beforeEach(() => {
+      setBrowserOnline(false);
+      offline.handleNetworkChanged(false);
+    });
+
+    it('goes offline right away and stays in one offline episode', () => {
+      const networkAvailable = offline.networkAvailable;
+
+      offline.goOffline();
+
+      expect(state.callingState).toBe(CallingState.OFFLINE);
+      expect(offline.networkAvailable).toBe(networkAvailable);
+      expect(check).not.toHaveBeenCalled();
+    });
+
+    it('reconnects on the online event with the time spent offline', async () => {
+      await vi.advanceTimersByTimeAsync(1500);
+      offline.handleNetworkChanged(true);
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(discardSfuConnection).toHaveBeenCalledTimes(1);
+      expect(reconnect).toHaveBeenCalledWith(1500);
+      expect(setStatsPaused).toHaveBeenLastCalledWith(false);
+      expect(offline.networkAvailable).toBeUndefined();
+    });
+
+    it('keeps the socket of a reconnect already in flight', async () => {
+      pendingReconnect = true;
+
+      offline.handleNetworkChanged(true);
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(discardSfuConnection).not.toHaveBeenCalled();
+      expect(reconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('resumes without reconnecting when the SFU answers and nothing broke', async () => {
+      check.mockResolvedValue('sfu');
+      await vi.advanceTimersByTimeAsync(2000);
+
+      expect(state.callingState).toBe(CallingState.JOINED);
+      expect(reconnect).not.toHaveBeenCalled();
+      expect(discardSfuConnection).not.toHaveBeenCalled();
+      expect(setStatsPaused).toHaveBeenLastCalledWith(false);
+    });
+
+    it.each([
+      ['the connections broke', () => (intact = false), 'sfu'],
+      ['a reconnect is pending', () => (pendingReconnect = true), 'sfu'],
+      ['only the coordinator answers', () => {}, 'coordinator'],
+      ['only media proves the network', () => {}, 'media'],
+    ])('reconnects when %s', async (_, arrange, reachability) => {
+      arrange();
+      check.mockResolvedValue(reachability);
+      await vi.advanceTimersByTimeAsync(2000);
+
+      expect(reconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('releases the offline state when a reconnect already moved the call on', async () => {
+      state.setCallingState(CallingState.JOINED);
+      check.mockResolvedValue('sfu');
+      await vi.advanceTimersByTimeAsync(2000);
+
+      expect(offline.networkAvailable).toBeUndefined();
+      expect(reconnect).not.toHaveBeenCalled();
+    });
+
+    it('stays offline while the network is unreachable', async () => {
+      await vi.advanceTimersByTimeAsync(30_000);
+
+      expect(state.callingState).toBe(CallingState.OFFLINE);
+      expect(check.mock.calls.length).toBeGreaterThan(1);
+      expect(reconnect).not.toHaveBeenCalled();
+    });
+
+    it('dispose() releases waiters without reconnecting and stops re-checks', async () => {
+      const networkAvailable = offline.networkAvailable;
+
+      offline.dispose();
+      await vi.advanceTimersByTimeAsync(30_000);
+
+      await expect(networkAvailable).resolves.toBe(false);
+      expect(check).not.toHaveBeenCalled();
+      expect(reconnect).not.toHaveBeenCalled();
+    });
+  });
+
+  it('does not go offline while the call is being left', () => {
+    leaving = true;
+
+    offline.goOffline();
+
+    expect(state.callingState).toBe(CallingState.JOINED);
+    expect(offline.networkAvailable).toBeUndefined();
   });
 });

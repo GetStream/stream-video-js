@@ -1821,7 +1821,7 @@ describe('Call offline handling', () => {
   });
 
   afterEach(() => {
-    call['endOffline'](false);
+    call['offlineState'].dispose();
     call['leaveCallHooks'].forEach((hook) => hook());
     vi.useRealTimers();
     vi.unstubAllGlobals();
@@ -1903,7 +1903,7 @@ describe('Call offline handling', () => {
       expect(call.state.callingState).toBe(CallingState.JOINED);
       expect(reconnect).not.toHaveBeenCalled();
       expect(sfuClient.close).not.toHaveBeenCalled();
-      expect(call['networkAvailableTask']).toBeUndefined();
+      expect(call['offlineState']['networkAvailableTask']).toBeUndefined();
     });
 
     it('ignores a late online event after resuming', async () => {
@@ -1972,11 +1972,11 @@ describe('Call offline handling', () => {
     });
 
     it('keeps one offline episode across repeated offline events', () => {
-      const task = call['networkAvailableTask'];
+      const task = call['offlineState']['networkAvailableTask'];
 
       dispatchNetworkChanged(false);
 
-      expect(call['networkAvailableTask']).toBe(task);
+      expect(call['offlineState']['networkAvailableTask']).toBe(task);
     });
 
     it('reconnects on the online event', async () => {
@@ -2025,8 +2025,8 @@ describe('Call offline handling', () => {
     sfuClient.probe.mockResolvedValue(true);
     await vi.advanceTimersByTimeAsync(2000);
 
-    expect(call['networkAvailableTask']).toBeUndefined();
-    expect(call['stopOfflineRechecks']).toBeUndefined();
+    expect(call['offlineState']['networkAvailableTask']).toBeUndefined();
+    expect(call['offlineState']['stopRechecks']).toBeUndefined();
     expect(reconnect).not.toHaveBeenCalled();
     expect(sfuClient.close).not.toHaveBeenCalled();
   });
@@ -2042,7 +2042,7 @@ describe('Call offline handling', () => {
 
     expect(reconnect).toHaveBeenCalledTimes(1);
     expect(call.state.callingState).toBe(CallingState.MIGRATING);
-    expect(call['networkAvailableTask']).toBeUndefined();
+    expect(call['offlineState']['networkAvailableTask']).toBeUndefined();
   });
 
   it('shares one reachability check between an offline event and the rechecks', async () => {
@@ -2096,8 +2096,8 @@ describe('Call offline handling', () => {
 
     expect(call.state.callingState).toBe(CallingState.LEFT);
     expect(callingStates).not.toContain(CallingState.OFFLINE);
-    expect(call['networkAvailableTask']).toBeUndefined();
-    expect(call['stopOfflineRechecks']).toBeUndefined();
+    expect(call['offlineState']['networkAvailableTask']).toBeUndefined();
+    expect(call['offlineState']['stopRechecks']).toBeUndefined();
     expect(sfuClient.probe).not.toHaveBeenCalled();
     expect(reconnect).not.toHaveBeenCalled();
   });
@@ -2125,7 +2125,7 @@ describe('Call offline handling', () => {
 
       expect(rejoin).toHaveBeenCalledTimes(1);
       expect(call.state.callingState).toBe(CallingState.OFFLINE);
-      expect(call['networkAvailableTask']).toBeDefined();
+      expect(call['offlineState']['networkAvailableTask']).toBeDefined();
     });
 
     it('lets leave() release a reconnect waiting for the network', async () => {
@@ -2148,8 +2148,8 @@ describe('Call offline handling', () => {
 
       expect(fast).not.toHaveBeenCalled();
       expect(call.state.callingState).toBe(CallingState.LEFT);
-      expect(call['networkAvailableTask']).toBeUndefined();
-      expect(call['stopOfflineRechecks']).toBeUndefined();
+      expect(call['offlineState']['networkAvailableTask']).toBeUndefined();
+      expect(call['offlineState']['stopRechecks']).toBeUndefined();
     });
   });
 });
