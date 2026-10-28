@@ -2,16 +2,19 @@ import AVFAudio
 import SwiftUI
 
 /// SwiftUI replacement for the UIKit `UIMenu`-based scenarios menu. Bridges
-/// nav-bar taps into `AudioScenarios`. The live-state rows reactively
-/// re-render when `AppState.audioSessionActive` flips or
+/// nav-bar taps into `NetworkScenarios` and `AudioScenarios`. The live-state
+/// rows reactively re-render when `AppState.audioSessionActive` flips or
 /// `AVAudioSession.routeChangeNotification` fires (tracked via
 /// `audioRouteVersion`).
 struct ScenariosMenuView: View {
     let audio: AudioScenarios
+    let network: NetworkScenarios
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
         Menu {
+            networkSection
+            Divider()
             liveStateSection
             Divider()
             recoverySection
@@ -61,5 +64,14 @@ struct ScenariosMenuView: View {
         Button("Play ding (exclusive)") { audio.playDing(mixWithOthers: false) }
         Button("Play ding (exclusive, auto-restore)") { audio.playDingWithAutoRestore() }
         Button("Play ding (exclusive, NO restore)") { audio.playDingExclusiveNoRestore() }
+    }
+
+    @ViewBuilder
+    private var networkSection: some View {
+        Section("Network") {
+            Button("Stale offline event (online → offline 0.5s)") {
+                network.dispatchStaleOfflineEvent()
+            }
+        }
     }
 }

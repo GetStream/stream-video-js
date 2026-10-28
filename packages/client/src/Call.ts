@@ -163,6 +163,11 @@ import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
 import { createInboundAudioStallDetector } from './helpers/inboundAudioStallDetector';
 import { ViewportTracker } from './helpers/ViewportTracker';
 import { tracePageLifecycle } from './helpers/pageLifecycle';
+import {
+  CallOfflineState,
+  NetworkReachabilityChecker,
+} from './helpers/networkReachability';
+import { isBrowserOffline } from './helpers/offlineRechecks';
 import { PermissionsContext } from './permissions';
 import { RingStatePoller, RingTimeout, resolveOwnRingOutcome } from './ringing';
 import { CallTypes } from './CallType';
@@ -192,11 +197,7 @@ import {
 } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
 import { pushToIfMissing } from './helpers/array';
-import {
-  makeSafePromise,
-  PromiseWithResolvers,
-  promiseWithResolvers,
-} from './helpers/promise';
+import { makeSafePromise } from './helpers/promise';
 import { GetCallStatsResponse } from './gen/shims';
 import { isReactNative } from './helpers/platforms';
 
@@ -326,8 +327,7 @@ export class Call {
   private reconnectReason = '';
   private fastReconnectDeadlineSeconds: number = 0;
   private disconnectionTimeoutSeconds: number = 0;
-  private lastOfflineTimestamp: number = 0;
-  private networkAvailableTask: PromiseWithResolvers<void> | undefined;
+  private readonly offlineState: CallOfflineState;
 
   // (10 attempts per rolling 120 s window).
   private readonly rejoinRateLimiter = new SlidingWindowRateLimiter(10, 120000);
@@ -421,6 +421,29 @@ export class Call {
     this.clientStore = clientStore;
     this.streamClientBasePath = `/call/${this.type}/${this.id}`;
     this.logger = videoLoggerSystem.getLogger('Call');
+    this.offlineState = new CallOfflineState({
+      state: this.state,
+      tracer: this.tracer,
+      logger: this.logger,
+      reachability: new NetworkReachabilityChecker({
+        streamClient,
+        getSfuClient: () => this.sfuClient,
+        getSubscriber: () => this.subscriber,
+      }),
+      isLeaving: () => this.leavesInProgress > 0,
+      hasPendingReconnect: () => hasPending(this.reconnectConcurrencyTag),
+      connectionsIntact: () =>
+        (this.publisher?.isIceIntact() ?? true) &&
+        (this.subscriber?.isIceIntact() ?? true),
+      discardSfuConnection: () =>
+        this.sfuClient?.close(
+          StreamSfuClient.DISPOSE_OLD_SOCKET,
+          'Closing WS to reconnect after going online',
+        ),
+      reconnect: this.reconnectAfterOffline,
+      setStatsPaused: (paused) =>
+        paused ? this.sfuStatsReporter?.stop() : this.sfuStatsReporter?.start(),
+    });
 
     const callTypeConfig = CallTypes.get(type);
     const participantSorter =
@@ -790,6 +813,8 @@ export class Call {
       this.stopInboundAudioStallDetector = undefined;
       this.stopTracingPageLifecycle?.();
       this.stopTracingPageLifecycle = undefined;
+      // release a reconnect waiting for the network; it sees the leave and stops
+      this.offlineState.dispose();
 
       const leaveReason = message ?? reason ?? 'user is leaving the call';
       this.tracer.trace('call.leaveReason', leaveReason);
@@ -1951,7 +1976,7 @@ export class Call {
 
     if (this.state.callingState !== CallingState.JOINED) return;
     // without network, gathering legitimately yields no candidates
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+    if (isBrowserOffline()) return;
     const peerConnections = [this.publisher, this.subscriber];
     if (peerConnections.some((pc) => pc?.hasIceEverConnected())) return;
     if (!peerConnections.some((pc) => pc?.hasNoLocalCandidates())) return;
@@ -2099,6 +2124,17 @@ export class Call {
       return;
     // normal close, no need to reconnect
     if (sfuClient.isLeaving || sfuClient.isClosingClean) return;
+    // the browser can't reach the network: wait for it rather than spending
+    // the reconnect budget. A cleared stale `offline` event means no new one
+    // arrives for this outage. Other states are left to `reconnect()`.
+    if (
+      (callingState === CallingState.JOINED ||
+        callingState === CallingState.OFFLINE) &&
+      isBrowserOffline()
+    ) {
+      this.offlineState.goOffline();
+      return;
+    }
 
     const strategy =
       this.publisher?.isHealthy() && this.subscriber?.isHealthy()
@@ -2245,7 +2281,7 @@ export class Call {
         const currentStrategy = WebsocketReconnectStrategy[attemptedStrategy];
         try {
           // wait until the network is available
-          await this.networkAvailableTask?.promise;
+          await this.offlineState.networkAvailable;
           if (supersededByLeave()) return;
 
           this.logger.info(
@@ -2312,6 +2348,7 @@ export class Call {
             }
           }
 
+          if (isBrowserOffline()) this.offlineState.goOffline();
           if (this.state.callingState === CallingState.OFFLINE) {
             this.logger.debug(
               `[Reconnect] Can't reconnect while offline, stopping reconnection attempts`,
@@ -2579,51 +2616,8 @@ export class Call {
         if (!e.online) {
           this.logger.debug('[Reconnect] Going offline');
           if (!this.hasJoinedOnce) return;
-          this.lastOfflineTimestamp = Date.now();
-          // create a new task that would resolve when the network is available
-          const networkAvailableTask = promiseWithResolvers();
-          networkAvailableTask.promise.then(() => {
-            let strategy = WebsocketReconnectStrategy.FAST;
-            if (this.lastOfflineTimestamp) {
-              const offline = (Date.now() - this.lastOfflineTimestamp) / 1000;
-              if (offline > this.fastReconnectDeadlineSeconds) {
-                // We shouldn't attempt FAST if we have exceeded the deadline.
-                // The SFU would have already wiped out the session.
-                strategy = WebsocketReconnectStrategy.REJOIN;
-              }
-            }
-
-            this.reconnect(strategy, ReconnectReason.NETWORK_BACK_ONLINE).catch(
-              (err) => {
-                this.logger.warn(
-                  '[Reconnect] Error reconnecting after going online',
-                  err,
-                );
-              },
-            );
-          });
-          this.networkAvailableTask = networkAvailableTask;
-          this.sfuStatsReporter?.stop();
-          this.state.setCallingState(CallingState.OFFLINE);
-        } else {
-          if (!this.networkAvailableTask) return;
-          this.logger.debug('[Reconnect] Going online');
-          // Only discard the socket when no reconnect is already in flight. A
-          // running reconnect owns the SFU-client lifecycle (`doJoin` closes
-          // the previous client once the new session is up). Closing here would
-          // tear down the socket it's mid-join on, leaving the in-flight rejoin
-          // to spin on SIGNAL_LOST.
-          if (!hasPending(this.reconnectConcurrencyTag)) {
-            this.sfuClient?.close(
-              StreamSfuClient.DISPOSE_OLD_SOCKET,
-              'Closing WS to reconnect after going online',
-            );
-          }
-          // we went online, release the previous waiters and reset the state
-          this.networkAvailableTask?.resolve();
-          this.networkAvailableTask = undefined;
-          this.sfuStatsReporter?.start();
         }
+        this.offlineState.handleNetworkChanged(e.online);
       },
     );
 
@@ -2631,6 +2625,26 @@ export class Call {
       .add(unregisterGoAway)
       .add(unregisterOnError)
       .add(unregisterNetworkChanged);
+  };
+
+  /**
+   * Reconnects once the network is back after being offline for `offlineMs`.
+   */
+  private reconnectAfterOffline = (offlineMs: number) => {
+    // We shouldn't attempt FAST if we have exceeded the deadline.
+    // The SFU would have already wiped out the session.
+    const strategy =
+      offlineMs / 1000 > this.fastReconnectDeadlineSeconds
+        ? WebsocketReconnectStrategy.REJOIN
+        : WebsocketReconnectStrategy.FAST;
+    this.reconnect(strategy, ReconnectReason.NETWORK_BACK_ONLINE).catch(
+      (err) => {
+        this.logger.warn(
+          '[Reconnect] Error reconnecting after going online',
+          err,
+        );
+      },
+    );
   };
 
   /**
