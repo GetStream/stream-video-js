@@ -3732,19 +3732,16 @@ export class Call {
    * to record it or to render it in a custom picture-in-picture window.
    *
    * @param enabled whether to pause incoming video while hidden.
-   * @param gracePeriodSeconds how long the app must stay hidden before
-   * video is paused. Defaults to 3 seconds and is clamped to 0 or more. A
+   * @param gracePeriodMs how long the app must stay hidden before video is
+   * paused, in milliseconds. Defaults to 3000 and is clamped to 0 or more. A
    * change applies from the next time the app is hidden. Omit it to keep the
    * current value.
    */
   setPauseIncomingVideoWhenHidden = (
     enabled: boolean,
-    gracePeriodSeconds?: number,
+    gracePeriodMs?: number,
   ) => {
-    this.trackSubscriptionManager.setPauseWhenHidden(
-      enabled,
-      gracePeriodSeconds === undefined ? undefined : gracePeriodSeconds * 1000,
-    );
+    this.trackSubscriptionManager.setPauseWhenHidden(enabled, gracePeriodMs);
   };
 
   /**

@@ -822,7 +822,7 @@ describe('Call lifecycle wiring', () => {
     call.setPauseIncomingVideoWhenHidden(false);
     expect(setPauseWhenHidden).toHaveBeenCalledWith(false, undefined);
 
-    call.setPauseIncomingVideoWhenHidden(true, 5);
+    call.setPauseIncomingVideoWhenHidden(true, 5000);
     expect(setPauseWhenHidden).toHaveBeenLastCalledWith(true, 5000);
   });
 
