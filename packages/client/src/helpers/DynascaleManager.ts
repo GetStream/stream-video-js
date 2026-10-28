@@ -462,7 +462,7 @@ export class DynascaleManager {
           } else {
             // we will play audio directly through the audio element in other browsers
             audioElement.muted = false;
-            if (!this.isPlaybackInterrupted()) playAudioElement();
+            playAudioElement();
             audioWatchdog = this.createPlaybackWatchdog({
               element: audioElement,
               kind: 'audio',
@@ -513,7 +513,6 @@ export class DynascaleManager {
       .subscribe(() => {
         if (sourceChangeTimer || !audioElement.srcObject) return;
         if (sourceNode) return this.resumeAudioContext();
-        if (this.isPlaybackInterrupted()) return;
         if (audioElement.paused) playAudioElement();
       });
 

@@ -1573,25 +1573,6 @@ describe('DynascaleManager', () => {
         }
       });
 
-      it('does not play a new stream on iOS while the page is hidden', async () => {
-        vi.useFakeTimers();
-        globalThis._isIOS = true;
-        try {
-          setVisibility('hidden');
-          const { play, cleanup } = bindPausedAudioElement();
-          play.mockResolvedValue();
-          expect(play).not.toHaveBeenCalled();
-
-          setVisibility('visible');
-          await vi.advanceTimersByTimeAsync(1000);
-          expect(play).toHaveBeenCalledTimes(1);
-
-          cleanup?.();
-        } finally {
-          globalThis._isIOS = undefined;
-        }
-      });
-
       it('re-plays a paused element when the page becomes visible again', async () => {
         vi.useFakeTimers();
         setVisibility('visible');
