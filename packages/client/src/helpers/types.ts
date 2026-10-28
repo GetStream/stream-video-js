@@ -1,5 +1,3 @@
-export type AudioSessionState = 'inactive' | 'active' | 'interrupted';
-
 export type AudioSessionType =
   | 'auto'
   | 'playback'
@@ -10,9 +8,6 @@ export type AudioSessionType =
 
 export interface AudioSession extends EventTarget {
   type: AudioSessionType;
-  state: AudioSessionState;
-
-  onstatechange: EventListenerOrEventListenerObject;
 }
 
 declare global {

@@ -31,7 +31,8 @@ vi.mock(import('../browsers'), async (importOriginal) => {
   return {
     ...module,
     isSafari: () => globalThis._isSafari ?? false,
-    isWebKit: () => false,
+    isIOS: () => globalThis._isIOS ?? false,
+    isWebKit: () => globalThis._isWebKit ?? false,
   };
 });
 
@@ -55,8 +56,8 @@ describe('DynascaleManager', () => {
     dynascaleManager = call.dynascaleManager;
   });
 
-  afterEach(() => {
-    call.leave();
+  afterEach(async () => {
+    await call.leave();
   });
 
   describe('element binding', () => {
@@ -959,6 +960,61 @@ describe('DynascaleManager', () => {
       cleanup?.();
     });
 
+    it('video: on iOS, waits for the page to be visible again before re-playing', async () => {
+      vi.useFakeTimers();
+      globalThis._isIOS = true;
+      const setHidden = (hidden: boolean) => {
+        Object.defineProperty(document, 'hidden', {
+          configurable: true,
+          get: () => hidden,
+        });
+        document.dispatchEvent(new Event('visibilitychange'));
+      };
+      try {
+        Object.defineProperties(videoElement, {
+          paused: { writable: true, configurable: true },
+          readyState: { writable: true, configurable: true },
+        });
+        // @ts-expect-error simulate paused, ready-to-play element
+        videoElement.paused = true;
+        // @ts-expect-error simulate paused, ready-to-play element
+        videoElement.readyState = 4;
+        const play = vi.spyOn(videoElement, 'play').mockResolvedValue();
+
+        // @ts-expect-error incomplete data
+        call.state.updateOrAddParticipant('session-id', {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          publishedTracks: [TrackType.VIDEO],
+        });
+        const cleanup = dynascaleManager.bindVideoElement(
+          videoElement,
+          'session-id',
+          'videoTrack',
+        );
+        call.state.updateParticipant('session-id', {
+          videoStream: new MediaStream(),
+        });
+        vi.runAllTimers();
+
+        setHidden(true);
+        const callsWhileHidden = play.mock.calls.length;
+        videoElement.dispatchEvent(new Event('pause'));
+        await vi.advanceTimersByTimeAsync(5000);
+        expect(play.mock.calls.length).toBe(callsWhileHidden);
+
+        setHidden(false);
+        await vi.advanceTimersByTimeAsync(1000);
+        expect(play.mock.calls.length).toBe(callsWhileHidden + 1);
+
+        cleanup?.();
+      } finally {
+        globalThis._isIOS = undefined;
+        // @ts-expect-error restore the prototype getter
+        delete document.hidden;
+      }
+    });
+
     it('audio: watchdog re-plays element after pause when useWebAudio is false', async () => {
       vi.useFakeTimers();
       const audioElement = document.createElement('audio');
@@ -1002,8 +1058,9 @@ describe('DynascaleManager', () => {
 
     describe('audio: playback recovery', () => {
       const bindPausedAudioElement = (
-        opts: { blockedByAutoplay?: boolean } = {},
+        opts: { blockedByAutoplay?: boolean; sessionId?: string } = {},
       ) => {
+        const sessionId = opts.sessionId ?? 'session-id';
         const audioElement = document.createElement('audio');
         Object.defineProperties(audioElement, {
           srcObject: { writable: true },
@@ -1020,17 +1077,17 @@ describe('DynascaleManager', () => {
         }
 
         // @ts-expect-error incomplete data
-        call.state.updateOrAddParticipant('session-id', {
-          userId: 'user-id',
-          sessionId: 'session-id',
+        call.state.updateOrAddParticipant(sessionId, {
+          userId: `user-${sessionId}`,
+          sessionId,
           publishedTracks: [],
         });
         const cleanup = dynascaleManager.bindAudioElement(
           audioElement,
-          'session-id',
+          sessionId,
           'audioTrack',
         );
-        call.state.updateParticipant('session-id', {
+        call.state.updateParticipant(sessionId, {
           audioStream: new MediaStream(),
         });
         vi.runAllTimers();
@@ -1042,12 +1099,18 @@ describe('DynascaleManager', () => {
           configurable: true,
           get: () => state,
         });
+        Object.defineProperty(document, 'hidden', {
+          configurable: true,
+          get: () => state === 'hidden',
+        });
         document.dispatchEvent(new Event('visibilitychange'));
       };
 
       afterEach(() => {
-        // @ts-expect-error restore the prototype getter
+        // @ts-expect-error restore the prototype getters
         delete document.visibilityState;
+        // @ts-expect-error restore the prototype getters
+        delete document.hidden;
       });
 
       it('marks the element as blocked once recovery gives up', async () => {
@@ -1123,6 +1186,379 @@ describe('DynascaleManager', () => {
         cleanup?.();
       });
 
+      /**
+       * Runs `test` on iOS with a shared audio context driven by hand. The
+       * silent element runs on it, so the playback watchdogs follow it.
+       */
+      const withSharedContext = async (
+        test: (
+          setContextState: (state: AudioContextState) => void,
+          context: { suspend: Mock; resume: Mock; state: AudioContextState },
+        ) => Promise<void>,
+      ) => {
+        vi.useFakeTimers();
+        setVisibility('visible');
+        globalThis._isIOS = true;
+        globalThis._isWebKit = true;
+        const context = Object.assign(new EventTarget(), {
+          state: 'running' as AudioContextState,
+          currentTime: 0,
+          resume: vi.fn(async () => {}),
+          suspend: vi.fn(async () => {}),
+          close: vi.fn(async () => {}),
+          createOscillator: () => ({
+            connect: (node: unknown) => node,
+            start: vi.fn(),
+            stop: vi.fn(),
+            disconnect: vi.fn(),
+          }),
+          createGain: () => ({
+            gain: { value: 1 },
+            connect: (node: unknown) => node,
+            disconnect: vi.fn(),
+          }),
+          createMediaStreamDestination: () => ({ stream: new MediaStream() }),
+        });
+        const { AudioContext } = globalThis;
+        globalThis.AudioContext = vi.fn(function () {
+          return context;
+        }) as unknown as typeof AudioContext;
+        const srcObject = Object.getOwnPropertyDescriptor(
+          HTMLMediaElement.prototype,
+          'srcObject',
+        )!;
+        Object.defineProperty(HTMLMediaElement.prototype, 'srcObject', {
+          configurable: true,
+          get: () => null,
+          set: () => {},
+        });
+        try {
+          await test((state) => {
+            context.state = state;
+            context.dispatchEvent(new Event('statechange'));
+          }, context);
+        } finally {
+          globalThis._isIOS = undefined;
+          globalThis._isWebKit = undefined;
+          globalThis.AudioContext = AudioContext;
+          Object.defineProperty(
+            HTMLMediaElement.prototype,
+            'srcObject',
+            srcObject,
+          );
+        }
+      };
+
+      /**
+       * Binds an element WebKit reports as playing after an interruption.
+       */
+      const bindPlayingAudioElement = (sessionId?: string) => {
+        const { audioElement, play, cleanup } = bindPausedAudioElement({
+          sessionId,
+        });
+        play.mockResolvedValue();
+        // @ts-expect-error simulate an element WebKit reports as playing
+        audioElement.paused = false;
+        const pause = vi
+          .spyOn(audioElement, 'pause')
+          .mockImplementation(() => {});
+        return { audioElement, play, pause, cleanup };
+      };
+
+      it('restarts playback once an interruption ends after the page is visible again', async () => {
+        await withSharedContext(async (setContextState) => {
+          const { pause, cleanup } = bindPlayingAudioElement();
+          dynascaleManager.keepAudioPlaybackUnlocked();
+
+          setContextState('interrupted');
+          setVisibility('hidden');
+          setVisibility('visible');
+          await vi.advanceTimersByTimeAsync(1000);
+          expect(pause).not.toHaveBeenCalled();
+
+          setContextState('running');
+          await vi.advanceTimersByTimeAsync(1100);
+          expect(pause).toHaveBeenCalledTimes(1);
+
+          cleanup?.();
+        });
+      });
+
+      it('pauses every remote audio element before playing any of them', async () => {
+        await withSharedContext(async (setContextState) => {
+          const a = bindPlayingAudioElement('session-a');
+          const b = bindPlayingAudioElement('session-b');
+          dynascaleManager.keepAudioPlaybackUnlocked();
+          a.play.mockClear();
+          b.play.mockClear();
+
+          setContextState('interrupted');
+          setContextState('running');
+          await vi.advanceTimersByTimeAsync(1100);
+
+          expect(a.pause).toHaveBeenCalledTimes(1);
+          expect(b.pause).toHaveBeenCalledTimes(1);
+          const lastPause = Math.max(
+            ...a.pause.mock.invocationCallOrder,
+            ...b.pause.mock.invocationCallOrder,
+          );
+          const firstPlay = Math.min(
+            ...a.play.mock.invocationCallOrder,
+            ...b.play.mock.invocationCallOrder,
+          );
+          expect(lastPause).toBeLessThan(firstPlay);
+
+          a.cleanup?.();
+          b.cleanup?.();
+        });
+      });
+
+      it('replaces a scheduled play with the restart', async () => {
+        await withSharedContext(async (setContextState) => {
+          const { play, cleanup } = bindPausedAudioElement();
+          dynascaleManager.keepAudioPlaybackUnlocked();
+          play.mockResolvedValue();
+          play.mockClear();
+
+          setContextState('interrupted');
+          setVisibility('hidden');
+          setVisibility('visible');
+          await vi.advanceTimersByTimeAsync(10);
+          setContextState('running');
+          await vi.advanceTimersByTimeAsync(1100);
+
+          expect(play).toHaveBeenCalledTimes(1);
+
+          cleanup?.();
+        });
+      });
+
+      it('keeps a restart pending while the page is hidden', async () => {
+        await withSharedContext(async (setContextState) => {
+          const { pause, cleanup } = bindPlayingAudioElement();
+          dynascaleManager.keepAudioPlaybackUnlocked();
+
+          setContextState('interrupted');
+          setContextState('running');
+          setVisibility('hidden');
+          await vi.advanceTimersByTimeAsync(1100);
+          expect(pause).not.toHaveBeenCalled();
+
+          setVisibility('visible');
+          await vi.advanceTimersByTimeAsync(1100);
+          expect(pause).toHaveBeenCalledTimes(1);
+
+          cleanup?.();
+        });
+      });
+
+      it('does not resume the silent element when a restart ends during a new interruption', async () => {
+        await withSharedContext(async (setContextState) => {
+          const { cleanup } = bindPlayingAudioElement();
+          dynascaleManager.keepAudioPlaybackUnlocked();
+          const silent = document.querySelector<HTMLAudioElement>(
+            'audio[data-stream-silent-audio]',
+          )!;
+          const silentPlay = vi.spyOn(silent, 'play').mockResolvedValue();
+
+          setContextState('interrupted');
+          setContextState('running');
+          await vi.advanceTimersByTimeAsync(1100);
+          setContextState('interrupted');
+          await vi.advanceTimersByTimeAsync(600);
+          expect(silentPlay).not.toHaveBeenCalled();
+
+          setContextState('running');
+          await vi.advanceTimersByTimeAsync(1700);
+          expect(silentPlay).toHaveBeenCalledTimes(1);
+
+          cleanup?.();
+        });
+      });
+
+      it('reports an interruption that starts while the audio context restarts', async () => {
+        await withSharedContext(async (setContextState, context) => {
+          const { pause, cleanup } = bindPlayingAudioElement();
+          dynascaleManager.keepAudioPlaybackUnlocked();
+
+          await vi.advanceTimersByTimeAsync(5000);
+          expect(context.suspend).toHaveBeenCalledTimes(1);
+
+          setContextState('interrupted');
+          setContextState('running');
+          await vi.advanceTimersByTimeAsync(1100);
+          expect(pause).toHaveBeenCalledTimes(1);
+
+          cleanup?.();
+        });
+      });
+
+      it('restarts a frozen audio context once the page has been visible for a whole check', async () => {
+        await withSharedContext(async (_, context) => {
+          dynascaleManager.keepAudioPlaybackUnlocked();
+          setVisibility('hidden');
+          await vi.advanceTimersByTimeAsync(10000);
+          expect(context.suspend).not.toHaveBeenCalled();
+
+          setVisibility('visible');
+          await vi.advanceTimersByTimeAsync(5000);
+          expect(context.suspend).not.toHaveBeenCalled();
+          await vi.advanceTimersByTimeAsync(5000);
+          expect(context.suspend).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      it('stops re-arming once the playback unlock is released', async () => {
+        vi.useFakeTimers();
+        setVisibility('visible');
+        const { play, cleanup } = bindPausedAudioElement();
+        play.mockResolvedValue();
+        dynascaleManager.keepAudioPlaybackUnlocked();
+        await vi.advanceTimersByTimeAsync(0);
+        dynascaleManager.releaseAudioPlaybackUnlock();
+        const callsAfterRelease = play.mock.calls.length;
+
+        setVisibility('hidden');
+        setVisibility('visible');
+        await vi.advanceTimersByTimeAsync(1000);
+
+        expect(play.mock.calls.length).toBe(callsAfterRelease);
+
+        cleanup?.();
+      });
+
+      it('waits for a tap once recovery after a give-up is rejected by the autoplay policy', async () => {
+        vi.useFakeTimers();
+        setVisibility('visible');
+        const { audioElement, play, cleanup } = bindPausedAudioElement();
+        play.mockRejectedValue(new Error('playback failed'));
+        await vi.advanceTimersByTimeAsync(0);
+        audioElement.dispatchEvent(new Event('pause'));
+        for (let i = 0; i < 20; i++) {
+          await vi.advanceTimersByTimeAsync(6000);
+        }
+
+        play.mockRejectedValue(new DOMException('', 'NotAllowedError'));
+        setVisibility('hidden');
+        setVisibility('visible');
+        await vi.advanceTimersByTimeAsync(0);
+        const callsAfterBlock = play.mock.calls.length;
+
+        audioElement.dispatchEvent(new Event('pause'));
+        for (let i = 0; i < 20; i++) {
+          await vi.advanceTimersByTimeAsync(6000);
+        }
+
+        expect(play.mock.calls.length).toBe(callsAfterBlock);
+
+        cleanup?.();
+      });
+
+      it('keeps a pending restart for the interruption end instead of running it on taps', async () => {
+        await withSharedContext(async (setContextState) => {
+          const { pause, cleanup } = bindPlayingAudioElement();
+          dynascaleManager.keepAudioPlaybackUnlocked();
+
+          setContextState('interrupted');
+          for (let i = 0; i < 3; i++) {
+            document.dispatchEvent(new Event('click'));
+            await vi.advanceTimersByTimeAsync(1000);
+          }
+          expect(pause).not.toHaveBeenCalled();
+
+          setContextState('running');
+          await vi.advanceTimersByTimeAsync(1100);
+          expect(pause).toHaveBeenCalledTimes(1);
+
+          cleanup?.();
+        });
+      });
+
+      it('plays the elements a restart paused when the unlock is released', async () => {
+        await withSharedContext(async (setContextState) => {
+          const { audioElement, play, pause, cleanup } =
+            bindPlayingAudioElement();
+          pause.mockImplementation(() => {
+            // @ts-expect-error simulate the pause
+            audioElement.paused = true;
+          });
+          dynascaleManager.keepAudioPlaybackUnlocked();
+          setContextState('interrupted');
+          setContextState('running');
+          await vi.advanceTimersByTimeAsync(1050);
+          expect(pause).toHaveBeenCalledTimes(1);
+          play.mockClear();
+
+          dynascaleManager.releaseAudioPlaybackUnlock();
+
+          expect(play).toHaveBeenCalledTimes(1);
+
+          cleanup?.();
+        });
+      });
+
+      it('resumes the silent element after a restart was replaced and never ran', async () => {
+        await withSharedContext(async (setContextState) => {
+          const { cleanup } = bindPlayingAudioElement();
+          dynascaleManager.keepAudioPlaybackUnlocked();
+          const silent = document.querySelector<HTMLAudioElement>(
+            'audio[data-stream-silent-audio]',
+          )!;
+          const silentPlay = vi.spyOn(silent, 'play').mockResolvedValue();
+
+          setContextState('interrupted');
+          setContextState('running');
+          await vi.advanceTimersByTimeAsync(1050);
+          setContextState('interrupted');
+          setContextState('running');
+          setContextState('interrupted');
+          await vi.advanceTimersByTimeAsync(1100);
+          expect(silentPlay).not.toHaveBeenCalled();
+
+          setVisibility('hidden');
+          setVisibility('visible');
+          await vi.advanceTimersByTimeAsync(1000);
+
+          expect(silentPlay).toHaveBeenCalledTimes(1);
+
+          cleanup?.();
+        });
+      });
+
+      it('does not restart a frozen audio context outside WebKit', async () => {
+        await withSharedContext(async (_, context) => {
+          globalThis._isWebKit = false;
+          dynascaleManager.keepAudioPlaybackUnlocked();
+          await vi.advanceTimersByTimeAsync(20000);
+          expect(context.suspend).not.toHaveBeenCalled();
+        });
+      });
+
+      it('does not restart a failing recovery on every tap', async () => {
+        vi.useFakeTimers();
+        setVisibility('visible');
+        globalThis._isSafari = true;
+        try {
+          const { audioElement, play, cleanup } = bindPausedAudioElement();
+          dynascaleManager.keepAudioPlaybackUnlocked();
+          play.mockRejectedValue(new Error('playback failed'));
+          await vi.advanceTimersByTimeAsync(0);
+          audioElement.dispatchEvent(new Event('pause'));
+          await vi.advanceTimersByTimeAsync(0);
+          const callsBeforeTaps = play.mock.calls.length;
+
+          for (let i = 0; i < 20; i++) {
+            document.dispatchEvent(new Event('keydown'));
+          }
+
+          expect(play.mock.calls.length).toBe(callsBeforeTaps);
+
+          cleanup?.();
+        } finally {
+          globalThis._isSafari = undefined;
+        }
+      });
+
       it('re-plays a paused element when the page becomes visible again', async () => {
         vi.useFakeTimers();
         setVisibility('visible');
@@ -1135,7 +1571,7 @@ describe('DynascaleManager', () => {
         const callsWhileHidden = play.mock.calls.length;
 
         setVisibility('visible');
-        await vi.advanceTimersByTimeAsync(0);
+        await vi.advanceTimersByTimeAsync(1000);
 
         expect(play.mock.calls.length).toBe(callsWhileHidden + 1);
 
@@ -1198,49 +1634,6 @@ describe('DynascaleManager', () => {
 
         expect(play.mock.calls.length).toBe(callsAfterCleanup);
       });
-    });
-
-    it('audio: registers one audioSession listener and removes it on dispose', async () => {
-      vi.useFakeTimers();
-      const session = new EventTarget();
-      Object.defineProperty(session, 'state', { value: 'active' });
-      Object.defineProperty(navigator, 'audioSession', {
-        configurable: true,
-        value: session,
-      });
-      const addListener = vi.spyOn(session, 'addEventListener');
-      const removeListener = vi.spyOn(session, 'removeEventListener');
-
-      try {
-        // @ts-expect-error incomplete data
-        call.state.updateOrAddParticipant('session-id', {
-          userId: 'user-id',
-          sessionId: 'session-id',
-          publishedTracks: [],
-        });
-        const cleanups = [
-          dynascaleManager.bindAudioElement(
-            document.createElement('audio'),
-            'session-id',
-            'audioTrack',
-          ),
-          dynascaleManager.bindAudioElement(
-            document.createElement('audio'),
-            'session-id',
-            'screenShareAudioTrack',
-          ),
-        ];
-        expect(addListener).toHaveBeenCalledTimes(1);
-        const [, listener] = addListener.mock.calls[0];
-
-        await dynascaleManager.dispose();
-        expect(removeListener).toHaveBeenCalledWith('statechange', listener);
-
-        cleanups.forEach((cleanup) => cleanup?.());
-      } finally {
-        // @ts-expect-error remove the test double
-        delete navigator.audioSession;
-      }
     });
 
     it('audio: no watchdog attached when useWebAudio is true', async () => {

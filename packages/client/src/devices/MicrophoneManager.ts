@@ -384,17 +384,23 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     const stream = await this.getStream({ deviceId: { exact: deviceId } });
     const { testDurationMs = 3000 } = options || {};
     const { promise, resolve } = promiseWithResolvers<boolean>();
+    let finished = false;
+    const finish = async (capturesAudio: boolean) => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(deadline);
+      resolve(capturesAudio);
+      await cleanup().catch((err) => {
+        this.logger.warn('Failed to stop detector during test', err);
+      });
+      disposeOfMediaStream(stream);
+    };
     const cleanup = createNoAudioDetector(stream, {
       noAudioThresholdMs: testDurationMs,
       emitIntervalMs: testDurationMs,
-      onCaptureStatusChange: async (capturesAudio) => {
-        resolve(capturesAudio);
-        await cleanup().catch((err) => {
-          this.logger.warn('Failed to stop detector during test', err);
-        });
-        disposeOfMediaStream(stream);
-      },
+      onCaptureStatusChange: finish,
     });
+    const deadline = setTimeout(() => void finish(false), testDurationMs * 2);
     return promise;
   }
 
