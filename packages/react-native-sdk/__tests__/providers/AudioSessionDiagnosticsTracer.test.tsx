@@ -137,6 +137,19 @@ const advance = async (ms: number) => {
   });
 };
 
+/** Emits the calling states of a reconnect, as `Call.performJoin` does. */
+const reconnect = (call: TestCall) => {
+  [
+    CallingState.RECONNECTING,
+    CallingState.JOINING,
+    CallingState.JOINED,
+  ].forEach((state) => {
+    act(() => {
+      call.callingState$.next(state);
+    });
+  });
+};
+
 /** Renders the tracer for a call that is already JOINED. */
 const renderJoined = async () => {
   const call = makeCall();
@@ -385,12 +398,7 @@ describe('AudioSessionDiagnosticsTracer', () => {
     ]);
 
     // the rejoin brings the call back to JOINED: one more episode, no rejoin
-    act(() => {
-      call.callingState$.next(CallingState.RECONNECTING);
-    });
-    act(() => {
-      call.callingState$.next(CallingState.JOINED);
-    });
+    reconnect(call);
     await advance(3000);
     expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(4);
     await advance(30000);
@@ -805,23 +813,34 @@ describe('AudioSessionDiagnosticsTracer', () => {
     ]);
   });
 
-  it('checks again when the call is back to JOINED after a reconnect', async () => {
-    const call = await renderJoined();
+  it.each([
+    ['a reconnect', [CallingState.RECONNECTING, CallingState.JOINING]],
+    ['a migration', [CallingState.MIGRATING, CallingState.JOINING]],
+    // RECONNECTING and JOINING are emitted in one tick: React may render
+    // only the latter
+    ['a reconnect rendered as JOINING only', [CallingState.JOINING]],
+  ])(
+    'checks again when the call is back to JOINED after %s',
+    async (_, states: CallingState[]) => {
+      const call = await renderJoined();
 
-    act(() => {
-      call.callingState$.next(CallingState.RECONNECTING);
-    });
-    adm.getEngineState.mockResolvedValue(deadEngine);
-    act(() => {
-      call.callingState$.next(CallingState.JOINED);
-    });
-    await advance(3000);
+      states.forEach((state) => {
+        act(() => {
+          call.callingState$.next(state);
+        });
+      });
+      adm.getEngineState.mockResolvedValue(deadEngine);
+      act(() => {
+        call.callingState$.next(CallingState.JOINED);
+      });
+      await advance(3000);
 
-    expect(recordingStateTraces(call).map((s) => s.trigger)).toEqual([
-      'joined',
-      'reconnected',
-    ]);
-  });
+      expect(recordingStateTraces(call).map((s) => s.trigger)).toEqual([
+        'joined',
+        'reconnected',
+      ]);
+    },
+  );
 
   it('checks again when the app becomes active or the audio route changes', async () => {
     adm.getEngineState.mockResolvedValue(deadEngine);
@@ -1065,12 +1084,7 @@ describe('AudioSessionDiagnosticsTracer', () => {
     ]);
 
     // once per mount, not again after a reconnect
-    act(() => {
-      call.callingState$.next(CallingState.RECONNECTING);
-    });
-    act(() => {
-      call.callingState$.next(CallingState.JOINED);
-    });
+    reconnect(call);
     await advance(20000);
     expect(tracesOf(call, 'audio.session.timeout')).toHaveLength(1);
   });

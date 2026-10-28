@@ -82,7 +82,8 @@ export const AudioSessionDiagnosticsTracer = () => {
   >(undefined);
   const initialCheckScheduledRef = useRef(false);
   const sessionTimeoutScheduledRef = useRef(false);
-  const prevCallingStateRef = useRef(callingState);
+  // set once the call leaves JOINED, until the next JOINED
+  const leftJoinedRef = useRef(false);
   const prevMicStatusRef = useRef(micStatus);
 
   useEffect(() => {
@@ -356,6 +357,7 @@ export const AudioSessionDiagnosticsTracer = () => {
     scheduleCheckRef.current = scheduleCheck;
     initialCheckScheduledRef.current = false;
     sessionTimeoutScheduledRef.current = false;
+    leftJoinedRef.current = false;
 
     // the ADM's own error lines: the actual reasons of a failed engine start
     const engineErrorSubscription =
@@ -439,12 +441,18 @@ export const AudioSessionDiagnosticsTracer = () => {
   // enable and every return to JOINED after a reconnect is checked again.
   // All delayed so the normal engine bring-up can complete on its own.
   useEffect(() => {
-    const prevCallingState = prevCallingStateRef.current;
     const prevMicStatus = prevMicStatusRef.current;
-    prevCallingStateRef.current = callingState;
     prevMicStatusRef.current = micStatus;
+    // a reconnect goes RECONNECTING|MIGRATING -> JOINING -> JOINED, and the
+    // first two can land in one render: any state other than JOINED counts
+    if (callingState !== CallingState.JOINED) {
+      leftJoinedRef.current = true;
+      return;
+    }
     const scheduleCheck = scheduleCheckRef.current;
-    if (!scheduleCheck || callingState !== CallingState.JOINED) return;
+    if (!scheduleCheck) return;
+    const reconnected = leftJoinedRef.current;
+    leftJoinedRef.current = false;
 
     if (!sessionTimeoutScheduledRef.current) {
       sessionTimeoutScheduledRef.current = true;
@@ -457,12 +465,7 @@ export const AudioSessionDiagnosticsTracer = () => {
       scheduleCheck('joined', 3000);
       return;
     }
-    if (
-      prevCallingState === CallingState.RECONNECTING ||
-      prevCallingState === CallingState.MIGRATING
-    ) {
-      scheduleCheck('reconnected', 3000);
-    }
+    if (reconnected) scheduleCheck('reconnected', 3000);
     if (micStatus === 'enabled' && prevMicStatus !== 'enabled') {
       scheduleCheck('micEnabled', 3000);
     }
