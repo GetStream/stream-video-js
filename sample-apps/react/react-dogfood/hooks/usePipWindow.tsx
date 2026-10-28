@@ -80,7 +80,7 @@ export function usePipWindow(key: string, call: Call) {
         call.microphone
           .disable()
           .then(() => call.microphone.enable())
-          .catch((err) => console.warn('Failed to restart camera', err));
+          .catch((err) => console.warn('Failed to restart microphone', err));
       }
       window.localStorage.setItem(
         keyRef.current,
