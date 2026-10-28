@@ -619,15 +619,15 @@ export class DynascaleManager {
    * Audio rejected outside a user gesture starts on the next one: the silent
    * element and any paused or autoplay-blocked remote audio. A tap on the
    * visible page means the user is back, so it also lifts an interruption
-   * WebKit never ended and runs a restart one left pending. Skipped while
-   * a restart is in progress, which plays the elements itself.
+   * WebKit never ended. A pending restart waits for the shared context to
+   * run again. Skipped while a restart is in progress, which plays the
+   * elements itself.
    */
   private watchGestures = () => {
     if (this.stopWatchingGestures) return;
     const onGesture = () => {
       if (document.hidden || this.restartTimer) return;
       sharedAudioContext.clearInterruption();
-      if (isIOS() && this.restartOnRearm) return this.restartAudioPlayback();
       this.silentAudioPlayer.resume();
       this.playbackWatchdogs.forEach((watchdog) => {
         if (watchdog.kind === 'audio') watchdog.playOnGesture();
@@ -677,7 +677,7 @@ export class DynascaleManager {
   private restartAudioPlayback = () => {
     this.restartTimer = undefined;
     if (this.isPlaybackInterrupted()) return;
-    this.restartOnRearm = !sharedAudioContext.isRunning();
+    this.restartOnRearm = false;
     const watchdogs = [...this.playbackWatchdogs].filter(
       (watchdog) => watchdog.kind === 'audio',
     );

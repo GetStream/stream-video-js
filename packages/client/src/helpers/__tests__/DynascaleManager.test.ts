@@ -1454,35 +1454,21 @@ describe('DynascaleManager', () => {
         cleanup?.();
       });
 
-      it('runs a pending restart on a tap while the context stays interrupted', async () => {
+      it('keeps a pending restart for the interruption end instead of running it on taps', async () => {
         await withSharedContext(async (setContextState) => {
           const { pause, cleanup } = bindPlayingAudioElement();
           dynascaleManager.keepAudioPlaybackUnlocked();
 
           setContextState('interrupted');
-          await vi.advanceTimersByTimeAsync(5000);
+          for (let i = 0; i < 3; i++) {
+            document.dispatchEvent(new Event('click'));
+            await vi.advanceTimersByTimeAsync(1000);
+          }
           expect(pause).not.toHaveBeenCalled();
-
-          document.dispatchEvent(new Event('click'));
-          expect(pause).toHaveBeenCalledTimes(1);
-
-          cleanup?.();
-        });
-      });
-
-      it('restarts again when an interruption a tap restarted during really ends', async () => {
-        await withSharedContext(async (setContextState) => {
-          const { pause, cleanup } = bindPlayingAudioElement();
-          dynascaleManager.keepAudioPlaybackUnlocked();
-
-          setContextState('interrupted');
-          document.dispatchEvent(new Event('click'));
-          await vi.advanceTimersByTimeAsync(700);
-          expect(pause).toHaveBeenCalledTimes(1);
 
           setContextState('running');
           await vi.advanceTimersByTimeAsync(1100);
-          expect(pause).toHaveBeenCalledTimes(2);
+          expect(pause).toHaveBeenCalledTimes(1);
 
           cleanup?.();
         });
