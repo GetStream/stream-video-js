@@ -2,5 +2,6 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "jsx": "react-jsx"
-  }
+  },
+  "exclude": ["**/__tests__/**", "**/*.test.ts"]
 }
