@@ -182,9 +182,7 @@ export class TrackSubscriptionManager {
             return true;
           }
           if (!isPausedTrack(pausedFor, sessionId, trackType)) return false;
-          const participant =
-            this.callState.findParticipantBySessionId(sessionId);
-          return !participant?.isLocalParticipant;
+          return this.callState.localParticipant?.sessionId !== sessionId;
         },
       };
     }),

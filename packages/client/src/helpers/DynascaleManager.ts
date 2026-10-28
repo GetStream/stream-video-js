@@ -145,11 +145,12 @@ export class DynascaleManager {
    */
   private awaitFreshFrames = (wasPaused: PausedTrackFilter) => {
     const resumedAt = performance.now();
+    const localSessionId = this.callState.localParticipant?.sessionId;
     for (const [element, { sessionId, trackType }] of this.boundVideos) {
       if (
         typeof element.requestVideoFrameCallback !== 'function' ||
         !wasPaused(sessionId, trackType) ||
-        this.callState.findParticipantBySessionId(sessionId)?.isLocalParticipant
+        sessionId === localSessionId
       ) {
         continue;
       }
