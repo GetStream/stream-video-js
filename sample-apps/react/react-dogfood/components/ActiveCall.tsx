@@ -156,7 +156,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
     createPipPortal,
     open: openPipWindow,
     close: closePipWindow,
-  } = usePipWindow('@pronto/pip', activeCall);
+  } = usePipWindow('@pronto/pip');
   useNotificationSounds();
 
   const remoteFilePublisherAPI = useRemoteFilePublisher();
