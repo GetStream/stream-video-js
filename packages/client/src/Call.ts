@@ -310,6 +310,9 @@ export class Call {
   // maintain the order of publishing tracks to restore them after a reconnection
   // it shouldn't contain duplicates
   private trackPublishOrder: TrackType[] = [];
+  // track types unpublished while not JOINED, whose mute state the SFU
+  // is told about once a reconnect that keeps the session completes
+  private deferredMutedTrackTypes = new Set<TrackType>();
   private joinResponseTimeout?: number;
   private rpcRequestTimeout?: number;
   private joinCallData?: JoinCallData;
@@ -803,6 +806,7 @@ export class Call {
       this.reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
       this.reconnectReason = '';
       this.reconnectAttempts = 0;
+      this.deferredMutedTrackTypes.clear();
 
       // Call all leave call hooks, e.g. to clean up global event handlers
       this.leaveCallHooks.forEach((hook) => hook());
@@ -2329,6 +2333,7 @@ export class Call {
         'No subscriber offer after a fast reconnect',
       );
     }
+    this.syncPublishedTracks();
     await this.get(); // fetch the latest call state, as it might have changed
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.FAST,
@@ -2355,6 +2360,8 @@ export class Call {
       () => this.doJoin(this.joinCallData),
     );
     if (this.leaveGeneration !== reconnectLeaveGeneration) return;
+    // the new session starts with nothing published
+    this.deferredMutedTrackTypes.clear();
     await this.restorePublishedTracks();
     if (this.leaveGeneration !== reconnectLeaveGeneration) return;
     this.restoreSubscribedTracks();
@@ -2421,6 +2428,7 @@ export class Call {
       // `participantMigrationComplete` event is received, signaled by
       // the `migrationTask`
       this.state.setCallingState(CallingState.JOINED);
+      this.syncPublishedTracks();
     } finally {
       await currentSubscriber?.dispose();
       await currentPublisher?.dispose();
@@ -2653,12 +2661,82 @@ export class Call {
   /**
    * Stops publishing the given track type to the call, if it is currently being published.
    *
+   * While the call isn't JOINED, the SFU may be unreachable: the tracks are
+   * stopped right away, and the SFU is told once the call reconnects.
+   *
    * @param trackTypes the track types to stop publishing.
    */
   stopPublish = async (...trackTypes: TrackType[]) => {
     if (!this.sfuClient || !this.publisher) return;
     await this.publisher.stopTracks(...trackTypes);
-    await this.updateLocalStreamState(undefined, ...trackTypes);
+    await this.markUnpublished(...trackTypes);
+  };
+
+  /**
+   * Tells the SFU and the local participant that the given track types are
+   * no longer published. While the call isn't JOINED, the SFU request is
+   * deferred, as it would retry until the call reconnects.
+   */
+  private markUnpublished = async (...trackTypes: TrackType[]) => {
+    if (this.state.callingState === CallingState.JOINED) {
+      await this.updateLocalStreamState(undefined, ...trackTypes);
+      return;
+    }
+    for (const trackType of trackTypes) {
+      this.deferredMutedTrackTypes.add(trackType);
+    }
+    const sessionId = this.sfuClient?.sessionId;
+    if (!sessionId) return;
+    this.updateLocalParticipantStreams(sessionId, undefined, ...trackTypes);
+  };
+
+  /**
+   * Brings the published tracks in line with the devices after a FAST or
+   * MIGRATE reconnect, which keep or restore the publisher as it was: a
+   * device enabled in between is published, and the mute state of the
+   * tracks unpublished in between is sent.
+   * Runs in the background, as a device may wait for user input (a screen
+   * share picker, a permission prompt) before it settles.
+   */
+  private syncPublishedTracks = () => {
+    const devices = [
+      [this.microphone, [TrackType.AUDIO]],
+      [this.camera, [TrackType.VIDEO]],
+      [
+        this.screenShare,
+        [TrackType.SCREEN_SHARE, TrackType.SCREEN_SHARE_AUDIO],
+      ],
+    ] as const;
+    for (const [device, trackTypes] of devices) {
+      device
+        .syncPublishedStream()
+        .catch((err) => {
+          this.logger.warn('Failed to sync the published stream', err);
+        })
+        .then(() => this.sendDeferredMuteStates(...trackTypes))
+        .catch((err) => {
+          this.logger.warn('Failed to send the deferred mute state', err);
+        });
+    }
+  };
+
+  /**
+   * Sends the deferred mute state of the given track types that are still
+   * unpublished. Kept for the next reconnect if the call isn't JOINED.
+   */
+  private sendDeferredMuteStates = async (...trackTypes: TrackType[]) => {
+    if (this.state.callingState !== CallingState.JOINED) return;
+    const deferred = trackTypes.filter((trackType) =>
+      this.deferredMutedTrackTypes.has(trackType),
+    );
+    for (const trackType of deferred) {
+      this.deferredMutedTrackTypes.delete(trackType);
+    }
+    const muted = deferred.filter(
+      (trackType) => !this.publisher?.isPublishing(trackType),
+    );
+    if (muted.length === 0) return;
+    await this.notifyTrackMuteState(true, ...muted);
   };
 
   /**
@@ -2678,6 +2756,17 @@ export class Call {
     await this.notifyTrackMuteState(!mediaStream, ...trackTypes);
     if (this.sfuClient?.sessionId !== sessionId) return;
 
+    this.updateLocalParticipantStreams(sessionId, mediaStream, ...trackTypes);
+  };
+
+  /**
+   * Sets or clears the given stream on the local participant.
+   */
+  private updateLocalParticipantStreams = (
+    sessionId: string,
+    mediaStream: MediaStream | undefined,
+    ...trackTypes: TrackType[]
+  ) => {
     for (const trackType of trackTypes) {
       const streamStateProp = trackTypeToParticipantStreamKey(trackType);
       if (!streamStateProp) continue;

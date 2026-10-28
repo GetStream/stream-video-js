@@ -10,9 +10,10 @@ import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { PermissionsContext } from '../permissions';
 import { OwnCapability } from '../gen/coordinator';
-import { ClientState } from '../store';
+import { CallingState, ClientState } from '../store';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
+import { promiseWithResolvers } from '../helpers/promise';
 
 describe('Publishing and Unpublishing tracks', () => {
   let call: Call;
@@ -138,6 +139,7 @@ describe('Publishing and Unpublishing tracks', () => {
 
       call['sfuClient'] = sfuClient;
       call.publisher = publisher;
+      call.state.setCallingState(CallingState.JOINED);
     });
 
     it('publish video stream', async () => {
@@ -297,6 +299,9 @@ describe('Publishing and Unpublishing tracks', () => {
       await call.stopPublish(TrackType.VIDEO);
       expect(publisher.publish).not.toHaveBeenCalled();
       expect(publisher.stopTracks).toHaveBeenCalledWith(TrackType.VIDEO);
+      expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+        { trackType: TrackType.VIDEO, muted: true },
+      ]);
       const participant = call.state.findParticipantBySessionId(sessionId);
       expect(participant!.publishedTracks).toEqual([TrackType.AUDIO]);
       expect(participant!.videoStream).toBeUndefined();
@@ -439,6 +444,169 @@ describe('Publishing and Unpublishing tracks', () => {
       expect(originalParticipant?.audioStream).toBeUndefined();
       expect(replacementParticipant?.publishedTracks).toEqual([]);
       expect(replacementParticipant?.audioStream).toBeUndefined();
+    });
+
+    describe('while reconnecting', () => {
+      const internals = () =>
+        call as unknown as {
+          doJoin: () => Promise<void>;
+          reconnectFast: () => Promise<void>;
+          reconnectRejoin: () => Promise<void>;
+          restorePublishedTracks: () => Promise<void>;
+          syncPublishedTracks: () => void;
+        };
+
+      beforeEach(() => {
+        publisher.isPublishing = vi.fn(() => false);
+        for (const device of [call.microphone, call.camera, call.screenShare]) {
+          vi.spyOn(device, 'syncPublishedStream').mockResolvedValue();
+        }
+        call.state.setCallingState(CallingState.RECONNECTING);
+      });
+
+      it('stops the published tracks without sending the mute state', async () => {
+        const mediaStream = new MediaStream();
+        call.state.updateParticipant(sessionId, {
+          publishedTracks: [TrackType.SCREEN_SHARE, TrackType.AUDIO],
+          screenShareStream: mediaStream,
+        });
+
+        await call.stopPublish(
+          TrackType.SCREEN_SHARE,
+          TrackType.SCREEN_SHARE_AUDIO,
+        );
+
+        expect(publisher.stopTracks).toHaveBeenCalledWith(
+          TrackType.SCREEN_SHARE,
+          TrackType.SCREEN_SHARE_AUDIO,
+        );
+        expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
+        const participant = call.state.findParticipantBySessionId(sessionId);
+        expect(participant!.publishedTracks).toEqual([TrackType.AUDIO]);
+        expect(participant!.screenShareStream).toBeUndefined();
+      });
+
+      it('sends the deferred mute state once synced', async () => {
+        await call.stopPublish(TrackType.VIDEO);
+        call.state.setCallingState(CallingState.JOINED);
+
+        internals().syncPublishedTracks();
+        await vi.waitFor(() =>
+          expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+            { trackType: TrackType.VIDEO, muted: true },
+          ]),
+        );
+        expect(call.camera.syncPublishedStream).toHaveBeenCalled();
+
+        internals().syncPublishedTracks();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(sfuClient.updateMuteStates).toHaveBeenCalledTimes(1);
+      });
+
+      it('keeps the deferred mute state when the call is not joined', async () => {
+        await call.stopPublish(TrackType.VIDEO);
+
+        internals().syncPublishedTracks();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
+
+        call.state.setCallingState(CallingState.JOINED);
+        internals().syncPublishedTracks();
+        await vi.waitFor(() =>
+          expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+            { trackType: TrackType.VIDEO, muted: true },
+          ]),
+        );
+      });
+
+      it('sends the deferred mute state even if a restore published again', async () => {
+        await call.stopPublish(TrackType.VIDEO);
+        call.state.setCallingState(CallingState.JOINED);
+        const mediaStream = new MediaStream();
+        vi.spyOn(mediaStream, 'getVideoTracks').mockReturnValue([
+          new MediaStreamTrack(),
+        ]);
+        // a restore that attached a clone the device then stopped
+        await call.publish(mediaStream, TrackType.VIDEO);
+
+        internals().syncPublishedTracks();
+        await vi.waitFor(() =>
+          expect(sfuClient.updateMuteStates).toHaveBeenLastCalledWith([
+            { trackType: TrackType.VIDEO, muted: true },
+          ]),
+        );
+      });
+
+      it('skips the mute state of a track published again', async () => {
+        await call.stopPublish(TrackType.VIDEO);
+        call.state.setCallingState(CallingState.JOINED);
+        vi.mocked(publisher.isPublishing).mockReturnValue(true);
+
+        internals().syncPublishedTracks();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
+      });
+
+      it('does not wait for a device that has not settled', async () => {
+        const { promise, resolve } = promiseWithResolvers<void>();
+        vi.mocked(call.screenShare.syncPublishedStream).mockReturnValue(
+          promise,
+        );
+        await call.stopPublish(TrackType.VIDEO);
+        call.state.setCallingState(CallingState.JOINED);
+
+        internals().syncPublishedTracks();
+        await vi.waitFor(() =>
+          expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+            { trackType: TrackType.VIDEO, muted: true },
+          ]),
+        );
+        resolve();
+      });
+
+      it('syncs the published tracks after a fast reconnect', async () => {
+        vi.spyOn(internals(), 'doJoin').mockResolvedValue();
+        vi.spyOn(call, 'get').mockResolvedValue(
+          {} as Awaited<ReturnType<Call['get']>>,
+        );
+        const sync = vi.spyOn(internals(), 'syncPublishedTracks');
+
+        await internals().reconnectFast();
+
+        expect(sync).toHaveBeenCalled();
+      });
+
+      it('syncs the published tracks after a migration', async () => {
+        sfuClient.enterMigration = vi.fn().mockResolvedValue(undefined);
+        sfuClient.close = vi.fn();
+        publisher.detachEventHandlers = vi.fn();
+        publisher.dispose = vi.fn().mockResolvedValue(undefined);
+        const reconnectMigrate = (
+          call as unknown as { reconnectMigrate: () => Promise<void> }
+        ).reconnectMigrate;
+        vi.spyOn(internals(), 'doJoin').mockResolvedValue();
+        vi.spyOn(internals(), 'restorePublishedTracks').mockResolvedValue();
+        const sync = vi.spyOn(internals(), 'syncPublishedTracks');
+
+        await reconnectMigrate();
+
+        expect(sync).toHaveBeenCalled();
+        expect(call.state.callingState).toBe(CallingState.JOINED);
+      });
+
+      it('drops the deferred mute state on a rejoin', async () => {
+        await call.stopPublish(TrackType.VIDEO);
+        vi.spyOn(internals(), 'doJoin').mockImplementation(async () => {
+          call.state.setCallingState(CallingState.JOINED);
+        });
+        vi.spyOn(internals(), 'restorePublishedTracks').mockResolvedValue();
+
+        await internals().reconnectRejoin();
+        internals().syncPublishedTracks();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
+      });
     });
   });
 });

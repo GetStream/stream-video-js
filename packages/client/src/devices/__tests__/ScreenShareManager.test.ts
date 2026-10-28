@@ -148,4 +148,19 @@ describe('ScreenShareManager', () => {
       TrackType.SCREEN_SHARE_AUDIO,
     );
   });
+
+  it('stops publishing the screen share while reconnecting', async () => {
+    const call = manager['call'];
+    call.state.setCallingState(CallingState.JOINED);
+    await manager.enable();
+    call.state.setCallingState(CallingState.RECONNECTING);
+
+    await manager.disable(true);
+
+    expect(manager.state.status).toEqual('disabled');
+    expect(call.stopPublish).toHaveBeenCalledWith(
+      TrackType.SCREEN_SHARE,
+      TrackType.SCREEN_SHARE_AUDIO,
+    );
+  });
 });
