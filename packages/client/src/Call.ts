@@ -2578,15 +2578,23 @@ export class Call {
     // otherwise, we might get `m-lines order mismatch` errors
     for (const trackType of this.trackPublishOrder) {
       let mediaStream: MediaStream | undefined;
+      let options: TrackPublishOptions | undefined;
       switch (trackType) {
         case TrackType.AUDIO:
           mediaStream = this.microphone.state.mediaStream;
+          options = {
+            audioBitrateProfile: this.microphone.state.audioBitrateProfile,
+          };
           break;
         case TrackType.VIDEO:
           mediaStream = this.camera.state.mediaStream;
           break;
         case TrackType.SCREEN_SHARE:
           mediaStream = this.screenShare.state.mediaStream;
+          options = {
+            audioBitrateProfile: this.screenShare.state.audioBitrateProfile,
+            contentHint: this.screenShare.getSettings()?.contentHint,
+          };
           break;
         // screen share audio can't exist without a screen share, so we handle it there
         case TrackType.SCREEN_SHARE_AUDIO:
@@ -2597,7 +2605,7 @@ export class Call {
           break;
       }
 
-      if (mediaStream) await this.publish(mediaStream, trackType);
+      if (mediaStream) await this.publish(mediaStream, trackType, options);
     }
   };
 

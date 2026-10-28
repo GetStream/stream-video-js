@@ -11,7 +11,9 @@ import { CallingState } from '../../store';
 import { NegotiationError } from '../NegotiationError';
 import { ReconnectReason } from '../types';
 import {
+  AudioBitrateProfile,
   PeerType,
+  TrackType,
   WebsocketReconnectStrategy,
   ErrorCode,
 } from '../../gen/video/sfu/models/models';
@@ -2215,5 +2217,36 @@ describe('Call offline handling', () => {
       expect(call['offlineState']['networkAvailableTask']).toBeUndefined();
       expect(call['offlineState']['stopRechecks']).toBeUndefined();
     });
+  });
+});
+
+describe('Call restorePublishedTracks', () => {
+  it('republishes each track with the options its manager publishes with', async () => {
+    const call = makeCall();
+    const publish = vi.spyOn(call, 'publish').mockResolvedValue(undefined);
+    const micStream = {} as MediaStream;
+    const screenStream = {} as MediaStream;
+    call.microphone.state.setMediaStream(micStream, undefined);
+    call.microphone.state.setAudioBitrateProfile(
+      AudioBitrateProfile.VOICE_HIGH_QUALITY,
+    );
+    call.screenShare.state.setMediaStream(screenStream, undefined);
+    call.screenShare.setSettings({ contentHint: 'motion' });
+    call['trackPublishOrder'] = [TrackType.AUDIO, TrackType.SCREEN_SHARE];
+
+    await call['restorePublishedTracks']();
+
+    expect(publish).toHaveBeenNthCalledWith(1, micStream, TrackType.AUDIO, {
+      audioBitrateProfile: AudioBitrateProfile.VOICE_HIGH_QUALITY,
+    });
+    expect(publish).toHaveBeenNthCalledWith(
+      2,
+      screenStream,
+      TrackType.SCREEN_SHARE,
+      {
+        audioBitrateProfile: AudioBitrateProfile.MUSIC_HIGH_QUALITY,
+        contentHint: 'motion',
+      },
+    );
   });
 });
