@@ -216,6 +216,9 @@ export const Video = ({
       {(hasNoVideoOrInvisible || isVideoPaused || isPausedWhileHidden) &&
         VideoPlaceholder && (
           <VideoPlaceholder
+            className={clsx({
+              'str-video__video-placeholder--loading': isPausedWhileHidden,
+            })}
             style={ABSOLUTE_POSITION_STYLE}
             participant={participant}
             ref={refs?.setVideoPlaceholderElement}

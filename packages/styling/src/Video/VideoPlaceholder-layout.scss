@@ -6,3 +6,37 @@
   align-items: center;
   justify-content: center;
 }
+
+.str-video__video-placeholder__avatar {
+  position: relative;
+  display: inline-flex;
+}
+
+// a ring spinning around the avatar while the video is about to resume
+.str-video__video-placeholder--loading .str-video__video-placeholder__avatar {
+  &::before {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--str-video__spacing-xs));
+    border-radius: var(--str-video__radius-max);
+    mask: radial-gradient(
+      farthest-side,
+      transparent calc(100% - var(--str-video__w300)),
+      #000 calc(100% - var(--str-video__w300))
+    );
+    animation: str-video__video-placeholder-loading 1s linear infinite;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      animation-duration: 3s;
+    }
+  }
+}
+
+@keyframes str-video__video-placeholder-loading {
+  to {
+    transform: rotate(1turn);
+  }
+}
