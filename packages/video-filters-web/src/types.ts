@@ -73,6 +73,24 @@ export interface PerformanceStats {
 }
 
 /**
+ * A running background effect, as created by `createVirtualBackground`.
+ */
+export interface BackgroundProcessor {
+  /**
+   * Starts processing and resolves with the track carrying the effect.
+   */
+  start(): Promise<MediaStreamTrack>;
+  /**
+   * Switches the effect without restarting the pipeline.
+   */
+  updateOptions(options: BackgroundEffectOptions): Promise<void>;
+  /**
+   * Stops processing and releases the resources held by the effect.
+   */
+  stop(): void;
+}
+
+/**
  * Runtime hooks for handling lifecycle or error events.
  */
 export interface VideoTrackProcessorHooks {
