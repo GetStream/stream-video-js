@@ -12,7 +12,7 @@
 
 ## Query param configuration
 
-- `api_key: string` - The API key, defaults to `mmhfdzb5evj2`
+- `api_key: string` - The API key. Defaults to the demo app's key, as returned by the token provider
 - `token: string` - The token. If not present, the app will fetch one.
 - `user_id: string` - The user ID. If not present, the app will pick a random one.
 - `user_name: string;` - The user name. If not present, the app will pick a random one.
