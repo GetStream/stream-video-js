@@ -350,7 +350,9 @@ export class TrackSubscriptionManager {
    *
    * @returns a function that unregisters the listener.
    */
-  onBeforeResume = (listener: (wasPaused: PausedTrackFilter) => void) => {
+  addBeforeResumeListener = (
+    listener: (wasPaused: PausedTrackFilter) => void,
+  ) => {
     this.resumeListeners.add(listener);
     return () => {
       this.resumeListeners.delete(listener);

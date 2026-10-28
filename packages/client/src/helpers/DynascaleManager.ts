@@ -84,7 +84,7 @@ export class DynascaleManager {
     this.trackSubscriptionManager = trackSubscriptionManager;
     this.blockedAudioTracker = blockedAudioTracker;
     this.silentAudioPlayer = new SilentAudioPlayer(tracer);
-    this.stopAwaitingResume = trackSubscriptionManager.onBeforeResume(
+    this.stopAwaitingResume = trackSubscriptionManager.addBeforeResumeListener(
       this.awaitFreshFrames,
     );
   }

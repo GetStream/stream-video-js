@@ -575,7 +575,7 @@ describe('TrackSubscriptionManager', () => {
         expect(wasPaused('presenter', 'videoTrack')).toBe(true);
         expect(wasPaused('other', 'videoTrack')).toBe(false);
       });
-      const stopListening = manager.onBeforeResume(listener);
+      const stopListening = manager.addBeforeResumeListener(listener);
       setVisibility({
         hidden: true,
         shownTrack: { sessionId: 'other', trackType: 'videoTrack' },
@@ -595,7 +595,7 @@ describe('TrackSubscriptionManager', () => {
     });
 
     it('keeps reporting a resumed video as paused while it awaits a fresh frame', () => {
-      manager.onBeforeResume(() =>
+      manager.addBeforeResumeListener(() =>
         manager.setAwaitingFreshFrame('presenter', 'videoTrack', true),
       );
       setVisibility({ hidden: true });
