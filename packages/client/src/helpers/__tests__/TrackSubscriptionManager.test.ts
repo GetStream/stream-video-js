@@ -509,6 +509,33 @@ describe('TrackSubscriptionManager', () => {
       expect(tracks()).toEqual(allTracks);
     });
 
+    it('pauses after a custom grace period', () => {
+      manager.setPauseWhenHidden(true, 10_000);
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(9999);
+      expect(tracks()).toEqual(allTracks);
+
+      vi.advanceTimersByTime(1);
+      expect(tracks()).toEqual(['presenter:SCREEN_SHARE_AUDIO']);
+    });
+
+    it('keeps the grace period when none is given, and clamps negative ones to 0', () => {
+      manager.setPauseWhenHidden(true, 10_000);
+      manager.setPauseWhenHidden(true);
+      manager.setPauseWhenHidden(true, Number.NaN);
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(9999);
+      expect(tracks()).toEqual(allTracks);
+      vi.advanceTimersByTime(1);
+      expect(tracks()).toEqual(['presenter:SCREEN_SHARE_AUDIO']);
+
+      setVisibility({ hidden: false });
+      manager.setPauseWhenHidden(true, -5);
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(0);
+      expect(tracks()).toEqual(['presenter:SCREEN_SHARE_AUDIO']);
+    });
+
     it('resumes a paused call when pausing gets disabled', () => {
       setVisibility({ hidden: true });
       vi.advanceTimersByTime(3000);

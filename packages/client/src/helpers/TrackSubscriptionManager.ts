@@ -35,13 +35,6 @@ export type VideoTrackSubscriptionOverride =
   | { enabled: false };
 
 /**
- * How long the app must stay hidden before incoming video is paused. Rides
- * out short trips away from the call, such as a notification shade, a
- * permission prompt or picture-in-picture starting after the app is hidden.
- */
-const hiddenPauseDelayMs = 3000;
-
-/**
  * A pause timer firing later than this past its deadline ran after the
  * JavaScript was suspended (iOS does it while hidden), most likely as the
  * app returns. Hidden pages that keep running fire timers at most ~1s late.
@@ -119,6 +112,12 @@ export class TrackSubscriptionManager {
 
   private visibilitySource: AppVisibilitySource | undefined;
   private pauseWhenHidden = true;
+  /**
+   * How long the app must stay hidden before incoming video is paused. Rides
+   * out short trips away from the call, such as a notification shade, a
+   * permission prompt or picture-in-picture starting after the app is hidden.
+   */
+  private hiddenPauseDelayMs = 3000;
   /** set while incoming video is paused, to the visibility it paused for */
   private pausedForSubject = new BehaviorSubject<PausedFor | undefined>(
     undefined,
@@ -336,11 +335,20 @@ export class TrackSubscriptionManager {
   };
 
   /**
-   * Enables or disables pausing incoming video while the app is hidden.
-   * Called by `Call.setPauseIncomingVideoWhenHidden`.
+   * Enables or disables pausing incoming video while the app is hidden, and
+   * optionally sets how long the app must stay hidden first. Called by
+   * `Call.setPauseIncomingVideoWhenHidden`.
+   *
+   * @param enabled whether to pause incoming video while hidden.
+   * @param gracePeriodMs the delay before pausing, clamped to 0 or more.
+   * Applies from the next time the app is hidden. Non-finite values and
+   * `undefined` keep the current delay.
    */
-  setPauseWhenHidden = (enabled: boolean) => {
+  setPauseWhenHidden = (enabled: boolean, gracePeriodMs?: number) => {
     this.pauseWhenHidden = enabled;
+    if (gracePeriodMs !== undefined && Number.isFinite(gracePeriodMs)) {
+      this.hiddenPauseDelayMs = Math.max(0, gracePeriodMs);
+    }
     this.syncVideoPause();
   };
 
@@ -399,7 +407,7 @@ export class TrackSubscriptionManager {
     }
 
     if (!pausedFor) {
-      if (!this.pendingPause) this.schedulePause(hiddenPauseDelayMs);
+      if (!this.pendingPause) this.schedulePause(this.hiddenPauseDelayMs);
       return;
     }
 

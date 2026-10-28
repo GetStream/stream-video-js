@@ -3723,7 +3723,7 @@ export class Call {
    * Enabled by default.
    *
    * When enabled, video from all remote participants, including screen
-   * share, is paused once the app stays hidden for a few seconds, and
+   * share, is paused once the app stays hidden for the grace period, and
    * resumed when it becomes visible again. Audio is not affected. A video
    * shown in picture-in-picture keeps playing. Firefox is never paused, as
    * its built-in picture-in-picture can't be detected.
@@ -3732,9 +3732,19 @@ export class Call {
    * to record it or to render it in a custom picture-in-picture window.
    *
    * @param enabled whether to pause incoming video while hidden.
+   * @param gracePeriodSeconds how long the app must stay hidden before
+   * video is paused. Defaults to 3 seconds and is clamped to 0 or more. A
+   * change applies from the next time the app is hidden. Omit it to keep the
+   * current value.
    */
-  setPauseIncomingVideoWhenHidden = (enabled: boolean) => {
-    this.trackSubscriptionManager.setPauseWhenHidden(enabled);
+  setPauseIncomingVideoWhenHidden = (
+    enabled: boolean,
+    gracePeriodSeconds?: number,
+  ) => {
+    this.trackSubscriptionManager.setPauseWhenHidden(
+      enabled,
+      gracePeriodSeconds === undefined ? undefined : gracePeriodSeconds * 1000,
+    );
   };
 
   /**

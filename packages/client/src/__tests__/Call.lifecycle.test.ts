@@ -820,7 +820,10 @@ describe('Call lifecycle wiring', () => {
     );
 
     call.setPauseIncomingVideoWhenHidden(false);
-    expect(setPauseWhenHidden).toHaveBeenCalledWith(false);
+    expect(setPauseWhenHidden).toHaveBeenCalledWith(false, undefined);
+
+    call.setPauseIncomingVideoWhenHidden(true, 5);
+    expect(setPauseWhenHidden).toHaveBeenLastCalledWith(true, 5000);
   });
 
   it('call.join() is still allowed after a completed leave()', async () => {
