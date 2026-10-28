@@ -116,7 +116,7 @@ import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
 import { createInboundAudioStallDetector } from './helpers/inboundAudioStallDetector';
 import { ViewportTracker } from './helpers/ViewportTracker';
 import { tracePageLifecycle } from './helpers/pageLifecycle';
-import { countInboundPackets } from './helpers/inboundPackets';
+import { NetworkReachabilityChecker } from './helpers/networkReachability';
 import {
   isBrowserOffline,
   isBrowserOnline,
@@ -157,12 +157,6 @@ import {
   promiseWithResolvers,
 } from './helpers/promise';
 import { isReactNative } from './helpers/platforms';
-
-/**
- * What proved the network reachable: a round trip over the SFU signal
- * connection or the coordinator connection, or inbound media still arriving.
- */
-type NetworkReachability = 'sfu' | 'coordinator' | 'media' | 'unreachable';
 
 /**
  * An object representation of a `Call`.
@@ -301,7 +295,7 @@ export class Call {
   private networkAvailableTask: PromiseWithResolvers<boolean> | undefined;
   private callingStateBeforeOffline: CallingState | undefined;
   private verifyingOfflineEvent = false;
-  private reachabilityCheck: Promise<NetworkReachability> | undefined;
+  private readonly networkReachability: NetworkReachabilityChecker;
   private stopOfflineRechecks?: () => void;
 
   // (10 attempts per rolling 120 s window).
@@ -397,6 +391,11 @@ export class Call {
     this.clientEventReporter = clientEventReporter;
     this.clientState = clientState;
     this.logger = videoLoggerSystem.getLogger('Call');
+    this.networkReachability = new NetworkReachabilityChecker({
+      streamClient,
+      getSfuClient: () => this.sfuClient,
+      getSubscriber: () => this.subscriber,
+    });
 
     const callTypeConfig = CallTypes.get(type);
     const participantSorter =
@@ -2559,7 +2558,8 @@ export class Call {
     if (this.networkAvailableTask || this.verifyingOfflineEvent) return;
     this.verifyingOfflineEvent = true;
     const leaveGeneration = this.leaveGeneration;
-    this.checkReachability()
+    this.networkReachability
+      .check()
       .then((reachability) => {
         if (this.leaveGeneration !== leaveGeneration) return;
         this.tracer.trace('network.offlineChecked', { reachability });
@@ -2656,7 +2656,7 @@ export class Call {
   private recheckWhileOffline = async () => {
     const networkAvailableTask = this.networkAvailableTask;
     if (!networkAvailableTask) return;
-    const reachability = await this.checkReachability();
+    const reachability = await this.networkReachability.check();
     if (networkAvailableTask !== this.networkAvailableTask) return;
     if (reachability === 'unreachable') return;
     this.tracer.trace('network.offlineCleared', { reachability });
@@ -2681,51 +2681,6 @@ export class Call {
       this.sfuStatsReporter?.start();
     } else {
       this.goOnline();
-    }
-  };
-
-  /**
-   * Checks whether the network is reachable. Round trips over the SFU signal
-   * connection, round trips over the coordinator connection and inbound
-   * media still arriving are checked in parallel; the SFU is preferred, as
-   * only it proves the call can resume as is. Concurrent callers share one
-   * check.
-   */
-  private checkReachability = (): Promise<NetworkReachability> => {
-    this.reachabilityCheck ??= this.runReachabilityCheck().finally(() => {
-      this.reachabilityCheck = undefined;
-    });
-    return this.reachabilityCheck;
-  };
-
-  private runReachabilityCheck = async (): Promise<NetworkReachability> => {
-    const sfuClient = this.sfuClient;
-    const [sfu, coordinator, media] = await Promise.all([
-      sfuClient?.isHealthy ? sfuClient.probe(2, 1500) : false,
-      this.streamClient.probeConnection(),
-      this.isReceivingMedia(),
-    ]);
-    if (sfu) return 'sfu';
-    if (coordinator) return 'coordinator';
-    if (media) return 'media';
-    return 'unreachable';
-  };
-
-  /**
-   * Whether the subscriber keeps receiving packets, sampled 1 s apart.
-   * No inbound streams count as not receiving.
-   */
-  private isReceivingMedia = async () => {
-    const subscriber = this.subscriber;
-    if (!subscriber) return false;
-    try {
-      const before = await countInboundPackets(subscriber);
-      if (before === 0) return false;
-      await sleep(1000);
-      return (await countInboundPackets(subscriber)) > before;
-    } catch (err) {
-      this.logger.debug('[Reconnect] Failed to sample inbound media', err);
-      return false;
     }
   };
 
