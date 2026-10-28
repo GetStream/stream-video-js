@@ -22,30 +22,50 @@ const theme = createTheme({
 //
 // You can use any other method to store your API key and token.
 const userId = 'video-cookbook-' + Math.random().toString(16).substring(2);
-const apiKey = 'mmhfdzb5evj2';
-const tokenProvider = async () => {
+
+// The demo token endpoint decides which app the token is for, so the client
+// is created with the `apiKey` it returns instead of a hardcoded one.
+const fetchCredentials = async () => {
   const provider = new URL('https://pronto.getstream.io/api/auth/create-token');
-  provider.searchParams.set('api_key', apiKey);
+  provider.searchParams.set('environment', 'demo');
   provider.searchParams.set('user_id', userId);
-  const { token } = await fetch(provider).then((res) => res.json());
-  return token as string;
+  const res = await fetch(provider).then((r) => r.json());
+  return res as { apiKey: string; token: string };
 };
 
-const client = new StreamVideoClient({
-  apiKey,
-  user: { id: userId },
-  tokenProvider,
-});
-
 const App = () => {
+  const [client, setClient] = useState<StreamVideoClient>();
   const [callId, setCallId] = useState<string>();
   const [call, setCall] = useState<Call | undefined>(undefined);
 
   useEffect(() => {
-    if (!callId) return;
+    let myClient: StreamVideoClient | undefined;
+    let cancelled = false;
+    fetchCredentials()
+      .then(({ apiKey, token }) => {
+        if (cancelled) return;
+        myClient = new StreamVideoClient({
+          apiKey,
+          user: { id: userId },
+          token,
+          tokenProvider: () => fetchCredentials().then((c) => c.token),
+        });
+        setClient(myClient);
+      })
+      .catch((err) => console.error('Failed to fetch demo credentials', err));
+
+    return () => {
+      cancelled = true;
+      myClient?.disconnectUser().catch((err) => console.error(err));
+      setClient(undefined);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!client || !callId) return;
     window.location.hash = `call_id=${callId}`;
     setCall(client.call('default', callId));
-  }, [callId]);
+  }, [client, callId]);
 
   useEffect(() => {
     if (!call) {
@@ -58,7 +78,7 @@ const App = () => {
     <StreamTheme as="main" className="main-container">
       <ThemeProvider theme={theme}>
         {!callId && <CallSetup onJoin={setCallId} />}
-        {call && (
+        {client && call && (
           <StreamVideo client={client}>
             {call && (
               <StreamCall call={call}>
