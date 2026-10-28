@@ -15,6 +15,7 @@
 		3B8798B8AEEC33480469EFC8 /* PermissionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E013F718BC75F5AD6E4F3178 /* PermissionCoordinator.swift */; };
 		406942882FACDD7C00BC823D /* WKWebView+Observation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 406942872FACDD7C00BC823D /* WKWebView+Observation.swift */; };
 		423028E0A8D2848DB53C417A /* AudioScenarios.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E71B2A1BECA28F7F3E3AD7 /* AudioScenarios.swift */; };
+		8E29F4E988B48AB11F64BF1C /* NetworkScenarios.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78D81C08E106F4FCBC3008D /* NetworkScenarios.swift */; };
 		498377EE7CA24F5A0426C140 /* error-capture.js in Resources */ = {isa = PBXBuildFile; fileRef = 35429890281B5750745E6CA0 /* error-capture.js */; };
 		6225026E87FB6C90353547FA /* NavigationInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AC518543C212E9F5C3BD223 /* NavigationInterceptor.swift */; };
 		63EB5159F86853374E114490 /* IOSWebViewApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0270236FF923B373E3585429 /* IOSWebViewApp.swift */; };
@@ -40,6 +41,7 @@
 		BAF6B45004224C7276B8AE68 /* console-mirror.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "console-mirror.js"; sourceTree = "<group>"; };
 		BCCF451A612F7C857AD81978 /* ringtone.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ringtone.caf; sourceTree = "<group>"; };
 		C4E71B2A1BECA28F7F3E3AD7 /* AudioScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioScenarios.swift; sourceTree = "<group>"; };
+		F78D81C08E106F4FCBC3008D /* NetworkScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkScenarios.swift; sourceTree = "<group>"; };
 		CB5BA7910C4FCACFA90C66A3 /* ScenariosMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenariosMenu.swift; sourceTree = "<group>"; };
 		E013F718BC75F5AD6E4F3178 /* PermissionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionCoordinator.swift; sourceTree = "<group>"; };
 		E0B61D4F85004B9D8C6A2357 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
@@ -79,6 +81,7 @@
 			isa = PBXGroup;
 			children = (
 				C4E71B2A1BECA28F7F3E3AD7 /* AudioScenarios.swift */,
+				F78D81C08E106F4FCBC3008D /* NetworkScenarios.swift */,
 				CB5BA7910C4FCACFA90C66A3 /* ScenariosMenu.swift */,
 			);
 			path = Scenarios;
@@ -208,6 +211,7 @@
 			files = (
 				651FD5B731584E0524C3748E /* AppState.swift in Sources */,
 				423028E0A8D2848DB53C417A /* AudioScenarios.swift in Sources */,
+				8E29F4E988B48AB11F64BF1C /* NetworkScenarios.swift in Sources */,
 				406942882FACDD7C00BC823D /* WKWebView+Observation.swift in Sources */,
 				92FA665D6C543D4078839233 /* ConsoleBridge.swift in Sources */,
 				29E1DD2F4D27C2F74A39C25E /* ContentView.swift in Sources */,

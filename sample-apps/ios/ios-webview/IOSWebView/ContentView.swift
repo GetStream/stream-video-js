@@ -17,7 +17,10 @@ struct ContentView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                ScenariosMenuView(audio: web.audioScenarios)
+                ScenariosMenuView(
+                    audio: web.audioScenarios,
+                    network: web.networkScenarios
+                )
             }
         }
     }
