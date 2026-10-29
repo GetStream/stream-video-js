@@ -6,6 +6,7 @@ import {
   EncryptionManager,
   StreamVideoClient,
 } from '@stream-io/video-react-sdk';
+import { isSafari } from 'mobile-device-detect';
 
 import {
   deriveKeyFromPassphrase,
@@ -43,6 +44,19 @@ export type UseLobbyCallResult = {
  * key is client-side only, so editing it updates the current call without
  * creating a new one.
  */
+// Safari NaN investigation: Safari (or `?ec=off` anywhere) captures the mic
+// without echo cancellation, so WebKit doesn't route remote audio through
+// voice processing. `?ec=on` keeps it on in Safari. Set before getOrCreate,
+// so even the first mic capture uses it.
+const disableEchoCancellationIfRequested = (call: Call) => {
+  const ec = new URLSearchParams(window.location.search).get('ec');
+  if (ec !== 'off' && !(isSafari && ec !== 'on')) return;
+  call.microphone.setDefaultConstraints({
+    ...call.microphone.state.defaultConstraints,
+    echoCancellation: false,
+  });
+};
+
 export const useLobbyCall = ({
   client,
   callId,
@@ -77,6 +91,7 @@ export const useLobbyCall = ({
   useEffect(() => {
     if (!client) return;
     const initial = client.call(callType, callId, { reuseInstance: true });
+    disableEchoCancellationIfRequested(initial);
     swapCall(initial);
     // "restricted" is a special call type that only allows the `call_member`
     // role to join the call.
@@ -123,6 +138,7 @@ export const useLobbyCall = ({
     async (enabled: boolean, key?: string) => {
       if (!client) return;
       const next = client.call(callType, meetingId());
+      disableEchoCancellationIfRequested(next);
       await next.getOrCreate({
         data: enabled
           ? { settings_override: { encryption: ENCRYPTION_OVERRIDE } }
