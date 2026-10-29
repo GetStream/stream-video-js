@@ -366,8 +366,9 @@ private enum AudioDeviceId {
     /// enable edge only (input or output being enabled: initial enable, voice-processing retries,
     /// speaker-only fallback), so the session is configured and active before that engine starts.
     /// Not run for rebuilds without an enable edge (device change, stop recording with playout on,
-    /// interruption-end restart). Idempotent and cheap. Acts between `start()` and `stop()` only,
-    /// so a pre-join (lobby) enable never activates the call session.
+    /// interruption-end restart). Re-activates the session when a post-interruption re-activation
+    /// failed (`isActive` false while our count is held). Idempotent and cheap. Acts between
+    /// `start()` and `stop()` only, so a pre-join (lobby) enable never activates the call session.
     /// Must not touch `audioSessionQueue`, the main queue (sync) or ADM APIs.
     /// Non-zero fails the enable (configuration/activation errors only), so WebRTC rolls it back
     /// instead of starting a broken engine. A routing re-apply failure is logged and never fails
@@ -383,7 +384,7 @@ private enum AudioDeviceId {
             return 0
         }
         do {
-            let (rtcConfig, activated, routingError) = try AudioSessionConfigLock.run { session in
+            let (rtcConfig, activated, reactivated, routingError) = try AudioSessionConfigLock.run { session in
                 let rtcConfig = makeAudioConfiguration(
                     inputs: inputs,
                     routing: inputs.selectedOutput,
@@ -395,8 +396,19 @@ private enum AudioDeviceId {
                     || session.categoryOptions != rtcConfig.categoryOptions {
                     try session.setConfiguration(rtcConfig)
                 }
+                // `isActive` is cleared by an interruption and stays cleared when WebRTC's
+                // re-activation on interruption-end fails, while our activation count is still
+                // held: re-activate then, or the engine restarts against an inactive session
+                // for the rest of the call.
+                let reactivated = weActivatedSession && !session.isActive
                 var activated = false
-                if !weActivatedSession {
+                if !weActivatedSession || reactivated {
+                    if reactivated {
+                        // Release the stale count first (no system call while inactive), so
+                        // the re-activation does not take a second one that stop() never releases.
+                        weActivatedSession = false
+                        try? session.setActive(false)
+                    }
                     try session.setActive(true)
                     weActivatedSession = true
                     activated = true
@@ -411,12 +423,15 @@ private enum AudioDeviceId {
                         routingError = error
                     }
                 }
-                return (rtcConfig, activated, routingError)
+                return (rtcConfig, activated, reactivated, routingError)
             }
-            log("engineWillEnable: applied category=\(rtcConfig.category) mode=\(rtcConfig.mode) activated=\(activated) playout=\(isPlayoutEnabled) recording=\(isRecordingEnabled)")
-            let extra: [String: Any] = routingError.map {
+            log("engineWillEnable: applied category=\(rtcConfig.category) mode=\(rtcConfig.mode) activated=\(activated) reactivated=\(reactivated) playout=\(isPlayoutEnabled) recording=\(isRecordingEnabled)")
+            var extra: [String: Any] = routingError.map {
                 ["routingError": String(String(describing: $0).prefix(200))]
             } ?? [:]
+            if reactivated {
+                extra["reactivated"] = true
+            }
             DispatchQueue.main.async { [weak self] in
                 self?.sendAudioSessionDiagnostic("engineEnableApplied", extra: extra)
             }
@@ -952,8 +967,10 @@ private enum AudioDeviceId {
 
     /// Observes `AVAudioSession.interruptionNotification` to trace and log *why* an interruption fired
     /// (mic-mute / route-disconnect / PSTN-Siri). Recovery is NOT done here: WebRTC's
-    /// AudioEngineDevice owns it — it stops the engine on interruption-begin and restarts it on
-    /// interruption-end (re-activating the session itself via AVAudioEngine.start)
+    /// AudioEngineDevice stops the engine on interruption-begin and restarts it in place on
+    /// interruption-end, while RTCAudioSession re-activates the session once (no retry on
+    /// failure); a failed re-activation is repaired by the next willEnable edge (see
+    /// `handleEngineWillEnable`).
     private func registerInterruptionObserver() {
         if hasRegisteredInterruptionObserver { return }
         NotificationCenter.default.addObserver(
