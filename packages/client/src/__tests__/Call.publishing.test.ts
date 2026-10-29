@@ -519,32 +519,42 @@ describe('Publishing and Unpublishing tracks', () => {
         );
       });
 
-      it('sends the deferred mute state even if a restore published again', async () => {
+      it('sends the latest mute state kept while reconnecting', async () => {
         await call.stopPublish(TrackType.VIDEO);
+        const mediaStream = new MediaStream();
+        vi.spyOn(mediaStream, 'getVideoTracks').mockReturnValue([
+          new MediaStreamTrack(),
+        ]);
+        await call.publish(mediaStream, TrackType.VIDEO);
+        vi.mocked(publisher.isPublishing).mockReturnValue(true);
         call.state.setCallingState(CallingState.JOINED);
+
+        internals().syncPublishedTracks();
+        await vi.waitFor(() =>
+          expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+            { trackType: TrackType.VIDEO, muted: false },
+          ]),
+        );
+        expect(sfuClient.updateMuteStates).toHaveBeenCalledTimes(1);
+      });
+
+      it('sends a restored track that is no longer published as muted', async () => {
+        await call.stopPublish(TrackType.VIDEO);
         const mediaStream = new MediaStream();
         vi.spyOn(mediaStream, 'getVideoTracks').mockReturnValue([
           new MediaStreamTrack(),
         ]);
         // a restore that attached a clone the device then stopped
         await call.publish(mediaStream, TrackType.VIDEO);
+        call.state.setCallingState(CallingState.JOINED);
 
         internals().syncPublishedTracks();
         await vi.waitFor(() =>
-          expect(sfuClient.updateMuteStates).toHaveBeenLastCalledWith([
+          expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
             { trackType: TrackType.VIDEO, muted: true },
           ]),
         );
-      });
-
-      it('skips the mute state of a track published again', async () => {
-        await call.stopPublish(TrackType.VIDEO);
-        call.state.setCallingState(CallingState.JOINED);
-        vi.mocked(publisher.isPublishing).mockReturnValue(true);
-
-        internals().syncPublishedTracks();
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
+        expect(sfuClient.updateMuteStates).toHaveBeenCalledTimes(1);
       });
 
       it('does not wait for a device that has not settled', async () => {
@@ -596,7 +606,12 @@ describe('Publishing and Unpublishing tracks', () => {
 
       it('drops the deferred mute state on a rejoin', async () => {
         await call.stopPublish(TrackType.VIDEO);
+        const rejoinedSfuClient = vi.fn() as unknown as StreamSfuClient;
+        // @ts-expect-error sessionId is readonly
+        rejoinedSfuClient['sessionId'] = 'rejoined-session-id';
+        rejoinedSfuClient.updateMuteStates = vi.fn();
         vi.spyOn(internals(), 'doJoin').mockImplementation(async () => {
+          call['sfuClient'] = rejoinedSfuClient;
           call.state.setCallingState(CallingState.JOINED);
         });
         vi.spyOn(internals(), 'restorePublishedTracks').mockResolvedValue();
@@ -606,6 +621,7 @@ describe('Publishing and Unpublishing tracks', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
+        expect(rejoinedSfuClient.updateMuteStates).not.toHaveBeenCalled();
       });
     });
   });
