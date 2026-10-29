@@ -455,7 +455,23 @@ export class StableWSConnection {
     this._destroyCurrentWSConnection();
 
     if (options.refreshToken) {
-      await this.client.tokenManager.loadToken();
+      try {
+        await this.client.tokenManager.loadToken();
+      } catch (error) {
+        // _reconnect() is not awaited by its callers, so a rejection here
+        // would be unhandled. Treat a failed refresh like a failed connect
+        // and retry with backoff; the retry aborts once disconnect() is called.
+        this.isHealthy = false;
+        this.consecutiveFailures += 1;
+        this._log(
+          '_reconnect() - Failed to refresh the token, so going to try again',
+          { error },
+          'warn',
+        );
+
+        this._reconnect({ refreshToken: true });
+        return;
+      }
     }
 
     try {
