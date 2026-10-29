@@ -1,70 +1,50 @@
-import { useEffect, useState } from 'react';
-import { useChatContext } from 'stream-chat-react-native';
-import { Channel as ChannelType } from 'stream-chat';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useChatContext, useStateStore } from 'stream-chat-react-native';
+import type { ChannelStateData } from 'stream-chat';
 import { useCall } from '@stream-io/video-react-native-sdk';
 
+const CHANNEL_TYPE = 'videocall';
+
 /**
- * This hook is responsible for returning the unread count of the channel.
- * This is done through listening to multiple events.
+ * This hook is responsible for returning the unread count of the call's channel.
+ * It watches the channel and reads the count the chat client keeps in its state.
  * @returns number
  */
 export const useUnreadCount = () => {
-  const [unreadCount, setUnreadCount] = useState(0);
-  const CHANNEL_TYPE = 'videocall';
   const { client } = useChatContext();
   const call = useCall();
+  const callId = call?.id;
+  const userId = client.userId;
 
-  const cid = `${CHANNEL_TYPE}:${call?.id}`;
+  const channel = useMemo(
+    () => (callId ? client.channel(CHANNEL_TYPE, callId) : undefined),
+    [client, callId],
+  );
 
   // Effect to watch the channel
   useEffect(() => {
-    let channel: ChannelType;
-    const watchChannel = async () => {
-      channel = client.channel(CHANNEL_TYPE, call?.id);
-      await channel.watch();
-    };
-
-    watchChannel();
-
-    return () => {
-      channel.stopWatching();
-    };
-  }, [call?.id, client]);
-
-  // Effect to set the unreadCount to 0 when the `notification.mark_read` event is received
-  useEffect(() => {
-    if (!client) {
+    if (!channel) {
       return;
     }
 
-    const { unsubscribe } = client.on('notification.mark_read', (event) => {
-      if (event.cid === cid) {
-        setUnreadCount(0);
-      }
+    channel.watch().catch((err) => {
+      console.warn('Failed to watch the call channel', err);
     });
-    return unsubscribe;
-  }, [client, cid]);
-
-  // Effect to update the unread count when the 'message.new' is received
-  useEffect(() => {
-    if (!client) {
-      return;
-    }
-
-    const handleEvent = () => {
-      const channel = client.channelManager.get(cid);
-
-      setUnreadCount(channel?.countUnread() ?? 0);
-    };
-
-    handleEvent();
-
-    client.on('message.new', handleEvent);
 
     return () => {
-      client.off('message.new', handleEvent);
+      channel.stopWatching().catch((err) => {
+        console.warn('Failed to stop watching the call channel', err);
+      });
     };
-  }, [client, cid]);
+  }, [channel]);
 
-  return unreadCount;
+  const unreadCountSelector = useCallback(
+    (state: ChannelStateData) => ({
+      unreadCount: userId ? (state.read[userId]?.unread_messages ?? 0) : 0,
+    }),
+    [userId],
+  );
+  const unreadState = useStateStore(channel?.state, unreadCountSelector);
+
+  return unreadState?.unreadCount ?? 0;
 };

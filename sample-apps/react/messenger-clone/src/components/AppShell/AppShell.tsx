@@ -11,10 +11,9 @@ import {
   ChatView,
   type ChatViewSlotRenderers,
   Slot,
-  ThreadSlot,
 } from 'stream-chat-react/slot-layout';
 import { ClientProviders } from '../../contexts/ClientProviders';
-import { Sidebar } from '../Sidebar';
+import { ChannelListController, Sidebar } from '../Sidebar';
 import { Channel } from '../Channel';
 import { Video } from '../Video';
 
@@ -25,19 +24,13 @@ const layouts = [
   { id: 'threads' as const, slots: ['thread'] },
 ];
 
-const ThreadPanel = () => (
-  <>
-    <ThreadHeader />
-    <MessageList />
-    <MessageComposer focus />
-  </>
-);
-
 const slotRenderers: ChatViewSlotRenderers = {
   channel: ({ source }) => <Channel channel={source} />,
   thread: ({ source }) => (
     <Thread thread={source}>
-      <ThreadPanel />
+      <ThreadHeader />
+      <MessageList />
+      <MessageComposer focus />
     </Thread>
   ),
 };
@@ -53,11 +46,7 @@ const views = {
   threads: (
     <>
       <ThreadList />
-      <Slot slot="thread">
-        <ThreadSlot slot="thread">
-          <ThreadPanel />
-        </ThreadSlot>
-      </Slot>
+      <Slot slot="thread" />
     </>
   ),
 };
@@ -72,6 +61,7 @@ export const AppShell = () => {
       <ClientProviders user={user}>
         <ChatView layouts={layouts} slotRenderers={slotRenderers} views={views}>
           <ChatView.Selector />
+          <ChannelListController />
           {/* inside ChatView so the call UI can read the open channel */}
           <Video />
         </ChatView>

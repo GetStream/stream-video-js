@@ -20,8 +20,9 @@ export type ChannelHeaderProps = {
   title?: string;
 };
 
-const countsSelector = (state: ChannelStateData) => ({
+const headerStateSelector = (state: ChannelStateData) => ({
   memberCount: state.memberCount,
+  subtitle: state.data?.custom?.subtitle,
   watcherCount: state.watcherCount,
 });
 
@@ -29,9 +30,9 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
   const { image: overrideImage, live, title: overrideTitle } = props;
 
   const channel = useChannel();
-  const { memberCount, watcherCount } = useStateStore(
+  const { memberCount, subtitle, watcherCount } = useStateStore(
     channel.state,
-    countsSelector,
+    headerStateSelector,
   );
   const { t } = useTranslationContext();
   const { displayImage, displayTitle } = useChannelPreviewInfo({
@@ -39,8 +40,6 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
     overrideImage,
     overrideTitle,
   });
-
-  const subtitle = channel.data?.custom?.subtitle;
 
   return (
     <div className="str-chat__channel-header">

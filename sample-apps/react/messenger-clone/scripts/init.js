@@ -28,8 +28,7 @@ require('dotenv').config();
     )
     .filter(Boolean)
     .map(([firstUser, secondUser]) =>
-      client.chat.getOrCreateDistinctChannel({
-        type: 'messaging',
+      client.chat.channel('messaging').getOrCreate({
         data: {
           created_by_id: firstUser.id,
           members: [{ user_id: firstUser.id }, { user_id: secondUser.id }],

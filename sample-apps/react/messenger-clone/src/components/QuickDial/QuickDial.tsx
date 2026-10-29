@@ -28,13 +28,12 @@ const useGetUsers = () => {
                 // @ts-expect-error `online` is not in the generated filter type
                 { online: true },
               ],
-              id: { $nin: [client.user!.id] },
             },
           },
         })
         .then(({ users }) =>
           users.reduce<Record<string, UserResponse>>((userMap, user) => {
-            userMap[user.id] = user;
+            if (user.id !== client.userId) userMap[user.id] = user;
             return userMap;
           }, {}),
         ),
