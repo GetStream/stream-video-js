@@ -641,3 +641,141 @@ describe('StableWSConnection - stale offline event', () => {
     await expect(probe).resolves.toBe(true);
   });
 });
+
+describe('StableWSConnection - token refresh failure during reconnect', () => {
+  let client: StreamClient;
+  let wsConnection: StableWSConnection;
+  let connect: ReturnType<typeof vi.spyOn>;
+
+  const token = `header.${btoa(JSON.stringify({ user_id: 'test-user' }))}.sig`;
+  const setTokenProvider = async (provider: () => Promise<string>) => {
+    let calls = 0;
+    await client.tokenManager.setTokenOrProvider(
+      () => (++calls === 1 ? Promise.resolve(token) : provider()),
+      { id: 'test-user' },
+      false,
+    );
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    client = new StreamClient('test-key', { browser: false });
+    wsConnection = new StableWSConnection(client);
+    connect = vi.spyOn(wsConnection, '_connect').mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('retries the refresh with backoff when the tokenProvider rejects', async () => {
+    await setTokenProvider(() => Promise.reject(new Error('offline')));
+    const retry = vi
+      .spyOn(wsConnection, '_reconnect')
+      .mockResolvedValue(undefined);
+
+    const reconnect = StableWSConnection.prototype._reconnect.call(
+      wsConnection,
+      { interval: 1, refreshToken: true },
+    );
+    await vi.advanceTimersByTimeAsync(1);
+
+    await expect(reconnect).resolves.toBeUndefined();
+    expect(connect).not.toHaveBeenCalled();
+    expect(wsConnection.isHealthy).toBe(false);
+    expect(wsConnection.consecutiveFailures).toBe(1);
+    expect(retry).toHaveBeenCalledExactlyOnceWith({ refreshToken: true });
+  });
+
+  it('reconnects once the tokenProvider resolves again', async () => {
+    let refreshes = 0;
+    await setTokenProvider(() =>
+      ++refreshes === 1
+        ? Promise.reject(new Error('offline'))
+        : Promise.resolve(token),
+    );
+
+    const reconnect = wsConnection._reconnect({
+      interval: 1,
+      refreshToken: true,
+    });
+    await vi.advanceTimersByTimeAsync(5000);
+
+    await expect(reconnect).resolves.toBeUndefined();
+    expect(refreshes).toBe(2);
+    expect(connect).toHaveBeenCalledTimes(1);
+    expect(wsConnection.consecutiveFailures).toBe(0);
+  });
+
+  it('keeps a connection restored while the refresh was in flight', async () => {
+    await setTokenProvider(() => {
+      // a concurrent reconnect restores the connection meanwhile
+      wsConnection.isHealthy = true;
+      return Promise.reject(new Error('offline'));
+    });
+    const retry = vi
+      .spyOn(wsConnection, '_reconnect')
+      .mockResolvedValue(undefined);
+
+    const reconnect = StableWSConnection.prototype._reconnect.call(
+      wsConnection,
+      { interval: 1, refreshToken: true },
+    );
+    await vi.advanceTimersByTimeAsync(1);
+
+    await expect(reconnect).resolves.toBeUndefined();
+    expect(wsConnection.isHealthy).toBe(true);
+    expect(wsConnection.consecutiveFailures).toBe(0);
+    expect(retry).not.toHaveBeenCalled();
+  });
+
+  it('recovers when an online reconnect overlaps a failing refresh', async () => {
+    ManualWebSocket.instances = [];
+    client.options.WebSocketImpl =
+      ManualWebSocket as unknown as typeof WebSocket;
+    connect.mockRestore();
+    connect = vi.spyOn(wsConnection, '_connect');
+    let refreshes = 0;
+    await setTokenProvider(() =>
+      ++refreshes <= 2
+        ? new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('offline')), 100),
+          )
+        : Promise.resolve(token),
+    );
+
+    const reconnect = wsConnection._reconnect({
+      interval: 1,
+      refreshToken: true,
+    });
+    await vi.advanceTimersByTimeAsync(1);
+    // the online reconnect's _connect() reloads the token after the refresh fails
+    wsConnection.onlineStatusChanged(new Event('online'));
+    await vi.advanceTimersByTimeAsync(5500);
+
+    await expect(reconnect).resolves.toBeUndefined();
+    expect(refreshes).toBe(3);
+    expect(ManualWebSocket.instances).toHaveLength(1);
+  });
+
+  it('stops retrying the refresh after disconnect', async () => {
+    let refreshes = 0;
+    await setTokenProvider(() => {
+      refreshes += 1;
+      // disconnect() lands while the refresh is in flight
+      wsConnection.disconnect();
+      return Promise.reject(new Error('offline'));
+    });
+
+    const reconnect = wsConnection._reconnect({
+      interval: 1,
+      refreshToken: true,
+    });
+    await vi.advanceTimersByTimeAsync(20000);
+
+    await expect(reconnect).resolves.toBeUndefined();
+    expect(refreshes).toBe(1);
+    expect(connect).not.toHaveBeenCalled();
+  });
+});

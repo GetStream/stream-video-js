@@ -458,7 +458,33 @@ export class StableWSConnection {
     this._destroyCurrentWSConnection();
 
     if (options.refreshToken) {
-      await this.client.tokenManager.loadToken();
+      try {
+        await this.client.tokenManager.loadToken();
+      } catch (error) {
+        // Another reconnect may have restored the connection while the
+        // token was loading; leave it alone.
+        if (this.isConnecting || this.isHealthy || this.isDisconnected) {
+          this._log(
+            '_reconnect() - Abort (4) since the connection changed while refreshing the token',
+            { error },
+          );
+          return;
+        }
+
+        // _reconnect() is not awaited by its callers, so a rejection here
+        // would be unhandled. Treat a failed refresh like a failed connect
+        // and retry with backoff.
+        this.isHealthy = false;
+        this.consecutiveFailures += 1;
+        this._log(
+          '_reconnect() - Failed to refresh the token, so going to try again',
+          { error },
+          'warn',
+        );
+
+        this._reconnect({ refreshToken: true });
+        return;
+      }
     }
 
     try {
@@ -488,10 +514,29 @@ export class StableWSConnection {
         this._log('_reconnect() - WS failure, so going to try to reconnect');
 
         this._reconnect();
+      } else if (await this.hasTokenFailed()) {
+        this._log(
+          '_reconnect() - Failed to load the token, so going to try to reload token and reconnect',
+        );
+
+        this._reconnect({ refreshToken: true });
       }
     }
     this._log('_reconnect() - == END ==');
   }
+
+  /**
+   * Resolves to true when the latest token load from the tokenProvider failed.
+   */
+  private hasTokenFailed = async () => {
+    if (this.client.tokenManager.isStatic()) return false;
+    try {
+      await this.client.tokenManager.tokenReady();
+      return false;
+    } catch {
+      return true;
+    }
+  };
 
   /**
    * onlineStatusChanged - this function is called when the browser connects or disconnects from the internet.
