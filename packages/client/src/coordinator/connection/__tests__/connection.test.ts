@@ -708,6 +708,28 @@ describe('StableWSConnection - token refresh failure during reconnect', () => {
     expect(wsConnection.consecutiveFailures).toBe(0);
   });
 
+  it('keeps a connection restored while the refresh was in flight', async () => {
+    await setTokenProvider(() => {
+      // a concurrent reconnect restores the connection meanwhile
+      wsConnection.isHealthy = true;
+      return Promise.reject(new Error('offline'));
+    });
+    const retry = vi
+      .spyOn(wsConnection, '_reconnect')
+      .mockResolvedValue(undefined);
+
+    const reconnect = StableWSConnection.prototype._reconnect.call(
+      wsConnection,
+      { interval: 1, refreshToken: true },
+    );
+    await vi.advanceTimersByTimeAsync(1);
+
+    await expect(reconnect).resolves.toBeUndefined();
+    expect(wsConnection.isHealthy).toBe(true);
+    expect(wsConnection.consecutiveFailures).toBe(0);
+    expect(retry).not.toHaveBeenCalled();
+  });
+
   it('stops retrying the refresh after disconnect', async () => {
     let refreshes = 0;
     await setTokenProvider(() => {

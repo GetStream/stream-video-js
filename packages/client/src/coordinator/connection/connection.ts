@@ -458,9 +458,19 @@ export class StableWSConnection {
       try {
         await this.client.tokenManager.loadToken();
       } catch (error) {
+        // Another reconnect may have restored the connection while the
+        // token was loading; leave it alone.
+        if (this.isConnecting || this.isHealthy || this.isDisconnected) {
+          this._log(
+            '_reconnect() - Abort (4) since the connection changed while refreshing the token',
+            { error },
+          );
+          return;
+        }
+
         // _reconnect() is not awaited by its callers, so a rejection here
         // would be unhandled. Treat a failed refresh like a failed connect
-        // and retry with backoff; the retry aborts once disconnect() is called.
+        // and retry with backoff.
         this.isHealthy = false;
         this.consecutiveFailures += 1;
         this._log(
