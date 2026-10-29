@@ -23,6 +23,8 @@ import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
 const MAX_EPISODE_ATTEMPTS = 3;
 /** Recovery attempts per call. */
 const MAX_CALL_ATTEMPTS = 6;
+/** AVAudioSession '!int': another app owns the audio, activation refused. */
+const CANNOT_INTERRUPT_OTHERS_CODE = '561017449';
 /** Minimum time between two recovery attempts. */
 const ATTEMPT_INTERVAL_MS = 3000;
 /** Engine error lines attached to a failed recovery trace. */
@@ -55,7 +57,11 @@ const isMicPermissionGranted = async () => {
  * the mic (or the playout) dead for the rest of the call. On every trigger
  * (join, mic enabled, CallKit activation, interruption end, app foreground,
  * route change, reconnect) the engine state is sampled, except during an
- * audio interruption; an unhealthy engine
+ * audio interruption. An unhealthy engine with an inactive audio session gets
+ * one SDK re-activation (`reactivateAudioSession`); when iOS refuses it
+ * (another app owns the audio) the tracer waits for the next interruption
+ * end, session activation or app foreground, keeping its budget. Otherwise
+ * an unhealthy engine
  * is restarted with `AudioDeviceModule.recoverEngineIfNeeded`, at most
  * {@link MAX_EPISODE_ATTEMPTS} times per failure episode (re-checked
  * {@link ATTEMPT_INTERVAL_MS} after each failed attempt) and
@@ -122,9 +128,10 @@ export const AudioSessionDiagnosticsTracer = () => {
     // arriving meanwhile is kept (the latest one) and checked once afterwards
     let inFlight: Promise<void> | undefined;
     let pendingTrigger: string | undefined;
-    // iOS owns the audio during an interruption (phone call, Siri, alarm):
-    // no checks until it ends, the session is re-activated or the app is
-    // active again (WebRTC treats the latter as an interruption end too)
+    // iOS owns the audio during an interruption (phone call, Siri, alarm) and
+    // while it refuses to re-activate the session afterwards: no checks until
+    // the interruption ends, the session is re-activated or the app is active
+    // again (WebRTC treats the latter as an interruption end too)
     let interrupted = false;
 
     const runCheck = (trigger: string) => {
@@ -148,7 +155,9 @@ export const AudioSessionDiagnosticsTracer = () => {
     const checkEngine = async (trigger: string) => {
       if (call.state.callingState !== CallingState.JOINED) return;
       if (interrupted) {
-        logger.debug(`check '${trigger}' skipped, the audio is interrupted`);
+        logger.debug(
+          `check '${trigger}' skipped, the audio is interrupted or the session is inactive`,
+        );
         return;
       }
       const wantsRecording = call.microphone.state.status === 'enabled';
@@ -197,7 +206,42 @@ export const AudioSessionDiagnosticsTracer = () => {
         );
       }
 
+      if (state.sessionActive === false) {
+        // the ADM cannot restart its engine against an inactive session (no
+        // hardware format) and a rejoin would build a half-initialised ADM:
+        // re-activate it (WebRTC's own re-activation on interruption end runs
+        // once), and wait for the next signal when iOS refuses
+        const reason = await reactivateSession();
+        if (disposed) return;
+        if (reason) {
+          if (changed) {
+            call.tracer.trace('ios.audioEngine.recovery', {
+              trigger,
+              result: 'skipped',
+              reason,
+              attempt: episodeAttempts + 1,
+            });
+          }
+          logger.debug(`recovery '${trigger}' postponed, ${reason}`);
+          interrupted = true;
+          return;
+        }
+      }
+
       await recoverEngine(trigger, wantsRecording, changed);
+    };
+
+    /** `undefined` when the session is active afterwards, else the skip reason. */
+    const reactivateSession = async () => {
+      try {
+        const active = await callManager.ios.reactivateAudioSession();
+        return active ? undefined : 'sessionInactive';
+      } catch (error: unknown) {
+        const code = String((error as { code?: unknown })?.code ?? '');
+        if (code === CANNOT_INTERRUPT_OTHERS_CODE) return 'sessionRefused';
+        logger.warn('failed to re-activate the audio session', error);
+        return 'sessionInactive';
+      }
     };
 
     const recoverEngine = async (

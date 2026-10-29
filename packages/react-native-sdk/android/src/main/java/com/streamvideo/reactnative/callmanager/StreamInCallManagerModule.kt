@@ -175,6 +175,11 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         promise.resolve(true)
     }
 
+    override fun reactivateAudioSession(promise: Promise) {
+        // iOS only
+        promise.resolve(false)
+    }
+
     override fun getAudioDeviceStatus(promise: Promise) {
         promise.resolve(mAudioDeviceManager.audioStatusMap())
     }

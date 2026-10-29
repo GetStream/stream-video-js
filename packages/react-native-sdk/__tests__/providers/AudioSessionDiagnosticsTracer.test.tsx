@@ -52,6 +52,7 @@ jest.mock('../../src/modules/call-manager', () => ({
     audioDevices: { addChangeListener: jest.fn() },
     ios: {
       getAudioSessionState: jest.fn(),
+      reactivateAudioSession: jest.fn(),
       addAudioSessionDiagnosticListener: jest.fn(),
       addAudioInterruptionListener: jest.fn(),
     },
@@ -70,6 +71,7 @@ const admEvents = audioDeviceModuleEvents as unknown as {
 };
 const iosCallManager = callManager.ios as unknown as {
   getAudioSessionState: jest.Mock;
+  reactivateAudioSession: jest.Mock;
   addAudioSessionDiagnosticListener: jest.Mock;
   addAudioInterruptionListener: jest.Mock;
 };
@@ -180,6 +182,7 @@ describe('AudioSessionDiagnosticsTracer', () => {
     };
     (getCallingxLibIfAvailable as jest.Mock).mockReturnValue(undefined);
     iosCallManager.getAudioSessionState.mockReturnValue(sessionState);
+    iosCallManager.reactivateAudioSession.mockResolvedValue(true);
     iosCallManager.addAudioSessionDiagnosticListener.mockImplementation(
       (listener) => {
         diagnosticListener = listener;
@@ -1020,6 +1023,105 @@ describe('AudioSessionDiagnosticsTracer', () => {
     expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(3);
     expect(call.rejoinForAudioEngineRecovery).not.toHaveBeenCalled();
     expect(tracesOf(call, 'ios.audioEngine.rejoin')).toEqual([]);
+  });
+
+  it('waits for the next signal, keeping the budget, while iOS refuses to re-activate the session', async () => {
+    const call = await renderJoined();
+    adm.getEngineState.mockResolvedValue({
+      ...deadEngine,
+      sessionActive: false,
+    });
+    iosCallManager.reactivateAudioSession.mockRejectedValue(
+      Object.assign(new Error('!int'), { code: '561017449' }),
+    );
+
+    appStateListener('active');
+    await advance(1000);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(1);
+    expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+    expect(recoveryTraces(call)).toEqual([
+      {
+        trigger: 'appActive',
+        result: 'skipped',
+        reason: 'sessionRefused',
+        attempt: 1,
+      },
+    ]);
+
+    // no checks until a signal
+    routeListener();
+    act(() => {
+      call.status$.next('disabled');
+    });
+    act(() => {
+      call.status$.next('enabled');
+    });
+    await advance(5000);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(1);
+    expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+
+    // the real interruption end re-activated the session: full budget left
+    adm.getEngineState.mockResolvedValue(deadEngine);
+    interruptionListener({ source: 'callmanager', phase: 'ended' });
+    await advance(1000);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(1);
+    expect(
+      recoveryTraces(call)
+        .slice(1)
+        .map((t) => [t.trigger, t.attempt]),
+    ).toEqual([['interruptionEnded', 1]]);
+    expect(call.rejoinForAudioEngineRecovery).not.toHaveBeenCalled();
+  });
+
+  it('recovers after re-activating the inactive session itself', async () => {
+    const call = await renderJoined();
+    adm.getEngineState.mockResolvedValue({
+      ...deadEngine,
+      sessionActive: false,
+    });
+    adm.recoverEngineIfNeeded.mockResolvedValue({
+      result: 'recovered',
+      before: deadEngine,
+      after: healthyEngine,
+      codes: { stopRecording: 0, startRecording: 0 },
+    });
+
+    appStateListener('active');
+    await advance(1000);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(1);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(1);
+    expect(recoveryTraces(call)).toEqual([
+      expect.objectContaining({
+        trigger: 'appActive',
+        result: 'recovered',
+        attempt: 1,
+      }),
+    ]);
+  });
+
+  it('waits when the session stays inactive after the re-activation', async () => {
+    const call = await renderJoined();
+    adm.getEngineState.mockResolvedValue({
+      ...deadEngine,
+      sessionActive: false,
+    });
+    iosCallManager.reactivateAudioSession.mockResolvedValue(false);
+
+    appStateListener('active');
+    await advance(1000);
+    expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+    expect(recoveryTraces(call)).toEqual([
+      {
+        trigger: 'appActive',
+        result: 'skipped',
+        reason: 'sessionInactive',
+        attempt: 1,
+      },
+    ]);
+    expect(mockLogger.warn).not.toHaveBeenCalledWith(
+      'failed to re-activate the audio session',
+      expect.anything(),
+    );
   });
 
   it('traces audio engine errors and unsubscribes on unmount', () => {

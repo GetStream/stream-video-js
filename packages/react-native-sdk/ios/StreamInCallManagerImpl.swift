@@ -401,23 +401,7 @@ private enum AudioDeviceId {
                     || session.categoryOptions != rtcConfig.categoryOptions {
                     try session.setConfiguration(rtcConfig)
                 }
-                // `isActive` is cleared by an interruption and stays cleared when WebRTC's
-                // re-activation on interruption-end fails, while our activation count is still
-                // held: re-activate then, or the engine restarts against an inactive session
-                // for the rest of the call.
-                let reactivated = weActivatedSession && !session.isActive
-                var activated = false
-                if !weActivatedSession || reactivated {
-                    if reactivated {
-                        // Release the stale count first (no system call while inactive), so
-                        // the re-activation does not take a second one that stop() never releases.
-                        weActivatedSession = false
-                        try? session.setActive(false)
-                    }
-                    try session.setActive(true)
-                    weActivatedSession = true
-                    activated = true
-                }
+                let (activated, reactivated) = try activateSessionIfNeeded(session)
                 // Re-apply the explicit pick (if any) so it survives the engine rebuild.
                 var routingError: Error?
                 if let selectedOutput = inputs.selectedOutput {
@@ -462,6 +446,58 @@ private enum AudioDeviceId {
     /// we activated, and skipping would leak our activation. CallKit's own activation also
     /// counts in RTCAudioSession, so our `setActive(false)` only decrements the count and never
     /// really deactivates a CallKit-owned session.
+    /// Inside `AudioSessionConfigLock`. Activates the session unless our activation is still in
+    /// place. `isActive` is cleared by an interruption and stays cleared when WebRTC's
+    /// re-activation on interruption-end fails, while our activation count is still held:
+    /// re-activate then, or the engine restarts against an inactive session for the rest of the call.
+    private func activateSessionIfNeeded(_ session: RTCAudioSession) throws -> (activated: Bool, reactivated: Bool) {
+        let reactivated = weActivatedSession && !session.isActive
+        guard !weActivatedSession || reactivated else { return (false, false) }
+        if reactivated {
+            // Release the stale count first (no system call while inactive), so the
+            // re-activation does not take a second one that stop() never releases.
+            weActivatedSession = false
+            try? session.setActive(false)
+        }
+        try session.setActive(true)
+        weActivatedSession = true
+        return (true, reactivated)
+    }
+
+    /// Diagnostics tracer recovery. The ADM cannot restart its engine against an inactive
+    /// session (no hardware format), and WebRTC re-activates the session only once per
+    /// interruption end: re-activate it here when iOS cleared it. Resolves whether the session
+    /// is active afterwards (`false` when the call manager is not started or callingx owns the
+    /// session); rejects with the AVAudioSession error, e.g. `561017449` ('!int') while another
+    /// app still owns the audio.
+    @objc public func reactivateAudioSession(resolve: @escaping (Bool) -> Void, reject: @escaping (NSError) -> Void) {
+        audioSessionQueue.async { [self] in
+            guard isStarted, !Self.callingxOwnsSession() else {
+                log("reactivateAudioSession: skipped, \(isStarted ? "callingx owns the session" : "call manager not started")")
+                resolve(false)
+                return
+            }
+            do {
+                let (activated, isActive) = try AudioSessionConfigLock.run { session in
+                    (try activateSessionIfNeeded(session).activated, session.isActive)
+                }
+                log("reactivateAudioSession: activated=\(activated) isActive=\(isActive)")
+                if activated {
+                    DispatchQueue.main.async { [weak self] in
+                        self?.sendAudioSessionDiagnostic("sessionReactivated")
+                    }
+                }
+                resolve(isActive)
+            } catch {
+                log("reactivateAudioSession error: \(String(describing: error))")
+                DispatchQueue.main.async { [weak self] in
+                    self?.sendAudioSessionDiagnostic("sessionReactivateError", error: error)
+                }
+                reject(error as NSError)
+            }
+        }
+    }
+
     private func deactivateSessionIfNeeded(source: String) {
         AudioSessionConfigLock.run { session in
             guard weActivatedSession else { return }

@@ -136,6 +136,15 @@
   }];
 }
 
+- (void)reactivateAudioSession:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
+  [_impl reactivateAudioSessionWithResolve:^(BOOL isActive) {
+    resolve(@(isActive));
+  } reject:^(NSError *error) {
+    // the code is the AVAudioSession OSStatus, e.g. 561017449 ('!int')
+    reject([@(error.code) stringValue], error.localizedDescription, error);
+  }];
+}
+
 #pragma mark - Audio Routing
 
 - (void)showAudioRoutePicker {

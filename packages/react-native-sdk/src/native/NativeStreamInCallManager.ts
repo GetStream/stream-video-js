@@ -33,6 +33,13 @@ export interface Spec extends TurboModule {
    */
   waitForAudioSessionActive(timeoutMs: number): Promise<boolean>;
 
+  /**
+   * iOS only. Re-activates the SDK-owned audio session when iOS cleared it
+   * (interruption). Resolves whether the session is active afterwards, rejects
+   * with the AVAudioSession error code (e.g. `'561017449'` while another app
+   * owns the audio). Resolves `false` on Android.
+   */
+  reactivateAudioSession(): Promise<boolean>;
   /** iOS only. */
   showAudioRoutePicker(): void;
 

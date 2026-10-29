@@ -261,6 +261,18 @@ class IOSCallManager {
     invariant(Platform.OS === 'ios', 'Supported only on iOS');
     return NativeManager.getAudioSessionState() as IOSAudioSessionState;
   };
+
+  /**
+   * Re-activates the SDK-owned iOS audio session when iOS cleared it.
+   * Resolves whether the session is active afterwards; rejects with the
+   * AVAudioSession error (`code` is the OSStatus as a string, e.g.
+   * `'561017449'` while another app owns the audio).
+   * @internal used by the SDK's audio session diagnostics tracer.
+   */
+  reactivateAudioSession = (): Promise<boolean> => {
+    invariant(Platform.OS === 'ios', 'Supported only on iOS');
+    return NativeManager.reactivateAudioSession();
+  };
 }
 
 class SpeakerManager {
