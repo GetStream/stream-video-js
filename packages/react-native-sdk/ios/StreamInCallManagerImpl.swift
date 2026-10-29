@@ -1,4 +1,5 @@
 import Foundation
+import os
 import UIKit
 import AVFoundation
 import stream_react_native_webrtc
@@ -1199,8 +1200,12 @@ private enum AudioDeviceId {
     }
 
     // MARK: - Logging Helper
+    /// Unified log, public message: `NSLog` payloads are redacted to `<private>` when streamed
+    /// from a device (`idevicesyslog`, Console), which hid every line of this module.
+    private static let logger = Logger(subsystem: "io.getstream.video", category: "InCallManager")
+
     private func log(_ message: String) {
-        NSLog("InCallManager: %@", message)
+        Self.logger.notice("InCallManager: \(message, privacy: .public)")
     }
 
 }
