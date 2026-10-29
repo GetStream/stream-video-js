@@ -730,6 +730,35 @@ describe('StableWSConnection - token refresh failure during reconnect', () => {
     expect(retry).not.toHaveBeenCalled();
   });
 
+  it('recovers when an online reconnect overlaps a failing refresh', async () => {
+    ManualWebSocket.instances = [];
+    client.options.WebSocketImpl =
+      ManualWebSocket as unknown as typeof WebSocket;
+    connect.mockRestore();
+    connect = vi.spyOn(wsConnection, '_connect');
+    let refreshes = 0;
+    await setTokenProvider(() =>
+      ++refreshes <= 2
+        ? new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('offline')), 100),
+          )
+        : Promise.resolve(token),
+    );
+
+    const reconnect = wsConnection._reconnect({
+      interval: 1,
+      refreshToken: true,
+    });
+    await vi.advanceTimersByTimeAsync(1);
+    // the online reconnect's _connect() reloads the token after the refresh fails
+    wsConnection.onlineStatusChanged(new Event('online'));
+    await vi.advanceTimersByTimeAsync(5500);
+
+    await expect(reconnect).resolves.toBeUndefined();
+    expect(refreshes).toBe(3);
+    expect(ManualWebSocket.instances).toHaveLength(1);
+  });
+
   it('stops retrying the refresh after disconnect', async () => {
     let refreshes = 0;
     await setTokenProvider(() => {

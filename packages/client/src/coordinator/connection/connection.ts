@@ -511,10 +511,29 @@ export class StableWSConnection {
         this._log('_reconnect() - WS failure, so going to try to reconnect');
 
         this._reconnect();
+      } else if (await this.hasTokenFailed()) {
+        this._log(
+          '_reconnect() - Failed to load the token, so going to try to reload token and reconnect',
+        );
+
+        this._reconnect({ refreshToken: true });
       }
     }
     this._log('_reconnect() - == END ==');
   }
+
+  /**
+   * Resolves to true when the latest token load from the tokenProvider failed.
+   */
+  private hasTokenFailed = async () => {
+    if (this.client.tokenManager.isStatic()) return false;
+    try {
+      await this.client.tokenManager.tokenReady();
+      return false;
+    } catch {
+      return true;
+    }
+  };
 
   /**
    * onlineStatusChanged - this function is called when the browser connects or disconnects from the internet.
