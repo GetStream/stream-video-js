@@ -1,5 +1,6 @@
 #import "StreamInCallManagerModule.h"
 
+#import <React/RCTInitializing.h>
 #import <React/RCTInvalidating.h>
 // Compiled without modules, so the Swift header's @imports are skipped; import its dependencies first.
 #import <WebRTC/WebRTC.h>
@@ -10,7 +11,7 @@
 #import <stream_video_react_native/stream_video_react_native-Swift.h>
 #endif
 
-@interface StreamInCallManagerModule () <StreamInCallManagerEventEmitter, RCTInvalidating>
+@interface StreamInCallManagerModule () <StreamInCallManagerEventEmitter, RCTInitializing, RCTInvalidating>
 @end
 
 @implementation StreamInCallManagerModule {
@@ -47,6 +48,12 @@
     };
   }
   return self;
+}
+
+// Runs only on the instance React Native wires to JS (the generated RCTModuleProviders also
+// creates a throwaway provider instance that never gets initialize/invalidate).
+- (void)initialize {
+  [_impl initialize];
 }
 
 - (void)invalidate {

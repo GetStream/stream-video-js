@@ -15,6 +15,7 @@
 - Android: Kotlin modules extend the generated `Native<Name>Spec`; registered by `StreamVideoReactNativePackage` (`BaseReactPackage`). `StreamVideoReactNative.kt` is a static helper for app `MainActivity`.
 - iOS: thin ObjC++ adapters `ios/StreamVideoReactNativeModule.{h,mm}` and `ios/StreamInCallManagerModule.{h,mm}` (registered via `codegenConfig.ios.modulesProvider`) forward to Swift `StreamVideoReactNativeImpl` / `StreamInCallManagerImpl`. `ios/RTCViewPipComponentView.{h,mm}` hosts the Swift `RTCViewPip` (registered via `componentProvider`). `StreamVideoReactNative.{h,m}` keeps only the public class methods for AppDelegates (`+voipRegistration`, `+hasAnyActiveCall`).
 - Emit events only through each module's guarded helper (generated `emitOn*` crashes if the event emitter callback isn't set yet).
+- iOS: put process-wide side effects (hook registration, observers) in `RCTInitializing.initialize`, not `init`. The generated `RCTModuleProviders` does `[klass new]` on every codegen module class once as a throwaway provider that is never initialized nor invalidated, so `init` runs twice per process (`StreamInCallManagerModule` forwards `initialize` to the Swift impl).
 - Jest: `src/native/*` modules are mocked in `jest-setup.ts`.
 - Not SDK-owned (still legacy, keep): `NativeModules.WebRTCModule`, `NativeModules.ScreenCapturePickerViewManager` from `@stream-io/react-native-webrtc`.
 

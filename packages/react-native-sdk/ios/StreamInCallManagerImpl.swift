@@ -119,8 +119,12 @@ private enum AudioDeviceId {
 
     private let soundPlayer = SoundPlayer()
 
-    override public init() {
-        super.init()
+    /// Called from the TurboModule's `RCTInitializing.initialize`, i.e. only on the instance React
+    /// Native wires to JS. Keep process-wide side effects out of `init`: the generated
+    /// `RCTModuleProviders` also instantiates every codegen module class once as a throwaway
+    /// provider that is never initialized nor invalidated.
+    @objc public func initialize() {
+        guard engineHooksToken == nil else { return }
         // Process-wide (every per-call ADM), run synchronously on the WebRTC worker thread.
         engineHooksToken = AudioDeviceModule.addEngineHooks(
             willEnable: { [weak self] isPlayoutEnabled, isRecordingEnabled in
