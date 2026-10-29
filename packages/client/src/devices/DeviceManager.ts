@@ -66,6 +66,39 @@ export abstract class DeviceManager<
 
   state: S;
 
+  private captureWindow: Window | undefined;
+
+  /**
+   * Captures camera/microphone through the given window's
+   * `navigator.mediaDevices` (for example a Document Picture-in-Picture window)
+   * instead of the current window's, including permission probes.
+   * The window is only used while it has focus (Firefox hangs capture requests
+   * from an unfocused window); otherwise, or once it is closed, capture falls
+   * back to the current window.
+   * Web only. Pass undefined to restore the default.
+   * Applies to future captures; existing streams are not restarted.
+   * Streams belong to the window that captured them: their sources stop when
+   * that window closes.
+   */
+  setCaptureWindow = (win: Window | undefined): void => {
+    if (
+      isReactNative() ||
+      (this.trackType !== TrackType.AUDIO && this.trackType !== TrackType.VIDEO)
+    ) {
+      throw new Error(
+        'Custom capture windows are only supported for web camera and microphone managers.',
+      );
+    }
+    this.captureWindow = win;
+  };
+
+  protected getCaptureMediaDevices = (): MediaDevices | undefined => {
+    const win = this.captureWindow;
+    return win && !win.closed && win.document.hasFocus()
+      ? win.navigator.mediaDevices
+      : undefined;
+  };
+
   protected readonly call: Call;
   protected readonly trackType: TrackType;
   protected subscriptions: (() => void)[] = [];

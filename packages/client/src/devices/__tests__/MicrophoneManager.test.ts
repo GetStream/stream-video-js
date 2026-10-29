@@ -117,12 +117,38 @@ describe('MicrophoneManager', () => {
     expect(spy).toHaveBeenCalledWith(mockAudioDevices);
   });
 
+  it('uses the capture window for future captures and supports resetting it', async () => {
+    const mediaDevices = {} as MediaDevices;
+    const win = {
+      closed: false,
+      document: { hasFocus: () => true },
+      navigator: { mediaDevices },
+    } as unknown as Window;
+    manager.setCaptureWindow(win);
+    await manager.enable();
+    expect(getAudioStream).toHaveBeenLastCalledWith(
+      expect.any(Object),
+      expect.any(Tracer),
+      mediaDevices,
+    );
+
+    await manager.disable({ forceStop: true });
+    manager.setCaptureWindow(undefined);
+    await manager.enable();
+    expect(getAudioStream).toHaveBeenLastCalledWith(
+      expect.any(Object),
+      expect.any(Tracer),
+      undefined,
+    );
+  });
+
   it('get stream', async () => {
     await manager.enable();
 
     expect(getAudioStream).toHaveBeenCalledWith(
       { deviceId: undefined },
       expect.any(Tracer),
+      undefined,
     );
   });
 
@@ -528,6 +554,7 @@ describe('MicrophoneManager', () => {
         expect(getAudioStream).toHaveBeenCalledWith(
           expect.objectContaining({ deviceId: { exact: 'other-mic' } }),
           expect.any(Tracer),
+          undefined,
         );
       });
 
@@ -595,6 +622,7 @@ describe('MicrophoneManager', () => {
       expect(getAudioStream).toHaveBeenLastCalledWith(
         expect.objectContaining({ noiseSuppression: false }),
         expect.any(Tracer),
+        undefined,
       );
 
       vi.mocked(getAudioStream).mockClear();
@@ -943,6 +971,7 @@ describe('MicrophoneManager', () => {
       expect(getAudioStream).toHaveBeenCalledWith(
         { deviceId: { exact: deviceId } },
         expect.any(Tracer),
+        undefined,
       );
     });
 
