@@ -311,13 +311,13 @@ import stream_react_native_webrtc
 
     /// Wires the ADM engine-lifecycle subscription to the live call factory's ADM. A no-op when
     /// already wired to that ADM; re-wires when the ADM changes.
+    ///
+    /// Wired regardless of session ownership: JS wires right after the call factory is built, while
+    /// the system start/answer callback that claims ownership is still in flight, and nothing wires
+    /// again afterwards. Gating here lost that race and left the engine-startup mute (see the sink)
+    /// unsuppressed, so the mic came up muted. The sink itself gates per event; for non-callingx
+    /// calls it is a no-op.
     @objc public func wireAudioEngineSubscription() {
-        // Only wire when callingx (the system call layer) owns the session. For non-callingx calls the engine gate
-        // and the sink below are irrelevant, so skipping keeps their ADM on `.default`.
-        guard CallingxSessionOwnership.callingxOwnsSession else {
-            CallingxLog.core.debugPublic("[wireEngineSubscription] skipped — callingx does not own the session")
-            return
-        }
         guard let adm = getCurrentAudioDeviceModule() else {
           CallingxLog.core.debugPublic("[wireEngineSubscription] skipped — adm is not instantiated")
           return
@@ -325,13 +325,16 @@ import stream_react_native_webrtc
         guard subscribedADM !== adm else { return } // already wired to this ADM
         engineSubscription?.cancel()                // ADM changed (e.g. JS reload) — rewire
         subscribedADM = adm
-        CallingxLog.core.debugPublic("[wireEngineSubscription]")
+        CallingxLog.core.debugPublic("[wireEngineSubscription] callingxOwnsSession=\(CallingxSessionOwnership.callingxOwnsSession)")
 
         // Replay fixes potential race for a case when conversation manager callbacks are invoked before adm instance exists.
+        // Only when callingx owns the session: the gate is irrelevant to non-callingx calls, whose ADM stays on `.default`.
         // Serialized with setDesiredEngineAvailability so the read-then-apply pair can't interleave with a
         // concurrent delegate-queue write; otherwise a stale value could land on the ADM after the delegate applied a newer one.
-        engineAvailabilityQueue.sync {
-            _ = adm.setEngineAvailability(self.desiredEngineAvailability)
+        if CallingxSessionOwnership.callingxOwnsSession {
+            engineAvailabilityQueue.sync {
+                _ = adm.setEngineAvailability(self.desiredEngineAvailability)
+            }
         }
 
         engineSubscription = adm.publisher.sink { event in
