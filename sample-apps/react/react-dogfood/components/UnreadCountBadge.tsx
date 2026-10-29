@@ -1,37 +1,24 @@
-import { useEffect, useState } from 'react';
-import type { Channel } from 'stream-chat';
+import { useCallback } from 'react';
+import type { Channel, ChannelStateData } from 'stream-chat';
+import { useStateStore } from 'stream-chat-react';
 
-export const UnreadCountBadge = (props: { channel?: Channel }) => {
-  const { channel } = props;
-  const [unread, setUnread] = useState(0);
-
-  useEffect(() => {
-    if (!channel) {
-      setUnread(0);
-      return;
-    }
-
-    const sync = () => setUnread(channel.countUnread());
-    sync();
-
-    const subs = [
-      channel.on('message.new', sync),
-      channel.on('message.updated', sync),
-      channel.on('message.deleted', sync),
-      channel.on('notification.mark_read', (e) => {
-        if (e.cid === channel.cid) setUnread(0);
-      }),
-    ];
-
-    return () => {
-      subs.forEach((s) => s.unsubscribe());
-    };
-  }, [channel]);
+export const UnreadCountBadge = (props: {
+  channel?: Channel;
+  userId?: string;
+}) => {
+  const { channel, userId } = props;
+  const unreadSelector = useCallback(
+    (state: ChannelStateData) => ({
+      unread: userId ? (state.read[userId]?.unread_messages ?? 0) : 0,
+    }),
+    [userId],
+  );
+  const unread = useStateStore(channel?.state, unreadSelector)?.unread ?? 0;
 
   if (!unread) return null;
 
   return (
-    <div className="rd-chat__chat-button__unread-count-bubble">
+    <div className="rd__chat-button__unread-count-bubble">
       {unread > 99 ? '99+' : unread}
     </div>
   );

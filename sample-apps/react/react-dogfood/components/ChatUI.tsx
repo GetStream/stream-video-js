@@ -11,7 +11,7 @@ import {
   WithComponents,
 } from 'stream-chat-react';
 
-import { Icon, IconButton } from '@stream-io/video-react-sdk';
+import { Button, Icon, IconButton } from '@stream-io/video-react-sdk';
 
 import { useAppI18n } from '../hooks/useAppI18n';
 
@@ -73,6 +73,63 @@ const PaperClipIcon = () => <Icon icon="paperclip" />;
 // pill and keep the accurate inline separator.
 const NoUnreadMessagesNotification = () => null;
 
+const ChatHeader = ({ onClose }: { onClose: () => void }) => {
+  const { t } = useAppI18n();
+
+  return (
+    <div className="rd__chat-header">
+      <h2 className="rd__chat-header__title">
+        {t('chat.panel.title', 'Chat')}
+      </h2>
+      <IconButton
+        onClick={onClose}
+        size="sm"
+        variant="secondary"
+        appearance="ghost"
+        icon="close"
+      />
+    </div>
+  );
+};
+
+/**
+ * Shown in place of the chat while its channel is being watched, or after
+ * watching it failed.
+ */
+export const ChatUnavailable = ({
+  failed,
+  onClose,
+  onRetry,
+}: {
+  failed: boolean;
+  onClose: () => void;
+  onRetry: () => void;
+}) => {
+  const { t } = useAppI18n();
+
+  return (
+    <div className="str-video__chat rd__chat-unavailable">
+      <ChatHeader onClose={onClose} />
+      <div className="rd__chat__no-messages">
+        {failed ? (
+          <>
+            <p className="rd__chat__no-messages__title">
+              {t('chat.unavailable.failed.title', "Couldn't load the chat.")}
+            </p>
+            <Button size="sm" onClick={onRetry}>
+              {t('chat.unavailable.retry.label', 'Retry')}
+            </Button>
+          </>
+        ) : (
+          <p className="rd__chat__no-messages__description">
+            {t('chat.loading.text', 'Loading Chat...')}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const ChatUI = ({
   onClose,
   channel,
@@ -92,18 +149,7 @@ export const ChatUI = ({
     >
       <Channel channel={channel}>
         <div>
-          <div className="rd__chat-header">
-            <h2 className="rd__chat-header__title">
-              {t('chat.panel.title', 'Chat')}
-            </h2>
-            <IconButton
-              onClick={onClose}
-              size="sm"
-              variant="secondary"
-              appearance="ghost"
-              icon="close"
-            />
-          </div>
+          <ChatHeader onClose={onClose} />
         </div>
         <VirtualizedMessageList shouldGroupByUser />
         <MessageComposer

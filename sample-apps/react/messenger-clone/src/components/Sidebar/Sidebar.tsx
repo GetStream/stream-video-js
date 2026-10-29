@@ -18,19 +18,22 @@ const sort: SortParamRequest[] = [
 
 /**
  * Opens the first channel of the list once per load, unless a channel is
- * already open (e.g. when returning from the threads view).
+ * already open. A load that lands in the threads view waits for the next one,
+ * so it doesn't switch the user back to the channels view.
  */
 const useOpenFirstChannel = (paginator: ChannelPaginator) => {
-  const { openChannel, openChannels } = useWorkspaceNavigation();
+  const { isThreadsView, openChannel, openChannels } = useWorkspaceNavigation();
   // read when a page loads: the navigation changes with every open and close,
   // and resubscribing on it would replay a page that already loaded
   const navigation = useRef({
     hasOpenChannel: openChannels.length > 0,
+    isThreadsView,
     openChannel,
   });
   useEffect(() => {
     navigation.current = {
       hasOpenChannel: openChannels.length > 0,
+      isThreadsView,
       openChannel,
     };
   });
@@ -46,7 +49,7 @@ const useOpenFirstChannel = (paginator: ChannelPaginator) => {
           awaitingLoad = true;
           return;
         }
-        if (!awaitingLoad) return;
+        if (!awaitingLoad || navigation.current.isThreadsView) return;
         awaitingLoad = false;
         if (first && !navigation.current.hasOpenChannel) {
           navigation.current.openChannel(first);

@@ -3,7 +3,10 @@ import clsx from 'clsx';
 import {
   Avatar,
   ChannelListItemUIProps,
+  composeChannelListItemAccessibleLabel,
   SummarizedMessagePreview,
+  useChatContext,
+  useTranslationContext,
   useWorkspaceNavigation,
 } from 'stream-chat-react';
 import { StreamCall, useCalls } from '@stream-io/video-react-sdk';
@@ -22,6 +25,8 @@ const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
     unread,
   } = props;
   const { openChannel } = useWorkspaceNavigation();
+  const { client, isMessageAIGenerated } = useChatContext();
+  const { t, tDateTimeParser, userLanguage } = useTranslationContext();
   const channelPreviewButton = useRef<HTMLButtonElement | null>(null);
   const calls = useCalls();
   const callToChannel = useMemo(() => {
@@ -29,6 +34,35 @@ const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
   }, [calls, channel]);
 
   const avatarName = displayTitle || previewedMessage?.user?.id;
+  const accessibleLabel = useMemo(
+    () =>
+      composeChannelListItemAccessibleLabel({
+        active,
+        channel,
+        client,
+        displayTitle,
+        isMessageAIGenerated,
+        latestMessage: previewedMessage,
+        messageDeliveryStatus,
+        t,
+        tDateTimeParser,
+        unreadCount: unread,
+        userLanguage,
+      }),
+    [
+      active,
+      channel,
+      client,
+      displayTitle,
+      isMessageAIGenerated,
+      messageDeliveryStatus,
+      previewedMessage,
+      t,
+      tDateTimeParser,
+      unread,
+      userLanguage,
+    ],
+  );
 
   const onSelectChannel = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (customOnSelectChannel) {
@@ -44,8 +78,8 @@ const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
   return (
     <div className="str-chat__channel-list-item-container">
       <button
-        aria-label={`Select Channel: ${displayTitle || ''}`}
-        aria-selected={active}
+        aria-label={accessibleLabel}
+        aria-selected={active || undefined}
         className={clsx(
           'str-chat__channel-list-item',
           unread && unread >= 1 && 'str-chat__channel-list-item--unread',
@@ -62,11 +96,6 @@ const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
             <div className="str-chat__channel-list-item-data__title">
               <span>{displayTitle}</span>
             </div>
-            {callToChannel && (
-              <StreamCall call={callToChannel}>
-                <ChannelPreviewCallControls />
-              </StreamCall>
-            )}
             {!!unread && (
               <div
                 className="str-chat__channel-list-item-data__timestamp-and-badge"
@@ -80,10 +109,16 @@ const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
             <SummarizedMessagePreview
               latestMessage={previewedMessage}
               messageDeliveryStatus={messageDeliveryStatus}
+              participantCount={channel.data?.member_count}
             />
           </div>
         </div>
       </button>
+      {callToChannel && (
+        <StreamCall call={callToChannel}>
+          <ChannelPreviewCallControls />
+        </StreamCall>
+      )}
     </div>
   );
 };

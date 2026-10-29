@@ -54,27 +54,21 @@ export const QuickDial = () => {
   }, [getUsers]);
 
   useEffect(() => {
-    const { unsubscribe } = client.on('user.presence.changed', (event) => {
-      const { user } = event;
-      if (!user) return;
-      if (!Object.hasOwn(users, user.id)) {
-        return setUsers(
-          produce((draft) => {
-            draft[user.id] = user;
-          }),
-        );
-      }
-
+    const { unsubscribe } = client.on('user.presence.changed', ({ user }) => {
       setUsers(
         produce((draft) => {
-          draft[user.id].online = user.online ?? false;
-          draft[user.id].last_active = user.last_active;
+          const existing = draft[user.id];
+          if (existing) {
+            existing.online = user.online;
+            existing.last_active = user.last_active;
+          } else if (user.online && user.id !== client.userId) {
+            draft[user.id] = user;
+          }
         }),
       );
     });
 
     return unsubscribe;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client]);
 
   if (!Object.values(users).length) return null;

@@ -17,11 +17,14 @@ export const useWatchChannel = ({
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const router = useRouter();
+  const type = (router.query['channel_type'] as string) || channelType;
 
   useEffect(() => {
     if (!client) return;
-    const type = (router.query['channel_type'] as string) || channelType;
     const ch = client.channel(type, channelId);
+    // active for the whole call, so connection recovery re-watches it while the
+    // chat panel (whose Channel would activate it) is closed
+    const release = ch.activate();
     let cancelled = false;
     setFailed(false);
 
@@ -36,9 +39,10 @@ export const useWatchChannel = ({
 
     return () => {
       cancelled = true;
+      release();
       setChannel(undefined);
     };
-  }, [client, channelId, channelType, router.query, attempt]);
+  }, [client, channelId, type, attempt]);
 
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
 

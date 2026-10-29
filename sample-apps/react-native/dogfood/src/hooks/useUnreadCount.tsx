@@ -27,11 +27,15 @@ export const useUnreadCount = () => {
       return;
     }
 
+    // active for the whole call, so connection recovery re-watches it while
+    // the chat screen (whose Channel would activate it) is closed
+    const release = channel.activate();
     channel.watch().catch((err) => {
       console.warn('Failed to watch the call channel', err);
     });
 
     return () => {
+      release();
       channel.stopWatching().catch((err) => {
         console.warn('Failed to stop watching the call channel', err);
       });

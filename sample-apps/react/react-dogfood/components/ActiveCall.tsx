@@ -23,7 +23,7 @@ import { useRouter } from 'next/router';
 
 import { ActiveCallHeader } from './ActiveCallHeader';
 import { CallStatsSidebar, ToggleStatsButton } from './CallStatsWrapper';
-import { ChatUI } from './ChatUI';
+import { ChatUI, ChatUnavailable } from './ChatUI';
 import { ChatWrapper } from './ChatWrapper';
 import { DeviceDisconnectedNotification } from './DeviceDisconnectedNotification';
 import {
@@ -133,6 +133,13 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
   const { t } = useAppI18n();
 
+  const closeChat = () => {
+    if (isTourActive && currentTourStep === StepNames.Chat) {
+      nextTourStep();
+    }
+    setSidebarContent(null);
+  };
+
   useEffect(() => {
     // helps with Fast-Refresh
     if (activeCall?.state.callingState === CallingState.IDLE) {
@@ -218,24 +225,20 @@ export const ActiveCall = (props: ActiveCallProps) => {
                   </div>
                 )}
 
-                {showChat && channel && (
-                  <ChatWrapper chatClient={chatClient}>
-                    <div className="str-video__chat">
-                      <ChatUI
-                        onClose={() => {
-                          if (
-                            isTourActive &&
-                            currentTourStep === StepNames.Chat
-                          ) {
-                            nextTourStep();
-                          }
-                          setSidebarContent(null);
-                        }}
-                        channel={channel}
-                      />
-                    </div>
-                  </ChatWrapper>
-                )}
+                {showChat &&
+                  (channel ? (
+                    <ChatWrapper chatClient={chatClient}>
+                      <div className="str-video__chat">
+                        <ChatUI onClose={closeChat} channel={channel} />
+                      </div>
+                    </ChatWrapper>
+                  ) : (
+                    <ChatUnavailable
+                      failed={watchChannelFailed}
+                      onClose={closeChat}
+                      onRetry={retryWatchChannel}
+                    />
+                  ))}
 
                 {showStats && <CallStatsSidebar />}
                 {isPronto && showClosedCaptions && <ClosedCaptionsSidebar />}
@@ -408,7 +411,12 @@ export const ActiveCall = (props: ActiveCallProps) => {
                       <Icon icon="chat" />
                     </CompositeButton>
                   </WithTooltip>
-                  {!showChat && <UnreadCountBadge channel={channel} />}
+                  {!showChat && (
+                    <UnreadCountBadge
+                      channel={channel}
+                      userId={chatClient?.userId}
+                    />
+                  )}
                 </div>
               </NewMessageNotification>
             )}

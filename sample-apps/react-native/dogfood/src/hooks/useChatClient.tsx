@@ -11,13 +11,16 @@ export const useChatClient = ({ userData }: { userData: ClientUser }) => {
   const disconnectRef = useRef(Promise.resolve());
 
   useEffect(() => {
-    let connectPromise: Promise<void> | undefined;
     let client: StreamChat | undefined;
+    let didUserConnectInterrupt = false;
     const run = async () => {
       const fetchAuthDetails = async () => {
         return await createToken({ user_id: userData.id }, appEnvironment);
       };
       const { apiKey } = await fetchAuthDetails();
+      // cleaned up while the token was being fetched: don't open a connection
+      // that nothing would close
+      if (didUserConnectInterrupt) return;
       const tokenProvider = () => fetchAuthDetails().then((auth) => auth.token);
 
       client = new StreamChat(apiKey);
@@ -33,12 +36,12 @@ export const useChatClient = ({ userData }: { userData: ClientUser }) => {
           setChatClient(client);
         }
       };
-      connectPromise = connectUser();
+      await connectUser();
     };
 
-    run();
-
-    let didUserConnectInterrupt = false;
+    const connectPromise = run().catch((e) => {
+      console.error('[Chat client]: Failed to connect', e);
+    });
 
     const cleanUp = async () => {
       didUserConnectInterrupt = true;

@@ -17,12 +17,11 @@ export const getUserFromToken = (token?: string): User | null => {
   if (fragments.length !== 3) {
     return null;
   }
-  const b64Payload = fragments[1];
-  const payload = decodeBase64(b64Payload);
-  const { user_id, ...userData } = JSON.parse(payload);
-
-  return {
-    ...userData,
-    id: user_id,
-  };
+  try {
+    // only the user fields: the rest of the payload (iat, exp, ...) is not user data
+    const { user_id, name, image } = JSON.parse(decodeBase64(fragments[1]));
+    return { id: user_id, name, image };
+  } catch {
+    return null;
+  }
 };
