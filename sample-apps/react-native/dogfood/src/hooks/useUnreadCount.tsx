@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useChatContext } from 'stream-chat-react-native';
-import { Channel as ChannelType, Event } from 'stream-chat';
+import { Channel as ChannelType } from 'stream-chat';
 import { useCall } from '@stream-io/video-react-native-sdk';
 
 /**
@@ -37,14 +37,12 @@ export const useUnreadCount = () => {
       return;
     }
 
-    const handleEvent = (event: Event) => {
-      if (event?.cid === cid) {
+    const { unsubscribe } = client.on('notification.mark_read', (event) => {
+      if (event.cid === cid) {
         setUnreadCount(0);
       }
-    };
-
-    client.on('notification.mark_read', handleEvent);
-    return () => client.off('notification.mark_read', handleEvent);
+    });
+    return unsubscribe;
   }, [client, cid]);
 
   // Effect to update the unread count when the 'message.new' is received
@@ -54,7 +52,7 @@ export const useUnreadCount = () => {
     }
 
     const handleEvent = () => {
-      const channel = client.activeChannels[cid];
+      const channel = client.channelManager.get(cid);
 
       setUnreadCount(channel?.countUnread() ?? 0);
     };

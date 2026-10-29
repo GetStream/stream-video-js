@@ -5,17 +5,17 @@ import {
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import { useChatContext } from 'stream-chat-react';
+import { useWorkspaceNavigation } from 'stream-chat-react';
 
 export const ChannelPreviewCallControls = () => {
-  const { channel: activeChannel } = useChatContext();
+  const { openChannels } = useWorkspaceNavigation();
   const call = useCall();
   const { useCallCallingState, useCallCustomData } = useCallStateHooks();
   const customData = useCallCustomData();
   const callingState = useCallCallingState();
 
   const callingToActiveChannel =
-    activeChannel && call && activeChannel.cid === customData.channelCid;
+    call && openChannels.some((c) => c.cid === customData.channelCid);
 
   const isRinging = callingState === CallingState.RINGING;
 

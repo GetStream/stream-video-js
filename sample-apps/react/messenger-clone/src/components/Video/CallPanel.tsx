@@ -10,7 +10,7 @@ import {
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import { useChatContext } from 'stream-chat-react';
+import { useWorkspaceNavigation } from 'stream-chat-react';
 import { useState } from 'react';
 import { useDraggable } from '../../hooks';
 
@@ -19,13 +19,15 @@ export const CallPanel = () => {
   const { useCallCallingState, useCallCustomData } = useCallStateHooks();
   const callingState = useCallCallingState();
   const customData = useCallCustomData();
-  const { channel: activeChannel } = useChatContext();
+  const { openChannels } = useWorkspaceNavigation();
   const [panelElement, setPanelElement] = useState<HTMLDivElement | null>(null);
   useDraggable(panelElement);
 
   if (!call) return null;
 
-  const callingToActiveChannel = activeChannel?.cid === customData.channelCid;
+  const callingToActiveChannel = openChannels.some(
+    (c) => c.cid === customData.channelCid,
+  );
   // FIXME: currently does not show call panel when called from channel not loaded into state
   if (CallingState.RINGING === callingState && !callingToActiveChannel)
     return null;

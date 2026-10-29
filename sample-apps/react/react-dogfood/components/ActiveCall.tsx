@@ -214,7 +214,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
                   </div>
                 )}
 
-                {showChat && (
+                {showChat && channel && (
                   <ChatWrapper chatClient={chatClient}>
                     <div className="str-video__chat">
                       <ChatUI
@@ -227,7 +227,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
                           }
                           setSidebarContent(null);
                         }}
-                        channelId={activeCall.id}
+                        channel={channel}
                       />
                     </div>
                   </ChatWrapper>

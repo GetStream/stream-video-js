@@ -1,6 +1,11 @@
 import React, { useMemo, useRef } from 'react';
 import clsx from 'clsx';
-import { Avatar, ChannelListItemUIProps } from 'stream-chat-react';
+import {
+  Avatar,
+  ChannelListItemUIProps,
+  SummarizedMessagePreview,
+  useWorkspaceNavigation,
+} from 'stream-chat-react';
 import { StreamCall, useCalls } from '@stream-io/video-react-sdk';
 import { ChannelPreviewCallControls } from './ChannelPreviewCallControls';
 
@@ -11,27 +16,25 @@ const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
     className: customClassName = '',
     displayImage,
     displayTitle,
-    latestMessagePreview,
+    messageDeliveryStatus,
     onSelect: customOnSelectChannel,
-    setActiveChannel,
+    previewedMessage,
     unread,
-    watchers,
   } = props;
+  const { openChannel } = useWorkspaceNavigation();
   const channelPreviewButton = useRef<HTMLButtonElement | null>(null);
   const calls = useCalls();
   const callToChannel = useMemo(() => {
     return calls.find((call) => call.state.custom.channelCid === channel.cid);
   }, [calls, channel]);
 
-  const avatarName =
-    displayTitle ||
-    channel.state.messages[channel.state.messages.length - 1]?.user?.id;
+  const avatarName = displayTitle || previewedMessage?.user?.id;
 
   const onSelectChannel = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (customOnSelectChannel) {
       customOnSelectChannel(e);
-    } else if (setActiveChannel) {
-      setActiveChannel(channel, watchers);
+    } else {
+      openChannel(channel, { event: e });
     }
     if (channelPreviewButton?.current) {
       channelPreviewButton.current.blur();
@@ -42,7 +45,7 @@ const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
     <div className="str-chat__channel-list-item-container">
       <button
         aria-label={`Select Channel: ${displayTitle || ''}`}
-        aria-pressed={active}
+        aria-selected={active}
         className={clsx(
           'str-chat__channel-list-item',
           unread && unread >= 1 && 'str-chat__channel-list-item--unread',
@@ -74,7 +77,10 @@ const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
             )}
           </div>
           <div className="str-chat__channel-list-item-data__second-row">
-            {latestMessagePreview}
+            <SummarizedMessagePreview
+              latestMessage={previewedMessage}
+              messageDeliveryStatus={messageDeliveryStatus}
+            />
           </div>
         </div>
       </button>

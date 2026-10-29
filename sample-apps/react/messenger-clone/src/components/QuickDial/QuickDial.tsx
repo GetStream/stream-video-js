@@ -5,7 +5,7 @@ import { produce } from 'immer';
 import dayjs from 'dayjs';
 import { clsx } from 'clsx';
 
-import type { Event, UserResponse } from 'stream-chat';
+import type { UserResponseCommonFields as UserResponse } from 'stream-chat';
 import { useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { meetingId } from '../../utils/meetingId';
 
@@ -16,13 +16,21 @@ const useGetUsers = () => {
     () =>
       client
         .queryUsers({
-          $or: [
-            { last_active: { $gte: dayjs().subtract(10, 'minute').toJSON() } },
-            // FIXME: find proper solution for filtering online users
-            { online: true },
-          ],
-          // @ts-expect-error not available in stream-chat
-          id: { $nin: [client.user!.id] },
+          payload: {
+            filter_conditions: {
+              $or: [
+                {
+                  last_active: {
+                    $gte: dayjs().subtract(10, 'minute').toDate(),
+                  },
+                },
+                // FIXME: find proper solution for filtering online users
+                // @ts-expect-error `online` is not in the generated filter type
+                { online: true },
+              ],
+              id: { $nin: [client.user!.id] },
+            },
+          },
         })
         .then(({ users }) =>
           users.reduce<Record<string, UserResponse>>((userMap, user) => {
@@ -47,7 +55,7 @@ export const QuickDial = () => {
   }, [getUsers]);
 
   useEffect(() => {
-    const updateUsers = (event: Event) => {
+    const { unsubscribe } = client.on('user.presence.changed', (event) => {
       const { user } = event;
       if (!user) return;
       if (!Object.hasOwn(users, user.id)) {
@@ -64,13 +72,9 @@ export const QuickDial = () => {
           draft[user.id].last_active = user.last_active;
         }),
       );
-    };
+    });
 
-    client.on('user.presence.changed', updateUsers);
-
-    return () => {
-      client.off('user.presence.changed', updateUsers);
-    };
+    return unsubscribe;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client]);
 

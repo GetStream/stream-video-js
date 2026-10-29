@@ -1,43 +1,82 @@
+import { useEffect, useMemo, useRef } from 'react';
+import { ChannelPaginator, type SortParamRequest } from 'stream-chat';
+import {
+  ChannelNavigation,
+  useChatContext,
+  useWorkspaceNavigation,
+  WithComponents,
+} from 'stream-chat-react';
+
 import { LogoutButton } from './LogoutButton';
 import { CustomChannelSearch } from '../CustomChannelSearch';
-import { ChannelList, WithComponents } from 'stream-chat-react';
-import {
-  ChannelFilters,
-  ChannelOptions,
-  ChannelSort,
-  UserResponse,
-} from 'stream-chat';
-
 import { ChannelPreview } from '../ChannelPreview';
 
-type SidebarProps = {
-  user?: UserResponse;
+const sort: SortParamRequest[] = [
+  { field: 'last_message_at', direction: -1 },
+  { field: 'updated_at', direction: -1 },
+];
+
+/**
+ * Opens the first channel of the list once it loads, unless a channel is
+ * already open (e.g. when returning from the threads view).
+ */
+const useOpenFirstChannel = (paginator: ChannelPaginator) => {
+  const { openChannel, openChannels } = useWorkspaceNavigation();
+  const hasOpenChannel = useRef(openChannels.length > 0);
+  hasOpenChannel.current = openChannels.length > 0;
+  useEffect(
+    () =>
+      paginator.state.subscribeWithSelector(
+        ({ items }) => ({ first: items?.[0] }),
+        ({ first }) => {
+          if (first && !hasOpenChannel.current) {
+            hasOpenChannel.current = true;
+            openChannel(first);
+          }
+        },
+      ),
+    [paginator, openChannel],
+  );
 };
 
-export const Sidebar = ({ user }: SidebarProps) => {
-  if (!user) return null;
+export const Sidebar = () => {
+  const { client } = useChatContext();
+  const userId = client.userId;
 
-  const filters: ChannelFilters = {
-    members: { $in: [user.id] },
-    type: 'messaging',
-  };
-  const options: ChannelOptions = { limit: 10, presence: true, state: true };
-  const sort: ChannelSort = { last_message_at: -1, updated_at: -1 };
+  const paginator = useMemo(
+    () =>
+      new ChannelPaginator({
+        client,
+        id: 'channels:default',
+        filters: {
+          members: { $in: userId ? [userId] : [] },
+          type: 'messaging',
+        },
+        sort,
+        paginatorOptions: { pageSize: 10 },
+        requestOptions: { presence: true, state: true },
+      }),
+    [client, userId],
+  );
+
+  useEffect(() => {
+    client.channelManager.insertPaginator({ paginator });
+    return () => {
+      client.channelManager.removePaginator(paginator);
+    };
+  }, [client, paginator]);
+
+  useOpenFirstChannel(paginator);
 
   return (
-    <div id="sidebar" className="str-chat">
+    <div id="sidebar">
       <WithComponents
         overrides={{
           Search: CustomChannelSearch,
           ChannelListItemUI: ChannelPreview,
         }}
       >
-        <ChannelList
-          filters={filters}
-          options={options}
-          showChannelSearch
-          sort={sort}
-        />
+        <ChannelNavigation />
       </WithComponents>
       <div id="sidebar-footer">
         <LogoutButton />

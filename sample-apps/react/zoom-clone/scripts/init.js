@@ -1,4 +1,4 @@
-const { StreamChat } = require('stream-chat');
+const { StreamClient } = require('@stream-io/node-sdk');
 require('dotenv').config();
 
 const waitFor = (time) =>
@@ -13,8 +13,14 @@ const applyGrants = async (client, channelType = 'videocall', retries = 4) => {
   for (let tries = 0; tries < retries; tries++) {
     console.log('Applying grants, try: ', tries + 1);
 
-    const update = await client
-      .updateChannelType(channelType, {
+    const update = await client.chat
+      .updateChannelType({
+        name: channelType,
+        automod: 'disabled',
+        automod_behavior: 'flag',
+        max_message_length: 5000,
+        quotes: false,
+        reminders: false,
         grants: {
           user: [
             'add-links',
@@ -66,14 +72,15 @@ const applyGrants = async (client, channelType = 'videocall', retries = 4) => {
   const key = process.env.VITE_STREAM_API_KEY;
   const secret = process.env.VITE_STREAM_SECRET;
 
-  const client = new StreamChat(key, secret);
+  const client = new StreamClient(key, secret);
 
-  await client
+  await client.chat
     .createChannelType({
       name: 'videocall',
+      automod: 'disabled',
+      automod_behavior: 'flag',
+      max_message_length: 5000,
       replies: false,
-      quotes: false,
-      reminders: false,
       custom_events: true,
     })
     .then(() => console.log('Successfully created channel of type "videocall"'))

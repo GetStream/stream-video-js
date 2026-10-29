@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Channel, Event } from 'stream-chat';
+import type { Channel } from 'stream-chat';
 
 export const UnreadCountBadge = (props: { channel?: Channel }) => {
   const { channel } = props;
@@ -18,8 +18,8 @@ export const UnreadCountBadge = (props: { channel?: Channel }) => {
       channel.on('message.new', sync),
       channel.on('message.updated', sync),
       channel.on('message.deleted', sync),
-      channel.on('notification.mark_read', (e: Event) => {
-        if (e?.cid === channel.cid) setUnread(0);
+      channel.on('notification.mark_read', (e) => {
+        if (e.cid === channel.cid) setUnread(0);
       }),
     ];
 

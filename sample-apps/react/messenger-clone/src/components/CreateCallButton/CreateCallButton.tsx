@@ -3,13 +3,13 @@ import {
   MemberRequest,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { useChannelStateContext } from 'stream-chat-react';
+import { useChannel } from 'stream-chat-react';
 import { LocalPhone } from '@mui/icons-material';
 import { meetingId } from '../../utils/meetingId';
 
 export const CreateCallButton = () => {
   const videoClient = useStreamVideoClient();
-  const { channel } = useChannelStateContext();
+  const channel = useChannel();
 
   const createCall = useCallback(() => {
     videoClient?.call('default', meetingId()).getOrCreate({
@@ -18,14 +18,12 @@ export const CreateCallButton = () => {
         custom: {
           channelCid: channel.cid,
         },
-        members: Object.values(channel.state.members).map<MemberRequest>(
-          (member) => ({
-            user_id: member.user_id!,
-          }),
+        members: Object.keys(channel.state.members).map<MemberRequest>(
+          (userId) => ({ user_id: userId }),
         ),
       },
     });
-  }, [videoClient, channel.cid, channel.state.members]);
+  }, [videoClient, channel]);
 
   const disableCreateCall = !videoClient;
   return (

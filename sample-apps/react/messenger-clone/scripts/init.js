@@ -1,4 +1,4 @@
-const { StreamChat } = require('stream-chat');
+const { StreamClient } = require('@stream-io/node-sdk');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
@@ -14,7 +14,7 @@ require('dotenv').config();
 
   const usersWithoutToken = users.map(({ token: _, ...rest }) => rest);
 
-  const client = new StreamChat(key, secret);
+  const client = new StreamClient(key, secret);
 
   console.log('Creating users...');
   await client.upsertUsers(usersWithoutToken);
@@ -28,15 +28,18 @@ require('dotenv').config();
     )
     .filter(Boolean)
     .map(([firstUser, secondUser]) =>
-      client.channel('messaging', {
-        members: [firstUser.id, secondUser.id],
-        created_by: firstUser,
+      client.chat.getOrCreateDistinctChannel({
+        type: 'messaging',
+        data: {
+          created_by_id: firstUser.id,
+          members: [{ user_id: firstUser.id }, { user_id: secondUser.id }],
+        },
       }),
     );
 
   console.log('Initiating channels between two users...');
 
-  await Promise.allSettled(channels.map((c) => c.create()));
+  await Promise.allSettled(channels);
 
   console.log('Finished initialization');
 })();
