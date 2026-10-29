@@ -228,6 +228,44 @@ describe('devices', () => {
     ]);
   });
 
+  it.each(['audio', 'video'] as const)(
+    'uses the given mediaDevices for %s permission probes, capture, and constraint retries',
+    async (kind) => {
+      const mediaDevices = setupMediaDevices();
+      const stream = {
+        getVideoTracks: () => [],
+        getAudioTracks: () => [],
+      } as unknown as MediaStream;
+      const getUserMedia = vi
+        .fn()
+        .mockRejectedValueOnce(
+          Object.assign(new Error('missing device'), {
+            name: 'OverconstrainedError',
+          }),
+        )
+        .mockResolvedValueOnce(stream);
+      const provider = { getUserMedia } as unknown as MediaDevices;
+      const { getAudioStream, getVideoStream } = await loadDevicesModule();
+      const getStream = kind === 'audio' ? getAudioStream : getVideoStream;
+
+      await expect(
+        getStream({ deviceId: { exact: 'device' } }, undefined, provider),
+      ).resolves.toBe(stream);
+
+      expect(getUserMedia).toHaveBeenCalledTimes(2);
+      expect(getUserMedia.mock.calls[0][0][kind].deviceId).toEqual({
+        exact: 'device',
+      });
+      expect(getUserMedia.mock.calls[1][0][kind].deviceId).toBeUndefined();
+      expect(mediaDevices.getUserMedia).not.toHaveBeenCalled();
+      expect(permissionInstances[0].prompt).toHaveBeenCalledWith({
+        forcePrompt: true,
+        throwOnNotAllowed: true,
+        mediaDevices: provider,
+      });
+    },
+  );
+
   it('getAudioStream retries with relaxed constraints when deviceId fails', async () => {
     const stream = {
       getVideoTracks: () => [],

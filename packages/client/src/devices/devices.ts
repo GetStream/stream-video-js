@@ -190,11 +190,14 @@ let getUserMediaExecId = 0;
 const getStream = async (
   constraints: MediaStreamConstraints,
   tracer: Tracer | undefined,
+  mediaDevices?: MediaDevices,
 ) => {
   const tag = `navigator.mediaDevices.getUserMedia.${getUserMediaExecId++}.`;
   try {
     tracer?.trace(tag, constraints);
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    const stream = await (mediaDevices ?? navigator.mediaDevices).getUserMedia(
+      constraints,
+    );
     tracer?.trace(`${tag}OnSuccess`, dumpStream(stream));
     if (isFirefox()) {
       // When enumerating devices, Firefox will hide device labels unless there's been
@@ -251,11 +254,13 @@ function isNotFoundOrOverconstrainedError(error: unknown) {
  *
  * @param trackConstraints the constraints to use when requesting the stream.
  * @param tracer the tracer to use for tracing the stream creation.
+ * @param mediaDevices optional `MediaDevices` to capture from instead of the current window's.
  * @returns a new `MediaStream` fulfilling the given constraints.
  */
 export const getAudioStream = async (
   trackConstraints?: MediaTrackConstraints,
   tracer?: Tracer,
+  mediaDevices?: MediaDevices,
 ): Promise<MediaStream> => {
   const constraints: MediaStreamConstraints = {
     audio: {
@@ -268,8 +273,9 @@ export const getAudioStream = async (
     await getAudioBrowserPermission(tracer).prompt({
       throwOnNotAllowed: true,
       forcePrompt: true,
+      mediaDevices,
     });
-    return await getStream(constraints, tracer);
+    return await getStream(constraints, tracer, mediaDevices);
   } catch (error) {
     const logger = videoLoggerSystem.getLogger('devices');
     if (isNotFoundOrOverconstrainedError(error) && trackConstraints?.deviceId) {
@@ -279,7 +285,7 @@ export const getAudioStream = async (
         'Failed to get audio stream, will try again with relaxed constraints',
         { error, constraints, relaxedConstraints },
       );
-      return getAudioStream(relaxedConstraints, tracer);
+      return getAudioStream(relaxedConstraints, tracer, mediaDevices);
     }
 
     logger.error('Failed to get audio stream', { error, constraints });
@@ -293,11 +299,13 @@ export const getAudioStream = async (
  *
  * @param trackConstraints the constraints to use when requesting the stream.
  * @param tracer the tracer to use for tracing the stream creation.
+ * @param mediaDevices optional `MediaDevices` to capture from instead of the current window's.
  * @returns a new `MediaStream` fulfilling the given constraints.
  */
 export const getVideoStream = async (
   trackConstraints?: MediaTrackConstraints,
   tracer?: Tracer,
+  mediaDevices?: MediaDevices,
 ): Promise<MediaStream> => {
   const constraints: MediaStreamConstraints = {
     video: {
@@ -309,8 +317,9 @@ export const getVideoStream = async (
     await getVideoBrowserPermission(tracer).prompt({
       throwOnNotAllowed: true,
       forcePrompt: true,
+      mediaDevices,
     });
-    return await getStream(constraints, tracer);
+    return await getStream(constraints, tracer, mediaDevices);
   } catch (error) {
     const logger = videoLoggerSystem.getLogger('devices');
     if (isNotFoundOrOverconstrainedError(error) && trackConstraints?.deviceId) {
@@ -320,7 +329,7 @@ export const getVideoStream = async (
         'Failed to get video stream, will try again with relaxed constraints',
         { error, constraints, relaxedConstraints },
       );
-      return getVideoStream(relaxedConstraints, tracer);
+      return getVideoStream(relaxedConstraints, tracer, mediaDevices);
     }
 
     logger.error('Failed to get video stream', { error, constraints });

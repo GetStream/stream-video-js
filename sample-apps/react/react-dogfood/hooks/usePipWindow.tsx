@@ -1,3 +1,4 @@
+import { Browsers, useCall } from '@stream-io/video-react-sdk';
 import {
   type ReactNode,
   useCallback,
@@ -19,6 +20,7 @@ declare global {
 }
 
 export function usePipWindow(key: string) {
+  const call = useCall();
   const isSupported = 'documentPictureInPicture' in window;
   const [pipWindow, setPipWindow] = useState<Window | null>(null);
   const sizeRef = useRef<{ width: number; height: number }>({
@@ -51,6 +53,9 @@ export function usePipWindow(key: string) {
     );
     copyStylesheetLinks(window.document, pw.document);
 
+    const captureCall = Browsers.isFirefox() ? call : undefined;
+    captureCall?.setCaptureWindow(pw);
+
     pw.addEventListener('resize', () => {
       sizeRef.current = {
         width: pw.innerWidth,
@@ -59,6 +64,18 @@ export function usePipWindow(key: string) {
     });
 
     pw.addEventListener('pagehide', () => {
+      if (captureCall) {
+        const restart = [captureCall.camera, captureCall.microphone].filter(
+          (manager) => manager.enabled,
+        );
+        captureCall.setCaptureWindow(undefined);
+        restart.forEach((manager) =>
+          manager
+            .disable()
+            .then(() => manager.enable())
+            .catch((err) => console.warn('Failed to restart device', err)),
+        );
+      }
       window.localStorage.setItem(
         keyRef.current,
         JSON.stringify(sizeRef.current),
@@ -67,7 +84,7 @@ export function usePipWindow(key: string) {
     });
 
     setPipWindow(pw);
-  }, []);
+  }, [call]);
 
   const close = useCallback(() => {
     pipWindow?.close();
