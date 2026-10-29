@@ -102,6 +102,31 @@ describe('CameraManager', () => {
     expect(spy).toHaveBeenCalledWith(mockVideoDevices);
   });
 
+  it('uses the capture window for future captures and supports resetting it', async () => {
+    const mediaDevices = {} as MediaDevices;
+    const win = {
+      closed: false,
+      document: { hasFocus: () => true },
+      navigator: { mediaDevices },
+    } as unknown as Window;
+    manager.setCaptureWindow(win);
+    await manager.enable();
+    expect(getVideoStream).toHaveBeenLastCalledWith(
+      expect.any(Object),
+      expect.any(Tracer),
+      mediaDevices,
+    );
+
+    await manager.disable();
+    manager.setCaptureWindow(undefined);
+    await manager.enable();
+    expect(getVideoStream).toHaveBeenLastCalledWith(
+      expect.any(Object),
+      expect.any(Tracer),
+      undefined,
+    );
+  });
+
   it('get stream', async () => {
     await manager.enable();
 
@@ -112,6 +137,7 @@ describe('CameraManager', () => {
         height: 720,
       },
       expect.any(Tracer),
+      undefined,
     );
   });
 
@@ -171,6 +197,7 @@ describe('CameraManager', () => {
         height: 720,
       },
       expect.any(Tracer),
+      undefined,
     );
 
     await manager.selectDirection('front');
@@ -183,6 +210,7 @@ describe('CameraManager', () => {
         facingMode: 'user',
       },
       expect.any(Tracer),
+      undefined,
     );
 
     await manager.selectDirection('back');
@@ -195,6 +223,7 @@ describe('CameraManager', () => {
         height: 720,
       },
       expect.any(Tracer),
+      undefined,
     );
   });
 
@@ -210,6 +239,7 @@ describe('CameraManager', () => {
         height: 720,
       },
       expect.any(Tracer),
+      undefined,
     );
 
     const deviceId = mockVideoDevices[1].deviceId;

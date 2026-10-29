@@ -2069,6 +2069,18 @@ export class Call {
   }
 
   /**
+   * Captures camera and microphone through the given window's
+   * `navigator.mediaDevices`, for example a Document Picture-in-Picture window
+   * (Firefox blocks capture from a backgrounded tab). Shorthand for calling
+   * `setCaptureWindow` on both `call.camera` and `call.microphone`.
+   * Web only. Pass undefined to restore the default.
+   */
+  setCaptureWindow = (win: Window | undefined) => {
+    this.camera.setCaptureWindow(win);
+    this.microphone.setCaptureWindow(win);
+  };
+
+  /**
    * Ensures a {@link CallMediaEngine} exists for this call's media session and
    * returns it. Idempotent: the engine is created once via the registered
    * provider (see `setCallMediaEngineProvider`) and cached until `leave()`

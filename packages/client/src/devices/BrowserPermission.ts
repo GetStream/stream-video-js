@@ -71,7 +71,12 @@ export class BrowserPermission {
   async prompt({
     forcePrompt = false,
     throwOnNotAllowed = false,
-  }: { forcePrompt?: boolean; throwOnNotAllowed?: boolean } = {}) {
+    mediaDevices,
+  }: {
+    forcePrompt?: boolean;
+    throwOnNotAllowed?: boolean;
+    mediaDevices?: MediaDevices;
+  } = {}) {
     return await withoutConcurrency(
       `permission-prompt-${this.permission.queryName}`,
       async () => {
@@ -93,9 +98,9 @@ export class BrowserPermission {
         try {
           this.wasPrompted = true;
           this.setState('prompting');
-          const stream = await navigator.mediaDevices.getUserMedia(
-            this.permission.constraints,
-          );
+          const stream = await (
+            mediaDevices ?? navigator.mediaDevices
+          ).getUserMedia(this.permission.constraints);
           disposeOfMediaStream(stream);
           this.setState('granted');
           return true;
