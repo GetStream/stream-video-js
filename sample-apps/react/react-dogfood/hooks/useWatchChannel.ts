@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import type { Channel, StreamChat } from 'stream-chat';
 
@@ -14,6 +14,8 @@ export const useWatchChannel = ({
   channelType?: string;
 }) => {
   const [channel, setChannel] = useState<Channel | undefined>();
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -21,6 +23,7 @@ export const useWatchChannel = ({
     const type = (router.query['channel_type'] as string) || channelType;
     const ch = client.channel(type, channelId);
     let cancelled = false;
+    setFailed(false);
 
     ch.watch()
       .then((watched) => {
@@ -28,13 +31,16 @@ export const useWatchChannel = ({
       })
       .catch((err) => {
         console.warn('Failed to watch chat channel', err);
+        if (!cancelled) setFailed(true);
       });
 
     return () => {
       cancelled = true;
       setChannel(undefined);
     };
-  }, [client, channelId, channelType, router.query]);
+  }, [client, channelId, channelType, router.query, attempt]);
 
-  return { channel, channelWatched: !!channel };
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
+
+  return { channel, channelWatched: !!channel, failed, retry };
 };

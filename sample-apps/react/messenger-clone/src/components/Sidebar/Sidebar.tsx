@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { ChannelPaginator, type SortParamRequest } from 'stream-chat';
 import {
   ChannelNavigation,
@@ -23,7 +23,9 @@ const sort: SortParamRequest[] = [
 const useOpenFirstChannel = (paginator: ChannelPaginator) => {
   const { openChannel, openChannels } = useWorkspaceNavigation();
   const hasOpenChannel = useRef(openChannels.length > 0);
-  hasOpenChannel.current = openChannels.length > 0;
+  useLayoutEffect(() => {
+    hasOpenChannel.current = openChannels.length > 0;
+  }, [openChannels]);
   useEffect(
     () =>
       paginator.state.subscribeWithSelector(

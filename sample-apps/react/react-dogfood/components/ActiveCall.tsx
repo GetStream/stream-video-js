@@ -122,7 +122,11 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
   // FIXME: could be replaced with "notification.message_new" but users would have to be at least members
   // possible fix with "allow to join" permissions in place (expensive?)
-  const { channel } = useWatchChannel({
+  const {
+    channel,
+    failed: watchChannelFailed,
+    retry: retryWatchChannel,
+  } = useWatchChannel({
     chatClient,
     channelId: activeCall?.id,
   });
@@ -394,6 +398,9 @@ export const ActiveCall = (props: ActiveCallProps) => {
                           currentTourStep === StepNames.Chat
                         ) {
                           nextTourStep();
+                        }
+                        if (!showChat && watchChannelFailed) {
+                          retryWatchChannel();
                         }
                         setSidebarContent(showChat ? null : 'chat');
                       }}
