@@ -130,6 +130,42 @@ describe('MuteStateSync', () => {
     expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
   });
 
+  it('sends overlapping states in the order they were reported', async () => {
+    const request = promiseWithResolvers<void>();
+    vi.mocked(sfuClient!.updateMuteStates).mockReturnValueOnce(request.promise);
+    const unmuted = sync.notify(
+      false,
+      TrackType.SCREEN_SHARE,
+      TrackType.SCREEN_SHARE_AUDIO,
+    );
+    const muted = sync.notify(true, TrackType.SCREEN_SHARE_AUDIO);
+    await vi.waitFor(() =>
+      expect(sfuClient!.updateMuteStates).toHaveBeenCalled(),
+    );
+    expect(sfuClient!.updateMuteStates).toHaveBeenCalledTimes(1);
+
+    request.resolve();
+    await Promise.all([unmuted, muted]);
+    expect(sfuClient!.updateMuteStates).toHaveBeenLastCalledWith([
+      { trackType: TrackType.SCREEN_SHARE_AUDIO, muted: true },
+    ]);
+  });
+
+  it('does not send a queued state once the session changed', async () => {
+    const client = sfuClient!;
+    const request = promiseWithResolvers<void>();
+    vi.mocked(client.updateMuteStates).mockReturnValueOnce(request.promise);
+    const first = sync.notify(true, TrackType.AUDIO);
+    const queued = sync.notify(true, TrackType.VIDEO);
+    await vi.waitFor(() => expect(client.updateMuteStates).toHaveBeenCalled());
+
+    sfuClient = createSfuClient('session-2');
+    request.resolve();
+    await Promise.all([first, queued]);
+    expect(client.updateMuteStates).toHaveBeenCalledTimes(1);
+    expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
+  });
+
   it('keeps a state whose request failed for the next flush', async () => {
     vi.mocked(sfuClient!.updateMuteStates).mockRejectedValue(
       new Error('closed'),
