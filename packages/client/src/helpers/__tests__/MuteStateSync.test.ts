@@ -4,6 +4,7 @@ import { MuteStateSync } from '../MuteStateSync';
 import { CallingState, CallState } from '../../store';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import type { StreamSfuClient } from '../../StreamSfuClient';
+import { promiseWithResolvers } from '../promise';
 
 describe('MuteStateSync', () => {
   let state: CallState;
@@ -124,6 +125,73 @@ describe('MuteStateSync', () => {
     await sync.notify(true, TrackType.VIDEO);
     sfuClient = createSfuClient('session-2');
     state.setCallingState(CallingState.JOINED);
+
+    await sync.flush();
+    expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
+  });
+
+  it('keeps a state whose request failed for the next flush', async () => {
+    vi.mocked(sfuClient!.updateMuteStates).mockRejectedValue(
+      new Error('closed'),
+    );
+    await expect(sync.notify(true, TrackType.VIDEO)).rejects.toThrow();
+
+    sfuClient = createSfuClient('session-1');
+    await sync.flush();
+    expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+      { trackType: TrackType.VIDEO, muted: true },
+    ]);
+  });
+
+  it('resends a failed state when the call reconnected before it failed', async () => {
+    const request = promiseWithResolvers<void>();
+    vi.mocked(sfuClient!.updateMuteStates).mockReturnValue(request.promise);
+    const notified = sync.notify(true, TrackType.VIDEO);
+    await vi.waitFor(() =>
+      expect(sfuClient!.updateMuteStates).toHaveBeenCalled(),
+    );
+
+    sfuClient = createSfuClient('session-1');
+    request.reject(new Error('closed'));
+    await notified;
+    expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+      { trackType: TrackType.VIDEO, muted: true },
+    ]);
+  });
+
+  it('does not keep a failed state replaced by a newer one', async () => {
+    const request = promiseWithResolvers<void>();
+    vi.mocked(sfuClient!.updateMuteStates).mockReturnValue(request.promise);
+    const notified = sync.notify(true, TrackType.VIDEO);
+    await vi.waitFor(() =>
+      expect(sfuClient!.updateMuteStates).toHaveBeenCalled(),
+    );
+
+    state.setCallingState(CallingState.RECONNECTING);
+    await sync.notify(false, TrackType.VIDEO);
+    request.reject(new Error('closed'));
+    await expect(notified).rejects.toThrow();
+
+    sfuClient = createSfuClient('session-1');
+    state.setCallingState(CallingState.JOINED);
+    await sync.flush();
+    expect(sfuClient.updateMuteStates).toHaveBeenCalledTimes(1);
+    expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+      { trackType: TrackType.VIDEO, muted: false },
+    ]);
+  });
+
+  it('drops a failed state once the session changed', async () => {
+    const request = promiseWithResolvers<void>();
+    vi.mocked(sfuClient!.updateMuteStates).mockReturnValue(request.promise);
+    const notified = sync.notify(true, TrackType.VIDEO);
+    await vi.waitFor(() =>
+      expect(sfuClient!.updateMuteStates).toHaveBeenCalled(),
+    );
+
+    sfuClient = createSfuClient('session-2');
+    request.reject(new Error('closed'));
+    await expect(notified).rejects.toThrow();
 
     await sync.flush();
     expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
