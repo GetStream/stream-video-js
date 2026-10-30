@@ -13,9 +13,12 @@ import { withoutConcurrency } from './concurrency';
  * reported in: a new session (a rejoin, a new join) drops it, as nothing
  * is published there yet. A state whose request fails, as its SFU client
  * closed, is kept the same way, unless a newer one replaced it.
+ *
+ * Requests are sent one at a time, in the order the states were reported,
+ * and only to the session they were reported in.
  */
 export class MuteStateSync {
-  private readonly cid: string;
+  private readonly lockKey: string;
   private readonly state: CallState;
   private readonly getSfuClient: () => StreamSfuClient | undefined;
   private readonly isPublishing: (trackType: TrackType) => boolean;
@@ -29,7 +32,7 @@ export class MuteStateSync {
     getSfuClient: () => StreamSfuClient | undefined,
     isPublishing: (trackType: TrackType) => boolean,
   ) {
-    this.cid = cid;
+    this.lockKey = `muteState.${cid}`;
     this.state = state;
     this.getSfuClient = getSfuClient;
     this.isPublishing = isPublishing;
@@ -111,12 +114,13 @@ export class MuteStateSync {
   };
 
   private send = async (muted: boolean, trackTypes: TrackType[]) => {
-    if (trackTypes.length === 0) return;
+    const sessionId = this.getSfuClient()?.sessionId;
+    if (trackTypes.length === 0 || !sessionId) return;
     const revisions = trackTypes.map((t) => this.revisions.get(t));
-    const key = `muteState.${this.cid}.${trackTypes.join('-')}`;
-    const resend = await withoutConcurrency(key, async () => {
+    const resend = await withoutConcurrency(this.lockKey, async () => {
       const sfuClient = this.getSfuClient();
-      if (!sfuClient) return [];
+      // the session changed while this request was queued
+      if (!sfuClient || sfuClient.sessionId !== sessionId) return [];
       try {
         await sfuClient.updateMuteStates(
           trackTypes.map((trackType) => ({ trackType, muted })),
