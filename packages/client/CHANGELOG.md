@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.64.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.63.0...@stream-io/video-client-1.64.0) (2026-10-30)
+
+### Features
+
+- **client:** add setCaptureWindow to capture camera and mic through another window ([#2556](https://github.com/GetStream/stream-video-js/issues/2556)) ([da06976](https://github.com/GetStream/stream-video-js/commit/da06976c9f0b6aa25b1946da4c618c5e2bc0a0cd))
+- **client:** map screen share contentHint to degradation preference ([#2557](https://github.com/GetStream/stream-video-js/issues/2557)) ([05f414e](https://github.com/GetStream/stream-video-js/commit/05f414ef9792230066b659518827b6bbae444d0c))
+- **client:** prioritize screen share over camera on constrained uplinks ([#2542](https://github.com/GetStream/stream-video-js/issues/2542)) ([4c358df](https://github.com/GetStream/stream-video-js/commit/4c358dfa6aa6c8316f77a742732262762fd4de96))
+- **client:** turn off browser noise suppression while noise cancellation is registered ([#2547](https://github.com/GetStream/stream-video-js/issues/2547)) ([73208f9](https://github.com/GetStream/stream-video-js/commit/73208f985722383fb1401c33c049a9d6bd9cd3a0)), closes [#2528](https://github.com/GetStream/stream-video-js/issues/2528)
+- surface noise cancellation overload status ([#2528](https://github.com/GetStream/stream-video-js/issues/2528)) ([583da4f](https://github.com/GetStream/stream-video-js/commit/583da4fb28dee80b02e90b5f9722fd258794b70e))
+
+### Bug Fixes
+
+- **client:** don't let a stuck setParameters() block call.leave() ([#2545](https://github.com/GetStream/stream-video-js/issues/2545)) ([988b7dd](https://github.com/GetStream/stream-video-js/commit/988b7dd978bd6e2fcccf5e149d2668cdd8da6374)), closes [#2237](https://github.com/GetStream/stream-video-js/issues/2237)
+- **client:** don't scale the screen share's bitrate cap by its capture size ([#2541](https://github.com/GetStream/stream-video-js/issues/2541)) ([ddf608d](https://github.com/GetStream/stream-video-js/commit/ddf608df4b521183bdc0a4d9a203413a5cb9bb8b))
+- **client:** handle tokenProvider rejection during reconnect token refresh ([#2561](https://github.com/GetStream/stream-video-js/issues/2561)) ([a72a3db](https://github.com/GetStream/stream-video-js/commit/a72a3db14596040222bfa1c1b4f5e63395eb66c6)), closes [#2558](https://github.com/GetStream/stream-video-js/issues/2558) [GetStream/stream-chat-js#1962](https://github.com/GetStream/stream-chat-js/issues/1962) [GetStream/stream-chat-js#1963](https://github.com/GetStream/stream-chat-js/issues/1963)
+- **client:** keep the audio bindings watchdog running after the call is left and re-joined ([#2536](https://github.com/GetStream/stream-video-js/issues/2536)) ([29d9647](https://github.com/GetStream/stream-video-js/commit/29d9647f8a70cea881081e768f7cbff80229576a))
+- **client:** recover from stale offline events on a working network ([#2548](https://github.com/GetStream/stream-video-js/issues/2548)) ([54c4aac](https://github.com/GetStream/stream-video-js/commit/54c4aac904a02ba409b8e4b91bb49b851ea19ba8))
+- **client:** recover remote audio after iOS audio interruptions ([#2538](https://github.com/GetStream/stream-video-js/issues/2538)) ([9470d11](https://github.com/GetStream/stream-video-js/commit/9470d11ba5e95c67398aab91283ff7f9cf8bf83f))
+- **client:** release video element streams on unbind ([#2544](https://github.com/GetStream/stream-video-js/issues/2544)) ([07df339](https://github.com/GetStream/stream-video-js/commit/07df33914ded27d97f867420cdd45dee5b3a4ded))
+- **deps:** bump [@stream-io](https://github.com/stream-io) toolkit packages to the .mjs/.cjs builds ([#2567](https://github.com/GetStream/stream-video-js/issues/2567)) ([406a26e](https://github.com/GetStream/stream-video-js/commit/406a26e99e09e7cd44f63789b81adf786723d4f2)), closes [#2559](https://github.com/GetStream/stream-video-js/issues/2559) [GetStream/js-toolkit#58](https://github.com/GetStream/js-toolkit/issues/58)
+
 ## [1.63.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.62.0...@stream-io/video-client-1.63.0) (2026-10-23)
 
 ### Features
