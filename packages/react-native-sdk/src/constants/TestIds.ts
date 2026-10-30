@@ -4,6 +4,7 @@ export enum IconTestIds {
   PHONE = 'phone-icon',
   SCREEN_SHARE_INDICATOR = 'screen-share-indicator-icon',
   SCREEN_SHARE = 'screen-share-icon',
+  MUTED_MICROPHONE = 'muted-microphone-icon',
 }
 
 export enum ComponentTestIds {
@@ -16,6 +17,8 @@ export enum ComponentTestIds {
   PARTICIPANTS_INFO = 'participants-info',
   PARTICIPANT_SCREEN_SHARING = 'participant-screen-sharing',
   REACTIONS_PICKER = 'reactions-picker',
+  LOBBY_CAMERA_PREVIEW = 'lobby-camera-preview',
+  SPEECH_INDICATOR = 'speech-indicator',
 }
 
 export enum ButtonTestIds {
@@ -24,6 +27,11 @@ export enum ButtonTestIds {
   PARTICIPANTS_COUNT_TEXT = 'participants-count-text',
   HANG_UP_CALL = 'hang-up-call',
   REACTION = 'call-controls-reaction',
+  JOIN_CALL = 'join-call-button',
+  MICROPHONE_ENABLED = 'microphone-toggle-enabled',
+  MICROPHONE_DISABLED = 'microphone-toggle-disabled',
+  CAMERA_ENABLED = 'camera-toggle-enabled',
+  CAMERA_DISABLED = 'camera-toggle-disabled',
 }
 
 export enum ImageTestIds {

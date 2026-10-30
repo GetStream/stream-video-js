@@ -1,0 +1,35 @@
+# Xcode
+build/
+*.pbxuser
+!default.pbxuser
+xcuserdata
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+**/.xcode.env.local
+**/Pods/
+
+# Android
+.gradle
+local.properties
+*.iml
+.cxx/
+.kotlin/
+*.keystore
+!debug.keystore
+
+# node.js
+node_modules/
+
+# Bundles
+*.jsbundle
+.metro-health-check*
+
+# stream-video-buddy (started from here by the dogfood app's fastlane lanes)
+video-buddy-*.log
+video-buddy-session.json
+recordings/
+
+# Detox
+artifacts/

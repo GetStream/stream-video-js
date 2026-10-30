@@ -5,6 +5,7 @@ import {
   RTCCameraPreviewView,
 } from '@stream-io/react-native-webrtc';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { ComponentTestIds } from '../../../constants/TestIds';
 
 /**
  * Props for the {@link LobbyCameraPreview} component.
@@ -58,6 +59,7 @@ export const LobbyCameraPreview = ({
   return (
     <RTCCameraPreviewView
       style={[StyleSheet.absoluteFill, style as any]}
+      testID={ComponentTestIds.LOBBY_CAMERA_PREVIEW}
       isActive={wantsCamera && hasCameraPermission}
       facing={facing}
       deviceId={selectedDevice}

@@ -1,0 +1,312 @@
+name: React Native E2E Tests
+
+# Same setup as stream-chat-react-native's e2e-test.yml. The suite is a port of the Android Video
+# SDK's e2e tests; stream-video-buddy plays the other participants. See
+# sample-apps/react-native/e2e-test-app/e2e/README.md.
+
+on:
+  pull_request:
+
+  workflow_dispatch:
+    inputs:
+      ios:
+        description: 'Run iOS e2e tests'
+        type: boolean
+        default: false
+      android:
+        description: 'Run Android e2e tests'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FASTLANE_SKIP_UPDATE_CHECK: 1
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_PR_NUM: ${{ github.event.pull_request.number }}
+  GITHUB_EVENT_ACTION: ${{ github.event.action }}
+  GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+  GITHUB_EVENT_AFTER: ${{ github.event.after }}
+  # Keep in sync with `install_video_buddy` in the dogfood Fastfile.
+  PLAYWRIGHT_VERSION: '1.52.0'
+
+jobs:
+  check:
+    name: Check E2E Required
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      required: ${{ steps.check.outputs.required }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+          working-directory: sample-apps/react-native/dogfood
+          bundler-cache: true
+      - name: Check if e2e tests are required
+        id: check
+        working-directory: sample-apps/react-native/dogfood
+        run: bundle exec fastlane e2e_check_required
+
+  ios:
+    needs: check
+    if: needs.check.outputs.required == 'true' && github.event_name == 'workflow_dispatch' && inputs.ios
+    runs-on: xcode-27
+    timeout-minutes: 60
+    env:
+      DETOX_IOS_DEVICE: 'iPhone 18 Pro'
+      IOS_VERSION: '27.0'
+      XCODE_VERSION: '27.1'
+      APP_PATH: sample-apps/react-native/e2e-test-app/ios/build/detox/Build/Products/Release-iphonesimulator/VideoE2ETestApp.app
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+          cache: 'yarn'
+      - name: Select Xcode version
+        run: sudo xcode-select --switch /Applications/Xcode_${XCODE_VERSION}.app
+      # A fresh simulator takes minutes to boot on CI; boot it now so that overlaps with setup.
+      - name: Boot simulator
+        run: |
+          runtime="com.apple.CoreSimulator.SimRuntime.iOS-${IOS_VERSION//./-}"
+          udid=$(xcrun simctl list devices available -j |
+            jq -r --arg rt "$runtime" --arg name "$DETOX_IOS_DEVICE" '.devices[$rt][]? | select(.name == $name) | .udid' | head -1)
+          if [ -z "$udid" ]; then
+            echo "::warning::No $DETOX_IOS_DEVICE on iOS $IOS_VERSION; Detox will pick and boot a simulator itself"
+            exit 0
+          fi
+          echo "DETOX_IOS_UDID=$udid" >> "$GITHUB_ENV"
+          nohup xcrun simctl boot "$udid" > /dev/null 2>&1 &
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+          working-directory: sample-apps/react-native/dogfood
+          bundler-cache: true
+
+      # --- JS dependencies ---
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      # --- App binary: rebuilt only when the app or SDK sources change, not for test-only changes ---
+      - name: Restore app
+        id: app
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.APP_PATH }}
+          key: e2e-ios-app-xcode${{ env.XCODE_VERSION }}-${{ hashFiles('yarn.lock', 'packages/client/src/**', 'packages/client/package.json', 'packages/react-bindings/src/**', 'packages/react-bindings/package.json', 'packages/react-native-sdk/src/**', 'packages/react-native-sdk/package.json', 'packages/react-native-sdk/ios/**', 'packages/react-native-sdk/*.podspec', 'sample-apps/react-native/dogfood/Gemfile.lock', 'sample-apps/react-native/e2e-test-app/*.js', '!sample-apps/react-native/e2e-test-app/.detoxrc.js', 'sample-apps/react-native/e2e-test-app/*.json', 'sample-apps/react-native/e2e-test-app/*.tsx', 'sample-apps/react-native/e2e-test-app/src/**', 'sample-apps/react-native/e2e-test-app/ios/**', '!sample-apps/react-native/e2e-test-app/ios/build/**', '!sample-apps/react-native/e2e-test-app/ios/Pods/**') }}
+      - name: Build SDK packages
+        if: steps.app.outputs.cache-hit != 'true'
+        run: yarn build:react-native:deps
+      - name: Set up ccache
+        if: steps.app.outputs.cache-hit != 'true'
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: e2e-ios-xcode${{ env.XCODE_VERSION }}
+          max-size: 1500M
+      - name: Point the RN ccache wrappers at ccache
+        if: steps.app.outputs.cache-hit != 'true'
+        # RN's ccache-clang.sh runs `$CCACHE_BINARY clang`, but Xcode doesn't export that build
+        # setting to the compiler, so without this every compile silently skips ccache.
+        run: echo "CCACHE_BINARY=$(which ccache)" >> "$GITHUB_ENV"
+      - name: Cache pods
+        if: steps.app.outputs.cache-hit != 'true'
+        uses: actions/cache@v6
+        with:
+          path: sample-apps/react-native/e2e-test-app/ios/Pods
+          key: ${{ runner.os }}-e2e-pods-${{ hashFiles('sample-apps/react-native/e2e-test-app/ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-e2e-pods-
+      - name: Install pods
+        if: steps.app.outputs.cache-hit != 'true'
+        working-directory: sample-apps/react-native/dogfood
+        run: USE_CCACHE=1 bundle exec fastlane e2e_pod_install
+      - name: Build app
+        if: steps.app.outputs.cache-hit != 'true'
+        working-directory: sample-apps/react-native/e2e-test-app
+        run: yarn e2e:build -c ios.sim.release
+      - name: Save app
+        if: steps.app.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.APP_PATH }}
+          key: ${{ steps.app.outputs.cache-primary-key }}
+
+      # --- Test tooling ---
+      - name: Install applesimutils
+        # Homebrew refuses formulae from non-official taps until they are trusted.
+        run: brew tap wix/brew && brew trust --formula wix/brew/applesimutils && brew install wix/brew/applesimutils
+      - name: Restore Detox framework
+        id: detox-framework
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/Library/Detox
+          key: ${{ runner.os }}-detox-framework-xcode${{ env.XCODE_VERSION }}-${{ hashFiles('yarn.lock') }}
+      # Yarn's `enableScripts: false` skips Detox's postinstall, which would build this.
+      - name: Build Detox framework
+        if: steps.detox-framework.outputs.cache-hit != 'true'
+        working-directory: sample-apps/react-native/e2e-test-app
+        run: yarn detox build-framework-cache
+      - name: Save Detox framework
+        if: steps.detox-framework.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/Library/Detox
+          key: ${{ steps.detox-framework.outputs.cache-primary-key }}
+      - name: Cache stream-video-buddy's browser
+        uses: actions/cache@v6
+        with:
+          path: ~/Library/Caches/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+
+      - name: Wait for the simulator
+        if: env.DETOX_IOS_UDID != ''
+        timeout-minutes: 15
+        # `-b` boots it if the background boot never started; it errors (405) when the device is
+        # already booted, and then the plain call returns at once.
+        run: xcrun simctl bootstatus "$DETOX_IOS_UDID" -b || xcrun simctl bootstatus "$DETOX_IOS_UDID"
+      - name: Run e2e tests
+        working-directory: sample-apps/react-native/dogfood
+        run: bundle exec fastlane test_e2e platform:ios skip_build:true
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: e2e-ios-logs
+          path: |
+            sample-apps/react-native/e2e-test-app/artifacts
+            sample-apps/react-native/e2e-test-app/recordings
+            sample-apps/react-native/e2e-test-app/video-buddy-*.log
+
+  android:
+    needs: check
+    if: needs.check.outputs.required == 'true' && (github.event_name != 'workflow_dispatch' || inputs.android)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      # Same as the native Android SDK e2e jobs, which run stably on these runners. No camera: with an
+      # emulated one, `call.join()` sometimes never resolves (see the e2e README).
+      ANDROID_API_LEVEL: '36'
+      ANDROID_EMULATOR_OPTIONS: -no-snapshot-save -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -camera-front none
+      DETOX_ADB_NAME: 'emulator-5554'
+      APK_PATHS: |
+        sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk/release/app-release.apk
+        sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk
+      # The emulator is x86_64: skip compiling native code for the other ABIs.
+      ORG_GRADLE_PROJECT_reactNativeArchitectures: x86_64
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+          cache: 'yarn'
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+      # Caches Gradle's dependencies, wrapper and build cache. It only writes on the default branch by
+      # default, and this workflow doesn't run there, so let PR runs write: their reruns reuse it.
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+          working-directory: sample-apps/react-native/dogfood
+          bundler-cache: true
+
+      # --- JS dependencies ---
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      # --- App binaries: rebuilt only when the app or SDK sources change, not for test-only changes ---
+      - name: Restore APKs
+        id: apk
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.APK_PATHS }}
+          key: e2e-android-apk-${{ hashFiles('yarn.lock', 'packages/client/src/**', 'packages/client/package.json', 'packages/react-bindings/src/**', 'packages/react-bindings/package.json', 'packages/react-native-sdk/src/**', 'packages/react-native-sdk/package.json', 'packages/react-native-sdk/android/**', '!packages/react-native-sdk/android/build/**', 'sample-apps/react-native/e2e-test-app/*.js', '!sample-apps/react-native/e2e-test-app/.detoxrc.js', 'sample-apps/react-native/e2e-test-app/*.json', 'sample-apps/react-native/e2e-test-app/*.tsx', 'sample-apps/react-native/e2e-test-app/src/**', 'sample-apps/react-native/e2e-test-app/android/**', '!sample-apps/react-native/e2e-test-app/android/**/build/**', '!sample-apps/react-native/e2e-test-app/android/.gradle/**') }}
+      - name: Build SDK packages
+        if: steps.apk.outputs.cache-hit != 'true'
+        run: yarn build:react-native:deps
+      # Built before the emulator boots so the emulator doesn't idle through the Gradle build.
+      - name: Build app
+        if: steps.apk.outputs.cache-hit != 'true'
+        working-directory: sample-apps/react-native/e2e-test-app
+        run: yarn e2e:build -c android.att.release
+      - name: Save APKs
+        if: steps.apk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.APK_PATHS }}
+          key: ${{ steps.apk.outputs.cache-primary-key }}
+      # Frees the daemons' memory for the emulator, which otherwise can get killed mid-run.
+      - name: Stop Gradle daemons
+        if: steps.apk.outputs.cache-hit != 'true'
+        working-directory: sample-apps/react-native/e2e-test-app/android
+        run: ./gradlew --stop
+
+      # --- Emulator: same setup as the native Android SDK's e2e jobs (AOSP image, no Play services) ---
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # --- Test tooling ---
+      - name: Cache stream-video-buddy's browser
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+
+      - name: Run e2e tests (Android emulator)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ env.ANDROID_API_LEVEL }}
+          arch: x86_64
+          profile: pixel
+          emulator-options: ${{ env.ANDROID_EMULATOR_OPTIONS }}
+          disable-animations: true
+          working-directory: sample-apps/react-native/dogfood
+          script: bundle exec fastlane test_e2e platform:android device:att skip_build:true
+      # The emulator has vanished mid-run without any output; this shows whether the kernel killed it.
+      - name: Diagnose emulator
+        if: failure()
+        run: |
+          sudo dmesg -T | grep -i -E 'out of memory|oom-kill|killed process' || echo "No OOM kills in dmesg"
+          free -m
+          df -h
+          ls -la /tmp/android-runner 2>/dev/null || true
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: e2e-android-logs
+          path: |
+            sample-apps/react-native/e2e-test-app/artifacts
+            sample-apps/react-native/e2e-test-app/recordings
+            sample-apps/react-native/e2e-test-app/video-buddy-*.log
+            /tmp/android-runner
+
+  result:
+    name: Test E2E Result
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - check
+      - android
+    steps:
+      - name: Check E2E results
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo "$NEEDS"
+          exit 1
+        env:
+          NEEDS: ${{ toJson(needs) }}
