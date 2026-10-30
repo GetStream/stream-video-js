@@ -82,6 +82,7 @@ import {
   ClientPublishOptions,
   ClosedCaptionsSettings,
   JoinCallData,
+  StreamRNVideoSDKAudioSessionPrepareResult,
   TrackMuteType,
   VideoTrackType,
 } from './types';
@@ -1586,9 +1587,24 @@ export class Call {
       this.state.settings &&
       !supersededByLeave()
     ) {
+      // the native default device must be set before the audio session is
+      // activated (prepare); the native setter rejects it afterwards
+      await this.speaker
+        .apply(this.state.settings)
+        .catch((err) => this.logger.warn('Speaker init failed', err));
+      if (supersededByLeave()) {
+        this.logger.debug('Join superseded by leave; not completing join flow');
+        return;
+      }
+      await this.prepareAudioSessionForPublish();
+      if (supersededByLeave()) {
+        // leave() already stopped what prepare started (callManagerStarted)
+        this.logger.debug('Join superseded by leave; not completing join flow');
+        return;
+      }
       await this.applyDeviceConfig(this.state.settings, {
         publish: true,
-        skipSpeakerApply: false,
+        skipSpeakerApply: true,
       });
       this.deviceSettingsAppliedOnce = true;
     }
@@ -1644,6 +1660,34 @@ export class Call {
       previousSessionId: performingRejoin ? previousSessionId || '' : '',
       reason: this.reconnectReason,
     };
+  };
+
+  /**
+   * React Native (iOS, non-callingx): activates the audio session before the
+   * first publish, so the ADM never starts the engine on an inactive session.
+   * The call manager starts synchronously, so it counts as started before the
+   * wait: a leave() during the wait stops it. A failure is logged and never
+   * blocks the join; a synchronous throw leaves the join-time start to run.
+   */
+  private prepareAudioSessionForPublish = async (): Promise<void> => {
+    const callManager = globalThis.streamRNVideoSDK?.callManager;
+    let wait: Promise<StreamRNVideoSDKAudioSessionPrepareResult> | undefined;
+    try {
+      wait = callManager?.prepareAudioSessionForPublish?.({
+        isRingingTypeCall: this.ringing,
+        cid: this.cid,
+      });
+    } catch (err) {
+      this.logger.warn('Failed to prepare the audio session', err);
+      return;
+    }
+    if (!wait) return;
+    this.callManagerStarted = true;
+    try {
+      this.tracer.trace('ios.audioSession.prepare', await wait);
+    } catch (err) {
+      this.logger.warn('Failed to prepare the audio session', err);
+    }
   };
 
   /**
@@ -1913,6 +1957,34 @@ export class Call {
     ).catch((err) => {
       this.logger.warn('[Reconnect] Error reconnecting', err);
     });
+  };
+
+  /**
+   * Rejoins the call to rebuild the media stack, the last resort of the
+   * React Native SDK when the iOS audio engine can't be restarted.
+   * Skipped (returns `false`) when the call isn't JOINED, a reconnect is
+   * already pending, or the rejoin rate limiters have no room: the
+   * reconnect would then leave the call, which is worse than a dead mic.
+   *
+   * @internal
+   * @returns `true` if the rejoin started.
+   */
+  rejoinForAudioEngineRecovery = (): boolean => {
+    if (
+      this.state.callingState !== CallingState.JOINED ||
+      hasPending(this.reconnectConcurrencyTag) ||
+      !this.rejoinRateLimiter.canRegister() ||
+      this.rejoinLongWindowRateLimiter?.canRegister() === false
+    ) {
+      return false;
+    }
+    this.reconnect(
+      WebsocketReconnectStrategy.REJOIN,
+      'audio_engine_dead',
+    ).catch((err) => {
+      this.logger.warn('[Reconnect] Error rejoining for the audio engine', err);
+    });
+    return true;
   };
 
   /**

@@ -83,7 +83,12 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
             if (ownCapabilities.includes(OwnCapability.SEND_AUDIO)) {
               const hasPermission = await this.hasPermission(permissionState);
-              if (hasPermission && this.state.status !== 'enabled') {
+              // RN also checks the intent: a mic enabled before the join is
+              // published only after JOINED
+              const isMuted =
+                this.state.status !== 'enabled' &&
+                !(isReactNative() && this.state.optimisticStatus === 'enabled');
+              if (hasPermission && isMuted) {
                 this.setMutedRecordingPrepared(true);
                 await this.startSpeakingWhileMutedDetection(deviceId);
               } else {

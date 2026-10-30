@@ -126,5 +126,8 @@
     "sharp": {
       "built": true
     }
+  },
+  "resolutions": {
+    "@stream-io/react-native-webrtc": "portal:../stream-react-native-webrtc"
   }
 }

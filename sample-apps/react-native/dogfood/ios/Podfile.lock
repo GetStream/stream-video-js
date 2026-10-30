@@ -2551,7 +2551,7 @@ PODS:
     - Yoga
   - stream-react-native-webrtc (145.4.1):
     - React-Core
-    - StreamWebRTC (= 145.17.0)
+    - StreamWebRTC (= 145.25.0)
   - stream-video-react-native (2.0.0-beta.4):
     - hermes-engine
     - RCTRequired
@@ -2577,7 +2577,7 @@ PODS:
     - stream-react-native-webrtc
     - Yoga
   - StreamVideoNoiseCancellation (1.0.3)
-  - StreamWebRTC (145.17.0)
+  - StreamWebRTC (145.25.0)
   - Teleport (1.2.2):
     - hermes-engine
     - RCTRequired
@@ -3103,10 +3103,10 @@ SPEC CHECKSUMS:
   stream-chat-react-native: af8a3112345d41d786d3a1aac8a90bd56d4fea0a
   stream-io-noise-cancellation-react-native: 74c55bb936edc77c2a31d0e7d0e65e58a63e5d5b
   stream-io-video-filters-react-native: 7cb63ca2ab10968ee43e94a86a3820773b9872ba
-  stream-react-native-webrtc: 3a18e8ba366d5582e41519bed47cbf77155616e2
+  stream-react-native-webrtc: 163dc1c1022694cbc300f0d865f27c47f5309604
   stream-video-react-native: b3ba96e83ac93c157ab341dde75248a6499150cd
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
-  StreamWebRTC: 8543c52d49cadcbe051582d0b13de01c8085735f
+  StreamWebRTC: c2bdd74ca48acfaad85403371001d0d6f905aad2
   Teleport: bc331d3a973b032ebee62a706e42bfce613f0200
   VisionCamera: 68d40255fa8866e815cbbb063730102d3da276fd
   Yoga: 58b502c52b14ad3c4468805d461fc37d275c2a42

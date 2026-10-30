@@ -25,6 +25,9 @@ const StreamInCallManagerNativeModule = NativeStreamInCallManager;
 
 const CallingxModule = getCallingxLibIfAvailable();
 
+/** Same bound as stream-video-swift's wait for an active session before publishing. */
+const AUDIO_SESSION_ACTIVE_TIMEOUT_MS = 2000;
+
 /**
  * Runs a fire-and-forget native call, logging instead of throwing on a bridge
  * error so it can't crash the caller (e.g. the join/leave flow).
@@ -169,6 +172,24 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       const stereoOutput = config?.audioRole === 'listener';
       StreamInCallManagerNativeModule.setEnableStereoAudioOutput(stereoOutput);
       StreamInCallManagerNativeModule.start();
+    },
+    // iOS non-callingx only: start (configure + activate) the session before the mic is
+    // published, so the ADM never starts the engine on an inactive session. Goes through
+    // the full `start` so the stored audio config is applied first; the client then
+    // skips its join-time `start`. Sync: `undefined` means nothing was started; the
+    // start happens before returning, so the client can count it as started at once.
+    prepareAudioSessionForPublish: (params) => {
+      if (
+        Platform.OS !== 'ios' ||
+        shouldBypassForCallingx({ isRingingTypeCall: params.isRingingTypeCall })
+      ) {
+        return undefined;
+      }
+      streamRNVideoSDKGlobals.callManager.start(params);
+      const startedAt = Date.now();
+      return StreamInCallManagerNativeModule.waitForAudioSessionActive(
+        AUDIO_SESSION_ACTIVE_TIMEOUT_MS,
+      ).then((active) => ({ active, waitedMs: Date.now() - startedAt }));
     },
     stop: ({ isRingingTypeCall, shouldStopCallManager }) => {
       // Clear the stored audio config so it doesn't carry into the next call.

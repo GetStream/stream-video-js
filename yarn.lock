@@ -7176,17 +7176,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/react-native-webrtc@npm:145.4.1":
-  version: 145.4.1
-  resolution: "@stream-io/react-native-webrtc@npm:145.4.1"
+"@stream-io/react-native-webrtc@portal:../stream-react-native-webrtc::locator=%40stream-io%2Fvideo-js-root%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@stream-io/react-native-webrtc@portal:../stream-react-native-webrtc::locator=%40stream-io%2Fvideo-js-root%40workspace%3A."
   dependencies:
     base64-js: "npm:^1.5.1"
     debug: "npm:^4.4.3"
   peerDependencies:
     react-native: ">=0.73.0"
-  checksum: 10/3be1dffd3c284310e54348b91f10ce8d2e3ec3b3cef933a27f271b4acb9ae0498b2a44bfa414e0c97d82706e0e596e5a2c8e5e2c9ce42950e59e8dc08afd9c12
   languageName: node
-  linkType: hard
+  linkType: soft
 
 "@stream-io/state-store@npm:^1.1.6":
   version: 1.1.6
