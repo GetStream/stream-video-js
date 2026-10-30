@@ -572,3 +572,90 @@ describe('StreamSfuClient fast reconnect rejected by the SFU', () => {
     await expect(join).rejects.toThrow(/SFU client disposed/);
   });
 });
+
+describe('StreamSfuClient.probe()', () => {
+  const healthCheckResponse = () => ({
+    eventPayload: {
+      oneofKind: 'healthCheckResponse' as const,
+      healthCheckResponse: {},
+    },
+  });
+
+  /**
+   * Builds a joined client over an open socket. `onPing` runs for every
+   * health check the client sends.
+   */
+  const setup = async (onPing: (respond: () => void) => void) => {
+    const sfuClient = buildSfuClient();
+    const dispatcher = sfuClient['dispatcher'];
+    sfuClient['joinResponseTask'].resolve(fromPartial({}));
+    const ws = CapturingWebSocket.instances.at(-1)!;
+    ws.readyState = CapturingWebSocket.OPEN;
+    ws.emit('open', {});
+    await vi.advanceTimersByTimeAsync(0);
+    const respond = () => dispatcher.dispatch(healthCheckResponse(), 'test');
+    const send = vi.spyOn(ws, 'send').mockImplementation(() => {
+      onPing(respond);
+    });
+    return { sfuClient, send };
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    CapturingWebSocket.instances = [];
+    vi.stubGlobal('WebSocket', CapturingWebSocket);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('passes once every health check is answered, one after another', async () => {
+    const { sfuClient, send } = await setup((respond) => respond());
+
+    await expect(sfuClient.probe(2, 1500)).resolves.toBe(true);
+    expect(send).toHaveBeenCalledTimes(2);
+    sfuClient.close(1000, 'cleanup');
+  });
+
+  it('fails when the SFU does not answer within the budget', async () => {
+    const { sfuClient } = await setup(() => {});
+
+    const probe = sfuClient.probe(2, 1500);
+    await vi.advanceTimersByTimeAsync(1500);
+
+    await expect(probe).resolves.toBe(false);
+    sfuClient.close(1000, 'cleanup');
+  });
+
+  it('does not count a response that was already queued as a round trip', async () => {
+    let pings = 0;
+    const { sfuClient } = await setup((respond) => {
+      pings++;
+      // the first ping meets a stale response plus its own, later pings
+      // go unanswered
+      if (pings === 1) {
+        respond();
+        respond();
+      }
+    });
+
+    const probe = sfuClient.probe(2, 1500);
+    await vi.advanceTimersByTimeAsync(1500);
+
+    await expect(probe).resolves.toBe(false);
+    sfuClient.close(1000, 'cleanup');
+  });
+
+  it('fails right away when the client is closed mid-probe', async () => {
+    const { sfuClient } = await setup(() => {});
+
+    const probe = sfuClient.probe(2, 1500);
+    await vi.advanceTimersByTimeAsync(0);
+    sfuClient.close(1000, 'cleanup');
+
+    await expect(probe).resolves.toBe(false);
+  });
+});

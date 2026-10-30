@@ -1,4 +1,5 @@
 import { videoLoggerSystem } from '../logger';
+import { sharedAudioContext } from './SharedAudioContext';
 
 export type NoAudioDetectorOptions = {
   /**
@@ -119,14 +120,27 @@ const transitionState = (
  * Creates and configures an audio analyzer for the given stream.
  */
 const createAudioAnalyzer = (audioStream: MediaStream, fftSize: number) => {
-  const audioContext = new AudioContext();
-  const analyser = audioContext.createAnalyser();
-  analyser.fftSize = fftSize;
+  const shared = sharedAudioContext.acquire();
+  if (!shared) throw new Error('Web Audio is not supported');
+  const { context: audioContext, release } = shared;
+  let analyser: AnalyserNode;
+  let microphone: MediaStreamAudioSourceNode;
+  try {
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = fftSize;
+    microphone = audioContext.createMediaStreamSource(audioStream);
+    microphone.connect(analyser);
+  } catch (err) {
+    release();
+    throw err;
+  }
 
-  const microphone = audioContext.createMediaStreamSource(audioStream);
-  microphone.connect(analyser);
-
-  return { audioContext, analyser };
+  const dispose = () => {
+    microphone.disconnect();
+    analyser.disconnect();
+    release();
+  };
+  return { audioContext, analyser, dispose };
 };
 
 /**
@@ -147,10 +161,13 @@ export const createNoAudioDetector = (
   } = options;
 
   let state: DetectorState = { kind: 'IDLE' };
-  const { audioContext, analyser } = createAudioAnalyzer(audioStream, fftSize);
+  const { audioContext, analyser, dispose } = createAudioAnalyzer(
+    audioStream,
+    fftSize,
+  );
   const detectionIntervalId = setInterval(() => {
     const [track] = audioStream.getAudioTracks();
-    if (track && !track.enabled) {
+    if ((track && !track.enabled) || audioContext.state !== 'running') {
       state = { kind: 'IDLE' };
       return;
     }
@@ -175,9 +192,7 @@ export const createNoAudioDetector = (
 
   async function stop() {
     clearInterval(detectionIntervalId);
-    if (audioContext.state !== 'closed') {
-      await audioContext.close();
-    }
+    dispose();
   }
 
   return stop;

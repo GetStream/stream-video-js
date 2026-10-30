@@ -117,12 +117,38 @@ describe('MicrophoneManager', () => {
     expect(spy).toHaveBeenCalledWith(mockAudioDevices);
   });
 
+  it('uses the capture window for future captures and supports resetting it', async () => {
+    const mediaDevices = {} as MediaDevices;
+    const win = {
+      closed: false,
+      document: { hasFocus: () => true },
+      navigator: { mediaDevices },
+    } as unknown as Window;
+    manager.setCaptureWindow(win);
+    await manager.enable();
+    expect(getAudioStream).toHaveBeenLastCalledWith(
+      expect.any(Object),
+      expect.any(Tracer),
+      mediaDevices,
+    );
+
+    await manager.disable({ forceStop: true });
+    manager.setCaptureWindow(undefined);
+    await manager.enable();
+    expect(getAudioStream).toHaveBeenLastCalledWith(
+      expect.any(Object),
+      expect.any(Tracer),
+      undefined,
+    );
+  });
+
   it('get stream', async () => {
     await manager.enable();
 
     expect(getAudioStream).toHaveBeenCalledWith(
       { deviceId: undefined },
       expect.any(Tracer),
+      undefined,
     );
   });
 
@@ -528,6 +554,7 @@ describe('MicrophoneManager', () => {
         expect(getAudioStream).toHaveBeenCalledWith(
           expect.objectContaining({ deviceId: { exact: 'other-mic' } }),
           expect.any(Tracer),
+          undefined,
         );
       });
 
@@ -595,6 +622,7 @@ describe('MicrophoneManager', () => {
       expect(getAudioStream).toHaveBeenLastCalledWith(
         expect.objectContaining({ noiseSuppression: false }),
         expect.any(Tracer),
+        undefined,
       );
 
       vi.mocked(getAudioStream).mockClear();
@@ -943,6 +971,7 @@ describe('MicrophoneManager', () => {
       expect(getAudioStream).toHaveBeenCalledWith(
         { deviceId: { exact: deviceId } },
         expect.any(Tracer),
+        undefined,
       );
     });
 
@@ -963,6 +992,26 @@ describe('MicrophoneManager', () => {
       await vi.waitFor(() => {
         expect(cleanupFn).toHaveBeenCalled();
       });
+    });
+    it('should return false once the test time is up twice over when the detector stays silent', async () => {
+      vi.useFakeTimers();
+      try {
+        const mock = vi.mocked(createNoAudioDetector);
+        const cleanupFn = vi.fn(async () => {});
+        mock.mockImplementationOnce(() => cleanupFn);
+
+        const result = manager.performTest('test-device-id', {
+          testDurationMs: 1000,
+        });
+        await vi.advanceTimersByTimeAsync(1999);
+        expect(cleanupFn).not.toHaveBeenCalled();
+        await vi.advanceTimersByTimeAsync(1);
+
+        await expect(result).resolves.toBe(false);
+        expect(cleanupFn).toHaveBeenCalledTimes(1);
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 

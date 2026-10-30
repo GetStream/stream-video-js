@@ -36,6 +36,8 @@
   "chat.empty.startChatting.title": "Chatte los!",
   "chat.loading.text": "Chat wird geladen...",
   "chat.panel.title": "Chat",
+  "chat.unavailable.failed.title": "Der Chat konnte nicht geladen werden.",
+  "chat.unavailable.retry.label": "Erneut versuchen",
   "closedCaptions.queue.title": "Untertitel-Warteschlange",
   "closedCaptions.toggle.title": "Untertitel umschalten",
   "common.brand.demo.text": "Demo",

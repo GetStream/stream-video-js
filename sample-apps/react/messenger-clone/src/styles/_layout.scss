@@ -44,24 +44,12 @@ body {
 }
 
 .str-chat__channel {
-  flex: 1;
-  min-width: 0;
   --str-chat__message-composer-max-width: 768px;
-
-  // TODO: remove once fixed in stream-chat-react
-  .str-chat__message-list-scroll {
-    width: 100%;
-  }
 }
 
-.str-chat__main-panel {
-  min-width: 0;
-  flex: 1;
-}
-
-.str-chat__thread-container {
-  width: 100%;
-  height: 100%;
+// stream-chat-react v15 defaults the thread list to the full view width
+.str-chat__chat-view__threads .str-chat__thread-list-container {
+  --str-chat__thread-list-width: 30%;
 }
 
 .str-chat__channel-header .str-chat__channel-header__data {

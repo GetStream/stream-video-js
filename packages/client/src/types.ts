@@ -301,6 +301,11 @@ export type ScreenShareSettings = {
    * Defaults to '' (no hint, browser's default behavior).
    * Use 'motion' for video content, 'detail' for presentations or documents, and 'text' for text-heavy content.
    *
+   * The hint also decides what the encoder gives up when bandwidth is short:
+   * 'motion' keeps the frame rate and lowers the resolution, while 'detail'
+   * and 'text' keep the resolution and lower the frame rate. Without a hint,
+   * the screen share keeps its resolution.
+   *
    * Please read the documentation for more information on content hints:
    * - https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/contentHint
    */

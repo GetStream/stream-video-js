@@ -5,8 +5,10 @@ export type PlatformSupportFlags = {
   forceMobileSupport?: boolean;
 
   /**
-   * Forces support for Safari, although in cases where the tab is put in the background,
-   * the FPS can drop significantly or freeze completely due to intensive timer throttling.
+   * Enables Safari. On Safari 18+ the effect runs in a worker, which keeps
+   * the frame rate in background tabs but requires `worker-src blob:` in the
+   * Content-Security-Policy. Older versions process on the main thread,
+   * where the FPS drops or freezes when the tab goes to the background.
    */
   forceSafariSupport?: boolean;
 };

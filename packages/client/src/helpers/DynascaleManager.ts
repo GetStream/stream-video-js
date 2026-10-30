@@ -21,13 +21,13 @@ import {
   MediaPlaybackWatchdog,
   type MediaPlaybackWatchdogOptions,
 } from './MediaPlaybackWatchdog';
-import { watchMediaInterruptions } from './mediaInterruptions';
 import { SilentAudioPlayer } from './SilentAudioPlayer';
+import { sharedAudioContext } from './SharedAudioContext';
 import type {
   PausedTrackFilter,
   TrackSubscriptionManager,
 } from './TrackSubscriptionManager';
-import { isFirefox, isSafari } from './browsers';
+import { isFirefox, isIOS, isSafari } from './browsers';
 import { hasScreenShare, hasVideo } from './participantUtils';
 import { CallState } from '../store';
 import { SpeakerManager } from '../devices';
@@ -55,9 +55,14 @@ export class DynascaleManager {
   private useWebAudio = false;
   private audioContext: AudioContext | undefined;
   private playbackWatchdogs = new Set<MediaPlaybackWatchdog>();
-  private stopWatchingInterruptions: (() => void) | undefined;
-  private stopTracingAudioSession: (() => void) | undefined;
   private silentAudioPlayer: SilentAudioPlayer;
+  private restartOnRearm = false;
+  private restartTimer: ReturnType<typeof setTimeout> | undefined;
+  private silentAudioResumeTimer: ReturnType<typeof setTimeout> | undefined;
+  private stopWatchingGestures: (() => void) | undefined;
+  private stopWatchingAudioInterruptions: (() => void) | undefined;
+  private stopTracingAudioContext: (() => void) | undefined;
+  private stopWatchingVisibility: (() => void) | undefined;
 
   private trackSubscriptionManager: TrackSubscriptionManager;
   private blockedAudioTracker: BlockedAudioTracker;
@@ -95,10 +100,6 @@ export class DynascaleManager {
   dispose = async () => {
     this.stopAwaitingResume();
     for (const release of this.freshFrameWaits.values()) release();
-    this.stopWatchingInterruptions?.();
-    this.stopWatchingInterruptions = undefined;
-    this.stopTracingAudioSession?.();
-    this.stopTracingAudioSession = undefined;
     this.releaseAudioPlaybackUnlock();
     const context = this.audioContext;
     if (context && context.state !== 'closed') {
@@ -109,20 +110,46 @@ export class DynascaleManager {
   };
 
   /**
-   * Keeps a silent audio element playing on iOS, so remote audio can
-   * autoplay later without another user gesture. Call it from a user gesture
-   * or while audio is playing; it is a no-op on other platforms.
+   * Keeps a silent audio element playing on iOS, so remote audio can autoplay
+   * later without another user gesture, and recovers remote audio after
+   * audio interruptions. On iOS and desktop Safari, the next tap plays any
+   * paused remote audio. Call it from a user gesture or while audio is
+   * playing. On every platform it traces the shared audio context.
    */
   keepAudioPlaybackUnlocked = () => {
+    this.stopTracingAudioContext ??= sharedAudioContext.addTracer(this.tracer);
     this.silentAudioPlayer.play();
+    if (isIOS()) {
+      this.stopWatchingAudioInterruptions ??=
+        sharedAudioContext.watchInterruptions(this.onAudioInterruptionChange);
+      this.watchPageVisibility();
+    }
+    if (isIOS() || isSafari()) this.watchGestures();
   };
 
   /**
-   * Stops the silent audio element started by {@link keepAudioPlaybackUnlocked}.
+   * Stops the silent audio element and the watchers started by
+   * {@link keepAudioPlaybackUnlocked}.
    */
   releaseAudioPlaybackUnlock = () => {
-    // closing the audio context needs no waiting: the element is already gone
-    void this.silentAudioPlayer.dispose();
+    this.stopWatchingVisibility?.();
+    this.stopWatchingVisibility = undefined;
+    this.stopTracingAudioContext?.();
+    this.stopTracingAudioContext = undefined;
+    this.stopWatchingAudioInterruptions?.();
+    this.stopWatchingAudioInterruptions = undefined;
+    this.stopWatchingGestures?.();
+    this.stopWatchingGestures = undefined;
+    this.restartOnRearm = false;
+    if (this.restartTimer) {
+      this.playbackWatchdogs.forEach((watchdog) => {
+        if (watchdog.kind === 'audio') watchdog.playNow();
+      });
+    }
+    this.clearRestartTimer();
+    clearTimeout(this.silentAudioResumeTimer);
+    this.silentAudioResumeTimer = undefined;
+    this.silentAudioPlayer.dispose();
   };
 
   /**
@@ -418,7 +445,6 @@ export class DynascaleManager {
   ) => {
     const participant = this.callState.findParticipantBySessionId(sessionId);
     if (!participant || participant.isLocalParticipant) return;
-    this.traceAudioSessionState();
 
     const participant$ = this.callState.participants$.pipe(
       map((ps) => ps.find((p) => p.sessionId === sessionId)),
@@ -537,6 +563,14 @@ export class DynascaleManager {
                   sessionId,
                 );
               },
+              onPlayBlocked: () => {
+                blockedByGiveUp = false;
+                this.blockedAudioTracker.markBlocked(
+                  audioElement,
+                  true,
+                  sessionId,
+                );
+              },
             });
           }
 
@@ -602,11 +636,14 @@ export class DynascaleManager {
    * interruption (backgrounding, phone call, Siri) ends.
    */
   private createPlaybackWatchdog = (opts: MediaPlaybackWatchdogOptions) => {
-    const watchdog = new MediaPlaybackWatchdog(opts);
+    const watchdog = new MediaPlaybackWatchdog({
+      ...opts,
+      isInterrupted: this.isPlaybackInterrupted,
+      retryOnPause: !isIOS(),
+      rearmDelay: isIOS() ? 1000 : 0,
+    });
     this.playbackWatchdogs.add(watchdog);
-    this.stopWatchingInterruptions ??= watchMediaInterruptions(
-      this.rearmPlayback,
-    );
+    this.watchPageVisibility();
     return watchdog;
   };
 
@@ -616,26 +653,134 @@ export class DynascaleManager {
     this.playbackWatchdogs.delete(watchdog);
   };
 
-  private rearmPlayback = () => {
-    this.tracer.trace('mediaPlayback.rearm', this.playbackWatchdogs.size);
-    this.playbackWatchdogs.forEach((watchdog) => watchdog.rearm());
+  /**
+   * On iOS, a `play()` during an interruption (a phone call, an alarm,
+   * another app holding the audio session, a hidden page) either takes the
+   * session from that app or leaves the element silent, so recovery waits.
+   */
+  private isPlaybackInterrupted = () =>
+    isIOS() && (sharedAudioContext.isInterrupted() || document.hidden);
+
+  /**
+   * After a phone call or an alarm, WebKit may resume a remote element whose
+   * audio output failed to start, so the next rearm restarts every element.
+   * An interruption that ends while the page stays visible produces no
+   * visibility change, so its end re-arms playback itself.
+   */
+  private onAudioInterruptionChange = (
+    interrupted: boolean,
+    state: AudioContextState,
+  ) => {
+    this.tracer.trace('audioContext.interruption', { interrupted, state });
+    if (interrupted) {
+      this.restartOnRearm = true;
+      return;
+    }
+    if (!document.hidden) this.rearmPlayback();
   };
 
   /**
-   * Traces the WebKit audio session state (initial value and changes) in
-   * both playback modes, as it explains most iOS playback interruptions.
+   * Returning to the page ends the interruptions a hidden page causes.
    */
-  private traceAudioSessionState = () => {
-    const audioSession = navigator.audioSession;
-    if (!audioSession || this.stopTracingAudioSession) return;
-    const trace = () => {
-      this.tracer.trace('audioSession.state', audioSession.state);
+  private watchPageVisibility = () => {
+    if (this.stopWatchingVisibility) return;
+    const controller = new AbortController();
+    document.addEventListener('visibilitychange', this.onPageVisibilityChange, {
+      signal: controller.signal,
+    });
+    this.stopWatchingVisibility = () => controller.abort();
+  };
+
+  private onPageVisibilityChange = () => {
+    if (!document.hidden) return this.rearmPlayback();
+    if (isIOS()) this.silentAudioPlayer.pause();
+  };
+
+  /**
+   * Audio rejected outside a user gesture starts on the next one: the silent
+   * element and any paused or autoplay-blocked remote audio. A tap on the
+   * visible page means the user is back, so it also lifts an interruption
+   * WebKit never ended. A pending restart waits for the shared context to
+   * run again. Skipped while a restart is in progress, which plays the
+   * elements itself.
+   */
+  private watchGestures = () => {
+    if (this.stopWatchingGestures) return;
+    const onGesture = () => {
+      if (document.hidden || this.restartTimer) return;
+      sharedAudioContext.clearInterruption();
+      this.silentAudioPlayer.resume();
+      this.playbackWatchdogs.forEach((watchdog) => {
+        if (watchdog.kind === 'audio') watchdog.playOnGesture();
+      });
     };
-    trace();
-    audioSession.addEventListener('statechange', trace);
-    this.stopTracingAudioSession = () => {
-      audioSession.removeEventListener('statechange', trace);
-    };
+    const controller = new AbortController();
+    const options = { capture: true, passive: true, signal: controller.signal };
+    ['click', 'touchend', 'keydown'].forEach((type) =>
+      document.addEventListener(type, onGesture, options),
+    );
+    this.stopWatchingGestures = () => controller.abort();
+  };
+
+  private rearmPlayback = () => {
+    const restart = this.restartOnRearm && sharedAudioContext.isRunning();
+    sharedAudioContext.clearInterruption();
+    this.tracer.trace('mediaPlayback.rearm', {
+      count: this.playbackWatchdogs.size,
+      restart,
+    });
+    if (restart) {
+      this.clearRestartTimer();
+      clearTimeout(this.silentAudioResumeTimer);
+      this.silentAudioResumeTimer = undefined;
+      this.restartTimer = setTimeout(this.restartAudioPlayback, 1000);
+    } else if (isIOS()) {
+      clearTimeout(this.silentAudioResumeTimer);
+      this.silentAudioResumeTimer = setTimeout(() => {
+        this.silentAudioResumeTimer = undefined;
+        if (!this.isPlaybackInterrupted()) this.silentAudioPlayer.resume();
+      }, 1000);
+    }
+    this.playbackWatchdogs.forEach((watchdog) => {
+      if (restart && watchdog.kind === 'audio') return watchdog.cancel();
+      watchdog.rearm();
+    });
+  };
+
+  /**
+   * After a phone call or an alarm, WebKit may resume remote audio whose
+   * output failed to start, and only rebuilds that output once every
+   * MediaStream audio element of the page has stopped: they all share one
+   * output unit. So the silent element and every remote audio element
+   * pause together, then play again. A hidden page or a new interruption
+   * keeps the restart pending for the next rearm.
+   */
+  private restartAudioPlayback = () => {
+    this.restartTimer = undefined;
+    if (this.isPlaybackInterrupted()) return;
+    this.restartOnRearm = false;
+    const watchdogs = [...this.playbackWatchdogs].filter(
+      (watchdog) => watchdog.kind === 'audio',
+    );
+
+    this.tracer.trace('mediaPlayback.restart', { count: watchdogs.length });
+    this.silentAudioPlayer.hold();
+    watchdogs.forEach((watchdog) => watchdog.pauseForRestart());
+    this.restartTimer = setTimeout(() => {
+      watchdogs.forEach((watchdog) => watchdog.playNow());
+      this.restartTimer = setTimeout(() => {
+        this.restartTimer = undefined;
+        this.silentAudioPlayer.release();
+        if (!this.isPlaybackInterrupted()) this.silentAudioPlayer.resume();
+      }, 500);
+    }, 100);
+  };
+
+  private clearRestartTimer = () => {
+    if (!this.restartTimer) return;
+    clearTimeout(this.restartTimer);
+    this.restartTimer = undefined;
+    this.silentAudioPlayer.release();
   };
 
   private getOrCreateAudioContext = (): AudioContext | undefined => {
@@ -657,16 +802,6 @@ export class DynascaleManager {
     if (audioSession) {
       // https://github.com/w3c/audio-session/blob/main/explainer.md
       audioSession.type = 'play-and-record';
-
-      let isSessionInterrupted = false;
-      audioSession.addEventListener('statechange', () => {
-        if (audioSession.state === 'interrupted') {
-          isSessionInterrupted = true;
-        } else if (isSessionInterrupted) {
-          this.resumeAudioContext();
-          isSessionInterrupted = false;
-        }
-      });
     }
     return (this.audioContext = context);
   };

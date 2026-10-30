@@ -136,6 +136,21 @@ describe('ScreenShareManager', () => {
     );
   });
 
+  it('publishes screen share stream with the content hint', async () => {
+    const call = manager['call'];
+    call.state.setCallingState(CallingState.JOINED);
+    manager.setSettings({ contentHint: 'motion' });
+    await manager.enable();
+    expect(call.publish).toHaveBeenCalledWith(
+      manager.state.mediaStream,
+      TrackType.SCREEN_SHARE,
+      {
+        audioBitrateProfile: AudioBitrateProfile.MUSIC_HIGH_QUALITY,
+        contentHint: 'motion',
+      },
+    );
+  });
+
   it('stop publish stream', async () => {
     const call = manager['call'];
     call.state.setCallingState(CallingState.JOINED);
