@@ -43,7 +43,7 @@ export type UseLobbyCallResult = {
 const outputSampleRate = () => {
   const ctx = new AudioContext();
   const rate = ctx.sampleRate;
-  ctx.close().catch(() => {});
+  ctx.close().catch(console.error);
   return rate;
 };
 
