@@ -657,6 +657,153 @@ describe('DynascaleManager', () => {
       expect(play).not.toHaveBeenCalled();
     });
 
+    it('video: resolves a bound element to its participant track until unbound', () => {
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [TrackType.SCREEN_SHARE],
+      });
+
+      const cleanup = dynascaleManager.bindVideoElement(
+        videoElement,
+        'session-id',
+        'screenShareTrack',
+      );
+      expect(dynascaleManager.findBoundVideo(videoElement)).toEqual({
+        sessionId: 'session-id',
+        trackType: 'screenShareTrack',
+      });
+      expect(
+        dynascaleManager.findBoundVideo(document.createElement('video')),
+      ).toBeUndefined();
+
+      cleanup?.();
+      expect(dynascaleManager.findBoundVideo(videoElement)).toBeUndefined();
+    });
+
+    describe('video: resuming after a pause while hidden', () => {
+      let frameCallbacks: VideoFrameRequestCallback[];
+      let hidden: boolean;
+      let notify: () => void;
+      let stopWatching: () => void;
+
+      const isPaused = () => {
+        let paused: boolean | undefined;
+        call.trackSubscriptionManager.incomingVideoSettings$
+          .subscribe((settings) => {
+            paused = settings.isParticipantVideoPaused('session-id');
+          })
+          .unsubscribe();
+        return paused;
+      };
+      const setHidden = (next: boolean) => {
+        hidden = next;
+        notify();
+      };
+      const presentFrame = (receiveTime: number) => {
+        const callback = frameCallbacks.shift()!;
+        callback(performance.now(), {
+          receiveTime,
+        } as VideoFrameCallbackMetadata);
+      };
+
+      beforeEach(() => {
+        vi.useFakeTimers();
+        frameCallbacks = [];
+        videoElement.requestVideoFrameCallback = vi.fn((callback) => {
+          frameCallbacks.push(callback);
+          return frameCallbacks.length;
+        });
+        videoElement.cancelVideoFrameCallback = vi.fn();
+        // @ts-expect-error incomplete data
+        call.state.updateOrAddParticipant('session-id', {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          publishedTracks: [TrackType.VIDEO],
+        });
+        hidden = false;
+        stopWatching = call.trackSubscriptionManager.watchVisibility({
+          getVisibility: () => ({ hidden }),
+          watch: (onChange) => {
+            notify = onChange;
+            return () => {};
+          },
+        });
+        setHidden(true);
+        vi.advanceTimersByTime(3000);
+      });
+
+      afterEach(() => {
+        stopWatching();
+        vi.useRealTimers();
+      });
+
+      it('reports the video as paused until a frame received after the resume renders', () => {
+        const cleanup = dynascaleManager.bindVideoElement(
+          videoElement,
+          'session-id',
+          'videoTrack',
+        );
+        expect(isPaused()).toBe(true);
+
+        const resumedAt = performance.now();
+        setHidden(false);
+        expect(isPaused()).toBe(true);
+
+        // the frame shown before the pause
+        presentFrame(resumedAt - 100);
+        expect(isPaused()).toBe(true);
+        expect(frameCallbacks).toHaveLength(1);
+
+        presentFrame(performance.now() + 100);
+        expect(isPaused()).toBe(false);
+        cleanup?.();
+      });
+
+      it('stops waiting for a fresh frame after 2 seconds', () => {
+        const cleanup = dynascaleManager.bindVideoElement(
+          videoElement,
+          'session-id',
+          'videoTrack',
+        );
+        setHidden(false);
+        vi.advanceTimersByTime(1999);
+        expect(isPaused()).toBe(true);
+
+        vi.advanceTimersByTime(1);
+        expect(isPaused()).toBe(false);
+        expect(videoElement.cancelVideoFrameCallback).toHaveBeenCalled();
+        cleanup?.();
+      });
+
+      it('stops waiting for a fresh frame when the element is unbound', () => {
+        const cleanup = dynascaleManager.bindVideoElement(
+          videoElement,
+          'session-id',
+          'videoTrack',
+        );
+        setHidden(false);
+        expect(isPaused()).toBe(true);
+
+        cleanup?.();
+        expect(isPaused()).toBe(false);
+      });
+
+      it('resumes right away where frame callbacks are unsupported', () => {
+        // @ts-expect-error simulate a browser without the API
+        videoElement.requestVideoFrameCallback = undefined;
+        const cleanup = dynascaleManager.bindVideoElement(
+          videoElement,
+          'session-id',
+          'videoTrack',
+        );
+        setHidden(false);
+        expect(isPaused()).toBe(false);
+        cleanup?.();
+      });
+    });
+
     it('video: should update subscription when element becomes visible', () => {
       // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {

@@ -506,14 +506,35 @@ export const useScreenShareState = ({
   };
 };
 
+type IncomingVideoSettings =
+  Call['trackSubscriptionManager']['incomingVideoSettings$'] extends Observable<
+    infer T
+  >
+    ? T
+    : never;
+
+/**
+ * Static fallback emitted when no `Call` is active. Module-scope so the
+ * `useObservableValue` dep reference stays stable across renders.
+ */
+const NO_INCOMING_VIDEO_SETTINGS$ = of<IncomingVideoSettings>({
+  enabled: true,
+  preferredResolution: undefined,
+  participants: {},
+  isParticipantVideoEnabled: () => true,
+  isParticipantVideoPaused: () => false,
+});
+
 /**
  * Returns incoming video settings for the current call, including
- * global and per-participant manual video quality overrides.
+ * global and per-participant manual video quality overrides, and whether
+ * a participant's video is paused while the app is hidden.
  */
 export const useIncomingVideoSettings = () => {
-  const call = useCall() as Call;
+  const call = useCall();
   return useObservableValue(
-    call.trackSubscriptionManager.incomingVideoSettings$,
+    call?.trackSubscriptionManager.incomingVideoSettings$ ??
+      NO_INCOMING_VIDEO_SETTINGS$,
   );
 };
 

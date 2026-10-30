@@ -1,9 +1,16 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
-import { TrackSubscriptionManager } from '../TrackSubscriptionManager';
+import {
+  type PausedTrackFilter,
+  TrackSubscriptionManager,
+} from '../TrackSubscriptionManager';
 import { CallState } from '../../store';
 import { Tracer } from '../../stats';
-import { DebounceType } from '../../types';
+import {
+  type AppVisibility,
+  DebounceType,
+  type VideoTrackType,
+} from '../../types';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import type { StreamSfuClient } from '../../StreamSfuClient';
 
@@ -306,5 +313,338 @@ describe('TrackSubscriptionManager', () => {
     });
 
     sub.unsubscribe();
+  });
+
+  // ---------------------------------------------------------------------
+  // watchVisibility(): pausing incoming video while the app is hidden
+  // ---------------------------------------------------------------------
+
+  describe('watchVisibility', () => {
+    let visibility: AppVisibility;
+    let notify: () => void;
+    let stopWatchingSource: ReturnType<typeof vi.fn>;
+    let stop: () => void;
+
+    const setVisibility = (next: AppVisibility) => {
+      visibility = next;
+      notify();
+    };
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      addParticipant('presenter', {
+        publishedTracks: [
+          TrackType.AUDIO,
+          TrackType.VIDEO,
+          TrackType.SCREEN_SHARE,
+          TrackType.SCREEN_SHARE_AUDIO,
+        ],
+        videoDimension: { width: 320, height: 240 },
+        screenShareDimension: { width: 1920, height: 1080 },
+      });
+      addParticipant('other', {
+        publishedTracks: [TrackType.VIDEO],
+        videoDimension: { width: 320, height: 240 },
+      });
+      visibility = { hidden: false };
+      stopWatchingSource = vi.fn();
+      stop = manager.watchVisibility({
+        getVisibility: () => visibility,
+        watch: (onChange) => {
+          notify = onChange;
+          return stopWatchingSource;
+        },
+      });
+    });
+
+    afterEach(() => {
+      stop();
+      manager.dispose();
+      vi.useRealTimers();
+    });
+
+    const tracks = (subscriptions = manager.subscriptions) =>
+      subscriptions.map((s) => `${s.sessionId}:${TrackType[s.trackType]}`);
+    const pushedTracks = () => tracks(updateSubscriptions.mock.lastCall?.[0]);
+    const allTracks = [
+      'presenter:VIDEO',
+      'presenter:SCREEN_SHARE',
+      'presenter:SCREEN_SHARE_AUDIO',
+      'other:VIDEO',
+    ];
+
+    it('drops camera and screen share video after the app stays hidden for 3s, keeping screen share audio', () => {
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(2999);
+      expect(tracks()).toEqual(allTracks);
+      expect(updateSubscriptions).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(1);
+      expect(tracks()).toEqual(['presenter:SCREEN_SHARE_AUDIO']);
+      expect(pushedTracks()).toEqual(['presenter:SCREEN_SHARE_AUDIO']);
+    });
+
+    it('pauses when watching starts on a hidden app', () => {
+      stop();
+      visibility = { hidden: true };
+      stop = manager.watchVisibility({
+        getVisibility: () => visibility,
+        watch: () => () => {},
+      });
+      vi.advanceTimersByTime(3000);
+
+      expect(tracks()).toEqual(['presenter:SCREEN_SHARE_AUDIO']);
+    });
+
+    it('resubscribes right away when the app becomes visible again', () => {
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(3000);
+
+      setVisibility({ hidden: false });
+      expect(tracks()).toEqual(allTracks);
+      expect(pushedTracks()).toEqual(allTracks);
+      expect(updateSubscriptions).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not pause when the app becomes visible within the delay', () => {
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(2000);
+      setVisibility({ hidden: false });
+      vi.advanceTimersByTime(5000);
+
+      expect(tracks()).toEqual(allTracks);
+      expect(updateSubscriptions).not.toHaveBeenCalled();
+    });
+
+    it('does not restart the delay on a repeated hidden report', () => {
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(2000);
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(1000);
+
+      expect(tracks()).toEqual(['presenter:SCREEN_SHARE_AUDIO']);
+    });
+
+    it('does not pause when the app became visible without a report', () => {
+      setVisibility({ hidden: true });
+      visibility = { hidden: false };
+      vi.advanceTimersByTime(5000);
+
+      expect(tracks()).toEqual(allTracks);
+      expect(updateSubscriptions).not.toHaveBeenCalled();
+    });
+
+    it('waits for a visibility report when the pause timer fires late', () => {
+      setVisibility({ hidden: true });
+      // JavaScript suspended while hidden: the clock moves past the deadline
+      vi.setSystemTime(Date.now() + 60_000);
+      vi.advanceTimersByTime(3000);
+      expect(tracks()).toEqual(allTracks);
+
+      setVisibility({ hidden: false });
+      vi.advanceTimersByTime(5000);
+      expect(tracks()).toEqual(allTracks);
+      expect(updateSubscriptions).not.toHaveBeenCalled();
+    });
+
+    it('pauses after a late pause timer when the app is still hidden', () => {
+      setVisibility({ hidden: true });
+      vi.setSystemTime(Date.now() + 60_000);
+      vi.advanceTimersByTime(3000);
+      vi.advanceTimersByTime(1000);
+
+      expect(tracks()).toEqual(['presenter:SCREEN_SHARE_AUDIO']);
+    });
+
+    it('keeps the video shown in picture-in-picture subscribed', () => {
+      setVisibility({
+        hidden: true,
+        shownTrack: { sessionId: 'presenter', trackType: 'screenShareTrack' },
+      });
+      vi.advanceTimersByTime(3000);
+
+      expect(tracks()).toEqual([
+        'presenter:SCREEN_SHARE',
+        'presenter:SCREEN_SHARE_AUDIO',
+      ]);
+    });
+
+    it('follows picture-in-picture changes while paused', () => {
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(3000);
+
+      setVisibility({
+        hidden: true,
+        shownTrack: { sessionId: 'other', trackType: 'videoTrack' },
+      });
+      expect(pushedTracks()).toEqual([
+        'presenter:SCREEN_SHARE_AUDIO',
+        'other:VIDEO',
+      ]);
+
+      setVisibility({ hidden: true });
+      expect(pushedTracks()).toEqual(['presenter:SCREEN_SHARE_AUDIO']);
+    });
+
+    it('keeps the overrides set by the app across a pause', () => {
+      manager.setOverrides(
+        { enabled: true, dimension: { width: 1280, height: 720 } },
+        ['presenter'],
+      );
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(3000);
+      setVisibility({ hidden: false });
+
+      expect(manager.subscriptions[0].dimension).toEqual({
+        width: 1280,
+        height: 720,
+      });
+    });
+
+    it('does not pause when disabled with setPauseWhenHidden(false)', () => {
+      manager.setPauseWhenHidden(false);
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(5000);
+
+      expect(tracks()).toEqual(allTracks);
+    });
+
+    it('pauses after a custom grace period', () => {
+      manager.setPauseWhenHidden(true, 10_000);
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(9999);
+      expect(tracks()).toEqual(allTracks);
+
+      vi.advanceTimersByTime(1);
+      expect(tracks()).toEqual(['presenter:SCREEN_SHARE_AUDIO']);
+    });
+
+    it('keeps the grace period when none is given, and clamps negative ones to 0', () => {
+      manager.setPauseWhenHidden(true, 10_000);
+      manager.setPauseWhenHidden(true);
+      manager.setPauseWhenHidden(true, Number.NaN);
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(9999);
+      expect(tracks()).toEqual(allTracks);
+      vi.advanceTimersByTime(1);
+      expect(tracks()).toEqual(['presenter:SCREEN_SHARE_AUDIO']);
+
+      setVisibility({ hidden: false });
+      manager.setPauseWhenHidden(true, -5);
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(0);
+      expect(tracks()).toEqual(['presenter:SCREEN_SHARE_AUDIO']);
+    });
+
+    it('resumes a paused call when pausing gets disabled', () => {
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(3000);
+
+      manager.setPauseWhenHidden(false);
+      expect(tracks()).toEqual(allTracks);
+      expect(pushedTracks()).toEqual(allTracks);
+    });
+
+    it('stops watching and drops the pause state without pushing an update', () => {
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(3000);
+      updateSubscriptions.mockClear();
+
+      stop();
+      expect(stopWatchingSource).toHaveBeenCalledTimes(1);
+      expect(tracks()).toEqual(allTracks);
+      expect(updateSubscriptions).not.toHaveBeenCalled();
+    });
+
+    it('cancels a pending pause when watching stops', () => {
+      setVisibility({ hidden: true });
+      stop();
+      vi.advanceTimersByTime(5000);
+
+      expect(tracks()).toEqual(allTracks);
+      expect(updateSubscriptions).not.toHaveBeenCalled();
+    });
+
+    const isPaused = (sessionId: string, trackType?: VideoTrackType) => {
+      let paused: boolean | undefined;
+      manager.incomingVideoSettings$
+        .subscribe((settings) => {
+          paused = settings.isParticipantVideoPaused(sessionId, trackType);
+        })
+        .unsubscribe();
+      return paused;
+    };
+
+    it('reports paused remote videos, except the one in picture-in-picture', () => {
+      addParticipant('local', {
+        isLocalParticipant: true,
+        publishedTracks: [TrackType.VIDEO],
+      });
+      expect(isPaused('presenter')).toBe(false);
+
+      setVisibility({
+        hidden: true,
+        shownTrack: { sessionId: 'other', trackType: 'videoTrack' },
+      });
+      expect(isPaused('presenter')).toBe(false);
+      vi.advanceTimersByTime(3000);
+
+      expect(isPaused('presenter')).toBe(true);
+      expect(isPaused('presenter', 'screenShareTrack')).toBe(true);
+      expect(isPaused('other')).toBe(false);
+      expect(isPaused('local')).toBe(false);
+    });
+
+    it('calls resume listeners with the paused videos before resuming', () => {
+      const pausedWhenCalled: boolean[] = [];
+      const listener = vi.fn((wasPaused: PausedTrackFilter) => {
+        pausedWhenCalled.push(isPaused('presenter'));
+        expect(wasPaused('presenter', 'videoTrack')).toBe(true);
+        expect(wasPaused('other', 'videoTrack')).toBe(false);
+      });
+      const stopListening = manager.addBeforeResumeListener(listener);
+      setVisibility({
+        hidden: true,
+        shownTrack: { sessionId: 'other', trackType: 'videoTrack' },
+      });
+      vi.advanceTimersByTime(3000);
+
+      setVisibility({ hidden: false });
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(pausedWhenCalled).toEqual([true]);
+      expect(isPaused('presenter')).toBe(false);
+
+      stopListening();
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(3000);
+      setVisibility({ hidden: false });
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps reporting a resumed video as paused while it awaits a fresh frame', () => {
+      manager.addBeforeResumeListener(() =>
+        manager.setAwaitingFreshFrame('presenter', 'videoTrack', true),
+      );
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(3000);
+
+      setVisibility({ hidden: false });
+      expect(tracks()).toEqual(allTracks);
+      expect(isPaused('presenter')).toBe(true);
+      expect(isPaused('presenter', 'screenShareTrack')).toBe(false);
+      expect(isPaused('other')).toBe(false);
+
+      manager.setAwaitingFreshFrame('presenter', 'videoTrack', false);
+      expect(isPaused('presenter')).toBe(false);
+    });
+
+    it('cancels a pending pause on dispose', () => {
+      setVisibility({ hidden: true });
+      manager.dispose();
+      vi.advanceTimersByTime(5000);
+
+      expect(tracks()).toEqual(allTracks);
+      expect(updateSubscriptions).not.toHaveBeenCalled();
+    });
   });
 });

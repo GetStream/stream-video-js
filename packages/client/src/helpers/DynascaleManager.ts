@@ -1,4 +1,5 @@
 import {
+  type AppVisibility,
   AudioTrackType,
   DebounceType,
   VideoTrackType,
@@ -22,7 +23,10 @@ import {
 } from './MediaPlaybackWatchdog';
 import { SilentAudioPlayer } from './SilentAudioPlayer';
 import { sharedAudioContext } from './SharedAudioContext';
-import type { TrackSubscriptionManager } from './TrackSubscriptionManager';
+import type {
+  PausedTrackFilter,
+  TrackSubscriptionManager,
+} from './TrackSubscriptionManager';
 import { isFirefox, isIOS, isSafari } from './browsers';
 import { hasScreenShare, hasVideo } from './participantUtils';
 import { CallState } from '../store';
@@ -30,6 +34,12 @@ import { SpeakerManager } from '../devices';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
 import { timeboxed } from '../coordinator/connection/utils';
+
+/**
+ * How long a resumed video may wait for its first fresh frame before it is
+ * shown anyway.
+ */
+const freshFrameTimeoutMs = 2000;
 
 /**
  * A manager class that handles dynascale related tasks like:
@@ -56,6 +66,12 @@ export class DynascaleManager {
 
   private trackSubscriptionManager: TrackSubscriptionManager;
   private blockedAudioTracker: BlockedAudioTracker;
+  private boundVideos = new Map<
+    HTMLVideoElement,
+    { sessionId: string; trackType: VideoTrackType }
+  >();
+  private freshFrameWaits = new Map<HTMLVideoElement, () => void>();
+  private stopAwaitingResume: () => void;
 
   /**
    * Creates a new DynascaleManager instance.
@@ -73,12 +89,17 @@ export class DynascaleManager {
     this.trackSubscriptionManager = trackSubscriptionManager;
     this.blockedAudioTracker = blockedAudioTracker;
     this.silentAudioPlayer = new SilentAudioPlayer(tracer);
+    this.stopAwaitingResume = trackSubscriptionManager.addBeforeResumeListener(
+      this.awaitFreshFrames,
+    );
   }
 
   /**
    * Closes the audio context if it was created.
    */
   dispose = async () => {
+    this.stopAwaitingResume();
+    for (const release of this.freshFrameWaits.values()) release();
     this.releaseAudioPlaybackUnlock();
     const context = this.audioContext;
     if (context && context.state !== 'closed') {
@@ -143,6 +164,63 @@ export class DynascaleManager {
     this.tracer.trace('setUseWebAudio', useWebAudio);
     this.useWebAudio = useWebAudio;
   };
+
+  /**
+   * Keeps resuming videos reported as paused until their bound element
+   * renders a frame received after the resume, so the UI shows the
+   * placeholder rather than the last frame from before the pause.
+   */
+  private awaitFreshFrames = (wasPaused: PausedTrackFilter) => {
+    const resumedAt = performance.now();
+    const localSessionId = this.callState.localParticipant?.sessionId;
+    for (const [element, { sessionId, trackType }] of this.boundVideos) {
+      if (
+        typeof element.requestVideoFrameCallback !== 'function' ||
+        !wasPaused(sessionId, trackType) ||
+        sessionId === localSessionId
+      ) {
+        continue;
+      }
+
+      this.freshFrameWaits.get(element)?.();
+      this.trackSubscriptionManager.setAwaitingFreshFrame(
+        sessionId,
+        trackType,
+        true,
+      );
+      let frameHandle = 0;
+      const release = () => {
+        element.cancelVideoFrameCallback(frameHandle);
+        clearTimeout(timeout);
+        this.freshFrameWaits.delete(element);
+        this.trackSubscriptionManager.setAwaitingFreshFrame(
+          sessionId,
+          trackType,
+          false,
+        );
+      };
+      const onFrame: VideoFrameRequestCallback = (now, metadata) => {
+        // a frame received before the resume is the one shown while paused
+        if ((metadata.receiveTime ?? now) < resumedAt) {
+          frameHandle = element.requestVideoFrameCallback(onFrame);
+          return;
+        }
+        release();
+      };
+      frameHandle = element.requestVideoFrameCallback(onFrame);
+      const timeout = setTimeout(release, freshFrameTimeoutMs);
+      this.freshFrameWaits.set(element, release);
+    }
+  };
+
+  /**
+   * Resolves a video element to the participant track bound to it with
+   * `bindVideoElement`, if any.
+   */
+  findBoundVideo = (
+    element: Element,
+  ): Extract<AppVisibility, { hidden: true }>['shownTrack'] =>
+    this.boundVideos.get(element as HTMLVideoElement);
 
   /**
    * Binds a DOM <video> element to the given session id.
@@ -297,6 +375,7 @@ export class DynascaleManager {
             }
           });
 
+    this.boundVideos.set(videoElement, { sessionId, trackType });
     videoElement.autoplay = true;
     videoElement.playsInline = true;
 
@@ -343,6 +422,8 @@ export class DynascaleManager {
       this.disposePlaybackWatchdog(playbackWatchdog);
       clearTimeout(rebindTimer);
       videoElement.srcObject = null;
+      this.freshFrameWaits.get(videoElement)?.();
+      this.boundVideos.delete(videoElement);
     };
   };
 

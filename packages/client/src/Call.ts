@@ -115,7 +115,10 @@ import { DynascaleManager } from './helpers/DynascaleManager';
 import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
 import { createInboundAudioStallDetector } from './helpers/inboundAudioStallDetector';
 import { ViewportTracker } from './helpers/ViewportTracker';
-import { tracePageLifecycle } from './helpers/pageLifecycle';
+import {
+  createPageVisibilitySource,
+  tracePageLifecycle,
+} from './helpers/pageLifecycle';
 import {
   CallOfflineState,
   NetworkReachabilityChecker,
@@ -316,6 +319,7 @@ export class Call {
   private allowOwnTracksLoopback = false;
   private hasJoinedOnce = false;
   private stopTracingPageLifecycle?: () => void;
+  private stopWatchingVisibility?: () => void;
   private deviceSettingsAppliedOnce = false;
   private callManagerStarted = false;
   private leaveGeneration = 0;
@@ -773,6 +777,8 @@ export class Call {
       this.stopInboundAudioStallDetector = undefined;
       this.stopTracingPageLifecycle?.();
       this.stopTracingPageLifecycle = undefined;
+      this.stopWatchingVisibility?.();
+      this.stopWatchingVisibility = undefined;
       // release a reconnect waiting for the network; it sees the leave and stops
       this.offlineState.dispose();
 
@@ -1208,6 +1214,14 @@ export class Call {
           this.logger.debug('Join superseded by leave; not registering');
           return;
         }
+
+        this.stopWatchingVisibility ??=
+          this.trackSubscriptionManager.watchVisibility(
+            globalThis.streamRNVideoSDK?.appVisibility ??
+              createPageVisibilitySource((element) =>
+                this.dynascaleManager?.findBoundVideo(element),
+              ),
+          );
 
         this.clientEventReporter.registerCall(this.cid, {
           callType: this.type,
@@ -3735,6 +3749,33 @@ export class Call {
       enabled ? undefined : { enabled: false },
     );
     this.trackSubscriptionManager.apply();
+  };
+
+  /**
+   * Enables or disables pausing incoming video while the app is hidden: a
+   * hidden page on the web, or an app in the background on React Native.
+   * Enabled by default.
+   *
+   * When enabled, video from all remote participants, including screen
+   * share, is paused once the app stays hidden for the grace period, and
+   * resumed when it becomes visible again. Audio is not affected. A video
+   * shown in picture-in-picture keeps playing. Firefox is never paused, as
+   * its built-in picture-in-picture can't be detected.
+   *
+   * Disable it when your app uses remote video while hidden, for example
+   * to record it or to render it in a custom picture-in-picture window.
+   *
+   * @param enabled whether to pause incoming video while hidden.
+   * @param gracePeriodMs how long the app must stay hidden before video is
+   * paused, in milliseconds. Defaults to 3000 and is clamped to 0 or more. A
+   * change applies from the next time the app is hidden. Omit it to keep the
+   * current value.
+   */
+  setPauseIncomingVideoWhenHidden = (
+    enabled: boolean,
+    gracePeriodMs?: number,
+  ) => {
+    this.trackSubscriptionManager.setPauseWhenHidden(enabled, gracePeriodMs);
   };
 
   /**

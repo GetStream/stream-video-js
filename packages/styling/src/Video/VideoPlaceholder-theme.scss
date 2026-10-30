@@ -3,3 +3,13 @@
   border: var(--str-video__w100) solid var(--str-video__border-core-default);
   border-radius: inherit;
 }
+
+.str-video__video-placeholder--loading .str-video__video-placeholder__avatar {
+  &::before {
+    background: conic-gradient(
+      from 0deg,
+      transparent 0 20%,
+      var(--str-video__accent-primary)
+    );
+  }
+}

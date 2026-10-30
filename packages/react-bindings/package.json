@@ -8,7 +8,9 @@
   "scripts": {
     "clean": "rimraf dist",
     "start": "rollup -c -w",
-    "build": "yarn clean && NODE_ENV=production rollup -c"
+    "build": "yarn clean && NODE_ENV=production rollup -c",
+    "test": "vitest",
+    "test-ci": "vitest run"
   },
   "sideEffects": false,
   "repository": {
@@ -39,6 +41,7 @@
     "react": "19.3.0",
     "rimraf": "^6.1.3",
     "rollup": "^4.64.8",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.5"
   }
 }
