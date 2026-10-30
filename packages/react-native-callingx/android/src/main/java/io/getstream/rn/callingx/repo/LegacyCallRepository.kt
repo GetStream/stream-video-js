@@ -77,7 +77,8 @@ class LegacyCallRepository(context: Context) : CallRepository(context) {
         }
 
         val attributes = createCallAttributes(displayName, address, isIncoming, isVideo)
-        val actionSource = Channel<CallAction>()
+        // Buffered so actions sent before the collector below starts (or while it is busy) are not dropped.
+        val actionSource = Channel<CallAction>(Channel.UNLIMITED)
 
         val registeredCall = Call.Registered(
                 id = callId,
