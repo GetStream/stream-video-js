@@ -111,6 +111,7 @@ import type { ClientEventReporter, JoinReason, JoinSource } from './reporting';
 import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
 import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
+import { MuteStateSync } from './helpers/MuteStateSync';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
 import { createInboundAudioStallDetector } from './helpers/inboundAudioStallDetector';
@@ -225,6 +226,11 @@ export class Call {
    * Owns the SFU-side video-subscription state (per-session and global overrides).
    */
   readonly trackSubscriptionManager: TrackSubscriptionManager;
+
+  /**
+   * Reports the mute state of the local tracks to the SFU.
+   */
+  private readonly muteStateSync: MuteStateSync;
 
   /**
    * Warns periodically when a remote participant is publishing audio, but no
@@ -426,6 +432,12 @@ export class Call {
     this.trackSubscriptionManager = new TrackSubscriptionManager(
       this.state,
       this.tracer,
+    );
+    this.muteStateSync = new MuteStateSync(
+      this.cid,
+      this.state,
+      () => this.sfuClient,
+      (trackType) => !!this.publisher?.isPublishing(trackType),
     );
     this.blockedAudioTracker = new BlockedAudioTracker(this.tracer);
     this.leaveCallHooks.add(this.blockedAudioTracker.reset);
@@ -1517,6 +1529,12 @@ export class Call {
     if (!performingMigration) {
       // in MIGRATION, `JOINED` state is set in `this.reconnectMigrate()`
       this.state.setCallingState(CallingState.JOINED);
+      // FAST flushes after syncing the published tracks
+      if (!performingFastReconnect) {
+        this.muteStateSync.flush().catch((err) => {
+          this.logger.warn('Failed to send the kept mute state', err);
+        });
+      }
     }
     this.hasJoinedOnce = true;
     this.stopTracingPageLifecycle ??= tracePageLifecycle({
@@ -2378,6 +2396,7 @@ export class Call {
         'No subscriber offer after a fast reconnect',
       );
     }
+    this.syncPublishedTracks();
     await this.get(); // fetch the latest call state, as it might have changed
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.FAST,
@@ -2470,6 +2489,7 @@ export class Call {
       // `participantMigrationComplete` event is received, signaled by
       // the `migrationTask`
       this.state.setCallingState(CallingState.JOINED);
+      this.syncPublishedTracks();
     } finally {
       await currentSubscriber?.dispose();
       await currentPublisher?.dispose();
@@ -2687,12 +2707,45 @@ export class Call {
   /**
    * Stops publishing the given track type to the call, if it is currently being published.
    *
+   * While the call isn't JOINED, the SFU may be unreachable: the tracks are
+   * stopped right away, and the SFU is told once the call reconnects.
+   *
    * @param trackTypes the track types to stop publishing.
    */
   stopPublish = async (...trackTypes: TrackType[]) => {
     if (!this.sfuClient || !this.publisher) return;
     await this.publisher.stopTracks(...trackTypes);
     await this.updateLocalStreamState(undefined, ...trackTypes);
+  };
+
+  /**
+   * Brings the published tracks in line with the devices after a FAST or
+   * MIGRATE reconnect, which keep or restore the publisher as it was: a
+   * device enabled in between is published, and the mute state kept in
+   * between is sent.
+   * Runs in the background, as a device may wait for user input (a screen
+   * share picker, a permission prompt) before it settles.
+   */
+  private syncPublishedTracks = () => {
+    const devices = [
+      [this.microphone, [TrackType.AUDIO]],
+      [this.camera, [TrackType.VIDEO]],
+      [
+        this.screenShare,
+        [TrackType.SCREEN_SHARE, TrackType.SCREEN_SHARE_AUDIO],
+      ],
+    ] as const;
+    for (const [device, trackTypes] of devices) {
+      device
+        .syncPublishedStream()
+        .catch((err) => {
+          this.logger.warn('Failed to sync the published stream', err);
+        })
+        .then(() => this.muteStateSync.flush(...trackTypes))
+        .catch((err) => {
+          this.logger.warn('Failed to send the kept mute state', err);
+        });
+    }
   };
 
   /**
@@ -2815,16 +2868,11 @@ export class Call {
 
   /**
    * Notifies the SFU about the mute state of the given track types.
+   * While the call isn't JOINED, it is sent once the call reconnects.
    * @internal
    */
   notifyTrackMuteState = async (muted: boolean, ...trackTypes: TrackType[]) => {
-    const key = `muteState.${this.cid}.${trackTypes.join('-')}`;
-    await withoutConcurrency(key, async () => {
-      if (!this.sfuClient) return;
-      await this.sfuClient.updateMuteStates(
-        trackTypes.map((trackType) => ({ trackType, muted })),
-      );
-    });
+    await this.muteStateSync.notify(muted, ...trackTypes);
   };
 
   /**

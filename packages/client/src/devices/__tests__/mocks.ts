@@ -126,6 +126,9 @@ export const mockCall = (): Partial<Call> => {
     hasMediaEngine: true,
     publish: vi.fn(),
     stopPublish: vi.fn(),
+    permissionsContext: fromPartial({
+      canPublish: vi.fn(() => true),
+    }),
     streamClient: fromPartial({
       dispatchEvent: vi.fn(),
     }),

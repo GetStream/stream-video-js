@@ -135,12 +135,10 @@ export class ScreenShareManager extends AudioDeviceManager<
     });
   }
 
-  protected override async stopPublishStream(): Promise<void> {
-    return this.call.stopPublish(
-      TrackType.SCREEN_SHARE,
-      TrackType.SCREEN_SHARE_AUDIO,
-    );
-  }
+  protected override getPublishedTrackTypes = (): TrackType[] => [
+    TrackType.SCREEN_SHARE,
+    TrackType.SCREEN_SHARE_AUDIO,
+  ];
 
   /**
    * Overrides the default `select` method to throw an error.
