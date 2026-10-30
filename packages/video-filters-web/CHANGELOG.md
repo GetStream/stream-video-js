@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.10.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.10.0...@stream-io/video-filters-web-0.10.1) (2026-10-30)
+
+### Bug Fixes
+
+- **deps:** bump [@stream-io](https://github.com/stream-io) toolkit packages to the .mjs/.cjs builds ([#2567](https://github.com/GetStream/stream-video-js/issues/2567)) ([406a26e](https://github.com/GetStream/stream-video-js/commit/406a26e99e09e7cd44f63789b81adf786723d4f2)), closes [#2559](https://github.com/GetStream/stream-video-js/issues/2559) [GetStream/js-toolkit#58](https://github.com/GetStream/js-toolkit/issues/58)
+
 ## [0.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.9.1...@stream-io/video-filters-web-0.10.0) (2026-09-04)
 
 ### Features
