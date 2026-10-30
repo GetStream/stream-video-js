@@ -33,30 +33,13 @@ export type UseLobbyCallResult = {
   e2eeControls: LobbyE2EEContextValue;
 };
 
-// Safari NaN investigation: WebKit's voice processing can go permanently
-// silent when the output device doesn't run at 48 kHz (e.g. 44.1 kHz speakers
-// or a Bluetooth headset in HFP). In that case Safari captures the mic without
-// echo cancellation. At 48 kHz it stays on, so built-in speakers don't echo.
-// A fresh AudioContext runs at the output device's rate. `?ec=off` / `?ec=on`
-// force it either way in any browser. Set before getOrCreate, so even the
-// first mic capture uses it.
-const outputSampleRate = () => {
-  const ctx = new AudioContext();
-  const rate = ctx.sampleRate;
-  ctx.close().catch(console.error);
-  return rate;
-};
-
+// Safari NaN investigation: Safari (or `?ec=off` anywhere) captures the mic
+// without echo cancellation, so WebKit doesn't route remote audio through
+// voice processing. `?ec=on` keeps it on in Safari. Set before getOrCreate,
+// so even the first mic capture uses it.
 const disableEchoCancellationIfRequested = (call: Call) => {
   const ec = new URLSearchParams(window.location.search).get('ec');
-  if (ec === 'on') return;
-  if (ec !== 'off') {
-    if (!isSafari) return;
-    const rate = outputSampleRate();
-    console.log(`[ec] Safari output sample rate: ${rate}`);
-    if (rate === 48000) return;
-  }
-  console.log('[ec] echoCancellation off');
+  if (ec !== 'off' && !(isSafari && ec !== 'on')) return;
   call.microphone.setDefaultConstraints({
     ...call.microphone.state.defaultConstraints,
     echoCancellation: false,
