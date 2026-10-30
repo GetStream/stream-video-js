@@ -11,7 +11,8 @@ import { withoutConcurrency } from './concurrency';
  * state of each track type is kept instead, and sent by `flush()` once the
  * call is JOINED again. The kept state belongs to the session it was
  * reported in: a new session (a rejoin, a new join) drops it, as nothing
- * is published there yet.
+ * is published there yet. A state whose request fails, as its SFU client
+ * closed, is kept the same way, unless a newer one replaced it.
  */
 export class MuteStateSync {
   private readonly cid: string;
@@ -20,6 +21,7 @@ export class MuteStateSync {
   private readonly isPublishing: (trackType: TrackType) => boolean;
   private pending = new Map<TrackType, boolean>();
   private pendingSessionId: string | undefined;
+  private revisions = new Map<TrackType, number>();
 
   constructor(
     cid: string,
@@ -41,6 +43,9 @@ export class MuteStateSync {
     const sessionId = this.getSfuClient()?.sessionId;
     if (!sessionId) return;
     this.dropPendingOfOtherSessions(sessionId);
+    for (const trackType of trackTypes) {
+      this.revisions.set(trackType, (this.revisions.get(trackType) ?? 0) + 1);
+    }
     if (this.state.callingState !== CallingState.JOINED) {
       this.pendingSessionId = sessionId;
       for (const trackType of trackTypes) {
@@ -87,15 +92,51 @@ export class MuteStateSync {
     this.pendingSessionId = undefined;
   };
 
+  /**
+   * Keeps the given mute state for `flush()`, if it still belongs to the
+   * current session. Returns the kept track types.
+   */
+  private requeue = (
+    sessionId: string,
+    muted: boolean,
+    trackTypes: TrackType[],
+  ) => {
+    if (this.getSfuClient()?.sessionId !== sessionId) return [];
+    this.dropPendingOfOtherSessions(sessionId);
+    this.pendingSessionId = sessionId;
+    for (const trackType of trackTypes) {
+      this.pending.set(trackType, muted);
+    }
+    return trackTypes;
+  };
+
   private send = async (muted: boolean, trackTypes: TrackType[]) => {
     if (trackTypes.length === 0) return;
+    const revisions = trackTypes.map((t) => this.revisions.get(t));
     const key = `muteState.${this.cid}.${trackTypes.join('-')}`;
-    await withoutConcurrency(key, async () => {
+    const resend = await withoutConcurrency(key, async () => {
       const sfuClient = this.getSfuClient();
-      if (!sfuClient) return;
-      await sfuClient.updateMuteStates(
-        trackTypes.map((trackType) => ({ trackType, muted })),
-      );
+      if (!sfuClient) return [];
+      try {
+        await sfuClient.updateMuteStates(
+          trackTypes.map((trackType) => ({ trackType, muted })),
+        );
+        return [];
+      } catch (err) {
+        const requeued = this.requeue(
+          sfuClient.sessionId,
+          muted,
+          trackTypes.filter((t, i) => this.revisions.get(t) === revisions[i]),
+        );
+        // the call reconnected before this request failed, so the flush
+        // after the reconnect didn't see this state
+        const reconnected =
+          this.state.callingState === CallingState.JOINED &&
+          this.getSfuClient() !== sfuClient;
+        if (requeued.length > 0 && reconnected) return requeued;
+        throw err;
+      }
     });
+    if (resend.length > 0) await this.flush(...resend);
   };
 }
