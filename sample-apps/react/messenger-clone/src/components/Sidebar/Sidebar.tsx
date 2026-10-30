@@ -1,113 +1,47 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { ChannelPaginator, type SortParamRequest } from 'stream-chat';
-import {
-  ChannelNavigation,
-  useChatContext,
-  useWorkspaceNavigation,
-  WithComponents,
-} from 'stream-chat-react';
-
 import { LogoutButton } from './LogoutButton';
 import { CustomChannelSearch } from '../CustomChannelSearch';
+import { ChannelList, WithComponents } from 'stream-chat-react';
+import {
+  ChannelFilters,
+  ChannelOptions,
+  ChannelSort,
+  UserResponse,
+} from 'stream-chat';
+
 import { ChannelPreview } from '../ChannelPreview';
 
-const sort: SortParamRequest[] = [
-  { field: 'last_message_at', direction: -1 },
-  { field: 'updated_at', direction: -1 },
-];
-
-/**
- * Opens the first channel of the list once per load, unless a channel is
- * already open. A load that lands in the threads view waits for the next one,
- * so it doesn't switch the user back to the channels view.
- */
-const useOpenFirstChannel = (paginator: ChannelPaginator) => {
-  const { isThreadsView, openChannel, openChannels } = useWorkspaceNavigation();
-  // read when a page loads: the navigation changes with every open and close,
-  // and resubscribing on it would replay a page that already loaded
-  const navigation = useRef({
-    hasOpenChannel: openChannels.length > 0,
-    isThreadsView,
-    openChannel,
-  });
-  useEffect(() => {
-    navigation.current = {
-      hasOpenChannel: openChannels.length > 0,
-      isThreadsView,
-      openChannel,
-    };
-  });
-
-  useEffect(() => {
-    // `items === undefined` means the list was never queried (or was reset on
-    // disconnect), so the next load counts again
-    let awaitingLoad = true;
-    return paginator.state.subscribeWithSelector(
-      ({ items }) => ({ first: items?.[0], isUnloaded: items === undefined }),
-      ({ first, isUnloaded }) => {
-        if (isUnloaded) {
-          awaitingLoad = true;
-          return;
-        }
-        if (!awaitingLoad || navigation.current.isThreadsView) return;
-        awaitingLoad = false;
-        if (first && !navigation.current.hasOpenChannel) {
-          navigation.current.openChannel(first);
-        }
-      },
-    );
-  }, [paginator]);
+type SidebarProps = {
+  user?: UserResponse;
 };
 
-/**
- * Owns the channel list paginator. Rendered as a `ChatView` child so it
- * outlives view switches: the sidebar unmounts with the channels view, and
- * owning the paginator there would re-create and re-query it every time.
- */
-export const ChannelListController = () => {
-  const { client } = useChatContext();
-  const userId = client.userId;
+export const Sidebar = ({ user }: SidebarProps) => {
+  if (!user) return null;
 
-  const paginator = useMemo(
-    () =>
-      new ChannelPaginator({
-        client,
-        id: 'channels:default',
-        filters: {
-          members: { $in: userId ? [userId] : [] },
-          type: 'messaging',
-        },
-        sort,
-        paginatorOptions: { pageSize: 10 },
-        requestOptions: { presence: true },
-      }),
-    [client, userId],
-  );
+  const filters: ChannelFilters = {
+    members: { $in: [user.id] },
+    type: 'messaging',
+  };
+  const options: ChannelOptions = { limit: 10, presence: true, state: true };
+  const sort: ChannelSort = { last_message_at: -1, updated_at: -1 };
 
-  useEffect(() => {
-    client.channelManager.insertPaginator({ paginator });
-    return () => {
-      client.channelManager.removePaginator(paginator);
-    };
-  }, [client, paginator]);
-
-  useOpenFirstChannel(paginator);
-
-  return null;
-};
-
-export const Sidebar = () => (
-  <div id="sidebar">
-    <WithComponents
-      overrides={{
-        Search: CustomChannelSearch,
-        ChannelListItemUI: ChannelPreview,
-      }}
-    >
-      <ChannelNavigation />
-    </WithComponents>
-    <div id="sidebar-footer">
-      <LogoutButton />
+  return (
+    <div id="sidebar" className="str-chat">
+      <WithComponents
+        overrides={{
+          Search: CustomChannelSearch,
+          ChannelListItemUI: ChannelPreview,
+        }}
+      >
+        <ChannelList
+          filters={filters}
+          options={options}
+          showChannelSearch
+          sort={sort}
+        />
+      </WithComponents>
+      <div id="sidebar-footer">
+        <LogoutButton />
+      </div>
     </div>
-  </div>
-);
+  );
+};

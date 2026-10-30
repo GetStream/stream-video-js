@@ -18,7 +18,7 @@ export const ChatWrapper = ({ children }: PropsWithChildren<{}>) => {
     () => ({
       id: userId,
       name: userName,
-      image: userImageUrl,
+      imageUrl: userImageUrl,
     }),
     [userId, userName, userImageUrl],
   );

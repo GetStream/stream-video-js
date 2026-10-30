@@ -2,8 +2,6 @@
   position: absolute;
   top: 60px;
   right: 20px;
-  // rendered before the active ChatView view, so it needs to stack above it
-  z-index: 2;
 }
 
 .str-video__call-panel {

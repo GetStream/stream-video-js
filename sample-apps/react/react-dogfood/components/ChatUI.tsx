@@ -1,33 +1,25 @@
-import type {
-  Channel as StreamChannel,
-  MessagePaginatorState,
-} from 'stream-chat';
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 import {
   Channel,
   MessageComposer,
-  useChannel,
-  useStateStore,
+  useChannelStateContext,
+  useChatContext,
   VirtualizedMessageList,
+  Window,
   WithComponents,
 } from 'stream-chat-react';
 
-import { Button, Icon, IconButton } from '@stream-io/video-react-sdk';
+import { Icon, IconButton } from '@stream-io/video-react-sdk';
 
+import { CHANNEL_TYPE } from '.';
 import { useAppI18n } from '../hooks/useAppI18n';
 
-const messageCountSelector = (state: MessagePaginatorState) => ({
-  messageCount: state.items?.length ?? 0,
-});
-
 const NoMessages = () => {
-  const channel = useChannel();
-  const { messageCount } = useStateStore(
-    channel.messagePaginator.state,
-    messageCountSelector,
-  );
+  const { messages } = useChannelStateContext();
   const { t } = useAppI18n();
 
-  if (messageCount === 0) {
+  if (messages?.length === 0) {
     return (
       <div className="rd__chat__no-messages">
         <svg
@@ -73,71 +65,25 @@ const PaperClipIcon = () => <Icon icon="paperclip" />;
 // pill and keep the accurate inline separator.
 const NoUnreadMessagesNotification = () => null;
 
-const ChatHeader = ({ onClose }: { onClose: () => void }) => {
-  const { t } = useAppI18n();
-
-  return (
-    <div className="rd__chat-header">
-      <h2 className="rd__chat-header__title">
-        {t('chat.panel.title', 'Chat')}
-      </h2>
-      <IconButton
-        onClick={onClose}
-        size="sm"
-        variant="secondary"
-        appearance="ghost"
-        icon="close"
-      />
-    </div>
-  );
-};
-
-/**
- * Shown in place of the chat while its channel is being watched, or after
- * watching it failed.
- */
-export const ChatUnavailable = ({
-  failed,
-  onClose,
-  onRetry,
-}: {
-  failed: boolean;
-  onClose: () => void;
-  onRetry: () => void;
-}) => {
-  const { t } = useAppI18n();
-
-  return (
-    <div className="str-video__chat rd__chat-unavailable">
-      <ChatHeader onClose={onClose} />
-      <div className="rd__chat__no-messages">
-        {failed ? (
-          <>
-            <p className="rd__chat__no-messages__title">
-              {t('chat.unavailable.failed.title', "Couldn't load the chat.")}
-            </p>
-            <Button size="sm" onClick={onRetry}>
-              {t('chat.unavailable.retry.label', 'Retry')}
-            </Button>
-          </>
-        ) : (
-          <p className="rd__chat__no-messages__description">
-            {t('chat.loading.text', 'Loading Chat...')}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-};
-
 export const ChatUI = ({
   onClose,
-  channel,
+  channelType = CHANNEL_TYPE,
+  channelId,
 }: {
   onClose: () => void;
-  channel: StreamChannel;
+  channelType?: string;
+  channelId: string;
 }) => {
+  const { client, setActiveChannel } = useChatContext();
   const { t } = useAppI18n();
+
+  const router = useRouter();
+  useEffect(() => {
+    const type = (router.query['channel_type'] as string) || channelType;
+    const channel = client.channel(type, channelId);
+
+    setActiveChannel(channel);
+  }, [channelId, channelType, client, router.query, setActiveChannel]);
 
   return (
     <WithComponents
@@ -147,21 +93,34 @@ export const ChatUI = ({
         UnreadMessagesNotification: NoUnreadMessagesNotification,
       }}
     >
-      <Channel channel={channel}>
-        <div>
-          <ChatHeader onClose={onClose} />
-        </div>
-        <VirtualizedMessageList shouldGroupByUser />
-        <MessageComposer
-          focus
-          maxRows={5}
-          additionalTextareaProps={{
-            placeholder: t(
-              'chat.composer.sendMessage.placeholder',
-              'Send a message',
-            ),
-          }}
-        />
+      <Channel>
+        <Window>
+          <div>
+            <div className="rd__chat-header">
+              <h2 className="rd__chat-header__title">
+                {t('chat.panel.title', 'Chat')}
+              </h2>
+              <IconButton
+                onClick={onClose}
+                size="sm"
+                variant="secondary"
+                appearance="ghost"
+                icon="close"
+              />
+            </div>
+          </div>
+          <VirtualizedMessageList shouldGroupByUser />
+          <MessageComposer
+            focus
+            maxRows={5}
+            additionalTextareaProps={{
+              placeholder: t(
+                'chat.composer.sendMessage.placeholder',
+                'Send a message',
+              ),
+            }}
+          />
+        </Window>
       </Channel>
     </WithComponents>
   );

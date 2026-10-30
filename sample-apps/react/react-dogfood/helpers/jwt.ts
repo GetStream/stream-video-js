@@ -1,5 +1,5 @@
 import { StreamClient } from '@stream-io/node-sdk';
-import { decodeBase64 } from './base64';
+import { decodeBase64 } from 'stream-chat';
 
 /**
  * The maximum validity of a token, in seconds.

@@ -1,11 +1,8 @@
 import React from 'react';
-import type { ChannelStateData } from 'stream-chat';
 import {
-  asDynamicKey,
   Avatar,
-  useChannel,
   useChannelPreviewInfo,
-  useStateStore,
+  useChannelStateContext,
   useTranslationContext,
 } from 'stream-chat-react';
 
@@ -20,26 +17,18 @@ export type ChannelHeaderProps = {
   title?: string;
 };
 
-const headerStateSelector = (state: ChannelStateData) => ({
-  memberCount: state.memberCount,
-  subtitle: state.data?.custom?.subtitle,
-  watcherCount: state.watcherCount,
-});
-
 const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
   const { image: overrideImage, live, title: overrideTitle } = props;
 
-  const channel = useChannel();
-  const { memberCount, subtitle, watcherCount } = useStateStore(
-    channel.state,
-    headerStateSelector,
-  );
-  const { t } = useTranslationContext();
+  const { channel, watcher_count } = useChannelStateContext('ChannelHeader');
+  const { t } = useTranslationContext('ChannelHeader');
   const { displayImage, displayTitle } = useChannelPreviewInfo({
     channel,
     overrideImage,
     overrideTitle,
   });
+
+  const { member_count, subtitle } = channel?.data || {};
 
   return (
     <div className="str-chat__channel-header">
@@ -49,7 +38,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
           {displayTitle}{' '}
           {live && (
             <span className="str-chat__channel-header__data__livelabel">
-              {t(asDynamicKey('rmc.channelHeader.live.label'), 'live')}
+              {t('live')}
             </span>
           )}
         </p>
@@ -57,18 +46,16 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
           <p className="str-chat__channel-header__data__subtitle">{subtitle}</p>
         )}
         <p className="str-chat__channel-header__data__subtitle">
-          {!live && memberCount > 0 && (
+          {!live && !!member_count && (member_count as number) > 0 && (
             <>
-              {t(
-                'channelHeader.online.members.label',
-                '{{ memberCount }} members',
-                { memberCount },
-              )}
+              {t('{{ memberCount }} members', {
+                memberCount: member_count,
+              })}
               ,{' '}
             </>
           )}
-          {t('channelHeader.online.online.label', '{{ watcherCount }} online', {
-            watcherCount,
+          {t('{{ watcherCount }} online', {
+            watcherCount: watcher_count,
           })}
         </p>
       </div>
