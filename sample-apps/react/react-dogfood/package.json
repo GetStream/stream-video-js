@@ -37,8 +37,8 @@
     "react": "19.3.0",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "19.3.0",
-    "stream-chat": "^10.0.0-rc.26",
-    "stream-chat-react": "^15.0.0-rc.3",
+    "stream-chat": "^9.54.0",
+    "stream-chat-react": "^14.13.2",
     "swr": "^2.4.2",
     "yargs": "^18.2.0"
   },
