@@ -41,7 +41,6 @@ const installCallingX = () => {
   const callingX = {
     joinCall: vi.fn().mockResolvedValue(undefined),
     endCall: vi.fn(),
-    wireAudioEngineSubscription: vi.fn(),
   };
   (globalThis as Record<string, any>).streamRNVideoSDK = {
     callingX,
@@ -352,9 +351,6 @@ describe('Call lifecycle wiring', () => {
     pending.resolve();
 
     await expect(joinTask).resolves.toBeUndefined();
-    if (phase === 'media factory') {
-      expect(callingX!.wireAudioEngineSubscription).not.toHaveBeenCalled();
-    }
     if (phase === 'media factory' || phase === 'location hint') {
       expect(request).not.toHaveBeenCalled();
     }

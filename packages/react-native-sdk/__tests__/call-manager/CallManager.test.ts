@@ -71,8 +71,6 @@ const loadCallManager = ({
       endCallingxCall: jest.fn(),
       registerOutgoingCall: jest.fn(),
       joinCallingxCall: jest.fn(),
-      wireAudioEngineSubscription: jest.fn(),
-      unwireAudioEngineSubscription: jest.fn(),
     }));
     jest.doMock('../../src/utils/internal/registerMediaEngine', () => ({
       registerCallMediaEngine: jest.fn(),

@@ -65,7 +65,7 @@ final class LiveCommunicationKitBackend: CallingxBackend {
 
     /// `true` while the audio engine is starting. Startup toggles `voiceProcessingInputMuted`, which
     /// iOS 17+ surfaces as system-initiated mutes — artifacts, not user intent, so we skip them.
-    /// Set on `willEnableAudioEngine`, cleared on `willStartAudioEngine`. Guarded by `pendingActionsQueue`.
+    /// Set by the `willEnable` engine hook, cleared by `willStart` (and `didDisable` as a guard). Guarded by `pendingActionsQueue`.
     private var isAudioEngineStarting = false
 
     /// Mute value of the last app-requested mute action. iOS 17+ round-trips it back as a
@@ -685,8 +685,8 @@ extension LiveCommunicationKitBackend: ConversationManagerDelegate {
         }
 
         // Claim audio-session ownership BEFORE applySystemCallConfigurationSync:
-        // both can synchronously fire .didDisableAudioEngine / .willEnableAudioEngine
-        // through the ADM publisher. The engine sink gates on this flag.
+        // both can synchronously fire didDisable / willEnable
+        // through the ADM engine hooks, which gate on this flag.
         CallingxSessionOwnership.callingxOwnsSession = true
         // Gate the audio engine off until the system activates the AVAudioSession
         // (conversationManager:didActivate:). Prevents the engine starting on the wrong,
@@ -813,8 +813,8 @@ extension LiveCommunicationKitBackend: ConversationManagerDelegate {
 
         CallingxLog.core.debugPublic("[ConversationManagerDelegate][performJoinConversationAction] isSelfAnswered: \(call.isSelfAnswered)")
         // Claim audio-session ownership BEFORE applySystemCallConfigurationSync:
-        // it can synchronously fire .didDisableAudioEngine / .willEnableAudioEngine
-        // through the ADM publisher. The engine sink gates on this flag.
+        // it can synchronously fire didDisable / willEnable
+        // through the ADM engine hooks, which gate on this flag.
         CallingxSessionOwnership.callingxOwnsSession = true
         // Gate the audio engine off until the system activates the AVAudioSession
         // (conversationManager:didActivate:). Prevents the engine starting on the wrong,
