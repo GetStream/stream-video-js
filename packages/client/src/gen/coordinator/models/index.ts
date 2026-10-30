@@ -1170,6 +1170,7 @@ export interface CallSettingsRequest {
   screensharing?: ScreensharingSettingsRequest;
   session?: SessionSettingsRequest;
   thumbnails?: ThumbnailsSettingsRequest;
+  transcoding?: TranscodingSettingsRequest;
   transcription?: TranscriptionSettingsRequest;
   video?: VideoSettingsRequest;
 }
@@ -1198,6 +1199,10 @@ export interface CallSettingsResponse {
   screensharing: ScreensharingSettingsResponse;
   session: SessionSettingsResponse;
   thumbnails: ThumbnailsSettingsResponse;
+  /**
+   * TranscodingSettings is the payload for server-side WebRTC transcoding settings
+   */
+  transcoding: TranscodingSettingsResponse;
   transcription: TranscriptionSettingsResponse;
   video: VideoSettingsResponse;
   ingress?: IngressSettingsResponse;
@@ -2354,6 +2359,10 @@ export interface JoinCallRequest {
    * if true and the call is created, the notification will include ring=true
    */
   ring?: boolean;
+  /**
+   * whether the client intends to publish a single high-quality layer for server-side transcoding; only honoured when the call's transcoding mode is available
+   */
+  transcode?: boolean;
   video?: boolean;
   /**
    * List of SFU IDs to exclude when picking a new SFU for the participant
@@ -2599,6 +2608,7 @@ export const OwnCapability = {
   STOP_RAW_RECORD_CALL: 'stop-raw-record-call',
   STOP_RECORD_CALL: 'stop-record-call',
   STOP_TRANSCRIPTION_CALL: 'stop-transcription-call',
+  TRANSCODE_CALL: 'transcode-call',
   UPDATE_CALL: 'update-call',
   UPDATE_CALL_MEMBER: 'update-call-member',
   UPDATE_CALL_PERMISSIONS: 'update-call-permissions',
@@ -4253,6 +4263,20 @@ export interface TimeWindow {
 export interface TrackStatsResponse {
   duration_seconds: number;
   track_type: string;
+}
+
+export interface TranscodingSettingsRequest {
+  /**
+   * Server-side WebRTC transcoding mode. One of: available, disabled, auto-on
+   */
+  mode?: 'available' | 'disabled' | 'auto-on';
+}
+
+export interface TranscodingSettingsResponse {
+  /**
+   * the resolved server-side WebRTC transcoding mode for the call
+   */
+  mode: 'available' | 'disabled' | 'auto-on';
 }
 
 export interface TranscriptionSettingsRequest {
