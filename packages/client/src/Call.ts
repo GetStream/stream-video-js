@@ -125,7 +125,12 @@ import { PermissionsContext } from './permissions';
 import { RingStatePoller, RingTimeout, resolveOwnRingOutcome } from './ringing';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
-import { retryInterval, sleep } from './coordinator/connection/utils';
+import {
+  addPageResumeListeners,
+  isHiddenWithoutCoordinator,
+  retryInterval,
+  sleep,
+} from './coordinator/connection/utils';
 import { SlidingWindowRateLimiter } from './helpers/SlidingWindowRateLimiter';
 import {
   AllCallEvents,
@@ -282,6 +287,14 @@ export class Call {
 
   private readonly reconnectConcurrencyTag = Symbol('reconnectConcurrencyTag');
   private reconnectAttempts = 0;
+  /** End the reconnect backoffs that are currently waiting */
+  private reconnectBackoffWakers = new Set<() => void>();
+  /** When the page last became visible again */
+  private lastPageResumeAt = 0;
+  /** Reconnect attempts made at the normal pace while the page is hidden */
+  private readonly hiddenReconnectAttemptsAtNormalPace = 3;
+  /** The wait between reconnect attempts after those, while hidden */
+  private readonly hiddenReconnectInterval = 30 * 1000;
   private reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
   private reconnectReason = '';
   private fastReconnectDeadlineSeconds: number = 0;
@@ -2158,7 +2171,16 @@ export class Call {
       }
 
       let attempt = 0;
+      let hiddenFailures = 0;
       do {
+        const attemptStartedAt = Date.now();
+        // A hidden page whose coordinator connection is down has most likely
+        // lost its network (Android blocks a backgrounded app's network):
+        // attempts made then can't reach the backend and don't count toward
+        // the rejoin limits below.
+        const attemptedWhileBlocked = isHiddenWithoutCoordinator(
+          this.streamClient,
+        );
         const reconnectingTime = Date.now() - reconnectStartTime;
         const shouldGiveUpReconnecting =
           this.disconnectionTimeoutSeconds > 0 &&
@@ -2176,8 +2198,9 @@ export class Call {
         // transitions inside a rolling window. FAST is not counted because
         // it does not issue a new backend `joinCall`.
         if (
-          this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN ||
-          this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE
+          !attemptedWhileBlocked &&
+          (this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN ||
+            this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE)
         ) {
           if (!this.rejoinRateLimiter.tryRegister()) {
             await giveUpAndLeave('rejoin_attempt_limit_exceeded');
@@ -2187,6 +2210,7 @@ export class Call {
         // MIGRATE is server-driven (e.g. SFU drains), so it doesn't count
         // toward the long-window backstop.
         if (
+          !attemptedWhileBlocked &&
           this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN &&
           this.rejoinLongWindowRateLimiter &&
           !this.rejoinLongWindowRateLimiter.tryRegister()
@@ -2259,9 +2283,13 @@ export class Call {
           if (attemptedStrategy === WebsocketReconnectStrategy.REJOIN) {
             const failedSfu = this.credentials?.server.edge_name;
             if (failedSfu) {
+              // A rejoin that failed while the network looked blocked also
+              // switches: requests to this SFU written then may still be stuck
+              // on its pooled connections once the network is back.
               const switchSfu =
-                error instanceof SfuJoinError &&
-                SfuJoinError.isJoinErrorCode(error.errorEvent);
+                attemptedWhileBlocked ||
+                (error instanceof SfuJoinError &&
+                  SfuJoinError.isJoinErrorCode(error.errorEvent));
               const failures = (sfuRejoinFailures.get(failedSfu) ?? 0) + 1;
               sfuRejoinFailures.set(
                 failedSfu,
@@ -2298,8 +2326,20 @@ export class Call {
             }
           }
 
-          // exponential backoff with jitter, capped at 5 s
-          await sleep(retryInterval(attempt));
+          // exponential backoff with jitter, capped at 5 s. An attempt that
+          // started before the page came back had no network: retry at once.
+          // While the network looks blocked, slow down after a few attempts;
+          // the page coming back or the coordinator reconnecting ends the wait.
+          hiddenFailures = isHiddenWithoutCoordinator(this.streamClient)
+            ? hiddenFailures + 1
+            : 0;
+          const interval =
+            attemptStartedAt < this.lastPageResumeAt
+              ? 0
+              : hiddenFailures > this.hiddenReconnectAttemptsAtNormalPace
+                ? this.hiddenReconnectInterval
+                : retryInterval(attempt);
+          await this.reconnectBackoff(interval);
           if (supersededByLeave()) return;
 
           const wasMigrating =
@@ -2543,10 +2583,49 @@ export class Call {
       },
     );
 
+    const removePageResumeListeners = addPageResumeListeners(() => {
+      this.lastPageResumeAt = Date.now();
+      this.wakeReconnectBackoff('Page resumed');
+    });
+    const unregisterCoordinatorOnline = this.streamClient.on(
+      'connection.changed',
+      (e) => {
+        if (e.online) this.wakeReconnectBackoff('Coordinator reconnected');
+      },
+    );
+
     this.leaveCallHooks
       .add(unregisterGoAway)
       .add(unregisterOnError)
-      .add(unregisterNetworkChanged);
+      .add(unregisterNetworkChanged)
+      .add(removePageResumeListeners)
+      .add(unregisterCoordinatorOnline);
+  };
+
+  /**
+   * Waits `ms` before the next reconnect attempt, or until the page resumes.
+   */
+  private reconnectBackoff = async (ms: number) => {
+    let wake = () => {};
+    const woken = new Promise<void>((resolve) => (wake = resolve));
+    this.reconnectBackoffWakers.add(wake);
+    try {
+      await Promise.race([sleep(ms), woken]);
+    } finally {
+      this.reconnectBackoffWakers.delete(wake);
+    }
+  };
+
+  /**
+   * Ends the waiting reconnect backoff. A hidden page may have lost its
+   * network (Android blocks a backgrounded app's network), so the attempts
+   * made while hidden failed and backed off. Once the page or the network is
+   * back, the next attempt doesn't need to wait that out.
+   */
+  private wakeReconnectBackoff = (reason: string) => {
+    if (this.reconnectBackoffWakers.size === 0) return;
+    this.logger.info(`[Reconnect] ${reason}, retrying right away`);
+    [...this.reconnectBackoffWakers].forEach((wake) => wake());
   };
 
   /**

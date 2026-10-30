@@ -2,6 +2,7 @@ import type { AxiosResponse } from 'axios';
 import type { APIErrorResponse } from './types';
 import type { ConnectionErrorEvent } from '../../gen/coordinator';
 import type { ScopedLogger } from '../../logger';
+import type { StreamClient } from './client';
 
 export const sleep = (m: number) => new Promise((r) => setTimeout(r, m));
 
@@ -105,6 +106,48 @@ export function removeConnectionEventListeners(cb: (e: Event) => void) {
     window.removeEventListener('offline', cb);
     window.removeEventListener('online', cb);
   }
+}
+
+/**
+ * Whether the page is hidden. Always `false` outside the browser.
+ */
+export const isPageHidden = () =>
+  typeof document !== 'undefined' && document.visibilityState === 'hidden';
+
+/**
+ * Whether the page is hidden while its coordinator connection is down. This
+ * is how a blocked network looks on Android, which blocks a backgrounded
+ * app's network while `navigator.onLine` stays `true`. A hidden page whose
+ * coordinator connection works, or that has none (anonymous users), doesn't
+ * count.
+ */
+export const isHiddenWithoutCoordinator = (client: StreamClient) => {
+  const ws = client.wsConnection;
+  return isPageHidden() && !!ws && !ws.isDisconnected && !ws.isHealthy;
+};
+
+/**
+ * Calls `cb` when the page becomes visible again, is restored from the
+ * back/forward cache (`pageshow`) or resumes from a frozen state (`resume`),
+ * as long as the page is visible then. A no-op outside the browser.
+ *
+ * @returns a function that removes the listeners.
+ */
+export function addPageResumeListeners(cb: () => void): () => void {
+  if (typeof document === 'undefined' || typeof window === 'undefined') {
+    return () => {};
+  }
+  const onResume = () => {
+    if (document.visibilityState === 'visible') cb();
+  };
+  document.addEventListener('visibilitychange', onResume);
+  document.addEventListener('resume', onResume);
+  window.addEventListener('pageshow', onResume);
+  return () => {
+    document.removeEventListener('visibilitychange', onResume);
+    document.removeEventListener('resume', onResume);
+    window.removeEventListener('pageshow', onResume);
+  };
 }
 
 export function isErrorResponse(

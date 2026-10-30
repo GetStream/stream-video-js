@@ -2,7 +2,9 @@ import { ErrorCode, PeerType, TrackType } from '../gen/video/sfu/models/models';
 import { ErrorFromResponse } from '../coordinator/connection/types';
 import type { StreamClient } from '../coordinator/connection/client';
 import {
+  addPageResumeListeners,
   generateUUIDv4,
+  isHiddenWithoutCoordinator,
   retryInterval,
   sleep,
 } from '../coordinator/connection/utils';
@@ -101,6 +103,11 @@ type PeerConnectionPairState = StagePairState & {
   lastIceState?: RTCIceConnectionState;
 };
 
+/** The most events the coordinator accepts in one report */
+const MAX_EVENTS_PER_REQUEST = 100;
+/** The most events held back; older ones are dropped beyond it */
+const MAX_HELD_EVENTS = 1000;
+
 const pcKey = (cid: string, role: ClientEventPeerConnection): string =>
   `${cid}:${role}`;
 
@@ -125,6 +132,13 @@ export class ClientEventReporter {
   private pcEverConnected = new Map<string, boolean>();
 
   private firstFrameReported = new Set<string>();
+
+  /** Events held back while the page is hidden and the coordinator is down */
+  private heldEvents: ReportedClientEvent[] = [];
+  /** Whether a drain of `heldEvents` is in progress */
+  private draining = false;
+  /** Set while events are held: flushes them once the page is back */
+  private removePageResumeListeners?: () => void;
 
   constructor(options: ClientEventReporterOptions) {
     this.streamClient = options.streamClient;
@@ -740,8 +754,64 @@ export class ClientEventReporter {
 
   private send = (body: ReportedClientEvent) => {
     if (!this.enabled) return;
-    void this.sendWithRetry(body);
+    if (this.shouldHold() || this.heldEvents.length > 0 || this.draining) {
+      // keep the order: behind the events already held
+      this.holdEvents([body]);
+      this.flushHeldEvents();
+      return;
+    }
+    void this.sendWithRetry([body]);
   };
+
+  /**
+   * Keeps events for later, and flushes them on page resume, which can come
+   * before any user connects.
+   */
+  private holdEvents = (events: ReportedClientEvent[], first = false) => {
+    if (first) this.heldEvents.unshift(...events);
+    else this.heldEvents.push(...events);
+    if (this.heldEvents.length > MAX_HELD_EVENTS) {
+      this.heldEvents.splice(0, this.heldEvents.length - MAX_HELD_EVENTS);
+    }
+    this.removePageResumeListeners ??= addPageResumeListeners(
+      this.flushHeldEvents,
+    );
+  };
+
+  /**
+   * Sends the events held back while the page was hidden, unless they still
+   * have to be held. One batch at a time, so the backlog doesn't compete with
+   * the rejoin for the few connections the browser allows.
+   */
+  flushHeldEvents = () => {
+    void this.drainHeldEvents();
+  };
+
+  private drainHeldEvents = async () => {
+    if (this.draining) return;
+    this.draining = true;
+    try {
+      while (this.heldEvents.length > 0 && !this.shouldHold()) {
+        const events = this.heldEvents.splice(0, MAX_EVENTS_PER_REQUEST);
+        await this.sendWithRetry(events);
+      }
+    } finally {
+      this.draining = false;
+    }
+    if (this.heldEvents.length === 0) {
+      this.removePageResumeListeners?.();
+      this.removePageResumeListeners = undefined;
+    }
+  };
+
+  /**
+   * A hidden page whose coordinator connection is down has most likely lost
+   * its network (Android blocks a backgrounded app's network). Requests sent
+   * then don't fail: they leave the browser's pooled connections stuck, and
+   * the rejoin after the page comes back waits behind them. Hold events back
+   * until the page is visible or the connection is back.
+   */
+  private shouldHold = () => isHiddenWithoutCoordinator(this.streamClient);
 
   private sendForCall = (cid: string, body: ReportedClientEvent) => {
     if (!this.callContexts.has(cid)) return;
@@ -749,9 +819,13 @@ export class ClientEventReporter {
   };
 
   private sendWithRetry = async (
-    body: ReportedClientEvent,
+    events: ReportedClientEvent[],
   ): Promise<boolean> => {
     for (let attempt = 0; attempt < 5; attempt++) {
+      if (this.shouldHold()) {
+        this.holdEvents(events, true);
+        return false;
+      }
       try {
         await this.streamClient.doAxiosRequest<
           ReportClientEventResponse,
@@ -759,7 +833,7 @@ export class ClientEventReporter {
         >(
           'post',
           '/api/v2/video/call_client_event',
-          { events: [body] },
+          { events },
           { publicEndpoint: true },
         );
         return true;
@@ -769,16 +843,14 @@ export class ClientEventReporter {
         if (typeof status === 'number' && status >= 400 && status < 500) {
           this.logger.debug(
             `Client event rejected (${status}), not retrying`,
-            body.stage,
-            body.event_type,
+            events.map((e) => `${e.stage}:${e.event_type}`),
           );
           return false;
         }
         if (attempt === 4) {
           this.logger.debug(
             'Client event delivery failed after retries',
-            body.stage,
-            body.event_type,
+            events.map((e) => `${e.stage}:${e.event_type}`),
             err,
           );
           return false;

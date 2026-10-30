@@ -1,7 +1,9 @@
 import { StreamClient } from './client';
 import {
   addConnectionEventListeners,
+  addPageResumeListeners,
   isCloseEvent,
+  isPageHidden,
   KnownCodes,
   removeConnectionEventListeners,
   retryInterval,
@@ -66,6 +68,16 @@ export class StableWSConnection {
   totalFailures = 0;
   lastConnectionError?: WSConnectionError;
 
+  /** Whether the in-flight connection attempt started while the page was hidden */
+  private connectStartedHidden = false;
+  /** Set on page resume: the next reconnect skips the retry backoff */
+  private reconnectImmediately = false;
+  /** Whether the in-flight handshake was abandoned on page resume */
+  private handshakeAbandoned = false;
+  /** End the retry backoffs that are currently waiting */
+  private retryWakers = new Set<() => void>();
+  private removePageResumeListeners: () => void;
+
   // Health-check pings + connection-staleness check.
   /** Send a health check message every 25 seconds */
   pingInterval = 25 * 1000;
@@ -81,6 +93,7 @@ export class StableWSConnection {
   constructor(client: StreamClient) {
     this.client = client;
     addConnectionEventListeners(this.onlineStatusChanged);
+    this.removePageResumeListeners = addPageResumeListeners(this.onPageResumed);
   }
 
   _log = (msg: string, extra: UR | Error = {}, level: LogLevel = 'info') => {
@@ -238,6 +251,7 @@ export class StableWSConnection {
     }
 
     removeConnectionEventListeners(this.onlineStatusChanged);
+    this.removePageResumeListeners();
 
     this.isHealthy = false;
 
@@ -297,6 +311,8 @@ export class StableWSConnection {
   ): Promise<ConnectedEvent | undefined> => {
     if (this.isConnecting) return; // ignore _connect if it's currently trying to connect
     this.isConnecting = true;
+    this.connectStartedHidden = isPageHidden();
+    this.handshakeAbandoned = false;
     // Snapshot of the connection-id reject closure owned by THIS attempt.
     // Captured at function entry so that even early failures (e.g.,
     // tokenManager.loadToken throwing before we reach the WS phase) can
@@ -396,8 +412,10 @@ export class StableWSConnection {
       // since rotated client.rejectConnectionId to a newer promise (P2),
       // calling ownRejectConnectionId only settles P1 - P2 is untouched.
       // P1's awaiters (e.g., doAxiosRequest awaiting connectionIdPromise)
-      // therefore fail fast instead of being orphaned.
-      ownRejectConnectionId?.(err);
+      // therefore fail fast instead of being orphaned. An attempt abandoned
+      // on page resume leaves P1 pending instead: the replacement that starts
+      // right away reuses and resolves it, so its awaiters just wait.
+      if (!this.handshakeAbandoned) ownRejectConnectionId?.(err);
       // connectionOpen is per-instance and not subject to rotation, so
       // calling it unconditionally is safe (and a no-op if already settled).
       this.rejectConnectionOpen?.(err);
@@ -432,10 +450,12 @@ export class StableWSConnection {
     // also reconnect if the health check cycle fails
     let interval = options.interval;
     if (!interval) {
-      interval = retryInterval(this.consecutiveFailures);
+      interval = this.reconnectImmediately
+        ? 0
+        : retryInterval(this.consecutiveFailures);
     }
     // reconnect, or try again after a little while...
-    await sleep(interval);
+    await this.retryBackoff(interval);
 
     // Check once again if by some other call to _reconnect is active or connection is
     // already restored, then no need to proceed.
@@ -448,6 +468,11 @@ export class StableWSConnection {
       this._log('_reconnect() - Abort (3) since disconnect() is called');
       return;
     }
+
+    // consumed only by the attempt that actually replaces the connection: a
+    // retry woken on page resume can abort above while the abandoned
+    // handshake's own retry still needs to skip the backoff
+    this.reconnectImmediately = false;
 
     this._log('_reconnect() - Destroying current WS connection');
 
@@ -489,6 +514,52 @@ export class StableWSConnection {
     }
     this._log('_reconnect() - == END ==');
   }
+
+  /**
+   * Waits `ms` before a reconnect attempt, or until a page resume ends the
+   * wait early.
+   */
+  private retryBackoff = (ms: number) => {
+    return new Promise<void>((resolve) => {
+      const wake = () => {
+        clearTimeout(timeoutId);
+        this.retryWakers.delete(wake);
+        resolve();
+      };
+      const timeoutId = setTimeout(wake, ms);
+      this.retryWakers.add(wake);
+    });
+  };
+
+  /**
+   * onPageResumed - called when the page becomes visible again or resumes.
+   * While the page was hidden its network may have been blocked: the retries
+   * backed off to 4-5 s and the attempt in flight may wait out the full
+   * handshake timeout. Neither is needed once the page is back, so this
+   * abandons an attempt started while hidden and reconnects right away.
+   * `navigator.onLine` stays `true` through such a block, so the `online`
+   * event doesn't cover it.
+   */
+  onPageResumed = () => {
+    if (this.isDisconnected || this.isHealthy) return;
+    // a connection replaced after a failed connect keeps its listeners
+    if (this.client.wsConnection !== this) return;
+    // an attempt that started after the page came back is already on its way
+    // (`visibilitychange` and `pageshow` can both fire for one return)
+    if (this.isConnecting && !this.connectStartedHidden) return;
+    this._log('onPageResumed() - Page resumed, reconnecting right away');
+    this.consecutiveFailures = 0;
+    this.reconnectImmediately = true;
+    if (this.isConnecting && this.connectStartedHidden) {
+      const err: WSConnectionError = new Error(
+        'WS handshake abandoned: it started while the page was hidden',
+      );
+      err.isWSFailure = true;
+      this.handshakeAbandoned = true;
+      this.rejectConnectionOpen?.(err);
+    }
+    [...this.retryWakers].forEach((wake) => wake());
+  };
 
   /**
    * onlineStatusChanged - this function is called when the browser connects or disconnects from the internet.

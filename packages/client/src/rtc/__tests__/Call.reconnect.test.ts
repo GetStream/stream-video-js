@@ -67,6 +67,96 @@ const primeForReconnect = (call: Call) => {
   ).fastReconnectDeadlineSeconds = -1;
 };
 
+describe('Call reconnect in a hidden tab', () => {
+  let call: Call;
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.useFakeTimers();
+    call = makeCall();
+    primeForReconnect(call);
+    // Install only the browser lifecycle interfaces used by reconnect handlers.
+    Object.defineProperty(globalThis, 'document', {
+      configurable: true,
+      value: Object.assign(new EventTarget(), {
+        visibilityState: 'hidden',
+      }),
+    });
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: new EventTarget(),
+    });
+    call['registerReconnectHandlers']();
+    vi.spyOn(connectionUtils, 'retryInterval').mockReturnValue(100);
+  });
+
+  afterEach(() => {
+    call['leaveCallHooks'].forEach((hook) => hook());
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    Reflect.deleteProperty(globalThis, 'document');
+    Reflect.deleteProperty(globalThis, 'window');
+    vi.restoreAllMocks();
+  });
+
+  it('keeps normal retries when the coordinator stays healthy', async () => {
+    call['streamClient'].wsConnection = {
+      isHealthy: true,
+      isDisconnected: false,
+    } as never;
+    let attempts = 0;
+    const rejoin = vi
+      .spyOn(
+        call as unknown as { reconnectRejoin: () => Promise<void> },
+        'reconnectRejoin',
+      )
+      .mockImplementation(async () => {
+        if (++attempts <= 4) throw new Error('SFU unavailable');
+        call.state.setCallingState(CallingState.JOINED);
+      });
+    const reconnect = call['reconnect'](
+      WebsocketReconnectStrategy.REJOIN,
+      'test',
+    );
+    await vi.advanceTimersByTimeAsync(400);
+    await reconnect;
+    expect(rejoin).toHaveBeenCalledTimes(5);
+    expect(document.visibilityState).toBe('hidden');
+  });
+
+  it('wakes a 30-second backoff when the coordinator recovers without showing the tab', async () => {
+    const ws = { isHealthy: false, isDisconnected: false };
+    call['streamClient'].wsConnection = ws as never;
+    let attempts = 0;
+    const rejoin = vi
+      .spyOn(
+        call as unknown as { reconnectRejoin: () => Promise<void> },
+        'reconnectRejoin',
+      )
+      .mockImplementation(async () => {
+        if (++attempts <= 4) throw new Error('Network unavailable');
+        call.state.setCallingState(CallingState.JOINED);
+      });
+    const reconnect = call['reconnect'](
+      WebsocketReconnectStrategy.REJOIN,
+      'test',
+    );
+    await vi.advanceTimersByTimeAsync(300);
+    expect(rejoin).toHaveBeenCalledTimes(4);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(rejoin).toHaveBeenCalledTimes(4);
+    ws.isHealthy = true;
+    call['streamClient'].dispatchEvent({
+      type: 'connection.changed',
+      online: true,
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    await reconnect;
+    expect(rejoin).toHaveBeenCalledTimes(5);
+    expect(document.visibilityState).toBe('hidden');
+  });
+});
+
 describe('Call reconnect stopping conditions', () => {
   let call: Call;
 

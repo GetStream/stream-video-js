@@ -109,6 +109,99 @@ const buildClient = () => {
   return client;
 };
 
+describe('StableWSConnection page resume during a slow handshake', () => {
+  let wsConnection: StableWSConnection;
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.useFakeTimers();
+    ManualWebSocket.instances = [];
+    Object.defineProperty(globalThis, 'document', {
+      configurable: true,
+      value: Object.assign(new EventTarget(), {
+        visibilityState: 'hidden',
+      }),
+    });
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: new EventTarget(),
+    });
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(null, { headers: { 'x-amz-cf-pop': 'AMS1-P2' } }),
+    );
+  });
+
+  afterEach(async () => {
+    const disconnected = wsConnection?.disconnect(0);
+    await vi.advanceTimersByTimeAsync(0);
+    await disconnected;
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    Reflect.deleteProperty(globalThis, 'document');
+    Reflect.deleteProperty(globalThis, 'window');
+    vi.restoreAllMocks();
+  });
+
+  it('preserves pending requests when tab return replaces a hidden handshake', async () => {
+    const client = buildClient();
+    client.options.WebSocketImpl =
+      ManualWebSocket as unknown as typeof WebSocket;
+    wsConnection = new StableWSConnection(client);
+    client.wsConnection = wsConnection;
+    const originalConnectionId = client.connectionIdPromise!;
+    const rejected = vi.fn();
+    void originalConnectionId.catch(rejected);
+    const post = vi
+      .spyOn(client.axiosInstance, 'post')
+      .mockResolvedValue({ data: {} });
+    const request = client.doAxiosRequest('post', '/test', {});
+    const connected = wsConnection.connect(5000);
+    void connected.catch(() => {});
+    await vi.advanceTimersByTimeAsync(100);
+
+    {
+      const previousSocket = ManualWebSocket.instances.at(-1)!;
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        value: 'visible',
+      });
+      document.dispatchEvent(new Event('visibilitychange'));
+      await vi.advanceTimersByTimeAsync(10);
+      expect(previousSocket.readyState).toBe(ManualWebSocket.CLOSED);
+      expect(client.isConnectionIdPromisePending).toBe(true);
+      expect(rejected).not.toHaveBeenCalled();
+      // A second lifecycle event for the same return must not abort the replacement.
+      window.dispatchEvent(new Event('pageshow'));
+      await vi.advanceTimersByTimeAsync(10);
+      expect(ManualWebSocket.instances).toHaveLength(2);
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        value: 'hidden',
+      });
+      document.dispatchEvent(new Event('visibilitychange'));
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        value: 'visible',
+      });
+      document.dispatchEvent(new Event('visibilitychange'));
+      await vi.advanceTimersByTimeAsync(10);
+      expect(ManualWebSocket.instances).toHaveLength(2);
+    }
+
+    const replacement = ManualWebSocket.instances.at(-1)!;
+    replacement.fireOpen();
+    replacement.fireConnectionOk('replacement-id');
+    await vi.advanceTimersByTimeAsync(50);
+    await expect(originalConnectionId).resolves.toBe('replacement-id');
+    await expect(connected).resolves.toMatchObject({
+      connection_id: 'replacement-id',
+    });
+    await expect(request).resolves.toMatchObject({ data: {} });
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(rejected).not.toHaveBeenCalled();
+  });
+});
+
 describe('StableWSConnection connection-check timer source', () => {
   afterEach(() => {
     vi.restoreAllMocks();

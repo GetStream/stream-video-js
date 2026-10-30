@@ -165,6 +165,7 @@ export class StreamVideoClient {
       this.on('call.ring', (event) => this.initCallFromEvent(event)),
       this.on('connection.changed', (event) => {
         if (!event.online) return;
+        this.clientEventReporter.flushHeldEvents();
 
         const callsToReWatch = this.state.calls
           .filter((call) => call.watching)
@@ -418,6 +419,9 @@ export class StreamVideoClient {
 
       await this.leaveAllCalls();
       await this.streamClient.disconnectUser(timeout);
+      // no longer held once disconnected: send what's left, which also
+      // removes the reporter's page listeners
+      this.clientEventReporter.flushHeldEvents();
 
       if (user.id) {
         StreamVideoClient._instances.delete(getInstanceKey(key, user));
