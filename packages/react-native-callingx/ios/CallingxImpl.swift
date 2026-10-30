@@ -333,13 +333,6 @@ import stream_react_native_webrtc
         isSetup = true
     }
 
-
-    // Removed with the spec in the next commit.
-    @objc public func wireAudioEngineSubscription() {}
-
-    // Removed with the spec in the next commit.
-    @objc public func unwireAudioEngineSubscription() {}
-    
     @objc public func getInitialEvents() -> [[String: Any]] {
         var events: [[String: Any]] = []
         let action = {

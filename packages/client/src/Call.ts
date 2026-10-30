@@ -841,10 +841,7 @@ export class Call {
         this.mediaEnginePromise = undefined;
         this.logger.debug('Disposing per-call media factory');
         await enginePromise
-          .then((engine) => {
-            globalThis.streamRNVideoSDK?.callingX?.unwireAudioEngineSubscription();
-            return engine.dispose();
-          })
+          .then((engine) => engine.dispose())
           .catch((err) => {
             this.logger.warn('Failed to dispose media engine', err);
           });
@@ -1295,11 +1292,6 @@ export class Call {
     if (supersededByLeave()) {
       this.logger.debug('Join superseded by leave; not wiring media');
       return;
-    }
-
-    const callingX = globalThis.streamRNVideoSDK?.callingX;
-    if (callingX) {
-      callingX.wireAudioEngineSubscription();
     }
 
     const performingMigration =
