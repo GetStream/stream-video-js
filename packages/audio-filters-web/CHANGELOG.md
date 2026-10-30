@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.10.4...@stream-io/audio-filters-web-0.11.0) (2026-10-30)
+
+### Features
+
+- **audio-filters-web:** upgrade krisp to 2.3.10 ([#2537](https://github.com/GetStream/stream-video-js/issues/2537)) ([f2746da](https://github.com/GetStream/stream-video-js/commit/f2746da162e5d0b73391d34d4076fab9e582c697))
+- surface noise cancellation overload status ([#2528](https://github.com/GetStream/stream-video-js/issues/2528)) ([583da4f](https://github.com/GetStream/stream-video-js/commit/583da4fb28dee80b02e90b5f9722fd258794b70e))
+
 ## [0.10.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.10.3...@stream-io/audio-filters-web-0.10.4) (2026-08-07)
 
 ## [0.10.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.10.2...@stream-io/audio-filters-web-0.10.3) (2026-07-30)
