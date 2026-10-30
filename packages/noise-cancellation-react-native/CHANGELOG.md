@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.11.1...@stream-io/noise-cancellation-react-native-0.12.0) (2026-10-30)
+
+### Features
+
+- surface noise cancellation overload status ([#2528](https://github.com/GetStream/stream-video-js/issues/2528)) ([583da4f](https://github.com/GetStream/stream-video-js/commit/583da4fb28dee80b02e90b5f9722fd258794b70e))
+
 ## [0.11.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.11.0...@stream-io/noise-cancellation-react-native-0.11.1) (2026-09-11)
 
 ### Bug Fixes
