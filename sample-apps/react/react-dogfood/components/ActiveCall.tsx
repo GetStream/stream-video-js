@@ -23,7 +23,7 @@ import { useRouter } from 'next/router';
 
 import { ActiveCallHeader } from './ActiveCallHeader';
 import { CallStatsSidebar, ToggleStatsButton } from './CallStatsWrapper';
-import { ChatUI } from './ChatUI';
+import { ChatUI, ChatUnavailable } from './ChatUI';
 import { ChatWrapper } from './ChatWrapper';
 import { DeviceDisconnectedNotification } from './DeviceDisconnectedNotification';
 import {
@@ -122,12 +122,23 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
   // FIXME: could be replaced with "notification.message_new" but users would have to be at least members
   // possible fix with "allow to join" permissions in place (expensive?)
-  const { channel } = useWatchChannel({
+  const {
+    channel,
+    failed: watchChannelFailed,
+    retry: retryWatchChannel,
+  } = useWatchChannel({
     chatClient,
     channelId: activeCall?.id,
   });
 
   const { t } = useAppI18n();
+
+  const closeChat = () => {
+    if (isTourActive && currentTourStep === StepNames.Chat) {
+      nextTourStep();
+    }
+    setSidebarContent(null);
+  };
 
   useEffect(() => {
     // helps with Fast-Refresh
@@ -214,24 +225,20 @@ export const ActiveCall = (props: ActiveCallProps) => {
                   </div>
                 )}
 
-                {showChat && (
-                  <ChatWrapper chatClient={chatClient}>
-                    <div className="str-video__chat">
-                      <ChatUI
-                        onClose={() => {
-                          if (
-                            isTourActive &&
-                            currentTourStep === StepNames.Chat
-                          ) {
-                            nextTourStep();
-                          }
-                          setSidebarContent(null);
-                        }}
-                        channelId={activeCall.id}
-                      />
-                    </div>
-                  </ChatWrapper>
-                )}
+                {showChat &&
+                  (channel ? (
+                    <ChatWrapper chatClient={chatClient}>
+                      <div className="str-video__chat">
+                        <ChatUI onClose={closeChat} channel={channel} />
+                      </div>
+                    </ChatWrapper>
+                  ) : (
+                    <ChatUnavailable
+                      failed={watchChannelFailed}
+                      onClose={closeChat}
+                      onRetry={retryWatchChannel}
+                    />
+                  ))}
 
                 {showStats && <CallStatsSidebar />}
                 {isPronto && showClosedCaptions && <ClosedCaptionsSidebar />}
@@ -395,13 +402,21 @@ export const ActiveCall = (props: ActiveCallProps) => {
                         ) {
                           nextTourStep();
                         }
+                        if (!showChat && watchChannelFailed) {
+                          retryWatchChannel();
+                        }
                         setSidebarContent(showChat ? null : 'chat');
                       }}
                     >
                       <Icon icon="chat" />
                     </CompositeButton>
                   </WithTooltip>
-                  {!showChat && <UnreadCountBadge channel={channel} />}
+                  {!showChat && (
+                    <UnreadCountBadge
+                      channel={channel}
+                      userId={chatClient?.userId}
+                    />
+                  )}
                 </div>
               </NewMessageNotification>
             )}

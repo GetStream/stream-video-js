@@ -2477,7 +2477,7 @@ PODS:
     - Yoga
   - SocketRocket (0.7.1):
     - ReactNativeDependencies
-  - stream-chat-react-native (9.10.1):
+  - stream-chat-react-native (10.0.0-rc.2):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3100,7 +3100,7 @@ SPEC CHECKSUMS:
   RNSVG: 5ba6ae7e4887d875f114720a1cae0a2fdcffc30d
   RNWorklets: ec2adca24e3ce8d80b14b976cfe7b8d22b9d7682
   SocketRocket: d57b1af80c029e12a75cd9b218287c67381e4593
-  stream-chat-react-native: 0e7af51c6d14dc8a88d4cb28857b53ab62d0a092
+  stream-chat-react-native: af8a3112345d41d786d3a1aac8a90bd56d4fea0a
   stream-io-noise-cancellation-react-native: 74c55bb936edc77c2a31d0e7d0e65e58a63e5d5b
   stream-io-video-filters-react-native: 7cb63ca2ab10968ee43e94a86a3820773b9872ba
   stream-react-native-webrtc: 3a18e8ba366d5582e41519bed47cbf77155616e2

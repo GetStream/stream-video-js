@@ -1,8 +1,9 @@
-const { JWTUserToken } = require('stream-chat');
+const { StreamClient } = require('@stream-io/node-sdk');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
 require('dotenv').config();
+const key = process.env.VITE_STREAM_API_KEY;
 const secret = process.env.VITE_STREAM_SECRET;
 
 (async () => {
@@ -27,10 +28,12 @@ const secret = process.env.VITE_STREAM_SECRET;
     );
   }
 
-  const token = JWTUserToken(secret, user.id, {
+  const client = new StreamClient(key, secret);
+  const token = client.generateUserToken({
+    user_id: user.id,
     name: user.name,
     image: user.image,
-    exp: Math.round(Date.now() / 1000 + 3600 * 24 * 30), // in 30 days
+    validity_in_seconds: 3600 * 24 * 30, // 30 days
   });
 
   console.log(new URLSearchParams({ user_id: targetUserId, token }).toString());

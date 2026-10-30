@@ -7,7 +7,7 @@ import {
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import { decodeBase64 } from 'stream-chat';
+import { decodeBase64 } from '../helpers/base64';
 import { useRouter } from 'next/router';
 import { getConnectionString } from '../lib/connectionString';
 

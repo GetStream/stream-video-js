@@ -87,10 +87,12 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
           if (typeof options.displayName === 'string') {
             const name = options.displayName || getRandomName();
             const id = chatClient?.user?.id ?? sanitizeUserId(name);
-            const email = chatClient?.user?.email;
+            const email = chatClient?.user?.custom?.email;
             await applyDisplayName(name);
             await chatClient
-              ?.partialUpdateUser({ id, set: { name, email } })
+              ?.updateUsersPartial({
+                users: [{ id, set: { name, email } }],
+              })
               .catch((err) => console.error(`Failed to update user`, err));
           }
 

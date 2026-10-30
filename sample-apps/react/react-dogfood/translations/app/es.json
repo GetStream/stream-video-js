@@ -36,6 +36,8 @@
   "chat.empty.startChatting.title": "¡Empieza a chatear!",
   "chat.loading.text": "Cargando el chat...",
   "chat.panel.title": "Chat",
+  "chat.unavailable.failed.title": "No se pudo cargar el chat.",
+  "chat.unavailable.retry.label": "Reintentar",
   "closedCaptions.queue.title": "Cola de subtítulos",
   "closedCaptions.toggle.title": "Activar o desactivar subtítulos",
   "common.brand.demo.text": "Demo",
