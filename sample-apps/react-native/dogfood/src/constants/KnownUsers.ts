@@ -29,4 +29,9 @@ export const KnownUsers = [
     name: 'Artem Grintsevich',
     image: 'https://ca.slack-edge.com/T02RM6X6B-U09P8U0KYLB-15f84a2f4367-512',
   },
+  {
+    id: 'rahul',
+    name: 'Rahul Kr Lohra',
+    image: 'https://ca.slack-edge.com/T02RM6X6B-U07V18H475W-18d720928862-512',
+  },
 ];
