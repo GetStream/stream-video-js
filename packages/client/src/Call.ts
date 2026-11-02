@@ -112,6 +112,7 @@ import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
 import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
+import { WakeableDelay } from './helpers/WakeableDelay';
 import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
 import { createInboundAudioStallDetector } from './helpers/inboundAudioStallDetector';
 import { ViewportTracker } from './helpers/ViewportTracker';
@@ -287,8 +288,8 @@ export class Call {
 
   private readonly reconnectConcurrencyTag = Symbol('reconnectConcurrencyTag');
   private reconnectAttempts = 0;
-  /** End the reconnect backoffs that are currently waiting */
-  private reconnectBackoffWakers = new Set<() => void>();
+  /** The reconnect backoff, which a page resume or the network ends early */
+  private reconnectBackoff = new WakeableDelay();
   /** When the page last became visible again */
   private lastPageResumeAt = 0;
   /** Reconnect attempts made at the normal pace while the page is hidden */
@@ -2351,7 +2352,7 @@ export class Call {
               : hiddenFailures > this.hiddenReconnectAttemptsAtNormalPace
                 ? this.hiddenReconnectInterval
                 : retryInterval(attempt);
-          await this.reconnectBackoff(interval);
+          await this.reconnectBackoff.sleep(interval);
           if (supersededByLeave()) return;
 
           const wasMigrating =
@@ -2615,29 +2616,15 @@ export class Call {
   };
 
   /**
-   * Waits `ms` before the next reconnect attempt, or until the page resumes.
-   */
-  private reconnectBackoff = async (ms: number) => {
-    let wake = () => {};
-    const woken = new Promise<void>((resolve) => (wake = resolve));
-    this.reconnectBackoffWakers.add(wake);
-    try {
-      await Promise.race([sleep(ms), woken]);
-    } finally {
-      this.reconnectBackoffWakers.delete(wake);
-    }
-  };
-
-  /**
    * Ends the waiting reconnect backoff. A hidden page may have lost its
    * network (Android blocks a backgrounded app's network), so the attempts
    * made while hidden failed and backed off. Once the page or the network is
    * back, the next attempt doesn't need to wait that out.
    */
   private wakeReconnectBackoff = (reason: string) => {
-    if (this.reconnectBackoffWakers.size === 0) return;
-    this.logger.info(`[Reconnect] ${reason}, retrying right away`);
-    [...this.reconnectBackoffWakers].forEach((wake) => wake());
+    if (this.reconnectBackoff.wake()) {
+      this.logger.info(`[Reconnect] ${reason}, retrying right away`);
+    }
   };
 
   /**

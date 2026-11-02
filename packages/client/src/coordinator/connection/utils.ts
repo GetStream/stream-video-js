@@ -129,7 +129,7 @@ export const isHiddenWithoutCoordinator = (client: StreamClient) => {
 /**
  * Calls `cb` when the page becomes visible again, is restored from the
  * back/forward cache (`pageshow`) or resumes from a frozen state (`resume`),
- * as long as the page is visible then. A no-op outside the browser.
+ * as long as the page isn't hidden then. A no-op outside the browser.
  *
  * @returns a function that removes the listeners.
  */
@@ -138,7 +138,7 @@ export function addPageResumeListeners(cb: () => void): () => void {
     return () => {};
   }
   const onResume = () => {
-    if (document.visibilityState === 'visible') cb();
+    if (!isPageHidden()) cb();
   };
   document.addEventListener('visibilitychange', onResume);
   document.addEventListener('resume', onResume);

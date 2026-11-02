@@ -16,6 +16,7 @@ import type { WSAuthMessage } from '../../gen/shims';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
 import { getTimers } from '../../timers';
 import { nowNs } from '../../helpers/time';
+import { WakeableDelay } from '../../helpers/WakeableDelay';
 import { APIErrorCodes } from './errors';
 
 /**
@@ -74,8 +75,8 @@ export class StableWSConnection {
   private reconnectImmediately = false;
   /** Whether the in-flight handshake was abandoned on page resume */
   private handshakeAbandoned = false;
-  /** End the retry backoffs that are currently waiting */
-  private retryWakers = new Set<() => void>();
+  /** The retry backoff, which a page resume ends early */
+  private retryBackoff = new WakeableDelay();
   private removePageResumeListeners: () => void;
 
   // Health-check pings + connection-staleness check.
@@ -455,7 +456,7 @@ export class StableWSConnection {
         : retryInterval(this.consecutiveFailures);
     }
     // reconnect, or try again after a little while...
-    await this.retryBackoff(interval);
+    await this.retryBackoff.sleep(interval);
 
     // Check once again if by some other call to _reconnect is active or connection is
     // already restored, then no need to proceed.
@@ -548,22 +549,6 @@ export class StableWSConnection {
   }
 
   /**
-   * Waits `ms` before a reconnect attempt, or until a page resume ends the
-   * wait early.
-   */
-  private retryBackoff = (ms: number) => {
-    return new Promise<void>((resolve) => {
-      const wake = () => {
-        clearTimeout(timeoutId);
-        this.retryWakers.delete(wake);
-        resolve();
-      };
-      const timeoutId = setTimeout(wake, ms);
-      this.retryWakers.add(wake);
-    });
-  };
-
-  /**
    * onPageResumed - called when the page becomes visible again or resumes.
    * While the page was hidden its network may have been blocked: the retries
    * backed off to 4-5 s and the attempt in flight may wait out the full
@@ -590,7 +575,7 @@ export class StableWSConnection {
       this.handshakeAbandoned = true;
       this.rejectConnectionOpen?.(err);
     }
-    [...this.retryWakers].forEach((wake) => wake());
+    this.retryBackoff.wake();
   };
 
   /**
