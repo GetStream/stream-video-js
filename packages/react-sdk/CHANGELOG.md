@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.45.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.45.0...@stream-io/video-react-sdk-1.45.1) (2026-11-02)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.11.1`
+- `@stream-io/video-client` updated to version `1.64.1`
+- `@stream-io/video-react-bindings` updated to version `1.22.1`
+
+### Bug Fixes
+
+- **client:** let users retry mic/camera access after a denial ([#2570](https://github.com/GetStream/stream-video-js/issues/2570)) ([92b1991](https://github.com/GetStream/stream-video-js/commit/92b19912daa03ac3e9a28ee14029d04cef70c1b4))
+
 ## [1.45.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.44.1...@stream-io/video-react-sdk-1.45.0) (2026-10-30)
 
 ### Dependency Updates
