@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.11.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.11.0...@stream-io/audio-filters-web-0.11.1) (2026-11-02)
+
+### Bug Fixes
+
+- **audio-filters-web:** report Safari as unsupported unless opted in ([#2572](https://github.com/GetStream/stream-video-js/issues/2572)) ([c7cfd9f](https://github.com/GetStream/stream-video-js/commit/c7cfd9f7ea5da93629734356b02b935fa8fa534e))
+
 ## [0.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.10.4...@stream-io/audio-filters-web-0.11.0) (2026-10-30)
 
 ### Features
