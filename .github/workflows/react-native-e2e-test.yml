@@ -17,6 +17,7 @@ concurrency:
 env:
   FASTLANE_SKIP_UPDATE_CHECK: 1
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
   GITHUB_PR_NUM: ${{ github.event.pull_request.number }}
   GITHUB_EVENT_ACTION: ${{ github.event.action }}
   GITHUB_EVENT_BEFORE: ${{ github.event.before }}
@@ -73,6 +74,15 @@ jobs:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
 
+      # Pull requests from forks and Dependabot get no secrets, so they run without Allure.
+      - name: Launch Allure TestOps
+        if: env.ALLURE_TOKEN != ''
+        working-directory: sample-apps/react-native/dogfood
+        run: bundle exec fastlane allure_launch
+        env:
+          # Names the launch after the pull request and tags it with its labels.
+          GITHUB_EVENT: ${{ toJson(github.event) }}
+
       - name: Run e2e tests (Android emulator)
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -83,6 +93,17 @@ jobs:
           disable-animations: true
           working-directory: sample-apps/react-native/dogfood
           script: bundle exec fastlane test_e2e device:att skip_build:true
+
+      - name: Upload Allure results
+        if: env.LAUNCH_ID != '' && (success() || failure())
+        working-directory: sample-apps/react-native/dogfood
+        run: bundle exec fastlane allure_upload launch_id:"$LAUNCH_ID"
+
+      - name: Allure TestOps Launch Removal
+        if: env.LAUNCH_ID != '' && cancelled()
+        working-directory: sample-apps/react-native/dogfood
+        run: bundle exec fastlane allure_launch_removal launch_id:"$LAUNCH_ID"
+
       # The emulator has vanished mid-run without any output; this shows whether the kernel killed it.
       - name: Diagnose emulator
         if: failure()

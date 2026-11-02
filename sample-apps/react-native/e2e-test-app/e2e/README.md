@@ -76,10 +76,13 @@ dogfood Fastfile's `impact_analysis`). The emulator job runs only when the PR to
 sources, or when the last change to them hasn't passed yet. `Test E2E Result` is the job to require in branch
 protection: it passes when the e2e jobs pass or are skipped as not required.
 
+Both workflows report to Allure TestOps (project 168, `stream-video-react-native`). Each emulator job opens a launch
+(`fastlane allure_launch`, named after the PR; `cron:true` on the nightly), uploads `allure-results/`
+(`allure_upload`), and deletes the launch when cancelled (`allure_launch_removal`). PRs from forks and Dependabot get no
+`ALLURE_TOKEN`, so they run without Allure.
+
 `react-native-e2e-test-cron.yml` runs everything on weeknights (01:00 UTC) and on demand, on Android API 36, 34, 31
-and 28. Each job reports to Allure TestOps (project 168, `stream-video-react-native`): it
-opens a launch (`fastlane allure_launch cron:true`), uploads `allure-results/` (`allure_upload`), and deletes the
-launch when cancelled (`allure_launch_removal`). A failed scheduled run posts to Slack (`SLACK_WEBHOOK_NIGHTLY_CHECKS`).
+and 28. A failed scheduled run posts to Slack (`SLACK_WEBHOOK_NIGHTLY_CHECKS`).
 Both workflows build through the same composite actions (`.github/actions/rn-e2e-*`), so they share cache keys, and
 the nightly run fills the default branch's caches that PRs restore from.
 
