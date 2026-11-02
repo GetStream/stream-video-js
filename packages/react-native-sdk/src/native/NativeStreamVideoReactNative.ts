@@ -58,8 +58,8 @@ export interface Spec extends TurboModule {
   /** iOS only. */
   captureRef(reactTag: number, options: UnsafeObject): Promise<string>;
 
-  /** iOS only. */
-  checkPermission(permission: string): Promise<boolean>;
+  /** iOS only. Resolves `'granted' | 'denied' | 'prompt'`, never prompts. */
+  checkPermission(permission: string): Promise<string>;
 
   playBusyTone(): Promise<boolean>;
   stopBusyTone(): Promise<boolean>;

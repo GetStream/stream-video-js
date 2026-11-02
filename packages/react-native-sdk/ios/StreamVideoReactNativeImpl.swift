@@ -176,7 +176,12 @@ private let broadcastNotificationCallback: CFNotificationCallback = { _, observe
             reject("UNSUPPORTED_MEDIA_DEVICE_KIND", "Unsupported media device kind: \(permission)", nil)
             return
         }
-        resolve(AVCaptureDevice.authorizationStatus(for: mediaType) == .authorized)
+        // read-only, never prompts
+        switch AVCaptureDevice.authorizationStatus(for: mediaType) {
+        case .authorized: resolve("granted")
+        case .notDetermined: resolve("prompt")
+        default: resolve("denied")
+        }
     }
 
     // MARK: - Screenshots

@@ -224,7 +224,7 @@ export class ClientEventReporter {
   });
 
   private emitMediaPermission = (cid: string) => {
-    if (isReactNative() || !this.callContexts.has(cid)) return;
+    if (!this.callContexts.has(cid)) return;
 
     const pair: StagePairState = {
       sid: generateUUIDv4(),
@@ -233,17 +233,36 @@ export class ClientEventReporter {
       joinAttemptIdSnapshot: this.joinAttemptIds.get(cid),
     };
 
-    this.sendForCall(cid, {
-      ...this.buildCommon(cid, 'MediaDevicePermission', pair),
-      ...this.sessionIdField(cid),
-      microphone_permission_status: readPermissionStatus(
-        getAudioBrowserPermission(),
-      ),
-      camera_permission_status: readPermissionStatus(
-        getVideoBrowserPermission(),
-      ),
-      event_type: 'initiated',
-    });
+    const send = (
+      microphone: BrowserPermissionState | undefined,
+      camera: BrowserPermissionState | undefined,
+    ) => {
+      this.sendForCall(cid, {
+        ...this.buildCommon(cid, 'MediaDevicePermission', pair),
+        ...this.sessionIdField(cid),
+        microphone_permission_status: toMediaPermissionState(microphone),
+        camera_permission_status: toMediaPermissionState(camera),
+        event_type: 'initiated',
+      });
+    };
+
+    const microphone = getAudioBrowserPermission();
+    const camera = getVideoBrowserPermission();
+    if (!isReactNative()) {
+      send(readPermissionState(microphone), readPermissionState(camera));
+      return;
+    }
+
+    // the behavioral state is always 'granted' on React Native,
+    // report the real OS permission status instead (when available)
+    Promise.all([microphone.refreshNativeState(), camera.refreshNativeState()])
+      .then(([microphoneState, cameraState]) => {
+        if (!microphoneState && !cameraState) return;
+        send(microphoneState, cameraState);
+      })
+      .catch((err) => {
+        this.logger.warn('Failed to report native media permission', err);
+      });
   };
 
   registerCall = (cid: string, ctx: CallReportContext) => {
@@ -804,13 +823,12 @@ const toReportedIceState = (
   }
 };
 
-const readPermissionStatus = (
-  permission: BrowserPermission,
-): MediaPermissionState => {
-  const state = getCurrentValue<BrowserPermissionState>(
-    permission.asStateObservable(),
-  );
+const readPermissionState = (permission: BrowserPermission) =>
+  getCurrentValue<BrowserPermissionState>(permission.asStateObservable());
 
+const toMediaPermissionState = (
+  state: BrowserPermissionState | undefined,
+): MediaPermissionState => {
   switch (state) {
     case 'granted':
       return 'GRANTED';

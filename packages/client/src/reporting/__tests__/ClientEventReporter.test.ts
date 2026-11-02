@@ -8,10 +8,26 @@ import { SfuTimeoutError } from '../../errors';
 import type { AxiosResponse } from 'axios';
 import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
 import type { PeerConnectionStateChangeEvent } from '../../rtc';
+import { isReactNative } from '../../helpers/platforms';
+
+const nativePermissionState = vi.hoisted(() => ({
+  microphone: undefined as PermissionState | undefined,
+  camera: undefined as PermissionState | undefined,
+}));
+
+vi.mock('../../helpers/platforms', () => ({
+  isReactNative: vi.fn(() => false),
+}));
 
 vi.mock('../../devices', () => ({
-  getAudioBrowserPermission: () => ({ asStateObservable: () => of('granted') }),
-  getVideoBrowserPermission: () => ({ asStateObservable: () => of('granted') }),
+  getAudioBrowserPermission: () => ({
+    asStateObservable: () => of('granted'),
+    refreshNativeState: async () => nativePermissionState.microphone,
+  }),
+  getVideoBrowserPermission: () => ({
+    asStateObservable: () => of('granted'),
+    refreshNativeState: async () => nativePermissionState.camera,
+  }),
 }));
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -658,6 +674,25 @@ describe('ClientEventReporter', () => {
       event_type: 'initiated',
       microphone_permission_status: 'GRANTED',
       camera_permission_status: 'GRANTED',
+    });
+  });
+
+  it('reports the native media device permission status on React Native', async () => {
+    vi.mocked(isReactNative).mockReturnValue(true);
+    nativePermissionState.microphone = 'denied';
+    nativePermissionState.camera = 'prompt';
+
+    reporter.startCorrelation(cid, 'first-attempt');
+    await flush();
+
+    vi.mocked(isReactNative).mockReturnValue(false);
+    const perm = postedEvents().filter(
+      (e) => e.stage === 'MediaDevicePermission',
+    );
+    expect(perm).toHaveLength(1);
+    expect(perm[0]).toMatchObject({
+      microphone_permission_status: 'FAILED',
+      camera_permission_status: 'NOT_INITIATED',
     });
   });
 

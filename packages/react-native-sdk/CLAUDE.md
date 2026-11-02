@@ -62,7 +62,9 @@ The client (`packages/client`) is platform-agnostic and can't `import` React Nat
 - `callingX` — `joinCall`, `endCall`, `registerOutgoingCall`, `wireAudioEngineSubscription`, `unwireAudioEngineSubscription`. Bridge to the callingx package.
 - `callManager` — the **native-owning** call manager. `setup`/`start`/`stop` drive the native `StreamInCallManager` module at join/leave; `setMutedRecordingPrepared` (iOS-only) toggles the ADM's muted-recording chain.
 - `permissions.check(permission)` — cross-platform runtime permission query for mic/camera.
+- `permissions.query(permission)` — real OS status (`granted|denied|prompt`; Android can't report `denied`). Diagnostics only: traces + `MediaDevicePermission` report; RN behavioral `BrowserPermission` state stays `granted`.
 - `nativeEvents.speechActivity.subscribe(cb)` — bridges the native speech-detector event to `MicrophoneManager`.
+- `nativeEvents.appForeground.subscribe(cb)` — AppState → `active`; `BrowserPermission` re-queries native permission on it.
 
 **The gotcha:** any join-time audio setup needs BOTH the public store (to record the config) and the internal manager (to trigger native). Getting this wrong shows up as "the config isn't being applied", usually because someone called `.start()` on only one of the two.
 
