@@ -747,13 +747,16 @@ describe('MicrophoneManager', () => {
       );
 
       const noiseCancellation = new NoiseCancellationStub();
-      noiseCancellation.canAutoEnable = async () => false;
+      const canAutoEnable = vi
+        .spyOn(noiseCancellation, 'canAutoEnable')
+        .mockResolvedValue(false);
       const noiseCancellationEnable = vi.spyOn(noiseCancellation, 'enable');
       await manager.enableNoiseCancellation(noiseCancellation);
 
       call.state.setCallingState(CallingState.JOINED);
       await sleep(25);
 
+      expect(canAutoEnable).toBeCalled();
       expect(noiseCancellationEnable).not.toBeCalled();
     });
 
