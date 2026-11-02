@@ -18,6 +18,7 @@ export class BrowserPermission {
   private disposeController = new AbortController();
   private state: BrowserPermissionState | undefined;
   private wasPrompted: boolean = false;
+  private deniedByBrowser: boolean = false;
   private listeners = new Set<(state: BrowserPermissionState) => void>();
   private logger = videoLoggerSystem.getLogger('permissions');
 
@@ -43,10 +44,12 @@ export class BrowserPermission {
         });
 
         if (!signal.aborted) {
-          this.setState(status.state);
-          status.addEventListener('change', () => this.setState(status.state), {
-            signal,
-          });
+          this.setState(status.state, status.state === 'denied');
+          status.addEventListener(
+            'change',
+            () => this.setState(status.state, status.state === 'denied'),
+            { signal },
+          );
         }
       } catch (err) {
         this.logger.debug('Failed to query permission status', err);
@@ -80,9 +83,13 @@ export class BrowserPermission {
     return await withoutConcurrency(
       `permission-prompt-${this.permission.queryName}`,
       async () => {
+        const state = await this.getState();
+        const retryDenied =
+          forcePrompt && state === 'denied' && !this.deniedByBrowser;
+
         if (
-          (await this.getState()) !== 'prompt' ||
-          (this.wasPrompted && !forcePrompt)
+          !retryDenied &&
+          (state !== 'prompt' || (this.wasPrompted && !forcePrompt))
         ) {
           const isGranted = this.state === 'granted';
 
@@ -154,6 +161,12 @@ export class BrowserPermission {
     return this.getStateObservable();
   }
 
+  asIsBlockedObservable() {
+    return this.getStateObservable().pipe(
+      map((state) => state === 'denied' && this.deniedByBrowser),
+    );
+  }
+
   getIsPromptingObservable() {
     return this.getStateObservable().pipe(
       map((state) => state === 'prompting'),
@@ -167,12 +180,19 @@ export class BrowserPermission {
     );
   }
 
-  private setState(state: BrowserPermissionState) {
-    if (this.state !== state) {
-      const { tracer, queryName } = this.permission;
-      const traceKey = `navigator.mediaDevices.${queryName}.permission`;
-      tracer?.trace(traceKey, { previous: this.state, state });
+  private setState(
+    state: BrowserPermissionState,
+    deniedByBrowser = state === 'denied' && this.deniedByBrowser,
+  ) {
+    const stateChanged = this.state !== state;
+    if (stateChanged || this.deniedByBrowser !== deniedByBrowser) {
+      if (stateChanged) {
+        const { tracer, queryName } = this.permission;
+        const traceKey = `navigator.mediaDevices.${queryName}.permission`;
+        tracer?.trace(traceKey, { previous: this.state, state });
+      }
       this.state = state;
+      this.deniedByBrowser = deniedByBrowser;
       this.listeners.forEach((listener) => listener(state));
     }
   }

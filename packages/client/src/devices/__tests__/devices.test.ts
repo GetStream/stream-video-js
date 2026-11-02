@@ -11,6 +11,7 @@ vi.mock('../BrowserPermission', () => {
     prompt = vi.fn(async () => true);
     asObservable = vi.fn(() => of(true));
     asStateObservable = vi.fn(() => of('granted'));
+    asIsBlockedObservable = vi.fn(() => of(false));
     getIsPromptingObservable = vi.fn(() => of(false));
 
     constructor() {

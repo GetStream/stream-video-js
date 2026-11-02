@@ -92,6 +92,15 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
   browserPermissionState$: Observable<BrowserPermissionState>;
 
   /**
+   * Emits `true` only when the browser itself reports the permission as
+   * denied, so asking again can't succeed. A denial recorded from a failed
+   * request emits `false`, since starting the device asks again.
+   *
+   * @internal used by the SDK's toggle buttons.
+   */
+  isBrowserPermissionBlocked$: Observable<boolean>;
+
+  /**
    * An observable that emits `true` when SDK is prompting for browser permission
    * (i.e. browser's UI for allowing or disallowing device access is visible)
    */
@@ -118,6 +127,10 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
     this.browserPermissionState$ = permission
       ? permission.asStateObservable().pipe(shareReplay(1))
       : of('prompt');
+
+    this.isBrowserPermissionBlocked$ = permission
+      ? permission.asIsBlockedObservable().pipe(shareReplay(1))
+      : of(false);
 
     this.isPromptingPermission$ = permission
       ? permission.getIsPromptingObservable().pipe(shareReplay(1))

@@ -46,6 +46,7 @@ export const ToggleVideoPreviewButton = (
   const {
     camera,
     hasBrowserPermission,
+    isBrowserPermissionBlocked,
     isPromptingPermission,
     isTogglePending,
     optionsAwareIsMute,
@@ -92,7 +93,8 @@ export const ToggleVideoPreviewButton = (
           }
           onClick={handleClick}
           disabled={
-            !hasBrowserPermission || (!optimisticUpdates && isTogglePending)
+            isBrowserPermissionBlocked ||
+            (!optimisticUpdates && isTogglePending)
           }
           Menu={Menu}
           menuPlacement={menuPlacement}
@@ -144,6 +146,7 @@ export const ToggleVideoPublishingButton = (
     camera,
     optionsAwareIsMute,
     hasBrowserPermission,
+    isBrowserPermissionBlocked,
     isPromptingPermission,
     isTogglePending,
   } = useCameraState({ optimisticUpdates });
@@ -221,7 +224,7 @@ export const ToggleVideoPublishingButton = (
               caption={caption}
               variant={optionsAwareIsMute ? 'destructive' : 'secondary'}
               disabled={
-                !hasBrowserPermission ||
+                isBrowserPermissionBlocked ||
                 !hasPermission ||
                 !isPublishingVideoAllowed ||
                 (!optimisticUpdates && isTogglePending)
