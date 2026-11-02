@@ -23,7 +23,7 @@ export const CallLobby = () => {
       channelType,
       callId,
       // TODO: hacky workaround for permission problems
-      { members: users.map((u) => ({ user_id: u.id })) },
+      { members: users.map((u) => u.id) },
     );
     await channel.create();
 
