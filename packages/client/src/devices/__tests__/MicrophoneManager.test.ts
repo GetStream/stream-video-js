@@ -731,6 +731,35 @@ describe('MicrophoneManager', () => {
       expect(call.notifyNoiseCancellationStarting).toBeCalled();
     });
 
+    it('should not automatically enable noise suppression when it cannot auto-enable', async () => {
+      call.state.setCallingState(CallingState.IDLE); // reset state
+      call.state.updateFromCallResponse(
+        fromPartial({
+          egress: {},
+          settings: {
+            audio: {
+              noise_cancellation: {
+                mode: 'auto-on',
+              },
+            },
+          },
+        }),
+      );
+
+      const noiseCancellation = new NoiseCancellationStub();
+      const canAutoEnable = vi
+        .spyOn(noiseCancellation, 'canAutoEnable')
+        .mockResolvedValue(false);
+      const noiseCancellationEnable = vi.spyOn(noiseCancellation, 'enable');
+      await manager.enableNoiseCancellation(noiseCancellation);
+
+      call.state.setCallingState(CallingState.JOINED);
+      await sleep(25);
+
+      expect(canAutoEnable).toBeCalled();
+      expect(noiseCancellationEnable).not.toBeCalled();
+    });
+
     it('should automatically disable noise suppression after leaving the call', async () => {
       const noiseCancellation = new NoiseCancellationStub();
       const noiseSuppressionDisable = vi.spyOn(noiseCancellation, 'disable');
