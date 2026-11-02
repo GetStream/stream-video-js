@@ -314,11 +314,11 @@ lane :test_e2e do |options|
   device = options[:device] || 'emu'
   detox_config = "android.#{device}.#{options[:configuration] || 'release'}"
 
-  start_video_buddy
-  # An attached emulator is already booted; Detox boots `emu` devices itself.
-  prepare_android_emulator if device == 'att'
-
   begin
+    start_video_buddy
+    # An attached emulator is already booted; Detox boots `emu` devices itself.
+    prepare_android_emulator if device == 'att'
+
     Dir.chdir(e2e_app_path) do
       sh("yarn e2e:build -c #{detox_config}") unless options[:skip_build]
       FileUtils.rm_rf(allure_results_path)
@@ -353,8 +353,15 @@ lane :allure_upload do |options|
   allurectl = install_allurectl
   allure_args = "-e #{allure_url} --project-id #{allure_project_id} --launch-id #{options[:launch_id]}"
   sh("#{allurectl} launch reopen #{options[:launch_id]} || true") # allurectl can't upload to a closed launch
-  sh("env BRANCH_NAME='#{current_branch}' #{allurectl} upload #{allure_args} #{allure_results_path} || true")
-  UI.success("Check out test results in Allure TestOps: #{allure_url}/launch/#{options[:launch_id]} 🎉")
+  # Reporting stays optional: a failed upload is logged, it doesn't fail the job.
+  uploaded = true
+  sh("env BRANCH_NAME='#{current_branch}' #{allurectl} upload #{allure_args} #{allure_results_path}",
+     error_callback: ->(_) { uploaded = false })
+  if uploaded
+    UI.success("Check out test results in Allure TestOps: #{allure_url}/launch/#{options[:launch_id]} 🎉")
+  else
+    UI.important("Allure upload failed; launch #{options[:launch_id]} is missing these results")
+  end
 end
 
 desc 'Deletes an Allure TestOps launch (for cancelled runs). Options: launch_id'
