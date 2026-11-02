@@ -446,7 +446,12 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
     const canPublish = this.call.permissionsContext.canPublish(this.trackType);
     if (shouldApplyDefaults && !persistedPreferencesApplied) {
-      if (!forceDisabled && canPublish && settings.mic_default_on) {
+      if (
+        !forceDisabled &&
+        canPublish &&
+        settings.mic_default_on &&
+        permissionState !== 'denied'
+      ) {
         await this.enable();
       }
     }
