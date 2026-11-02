@@ -7038,7 +7038,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/i18n@npm:^1.0.2, @stream-io/i18n@npm:^1.1.0":
+"@stream-io/i18n@npm:^1.1.0":
   version: 1.1.0
   resolution: "@stream-io/i18n@npm:1.1.0"
   dependencies:
@@ -7077,7 +7077,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/logger@npm:^2.0.0, @stream-io/logger@npm:^2.1.0":
+"@stream-io/logger@npm:^2.1.0":
   version: 2.1.0
   resolution: "@stream-io/logger@npm:2.1.0"
   checksum: 10/26eb2dcc823611e4c03bff9287b8ea39e12bc5f91b5d57e022dbf2dd014b67860db445c2ffcea9629811542d6ec5afc54f95ff18bfbaebd01cd8eea4ad25ffaf
