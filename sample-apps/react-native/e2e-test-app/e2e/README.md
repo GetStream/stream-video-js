@@ -120,11 +120,15 @@ run on `main`, so each PR fills its own: its first run builds cold, and later pu
   rendered pixels.
 - The emulator has no camera, like in the native Android suite. With an emulated one, `call.join()` sometimes never
   resolves: the calling state is already `JOINED`, but the camera `getUserMedia` after the lobby preview hands over
-  never completes.
+  never completes (RN-474).
 - iOS simulator: there is no camera, and toggling the microphone can abort the app inside WebRTC's audio device module
-  (`AVAudioEngine stop` → `ReportXPCTimeout`). That's why iOS isn't part of the PR checks yet.
+  (`AVAudioEngine stop` → `ReportXPCTimeout`, RN-475). That's why iOS isn't part of the PR checks yet (RN-476), and
+  `LobbyTests` is skipped on iOS.
 - stream-video-buddy's browser must match its Playwright version (`install_video_buddy` installs it with
   `playwright@1.52.0`); with another build it fails to launch, and the participant never joins.
 - The buddy server handles join requests one at a time: a stuck request delays every later one.
 - Call ids start with `e2e-`: `react-native-launch-arguments` turns an all-digit or `5e123456`-like hex id into a number.
 - A ported test keeps the native expectation. If the SDK disagrees, fix the SDK or skip the test against a ticket.
+  Exception: `assertUserMicrophone` checks only the toggle. Android also checks the mic icon on the user's own video,
+  but the RN SDK shows the user in the floating view while one or two others are on the call, and that view has no
+  label (`FloatingParticipantView` passes `ParticipantLabel: null`). That's the SDK's design, not a bug.

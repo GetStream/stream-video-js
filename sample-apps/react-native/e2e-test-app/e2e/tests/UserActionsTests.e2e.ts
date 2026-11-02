@@ -6,7 +6,6 @@ import { setUpStreamTestCase } from '../support/StreamTestCase';
 
 const { DISABLE, ENABLE } = UserControls;
 
-/** Android: `tests/UserActionsTests.kt`. */
 describe('UserActionsTests', () => {
   const testCase = setUpStreamTestCase();
 

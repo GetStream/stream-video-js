@@ -3,7 +3,6 @@ import { describe, it } from '@jest/globals';
 import { step } from '../support/step';
 import { setUpStreamTestCase } from '../support/StreamTestCase';
 
-/** Android: `tests/CallLifecycleTests.kt`. */
 describe('CallLifecycleTests', () => {
   const testCase = setUpStreamTestCase();
 
