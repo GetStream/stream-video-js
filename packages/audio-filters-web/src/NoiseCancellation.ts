@@ -61,13 +61,13 @@ export type NoiseCancellationOptions = {
   restoreAttempts?: number;
 
   /**
-   * Whether Noise Cancellation can be turned on automatically in Safari
-   * and other WebKit-based browsers, such as every iOS browser and WebView
-   * (e.g., when the call's noise cancellation mode is `auto-on`).
-   * Krisp isn't fully reliable in Safari yet, so this is off by default.
+   * Whether Noise Cancellation is supported in Safari and other WebKit-based
+   * browsers, such as every iOS browser and WebView.
+   * Krisp isn't fully reliable there yet, so by default `isSupported()`
+   * reports these browsers as unsupported.
    * Defaults to false.
    */
-  enableInSafari?: boolean;
+  withSafariSupport?: boolean;
 
   /**
    * Optional Krisp SDK parameters.
@@ -160,7 +160,7 @@ export class NoiseCancellation implements INoiseCancellation {
   private readonly basePath: string;
   private readonly restoreTimeoutMs: number;
   private readonly restoreAttempts: number;
-  private readonly enableInSafari: boolean;
+  private readonly withSafariSupport: boolean;
   private readonly krispSDKParams?: ISDKPartialOptions['params'];
 
   private readonly listeners: Partial<Record<keyof Events, Array<any>>> = {};
@@ -172,7 +172,7 @@ export class NoiseCancellation implements INoiseCancellation {
     basePath = `https://unpkg.com/${packageName}@${packageVersion}/src/krispai/models`,
     restoreTimeoutMs = 15000,
     restoreAttempts = 3,
-    enableInSafari = false,
+    withSafariSupport = false,
     krispSDKParams,
   }: NoiseCancellationOptions = {}) {
     const { promise, resolve, reject } = promiseWithResolvers<void>();
@@ -183,16 +183,21 @@ export class NoiseCancellation implements INoiseCancellation {
     this.basePath = basePath;
     this.restoreTimeoutMs = restoreTimeoutMs;
     this.restoreAttempts = restoreAttempts;
-    this.enableInSafari = enableInSafari;
+    this.withSafariSupport = withSafariSupport;
     this.krispSDKParams = krispSDKParams;
   }
 
   /**
    * Checks if the noise cancellation is supported on this platform.
    * Make sure you call this method before trying to enable the noise cancellation.
+   *
+   * Safari and other WebKit-based browsers are reported as unsupported
+   * unless `withSafariSupport` is set.
    */
   isSupported = () => {
-    if (!KrispSDK.isSupported()) {
+    if (isWebKit() && !this.withSafariSupport) {
+      return false;
+    } else if (!KrispSDK.isSupported()) {
       return false;
     } else {
       return simd();
@@ -250,16 +255,6 @@ export class NoiseCancellation implements INoiseCancellation {
 
     return this.initializing;
   };
-
-  /**
-   * Checks if the noise cancellation can be enabled automatically
-   * (e.g., when the call's noise cancellation mode is `auto-on`).
-   *
-   * Returns `false` in Safari and other WebKit-based browsers, where Krisp
-   * isn't reliable yet, unless `enableInSafari` is set.
-   * Noise cancellation can still be enabled manually there.
-   */
-  canAutoEnable = async () => this.enableInSafari || !isWebKit();
 
   /**
    * Checks if the noise cancellation is enabled.
