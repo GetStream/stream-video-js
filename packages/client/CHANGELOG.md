@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.64.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.64.0...@stream-io/video-client-1.64.1) (2026-11-02)
+
+### Bug Fixes
+
+- **audio-filters-web:** report Safari as unsupported unless opted in ([#2572](https://github.com/GetStream/stream-video-js/issues/2572)) ([c7cfd9f](https://github.com/GetStream/stream-video-js/commit/c7cfd9f7ea5da93629734356b02b935fa8fa534e))
+- **client:** let users retry mic/camera access after a denial ([#2570](https://github.com/GetStream/stream-video-js/issues/2570)) ([92b1991](https://github.com/GetStream/stream-video-js/commit/92b19912daa03ac3e9a28ee14029d04cef70c1b4))
+
 ## [1.64.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.63.0...@stream-io/video-client-1.64.0) (2026-10-30)
 
 ### Features
