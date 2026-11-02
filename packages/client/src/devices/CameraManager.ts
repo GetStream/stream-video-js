@@ -210,7 +210,8 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
         !forceDisabled &&
         canPublish &&
         settings.camera_default_on &&
-        enabledInCallType
+        enabledInCallType &&
+        permissionState !== 'denied'
       ) {
         await this.enable();
       }
