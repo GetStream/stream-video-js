@@ -24,6 +24,19 @@ const WARM_UP_GRACE_MS = 3000;
 const OVERLOAD_DEBOUNCE_MS = 1000;
 
 /**
+ * Checks whether the current runtime runs on WebKit: Safari, every iOS browser,
+ * and WKWebView hosts (whose user agent may omit the `Safari` token).
+ * Mirrors `isWebKit()` from `@stream-io/video-client`.
+ */
+const isWebKit = () => {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  if (!/AppleWebKit\//.test(ua)) return false;
+  // Desktop Chromium reuses the AppleWebKit/ token
+  return !/Chrome\/|Chromium\/|Android/.test(ua);
+};
+
+/**
  * Options to pass to the NoiseCancellation instance.
  */
 export type NoiseCancellationOptions = {
@@ -46,6 +59,15 @@ export type NoiseCancellationOptions = {
    * Defaults to 3.
    */
   restoreAttempts?: number;
+
+  /**
+   * Whether Noise Cancellation is supported in Safari and other WebKit-based
+   * browsers, such as every iOS browser and WebView.
+   * Krisp isn't fully reliable there yet, so by default `isSupported()`
+   * reports these browsers as unsupported.
+   * Defaults to false.
+   */
+  withSafariSupport?: boolean;
 
   /**
    * Optional Krisp SDK parameters.
@@ -138,6 +160,7 @@ export class NoiseCancellation implements INoiseCancellation {
   private readonly basePath: string;
   private readonly restoreTimeoutMs: number;
   private readonly restoreAttempts: number;
+  private readonly withSafariSupport: boolean;
   private readonly krispSDKParams?: ISDKPartialOptions['params'];
 
   private readonly listeners: Partial<Record<keyof Events, Array<any>>> = {};
@@ -149,6 +172,7 @@ export class NoiseCancellation implements INoiseCancellation {
     basePath = `https://unpkg.com/${packageName}@${packageVersion}/src/krispai/models`,
     restoreTimeoutMs = 15000,
     restoreAttempts = 3,
+    withSafariSupport = false,
     krispSDKParams,
   }: NoiseCancellationOptions = {}) {
     const { promise, resolve, reject } = promiseWithResolvers<void>();
@@ -159,15 +183,21 @@ export class NoiseCancellation implements INoiseCancellation {
     this.basePath = basePath;
     this.restoreTimeoutMs = restoreTimeoutMs;
     this.restoreAttempts = restoreAttempts;
+    this.withSafariSupport = withSafariSupport;
     this.krispSDKParams = krispSDKParams;
   }
 
   /**
    * Checks if the noise cancellation is supported on this platform.
    * Make sure you call this method before trying to enable the noise cancellation.
+   *
+   * Safari and other WebKit-based browsers are reported as unsupported
+   * unless `withSafariSupport` is set.
    */
   isSupported = () => {
-    if (!KrispSDK.isSupported()) {
+    if (isWebKit() && !this.withSafariSupport) {
+      return false;
+    } else if (!KrispSDK.isSupported()) {
       return false;
     } else {
       return simd();
