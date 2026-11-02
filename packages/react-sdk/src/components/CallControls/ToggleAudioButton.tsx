@@ -46,6 +46,7 @@ export const ToggleAudioPreviewButton = (
   const {
     microphone,
     hasBrowserPermission,
+    isBrowserPermissionBlocked,
     isPromptingPermission,
     optionsAwareIsMute,
     isTogglePending,
@@ -78,7 +79,7 @@ export const ToggleAudioPreviewButton = (
         )}
         variant="secondary"
         disabled={
-          !hasBrowserPermission || (!optimisticUpdates && isTogglePending)
+          isBrowserPermissionBlocked || (!optimisticUpdates && isTogglePending)
         }
         data-testid={
           optionsAwareIsMute
@@ -149,6 +150,7 @@ export const ToggleAudioPublishingButton = (
   const {
     microphone,
     hasBrowserPermission,
+    isBrowserPermissionBlocked,
     isPromptingPermission,
     isTogglePending,
     optionsAwareIsMute,
@@ -193,7 +195,7 @@ export const ToggleAudioPublishingButton = (
             caption={caption}
             variant="secondary"
             disabled={
-              !hasBrowserPermission ||
+              isBrowserPermissionBlocked ||
               !hasPermission ||
               // disable button while the toggle action is pending when not using optimistic updates
               (!optimisticUpdates && isTogglePending)
