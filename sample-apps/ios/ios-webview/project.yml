@@ -37,6 +37,11 @@ targets:
         UIBackgroundModes:
           - audio
           - voip
+          - processing
+        CFBundleURLTypes:
+          - CFBundleURLName: io.getstream.samples.ios-webview.automation
+            CFBundleURLSchemes:
+              - iowebview
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
     settings:
