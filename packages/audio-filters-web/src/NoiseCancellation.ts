@@ -24,6 +24,14 @@ const WARM_UP_GRACE_MS = 3000;
 const OVERLOAD_DEBOUNCE_MS = 1000;
 
 /**
+ * Checks whether the current browser is Safari (or another WebKit-based iOS browser).
+ */
+const isSafari = () => {
+  if (typeof navigator === 'undefined') return false;
+  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent || '');
+};
+
+/**
  * Options to pass to the NoiseCancellation instance.
  */
 export type NoiseCancellationOptions = {
@@ -46,6 +54,14 @@ export type NoiseCancellationOptions = {
    * Defaults to 3.
    */
   restoreAttempts?: number;
+
+  /**
+   * Whether Noise Cancellation can be turned on automatically in Safari
+   * (e.g., when the call's noise cancellation mode is `auto-on`).
+   * Krisp isn't fully reliable in Safari yet, so this is off by default.
+   * Defaults to false.
+   */
+  enableInSafari?: boolean;
 
   /**
    * Optional Krisp SDK parameters.
@@ -138,6 +154,7 @@ export class NoiseCancellation implements INoiseCancellation {
   private readonly basePath: string;
   private readonly restoreTimeoutMs: number;
   private readonly restoreAttempts: number;
+  private readonly enableInSafari: boolean;
   private readonly krispSDKParams?: ISDKPartialOptions['params'];
 
   private readonly listeners: Partial<Record<keyof Events, Array<any>>> = {};
@@ -149,6 +166,7 @@ export class NoiseCancellation implements INoiseCancellation {
     basePath = `https://unpkg.com/${packageName}@${packageVersion}/src/krispai/models`,
     restoreTimeoutMs = 15000,
     restoreAttempts = 3,
+    enableInSafari = false,
     krispSDKParams,
   }: NoiseCancellationOptions = {}) {
     const { promise, resolve, reject } = promiseWithResolvers<void>();
@@ -159,6 +177,7 @@ export class NoiseCancellation implements INoiseCancellation {
     this.basePath = basePath;
     this.restoreTimeoutMs = restoreTimeoutMs;
     this.restoreAttempts = restoreAttempts;
+    this.enableInSafari = enableInSafari;
     this.krispSDKParams = krispSDKParams;
   }
 
@@ -225,6 +244,15 @@ export class NoiseCancellation implements INoiseCancellation {
 
     return this.initializing;
   };
+
+  /**
+   * Checks if the noise cancellation can be enabled automatically
+   * (e.g., when the call's noise cancellation mode is `auto-on`).
+   *
+   * Returns `false` in Safari, where Krisp isn't reliable yet, unless
+   * `enableInSafari` is set. Noise cancellation can still be enabled manually there.
+   */
+  canAutoEnable = async () => this.enableInSafari || !isSafari();
 
   /**
    * Checks if the noise cancellation is enabled.
