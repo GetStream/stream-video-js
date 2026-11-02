@@ -1,14 +1,6 @@
 import React, { useMemo, useRef } from 'react';
 import clsx from 'clsx';
-import {
-  Avatar,
-  ChannelListItemUIProps,
-  composeChannelListItemAccessibleLabel,
-  SummarizedMessagePreview,
-  useChatContext,
-  useTranslationContext,
-  useWorkspaceNavigation,
-} from 'stream-chat-react';
+import { Avatar, ChannelListItemUIProps } from 'stream-chat-react';
 import { StreamCall, useCalls } from '@stream-io/video-react-sdk';
 import { ChannelPreviewCallControls } from './ChannelPreviewCallControls';
 
@@ -19,56 +11,27 @@ const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
     className: customClassName = '',
     displayImage,
     displayTitle,
-    messageDeliveryStatus,
+    latestMessagePreview,
     onSelect: customOnSelectChannel,
-    previewedMessage,
+    setActiveChannel,
     unread,
+    watchers,
   } = props;
-  const { openChannel } = useWorkspaceNavigation();
-  const { client, isMessageAIGenerated } = useChatContext();
-  const { t, tDateTimeParser, userLanguage } = useTranslationContext();
   const channelPreviewButton = useRef<HTMLButtonElement | null>(null);
   const calls = useCalls();
   const callToChannel = useMemo(() => {
     return calls.find((call) => call.state.custom.channelCid === channel.cid);
   }, [calls, channel]);
 
-  const avatarName = displayTitle || previewedMessage?.user?.id;
-  const accessibleLabel = useMemo(
-    () =>
-      composeChannelListItemAccessibleLabel({
-        active,
-        channel,
-        client,
-        displayTitle,
-        isMessageAIGenerated,
-        latestMessage: previewedMessage,
-        messageDeliveryStatus,
-        t,
-        tDateTimeParser,
-        unreadCount: unread,
-        userLanguage,
-      }),
-    [
-      active,
-      channel,
-      client,
-      displayTitle,
-      isMessageAIGenerated,
-      messageDeliveryStatus,
-      previewedMessage,
-      t,
-      tDateTimeParser,
-      unread,
-      userLanguage,
-    ],
-  );
+  const avatarName =
+    displayTitle ||
+    channel.state.messages[channel.state.messages.length - 1]?.user?.id;
 
   const onSelectChannel = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (customOnSelectChannel) {
       customOnSelectChannel(e);
-    } else {
-      openChannel(channel, { event: e });
+    } else if (setActiveChannel) {
+      setActiveChannel(channel, watchers);
     }
     if (channelPreviewButton?.current) {
       channelPreviewButton.current.blur();
@@ -78,8 +41,8 @@ const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
   return (
     <div className="str-chat__channel-list-item-container">
       <button
-        aria-label={accessibleLabel}
-        aria-selected={active || undefined}
+        aria-label={`Select Channel: ${displayTitle || ''}`}
+        aria-pressed={active}
         className={clsx(
           'str-chat__channel-list-item',
           unread && unread >= 1 && 'str-chat__channel-list-item--unread',
@@ -96,6 +59,11 @@ const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
             <div className="str-chat__channel-list-item-data__title">
               <span>{displayTitle}</span>
             </div>
+            {callToChannel && (
+              <StreamCall call={callToChannel}>
+                <ChannelPreviewCallControls />
+              </StreamCall>
+            )}
             {!!unread && (
               <div
                 className="str-chat__channel-list-item-data__timestamp-and-badge"
@@ -106,19 +74,10 @@ const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
             )}
           </div>
           <div className="str-chat__channel-list-item-data__second-row">
-            <SummarizedMessagePreview
-              latestMessage={previewedMessage}
-              messageDeliveryStatus={messageDeliveryStatus}
-              participantCount={channel.data?.member_count}
-            />
+            {latestMessagePreview}
           </div>
         </div>
       </button>
-      {callToChannel && (
-        <StreamCall call={callToChannel}>
-          <ChannelPreviewCallControls />
-        </StreamCall>
-      )}
     </div>
   );
 };

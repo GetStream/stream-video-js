@@ -10,7 +10,7 @@ import {
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import { useWorkspaceNavigation } from 'stream-chat-react';
+import { useChatContext } from 'stream-chat-react';
 import { useState } from 'react';
 import { useDraggable } from '../../hooks';
 
@@ -19,20 +19,15 @@ export const CallPanel = () => {
   const { useCallCallingState, useCallCustomData } = useCallStateHooks();
   const callingState = useCallCallingState();
   const customData = useCallCustomData();
-  const { isChannelActive, isThreadsView } = useWorkspaceNavigation();
+  const { channel: activeChannel } = useChatContext();
   const [panelElement, setPanelElement] = useState<HTMLDivElement | null>(null);
   useDraggable(panelElement);
 
   if (!call) return null;
 
-  // in the channels view, rings for other channels show in their sidebar row;
-  // the threads view has no sidebar, so it shows every ring here
-  const callingToActiveChannel = isChannelActive(customData.channelCid);
-  if (
-    CallingState.RINGING === callingState &&
-    !callingToActiveChannel &&
-    !isThreadsView
-  )
+  const callingToActiveChannel = activeChannel?.cid === customData.channelCid;
+  // FIXME: currently does not show call panel when called from channel not loaded into state
+  if (CallingState.RINGING === callingState && !callingToActiveChannel)
     return null;
 
   if (callingState === CallingState.JOINED) {

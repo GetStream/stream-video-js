@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import type { Channel, StreamChat } from 'stream-chat';
 
@@ -14,37 +14,27 @@ export const useWatchChannel = ({
   channelType?: string;
 }) => {
   const [channel, setChannel] = useState<Channel | undefined>();
-  const [failed, setFailed] = useState(false);
-  const [attempt, setAttempt] = useState(0);
   const router = useRouter();
-  const type = (router.query['channel_type'] as string) || channelType;
 
   useEffect(() => {
     if (!client) return;
+    const type = (router.query['channel_type'] as string) || channelType;
     const ch = client.channel(type, channelId);
-    // active for the whole call, so connection recovery re-watches it while the
-    // chat panel (whose Channel would activate it) is closed
-    const release = ch.activate();
     let cancelled = false;
-    setFailed(false);
 
     ch.watch()
-      .then((watched) => {
-        if (!cancelled) setChannel(watched);
+      .then(() => {
+        if (!cancelled) setChannel(ch);
       })
       .catch((err) => {
         console.warn('Failed to watch chat channel', err);
-        if (!cancelled) setFailed(true);
       });
 
     return () => {
       cancelled = true;
-      release();
       setChannel(undefined);
     };
-  }, [client, channelId, type, attempt]);
+  }, [client, channelId, channelType, router.query]);
 
-  const retry = useCallback(() => setAttempt((n) => n + 1), []);
-
-  return { channel, channelWatched: !!channel, failed, retry };
+  return { channel, channelWatched: !!channel };
 };

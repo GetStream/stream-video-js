@@ -1,5 +1,5 @@
 import { PropsWithChildren, useEffect, useRef, useState } from 'react';
-import type { Channel, MessageResponse } from 'stream-chat';
+import type { Channel, Event, MessageResponse } from 'stream-chat';
 
 export const NewMessageNotification = (
   props: PropsWithChildren<{
@@ -14,7 +14,7 @@ export const NewMessageNotification = (
   useEffect(() => {
     if (!channel || disableOnChatOpen) return;
 
-    const sub = channel.on('message.new', (event) => {
+    const sub = channel.on('message.new', (event: Event) => {
       if (!event.message) return;
       setMessage(event.message);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -46,7 +46,7 @@ export const NewMessageNotification = (
         <div className="rd-chat__new-message-toast">
           <div className="rd-chat__new-message-notification">
             <span className="rd-chat__new-message-notification__sender">
-              {message.user?.name ?? message.user?.id}
+              {message.user?.name ?? message.user_id}
             </span>
             <span className="rd-chat__new-message-notification__text">
               {message.text}
