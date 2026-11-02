@@ -1,13 +1,13 @@
 import { describe, it } from '@jest/globals';
 
-import { step } from '../support/step';
+import { allureId, step } from '../support/step';
 import { setUpStreamTestCase } from '../support/StreamTestCase';
 
 describe('CallLifecycleTests', () => {
   const testCase = setUpStreamTestCase();
 
-  // AllureId 6942
   it('testUserLeavesTheCallAfterConnection', async () => {
+    allureId(12967);
     const { userRobot, participantRobot, callId } = testCase;
 
     await step('GIVEN user starts a call', () => userRobot.joinCall());

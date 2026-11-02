@@ -33,3 +33,7 @@ recordings/
 
 # Detox
 artifacts/
+
+# Allure (written by jest-allure2-reporter, uploaded by the dogfood app's fastlane lanes)
+allure-results/
+allurectl

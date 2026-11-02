@@ -78,13 +78,26 @@ sources in the dogfood Fastfile's `impact_analysis`). The simulator/emulator job
 sources, or when the last change to them hasn't passed yet. `Test E2E Result` is the job to require in branch
 protection: it passes when the e2e jobs pass or are skipped as not required.
 
-iOS runs on demand only, on the `xcode-27` runner (Xcode 27.1, iPhone 18 Pro, `ios.sim.release`). Android runs on
+`react-native-e2e-test-cron.yml` runs everything on weeknights (01:00 UTC) and on demand: Android on API 36, 34, 31
+and 28, and iOS 27.0 (iPhone 18 Pro) and 17.5 (iPhone 15 Pro). Xcode doesn't ship the older runtime, so
+`.github/actions/rn-e2e-ios-runtime` downloads it with `ipsw` and installs it (`fastlane e2e_install_ios_runtime`,
+`scripts/install_ios_runtime.sh`). Each job reports to Allure TestOps (project 168, `stream-video-react-native`): it
+opens a launch (`fastlane allure_launch cron:true`), uploads `allure-results/` (`allure_upload`), and deletes the
+launch when cancelled (`allure_launch_removal`). A failed scheduled run posts to Slack (`SLACK_WEBHOOK_NIGHTLY_CHECKS`).
+Both workflows build through the same composite actions (`.github/actions/rn-e2e-*`), so they share cache keys, and
+the nightly run fills the default branch's caches that PRs restore from.
+
+Allure results come from `jest-allure2-reporter` (`e2e/jest.config.js`). Every `step()` is an Allure step, and
+`allureId(N)` links a test to its case in project 168. Create the case first (TestOps UI or API): cases that an upload
+creates on its own are not durable.
+
+iOS runs nightly and on demand, not on PRs, on the `xcode-27` runner (Xcode 27.1, iPhone 18 Pro, `ios.sim.release`). Android runs on
 `ubuntu-latest` with KVM and an API 36 x86_64 emulator without a camera (`android.att.release`). Both call
 `fastlane test_e2e skip_build:true`, which on CI adds `--retries 2 --headless` and keeps failure logs and screenshots in
 `artifacts/`. Those and the buddy's logs and recordings are uploaded when a job fails.
 
-What CI caches. GitHub only lets a PR restore caches from its own branch or the base branch, and this workflow doesn't
-run on `main`, so each PR fills its own: its first run builds cold, and later pushes to it reuse the caches.
+What CI caches. GitHub only lets a PR restore caches from its own branch or the base branch. The nightly run fills
+`main`'s, so a PR's first run starts from them, and later pushes to the PR reuse its own.
 
 - **The built app** (`.app`; release + test `.apk`), keyed on the app and SDK sources. A change that only touches
   `e2e/` reuses the binary and skips building the SDK packages, pods, Gradle and Xcode entirely.

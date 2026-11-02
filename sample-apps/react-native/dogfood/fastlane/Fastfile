@@ -246,6 +246,10 @@ end
 
 e2e_app_path = File.absolute_path('../../e2e-test-app')
 video_buddy_port = ENV['VIDEO_BUDDY_PORT'] || '5678'
+allure_url = 'https://streamio.testops.cloud'
+allure_api_url = "#{allure_url}/api"
+allure_project_id = '168'
+allure_results_path = File.join(e2e_app_path, 'allure-results')
 
 desc 'Installs stream-video-buddy and the browser it drives'
 lane :install_video_buddy do
@@ -325,12 +329,71 @@ lane :test_e2e do |options|
   begin
     Dir.chdir(e2e_app_path) do
       sh("yarn e2e:build -c #{detox_config}") unless options[:skip_build]
+      FileUtils.rm_rf(allure_results_path)
       ci_flags = is_ci ? '--retries 2 --headless --record-logs failing --take-screenshots failing' : ''
       sh("VIDEO_BUDDY_PORT=#{video_buddy_port} yarn detox test -c #{detox_config} --cleanup #{ci_flags} #{options[:test]}")
     end
   ensure
     stop_video_buddy
   end
+end
+
+desc 'Installs an iOS simulator runtime that Xcode does not ship with. Options: ios (e.g. 17.5)'
+lane :e2e_install_ios_runtime do |options|
+  install_ios_runtime(version: options[:ios], custom_script: File.join(e2e_app_path, 'scripts/install_ios_runtime.sh'))
+end
+
+desc 'Creates an Allure TestOps launch and exports LAUNCH_ID to the following CI steps. Options: cron'
+lane :allure_launch do |options|
+  next unless is_check_required(sources: @impact[:e2e][:sources], force_check: @force_check, required_checks: @impact[:e2e][:checks])
+
+  launch_id = allure_create_launch(
+    url: allure_api_url,
+    project_id: allure_project_id,
+    github_run_details: github_run_details,
+    cron: options[:cron]
+  )
+  sh("echo 'LAUNCH_ID=#{launch_id}' >> $GITHUB_ENV") if is_ci
+end
+
+desc 'Uploads the e2e Allure results. Options: launch_id'
+lane :allure_upload do |options|
+  unless Dir.exist?(allure_results_path) && Dir.children(allure_results_path).any?
+    UI.important("No Allure results in #{allure_results_path}; skipping upload")
+    next
+  end
+
+  allurectl = install_allurectl
+  allure_args = "-e #{allure_url} --project-id #{allure_project_id} --launch-id #{options[:launch_id]}"
+  sh("#{allurectl} launch reopen #{options[:launch_id]} || true") # allurectl can't upload to a closed launch
+  sh("env BRANCH_NAME='#{current_branch}' #{allurectl} upload #{allure_args} #{allure_results_path} || true")
+  UI.success("Check out test results in Allure TestOps: #{allure_url}/launch/#{options[:launch_id]} 🎉")
+end
+
+desc 'Deletes an Allure TestOps launch (for cancelled runs). Options: launch_id'
+lane :allure_launch_removal do |options|
+  allure_api(url: allure_api_url, path: "launch/#{options[:launch_id]}", http_method: 'DELETE')
+end
+
+private_lane :install_allurectl do
+  path = File.join(e2e_app_path, 'allurectl')
+  next path if File.exist?(path)
+
+  allure_version = '2.21.1'
+  os = `uname -s`.strip.downcase
+  arch = `uname -m`.strip == 'x86_64' ? 'amd64' : 'arm64'
+  sh("curl -sSL -o #{path} " \
+     "https://github.com/allure-framework/allurectl/releases/download/#{allure_version}/allurectl_#{os}_#{arch}")
+  sh("chmod +x #{path}")
+  path
+end
+
+def github_run_details
+  return nil unless is_ci
+
+  github_path = "#{ENV.fetch('GITHUB_API_URL', nil)}/repos/#{ENV.fetch('GITHUB_REPOSITORY', nil)}/actions/runs/#{ENV.fetch('GITHUB_RUN_ID', nil)}"
+  output = sh(command: "curl -s -H 'authorization: Bearer #{ENV.fetch('GITHUB_TOKEN', nil)}' -X GET -G #{github_path}")
+  JSON.parse(output)
 end
 
 lane :impact_analysis do
@@ -345,7 +408,8 @@ lane :impact_analysis do
         'sample-apps/react-native/dogfood/fastlane/',
         'package.json',
         'yarn.lock',
-        '.github/workflows/react-native-e2e-test.yml'
+        '.github/workflows/react-native-e2e-test.yml',
+        '.github/actions/rn-e2e-'
       ],
       checks: ['Test E2E Result']
     }

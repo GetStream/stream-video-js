@@ -1,0 +1,45 @@
+name: 'RN E2E iOS Runtime'
+description: 'Installs an iOS simulator runtime Xcode does not ship with, and a simulator on it'
+inputs:
+  version:
+    description: 'iOS runtime version (e.g. 17.5)'
+    required: true
+  device:
+    description: 'Simulator device type (e.g. iPhone 15 Pro); the simulator gets the same name'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Install ipsw
+      shell: bash
+      run: |
+        IPSW_VERSION=3.1.592
+        FILE="ipsw_${IPSW_VERSION}_macOS_universal.tar.gz"
+        if ! command -v ipsw >/dev/null; then
+          wget -q "https://github.com/blacktop/ipsw/releases/download/v${IPSW_VERSION}/${FILE}"
+          tar -xzf "$FILE"
+          chmod +x ipsw
+          sudo mv ipsw /usr/local/bin/
+          rm -f "$FILE"
+        fi
+    # Frees the disk the preinstalled simulators take, for the runtime download.
+    - name: Remove the preinstalled simulators
+      shell: bash
+      run: sudo rm -rfv ~/Library/Developer/CoreSimulator/* || true
+    - name: Install iOS runtime
+      shell: bash
+      working-directory: sample-apps/react-native/dogfood
+      run: bundle exec fastlane e2e_install_ios_runtime ios:${{ inputs.version }}
+    - name: Remove the runtime download
+      shell: bash
+      run: |
+        rm -fv sample-apps/react-native/dogfood/*.dmg || true
+        xcrun simctl list runtimes
+    - name: Create the simulator
+      shell: bash
+      env:
+        IOS_VERSION: ${{ inputs.version }}
+        DEVICE: ${{ inputs.device }}
+      run: |
+        xcrun simctl create "$DEVICE" "$DEVICE" "com.apple.CoreSimulator.SimRuntime.iOS-${IOS_VERSION//./-}"
+        xcrun simctl list devices "$IOS_VERSION"

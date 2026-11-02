@@ -7,8 +7,21 @@ module.exports = {
   maxWorkers: 1,
   globalSetup: 'detox/runners/jest/globalSetup',
   globalTeardown: 'detox/runners/jest/globalTeardown',
-  reporters: ['detox/runners/jest/reporter'],
+  reporters: [
+    'detox/runners/jest/reporter',
+    // Kept across Detox's `--retries` runs; the `test_e2e` lane clears it before the first one.
+    [
+      'jest-allure2-reporter',
+      { resultsDir: 'allure-results', overwrite: false },
+    ],
+  ],
   testEnvironment: 'detox/runners/jest/testEnvironment',
+  testEnvironmentOptions: {
+    eventListeners: [
+      'jest-metadata/environment-listener',
+      'jest-allure2-reporter/environment-listener',
+    ],
+  },
   verbose: true,
   transform: {
     '\\.ts$': [

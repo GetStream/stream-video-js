@@ -1,0 +1,39 @@
+name: 'RN E2E Android App'
+description: 'Restores the e2e release + test APKs, or builds and caches them when the app or SDK sources changed'
+runs:
+  using: 'composite'
+  steps:
+    # Rebuilt only when the app or SDK sources change, not for test-only changes.
+    - name: Restore APKs
+      id: apk
+      uses: actions/cache/restore@v6
+      with:
+        path: |
+          sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk/release/app-release.apk
+          sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk
+        key: e2e-android-apk-${{ hashFiles('yarn.lock', 'packages/client/src/**', 'packages/client/package.json', 'packages/react-bindings/src/**', 'packages/react-bindings/package.json', 'packages/react-native-sdk/src/**', 'packages/react-native-sdk/package.json', 'packages/react-native-sdk/android/**', '!packages/react-native-sdk/android/build/**', 'sample-apps/react-native/e2e-test-app/*.js', '!sample-apps/react-native/e2e-test-app/.detoxrc.js', 'sample-apps/react-native/e2e-test-app/*.json', 'sample-apps/react-native/e2e-test-app/*.tsx', 'sample-apps/react-native/e2e-test-app/src/**', 'sample-apps/react-native/e2e-test-app/android/**', '!sample-apps/react-native/e2e-test-app/android/**/build/**', '!sample-apps/react-native/e2e-test-app/android/.gradle/**') }}
+    - name: Build SDK packages
+      if: steps.apk.outputs.cache-hit != 'true'
+      shell: bash
+      run: yarn build:react-native:deps
+    # Built before the emulator boots so the emulator doesn't idle through the Gradle build.
+    - name: Build app
+      if: steps.apk.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: sample-apps/react-native/e2e-test-app
+      # The emulator is x86_64: skip compiling native code for the other ABIs.
+      run: ORG_GRADLE_PROJECT_reactNativeArchitectures=x86_64 yarn e2e:build -c android.att.release
+    - name: Save APKs
+      if: steps.apk.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: |
+          sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk/release/app-release.apk
+          sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk
+        key: ${{ steps.apk.outputs.cache-primary-key }}
+    # Frees the daemons' memory for the emulator, which otherwise can get killed mid-run.
+    - name: Stop Gradle daemons
+      if: steps.apk.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: sample-apps/react-native/e2e-test-app/android
+      run: ./gradlew --stop

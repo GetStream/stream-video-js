@@ -1,0 +1,56 @@
+name: 'RN E2E iOS App'
+description: 'Restores the e2e simulator .app, or builds and caches it when the app or SDK sources changed'
+inputs:
+  xcode-version:
+    description: 'Xcode version the app is built with (part of the cache keys)'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    # Rebuilt only when the app or SDK sources change, not for test-only changes.
+    - name: Restore app
+      id: app
+      uses: actions/cache/restore@v6
+      with:
+        path: sample-apps/react-native/e2e-test-app/ios/build/detox/Build/Products/Release-iphonesimulator/VideoE2ETestApp.app
+        key: e2e-ios-app-xcode${{ inputs.xcode-version }}-${{ hashFiles('yarn.lock', 'packages/client/src/**', 'packages/client/package.json', 'packages/react-bindings/src/**', 'packages/react-bindings/package.json', 'packages/react-native-sdk/src/**', 'packages/react-native-sdk/package.json', 'packages/react-native-sdk/ios/**', 'packages/react-native-sdk/*.podspec', 'sample-apps/react-native/dogfood/Gemfile.lock', 'sample-apps/react-native/e2e-test-app/*.js', '!sample-apps/react-native/e2e-test-app/.detoxrc.js', 'sample-apps/react-native/e2e-test-app/*.json', 'sample-apps/react-native/e2e-test-app/*.tsx', 'sample-apps/react-native/e2e-test-app/src/**', 'sample-apps/react-native/e2e-test-app/ios/**', '!sample-apps/react-native/e2e-test-app/ios/build/**', '!sample-apps/react-native/e2e-test-app/ios/Pods/**') }}
+    - name: Build SDK packages
+      if: steps.app.outputs.cache-hit != 'true'
+      shell: bash
+      run: yarn build:react-native:deps
+    - name: Set up ccache
+      if: steps.app.outputs.cache-hit != 'true'
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: e2e-ios-xcode${{ inputs.xcode-version }}
+        max-size: 1500M
+    # RN's ccache-clang.sh runs `$CCACHE_BINARY clang`, but Xcode doesn't export that build
+    # setting to the compiler, so without this every compile silently skips ccache.
+    - name: Point the RN ccache wrappers at ccache
+      if: steps.app.outputs.cache-hit != 'true'
+      shell: bash
+      run: echo "CCACHE_BINARY=$(which ccache)" >> "$GITHUB_ENV"
+    - name: Cache pods
+      if: steps.app.outputs.cache-hit != 'true'
+      uses: actions/cache@v6
+      with:
+        path: sample-apps/react-native/e2e-test-app/ios/Pods
+        key: ${{ runner.os }}-e2e-pods-${{ hashFiles('sample-apps/react-native/e2e-test-app/ios/Podfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-e2e-pods-
+    - name: Install pods
+      if: steps.app.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: sample-apps/react-native/dogfood
+      run: USE_CCACHE=1 bundle exec fastlane e2e_pod_install
+    - name: Build app
+      if: steps.app.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: sample-apps/react-native/e2e-test-app
+      run: yarn e2e:build -c ios.sim.release
+    - name: Save app
+      if: steps.app.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: sample-apps/react-native/e2e-test-app/ios/build/detox/Build/Products/Release-iphonesimulator/VideoE2ETestApp.app
+        key: ${{ steps.app.outputs.cache-primary-key }}

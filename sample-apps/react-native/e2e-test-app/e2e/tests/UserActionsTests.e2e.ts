@@ -1,7 +1,7 @@
 import { describe, it } from '@jest/globals';
 
 import { UserControls } from '../robots';
-import { step } from '../support/step';
+import { allureId, step } from '../support/step';
 import { setUpStreamTestCase } from '../support/StreamTestCase';
 
 const { DISABLE, ENABLE } = UserControls;
@@ -9,8 +9,8 @@ const { DISABLE, ENABLE } = UserControls;
 describe('UserActionsTests', () => {
   const testCase = setUpStreamTestCase();
 
-  // AllureId 7535
   it('testUserMicrophone', async () => {
+    allureId(12969);
     const { userRobot, participantRobot, callId } = testCase;
 
     await step('GIVEN user starts a call', () =>
