@@ -117,12 +117,38 @@ describe('MicrophoneManager', () => {
     expect(spy).toHaveBeenCalledWith(mockAudioDevices);
   });
 
+  it('uses the capture window for future captures and supports resetting it', async () => {
+    const mediaDevices = {} as MediaDevices;
+    const win = {
+      closed: false,
+      document: { hasFocus: () => true },
+      navigator: { mediaDevices },
+    } as unknown as Window;
+    manager.setCaptureWindow(win);
+    await manager.enable();
+    expect(getAudioStream).toHaveBeenLastCalledWith(
+      expect.any(Object),
+      expect.any(Tracer),
+      mediaDevices,
+    );
+
+    await manager.disable({ forceStop: true });
+    manager.setCaptureWindow(undefined);
+    await manager.enable();
+    expect(getAudioStream).toHaveBeenLastCalledWith(
+      expect.any(Object),
+      expect.any(Tracer),
+      undefined,
+    );
+  });
+
   it('get stream', async () => {
     await manager.enable();
 
     expect(getAudioStream).toHaveBeenCalledWith(
       { deviceId: undefined },
       expect.any(Tracer),
+      undefined,
     );
   });
 
@@ -528,6 +554,7 @@ describe('MicrophoneManager', () => {
         expect(getAudioStream).toHaveBeenCalledWith(
           expect.objectContaining({ deviceId: { exact: 'other-mic' } }),
           expect.any(Tracer),
+          undefined,
         );
       });
 
@@ -595,6 +622,7 @@ describe('MicrophoneManager', () => {
       expect(getAudioStream).toHaveBeenLastCalledWith(
         expect.objectContaining({ noiseSuppression: false }),
         expect.any(Tracer),
+        undefined,
       );
 
       vi.mocked(getAudioStream).mockClear();
@@ -701,6 +729,35 @@ describe('MicrophoneManager', () => {
 
       expect(noiseCancellationEnable).toBeCalled();
       expect(call.notifyNoiseCancellationStarting).toBeCalled();
+    });
+
+    it('should not automatically enable noise suppression when it cannot auto-enable', async () => {
+      call.state.setCallingState(CallingState.IDLE); // reset state
+      call.state.updateFromCallResponse(
+        fromPartial({
+          egress: {},
+          settings: {
+            audio: {
+              noise_cancellation: {
+                mode: 'auto-on',
+              },
+            },
+          },
+        }),
+      );
+
+      const noiseCancellation = new NoiseCancellationStub();
+      const canAutoEnable = vi
+        .spyOn(noiseCancellation, 'canAutoEnable')
+        .mockResolvedValue(false);
+      const noiseCancellationEnable = vi.spyOn(noiseCancellation, 'enable');
+      await manager.enableNoiseCancellation(noiseCancellation);
+
+      call.state.setCallingState(CallingState.JOINED);
+      await sleep(25);
+
+      expect(canAutoEnable).toBeCalled();
+      expect(noiseCancellationEnable).not.toBeCalled();
     });
 
     it('should automatically disable noise suppression after leaving the call', async () => {
@@ -943,6 +1000,7 @@ describe('MicrophoneManager', () => {
       expect(getAudioStream).toHaveBeenCalledWith(
         { deviceId: { exact: deviceId } },
         expect.any(Tracer),
+        undefined,
       );
     });
 

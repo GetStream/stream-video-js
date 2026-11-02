@@ -440,7 +440,12 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
     const canPublish = this.call.permissionsContext.canPublish(this.trackType);
     if (shouldApplyDefaults && !persistedPreferencesApplied) {
-      if (!forceDisabled && canPublish && settings.mic_default_on) {
+      if (
+        !forceDisabled &&
+        canPublish &&
+        settings.mic_default_on &&
+        permissionState !== 'denied'
+      ) {
         await this.enable();
       }
     }
@@ -479,7 +484,11 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     // Ensure the call's media factory exists before capture so the resulting
     // track is owned by it (the WebRTC globals resolve to the live factory).
     await this.call.ensureMediaFactory();
-    return getAudioStream(constraints, this.call.tracer);
+    return getAudioStream(
+      constraints,
+      this.call.tracer,
+      this.getCaptureMediaDevices(),
+    );
   }
 
   /**
