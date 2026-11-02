@@ -24,11 +24,16 @@ const WARM_UP_GRACE_MS = 3000;
 const OVERLOAD_DEBOUNCE_MS = 1000;
 
 /**
- * Checks whether the current browser is Safari (or another WebKit-based iOS browser).
+ * Checks whether the current runtime runs on WebKit: Safari, every iOS browser,
+ * and WKWebView hosts (whose user agent may omit the `Safari` token).
+ * Mirrors `isWebKit()` from `@stream-io/video-client`.
  */
-const isSafari = () => {
+const isWebKit = () => {
   if (typeof navigator === 'undefined') return false;
-  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent || '');
+  const ua = navigator.userAgent || '';
+  if (!/AppleWebKit\//.test(ua)) return false;
+  // Desktop Chromium reuses the AppleWebKit/ token
+  return !/Chrome\/|Chromium\/|Android/.test(ua);
 };
 
 /**
@@ -57,6 +62,7 @@ export type NoiseCancellationOptions = {
 
   /**
    * Whether Noise Cancellation can be turned on automatically in Safari
+   * and other WebKit-based browsers, such as every iOS browser and WebView
    * (e.g., when the call's noise cancellation mode is `auto-on`).
    * Krisp isn't fully reliable in Safari yet, so this is off by default.
    * Defaults to false.
@@ -249,10 +255,11 @@ export class NoiseCancellation implements INoiseCancellation {
    * Checks if the noise cancellation can be enabled automatically
    * (e.g., when the call's noise cancellation mode is `auto-on`).
    *
-   * Returns `false` in Safari, where Krisp isn't reliable yet, unless
-   * `enableInSafari` is set. Noise cancellation can still be enabled manually there.
+   * Returns `false` in Safari and other WebKit-based browsers, where Krisp
+   * isn't reliable yet, unless `enableInSafari` is set.
+   * Noise cancellation can still be enabled manually there.
    */
-  canAutoEnable = async () => this.enableInSafari || !isSafari();
+  canAutoEnable = async () => this.enableInSafari || !isWebKit();
 
   /**
    * Checks if the noise cancellation is enabled.
