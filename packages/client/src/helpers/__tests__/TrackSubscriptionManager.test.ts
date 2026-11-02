@@ -348,6 +348,7 @@ describe('TrackSubscriptionManager', () => {
       });
       visibility = { hidden: false };
       stopWatchingSource = vi.fn();
+      manager.setPauseWhenHidden(true);
       stop = manager.watchVisibility({
         getVisibility: () => visibility,
         watch: (onChange) => {
@@ -382,6 +383,24 @@ describe('TrackSubscriptionManager', () => {
       vi.advanceTimersByTime(1);
       expect(tracks()).toEqual(['presenter:SCREEN_SHARE_AUDIO']);
       expect(pushedTracks()).toEqual(['presenter:SCREEN_SHARE_AUDIO']);
+    });
+
+    it('does not pause unless enabled', () => {
+      stop();
+      manager = new TrackSubscriptionManager(state, tracer);
+      manager.setSfuClient(sfuClient as StreamSfuClient);
+      stop = manager.watchVisibility({
+        getVisibility: () => visibility,
+        watch: (onChange) => {
+          notify = onChange;
+          return stopWatchingSource;
+        },
+      });
+      setVisibility({ hidden: true });
+      vi.advanceTimersByTime(10_000);
+
+      expect(tracks()).toEqual(allTracks);
+      expect(updateSubscriptions).not.toHaveBeenCalled();
     });
 
     it('pauses when watching starts on a hidden app', () => {

@@ -144,6 +144,8 @@ export const SettingsTabModalMenu = (props: {
       setLanguage,
       speakingDetectionEnabled,
       setSpeakingDetectionEnabled,
+      pauseVideoWhenHiddenEnabled,
+      setPauseVideoWhenHiddenEnabled,
     },
   } = useSettings();
   const { t } = useAppI18n();
@@ -186,6 +188,20 @@ export const SettingsTabModalMenu = (props: {
           {t(
             'settings.incomingVideoQuality.description',
             'Actual incoming video quality depends on a number of factors, such as the quality of the source video, and network conditions.',
+          )}
+        </div>
+        <OnOffSettingsDropdown
+          title={t(
+            'settings.pauseVideoWhenHidden.title',
+            'Pause video in background tabs',
+          )}
+          enabled={pauseVideoWhenHiddenEnabled}
+          setEnabled={setPauseVideoWhenHiddenEnabled}
+        />
+        <div className="rd__tab-panel__note">
+          {t(
+            'settings.pauseVideoWhenHidden.description',
+            'Stops receiving video a few seconds after you switch to another tab, and resumes it when you come back. Audio keeps playing.',
           )}
         </div>
         <DeviceSelectionSettingsDropdown

@@ -111,7 +111,7 @@ export class TrackSubscriptionManager {
   private pendingUpdate: NodeJS.Timeout | null = null;
 
   private visibilitySource: AppVisibilitySource | undefined;
-  private pauseWhenHidden = true;
+  private pauseWhenHidden = false;
   /**
    * How long the app must stay hidden before incoming video is paused. Rides
    * out short trips away from the call, such as a notification shade, a
@@ -313,11 +313,11 @@ export class TrackSubscriptionManager {
   };
 
   /**
-   * Starts pausing incoming video while the app is hidden, as reported by
-   * `source`. Video is paused once the app stays hidden for a few seconds,
-   * and resumed right away when it becomes visible again, unless disabled
-   * with `setPauseWhenHidden(false)`. A video shown in picture-in-picture
-   * stays subscribed.
+   * Starts watching whether the app is hidden, as reported by `source`. Once
+   * enabled with `setPauseWhenHidden(true)`, incoming video is paused after
+   * the app stays hidden for a few seconds, and resumed right away when it
+   * becomes visible again. A video shown in picture-in-picture stays
+   * subscribed.
    *
    * @returns a function that stops watching and drops the pause state.
    */

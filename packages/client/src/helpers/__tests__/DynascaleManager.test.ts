@@ -723,6 +723,7 @@ describe('DynascaleManager', () => {
           publishedTracks: [TrackType.VIDEO],
         });
         hidden = false;
+        call.trackSubscriptionManager.setPauseWhenHidden(true);
         stopWatching = call.trackSubscriptionManager.watchVisibility({
           getVisibility: () => ({ hidden }),
           watch: (onChange) => {
