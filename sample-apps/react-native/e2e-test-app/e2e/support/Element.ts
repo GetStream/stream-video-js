@@ -24,7 +24,7 @@ export const waitToAppear = async (
 
 /**
  * Retries `action` while Detox reports the element as not hittable (e.g. covered by the keyboard
- * while it animates in). iOS runs without Detox's idle synchronization, which used to absorb that.
+ * while it animates in). The suite runs without Detox's idle synchronization, which would absorb that.
  */
 const retryWhileNotHittable = async (
   action: () => Promise<void>,
@@ -77,8 +77,8 @@ export const waitToDisappear = async (
 
 /**
  * Waits until `selector` exists (or, with `shouldExist: false`, until it no longer does), and
- * returns whether it exists then. For elements Detox iOS never reports as visible, such as avatars
- * whose remote image has not loaded: its visibility check needs rendered pixels.
+ * returns whether it exists then. For elements Detox's visibility check can't see, such as avatars
+ * whose remote image has not loaded: the check needs rendered pixels.
  */
 export const waitForExistence = async (
   selector: Selector,

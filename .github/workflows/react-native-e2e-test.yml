@@ -4,15 +4,6 @@ on:
   pull_request:
 
   workflow_dispatch:
-    inputs:
-      ios:
-        description: 'Run iOS e2e tests'
-        type: boolean
-        default: false
-      android:
-        description: 'Run Android e2e tests'
-        type: boolean
-        default: true
 
 permissions:
   contents: read
@@ -52,65 +43,9 @@ jobs:
         working-directory: sample-apps/react-native/dogfood
         run: bundle exec fastlane e2e_check_required
 
-  ios:
-    needs: check
-    if: needs.check.outputs.required == 'true' && github.event_name == 'workflow_dispatch' && inputs.ios
-    runs-on: xcode-27
-    timeout-minutes: 60
-    env:
-      DETOX_IOS_DEVICE: 'iPhone 18 Pro'
-      IOS_VERSION: '27.0'
-      XCODE_VERSION: '27.1'
-    steps:
-      - uses: actions/checkout@v7
-      - name: Select Xcode version
-        run: sudo xcode-select --switch "/Applications/Xcode_${XCODE_VERSION}.app"
-      # A fresh simulator takes minutes to boot on CI; boot it now so that overlaps with setup.
-      - name: Boot simulator
-        run: |
-          runtime="com.apple.CoreSimulator.SimRuntime.iOS-${IOS_VERSION//./-}"
-          udid=$(xcrun simctl list devices available -j |
-            jq -r --arg rt "$runtime" --arg name "$DETOX_IOS_DEVICE" '.devices[$rt][]? | select(.name == $name) | .udid' | head -1)
-          if [ -z "$udid" ]; then
-            echo "::warning::No $DETOX_IOS_DEVICE on iOS $IOS_VERSION; Detox will pick and boot a simulator itself"
-            exit 0
-          fi
-          echo "DETOX_IOS_UDID=$udid" >> "$GITHUB_ENV"
-          nohup xcrun simctl boot "$udid" > /dev/null 2>&1 &
-      - uses: ./.github/actions/rn-e2e-setup
-      - uses: ./.github/actions/rn-e2e-ios-app
-        with:
-          xcode-version: ${{ env.XCODE_VERSION }}
-      - uses: ./.github/actions/rn-e2e-ios-tooling
-        with:
-          xcode-version: ${{ env.XCODE_VERSION }}
-      - name: Cache stream-video-buddy's browser
-        uses: actions/cache@v6
-        with:
-          path: ~/Library/Caches/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
-
-      - name: Wait for the simulator
-        if: env.DETOX_IOS_UDID != ''
-        timeout-minutes: 15
-        # `-b` boots it if the background boot never started; it errors (405) when the device is
-        # already booted, and then the plain call returns at once.
-        run: xcrun simctl bootstatus "$DETOX_IOS_UDID" -b || xcrun simctl bootstatus "$DETOX_IOS_UDID"
-      - name: Run e2e tests
-        working-directory: sample-apps/react-native/dogfood
-        run: bundle exec fastlane test_e2e platform:ios skip_build:true
-      - uses: actions/upload-artifact@v7
-        if: failure()
-        with:
-          name: e2e-ios-logs
-          path: |
-            sample-apps/react-native/e2e-test-app/artifacts
-            sample-apps/react-native/e2e-test-app/recordings
-            sample-apps/react-native/e2e-test-app/video-buddy-*.log
-
   android:
     needs: check
-    if: needs.check.outputs.required == 'true' && (github.event_name != 'workflow_dispatch' || inputs.android)
+    if: needs.check.outputs.required == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -147,7 +82,7 @@ jobs:
           emulator-options: ${{ env.ANDROID_EMULATOR_OPTIONS }}
           disable-animations: true
           working-directory: sample-apps/react-native/dogfood
-          script: bundle exec fastlane test_e2e platform:android device:att skip_build:true
+          script: bundle exec fastlane test_e2e device:att skip_build:true
       # The emulator has vanished mid-run without any output; this shows whether the kernel killed it.
       - name: Diagnose emulator
         if: failure()

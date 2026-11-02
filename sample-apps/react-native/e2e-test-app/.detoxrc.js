@@ -10,20 +10,6 @@ module.exports = {
     },
   },
   apps: {
-    'ios.debug': {
-      type: 'ios.app',
-      binaryPath:
-        'ios/build/detox/Build/Products/Debug-iphonesimulator/VideoE2ETestApp.app',
-      build:
-        'xcodebuild -workspace ios/VideoE2ETestApp.xcworkspace -scheme VideoE2ETestApp -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build/detox',
-    },
-    'ios.release': {
-      type: 'ios.app',
-      binaryPath:
-        'ios/build/detox/Build/Products/Release-iphonesimulator/VideoE2ETestApp.app',
-      build:
-        'xcodebuild -workspace ios/VideoE2ETestApp.xcworkspace -scheme VideoE2ETestApp -configuration Release -sdk iphonesimulator -derivedDataPath ios/build/detox',
-    },
     'android.debug': {
       type: 'android.apk',
       binaryPath: 'android/app/build/outputs/apk/debug/app-debug.apk',
@@ -43,13 +29,6 @@ module.exports = {
     },
   },
   devices: {
-    simulator: {
-      type: 'ios.simulator',
-      // CI pins the simulator it boots early (DETOX_IOS_UDID), so Detox reuses it.
-      device: process.env.DETOX_IOS_UDID
-        ? { id: process.env.DETOX_IOS_UDID }
-        : { type: process.env.DETOX_IOS_DEVICE || 'iPhone 18 Pro' },
-    },
     emulator: {
       type: 'android.emulator',
       device: { avdName: process.env.DETOX_AVD_NAME || 'Pixel_API_37' },
@@ -60,8 +39,6 @@ module.exports = {
     },
   },
   configurations: {
-    'ios.sim.debug': { app: 'ios.debug', device: 'simulator' },
-    'ios.sim.release': { app: 'ios.release', device: 'simulator' },
     'android.emu.debug': { app: 'android.debug', device: 'emulator' },
     'android.emu.release': { app: 'android.release', device: 'emulator' },
     'android.att.debug': { app: 'android.debug', device: 'attached' },

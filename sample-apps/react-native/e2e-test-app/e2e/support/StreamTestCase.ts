@@ -1,7 +1,6 @@
-import { beforeAll, beforeEach, expect as jestExpect } from '@jest/globals';
+import { beforeEach, expect as jestExpect } from '@jest/globals';
 
 import { dismissAnrDialog } from './AndroidSystemDialogs';
-import { grantAppPermissions } from './Permissions';
 
 import { ParticipantRobot, UserRobot } from '../robots';
 
@@ -44,16 +43,10 @@ const currentTestName = () =>
 export const setUpStreamTestCase = (): StreamTestCase => {
   const testCase = new StreamTestCase();
 
-  beforeAll(() => {
-    grantAppPermissions();
-  });
-
   beforeEach(async () => {
     testCase.participantRobot = new ParticipantRobot(currentTestName());
     testCase.callId = generateCallId();
-    if (device.getPlatform() === 'android') {
-      dismissAnrDialog();
-    }
+    dismissAnrDialog();
     await device.launchApp({
       newInstance: true,
       launchArgs: {

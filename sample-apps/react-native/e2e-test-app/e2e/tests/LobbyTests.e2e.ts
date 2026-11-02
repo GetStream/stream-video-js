@@ -4,13 +4,10 @@ import { UserControls } from '../robots';
 import { allureId, step } from '../support/step';
 import { setUpStreamTestCase } from '../support/StreamTestCase';
 
-// The iOS simulator has no camera, so the lobby's camera toggle never turns on (RN-476).
-const itWithCamera = device.getPlatform() === 'ios' ? it.skip : it;
-
 describe('LobbyTests', () => {
   const testCase = setUpStreamTestCase();
 
-  itWithCamera('testLobbyWithTwoParticipants', async () => {
+  it('testLobbyWithTwoParticipants', async () => {
     allureId(12968);
     const { userRobot, participantRobot, callId } = testCase;
     const participants = 2;

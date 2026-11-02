@@ -5,7 +5,6 @@
   "description": "Minimal app driven by the Detox e2e suite (e2e/). Only the SDK and its required peer dependencies.",
   "scripts": {
     "android": "react-native run-android",
-    "ios": "react-native run-ios",
     "start": "react-native start",
     "build": "tsc --noEmit && tsc --noEmit -p e2e",
     "e2e:build": "detox build",

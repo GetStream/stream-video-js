@@ -4,7 +4,8 @@ End-to-end tests for the React Native Video SDK, driving `sample-apps/react-nati
 [Detox](https://wix.github.io/Detox/). The other participants are played by
 [`stream-video-buddy`](https://github.com/GetStream/stream-video-buddy), which joins the call from a headless browser.
 The suite is a port of the Android Video SDK's e2e tests (`demo-app/src/androidTestE2etestingDebug`), and its setup
-matches the React Native Chat SDK's (`examples/E2ETestApp`), so tests can be ported almost line by line:
+matches the React Native Chat SDK's (`examples/E2ETestApp`), so tests can be ported almost line by line. It runs on
+Android only for now; iOS is RN-476.
 
 | Path                                        | What                                                                  | Native counterpart                           |
 | ------------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------- |
@@ -39,27 +40,24 @@ There is no mock server: the app talks to the real `demo` environment (tokens fr
 stream-video-buddy joins through `getstream.io/video/demos`, so both end up on the same call. `setUpStreamTestCase()`
 picks a new call id per test and relaunches the app with the launch argument `CALL_ID` (the Android suite's
 `EXTRA_CALL_ID`), read in `src/config.ts` via `react-native-launch-arguments`. The suite runs on the host, so
-`ParticipantRobot` reaches the buddy server on `localhost` on both platforms.
+`ParticipantRobot` reaches the buddy server on `localhost` (the emulator's traffic goes through `adb reverse`).
 
 ## Running
 
 The fastlane lanes live with the repo's other React Native lanes in `sample-apps/react-native/dogfood/fastlane` (run
-them from `sample-apps/react-native/dogfood`). The e2e app has no Gemfile of its own; `e2e_pod_install` installs its pods
-with that bundle.
+them from `sample-apps/react-native/dogfood`). The e2e app has no Gemfile of its own.
 
 ```bash
 yarn install && yarn build:react-native:deps            # from the repo root
-bundle exec fastlane e2e_pod_install                     # once, and after native dependency changes
 # Everything: starts stream-video-buddy, builds, tests, stops the buddy
-bundle exec fastlane test_e2e platform:ios
-bundle exec fastlane test_e2e platform:android          # AVD from DETOX_AVD_NAME (default Pixel_API_37)
+bundle exec fastlane test_e2e                            # AVD from DETOX_AVD_NAME (default Pixel_API_37)
 # Options: configuration:debug, skip_build:true, device:att (a booted emulator, DETOX_ADB_NAME),
 #          test:e2e/tests/LobbyTests.e2e.ts
 
 # Or by hand (yarn commands in sample-apps/react-native/e2e-test-app)
 bundle exec fastlane start_video_buddy                   # server on VIDEO_BUDDY_PORT (default 5678)
-yarn e2e:build -c ios.sim.release                        # or android.emu.release
-VIDEO_BUDDY_PORT=5678 yarn e2e:test -c ios.sim.release
+yarn e2e:build -c android.emu.release
+VIDEO_BUDDY_PORT=5678 yarn e2e:test -c android.emu.release
 bundle exec fastlane stop_video_buddy
 ```
 
@@ -72,16 +70,14 @@ with `adb logcat -s ReactNativeJS:V`).
 
 ## CI
 
-`.github/workflows/react-native-e2e-test.yml` runs on pull requests and on demand (`workflow_dispatch`, with iOS/Android
-toggles). A cheap `Check E2E Required` job first runs `fastlane e2e_check_required` (`is_check_required` over the `e2e`
-sources in the dogfood Fastfile's `impact_analysis`). The simulator/emulator jobs run only when the PR touches those
+`.github/workflows/react-native-e2e-test.yml` runs on pull requests and on demand (`workflow_dispatch`). A cheap
+`Check E2E Required` job first runs `fastlane e2e_check_required` (`is_check_required` over the `e2e` sources in the
+dogfood Fastfile's `impact_analysis`). The emulator job runs only when the PR touches those
 sources, or when the last change to them hasn't passed yet. `Test E2E Result` is the job to require in branch
 protection: it passes when the e2e jobs pass or are skipped as not required.
 
-`react-native-e2e-test-cron.yml` runs everything on weeknights (01:00 UTC) and on demand: Android on API 36, 34, 31
-and 28, and iOS 27.0 (iPhone 18 Pro) and 17.5 (iPhone 15 Pro). Xcode doesn't ship the older runtime, so
-`.github/actions/rn-e2e-ios-runtime` downloads it with `ipsw` and installs it (`fastlane e2e_install_ios_runtime`,
-`scripts/install_ios_runtime.sh`). Each job reports to Allure TestOps (project 168, `stream-video-react-native`): it
+`react-native-e2e-test-cron.yml` runs everything on weeknights (01:00 UTC) and on demand, on Android API 36, 34, 31
+and 28. Each job reports to Allure TestOps (project 168, `stream-video-react-native`): it
 opens a launch (`fastlane allure_launch cron:true`), uploads `allure-results/` (`allure_upload`), and deletes the
 launch when cancelled (`allure_launch_removal`). A failed scheduled run posts to Slack (`SLACK_WEBHOOK_NIGHTLY_CHECKS`).
 Both workflows build through the same composite actions (`.github/actions/rn-e2e-*`), so they share cache keys, and
@@ -91,40 +87,31 @@ Allure results come from `jest-allure2-reporter` (`e2e/jest.config.js`). Every `
 `allureId(N)` links a test to its case in project 168. Create the case first (TestOps UI or API): cases that an upload
 creates on its own are not durable.
 
-iOS runs nightly and on demand, not on PRs, on the `xcode-27` runner (Xcode 27.1, iPhone 18 Pro, `ios.sim.release`). Android runs on
-`ubuntu-latest` with KVM and an API 36 x86_64 emulator without a camera (`android.att.release`). Both call
-`fastlane test_e2e skip_build:true`, which on CI adds `--retries 2 --headless` and keeps failure logs and screenshots in
+The jobs run on `ubuntu-latest` with KVM and an x86_64 emulator without a camera (`android.att.release`), and call
+`fastlane test_e2e device:att skip_build:true`, which on CI adds `--retries 2` and keeps failure logs and screenshots in
 `artifacts/`. Those and the buddy's logs and recordings are uploaded when a job fails.
 
 What CI caches. GitHub only lets a PR restore caches from its own branch or the base branch. The nightly run fills
 `main`'s, so a PR's first run starts from them, and later pushes to the PR reuse its own.
 
-- **The built app** (`.app`; release + test `.apk`), keyed on the app and SDK sources. A change that only touches
-  `e2e/` reuses the binary and skips building the SDK packages, pods, Gradle and Xcode entirely.
-- iOS: CocoaPods, ccache (the RN ccache wrappers need `CCACHE_BINARY` in the environment, which the workflow sets), the
-  Detox framework.
-- Android: Gradle (`gradle/actions/setup-gradle` with `cache-read-only: false`, `org.gradle.caching`), a single ABI
+- **The built app** (release + test `.apk`), keyed on the app and SDK sources. A change that only touches `e2e/` reuses
+  the binary and skips building the SDK packages and Gradle entirely.
+- Gradle (`gradle/actions/setup-gradle` with `cache-read-only: false`, `org.gradle.caching`), a single ABI
   (`x86_64`). The emulator matches the native Android SDK's e2e jobs (API 36 AOSP image, `pixel` profile, no snapshot,
   no camera).
 - stream-video-buddy's Playwright browser, keyed on the Playwright version.
 
 ## Gotchas
 
-- Detox's idle synchronization is off on both platforms (`StreamTestCase.ts`): a call never goes idle (the duration
+- Detox's idle synchronization is off (`StreamTestCase.ts`): a call never goes idle (the duration
   timer, the speech indicator, WebRTC), so Detox would wait forever. Robots wait explicitly instead, and taps retry while
   the target is not hittable yet. (The Chat suite keeps it on for Android.)
-- Don't pass `permissions` to `device.launchApp`: on iOS Detox applies each with `applesimutils --restartSB`, which
-  restarts SpringBoard on every launch. Camera and microphone are granted once with `simctl privacy`
-  (`support/Permissions.ts`); on Android, Detox installs the app with `adb install -g`.
-- CI boots the simulator at the start of the job and pins it with `DETOX_IOS_UDID` (`.detoxrc.js`), so the boot
-  overlaps with setup instead of delaying the first test.
+- Camera and microphone need no grant step: Detox installs the app with `adb install -g`, which grants every runtime
+  permission in the manifest.
 - A freshly booted CI emulator can show "Quickstep isn't responding" (a launcher ANR). The `test_e2e` lane hides error
   dialogs and waits up to 60s for the emulator to settle, and `StreamTestCase` dismisses any ANR dialog before each
-  Android launch (`support/AndroidSystemDialogs.ts`).
+  launch (`support/AndroidSystemDialogs.ts`).
 - `detox test --reuse` does not reinstall the app. After rebuilding, run without it, or you test the old binary.
-- Yarn's `enableScripts: false` skips Detox's postinstall; run `yarn detox build-framework-cache` once on a new machine.
-- Don't commit `ios/VideoE2ETestApp.xcodeproj` after `USE_CCACHE=1 pod install`: it writes machine-specific ccache paths
-  into it.
 - Detox replaces Jest's global `expect`. Use it for element expectations and `expect as jestExpect` from
   `@jest/globals` for values.
 - Fabric flattens the SDK's container views (the lobby root, participant views, the floating local view), so
@@ -134,9 +121,6 @@ What CI caches. GitHub only lets a PR restore caches from its own branch or the 
 - The emulator has no camera, like in the native Android suite. With an emulated one, `call.join()` sometimes never
   resolves: the calling state is already `JOINED`, but the camera `getUserMedia` after the lobby preview hands over
   never completes (RN-474).
-- iOS simulator: there is no camera, and toggling the microphone can abort the app inside WebRTC's audio device module
-  (`AVAudioEngine stop` → `ReportXPCTimeout`, RN-475). That's why iOS isn't part of the PR checks yet (RN-476), and
-  `LobbyTests` is skipped on iOS.
 - stream-video-buddy's browser must match its Playwright version (`install_video_buddy` installs it with
   `playwright@1.52.0`); with another build it fails to launch, and the participant never joins.
 - The buddy server handles join requests one at a time: a stuck request delays every later one.
