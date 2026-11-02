@@ -1,4 +1,3 @@
-/** Android: `pages/CallDetailsPage.kt`. */
 export const CallDetailsPage = {
   get userName() {
     return by.id('user-name');

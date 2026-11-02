@@ -242,13 +242,7 @@ lane :deploy_android_play_store do
   )
 end
 
-#######################
-###### E2E lanes ######
-#######################
-
-# The Detox suite drives sample-apps/react-native/e2e-test-app (see its e2e/README.md), a port of the
-# Android Video SDK's e2e suite. stream-video-buddy plays the other participants. The e2e app has no
-# Gemfile of its own: its lanes live here and run with this bundle.
+# The e2e app has no Gemfile of its own: its lanes live here and run with this bundle.
 
 e2e_app_path = File.absolute_path('../../e2e-test-app')
 video_buddy_port = ENV['VIDEO_BUDDY_PORT'] || '5678'
@@ -331,7 +325,6 @@ lane :test_e2e do |options|
   begin
     Dir.chdir(e2e_app_path) do
       sh("yarn e2e:build -c #{detox_config}") unless options[:skip_build]
-      # On CI: retry flaky tests, run the simulator headless, and keep logs + screenshots of failures in ./artifacts.
       ci_flags = is_ci ? '--retries 2 --headless --record-logs failing --take-screenshots failing' : ''
       sh("VIDEO_BUDDY_PORT=#{video_buddy_port} yarn detox test -c #{detox_config} --cleanup #{ci_flags} #{options[:test]}")
     end

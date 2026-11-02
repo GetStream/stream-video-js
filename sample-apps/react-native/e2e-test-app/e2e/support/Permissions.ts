@@ -3,7 +3,7 @@ import { execFileSync } from 'child_process';
 export const bundleId = 'io.getstream.video.reactnative.e2etestapp';
 
 /**
- * Grants camera and microphone access, like `grantAppPermissions()` in the Android suite.
+ * Grants camera and microphone access.
  *
  * - iOS: `simctl privacy`. Detox's `launchApp({ permissions })` would do it through
  *   `applesimutils --restartSB`, restarting SpringBoard on every launch (minutes per test on CI).

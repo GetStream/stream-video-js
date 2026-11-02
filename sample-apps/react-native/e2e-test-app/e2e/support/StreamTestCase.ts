@@ -6,8 +6,8 @@ import { grantAppPermissions } from './Permissions';
 import { ParticipantRobot, UserRobot } from '../robots';
 
 /**
- * Android: `UUID.randomUUID().toString().split("-").first()`, prefixed: launch arguments reach JS
- * through a parser that turns an all-digit or `5e123456`-like hex id into a number.
+ * Prefixed: launch arguments reach JS through a parser that turns an all-digit or `5e123456`-like
+ * hex id into a number.
  */
 export const generateCallId = () =>
   `e2e-${Math.floor(Math.random() * 0x100000000)
@@ -15,9 +15,8 @@ export const generateCallId = () =>
     .padStart(8, '0')}`;
 
 /**
- * Per-test fixture, the counterpart of the Android `StreamTestCase`: before each test it picks a new
- * call id, points a fresh `ParticipantRobot` (stream-video-buddy) at the test, and relaunches the
- * app with that call id prefilled.
+ * Per-test fixture: before each test it picks a new call id, points a fresh `ParticipantRobot`
+ * (stream-video-buddy) at the test, and relaunches the app with that call id prefilled.
  *
  *   describe('LobbyTests', () => {
  *     const testCase = setUpStreamTestCase();
@@ -64,7 +63,7 @@ export const setUpStreamTestCase = (): StreamTestCase => {
         }),
         // A call never goes idle (the duration timer, speech indicator animations, WebRTC), so
         // Detox's synchronization would wait forever. Every robot action and assert waits
-        // explicitly instead, like the native suites.
+        // explicitly instead.
         detoxEnableSynchronization: 0,
       },
     });

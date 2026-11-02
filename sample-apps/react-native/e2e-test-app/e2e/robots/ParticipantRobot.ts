@@ -1,9 +1,9 @@
 import { Robot } from './Robot';
 
 /**
- * Android: `robots/ParticipantRobot.kt`. Drives stream-video-buddy, which joins the call from a
- * (headless) browser through https://getstream.io/video/demos. The buddy server runs on the host
- * (`fastlane start_video_buddy` in the dogfood app), like this suite, so it is always `localhost`.
+ * Drives stream-video-buddy, which joins the call from a (headless) browser through
+ * https://getstream.io/video/demos. The buddy server runs on the host (`fastlane start_video_buddy`
+ * in the dogfood app), like this suite, so it is always `localhost`.
  *
  *   await participantRobot.setUserCount(2).joinCall(callId);
  */

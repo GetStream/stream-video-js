@@ -33,7 +33,7 @@ target 'VideoE2ETestApp' do
     )
 
     # Some pods pin an iOS deployment target (e.g. RNSVG at 12.4) below the range supported by
-    # current Xcode. Clamp them up to the app's minimum, as the dogfood app does.
+    # current Xcode. Clamp them up to the app's minimum.
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         current = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']

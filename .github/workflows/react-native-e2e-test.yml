@@ -1,9 +1,5 @@
 name: React Native E2E Tests
 
-# Same setup as stream-chat-react-native's e2e-test.yml. The suite is a port of the Android Video
-# SDK's e2e tests; stream-video-buddy plays the other participants. See
-# sample-apps/react-native/e2e-test-app/e2e/README.md.
-
 on:
   pull_request:
 
@@ -92,11 +88,10 @@ jobs:
           working-directory: sample-apps/react-native/dogfood
           bundler-cache: true
 
-      # --- JS dependencies ---
       - name: Install dependencies
         run: yarn install --immutable
 
-      # --- App binary: rebuilt only when the app or SDK sources change, not for test-only changes ---
+      # Rebuilt only when the app or SDK sources change, not for test-only changes.
       - name: Restore app
         id: app
         uses: actions/cache/restore@v6
@@ -140,7 +135,6 @@ jobs:
           path: ${{ env.APP_PATH }}
           key: ${{ steps.app.outputs.cache-primary-key }}
 
-      # --- Test tooling ---
       - name: Install applesimutils
         # Homebrew refuses formulae from non-official taps until they are trusted.
         run: brew tap wix/brew && brew trust --formula wix/brew/applesimutils && brew install wix/brew/applesimutils
@@ -191,8 +185,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      # Same as the native Android SDK e2e jobs, which run stably on these runners. No camera: with an
-      # emulated one, `call.join()` sometimes never resolves (see the e2e README).
+      # No camera: with an emulated one, `call.join()` sometimes never resolves (see the e2e README).
       ANDROID_API_LEVEL: '36'
       ANDROID_EMULATOR_OPTIONS: -no-snapshot-save -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -camera-front none
       DETOX_ADB_NAME: 'emulator-5554'
@@ -222,11 +215,10 @@ jobs:
           working-directory: sample-apps/react-native/dogfood
           bundler-cache: true
 
-      # --- JS dependencies ---
       - name: Install dependencies
         run: yarn install --immutable
 
-      # --- App binaries: rebuilt only when the app or SDK sources change, not for test-only changes ---
+      # Rebuilt only when the app or SDK sources change, not for test-only changes.
       - name: Restore APKs
         id: apk
         uses: actions/cache/restore@v6
@@ -253,14 +245,12 @@ jobs:
         working-directory: sample-apps/react-native/e2e-test-app/android
         run: ./gradlew --stop
 
-      # --- Emulator: same setup as the native Android SDK's e2e jobs (AOSP image, no Play services) ---
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      # --- Test tooling ---
       - name: Cache stream-video-buddy's browser
         uses: actions/cache@v6
         with:

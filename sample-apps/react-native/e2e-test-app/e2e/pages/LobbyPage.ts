@@ -1,5 +1,5 @@
 /**
- * Android: `pages/LobbyPage.kt`. The toggles and status icons are the SDK's testIDs
+ * The toggles and status icons are the SDK's testIDs
  * (`packages/react-native-sdk/src/constants/TestIds.ts`); the rest belong to the app's lobby screen.
  * No ancestor scoping: Fabric flattens the SDK's container views, and only one status label is on
  * screen in the lobby anyway.

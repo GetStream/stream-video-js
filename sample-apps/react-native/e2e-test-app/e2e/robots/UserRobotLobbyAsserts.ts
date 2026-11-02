@@ -16,8 +16,6 @@ declare module './UserRobot' {
   }
 }
 
-/** Android: `robots/UserRobotLobbyAsserts.kt`. */
-
 UserRobot.prototype.assertLobby = function ({ microphone, camera }) {
   return this.perform(async () => {
     await waitToAppear(LobbyPage.closeButton);

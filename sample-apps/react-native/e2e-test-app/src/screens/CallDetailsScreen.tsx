@@ -11,7 +11,7 @@ type Props = {
   onLogOut: () => void;
 };
 
-/** The Android demo app's call join screen: who is signed in, which call to join, sign out. */
+/** Call join screen: who is signed in, which call to join, sign out. */
 export const CallDetailsScreen = ({
   userName,
   onJoinCall,
@@ -56,7 +56,7 @@ export const CallDetailsScreen = ({
       <Pressable
         style={common.button}
         testID={TestIds.callDetails.joinCallButton}
-        // An empty field starts a new call, like the Android demo app.
+        // An empty field starts a new call.
         onPress={() => onJoinCall(callId.trim() || randomId())}
       >
         <Text style={common.buttonText}>Join call</Text>

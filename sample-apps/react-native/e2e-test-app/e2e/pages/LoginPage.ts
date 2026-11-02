@@ -1,4 +1,3 @@
-/** Android: `pages/LoginPage.kt`. */
 export const LoginPage = {
   get randomUserSignInButton() {
     return by.id('random-user-sign-in');

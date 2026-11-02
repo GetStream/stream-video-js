@@ -1,9 +1,8 @@
 /**
- * Base for the fluent robots. Native robots chain synchronous calls
- * (`userRobot.login().openChannel()`); Detox is async, so each call queues its action and
- * returns `this`, and awaiting the robot runs the queue:
+ * Base for the fluent robots. Detox is async, so each call queues its action and returns `this`,
+ * and awaiting the robot runs the queue:
  *
- *   await userRobot.login().openChannel().assertMessage('Hi');
+ *   await userRobot.loginAsRandomUser().enterLobby(callId).joinCallFromLobby();
  *
  * A failed action rejects the awaited chain and skips the rest of it.
  */

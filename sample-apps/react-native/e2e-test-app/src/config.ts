@@ -1,7 +1,7 @@
 import { LaunchArguments } from 'react-native-launch-arguments';
 
 type E2eLaunchArguments = {
-  /** Prefills the call id field, like `EXTRA_CALL_ID` in the Android demo app. */
+  /** Prefills the call id field. */
   CALL_ID?: string;
   /** The client's log level (`E2E_LOG_LEVEL` in the suite), e.g. `debug` to see why a join hangs. */
   LOG_LEVEL?: 'trace' | 'debug' | 'info' | 'warn' | 'error';

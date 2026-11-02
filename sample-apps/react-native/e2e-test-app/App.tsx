@@ -17,16 +17,15 @@ import { CallScreen } from './src/screens/CallScreen';
 type Screen = 'details' | 'lobby' | 'call';
 
 /**
- * Login → call details → lobby → call, the flow of the Android demo app the native e2e suite
- * drives. No navigation library: one screen at a time, picked from state.
+ * Login → call details → lobby → call. No navigation library: one screen at a time, picked from
+ * state.
  */
 export default function App() {
   const [client, setClient] = useState<StreamVideoClient>();
   const [userId, setUserId] = useState<string>();
   const [call, setCall] = useState<Call>();
   const [screen, setScreen] = useState<Screen>('details');
-  // Like the Android demo app: a fresh launch signs in as a random user, an explicit sign-out
-  // stays on the login screen.
+  // A fresh launch signs in as a random user, an explicit sign-out stays on the login screen.
   const [autoLogIn, setAutoLogIn] = useState(true);
   const [loginError, setLoginError] = useState<string>();
 

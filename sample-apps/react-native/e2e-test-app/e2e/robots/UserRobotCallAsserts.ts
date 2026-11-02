@@ -31,8 +31,6 @@ declare module './UserRobot' {
   }
 }
 
-/** Android: `robots/UserRobotCallAsserts.kt`. */
-
 UserRobot.prototype.assertVideoCallControls = function ({
   microphone,
   camera,

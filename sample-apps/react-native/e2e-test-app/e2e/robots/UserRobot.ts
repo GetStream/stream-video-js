@@ -17,19 +17,11 @@ export enum UserControls {
   DISABLE = 'disable',
 }
 
-/**
- * Android: `robots/UserRobot.kt`. Drives the app as the signed-in user; the asserts live in the
- * `UserRobot*Asserts` extensions. Only the actions the e2e app has UI for are ported so far (no
- * settings menu, layouts, ringing, recording or screen sharing yet).
- */
+/** Drives the app as the signed-in user; the asserts live in the `UserRobot*Asserts` extensions. */
 export class UserRobot extends Robot {
-  // Common actions
-
   pressBack(): this {
     return this.perform(() => device.pressBack());
   }
-
-  // LoginPage actions
 
   loginWithEmail(email: string): this {
     return this.perform(async () => {
@@ -45,8 +37,6 @@ export class UserRobot extends Robot {
       waitToAppearAndClick(LoginPage.randomUserSignInButton),
     );
   }
-
-  // CallDetailsPage actions
 
   logout(): this {
     return this.perform(async () => {
@@ -84,8 +74,6 @@ export class UserRobot extends Robot {
     }).waitForLobbyToOpen();
   }
 
-  // LobbyPage actions
-
   joinCallFromLobby(): this {
     return this.perform(() =>
       waitToAppearAndClick(LobbyPage.joinCallButton),
@@ -95,8 +83,6 @@ export class UserRobot extends Robot {
   private waitForLobbyToOpen(): this {
     return this.perform(() => waitToAppear(LobbyPage.closeButton));
   }
-
-  // CallPage actions
 
   /** @param hard toggles back and forth, so the server state is in sync with the UI. */
   camera(action: UserControls, hard = false): this {
@@ -131,8 +117,8 @@ export class UserRobot extends Robot {
     );
   }
 
-  // Android uses 15s. The first join of a launch also builds the call's media engine, which takes
-  // longer than that on a software-rendered CI emulator.
+  // The first join of a launch also builds the call's media engine, which takes a while on a
+  // software-rendered CI emulator.
   private waitForCallToStart(): this {
     return this.perform(() =>
       waitToAppear(CallPage.hangUpButton, { timeout: seconds(60) }),

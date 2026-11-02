@@ -1,9 +1,3 @@
-/**
- * Element helpers mirroring the Android suite's `uiautomator` extensions (`Element.kt`, `Wait.kt`),
- * so robot code reads the same: `selector.waitToAppearAndClick()` becomes
- * `await waitToAppearAndClick(selector)`.
- */
-
 export const defaultTimeout = 15000;
 
 export const seconds = (value: number) => value * 1000;
@@ -77,7 +71,7 @@ export const waitToDisappear = async (
       .not.toBeVisible()
       .withTimeout(timeout);
   } catch {
-    // The caller asserts on `isDisplayed` afterwards, like `waitToDisappear().isDisplayed()` on Android.
+    // The caller asserts on `isDisplayed` afterwards.
   }
 };
 
@@ -185,5 +179,5 @@ export const textOf = async (selector: Selector, index = 0) => {
   }
 };
 
-/** Whether anything matches `selector` right now, like `findObjects().isNotEmpty()` on Android. */
+/** Whether anything matches `selector` right now. */
 export const exists = async (selector: Selector) => (await count(selector)) > 0;

@@ -1,7 +1,3 @@
-/**
- * testIDs of the app's own screens. The e2e pages (e2e/pages) select them, together with the SDK's
- * testIDs, the way the Android suite selects the demo app's `Stream_*` resource ids.
- */
 export const TestIds = {
   login: {
     randomUserSignIn: 'random-user-sign-in',
