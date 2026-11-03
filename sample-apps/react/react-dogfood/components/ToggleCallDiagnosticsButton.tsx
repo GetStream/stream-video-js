@@ -12,7 +12,7 @@ import { useAppI18n } from '../hooks/useAppI18n';
 export const ToggleCallDiagnosticsButton = ({ call }: { call: Call }) => {
   const router = useRouter();
   const { t } = useAppI18n();
-  const appId = getAppId(call);
+  const appId = getAppId(call) ?? getQueryAppId(router.query.app_id);
   const callSessionId = call.state.session?.id;
   const disabled = !appId || !callSessionId;
 
@@ -25,15 +25,7 @@ export const ToggleCallDiagnosticsButton = ({ call }: { call: Call }) => {
     url.searchParams.set('app_id', String(appId));
     url.searchParams.set('call_session_id', callSessionId);
 
-    for (const key of [
-      'api_key',
-      'coordinator_url',
-      'environment',
-      'use_local_coordinator',
-    ]) {
-      const value = router.query[key];
-      if (typeof value === 'string') url.searchParams.set(key, value);
-    }
+    appendDiagnosticsQueryParams(url, router.query);
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
@@ -48,6 +40,28 @@ export const ToggleCallDiagnosticsButton = ({ call }: { call: Call }) => {
       </CompositeButton>
     </WithTooltip>
   );
+};
+
+export const getQueryAppId = (value: string | string[] | undefined) => {
+  const appId = Number(Array.isArray(value) ? value[0] : value);
+  return Number.isFinite(appId) && appId > 0 ? appId : undefined;
+};
+
+export const appendDiagnosticsQueryParams = (
+  url: URL,
+  query: Record<string, string | string[] | undefined>,
+) => {
+  for (const key of [
+    'api_key',
+    'coordinator_url',
+    'environment',
+    'token',
+    'use_local_coordinator',
+    'user_id',
+  ]) {
+    const value = query[key];
+    if (typeof value === 'string') url.searchParams.set(key, value);
+  }
 };
 
 const getAppId = (call: Call): number | undefined => {

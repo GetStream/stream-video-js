@@ -31,6 +31,18 @@ import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
 import { timeboxed } from '../coordinator/connection/utils';
 
+type AudioPlaybackMonitorOptions = {
+  analyser?: AnalyserNode;
+  audioContext?: AudioContext;
+  element: HTMLAudioElement;
+  sessionId: string;
+  stream: MediaStream;
+  trackType: AudioTrackType;
+};
+
+const playbackSampleIntervalMs = 250;
+const playbackReportIntervalMs = 2000;
+
 /**
  * A manager class that handles dynascale related tasks like:
  *
@@ -393,7 +405,9 @@ export class DynascaleManager {
 
     let sourceNode: MediaStreamAudioSourceNode | undefined = undefined;
     let gainNode: GainNode | undefined = undefined;
+    let analyserNode: AnalyserNode | undefined = undefined;
     let audioWatchdog: MediaPlaybackWatchdog | undefined = undefined;
+    let stopPlaybackMonitor: (() => void) | undefined = undefined;
     let blockedByGiveUp = false;
 
     const clearBlockedAudio = () => {
@@ -434,7 +448,13 @@ export class DynascaleManager {
         clearTimeout(sourceChangeTimer);
         sourceChangeTimer = setTimeout(() => {
           sourceChangeTimer = undefined;
+          stopPlaybackMonitor?.();
+          stopPlaybackMonitor = undefined;
           audioElement.srcObject = source ?? null;
+          sourceNode?.disconnect();
+          sourceNode = undefined;
+          analyserNode?.disconnect();
+          analyserNode = undefined;
           this.disposePlaybackWatchdog(audioWatchdog);
           audioWatchdog = undefined;
           if (!source) {
@@ -453,11 +473,15 @@ export class DynascaleManager {
           if (audioContext) {
             // we will play audio through the audio context in Safari
             audioElement.muted = true;
-            sourceNode?.disconnect();
             sourceNode = audioContext.createMediaStreamSource(source);
+            analyserNode = audioContext.createAnalyser();
+            analyserNode.fftSize = 256;
             gainNode ??= audioContext.createGain();
             gainNode.gain.value = p.audioVolume ?? this.speaker.state.volume;
-            sourceNode.connect(gainNode).connect(audioContext.destination);
+            sourceNode
+              .connect(analyserNode)
+              .connect(gainNode)
+              .connect(audioContext.destination);
             this.resumeAudioContext();
           } else {
             // we will play audio directly through the audio element in other browsers
@@ -492,6 +516,15 @@ export class DynascaleManager {
               },
             });
           }
+
+          stopPlaybackMonitor = this.monitorAudioPlayback({
+            analyser: analyserNode,
+            audioContext,
+            element: audioElement,
+            sessionId,
+            stream: source,
+            trackType,
+          });
 
           const { selectedDevice } = this.speaker.state;
           if (selectedDevice) updateSinkId(selectedDevice, audioContext);
@@ -542,8 +575,10 @@ export class DynascaleManager {
       updateMediaStreamSubscription.unsubscribe();
       republishSubscription.unsubscribe();
       clearTimeout(sourceChangeTimer);
+      stopPlaybackMonitor?.();
       audioElement.srcObject = null;
       sourceNode?.disconnect();
+      analyserNode?.disconnect();
       gainNode?.disconnect();
       this.disposePlaybackWatchdog(audioWatchdog);
       audioWatchdog = undefined;
@@ -706,12 +741,18 @@ export class DynascaleManager {
     if (!this.useWebAudio) return;
     if (this.audioContext) return this.audioContext;
     const context = new AudioContext();
-    this.tracer.trace('audioContext.create', context.state);
+    this.tracer.trace(
+      'audioContext.create',
+      this.describeAudioContext(context),
+    );
     if (context.state === 'suspended') {
       document.addEventListener('click', this.resumeAudioContext);
     }
     context.addEventListener('statechange', () => {
-      this.tracer.trace('audioContext.state', context.state);
+      this.tracer.trace(
+        'audioContext.state',
+        this.describeAudioContext(context),
+      );
       if (context.state === 'interrupted') {
         this.resumeAudioContext();
       }
@@ -732,14 +773,212 @@ export class DynascaleManager {
       const tag = 'audioContext.resume';
       this.audioContext.resume().then(
         () => {
-          this.tracer.trace(tag, this.audioContext?.state);
+          this.tracer.trace(
+            tag,
+            this.audioContext
+              ? this.describeAudioContext(this.audioContext)
+              : undefined,
+          );
           document.removeEventListener('click', this.resumeAudioContext);
         },
         (err) => {
-          this.tracer.trace(`${tag}Error`, this.audioContext?.state);
+          this.tracer.trace(
+            `${tag}Error`,
+            this.audioContext
+              ? this.describeAudioContext(this.audioContext)
+              : undefined,
+          );
           this.logger.warn(`Can't resume audio context`, err);
         },
       );
     }
   };
+
+  /**
+   * Samples the browser playback binding. WebAudio playback exposes signal
+   * energy before the destination; media-element playback exposes its clock.
+   * Neither claims to observe the OS or physical speaker after the browser.
+   */
+  private monitorAudioPlayback = ({
+    analyser,
+    audioContext,
+    element,
+    sessionId,
+    stream,
+    trackType,
+  }: AudioPlaybackMonitorOptions) => {
+    const [track] = stream.getAudioTracks();
+    const signalBuffer = analyser
+      ? new Uint8Array(analyser.frequencyBinCount)
+      : undefined;
+    let sampleCount = 0;
+    let levelTotal = 0;
+    let peakLevel = 0;
+    let silentSamples = 0;
+    let currentSilentSamples = 0;
+    let longestSilentSamples = 0;
+    let lastElementTime = element.currentTime;
+    let elementClockAdvance = 0;
+    let elementClockSamples = 0;
+    let elementClockStalledSamples = 0;
+    let currentClockStalledSamples = 0;
+    let longestClockStalledSamples = 0;
+
+    const report = () => {
+      const settings = track?.getSettings();
+      this.tracer.trace('audioPlayback.report', {
+        sessionId,
+        trackType,
+        route: audioContext ? 'audio-context' : 'media-element',
+        track: track
+          ? {
+              id: track.id,
+              label: track.label,
+              muted: track.muted,
+              readyState: track.readyState,
+              sampleRate: settings?.sampleRate,
+              channelCount: settings?.channelCount,
+            }
+          : undefined,
+        context: audioContext
+          ? this.describeAudioContext(audioContext)
+          : undefined,
+        element: {
+          currentTime: element.currentTime,
+          clockAdvance: elementClockAdvance,
+          clockStalledRatio:
+            elementClockSamples > 0
+              ? elementClockStalledSamples / elementClockSamples
+              : undefined,
+          longestClockStallMs:
+            longestClockStalledSamples * playbackSampleIntervalMs,
+          paused: element.paused,
+          readyState: element.readyState,
+        },
+        signal:
+          sampleCount > 0
+            ? {
+                averageLevel: levelTotal / sampleCount,
+                peakLevel,
+                silentRatio: silentSamples / sampleCount,
+                longestSilenceMs:
+                  longestSilentSamples * playbackSampleIntervalMs,
+                samples: sampleCount,
+              }
+            : undefined,
+      });
+      sampleCount = 0;
+      levelTotal = 0;
+      peakLevel = 0;
+      silentSamples = 0;
+      currentSilentSamples = 0;
+      longestSilentSamples = 0;
+      elementClockAdvance = 0;
+      elementClockSamples = 0;
+      elementClockStalledSamples = 0;
+      currentClockStalledSamples = 0;
+      longestClockStalledSamples = 0;
+    };
+
+    this.tracer.trace('audioPlayback.bound', {
+      sessionId,
+      trackType,
+      route: audioContext ? 'audio-context' : 'media-element',
+      trackId: track?.id,
+      trackSampleRate: track?.getSettings().sampleRate,
+      contextSampleRate: audioContext?.sampleRate,
+    });
+
+    const playbackStateEvents = [
+      'playing',
+      'pause',
+      'waiting',
+      'stalled',
+      'emptied',
+      'ended',
+    ] as const;
+    const onPlaybackStateChange = (event: Event) => {
+      this.tracer.trace('audioPlayback.state', {
+        sessionId,
+        trackType,
+        event: event.type,
+        currentTime: element.currentTime,
+        paused: element.paused,
+        readyState: element.readyState,
+      });
+    };
+    playbackStateEvents.forEach((event) =>
+      element.addEventListener(event, onPlaybackStateChange),
+    );
+
+    let elapsed = 0;
+    const interval = setInterval(() => {
+      const currentElementTime = element.currentTime;
+      const clockAdvance = Math.max(0, currentElementTime - lastElementTime);
+      elementClockAdvance += clockAdvance;
+      lastElementTime = currentElementTime;
+
+      if (!audioContext && !element.paused && element.readyState >= 2) {
+        elementClockSamples += 1;
+        if (clockAdvance < 0.001) {
+          elementClockStalledSamples += 1;
+          currentClockStalledSamples += 1;
+          longestClockStalledSamples = Math.max(
+            longestClockStalledSamples,
+            currentClockStalledSamples,
+          );
+        } else {
+          currentClockStalledSamples = 0;
+        }
+      }
+
+      if (analyser && signalBuffer) {
+        analyser.getByteTimeDomainData(signalBuffer);
+        let sumSquares = 0;
+        for (const sample of signalBuffer) {
+          const normalized = (sample - 128) / 128;
+          sumSquares += normalized * normalized;
+        }
+        const level = Math.sqrt(sumSquares / signalBuffer.length);
+        sampleCount += 1;
+        levelTotal += level;
+        peakLevel = Math.max(peakLevel, level);
+        if (level < 0.005) {
+          silentSamples += 1;
+          currentSilentSamples += 1;
+          longestSilentSamples = Math.max(
+            longestSilentSamples,
+            currentSilentSamples,
+          );
+        } else {
+          currentSilentSamples = 0;
+        }
+      }
+
+      elapsed += playbackSampleIntervalMs;
+      if (elapsed < playbackReportIntervalMs) return;
+      elapsed = 0;
+      report();
+    }, playbackSampleIntervalMs);
+
+    return () => {
+      clearInterval(interval);
+      playbackStateEvents.forEach((event) =>
+        element.removeEventListener(event, onPlaybackStateChange),
+      );
+      this.tracer.trace('audioPlayback.unbound', {
+        sessionId,
+        trackType,
+        trackId: track?.id,
+      });
+    };
+  };
+
+  private describeAudioContext = (context: AudioContext) => ({
+    state: context.state,
+    sampleRate: context.sampleRate,
+    currentTime: context.currentTime,
+    baseLatency: context.baseLatency,
+    outputLatency: context.outputLatency,
+  });
 }

@@ -18,14 +18,27 @@ export const flatten = (report: RTCStatsReport) => {
  */
 export const dumpStream = (stream: MediaStream) => ({
   id: stream.id,
-  tracks: stream.getTracks().map((track) => ({
-    id: track.id,
-    kind: track.kind,
-    label: track.label,
-    enabled: track.enabled,
-    muted: track.muted,
-    readyState: track.readyState,
-  })),
+  tracks: stream.getTracks().map((track) => {
+    const settings = track.getSettings();
+    return {
+      id: track.id,
+      kind: track.kind,
+      label: track.label,
+      enabled: track.enabled,
+      muted: track.muted,
+      readyState: track.readyState,
+      settings: {
+        deviceId: settings.deviceId,
+        groupId: settings.groupId,
+        sampleRate: settings.sampleRate,
+        sampleSize: settings.sampleSize,
+        channelCount: settings.channelCount,
+        echoCancellation: settings.echoCancellation,
+        noiseSuppression: settings.noiseSuppression,
+        autoGainControl: settings.autoGainControl,
+      },
+    };
+  }),
 });
 
 export const getSdkSignature = (clientDetails: ClientDetails) => {

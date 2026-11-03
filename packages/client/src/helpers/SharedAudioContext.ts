@@ -233,7 +233,7 @@ export class SharedAudioContext {
    */
   private restart = async (context: AudioContext) => {
     this.restartTimer = setTimeout(this.onRestartTimeout, 2000);
-    this.trace('audioContext.shared.restart', null);
+    this.trace('audioContext.shared.restart', this.describe(context));
     try {
       await context.suspend();
       if (document.hidden || !this.restartTimer) return this.endRestart();
@@ -263,13 +263,16 @@ export class SharedAudioContext {
   private create = () => {
     const context = new AudioContext();
     this.wasRunning = context.state === 'running';
-    this.trace('audioContext.shared.create', context.state);
+    this.trace('audioContext.shared.create', this.describe(context));
     if (context.state === 'suspended') this.watchGestures();
     this.watchClock(context);
     context.addEventListener('statechange', () => {
       if (context !== this.context) return;
       const { state } = context;
-      this.trace('audioContext.shared.state', { state, users: this.users });
+      this.trace('audioContext.shared.state', {
+        ...this.describe(context),
+        users: this.users,
+      });
       if (this.restartTimer) {
         if (state === 'suspended') return;
         this.endRestart();
@@ -302,6 +305,13 @@ export class SharedAudioContext {
     }
     return context;
   };
+
+  private describe = (context: AudioContext) => ({
+    state: context.state,
+    sampleRate: context.sampleRate,
+    baseLatency: context.baseLatency,
+    outputLatency: context.outputLatency,
+  });
 }
 
 /**

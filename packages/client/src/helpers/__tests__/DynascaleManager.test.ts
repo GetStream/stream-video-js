@@ -124,7 +124,7 @@ describe('DynascaleManager', () => {
         audioStream: mediaStream,
       });
 
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
 
       expect(play).toHaveBeenCalled();
       expect(audioElement.srcObject).toBe(mediaStream);
@@ -174,7 +174,7 @@ describe('DynascaleManager', () => {
       call.state.updateParticipant('session-id', {
         audioStream: new MediaStream(),
       });
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
       // already on the default output, nothing to reset
       expect(audioElement.setSinkId).not.toHaveBeenCalled();
 
@@ -365,7 +365,7 @@ describe('DynascaleManager', () => {
       const mediaStream = new MediaStream();
       call.state.updateParticipant('session-id', { audioStream: mediaStream });
 
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
 
       expect(play).not.toHaveBeenCalled();
       expect(audioElement.srcObject).toBe(mediaStream);
@@ -381,6 +381,7 @@ describe('DynascaleManager', () => {
       expect(audioContext.createMediaStreamSource).toHaveBeenCalledWith(
         mediaStream,
       );
+      expect(audioContext.createAnalyser).toHaveBeenCalled();
       expect(audioContext.createGain).toHaveBeenCalled();
       expect(audioContext.resume).toHaveBeenCalled();
 
@@ -394,8 +395,30 @@ describe('DynascaleManager', () => {
         audioContext.createGain as Mock<AudioContext['createGain']>
       ).mock.results[0].value;
 
-      expect(sourceNode.connect).toHaveBeenCalledWith(gainNode);
+      const analyserNode = (
+        audioContext.createAnalyser as Mock<AudioContext['createAnalyser']>
+      ).mock.results[0].value;
+
+      expect(sourceNode.connect).toHaveBeenCalledWith(analyserNode);
+      expect(analyserNode.connect).toHaveBeenCalledWith(gainNode);
       expect(gainNode.connect).toHaveBeenCalledWith(audioContext.destination);
+
+      vi.advanceTimersByTime(2000);
+      const playbackReport = call.tracer
+        .take()
+        .snapshot.find(([tag]) => tag === 'audioPlayback.report');
+      expect(playbackReport?.[2]).toMatchObject({
+        sessionId: 'session-id',
+        route: 'audio-context',
+        context: { state: 'running', sampleRate: 48_000 },
+        signal: {
+          averageLevel: 0,
+          peakLevel: 0,
+          silentRatio: 1,
+          longestSilenceMs: 2000,
+          samples: 8,
+        },
+      });
 
       call.speaker.select('different-device-id');
       expect(audioElement.setSinkId).not.toHaveBeenCalled();
@@ -445,7 +468,7 @@ describe('DynascaleManager', () => {
         screenShareAudioStream: screenShareAudioMediaStream,
       });
 
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
 
       expect(play).toHaveBeenCalled();
       expect(audioElement.srcObject).toBe(screenShareAudioMediaStream);
@@ -535,7 +558,7 @@ describe('DynascaleManager', () => {
         videoStream: mediaStream,
       });
 
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
 
       expect(updateSubscription).toHaveBeenCalledWith('videoTrack', {
         'session-id': {
@@ -585,7 +608,7 @@ describe('DynascaleManager', () => {
         videoStream: mediaStream,
       });
 
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
 
       expect(updateSubscription).toHaveBeenCalledWith('videoTrack', {
         'session-id': {
@@ -624,7 +647,7 @@ describe('DynascaleManager', () => {
         'session-id',
         'videoTrack',
       );
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
       expect(videoElement.srcObject).toBe(mediaStream);
 
       cleanup?.();
@@ -651,7 +674,7 @@ describe('DynascaleManager', () => {
         'videoTrack',
       );
       cleanup?.();
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
 
       expect(videoElement.srcObject).toBeNull();
       expect(play).not.toHaveBeenCalled();
@@ -826,7 +849,7 @@ describe('DynascaleManager', () => {
         audioStream: mediaStream,
       });
 
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
       await vi.advanceTimersByTimeAsync(0);
 
       expect(getCurrentValue(call.blockedAudioTracker.autoplayBlocked$)).toBe(
@@ -861,7 +884,7 @@ describe('DynascaleManager', () => {
         audioStream: new MediaStream(),
       });
 
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
       await vi.advanceTimersByTimeAsync(0);
 
       expect(getCurrentValue(call.blockedAudioTracker.autoplayBlocked$)).toBe(
@@ -900,7 +923,7 @@ describe('DynascaleManager', () => {
         audioStream: new MediaStream(),
       });
 
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
       await vi.advanceTimersByTimeAsync(0);
 
       expect(getCurrentValue(call.blockedAudioTracker.autoplayBlocked$)).toBe(
@@ -909,7 +932,7 @@ describe('DynascaleManager', () => {
 
       call.state.updateParticipant('session-id', { audioStream: undefined });
 
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
       await vi.advanceTimersByTimeAsync(0);
 
       expect(audioElement.srcObject).toBeNull();
@@ -949,7 +972,7 @@ describe('DynascaleManager', () => {
       call.state.updateParticipant('session-id', {
         videoStream: mediaStream,
       });
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
 
       const callsBeforePause = play.mock.calls.length;
       videoElement.dispatchEvent(new Event('pause'));
@@ -995,7 +1018,7 @@ describe('DynascaleManager', () => {
         call.state.updateParticipant('session-id', {
           videoStream: new MediaStream(),
         });
-        vi.runAllTimers();
+        vi.advanceTimersByTime(100);
 
         setHidden(true);
         const callsWhileHidden = play.mock.calls.length;
@@ -1045,7 +1068,7 @@ describe('DynascaleManager', () => {
       call.state.updateParticipant('session-id', {
         audioStream: new MediaStream(),
       });
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
 
       const callsBeforePause = play.mock.calls.length;
       audioElement.dispatchEvent(new Event('pause'));
@@ -1090,7 +1113,7 @@ describe('DynascaleManager', () => {
         call.state.updateParticipant(sessionId, {
           audioStream: new MediaStream(),
         });
-        vi.runAllTimers();
+        vi.advanceTimersByTime(100);
         return { audioElement, play, cleanup };
       };
 
@@ -1669,7 +1692,7 @@ describe('DynascaleManager', () => {
       call.state.updateParticipant('session-id', {
         audioStream: new MediaStream(),
       });
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
 
       audioElement.dispatchEvent(new Event('pause'));
       await vi.advanceTimersByTimeAsync(0);
@@ -1711,7 +1734,7 @@ describe('DynascaleManager', () => {
       call.state.updateParticipant('session-id', {
         audioStream: new MediaStream(),
       });
-      vi.runAllTimers();
+      vi.advanceTimersByTime(100);
       await vi.advanceTimersByTimeAsync(0);
 
       expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(true);

@@ -529,6 +529,10 @@ export abstract class DeviceManager<
       await this.stopPublishStream();
     }
     this.muteLocalStream(stopTracks);
+    this.traceCaptureLifecycle(
+      stopTracks ? 'stopped' : 'disabled',
+      this.state.rootMediaStream ?? mediaStream,
+    );
     const allEnded = this.getTracks().every((t) => t.readyState === 'ended');
     if (allEnded) {
       await this.stopActiveVirtualSession();
@@ -600,6 +604,7 @@ export abstract class DeviceManager<
     ) {
       stream = this.state.mediaStream;
       this.enableTracks();
+      this.traceCaptureLifecycle('reused', stream);
     } else {
       // We are about to compose a fresh filter chain and acquire a new
       // root stream. Drop any listeners bound to the previous root stream
@@ -674,6 +679,7 @@ export abstract class DeviceManager<
       // the rootStream represents the stream coming from the actual device
       // e.g. camera or microphone stream
       this.state.setError(undefined);
+      this.traceCaptureLifecycle('acquiring');
       rootStreamPromise = this.getSelectedStream(constraints as C);
       rootStreamPromise.catch((error) => {
         this.state.setError(error);
@@ -702,9 +708,11 @@ export abstract class DeviceManager<
     }
     if (this.state.mediaStream !== stream) {
       const rootStream = await rootStreamPromise;
+      this.traceCaptureLifecycle('acquired', rootStream);
       this.state.setMediaStream(stream, rootStream);
       if (rootStream) {
         const handleTrackEnded = async () => {
+          this.traceCaptureLifecycle('ended', rootStream);
           this.call.tracer.trace('navigator.mediaDevices.trackEnded', {
             trackType: TrackType[this.trackType],
           });
@@ -777,6 +785,33 @@ export abstract class DeviceManager<
         ? pushToIfMissing([...current], this.trackType)
         : removeFromIfPresent([...current], this.trackType);
       return { interruptedTracks: next };
+    });
+  };
+
+  private traceCaptureLifecycle = (
+    state:
+      'acquired' | 'acquiring' | 'disabled' | 'ended' | 'reused' | 'stopped',
+    stream?: MediaStream,
+  ) => {
+    if (this.trackType !== TrackType.AUDIO) return;
+    this.call.tracer.trace('media.capture.lifecycle', {
+      state,
+      trackType: TrackType[this.trackType],
+      tracks: stream?.getAudioTracks().map((track) => {
+        const settings = track.getSettings();
+        return {
+          id: track.id,
+          label: track.label,
+          enabled: track.enabled,
+          muted: track.muted,
+          readyState: track.readyState,
+          deviceId: settings.deviceId,
+          groupId: settings.groupId,
+          sampleRate: settings.sampleRate,
+          sampleSize: settings.sampleSize,
+          channelCount: settings.channelCount,
+        };
+      }),
     });
   };
 

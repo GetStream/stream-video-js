@@ -127,6 +127,8 @@ const AudioContextMock = vi.fn(function (): Partial<AudioContext> {
   return {
     state: 'suspended',
     sinkId: '',
+    sampleRate: 48_000,
+    currentTime: 0,
     // @ts-expect-error - incomplete data
     destination: {},
     createMediaStreamSource: vi.fn(() => {
@@ -134,6 +136,15 @@ const AudioContextMock = vi.fn(function (): Partial<AudioContext> {
         connect: vi.fn((v) => v),
         disconnect: vi.fn(),
       } as unknown as MediaStreamAudioSourceNode;
+    }),
+    createAnalyser: vi.fn(() => {
+      return {
+        connect: vi.fn((v) => v),
+        disconnect: vi.fn(),
+        fftSize: 256,
+        frequencyBinCount: 128,
+        getByteTimeDomainData: vi.fn((array: Uint8Array) => array.fill(128)),
+      } as unknown as AnalyserNode;
     }),
     createGain: vi.fn(() => {
       return {

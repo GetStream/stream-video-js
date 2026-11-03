@@ -18,6 +18,9 @@ const sample = (
   userSessionId: 'session-1',
   updatedAt,
   roundTripTimeMs: updatedAt,
+  inboundAudioByPublisher: {},
+  playbackAudioByPublisher: {},
+  audioEvents: [],
 });
 
 describe('diagnosticsHistory', () => {

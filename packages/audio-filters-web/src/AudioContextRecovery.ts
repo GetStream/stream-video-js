@@ -34,7 +34,7 @@ export class AudioContextRecovery {
     });
 
     const { state } = this.audioContext;
-    this.tracer?.trace('noiseCancellation.audioContextState', state);
+    this.traceState();
     if (needsRecovery(state)) {
       this.arm();
     }
@@ -50,7 +50,7 @@ export class AudioContextRecovery {
   private onStateChange = () => {
     if (this.disposed) return;
     const { state } = this.audioContext;
-    this.tracer?.trace('noiseCancellation.audioContextState', state);
+    this.traceState();
 
     if (state === 'closed') {
       this.dispose();
@@ -78,6 +78,15 @@ export class AudioContextRecovery {
     this.audioContext.resume().catch((err) => {
       if (this.disposed) return;
       this.tracer?.trace(`noiseCancellation.audioContext.error`, err?.message);
+    });
+  };
+
+  private traceState = () => {
+    this.tracer?.trace('noiseCancellation.audioContextState', {
+      state: this.audioContext.state,
+      sampleRate: this.audioContext.sampleRate,
+      baseLatency: this.audioContext.baseLatency,
+      outputLatency: this.audioContext.outputLatency,
     });
   };
 }
