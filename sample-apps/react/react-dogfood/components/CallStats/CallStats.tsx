@@ -175,6 +175,10 @@ export const CallStats = (props: CallStatsProps) => {
               value={toFrameSize(callStatsReport.publisherStats)}
             />
             <StatCard
+              label={t('callStats.cameraResolution.label', 'Camera resolution')}
+              value={toCameraFrameSize(callStatsReport.publisherStats)}
+            />
+            <StatCard
               label={t(
                 'callStats.publishQualityDropReason.label',
                 'Publish quality drop reason',
@@ -285,6 +289,16 @@ const toFrameSize = (stats: AggregatedStatsReport) => {
     }
   }
   return size;
+};
+
+/**
+ * The resolution and frame rate the camera hands the browser, before encoding.
+ */
+const toCameraFrameSize = (stats: AggregatedStatsReport) => {
+  const { frameWidth: w, frameHeight: h, frameRate: fps } = stats.camera ?? {};
+  if (!fps) return '-';
+  const rate = `${Math.round(fps)}fps.`;
+  return w && h ? `${w}x${h}@${rate}` : rate;
 };
 
 const formatCodec = (callStatsReport: CallStatsReport): string => {
