@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby
-
 allure_project_id = '168'
 allure_url = 'https://streamio.testops.cloud'
 allure_api_url = "#{allure_url}/api"
