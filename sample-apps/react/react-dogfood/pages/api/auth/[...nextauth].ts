@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import type { NextAuthOptions, Profile } from 'next-auth';
 import NextAuth from 'next-auth';
 import GoogleProvider, { GoogleProfile } from 'next-auth/providers/google';
-import { getUserIdFromEmail } from '../../../lib/names';
+import { getRandomName, getUserIdFromEmail } from '../../../lib/names';
 import { userId } from '../../../lib/idGenerators';
 import { CredentialsConfig } from 'next-auth/providers/credentials';
 import { Provider } from 'next-auth/providers/index';
@@ -20,11 +20,18 @@ const StreamDemoAccountProvider: CredentialsConfig = {
   authorize: async (credentials) => {
     return {
       id: userId(),
-      name: toDisplayName(credentials?.name),
+      name: toDisplayName(credentials?.name) ?? defaultGuestName(),
       stream: false,
     };
   },
 };
+
+/**
+ * New guests without a saved name get a random one once, so it stays the same
+ * on every page load. pronto-sales guests are customers and type their own.
+ */
+const defaultGuestName = () =>
+  environment === 'pronto-sales' ? undefined : getRandomName();
 
 /**
  * Trims a display name sent by the client and caps it at the lobby's input

@@ -32,6 +32,7 @@ import { useEdges } from '../hooks/useEdges';
 import { DefaultAppHeader } from './DefaultAppHeader';
 import { useLayoutSwitcher, useSavedDisplayName } from '../hooks';
 import {
+  useAppEnvironment,
   useIsDemoEnvironment,
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
@@ -82,9 +83,8 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const [displayNameOverride, setDisplayNameOverride] = useState<string | null>(
     null,
   );
-  const [randomName] = useState(() =>
-    isDemoEnvironment ? getRandomName() : '',
-  );
+  const isProntoSales = useAppEnvironment() === 'pronto-sales';
+  const [randomName] = useState(() => (isProntoSales ? '' : getRandomName()));
   const router = useRouter();
   const displayName =
     displayNameOverride ??
