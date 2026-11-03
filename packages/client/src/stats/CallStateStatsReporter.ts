@@ -9,6 +9,7 @@ import type {
   StatsReport,
 } from './types';
 import { CallState } from '../store';
+import type { CameraManagerState } from '../devices';
 import { Publisher, Subscriber } from '../rtc';
 import { flatten } from './utils';
 import { TrackType } from '../gen/video/sfu/models/models';
@@ -21,6 +22,19 @@ export type StatsReporterOpts = {
   state: CallState;
   datacenter: string;
   pollingIntervalInMs?: number;
+  /**
+   * The camera state, used to report what the camera captures when video
+   * filters are applied to the published track.
+   */
+  cameraState?: Pick<CameraManagerState, 'mediaStream' | 'rootMediaStream'>;
+};
+
+/**
+ * `MediaStreamTrack.stats` (W3C MediaCapture Extensions) isn't part of the
+ * DOM typings yet, and is only available in Chromium.
+ */
+type MediaStreamTrackWithStats = MediaStreamTrack & {
+  stats?: { deliveredFrames: number };
 };
 
 type PeerConnectionKind = 'subscriber' | 'publisher';
@@ -78,6 +92,7 @@ export const createStatsReporter = ({
   state,
   datacenter,
   pollingIntervalInMs = 2000,
+  cameraState,
 }: StatsReporterOpts): StatsReporter => {
   const logger = videoLoggerSystem.getLogger('stats');
   const getRawStatsForTrack = async (
@@ -123,6 +138,55 @@ export const createStatsReporter = ({
   };
 
   const sessionIdsToTrack = new Set<string>();
+
+  let previousCameraFrames:
+    { trackId: string; deliveredFrames: number; timestamp: number } | undefined;
+
+  /**
+   * Stats about what the camera captures. Without video filters, they match
+   * the `media-source` stats of the published track. With video filters
+   * applied, the published track is the filter's output, so the raw camera
+   * track is read instead. Its frame counters are only available in Chromium;
+   * elsewhere the frame rate is left undefined rather than reporting the
+   * filter's output. Returns `undefined` while the camera is off.
+   *
+   * @param camera the `media-source` stats of the published track.
+   */
+  const getCameraCaptureStats = (
+    camera: CameraStats | undefined,
+  ): CameraStats | undefined => {
+    if (!cameraState) return camera;
+    const { mediaStream, rootMediaStream } = cameraState;
+    if (!mediaStream) {
+      previousCameraFrames = undefined;
+      return undefined;
+    }
+
+    const track = rootMediaStream?.getVideoTracks()[0];
+    if (!track || mediaStream === rootMediaStream) {
+      previousCameraFrames = undefined;
+      return camera;
+    }
+
+    const { width, height } = track.getSettings();
+    const capture: CameraStats = { frameWidth: width, frameHeight: height };
+    const deliveredFrames = (track as MediaStreamTrackWithStats).stats
+      ?.deliveredFrames;
+    if (typeof deliveredFrames !== 'number') {
+      previousCameraFrames = undefined;
+      return capture;
+    }
+
+    const timestamp = performance.now();
+    const previous = previousCameraFrames;
+    if (previous?.trackId === track.id && timestamp > previous.timestamp) {
+      const elapsedSeconds = (timestamp - previous.timestamp) / 1000;
+      const frames = deliveredFrames - previous.deliveredFrames;
+      capture.frameRate = Math.round(frames / elapsedSeconds);
+    }
+    previousCameraFrames = { trackId: track.id, deliveredFrames, timestamp };
+    return capture;
+  };
 
   /**
    * The main stats reporting loop.
@@ -179,6 +243,10 @@ export const createStatsReporter = ({
     const publisherResult = publisherRawStats
       ? process(publisherRawStats, 'publisher')
       : { videoStats: getEmptyVideoStats(), audioStats: getEmptyAudioStats() };
+
+    publisherResult.videoStats.cameraCapture = getCameraCaptureStats(
+      publisherResult.videoStats.camera,
+    );
 
     state.setCallStatsReport({
       datacenter,

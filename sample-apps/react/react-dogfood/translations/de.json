@@ -371,6 +371,7 @@
   "Try again": "Erneut versuchen",
   "End Stream": "Stream beenden",
   "Start Stream": "Stream starten",
+  "notification.lowCameraFrameRate.text": "Deine Kamera liefert sehr wenige Bilder, daher kann dein Video für andere ruckeln. Versuche eine andere Kamera, schließe andere Apps, die sie verwenden, oder starte deinen Browser neu.",
   "recordings.transcriptions.download.title": "Transkript herunterladen",
   "recordings.transcriptions.title": "Transkripte",
   "settings.transcription.disabled.text": "Die Transkription ist für diesen Anruftyp deaktiviert.",

@@ -27,6 +27,7 @@ import { CallStatsSidebar, ToggleStatsButton } from './CallStatsWrapper';
 import { ChatUI } from './ChatUI';
 import { ChatWrapper } from './ChatWrapper';
 import { DeviceDisconnectedNotification } from './DeviceDisconnectedNotification';
+import { LowCameraFrameRateNotification } from './LowCameraFrameRateNotification';
 import {
   ClosedCaptions,
   ClosedCaptionsSidebar,
@@ -284,6 +285,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
             </div>
           </div>
           <DeviceDisconnectedNotification className="rd__call-controls__notification" />
+          <LowCameraFrameRateNotification className="rd__call-controls__notification" />
           <div className="str-video__call-controls--group str-video__call-controls--media">
             {remoteFilePublisherAPI && (
               <RemoteVideoControls api={remoteFilePublisherAPI} />
