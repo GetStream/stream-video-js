@@ -90,7 +90,7 @@ Allure results come from `jest-allure2-reporter` (`e2e/jest.config.js`). Every `
 `allureId(N)` links a test to its case in project 168. Create the case first (TestOps UI or API): cases that an upload
 creates on its own are not durable.
 
-The jobs run on `ubuntu-latest` with KVM and an x86_64 emulator without a camera (`android.att.release`), and call
+The jobs run on `ubuntu-24.04` (stream-video-buddy's Playwright 1.52.0 can't install Chromium on 26.04) with KVM and an x86_64 emulator without a camera (`android.att.release`), and call
 `fastlane test_e2e device:att skip_build:true`, which on CI adds `--retries 2` and keeps failure logs and screenshots in
 `artifacts/`. Those and the buddy's logs and recordings are uploaded when a job fails.
 

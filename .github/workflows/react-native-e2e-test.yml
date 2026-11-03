@@ -47,7 +47,7 @@ jobs:
   android:
     needs: check
     if: needs.check.outputs.required == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
       # No camera: with an emulated one, `call.join()` sometimes never resolves (RN-474).
