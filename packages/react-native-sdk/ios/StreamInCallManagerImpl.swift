@@ -67,8 +67,6 @@ private enum AudioDeviceId {
 
     private let audioSessionQueue = DispatchQueue(label: "io.getstream.rn.audioSessionQueue")
 
-    private var audioManagerActivated = false
-
     /// Inputs of the session config. Written on `audioSessionQueue`, read by the engine hooks on the
     /// WebRTC worker thread, so guarded by `configInputsLock`.
     private struct ConfigInputs {
@@ -77,8 +75,10 @@ private enum AudioDeviceId {
         /// The user's explicit output pick, or `nil` to use the category default.
         /// Re-applied on every engine rebuild so the pick survives interruptions.
         var selectedOutput: OutputRouting?
-        /// Between `start()` and `stop()` (a live non-CallKit call). The willEnable hook is a
-        /// no-op outside it (lobby tracks, stray default-factory ADMs).
+        /// Between `start()` and `stop()` (a live non-CallKit call): the idempotency guard of
+        /// `start()` and of the pre-start setters, and the willEnable hook is a no-op outside it
+        /// (lobby tracks, stray default-factory ADMs). Set in `start()` before the engine gate
+        /// opens: the replayed enable runs the hook synchronously on the worker thread.
         var isStarted = false
         /// Set once `start()` or `reactivateAudioSession` activated the SDK-owned session (the
         /// engine gate is open from then on); cleared in `stop()`. Read by the `didCreateModule`
@@ -196,7 +196,7 @@ private enum AudioDeviceId {
     @objc(setAudioRole:)
     public func setAudioRole(audioRole: String) {
         audioSessionQueue.async { [self] in
-            if audioManagerActivated {
+            if isStarted {
                 log("AudioManager is already activated, audio role cannot be changed.")
                 return
             }
@@ -207,7 +207,7 @@ private enum AudioDeviceId {
     @objc(setDefaultAudioDeviceEndpointType:)
     public func setDefaultAudioDeviceEndpointType(endpointType: String) {
         audioSessionQueue.async { [self] in
-            if audioManagerActivated {
+            if isStarted {
                 log("AudioManager is already activated, default audio device cannot be changed.")
                 return
             }
@@ -218,7 +218,7 @@ private enum AudioDeviceId {
     @objc(setEnableStereoAudioOutput:)
     public func setEnableStereoAudioOutput(enabled: Bool) {
         audioSessionQueue.async { [self] in
-            if audioManagerActivated {
+            if isStarted {
                 log("AudioManager is already activated, enable stereo audio output cannot be changed.")
                 return
             }
@@ -533,7 +533,7 @@ private enum AudioDeviceId {
     @objc
     public func start() {
         audioSessionQueue.async { [self] in
-            if audioManagerActivated {
+            if isStarted {
                 return
             }
             let owned = Self.callingxOwnsSession()
@@ -594,6 +594,7 @@ private enum AudioDeviceId {
 
             // Before the gate opens: the replayed enable runs the willEnable hook, which passes
             // its started guard and re-applies the configuration (recording may be requested).
+            // Also what makes a second start() and the pre-start setters no-ops from here on.
             isStarted = true
             if sessionActive {
                 openEngineGateIfOwned(source: "start")
@@ -610,8 +611,6 @@ private enum AudioDeviceId {
                 log("start: no audio device module, playout not started")
                 sendAudioSessionDiagnostic("startNoAudioDeviceModule")
             }
-
-            audioManagerActivated = true
         }
     }
 
@@ -632,7 +631,7 @@ private enum AudioDeviceId {
     @objc
     public func stop() {
         audioSessionQueue.async { [self] in
-            if !audioManagerActivated {
+            if !isStarted {
                 // Releases an activation if one is held; no-op otherwise.
                 deactivateSessionIfNeeded(source: "stop")
                 return
@@ -657,7 +656,6 @@ private enum AudioDeviceId {
             defaultAudioDevice = .speaker
             selectedOutput = nil
             enableStereo = false
-            audioManagerActivated = false
         }
         // Disable wake lock and proximity when call manager stops so the device can sleep again
         DispatchQueue.main.async {
@@ -1148,7 +1146,7 @@ private enum AudioDeviceId {
         // Notify JS of the updated device list / selection.
         audioSessionQueue.async { [weak self] in
             guard let self,
-                  self.audioManagerActivated,
+                  self.isStarted,
                   self.callAudioRole == .communicator,
                   !Self.callingxOwnsSession() else { return }
             self.eventEmitter?.emitAudioDeviceChanged(self.buildAudioDevicesState())
@@ -1162,7 +1160,7 @@ private enum AudioDeviceId {
 
     private func updateProximityMonitoring() {
         // Proximity is only meaningful while a call is active
-        guard audioManagerActivated else {
+        guard isStarted else {
             setProximityMonitoringEnabled(false)
             return
         }
