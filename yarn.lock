@@ -7443,6 +7443,8 @@ __metadata:
     stream-chat-react: "npm:^15.0.0-rc.3"
     swr: "npm:^2.4.2"
     typescript: "npm:^6.0.3"
+    vite: "npm:^8.3.4"
+    vitest: "npm:^5.0.5"
     yargs: "npm:^18.2.0"
   languageName: unknown
   linkType: soft

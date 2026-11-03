@@ -37,6 +37,7 @@ import { NewMessageNotification } from './NewMessageNotification';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { Stage } from './Stage';
 import { ToggleDeveloperButton } from './ToggleDeveloperButton';
+import { ToggleCallDiagnosticsButton } from './ToggleCallDiagnosticsButton';
 import { ToggleDualCameraButton } from './ToggleDualCameraButton';
 import { ToggleDualMicButton } from './ToggleDualMicButton';
 import { ToggleEffectsButton } from './ToggleEffectsButton';
@@ -284,6 +285,11 @@ export const ActiveCall = (props: ActiveCallProps) => {
             {isPronto && (
               <div className="str-video__call-controls__desktop">
                 <ToggleDeveloperButton />
+              </div>
+            )}
+            {isPronto && (
+              <div className="str-video__call-controls__desktop">
+                <ToggleCallDiagnosticsButton call={activeCall} />
               </div>
             )}
             <div className="str-video__call-controls__mobile">
