@@ -739,6 +739,7 @@ export class Call {
       }
 
       this.leaveGeneration += 1;
+      this.reconnectBackoff.wake();
 
       if (callingState === CallingState.JOINING) {
         const waitUntilCallJoined = () => {
