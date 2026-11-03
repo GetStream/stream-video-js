@@ -1,11 +1,19 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 
+import {
+  appendDiagnosticsSample,
+  DiagnosticsHistory,
+  diagnosticsWindowMs,
+  pruneDiagnosticsHistory,
+} from './diagnosticsHistory';
 import {
   createRtcStatsProcessor,
   getParticipantDiagnosticsKey,
   LiveCallStatsMessage,
   ParticipantDiagnostics,
 } from './rtcStats';
+
+const LiveMetricsChart = lazy(() => import('./LiveMetricsChart'));
 
 export type CallDiagnosticsParticipant = {
   userId: string;
@@ -28,9 +36,7 @@ export const CallDiagnostics = ({
   callSessionId,
   participants,
 }: CallDiagnosticsProps) => {
-  const [diagnostics, setDiagnostics] = useState<
-    Record<string, ParticipantDiagnostics>
-  >({});
+  const [history, setHistory] = useState<DiagnosticsHistory>({});
   const [status, setStatus] = useState<StreamStatus>('connecting');
   const [error, setError] = useState<string>();
   const [now, setNow] = useState(0);
@@ -49,6 +55,15 @@ export const CallDiagnostics = ({
     const interval = window.setInterval(updateNow, 1000);
     return () => window.clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const participantKeys = new Set(
+      participants.map(({ userId, userSessionId }) =>
+        getParticipantDiagnosticsKey(userId, userSessionId),
+      ),
+    );
+    setHistory((current) => pruneDiagnosticsHistory(current, participantKeys));
+  }, [participantsKey, participants]);
 
   useEffect(() => {
     if (participants.length === 0) return;
@@ -105,13 +120,7 @@ export const CallDiagnostics = ({
             }
             const report = processor.process(message);
             if (report) {
-              setDiagnostics((current) => ({
-                ...current,
-                [getParticipantDiagnosticsKey(
-                  report.userId,
-                  report.userSessionId,
-                )]: report,
-              }));
+              setHistory((current) => appendDiagnosticsSample(current, report));
             }
           }
           if (done) break;
@@ -131,7 +140,6 @@ export const CallDiagnostics = ({
       }
     };
 
-    setDiagnostics({});
     connect().catch(console.error);
     return () => {
       controller.abort();
@@ -164,13 +172,14 @@ export const CallDiagnostics = ({
 
       <section className="rd__call-diagnostics__grid">
         {participants.map((participant) => {
-          const report =
-            diagnostics[
+          const samples =
+            history[
               getParticipantDiagnosticsKey(
                 participant.userId,
                 participant.userSessionId,
               )
-            ];
+            ] ?? [];
+          const report = samples.at(-1);
           const age = report ? Math.max(0, now - report.updatedAt) : undefined;
           const health = getHealth(report, age);
           return (
@@ -239,6 +248,38 @@ export const CallDiagnostics = ({
                 />
                 <Metric label="SFU" value={report?.sfuId || '—'} />
               </div>
+
+              <div className="rd__call-diagnostics__timeline-header">
+                <div>
+                  <h3>Live performance</h3>
+                  <p>
+                    Rolling {diagnosticsWindowMs / 60_000}-minute window ·{' '}
+                    {samples.length}{' '}
+                    {samples.length === 1 ? 'sample' : 'samples'}
+                  </p>
+                </div>
+              </div>
+
+              {samples.length === 0 ? (
+                <div className="rd__call-diagnostics__chart-placeholder">
+                  Waiting for the first RTC stats report…
+                </div>
+              ) : (
+                <Suspense
+                  fallback={
+                    <div className="rd__call-diagnostics__chart-placeholder">
+                      Loading charts…
+                    </div>
+                  }
+                >
+                  <div className="rd__call-diagnostics__charts">
+                    <LiveMetricsChart metric="bitrate" samples={samples} />
+                    <LiveMetricsChart metric="latency" samples={samples} />
+                    <LiveMetricsChart metric="packet-loss" samples={samples} />
+                    <LiveMetricsChart metric="fps" samples={samples} />
+                  </div>
+                </Suspense>
+              )}
 
               <footer>
                 {age === undefined
