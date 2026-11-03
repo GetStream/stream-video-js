@@ -1,5 +1,5 @@
-import { PropsWithChildren, useCallback, useEffect, useState } from 'react';
-import { Notification, useCall } from '@stream-io/video-react-sdk';
+import { PropsWithChildren, useCallback, useState } from 'react';
+import { Notification, useCallStateHooks } from '@stream-io/video-react-sdk';
 import { useAppI18n } from '../hooks/useAppI18n';
 
 /**
@@ -28,36 +28,29 @@ export const LowCameraFrameRateNotification = ({
   text,
   className,
 }: PropsWithChildren<LowCameraFrameRateNotificationProps>) => {
-  const call = useCall();
   const { t } = useAppI18n();
-  const [isLow, setIsLow] = useState(false);
+  const { useCallStatsReport, useCameraState } = useCallStateHooks();
+  const callStatsReport = useCallStatsReport();
+  const { isEnabled, mediaStream, rootMediaStream } = useCameraState();
+  const [lastReport, setLastReport] = useState(callStatsReport);
+  const [lowReports, setLowReports] = useState(0);
   const [isDismissed, setIsDismissed] = useState(false);
 
-  useEffect(() => {
-    if (!call) return;
-
-    let lowReports = 0;
-    const subscription = call.state.callStatsReport$.subscribe((report) => {
-      const { status, mediaStream, rootMediaStream } = call.camera.state;
-      const frameRate = report?.publisherStats.camera?.frameRate;
-      // with video filters, the stats describe the filtered track, and
-      // DegradedPerformanceNotification already covers filter-induced drops
-      const hasFilters = mediaStream !== rootMediaStream;
-      if (status !== 'enabled' || hasFilters || frameRate == null) {
-        lowReports = 0;
-      } else if (frameRate < LOW_FRAME_RATE_THRESHOLD) {
-        lowReports++;
-      } else {
-        lowReports = 0;
-      }
-
-      const low = lowReports >= LOW_FRAME_RATE_REPORTS;
-      setIsLow(low);
-      if (!low) setIsDismissed(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [call]);
+  // count once per new stats report, not on every render
+  if (callStatsReport !== lastReport) {
+    setLastReport(callStatsReport);
+    const frameRate = callStatsReport?.publisherStats.camera?.frameRate;
+    // with video filters, the stats describe the filtered track, and
+    // DegradedPerformanceNotification already covers filter-induced drops
+    const hasFilters = mediaStream !== rootMediaStream;
+    const isLow =
+      isEnabled &&
+      !hasFilters &&
+      frameRate != null &&
+      frameRate < LOW_FRAME_RATE_THRESHOLD;
+    setLowReports(isLow ? lowReports + 1 : 0);
+    if (!isLow) setIsDismissed(false);
+  }
 
   const close = useCallback(() => setIsDismissed(true), []);
 
@@ -71,7 +64,7 @@ export const LowCameraFrameRateNotification = ({
   return (
     <Notification
       state="error"
-      isVisible={isLow && !isDismissed}
+      isVisible={lowReports >= LOW_FRAME_RATE_REPORTS && !isDismissed}
       placement="top-start"
       message={message}
       className={className}
