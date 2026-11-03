@@ -105,7 +105,13 @@ export const StatusLabel = ({
               testID={IconTestIds.MUTED_MICROPHONE}
             />
           )}
-          {isVideoMuted && <VideoSlash color={iconColor} size={iconSize} />}
+          {isVideoMuted && (
+            <VideoSlash
+              color={iconColor}
+              size={iconSize}
+              testID={IconTestIds.MUTED_VIDEO}
+            />
+          )}
           {isTrackPaused && <BadNetwork color={iconColor} size={iconSize} />}
           {isPinned && <Pin color={iconColor} size={iconSize} />}
           {showSpeech && <SpeechIndicator isSpeaking={isSpeaking} />}
