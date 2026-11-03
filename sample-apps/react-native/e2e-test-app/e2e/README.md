@@ -121,9 +121,9 @@ What CI caches. GitHub only lets a PR restore caches from its own branch or the 
   `withAncestor` scopes on them match nothing on iOS. The page objects select unscoped testIDs.
 - The camera preview and the speech indicator are asserted by existence, not visibility: Detox's visibility check needs
   rendered pixels.
-- The emulator has no camera, like in the native Android suite. With an emulated one, `call.join()` sometimes never
-  resolves: the calling state is already `JOINED`, but the camera `getUserMedia` after the lobby preview hands over
-  never completes (RN-474).
+- The emulator has no camera, like in the native Android suite. With an emulated one, `call.join()` can hang when the
+  call isn't loaded before the lobby: the SDK then opens the camera during the join while the preview still holds it
+  (RN-474). The app calls `getOrCreate()` before it opens the lobby (`App.enterLobby`) to stay clear of that race.
 - stream-video-buddy's browser must match its Playwright version (`install_video_buddy` installs it with
   `playwright@1.52.0`); with another build it fails to launch, and the participant never joins.
 - The buddy server handles join requests one at a time: a stuck request delays every later one.

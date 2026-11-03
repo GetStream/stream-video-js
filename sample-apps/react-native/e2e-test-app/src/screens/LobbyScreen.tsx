@@ -1,10 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import {
-  Lobby,
-  useCall,
-  useCallStateHooks,
-} from '@stream-io/video-react-native-sdk';
+import { Lobby, useCallStateHooks } from '@stream-io/video-react-native-sdk';
 
 import { TestIds } from '../testIds';
 import { styles as common } from './styles';
@@ -16,16 +12,8 @@ type Props = {
 
 /** The SDK's `Lobby`, under a header with a close button and the number of people on the call. */
 export const LobbyScreen = ({ onClose, onJoined }: Props) => {
-  const call = useCall();
   const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
-  const [error, setError] = useState<string>();
-
-  useEffect(() => {
-    // Loads the call (and watches it), so the lobby can show who is already there.
-    call?.getOrCreate().catch((e) => setError(String(e)));
-  }, [call]);
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -43,7 +31,6 @@ export const LobbyScreen = ({ onClose, onJoined }: Props) => {
           {`On call: ${participantCount}`}
         </Text>
       </View>
-      {error && <Text style={common.error}>{error}</Text>}
       <Lobby onJoinCallHandler={onJoined} />
     </View>
   );

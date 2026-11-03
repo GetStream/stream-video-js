@@ -7,6 +7,7 @@ import { styles as common } from './styles';
 
 type Props = {
   userName: string;
+  error?: string;
   onJoinCall: (callId: string) => void;
   onLogOut: () => void;
 };
@@ -14,6 +15,7 @@ type Props = {
 /** Call join screen: who is signed in, which call to join, sign out. */
 export const CallDetailsScreen = ({
   userName,
+  error,
   onJoinCall,
   onLogOut,
 }: Props) => {
@@ -61,6 +63,7 @@ export const CallDetailsScreen = ({
       >
         <Text style={common.buttonText}>Join call</Text>
       </Pressable>
+      {error && <Text style={common.error}>{error}</Text>}
     </View>
   );
 };

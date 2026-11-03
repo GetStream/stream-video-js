@@ -62,10 +62,23 @@ export default function App() {
     }
   }, [autoLogIn, client, logIn]);
 
+  const [callError, setCallError] = useState<string>();
+
   const enterLobby = useCallback(
-    (callId: string) => {
+    async (callId: string) => {
       if (!client) return;
-      setCall(client.call('default', callId));
+      const newCall = client.call('default', callId);
+      try {
+        setCallError(undefined);
+        // Load (and watch) the call before the lobby opens: it shows who is already there, and
+        // the call settings are applied before join() creates the media engine, so the camera
+        // isn't opened twice.
+        await newCall.getOrCreate();
+      } catch (error) {
+        setCallError(String(error));
+        return;
+      }
+      setCall(newCall);
       setScreen('lobby');
     },
     [client],
@@ -93,6 +106,7 @@ export default function App() {
     content = (
       <CallDetailsScreen
         userName={userId ?? ''}
+        error={callError}
         onJoinCall={enterLobby}
         onLogOut={logOut}
       />

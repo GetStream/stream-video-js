@@ -7,7 +7,6 @@ import { VideoSettingsResponse } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
-import { CallingState } from '../store';
 import { DevicePersistenceOptions } from './devicePersistence';
 
 export class CameraManager extends DeviceManager<CameraManagerState> {
@@ -214,18 +213,7 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
         enabledInCallType &&
         permissionState !== 'denied'
       ) {
-        if (
-          isReactNative() &&
-          !publish &&
-          this.call.state.callingState !== CallingState.JOINED
-        ) {
-          // join() creates the media engine before the call is created, so enable() would
-          // open the camera while the lobby preview is still capturing from it. Only record
-          // the intent; the publishing apply() after JOINED adopts the preview's session.
-          this.state.setPendingStatus('enabled');
-        } else {
-          await this.enable();
-        }
+        await this.enable();
       }
     }
 
