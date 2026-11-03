@@ -17,12 +17,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.getstream.samples.androidwebview.scenarios.AudioScenarios
+import io.getstream.samples.androidwebview.scenarios.NetworkScenarios
 import io.getstream.samples.androidwebview.webview.StreamVideoHostBridge
 import io.getstream.samples.androidwebview.webview.WebController
 
-/** Top-bar menu that bridges taps into [AudioScenarios] and [WebController]. */
+/** Top-bar menu that bridges taps into the scenarios and [WebController]. */
 @Composable
-fun ScenariosMenu(audio: AudioScenarios, web: WebController) {
+fun ScenariosMenu(audio: AudioScenarios, network: NetworkScenarios, web: WebController) {
     var expanded by remember { mutableStateOf(false) }
     // Re-read on every open, like the iOS menu's live-state row.
     val liveState = remember(expanded) { if (expanded) audio.liveState() else "" }
@@ -43,6 +44,10 @@ fun ScenariosMenu(audio: AudioScenarios, web: WebController) {
                     },
                 )
             }
+
+            SectionHeader("Network")
+            item("Stale offline event (online → offline 0.5s)") { network.dispatchStaleOfflineEvent() }
+            HorizontalDivider()
 
             SectionHeader("Audio state")
             Text(
@@ -73,6 +78,17 @@ fun ScenariosMenu(audio: AudioScenarios, web: WebController) {
                 item("Ringtone loop") { audio.startRingtone() }
             }
             item("Notification with sound (2s)") { audio.scheduleNotification() }
+            HorizontalDivider()
+
+            SectionHeader("🎚 Sample rate")
+            AudioScenarios.sampleRates.forEach { rate ->
+                item("  Play tone at $rate Hz") { audio.playTone(rate) }
+            }
+            if (!audio.micCaptureRunning) {
+                AudioScenarios.sampleRates.forEach { rate ->
+                    item("  Second mic capture at $rate Hz") { audio.startMicCapture(rate) }
+                }
+            }
             HorizontalDivider()
 
             SectionHeader("Android")

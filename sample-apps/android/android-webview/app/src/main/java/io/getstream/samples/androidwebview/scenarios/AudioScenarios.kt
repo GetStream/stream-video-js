@@ -12,6 +12,7 @@ import android.media.AudioFocusRequest
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioRecord
+import android.media.AudioTrack
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.Build
@@ -26,7 +27,9 @@ import io.getstream.samples.androidwebview.AppState
 import io.getstream.samples.androidwebview.LogTab
 import io.getstream.samples.androidwebview.R
 import io.getstream.samples.androidwebview.webview.StreamVideoHostBridge
+import kotlin.math.PI
 import kotlin.math.log10
+import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
@@ -89,6 +92,8 @@ class AudioScenarios(context: Context) {
                 "voiceVol=${audioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL)}/" +
                 "${audioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)} " +
                 "focusHeld=${heldFocusRequests.size} recordings=[$recordings] " +
+                "outputRate=${outputSampleRate()} framesPerBuffer=" +
+                "${audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER)} " +
                 "in=[$inputs] out=[$outputs]",
         )
     }
@@ -229,21 +234,71 @@ class AudioScenarios(context: Context) {
         }, delayMs)
     }
 
+    // Sample rate
+
+    /**
+     * Plays a 3 s, 660 Hz tone through an `AudioTrack` at [sampleRate] with
+     * `USAGE_MEDIA` and no focus request, so the mixer has to resample next
+     * to WebRTC's own stream. Android has no app-settable hardware rate (the
+     * iOS sample's preferred-rate scenarios); a stream at another rate is the
+     * closest counterpart.
+     */
+    fun playTone(sampleRate: Int) {
+        val frames = sampleRate * 3
+        val samples = ShortArray(frames) { i ->
+            (sin(2 * PI * 660 * i / sampleRate) * Short.MAX_VALUE * 0.2).toInt().toShort()
+        }
+        val track = try {
+            AudioTrack.Builder()
+                .setAudioAttributes(mediaAttributes)
+                .setAudioFormat(
+                    AudioFormat.Builder()
+                        .setSampleRate(sampleRate)
+                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                        .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                        .build(),
+                )
+                .setTransferMode(AudioTrack.MODE_STATIC)
+                .setBufferSizeInBytes(frames * 2)
+                .build()
+        } catch (e: Exception) {
+            AppState.log(LogTab.ERRORS, "audio", "AudioTrack at $sampleRate Hz failed: $e")
+            return
+        }
+        track.write(samples, 0, samples.size)
+        track.setNotificationMarkerPosition(frames)
+        track.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
+            override fun onMarkerReached(t: AudioTrack) {
+                t.release()
+                AppState.log(LogTab.SCENARIOS, "audio", "tone at $sampleRate Hz finished")
+            }
+
+            override fun onPeriodicNotification(t: AudioTrack) = Unit
+        }, handler)
+        track.play()
+        AppState.log(
+            LogTab.SCENARIOS,
+            "audio",
+            "tone at $sampleRate Hz (track rate=${track.sampleRate}, output rate=${outputSampleRate()})",
+        )
+    }
+
     // Android-specific
 
     /**
-     * Opens a second `VOICE_COMMUNICATION` capture next to the WebView's and
-     * logs its level about twice a second. Doubles as a mic meter and shows
-     * whether either capture gets silenced (see the bridge's `micSilenced`).
+     * Opens a second `VOICE_COMMUNICATION` capture at [sampleRate] next to the
+     * WebView's and logs its level about twice a second. Doubles as a mic
+     * meter and shows whether either capture gets silenced (see the bridge's
+     * `micSilenced`). A rate other than WebRTC's can make the HAL reopen the
+     * shared input stream.
      */
     @SuppressLint("MissingPermission")
-    fun startMicCapture() {
+    fun startMicCapture(sampleRate: Int = 48_000) {
         if (micCaptureRunning) return
         if (!isGranted(Manifest.permission.RECORD_AUDIO)) {
             AppState.log(LogTab.ERRORS, "mic", "RECORD_AUDIO not granted")
             return
         }
-        val sampleRate = 48_000
         val minBuffer = AudioRecord.getMinBufferSize(
             sampleRate,
             AudioFormat.CHANNEL_IN_MONO,
@@ -270,7 +325,7 @@ class AudioScenarios(context: Context) {
         micRecord = record
         micLoopActive = true
         micCaptureRunning = true
-        AppState.log(LogTab.SCENARIOS, "mic", "second capture started (VOICE_COMMUNICATION)")
+        AppState.log(LogTab.SCENARIOS, "mic", "second capture started (VOICE_COMMUNICATION, $sampleRate Hz)")
         micThread = Thread {
             val buffer = ShortArray(sampleRate / 2)
             while (micLoopActive) {
@@ -397,12 +452,17 @@ class AudioScenarios(context: Context) {
             if (audioManager.isSpeakerphoneOn) "speakerphone" else "default"
         }
 
+    private fun outputSampleRate(): String? = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)
+
     private fun isGranted(permission: String): Boolean =
         ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
 
     companion object {
         private const val ALERT_CHANNEL_ID = "scenario-alerts"
         private const val ALERT_NOTIFICATION_ID = 2001
+
+        /** Rates offered by the tone and second-capture scenarios. */
+        val sampleRates: List<Int> = listOf(16_000, 44_100, 48_000)
 
         /** Modes offered by the "Set mode" section. */
         val allModes: List<Int> = buildList {
