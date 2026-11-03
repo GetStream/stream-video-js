@@ -29,9 +29,8 @@ export const LowCameraFrameRateNotification = ({
   className,
 }: PropsWithChildren<LowCameraFrameRateNotificationProps>) => {
   const { t } = useAppI18n();
-  const { useCallStatsReport, useCameraState } = useCallStateHooks();
+  const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
-  const { isEnabled, mediaStream, rootMediaStream } = useCameraState();
   const [lastReport, setLastReport] = useState(callStatsReport);
   const [lowReports, setLowReports] = useState(0);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -39,15 +38,8 @@ export const LowCameraFrameRateNotification = ({
   // count once per new stats report, not on every render
   if (callStatsReport !== lastReport) {
     setLastReport(callStatsReport);
-    const frameRate = callStatsReport?.publisherStats.camera?.frameRate;
-    // with video filters, the stats describe the filtered track, and
-    // DegradedPerformanceNotification already covers filter-induced drops
-    const hasFilters = mediaStream !== rootMediaStream;
-    const isLow =
-      isEnabled &&
-      !hasFilters &&
-      frameRate != null &&
-      frameRate < LOW_FRAME_RATE_THRESHOLD;
+    const frameRate = callStatsReport?.publisherStats.cameraCapture?.frameRate;
+    const isLow = frameRate != null && frameRate < LOW_FRAME_RATE_THRESHOLD;
     setLowReports(isLow ? lowReports + 1 : 0);
     if (!isLow) setIsDismissed(false);
   }

@@ -275,31 +275,24 @@ export const CallStats = (props: CallStatsProps) => {
   );
 };
 
-const toFrameSize = (stats: AggregatedStatsReport) => {
-  const {
-    highestFrameWidth: w,
-    highestFrameHeight: h,
-    highestFramesPerSecond: fps,
-  } = stats;
-  let size = `-`;
-  if (w && h) {
-    size = `${w}x${h}`;
-    if (fps) {
-      size += `@${fps}fps.`;
-    }
-  }
-  return size;
+const formatFrameSize = (w?: number, h?: number, fps?: number) => {
+  if (!w || !h) return '-';
+  return fps == null ? `${w}x${h}` : `${w}x${h}@${Math.round(fps)}fps.`;
 };
 
+const toFrameSize = (stats: AggregatedStatsReport) =>
+  formatFrameSize(
+    stats.highestFrameWidth,
+    stats.highestFrameHeight,
+    stats.highestFramesPerSecond || undefined,
+  );
+
 /**
- * The resolution and frame rate the camera hands the browser, before encoding.
+ * The resolution and frame rate the camera captures, before any video filters.
+ * A camera that is on but frozen reports 0 fps, which is worth showing.
  */
-const toCameraFrameSize = (stats: AggregatedStatsReport) => {
-  const { frameWidth: w, frameHeight: h, frameRate: fps } = stats.camera ?? {};
-  if (!fps) return '-';
-  const rate = `${Math.round(fps)}fps.`;
-  return w && h ? `${w}x${h}@${rate}` : rate;
-};
+const toCameraFrameSize = ({ cameraCapture: c }: AggregatedStatsReport) =>
+  formatFrameSize(c?.frameWidth, c?.frameHeight, c?.frameRate);
 
 const formatCodec = (callStatsReport: CallStatsReport): string => {
   const { codecPerTrackType } = callStatsReport.publisherStats;
