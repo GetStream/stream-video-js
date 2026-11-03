@@ -99,7 +99,7 @@ const videoDeviceConstraints = {
 export const getAudioBrowserPermission = lazy(
   (tracer: Tracer | undefined) =>
     new BrowserPermission({
-      constraints: audioDeviceConstraints,
+      constraints: { audio: { echoCancellation: false } },
       queryName: 'microphone' as PermissionName,
       tracer,
     }),
@@ -274,6 +274,7 @@ export const getAudioStream = async (
       throwOnNotAllowed: true,
       forcePrompt: true,
       mediaDevices,
+      constraints,
     });
     return await getStream(constraints, tracer, mediaDevices);
   } catch (error) {

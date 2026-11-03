@@ -263,6 +263,7 @@ describe('devices', () => {
         forcePrompt: true,
         throwOnNotAllowed: true,
         mediaDevices: provider,
+        ...(kind === 'audio' && { constraints: getUserMedia.mock.calls[0][0] }),
       });
     },
   );

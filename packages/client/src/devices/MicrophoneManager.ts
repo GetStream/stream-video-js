@@ -1,4 +1,4 @@
-import { combineLatest, firstValueFrom, Observable } from 'rxjs';
+import { combineLatest, firstValueFrom, fromEvent, Observable } from 'rxjs';
 import type {
   INoiseCancellation,
   NoiseCancellationOverloadEvent,
@@ -16,6 +16,8 @@ import { AudioBitrateProfile, TrackType } from '../gen/video/sfu/models/models';
 import { createSoundDetector } from '../helpers/sound-detector';
 import { createNoAudioDetector } from '../helpers/no-audio-detector';
 import { isReactNative } from '../helpers/platforms';
+import { isIOS, isSafari } from '../helpers/browsers';
+import { isHeadsetLabel } from './headsetLabel';
 import { AudioSettingsResponse, OwnCapability } from '../gen/coordinator';
 import { type MicCaptureReportEvent } from '../coordinator/connection/types';
 import { CallingState } from '../store';
@@ -33,6 +35,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   private soundDetectorConcurrencyTag = Symbol('soundDetectorConcurrencyTag');
   private soundDetectorCleanup?: () => Promise<void>;
   private soundDetectorDeviceId?: string;
+  private soundDetectorTrack?: MediaStreamTrack;
   private noAudioDetectorCleanup?: () => Promise<void>;
   private noiseCancellation: INoiseCancellation | undefined;
   private noiseCancellationUnsubscribers: Array<() => void> = [];
@@ -140,6 +143,27 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       }),
     );
 
+    if (isSafari() && !isIOS()) {
+      this.subscriptions.push(
+        // every new capture, including device switches. The root stream is
+        // set after the (filtered) media stream, and it's the one adapted.
+        createSafeAsyncSubscription(
+          this.state.rootMediaStream$,
+          async (stream) => {
+            if (!stream) return;
+            await this.adaptEchoCancellationToOutput();
+          },
+        ),
+      );
+      // the default output, or its sample rate, can change mid-call
+      this.subscriptions.push(
+        createSafeAsyncSubscription(
+          fromEvent(navigator.mediaDevices, 'devicechange'),
+          () => this.adaptEchoCancellationToOutput(),
+        ),
+      );
+    }
+
     if (!isReactNative()) {
       const unsubscribe = createSafeAsyncSubscription(
         combineLatest([this.state.status$, this.state.mediaStream$]),
@@ -185,6 +209,72 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       this.subscriptions.push(unsubscribe);
     }
   }
+
+  /**
+   * Works around WebKit bug 329557 (fixed in 325576@main, remove once it has
+   * shipped): with echo cancellation on and an output that isn't running at
+   * 48 kHz, remote audio can silence all system audio on macOS.
+   *
+   * Bluetooth outputs only drop to a non-48 kHz rate once the mic is open, so
+   * this runs after the mic starts (and again on device changes). Echo
+   * cancellation is only ever turned off (never on, so an app's own choice is
+   * kept), when the output isn't at 48 kHz or the default output looks like a
+   * headset, which has no echo to cancel. So someone who moves from a headset
+   * to speakers mid-call stays without it. WebKit swaps the capture unit of a
+   * live track in place.
+   *
+   * The default output is the right one to check even when the app picks
+   * another speaker: WebKit's canceller always runs on the default output.
+   */
+  private adaptEchoCancellationToOutput = async () => {
+    if (!isSafari() || isIOS()) return;
+    try {
+      if (this.state.defaultConstraints?.echoCancellation !== false) {
+        const ctx = new AudioContext();
+        const { sampleRate } = ctx;
+        void ctx.close();
+
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const output = devices.find(
+          (d) => d.kind === 'audiooutput' && d.deviceId === 'default',
+        );
+        const isHeadset = isHeadsetLabel(output?.label);
+        const disable = sampleRate !== 48000 || isHeadset;
+        this.call.tracer.trace('mic.echoCancellationCheck', {
+          sampleRate,
+          label: output?.label,
+          isHeadset,
+          disable,
+        });
+        if (!disable) return;
+
+        this.setDefaultConstraints({
+          ...this.state.defaultConstraints,
+          echoCancellation: false,
+        });
+      }
+      const tracks = [
+        this.state.rootMediaStream?.getAudioTracks()[0],
+        this.soundDetectorTrack,
+      ].filter(
+        (t): t is MediaStreamTrack =>
+          t?.readyState === 'live' &&
+          t.getSettings().echoCancellation !== false,
+      );
+      for (const track of tracks) {
+        await track.applyConstraints({
+          ...track.getConstraints(),
+          echoCancellation: false,
+        });
+        this.call.tracer.trace(
+          'mic.echoCancellationApplied',
+          track.getSettings().echoCancellation,
+        );
+      }
+    } catch (err) {
+      this.logger.warn('Could not adapt echo cancellation', err);
+    }
+  };
 
   override enable(): Promise<void> {
     if (isReactNative() && !this.call.hasMediaEngine) {
@@ -381,7 +471,10 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   ): Promise<boolean> {
     if (isReactNative()) throw new Error('Not available in React Native');
 
-    const stream = await this.getStream({ deviceId: { exact: deviceId } });
+    const stream = await this.getStream({
+      ...this.state.defaultConstraints,
+      deviceId: { exact: deviceId },
+    });
     const { testDurationMs = 3000 } = options || {};
     const { promise, resolve } = promiseWithResolvers<boolean>();
     let finished = false;
@@ -602,16 +695,21 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
         };
       } else {
         // Use the handed-off mic track, or start a new stream that's not
-        // connected to publisher
+        // connected to publisher. On a muted join this is the first capture,
+        // so decide on echo cancellation before it (and recheck after it, as
+        // Bluetooth outputs change rate once the mic opens).
+        if (!track) await this.adaptEchoCancellationToOutput();
         const stream = track
           ? new MediaStream([track])
           : await this.getStream({
               ...this.state.defaultConstraints,
               deviceId: { exact: deviceId },
             });
+        this.soundDetectorTrack = track ?? stream.getAudioTracks()[0];
         this.soundDetectorCleanup = createSoundDetector(stream, (event) => {
           this.state.setSpeakingWhileMuted(event.isSoundDetected);
         });
+        if (!track) await this.adaptEchoCancellationToOutput();
       }
 
       this.soundDetectorDeviceId = deviceId;
@@ -628,6 +726,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     const soundDetectorCleanup = this.soundDetectorCleanup;
     this.soundDetectorCleanup = undefined;
     this.soundDetectorDeviceId = undefined;
+    this.soundDetectorTrack = undefined;
     this.state.setSpeakingWhileMuted(false);
     if (!soundDetectorCleanup) return;
 

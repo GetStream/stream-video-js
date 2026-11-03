@@ -14,7 +14,7 @@ const DeviceLevelIndicator = ({ deviceId }: { deviceId: string }) => {
 
     navigator.mediaDevices
       .getUserMedia({
-        audio: { deviceId: { exact: deviceId } },
+        audio: { deviceId: { exact: deviceId }, echoCancellation: false },
         video: false,
       })
       .then((mediaStream) => {
