@@ -292,10 +292,6 @@ export class Call {
   private reconnectBackoff = new WakeableDelay();
   /** When the page last became visible again */
   private lastPageResumeAt = 0;
-  /** Reconnect attempts made at the normal pace while the page is hidden */
-  private readonly hiddenReconnectAttemptsAtNormalPace = 3;
-  /** The wait between reconnect attempts after those, while hidden */
-  private readonly hiddenReconnectInterval = 30 * 1000;
   private reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
   private reconnectReason = '';
   private fastReconnectDeadlineSeconds: number = 0;
@@ -2185,7 +2181,6 @@ export class Call {
       }
 
       let attempt = 0;
-      let hiddenFailures = 0;
       do {
         const attemptStartedAt = Date.now();
         // A hidden page whose coordinator connection is down has most likely
@@ -2342,17 +2337,11 @@ export class Call {
 
           // exponential backoff with jitter, capped at 5 s. An attempt that
           // started before the page came back had no network: retry at once.
-          // While the network looks blocked, slow down after a few attempts;
-          // the page coming back or the coordinator reconnecting ends the wait.
-          hiddenFailures = isHiddenWithoutCoordinator(this.streamClient)
-            ? hiddenFailures + 1
-            : 0;
+          // The page coming back or the coordinator reconnecting ends the wait.
           const interval =
             attemptStartedAt < this.lastPageResumeAt
               ? 0
-              : hiddenFailures > this.hiddenReconnectAttemptsAtNormalPace
-                ? this.hiddenReconnectInterval
-                : retryInterval(attempt);
+              : retryInterval(attempt);
           await this.reconnectBackoff.sleep(interval);
           if (supersededByLeave()) return;
 

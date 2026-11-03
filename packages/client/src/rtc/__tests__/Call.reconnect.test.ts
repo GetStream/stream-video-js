@@ -124,7 +124,7 @@ describe('Call reconnect in a hidden tab', () => {
     expect(document.visibilityState).toBe('hidden');
   });
 
-  it('wakes a 30-second backoff when the coordinator recovers without showing the tab', async () => {
+  it('wakes a long backoff when the coordinator recovers without showing the tab', async () => {
     const ws = { isHealthy: false, isDisconnected: false };
     call['streamClient'].wsConnection = ws as never;
     let attempts = 0;
@@ -134,17 +134,18 @@ describe('Call reconnect in a hidden tab', () => {
         'reconnectRejoin',
       )
       .mockImplementation(async () => {
-        if (++attempts <= 4) throw new Error('Network unavailable');
+        if (++attempts <= 1) throw new Error('Network unavailable');
         call.state.setCallingState(CallingState.JOINED);
       });
+    vi.spyOn(connectionUtils, 'retryInterval').mockReturnValue(30 * 1000);
     const reconnect = call['reconnect'](
       WebsocketReconnectStrategy.REJOIN,
       'test',
     );
     await vi.advanceTimersByTimeAsync(300);
-    expect(rejoin).toHaveBeenCalledTimes(4);
+    expect(rejoin).toHaveBeenCalledTimes(1);
     await vi.advanceTimersByTimeAsync(1000);
-    expect(rejoin).toHaveBeenCalledTimes(4);
+    expect(rejoin).toHaveBeenCalledTimes(1);
     ws.isHealthy = true;
     call['streamClient'].dispatchEvent({
       type: 'connection.changed',
@@ -152,7 +153,7 @@ describe('Call reconnect in a hidden tab', () => {
     });
     await vi.advanceTimersByTimeAsync(0);
     await reconnect;
-    expect(rejoin).toHaveBeenCalledTimes(5);
+    expect(rejoin).toHaveBeenCalledTimes(2);
     expect(document.visibilityState).toBe('hidden');
   });
 });
