@@ -24,7 +24,12 @@ export const CallScreen = ({ onCallEnded }: Props) => {
           {String(participantCount)}
         </Text>
       </View>
-      <CallContent onHangupCallHandler={onCallEnded} />
+      <CallContent
+        // A failed leave keeps the call on screen, so the lifecycle test sees it.
+        onHangupCallHandler={(error) => {
+          if (!error) onCallEnded();
+        }}
+      />
     </View>
   );
 };

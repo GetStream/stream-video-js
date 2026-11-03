@@ -110,11 +110,19 @@ export class UserRobot extends Robot {
 
   waitForParticipantsOnCall(count = 1, timeout = seconds(100)): this {
     const user = 1;
-    return this.perform(() =>
-      waitForText(CallPage.participantsCountBadge, String(user + count), {
-        timeout,
-      }),
-    );
+    const expected = String(user + count);
+    return this.perform(async () => {
+      const actual = await waitForText(
+        CallPage.participantsCountBadge,
+        expected,
+        { timeout },
+      );
+      if (actual !== expected) {
+        throw new Error(
+          `Expected ${expected} people on the call, the badge shows "${actual}"`,
+        );
+      }
+    });
   }
 
   // The first join of a launch also builds the call's media engine, which takes a while on a

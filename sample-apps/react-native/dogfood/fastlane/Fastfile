@@ -399,11 +399,8 @@ lane :impact_analysis do
         'packages/react-native-sdk/',
         'packages/react-native-callingx/',
         'sample-apps/react-native/e2e-test-app/',
-        'sample-apps/react-native/dogfood/fastlane/',
         'package.json',
-        'yarn.lock',
-        '.github/workflows/react-native-e2e-test.yml',
-        '.github/actions/rn-e2e-'
+        'yarn.lock'
       ],
       checks: ['Test E2E Result']
     }

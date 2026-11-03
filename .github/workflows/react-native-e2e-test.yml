@@ -79,6 +79,7 @@ jobs:
         if: env.ALLURE_TOKEN != ''
         working-directory: sample-apps/react-native/dogfood
         run: bundle exec fastlane allure_launch
+        continue-on-error: true
         env:
           # Names the launch after the pull request and tags it with its labels.
           GITHUB_EVENT: ${{ toJson(github.event) }}

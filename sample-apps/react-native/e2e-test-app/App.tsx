@@ -73,7 +73,12 @@ export default function App() {
 
   const leaveCall = useCallback(async () => {
     if (call && call.state.callingState !== 'left') {
-      await call.leave().catch(() => {});
+      try {
+        await call.leave();
+      } catch (error) {
+        console.error('Failed to leave the call', error);
+        return;
+      }
     }
     setCall(undefined);
     setScreen('details');

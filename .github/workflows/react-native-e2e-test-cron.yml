@@ -51,6 +51,7 @@ jobs:
       - name: Launch Allure TestOps
         working-directory: sample-apps/react-native/dogfood
         run: bundle exec fastlane allure_launch cron:true
+        continue-on-error: true
 
       - name: Run e2e tests (Android emulator)
         uses: reactivecircus/android-emulator-runner@v2
