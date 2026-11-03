@@ -23,32 +23,53 @@ if ! enter_state "$STATE"; then
   exit 0
 fi
 
-PROC_BEFORE="$( [[ -n "$(app_pid)" ]] && echo running || echo dead )"
+PROC_BEFORE="$( [[ -n "$(app_pid)" ]] && echo running || echo dead ), $(screen_state), $(keyguard_state)"
 
 # A marker line instead of `logcat -c`, which some OEM builds refuse.
 dsh log -t FCM_MATRIX "START $CASE_ID"
 ring "$CALLEE"
-sleep "$RING_WAIT_SECONDS"
+
+# The call stops ringing (and its notification and CallService go away) when the caller hangs up,
+# so poll while it rings instead of checking once at the end. NOTIF is the most live
+# incoming-call notifications seen at once; FGS is whether CallService was ever running.
+# Live notifications only: "StatusBarNotification(" lines are the archive of past ones.
+NOTIF=0
+FGS=no
+POLL_END=$((SECONDS + RING_WAIT_SECONDS))
+while (( SECONDS < POLL_END )); do
+  seen="$(dsh dumpsys notification --noredact | grep "NotificationRecord(.*pkg=$PKG" \
+    | grep -c 'channel=stream_incoming_calls_channel' || true)"
+  (( seen > NOTIF )) && NOTIF="$seen"
+  [[ "$(dsh dumpsys activity services "$PKG")" == *CallService* ]] && FGS=yes
+  sleep 1
+done
 
 adbs logcat -d -v time </dev/null | tr -d '\r' \
   | awk -v id="START $CASE_ID" 'found { print } index($0, id) { found = 1 }' > "$LOG"
-NOTIFICATIONS="$(dsh dumpsys notification --noredact | grep "pkg=$PKG" || true)"
-SERVICES="$(dsh dumpsys activity services "$PKG" || true)"
 
 count() { grep -c -E "$1" "$LOG" || true; }
 
-RECEIVER_HITS="$(count 'StreamMessagingReceiver.*onReceive messageId')"
-SERVICE_HITS="$(count 'StreamMessagingService.*onMessageReceived')"
+# Other pushes land in a case too (e.g. call.missed for the previous case's call), so the
+# Receiver/Service columns count only this ring's push. The prototype's service line has no data,
+# so it is matched by the message ids the receiver saw for call.ring.
+RING_IDS="$(grep -E 'StreamMessagingReceiver.*onReceive messageId=.*type=call\.ring' "$LOG" \
+  | sed -E 's/.*messageId=([^ ]+).*/\1/' | sort -u || true)"
+RECEIVER_HITS="$(count 'StreamMessagingReceiver.*onReceive messageId=.*type=call\.ring')"
+SERVICE_HITS="$(grep -E 'StreamMessagingService.*onMessageReceived' "$LOG" \
+  | { if [[ -n "$RING_IDS" ]]; then grep -E "type=call\.ring|$(paste -sd'|' - <<<"$RING_IDS")"; else grep -E 'type=call\.ring'; fi; } \
+  | grep -c . || true)"
+OTHER_PUSHES="$(grep -E 'StreamMessagingReceiver.*onReceive messageId=|StreamMessagingService.*onMessageReceived data=' "$LOG" \
+  | grep -v 'type=call\.ring' | grep -o -E 'type=[a-z._]+' | sed 's/type=//' | sort | uniq -c \
+  | awk '{ printf "%s%s×%s", sep, $2, $1; sep = ", " }' || true)"
+OTHER_PUSHES="${OTHER_PUSHES:--}"
 RING_STARTS="$(count 'startIncomingCallFromPush: Starting incoming call from push')"
 BLOCKED="$(count 'startIncomingCallFromPush: Failed to start service|ForegroundServiceStartNotAllowed|startForegroundService\(\) not allowed|Not allowed to start service')"
 DEDUPED="$(count 'already handled, skipping')"
 NOT_SETUP="$(count 'setup\(\) was never called')"
 RNFB_HITS="$(count 'RNFirebaseMsgReceiver.*broadcast received')"
 GMS_CANCELLED="$(count "broadcast intent callback: result=CANCELLED.*$PKG")"
-NOTIF="$(grep -c -i 'category=call' <<<"$NOTIFICATIONS" || true)"
-FGS="$(grep -q 'CallService' <<<"$SERVICES" && echo yes || echo no)"
 
-ENTRY_LINE="$(grep -m1 -E 'StreamMessagingReceiver.*onReceive messageId|StreamMessagingService.*onMessageReceived' "$LOG" || true)"
+ENTRY_LINE="$(grep -m1 -E 'StreamMessagingReceiver.*onReceive messageId=.*type=call\.ring|StreamMessagingService.*onMessageReceived data=.*type=call\.ring' "$LOG" || true)"
 RING_LINE="$(grep -m1 'startIncomingCallFromPush: Starting incoming call from push' "$LOG" || true)"
 LATENCY="-"
 if [[ -n "$ENTRY_LINE" && -n "$RING_LINE" ]]; then
@@ -74,10 +95,10 @@ if [[ ! -f "$TABLE" ]]; then
   {
     echo "# FCM matrix: $BUILD"
     echo
-    echo "| Device | API | State | App before ring | Receiver | Service | Ring started | Blocked | Deduped | rn-firebase rcv | GMS cancelled | Call notification | CallService | Push→ring (ms) | Verdict | Log |"
-    echo "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"
+    echo "| Device | API | State | Before ring (process, screen, lock) | Receiver (ring) | Service (ring) | Other pushes | Ring started | Blocked | Deduped | rn-firebase rcv | GMS cancelled | Incoming-call notification (live) | CallService | Push→ring (ms) | Verdict | Log |"
+    echo "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"
   } > "$TABLE"
 fi
 [[ "$NOT_SETUP" != "0" ]] && VERDICT="$VERDICT · setPushConfig never ran"
-echo "| $DEVICE | $API | $STATE | $PROC_BEFORE | $RECEIVER_HITS | $SERVICE_HITS | $RING_STARTS | $BLOCKED | $DEDUPED | $RNFB_HITS | $GMS_CANCELLED | $NOTIF | $FGS | $LATENCY | $VERDICT | logs/$(basename "$LOG") |" >> "$TABLE"
+echo "| $DEVICE | $API | $STATE | $PROC_BEFORE | $RECEIVER_HITS | $SERVICE_HITS | $OTHER_PUSHES | $RING_STARTS | $BLOCKED | $DEDUPED | $RNFB_HITS | $GMS_CANCELLED | $NOTIF | $FGS | $LATENCY | $VERDICT | logs/$(basename "$LOG") |" >> "$TABLE"
 echo "   → $VERDICT"

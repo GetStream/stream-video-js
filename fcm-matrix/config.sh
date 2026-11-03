@@ -12,10 +12,15 @@ SETTLE_SECONDS="${SETTLE_SECONDS:-6}"
 RING_WAIT_SECONDS="${RING_WAIT_SECONDS:-15}"
 # Seconds to wait after a reboot so Google Play services reconnects to FCM.
 POST_BOOT_SECONDS="${POST_BOOT_SECONDS:-60}"
+# Seconds the "reboot" case waits for someone to unlock a phone with a PIN after it boots.
+UNLOCK_TIMEOUT_SECONDS="${UNLOCK_TIMEOUT_SECONDS:-600}"
 
 # PIN used for the "reboot_locked" (direct boot) case. Emulators only: the scripts never change
 # the lock screen of a real phone.
 EMULATOR_PIN="${EMULATOR_PIN:-1111}"
 
+# Seconds the "killed_locked" case leaves the phone locked with the screen off before ringing.
+LOCKED_REST_SECONDS="${LOCKED_REST_SECONDS:-10}"
+
 # Every state run-device.sh goes through when none are given.
-DEFAULT_STATES="foreground background swiped killed doze reboot reboot_locked force_stopped"
+DEFAULT_STATES="foreground background swiped killed killed_locked doze reboot reboot_locked force_stopped"
