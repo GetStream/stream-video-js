@@ -72,7 +72,6 @@ describe('MicrophoneManager React Native', () => {
 
     globalThis.streamRNVideoSDK = {
       callManager: {
-        setup: vi.fn(),
         start: vi.fn(),
         stop: vi.fn(),
         setMutedRecordingPrepared: setMutedRecordingPreparedMock,

@@ -144,7 +144,7 @@ class AudioDeviceManager(
         mAudioManager.registerAudioDeviceCallback(this, null)
     }
 
-    fun setup() {
+    private fun setup() {
         if (!telecomManagedMode) {
             if (callAudioRole == CallAudioRole.Communicator) {
                 mAudioManager.mode = AudioManager.MODE_IN_COMMUNICATION
