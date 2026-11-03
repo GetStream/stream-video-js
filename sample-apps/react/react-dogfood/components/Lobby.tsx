@@ -39,7 +39,7 @@ import {
 import { useLobbyE2EE } from '../context/LobbyE2EEContext';
 import { useSettings } from '../context/SettingsContext';
 import { isCallEncrypted } from '../lib/e2ee';
-import { getRandomName } from '../lib/names';
+import { getRandomName, toDisplayName } from '../lib/names';
 import { ToggleNoiseCancellationButton } from './ToggleNoiseCancellationButton';
 import { useAppI18n } from '../hooks/useAppI18n';
 
@@ -277,7 +277,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                 <button
                   className="rd__button rd__button--primary rd__button--large rd__lobby-join"
                   type="button"
-                  disabled={displayName.length === 0 || needsEncryptionKey}
+                  disabled={!toDisplayName(displayName) || needsEncryptionKey}
                   data-testid="join-call-button"
                   title={
                     needsEncryptionKey

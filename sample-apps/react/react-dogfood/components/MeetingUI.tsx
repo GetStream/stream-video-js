@@ -26,7 +26,7 @@ import { ActiveCall } from './ActiveCall';
 import { DefaultAppHeader } from './DefaultAppHeader';
 import { Feedback } from './Feedback/Feedback';
 import { Lobby, UserMode } from './Lobby';
-import { getRandomName, sanitizeUserId } from '../lib/names';
+import { getRandomName, sanitizeUserId, toDisplayName } from '../lib/names';
 import {
   publishRemoteFile,
   RemoteFilePublisher,
@@ -87,15 +87,16 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
           });
         if (call.state.callingState !== CallingState.JOINED) {
           if (typeof options.displayName === 'string') {
-            const name = options.displayName || getRandomName();
+            const typedName = toDisplayName(options.displayName);
+            const name = typedName ?? getRandomName();
             const id = chatClient?.user?.id ?? sanitizeUserId(name);
             const email = chatClient?.user?.email;
             await applyDisplayName(name);
             await chatClient
               ?.partialUpdateUser({ id, set: { name, email } })
               .catch((err) => console.error(`Failed to update user`, err));
-            if (options.displayName) {
-              await saveDisplayName(options.displayName).catch((err) =>
+            if (typedName) {
+              await saveDisplayName(typedName).catch((err) =>
                 console.error(`Failed to save the display name`, err),
               );
             }

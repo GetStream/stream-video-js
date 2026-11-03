@@ -2,7 +2,11 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import type { NextAuthOptions, Profile } from 'next-auth';
 import NextAuth from 'next-auth';
 import GoogleProvider, { GoogleProfile } from 'next-auth/providers/google';
-import { getRandomName, getUserIdFromEmail } from '../../../lib/names';
+import {
+  getRandomName,
+  getUserIdFromEmail,
+  toDisplayName,
+} from '../../../lib/names';
 import { userId } from '../../../lib/idGenerators';
 import { CredentialsConfig } from 'next-auth/providers/credentials';
 import { Provider } from 'next-auth/providers/index';
@@ -32,15 +36,6 @@ const StreamDemoAccountProvider: CredentialsConfig = {
  */
 const defaultGuestName = () =>
   environment === 'pronto-sales' ? undefined : getRandomName();
-
-/**
- * Trims a display name sent by the client and caps it at the lobby's input
- * length, or returns `undefined` when there is nothing to keep.
- */
-const toDisplayName = (value: unknown) => {
-  if (typeof value !== 'string') return undefined;
-  return value.trim().slice(0, 25).trim() || undefined;
-};
 
 const environment = (process.env.NEXT_PUBLIC_APP_ENVIRONMENT as string) || null;
 const isProntoEnvironment =
@@ -98,6 +93,8 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ token, session }) {
       if (session.user) {
+        // next-auth builds `session` from the token as it was before an update
+        if (token.name) session.user.name = token.name;
         session.user.stream = token.stream;
         session.user.streamUserId = token.stream
           ? getUserIdFromEmail(token.email!)
