@@ -1919,6 +1919,7 @@ export class Call {
         state: this.state,
         datacenter: sfuClient.edgeName,
         pollingIntervalInMs: this.statsReportingIntervalInMs,
+        cameraState: this.camera.state,
       });
     }
 

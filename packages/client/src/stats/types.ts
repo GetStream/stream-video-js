@@ -58,7 +58,20 @@ export type AggregatedStatsReport = {
   highestFrameWidth: number;
   highestFrameHeight: number;
   highestFramesPerSecond: number;
+  /**
+   * Stats about the video handed to the encoder, after any video filters.
+   */
   camera?: CameraStats;
+  /**
+   * Stats about what the camera captures, before any video filters. Without
+   * filters, they match `camera`. With filters applied, the frame rate is
+   * only available in Chromium. `undefined` while the camera is off.
+   *
+   * On React Native, video effects run inside the native capture pipeline,
+   * so with an effect applied, this matches `camera` and describes the
+   * processed frames.
+   */
+  cameraCapture?: CameraStats;
   codec: string;
   codecPerTrackType: Partial<Record<TrackType, string>>;
   timestamp: number;

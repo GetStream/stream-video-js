@@ -371,6 +371,7 @@
   "Try again": "Intentar de nuevo",
   "End Stream": "Finalizar stream",
   "Start Stream": "Iniciar stream",
+  "notification.lowCameraFrameRate.text": "Tu cámara envía muy pocos fotogramas, por lo que tu video puede verse entrecortado para los demás. Prueba con otra cámara, cierra otras aplicaciones que la usen o reinicia tu navegador.",
   "recordings.transcriptions.download.title": "Descargar la transcripción",
   "recordings.transcriptions.title": "Transcripciones",
   "settings.transcription.disabled.text": "La transcripción está desactivada para este tipo de llamada.",
