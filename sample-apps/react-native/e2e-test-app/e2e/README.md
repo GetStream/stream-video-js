@@ -78,8 +78,9 @@ protection: it passes when the e2e jobs pass or are skipped as not required.
 
 Both workflows report to Allure TestOps (project 168, `stream-video-react-native`). Each emulator job opens a launch
 (`fastlane allure_launch`, named after the PR; `cron:true` on the nightly), uploads `allure-results/`
-(`allure_upload`), and deletes the launch when cancelled (`allure_launch_removal`). PRs from forks and Dependabot get no
-`ALLURE_TOKEN`, so they run without Allure.
+(`allure_upload`), and deletes the launch when cancelled (`allure_launch_removal`). These lanes live in
+`sample-apps/react-native/dogfood/fastlane/Allurefile`, which the dogfood Fastfile imports, as on iOS. PRs from forks
+and Dependabot get no `ALLURE_TOKEN`, so they run without Allure.
 
 `react-native-e2e-test-cron.yml` runs everything on weeknights (01:00 UTC) and on demand, on Android API 36, 34, 31
 and 28. A failed scheduled run posts to Slack (`SLACK_WEBHOOK_NIGHTLY_CHECKS`).
@@ -87,8 +88,8 @@ Both workflows build through the same composite actions (`.github/actions/rn-e2e
 the nightly run fills the default branch's caches that PRs restore from.
 
 Allure results come from `jest-allure2-reporter` (`e2e/jest.config.js`). Every `step()` is an Allure step, and
-`allureId(N)` links a test to its case in project 168. Create the case first (TestOps UI or API): cases that an upload
-creates on its own are not durable.
+`allureId(N)` links a test to its case in project 168. Create the case first (`fastlane allure_testcase` with
+`ALLURE_TOKEN` set, the TestOps UI, or the API): cases that an upload creates on its own are not durable.
 
 The jobs run on `ubuntu-24.04` (stream-video-buddy's Playwright 1.52.0 can't install Chromium on 26.04) with KVM and an x86_64 emulator without a camera (`android.att.release`), and call
 `fastlane test_e2e device:att skip_build:true`, which on CI adds `--retries 2` and keeps failure logs and screenshots in
