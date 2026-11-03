@@ -109,10 +109,14 @@ private enum AudioDeviceId {
     /// `audioSessionQueue` and only then opens the gate (`.default`); WebRTC remembers the
     /// playout/recording requests made while gated and replays them when it opens, so the engine
     /// never starts against an inactive session and the JS publish order does not matter. The
-    /// willEnable hook only re-applies the configuration. `setEngineAvailability` is a blocking call
-    /// onto the WebRTC worker thread: only from `audioSessionQueue` or the `didCreateModule` hook,
-    /// never from the worker-thread hooks (same thread) nor inside `AudioSessionConfigLock.run`
-    /// (the hooks take that lock while the caller is blocked). `adm.reset()` re-arms `.default`.
+    /// willEnable hook only re-applies the configuration. The activation is held from `start()` to
+    /// `stop()` (repaired on interruption end and by the tracer): the engine can be fully disabled
+    /// and rebuilt mid-call (a REJOIN reconnect recreates the peer connections), so no engine hook
+    /// releases it, or the rebuilt engine starts against an inactive session.
+    /// `setEngineAvailability` is a blocking call onto the WebRTC worker thread: only from
+    /// `audioSessionQueue` or the `didCreateModule` hook, never from the worker-thread hooks (same
+    /// thread) nor inside `AudioSessionConfigLock.run` (the hooks take that lock while the caller
+    /// is blocked). `adm.reset()` re-arms `.default`.
     private var weActivatedSession = false
     /// Token of the process-wide ADM engine hooks; removed in `invalidate()`.
     private var engineHooksToken: NSObject?
@@ -137,9 +141,8 @@ private enum AudioDeviceId {
             willEnable: { [weak self] isPlayoutEnabled, isRecordingEnabled in
                 self?.handleEngineWillEnable(isPlayoutEnabled: isPlayoutEnabled, isRecordingEnabled: isRecordingEnabled) ?? 0
             },
-            didDisable: { [weak self] isPlayoutEnabled, isRecordingEnabled in
-                self?.handleEngineDidDisable(isPlayoutEnabled: isPlayoutEnabled, isRecordingEnabled: isRecordingEnabled)
-            },
+            // No didDisable hook: the activation is released by stop(), never by the engine.
+            didDisable: nil,
             didCreateModule: { [weak self] adm in
                 self?.handleModuleCreated(adm)
             }
@@ -412,14 +415,7 @@ private enum AudioDeviceId {
         }
     }
 
-    /// `AudioDeviceModule` didDisable hook (WebRTC worker thread). Flags are the state after
-    /// the disable: deactivate only on a full stop, never on a mic off → on toggle.
-    private func handleEngineDidDisable(isPlayoutEnabled: Bool, isRecordingEnabled: Bool) {
-        guard !isPlayoutEnabled && !isRecordingEnabled else { return }
-        deactivateSessionIfNeeded(source: "engineDidDisable")
-    }
-
-    /// Releases our session activation, if we hold one. Idempotent; never throws.
+    /// Releases our session activation, if we hold one (`stop()` only). Idempotent; never throws.
     /// Runs even when callingx owns the session: ownership can flip to callingx mid-call after
     /// we activated, and skipping would leak our activation. CallKit's own activation also
     /// counts in RTCAudioSession, so our `setActive(false)` only decrements the count and never
@@ -533,8 +529,7 @@ private enum AudioDeviceId {
             let adm = getAudioDeviceModule()
 
             // Gate first: a no-op for the (born gated) call ADM, else stops and releases a stray
-            // engine so it is rebuilt after activation. Before activation on purpose: its didDisable
-            // hook runs now, while we hold no activation it could release.
+            // engine so it is rebuilt after activation.
             if !owned {
                 _ = adm?.setEngineAvailability(.none)
             }
@@ -631,14 +626,13 @@ private enum AudioDeviceId {
                 return
             }
             // Outside AudioSessionConfigLock: ADM calls hop to the worker thread (hooks).
-            // reset() stops/releases the engine (didDisable → deactivate) and re-arms the
-            // engine availability to `.default` (a stale `.none` is never left behind). Known
-            // gap: on a factory shared with a callingx call that took ownership mid-call, this
-            // also re-opens callingx's gate.
+            // reset() stops/releases the engine and re-arms the engine availability to
+            // `.default` (a stale `.none` is never left behind). Known gap: on a factory shared
+            // with a callingx call that took ownership mid-call, this also re-opens callingx's gate.
             let adm = getAudioDeviceModule()
             adm?.reset()
             clearOutputRouting()
-            // Usually already done by the didDisable hook during reset(); covers a missing ADM.
+            // After the engine stopped: the only place our activation is released.
             deactivateSessionIfNeeded(source: "stop")
             // After reset(): later willEnable edges (lobby tracks) must not configure the session,
             // and the next call's ADM is born gated again (didCreateModule hook).
