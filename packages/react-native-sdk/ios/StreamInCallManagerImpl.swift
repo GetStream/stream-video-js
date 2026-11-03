@@ -80,6 +80,10 @@ private enum AudioDeviceId {
         /// Between `start()` and `stop()` (a live non-CallKit call). The willEnable hook is a
         /// no-op outside it (lobby tracks, stray default-factory ADMs).
         var isStarted = false
+        /// Set once `start()` or `reactivateAudioSession` activated the SDK-owned session (the
+        /// engine gate is open from then on); cleared in `stop()`. Read by the `didCreateModule`
+        /// hook, which must keep gating after a `start()` whose activation failed.
+        var isSessionActivated = false
     }
     private let configInputsLock = NSLock()
     private var configInputs = ConfigInputs()
@@ -99,6 +103,10 @@ private enum AudioDeviceId {
     private var isStarted: Bool {
         get { configInputsSnapshot().isStarted }
         set { updateConfigInputs { $0.isStarted = newValue } }
+    }
+    private var isSessionActivated: Bool {
+        get { configInputsSnapshot().isSessionActivated }
+        set { updateConfigInputs { $0.isSessionActivated = newValue } }
     }
 
     /// Whether we hold an `RTCAudioSession` activation (activations are counted). Only read/written
@@ -152,10 +160,12 @@ private enum AudioDeviceId {
     /// `didCreateModule` hook (WebRTCModule method queue, before `createCallFactory` resolves to JS,
     /// outside the registry lock): the call ADM is born gated so no enable edge (mic publish,
     /// lobby track re-enable) can start an engine before `start()` activated the session. Skipped
-    /// while callingx owns the session (its own hook gates its calls) and once started (a factory
-    /// is never created mid-call; `stop()` clears `isStarted` before the next join).
+    /// while callingx owns the session (its own hook gates its calls) and once our session is
+    /// active (a factory is never created mid-call; `stop()` clears the flag before the next
+    /// join). A started call whose activation failed keeps gating: `reactivateAudioSession`
+    /// opens the gate once the session is active.
     private func handleModuleCreated(_ adm: AudioDeviceModule) {
-        if Self.callingxOwnsSession() || isStarted {
+        if Self.callingxOwnsSession() || isSessionActivated {
             return
         }
         let result = adm.setEngineAvailability(.none)
@@ -459,6 +469,7 @@ private enum AudioDeviceId {
                 }
                 log("reactivateAudioSession: activated=\(activated) isActive=\(isActive)")
                 if isActive {
+                    isSessionActivated = true
                     openEngineGateIfOwned(source: "reactivateAudioSession")
                 }
                 if activated {
@@ -558,6 +569,7 @@ private enum AudioDeviceId {
                         return (rtcConfig, activated)
                     }
                     sessionActive = true
+                    isSessionActivated = true
                     log("start: configured category=\(rtcConfig.category) mode=\(rtcConfig.mode) options=\(rtcConfig.categoryOptions) activated=\(activated)")
                     sendAudioSessionDiagnostic("sessionActivated", extra: ["activated": activated])
                 } catch {
@@ -637,6 +649,7 @@ private enum AudioDeviceId {
             // After reset(): later willEnable edges (lobby tracks) must not configure the session,
             // and the next call's ADM is born gated again (didCreateModule hook).
             isStarted = false
+            isSessionActivated = false
             // Cancel any pending debounced stereo refresh
             stereoRefreshWorkItem?.cancel()
             stereoRefreshWorkItem = nil
