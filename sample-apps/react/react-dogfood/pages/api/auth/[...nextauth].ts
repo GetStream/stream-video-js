@@ -1,10 +1,6 @@
-import type {
-  GetServerSidePropsContext,
-  NextApiRequest,
-  NextApiResponse,
-} from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import type { NextAuthOptions, Profile } from 'next-auth';
-import NextAuth, { getServerSession } from 'next-auth';
+import NextAuth from 'next-auth';
 import GoogleProvider, { GoogleProfile } from 'next-auth/providers/google';
 import { getUserIdFromEmail } from '../../../lib/names';
 import { userId } from '../../../lib/idGenerators';
@@ -18,10 +14,25 @@ const StreamDemoAccountProvider: CredentialsConfig = {
   id: 'stream-demo-login',
   name: 'Stream Demo account',
   type: 'credentials',
-  credentials: {},
-  authorize: async () => {
-    return { id: userId(), stream: false };
+  credentials: {
+    name: { label: 'Name', type: 'text' },
   },
+  authorize: async (credentials) => {
+    return {
+      id: userId(),
+      name: toDisplayName(credentials?.name),
+      stream: false,
+    };
+  },
+};
+
+/**
+ * Trims a display name sent by the client and caps it at the lobby's input
+ * length, or returns `undefined` when there is nothing to keep.
+ */
+const toDisplayName = (value: unknown) => {
+  if (typeof value !== 'string') return undefined;
+  return value.trim().slice(0, 25).trim() || undefined;
 };
 
 const environment = (process.env.NEXT_PUBLIC_APP_ENVIRONMENT as string) || null;
@@ -29,18 +40,20 @@ const isProntoEnvironment =
   environment === 'pronto' || environment === 'pronto-sales';
 
 /**
- * Pronto (pronto and pronto-staging) is for Stream employees, so its production
- * deployments sign in with Google only. Previews and local dev keep the demo
- * account, as Google needs a pre-registered redirect URI.
+ * Pronto (pronto and pronto-staging) production deployments let people choose
+ * between Google and the demo account instead of signing in with the demo
+ * account automatically. Previews and local dev keep the automatic sign-in, as
+ * Google needs a pre-registered redirect URI.
  */
-export const isGoogleSignInRequired =
-  environment === 'pronto' && process.env.VERCEL_ENV === 'production';
+export const signsInAutomatically = !(
+  environment === 'pronto' && process.env.VERCEL_ENV === 'production'
+);
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    !isGoogleSignInRequired && StreamDemoAccountProvider,
+    StreamDemoAccountProvider,
     isProntoEnvironment &&
       GoogleProvider({
         clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -65,9 +78,14 @@ export const authOptions: NextAuthOptions = {
 
       return resolveRedirect(url, baseUrl);
     },
-    async jwt({ token, account, profile }) {
+    async jwt({ token, account, profile, trigger, session }) {
       if (account && profile) {
         token.stream = isVerifiedStreamEmployee(account.provider, profile);
+      }
+      // demo account users pick their name in the lobby, Google users keep theirs
+      if (trigger === 'update' && !token.stream) {
+        const name = toDisplayName(session?.name);
+        if (name) token.name = name;
       }
       return token;
     },
@@ -84,19 +102,6 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: `${basePath}/auth/signin`,
   },
-};
-
-/**
- * Like `getServerSession`, but treats demo account sessions as signed out where
- * Google sign-in is required, so sessions issued before that are not reused.
- */
-export const getValidServerSession = async (
-  req: GetServerSidePropsContext['req'],
-  res: GetServerSidePropsContext['res'],
-) => {
-  const session = await getServerSession(req, res, authOptions);
-  if (isGoogleSignInRequired && !session?.user?.stream) return null;
-  return session;
 };
 
 /**

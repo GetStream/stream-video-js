@@ -35,6 +35,7 @@ import {
 import { applyDisplayName } from '../helpers/client';
 import { applyQueryConfigParams } from '../lib/queryConfigParams';
 import { useAppI18n } from '../hooks/useAppI18n';
+import { useSavedDisplayName } from '../hooks/useSavedDisplayName';
 import { useSettings } from '../context/SettingsContext';
 import type { LooseTranslateFunction } from '@stream-io/video-react-sdk';
 
@@ -72,6 +73,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const e2ee = useLobbyE2EE();
   const [remoteFilePublisherAPI, setRemoteFilePublisherAPI] =
     useState<RemoteFilePublisher>();
+  const { saveDisplayName } = useSavedDisplayName();
 
   const onJoin = useCallback(
     async (options: { fastJoin?: boolean; displayName?: string } = {}) => {
@@ -92,6 +94,11 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
             await chatClient
               ?.partialUpdateUser({ id, set: { name, email } })
               .catch((err) => console.error(`Failed to update user`, err));
+            if (options.displayName) {
+              await saveDisplayName(options.displayName).catch((err) =>
+                console.error(`Failed to save the display name`, err),
+              );
+            }
           }
 
           if (videoFile) {
@@ -110,7 +117,15 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         setShow('error-join');
       }
     },
-    [call, router, chatClient, isRestricted, allowEncryption, e2ee],
+    [
+      call,
+      router,
+      chatClient,
+      isRestricted,
+      allowEncryption,
+      e2ee,
+      saveDisplayName,
+    ],
   );
 
   const onLeave = useCallback(

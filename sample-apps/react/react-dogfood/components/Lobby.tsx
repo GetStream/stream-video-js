@@ -30,7 +30,7 @@ import { LobbyEncryption } from './LobbyEncryption';
 
 import { useEdges } from '../hooks/useEdges';
 import { DefaultAppHeader } from './DefaultAppHeader';
-import { useLayoutSwitcher } from '../hooks';
+import { useLayoutSwitcher, useSavedDisplayName } from '../hooks';
 import {
   useIsDemoEnvironment,
   useIsProntoEnvironment,
@@ -78,15 +78,19 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   // An `auto-on` call requires E2EE of every participant, so the backend rejects
   // a non-e2ee join: gate the Join button until a key is provided.
   const needsEncryptionKey = isCallEncrypted(settings) && !e2ee?.encryptionKey;
+  const { savedDisplayName } = useSavedDisplayName();
   const [displayNameOverride, setDisplayNameOverride] = useState<string | null>(
-    isDemoEnvironment ? getRandomName() : null,
+    null,
+  );
+  const [randomName] = useState(() =>
+    isDemoEnvironment ? getRandomName() : '',
   );
   const router = useRouter();
   const displayName =
     displayNameOverride ??
-    currentUser?.name ??
+    savedDisplayName ??
     (router.query['user_id'] as string | undefined) ??
-    '';
+    randomName;
   const custom = useCallCustomData();
 
   const { t } = useAppI18n();
