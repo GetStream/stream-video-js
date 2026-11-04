@@ -60,7 +60,8 @@ const isMicPermissionGranted = async () => {
  * audio interruption. An unhealthy engine with an inactive audio session gets
  * one SDK re-activation (`reactivateAudioSession`); when iOS refuses it
  * (another app owns the audio) the tracer waits for the next interruption
- * end, session activation or app foreground, keeping its budget. Otherwise
+ * end, session activation or app foreground, keeping its budget; any other
+ * re-activation failure is re-checked within the episode budget. Otherwise
  * an unhealthy engine
  * is restarted with `AudioDeviceModule.recoverEngineIfNeeded`, at most
  * {@link MAX_EPISODE_ATTEMPTS} times per failure episode (re-checked
@@ -223,7 +224,18 @@ export const AudioSessionDiagnosticsTracer = () => {
             });
           }
           logger.debug(`recovery '${trigger}' postponed, ${reason}`);
-          interrupted = true;
+          if (reason === 'sessionRefused') {
+            interrupted = true;
+            return;
+          }
+          // bounded re-check (no rejoin against an inactive session); later
+          // triggers (mic enabled, app active) keep checking
+          episodeAttempts += 1;
+          if (episodeAttempts < MAX_EPISODE_ATTEMPTS) {
+            scheduleCheck('recheck', ATTEMPT_INTERVAL_MS);
+          } else {
+            episodeAttempts = 0;
+          }
           return;
         }
       }

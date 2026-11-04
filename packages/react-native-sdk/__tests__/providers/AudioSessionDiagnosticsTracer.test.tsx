@@ -1099,7 +1099,7 @@ describe('AudioSessionDiagnosticsTracer', () => {
     ]);
   });
 
-  it('waits when the session stays inactive after the re-activation', async () => {
+  it('re-checks a failed re-activation 3 s apart, at most 3 times per episode', async () => {
     const call = await renderJoined();
     adm.getEngineState.mockResolvedValue({
       ...deadEngine,
@@ -1109,7 +1109,7 @@ describe('AudioSessionDiagnosticsTracer', () => {
 
     appStateListener('active');
     await advance(1000);
-    expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(1);
     expect(recoveryTraces(call)).toEqual([
       {
         trigger: 'appActive',
@@ -1122,6 +1122,35 @@ describe('AudioSessionDiagnosticsTracer', () => {
       'failed to re-activate the audio session',
       expect.anything(),
     );
+    await advance(2999);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(1);
+    await advance(1);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(2);
+    await advance(3000);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(3);
+
+    // episode over: no self-loop, no engine recovery or rejoin meanwhile
+    await advance(30000);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(3);
+    expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+    expect(call.rejoinForAudioEngineRecovery).not.toHaveBeenCalled();
+
+    // not interrupted: the mic enable starts a new episode
+    iosCallManager.reactivateAudioSession.mockRejectedValue(new Error('x'));
+    act(() => {
+      call.status$.next('disabled');
+    });
+    act(() => {
+      call.status$.next('enabled');
+    });
+    await advance(3000);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(4);
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      'failed to re-activate the audio session',
+      expect.anything(),
+    );
+    await advance(3000);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(5);
   });
 
   it('traces audio engine errors and unsubscribes on unmount', () => {
