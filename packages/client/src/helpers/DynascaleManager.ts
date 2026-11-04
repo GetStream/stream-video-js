@@ -21,9 +21,12 @@ import {
   type MediaPlaybackWatchdogOptions,
 } from './MediaPlaybackWatchdog';
 import { SilentAudioPlayer } from './SilentAudioPlayer';
-import { sharedAudioContext } from './SharedAudioContext';
+import {
+  type AudioContextLease,
+  sharedAudioContext,
+} from './SharedAudioContext';
 import type { TrackSubscriptionManager } from './TrackSubscriptionManager';
-import { isFirefox, isIOS, isSafari } from './browsers';
+import { isFirefox, isIOS, isSafari, isWebKit } from './browsers';
 import { hasScreenShare, hasVideo } from './participantUtils';
 import { CallState } from '../store';
 import { SpeakerManager } from '../devices';
@@ -42,8 +45,8 @@ export class DynascaleManager {
   private callState: CallState;
   private speaker: SpeakerManager;
   private readonly tracer: Tracer;
-  private useWebAudio = false;
-  private audioContext: AudioContext | undefined;
+  private useWebAudio = isWebKit();
+  private audioContextLease: AudioContextLease | undefined;
   private playbackWatchdogs = new Set<MediaPlaybackWatchdog>();
   private silentAudioPlayer: SilentAudioPlayer;
   private restartOnRearm = false;
@@ -76,16 +79,12 @@ export class DynascaleManager {
   }
 
   /**
-   * Closes the audio context if it was created.
+   * Releases the shared audio context used for Web Audio playback.
    */
   dispose = async () => {
     this.releaseAudioPlaybackUnlock();
-    const context = this.audioContext;
-    if (context && context.state !== 'closed') {
-      document.removeEventListener('click', this.resumeAudioContext);
-      await context.close();
-      this.audioContext = undefined;
-    }
+    this.audioContextLease?.release();
+    this.audioContextLease = undefined;
   };
 
   /**
@@ -97,6 +96,7 @@ export class DynascaleManager {
    */
   keepAudioPlaybackUnlocked = () => {
     this.stopTracingAudioContext ??= sharedAudioContext.addTracer(this.tracer);
+    this.getOrCreateAudioContext();
     this.silentAudioPlayer.play();
     if (isIOS()) {
       this.stopWatchingAudioInterruptions ??=
@@ -458,7 +458,6 @@ export class DynascaleManager {
             gainNode ??= audioContext.createGain();
             gainNode.gain.value = p.audioVolume ?? this.speaker.state.volume;
             sourceNode.connect(gainNode).connect(audioContext.destination);
-            this.resumeAudioContext();
           } else {
             // we will play audio directly through the audio element in other browsers
             audioElement.muted = false;
@@ -512,7 +511,7 @@ export class DynascaleManager {
       )
       .subscribe(() => {
         if (sourceChangeTimer || !audioElement.srcObject) return;
-        if (sourceNode) return this.resumeAudioContext();
+        if (sourceNode) return;
         if (audioElement.paused) playAudioElement();
       });
 
@@ -702,44 +701,25 @@ export class DynascaleManager {
     this.silentAudioPlayer.release();
   };
 
+  /**
+   * Web Audio playback runs on the page-wide shared context. It resumes a
+   * suspended context (a device change, a context created outside a
+   * gesture) on its own or on the next user gesture, reports interruptions,
+   * and restarts a context whose clock froze.
+   */
   private getOrCreateAudioContext = (): AudioContext | undefined => {
     if (!this.useWebAudio) return;
-    if (this.audioContext) return this.audioContext;
-    const context = new AudioContext();
-    this.tracer.trace('audioContext.create', context.state);
-    if (context.state === 'suspended') {
-      document.addEventListener('click', this.resumeAudioContext);
-    }
-    context.addEventListener('statechange', () => {
-      this.tracer.trace('audioContext.state', context.state);
-      if (context.state === 'interrupted') {
-        this.resumeAudioContext();
-      }
-    });
+    if (this.audioContextLease) return this.audioContextLease.context;
+    this.audioContextLease = sharedAudioContext.acquire();
+    const context = this.audioContextLease?.context;
+    if (!context) return;
+    this.tracer.trace('audioContext.acquire', context.state);
 
     const audioSession = navigator.audioSession;
     if (audioSession) {
       // https://github.com/w3c/audio-session/blob/main/explainer.md
       audioSession.type = 'play-and-record';
     }
-    return (this.audioContext = context);
-  };
-
-  private resumeAudioContext = () => {
-    if (!this.audioContext) return;
-    const { state } = this.audioContext;
-    if (state === 'suspended' || state === 'interrupted') {
-      const tag = 'audioContext.resume';
-      this.audioContext.resume().then(
-        () => {
-          this.tracer.trace(tag, this.audioContext?.state);
-          document.removeEventListener('click', this.resumeAudioContext);
-        },
-        (err) => {
-          this.tracer.trace(`${tag}Error`, this.audioContext?.state);
-          this.logger.warn(`Can't resume audio context`, err);
-        },
-      );
-    }
+    return context;
   };
 }
