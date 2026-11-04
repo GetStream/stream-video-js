@@ -1,4 +1,4 @@
-import { Image, ImageStyle, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import React from 'react';
 import { getInitialsOfName } from '../../utils';
 import { ComponentTestIds, ImageTestIds } from '../../constants/TestIds';
@@ -87,10 +87,7 @@ export const Avatar = ({ user, size = '2xl', style }: AvatarProps) => {
           source={{
             uri: imageUrl,
           }}
-          style={[
-            avatar.container.base as ImageStyle,
-            avatar.container[size] as ImageStyle,
-          ]}
+          style={styles.image}
         />
       ) : (
         <Text
