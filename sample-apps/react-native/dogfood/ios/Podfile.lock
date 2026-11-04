@@ -2549,7 +2549,7 @@ PODS:
     - ReactNativeDependencies
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (145.4.1):
+  - stream-react-native-webrtc (145.4.2):
     - React-Core
     - StreamWebRTC (= 145.25.0)
   - stream-video-react-native (2.0.0-beta.4):
@@ -3103,7 +3103,7 @@ SPEC CHECKSUMS:
   stream-chat-react-native: 0e7af51c6d14dc8a88d4cb28857b53ab62d0a092
   stream-io-noise-cancellation-react-native: 74c55bb936edc77c2a31d0e7d0e65e58a63e5d5b
   stream-io-video-filters-react-native: 7cb63ca2ab10968ee43e94a86a3820773b9872ba
-  stream-react-native-webrtc: 163dc1c1022694cbc300f0d865f27c47f5309604
+  stream-react-native-webrtc: 45f40f698c37e0893f5f49133add86e1c873176a
   stream-video-react-native: b3ba96e83ac93c157ab341dde75248a6499150cd
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
   StreamWebRTC: c2bdd74ca48acfaad85403371001d0d6f905aad2
