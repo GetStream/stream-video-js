@@ -75,7 +75,9 @@ export type IOSAudioSessionState = {
  */
 export type IOSAudioSessionDiagnosticEvent = Partial<IOSAudioSessionState> & {
   event:
-    | 'setupError'
+    | 'sessionActivated'
+    | 'startError'
+    | 'startNoAudioDeviceModule'
     | 'engineEnableApplied'
     | 'engineEnableError'
     | 'startPlayoutError'

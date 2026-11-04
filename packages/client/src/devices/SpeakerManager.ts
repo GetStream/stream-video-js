@@ -7,10 +7,7 @@ import {
   getAudioBrowserPermission,
   getAudioOutputDevices,
 } from './devices';
-import {
-  AudioSettingsRequestDefaultDeviceEnum,
-  CallSettingsResponse,
-} from '../gen/coordinator';
+import { AudioSettingsRequest, CallSettingsResponse } from '../gen/coordinator';
 import {
   createSyntheticDevice,
   defaultDeviceId,
@@ -21,12 +18,32 @@ import {
 } from './devicePersistence';
 import { createSubscription, getCurrentValue } from '../store/rxUtils';
 
+/**
+ * The default audio output for a React Native call, derived from the call
+ * settings with this priority:
+ * 1. If the camera is on by default, the speaker is used
+ * 2. If the speaker is on by default, the speaker is used
+ * 3. If the default audio device is the speaker, the speaker is used
+ * Otherwise the earpiece. Without settings, the speaker (the native default).
+ *
+ * @internal
+ */
+export const getRNDefaultAudioDevice = (
+  settings: CallSettingsResponse | undefined,
+): AudioSettingsRequest['default_device'] => {
+  if (!settings) return 'speaker';
+  const speakerOnWithSettingsPriority =
+    settings.video.camera_default_on ||
+    settings.audio.speaker_default_on ||
+    settings.audio.default_device === 'speaker';
+  return speakerOnWithSettingsPriority ? 'speaker' : 'earpiece';
+};
+
 export class SpeakerManager {
   readonly state: SpeakerState;
   private subscriptions: (() => void)[] = [];
   private areSubscriptionsSetUp = false;
   private readonly call: Call;
-  private defaultDevice?: AudioSettingsRequestDefaultDeviceEnum;
   private readonly devicePersistence: Required<DevicePersistenceOptions>;
 
   constructor(
@@ -39,11 +56,13 @@ export class SpeakerManager {
     this.setup();
   }
 
-  async apply(settings: CallSettingsResponse): Promise<void> {
-    if (isReactNative()) {
-      this.applyRN(settings);
-      return;
-    }
+  /**
+   * Restores the persisted output device (web). React Native has no output
+   * selection here: the call-settings default goes to the native call manager
+   * at join (`getRNDefaultAudioDevice`).
+   */
+  async apply(): Promise<void> {
+    if (isReactNative()) return;
     await this.applyWeb();
   }
 
@@ -80,40 +99,6 @@ export class SpeakerManager {
         : undefined);
     if (device && this.state.selectedDevice !== device.deviceId) {
       this.select(device.deviceId);
-    }
-  }
-
-  private applyRN(settings: CallSettingsResponse) {
-    /// Determines if the speaker should be enabled based on a priority hierarchy of
-    /// settings.
-    ///
-    /// The priority order is as follows:
-    /// 1. If video camera is set to be on by default, speaker is enabled
-    /// 2. If audio speaker is set to be on by default, speaker is enabled
-    /// 3. If the default audio device is set to speaker, speaker is enabled
-    ///
-    /// This ensures that the speaker state aligns with the most important user
-    /// preference or system requirement.
-    const speakerOnWithSettingsPriority =
-      settings.video.camera_default_on ||
-      settings.audio.speaker_default_on ||
-      settings.audio.default_device ===
-        AudioSettingsRequestDefaultDeviceEnum.SPEAKER;
-
-    const defaultDevice = speakerOnWithSettingsPriority
-      ? AudioSettingsRequestDefaultDeviceEnum.SPEAKER
-      : AudioSettingsRequestDefaultDeviceEnum.EARPIECE;
-
-    if (this.defaultDevice !== defaultDevice) {
-      this.call.logger.debug('SpeakerManager: setting default device', {
-        defaultDevice,
-      });
-      this.defaultDevice = defaultDevice;
-      globalThis.streamRNVideoSDK?.callManager.setup({
-        defaultDevice,
-        isRingingTypeCall: this.call.ringing,
-        cid: this.call.cid,
-      });
     }
   }
 
@@ -190,7 +175,6 @@ export class SpeakerManager {
     this.subscriptions.forEach((unsubscribe) => unsubscribe());
     this.subscriptions = [];
     this.areSubscriptionsSetUp = false;
-    this.defaultDevice = undefined;
   };
 
   /**

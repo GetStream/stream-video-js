@@ -13,15 +13,9 @@ RCT_EXTERN_METHOD(setMuteMode:(NSInteger)mode)
 
 RCT_EXTERN_METHOD(setRecordingAlwaysPreparedMode:(BOOL)enabled)
 
-RCT_EXTERN_METHOD(setup)
-
 RCT_EXTERN_METHOD(start)
 
 RCT_EXTERN_METHOD(stop)
-
-RCT_EXTERN_METHOD(waitForAudioSessionActive:(double)timeoutMs
-                  resolve:(RCTPromiseResolveBlock)resolve
-                  reject:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(reactivateAudioSession:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)

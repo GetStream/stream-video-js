@@ -4,7 +4,7 @@ import type {
   VideoDimension,
 } from './gen/video/sfu/models/models';
 import type {
-  AudioSettingsRequestDefaultDeviceEnum,
+  AudioSettingsRequest,
   CallRecordingStartedEventRecordingTypeEnum,
   JoinCallRequest,
   MemberResponse,
@@ -424,28 +424,15 @@ type StreamRNVideoSDKCallManagerRingingParams = {
   isRingingTypeCall: boolean;
 };
 
-type StreamRNVideoSDKCallManagerSetupParams =
-  StreamRNVideoSDKCallManagerRingingParams & {
-    cid: string;
-    defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
-  };
-
 type StreamRNVideoSDKCallManagerStartParams =
   StreamRNVideoSDKCallManagerRingingParams & {
     cid: string;
+    /**
+     * The default audio output derived from the call settings
+     * (`getRNDefaultAudioDevice`); the stored call manager config may override it.
+     */
+    defaultDevice: AudioSettingsRequest['default_device'];
   };
-
-/**
- * Result of the React Native SDK's iOS audio session prepare step.
- *
- * @internal
- */
-export type StreamRNVideoSDKAudioSessionPrepareResult = {
-  /** Whether the audio session reported active before the timeout. */
-  active: boolean;
-  /** How long the wait took. */
-  waitedMs: number;
-};
 
 type StreamRNVideoSDKCallManagerStopParams =
   StreamRNVideoSDKCallManagerRingingParams & {
@@ -523,32 +510,15 @@ export type StreamRNVideoSDKGlobals = {
   ringingCallLifecycle: StreamRNVideoSDKRingingCallLifecycle;
   callManager: {
     /**
-     * Sets up the in call manager.
-     */
-    setup({
-      defaultDevice,
-      isRingingTypeCall,
-      cid,
-    }: StreamRNVideoSDKCallManagerSetupParams): void;
-
-    /**
-     * Starts the in call manager.
+     * Starts the in call manager (fire-and-forget), once per join before the
+     * first publish. On iOS the native side gates the audio engine until the
+     * audio session is active, so the publish order does not matter.
      */
     start({
       isRingingTypeCall,
       cid,
+      defaultDevice,
     }: StreamRNVideoSDKCallManagerStartParams): void;
-
-    /**
-     * iOS-only (non-callingx). Starts the in call manager synchronously and
-     * returns a promise of the bounded wait for the audio session to become
-     * active, so the session is configured before the microphone is published.
-     * Returns `undefined` synchronously (and starts nothing) when it does not
-     * apply (non-iOS, or callingx owns the session).
-     */
-    prepareAudioSessionForPublish?(
-      params: StreamRNVideoSDKCallManagerStartParams,
-    ): Promise<StreamRNVideoSDKAudioSessionPrepareResult> | undefined;
 
     /**
      * Stops the in call manager.
