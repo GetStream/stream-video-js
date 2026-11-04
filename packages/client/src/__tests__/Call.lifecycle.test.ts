@@ -24,6 +24,7 @@ import type { DispatchableMessage } from '../rtc/Dispatcher';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { CallingState, ClientState } from '../store';
 import { promiseWithResolvers } from '../helpers/promise';
+import { withoutConcurrency } from '../helpers/concurrency';
 import type { StreamResponse } from '../coordinator/connection/api-client';
 
 // A controlled stand-in for the retry backoff. Unless a test installs a hook,
@@ -544,6 +545,72 @@ describe('Call lifecycle wiring', () => {
     },
   );
 
+  describe('rejoinForAudioEngineRecovery()', () => {
+    const spyReconnect = () =>
+      vi
+        .spyOn(call as unknown as { reconnect: Call['leave'] }, 'reconnect')
+        .mockResolvedValue(undefined);
+
+    it('rejoins with the audio engine reason when JOINED', () => {
+      call.state.setCallingState(CallingState.JOINED);
+      const reconnect = spyReconnect();
+
+      expect(call.rejoinForAudioEngineRecovery()).toBe(true);
+      expect(reconnect).toHaveBeenCalledExactlyOnceWith(
+        WebsocketReconnectStrategy.REJOIN,
+        'audio_engine_dead',
+      );
+    });
+
+    it.each(['short', 'long'] as const)(
+      'skips the rejoin without leaving when the %s window limiter is full',
+      (window) => {
+        call.state.setCallingState(CallingState.JOINED);
+        const limiter =
+          window === 'short'
+            ? call['rejoinRateLimiter']
+            : call['rejoinLongWindowRateLimiter']!;
+        while (limiter.tryRegister()) {
+          // fill the window
+        }
+        const reconnect = spyReconnect();
+        const leave = vi.spyOn(call, 'leave');
+
+        expect(call.rejoinForAudioEngineRecovery()).toBe(false);
+        expect(reconnect).not.toHaveBeenCalled();
+        expect(leave).not.toHaveBeenCalled();
+        expect(call.state.callingState).toBe(CallingState.JOINED);
+      },
+    );
+
+    it('skips the rejoin while a reconnect is pending', async () => {
+      call.state.setCallingState(CallingState.JOINED);
+      const pending = promiseWithResolvers<void>();
+      const running = withoutConcurrency(
+        call['reconnectConcurrencyTag'],
+        () => pending.promise,
+      );
+      const reconnect = spyReconnect();
+
+      expect(call.rejoinForAudioEngineRecovery()).toBe(false);
+      expect(reconnect).not.toHaveBeenCalled();
+      pending.resolve();
+      await running;
+    });
+
+    it.each([
+      CallingState.JOINING,
+      CallingState.RECONNECTING,
+      CallingState.LEFT,
+    ])('skips the rejoin when the call is %s', (state) => {
+      call.state.setCallingState(state);
+      const reconnect = spyReconnect();
+
+      expect(call.rejoinForAudioEngineRecovery()).toBe(false);
+      expect(reconnect).not.toHaveBeenCalled();
+    });
+  });
+
   it.each([false, true])(
     'get() respects leave during fetch: %s',
     async (leaveDuringFetch) => {
@@ -682,6 +749,161 @@ describe('Call lifecycle wiring', () => {
     expect(newSubscriber.dispose).not.toHaveBeenCalled();
     expect(call['subscriber']).toBe(newSubscriber);
     await call.leave();
+  });
+
+  it.each(['resolves', 'missing', 'undefined', 'throws', 'rejects'] as const)(
+    'call.join() prepares the audio session before the first publish: %s',
+    async (mode) => {
+      vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+      call['credentials'] = fromPartial({ ice_servers: [] });
+      call['lastStatsOptions'] = fromPartial({ reporting_interval_ms: 0 });
+      call['sfuClient'] = fromPartial({
+        isHealthy: true,
+        sessionId: 'test-session',
+        leaveAndClose: vi.fn().mockResolvedValue(undefined),
+      });
+      call.state['settingsSubject'].next(
+        fromPartial({ audio: {}, screensharing: {}, video: {} }),
+      );
+      vi.spyOn(rtc, 'Subscriber').mockImplementation(function () {
+        return fromPartial<rtc.Subscriber>(makePeer());
+      });
+      vi.spyOn(rtc, 'Publisher').mockImplementation(function () {
+        return fromPartial<rtc.Publisher>(makePeer());
+      });
+      const order: string[] = [];
+      const pending = promiseWithResolvers<void>();
+      const prepare = vi.fn(() => {
+        order.push('prepare');
+        if (mode === 'undefined') return undefined;
+        if (mode === 'throws') throw new Error('sync failure');
+        return pending.promise.then(() => {
+          if (mode === 'rejects') throw new Error('native failure');
+          return { active: true, waitedMs: 5 };
+        });
+      });
+      const start = vi.fn(() => order.push('start'));
+      const stop = vi.fn();
+      (globalThis as Record<string, any>).streamRNVideoSDK = {
+        callManager: {
+          start,
+          stop,
+          ...(mode === 'missing'
+            ? {}
+            : { prepareAudioSessionForPublish: prepare }),
+        },
+      };
+      const speaker = vi.spyOn(call.speaker, 'apply').mockImplementation(() => {
+        order.push('speaker');
+        return Promise.resolve();
+      });
+      const configure = vi
+        .spyOn(internalCall, 'applyDeviceConfig')
+        .mockImplementation(async () => {
+          order.push('publish');
+        });
+      const trace = vi.spyOn(call.tracer, 'trace');
+      const warn = vi.spyOn(call.logger, 'warn');
+
+      const joinTask = call.join();
+      if (mode === 'resolves' || mode === 'rejects') {
+        await vi.waitFor(() => expect(prepare).toHaveBeenCalledOnce());
+        expect(prepare).toHaveBeenCalledWith({
+          isRingingTypeCall: false,
+          cid: call.cid,
+        });
+        // the publish waits for the session to be prepared
+        expect(speaker).toHaveBeenCalledOnce();
+        expect(configure).not.toHaveBeenCalled();
+        pending.resolve();
+      }
+      await joinTask;
+
+      const prepared = mode === 'resolves' || mode === 'rejects';
+      // the default device is set before the session is prepared;
+      // prepare already started the call manager; otherwise join starts it
+      expect(order).toEqual(
+        prepared
+          ? ['speaker', 'prepare', 'publish']
+          : mode === 'missing'
+            ? ['speaker', 'publish', 'start']
+            : ['speaker', 'prepare', 'publish', 'start'],
+      );
+      expect(configure).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ publish: true, skipSpeakerApply: true }),
+      );
+      expect(call.state.callingState).toBe(CallingState.JOINED);
+      const prepareTraces = trace.mock.calls.filter(
+        ([tag]) => tag === 'ios.audioSession.prepare',
+      );
+      expect(prepareTraces).toEqual(
+        mode === 'resolves'
+          ? [['ios.audioSession.prepare', { active: true, waitedMs: 5 }]]
+          : [],
+      );
+      const failed = mode === 'throws' || mode === 'rejects';
+      expect(warn).toHaveBeenCalledTimes(failed ? 1 : 0);
+      if (failed) {
+        expect(warn).toHaveBeenCalledWith(
+          'Failed to prepare the audio session',
+          expect.any(Error),
+        );
+      }
+      await call.leave();
+      expect(stop).toHaveBeenCalledOnce();
+      expect(stop).toHaveBeenCalledWith(
+        expect.objectContaining({ shouldStopCallManager: true }),
+      );
+    },
+  );
+
+  it('call.join() leaves the stop to leave() when it lands during the prepare wait', async () => {
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    call['credentials'] = fromPartial({ ice_servers: [] });
+    call['lastStatsOptions'] = fromPartial({ reporting_interval_ms: 0 });
+    call['sfuClient'] = fromPartial({
+      isHealthy: true,
+      sessionId: 'test-session',
+      leaveAndClose: vi.fn().mockResolvedValue(undefined),
+    });
+    call.state['settingsSubject'].next(
+      fromPartial({ audio: {}, screensharing: {}, video: {} }),
+    );
+    vi.spyOn(rtc, 'Subscriber').mockImplementation(function () {
+      return fromPartial<rtc.Subscriber>(makePeer());
+    });
+    vi.spyOn(rtc, 'Publisher').mockImplementation(function () {
+      return fromPartial<rtc.Publisher>(makePeer());
+    });
+    const pending = promiseWithResolvers<void>();
+    const prepare = vi.fn(() =>
+      pending.promise.then(() => ({ active: true, waitedMs: 5 })),
+    );
+    const start = vi.fn();
+    const stop = vi.fn();
+    (globalThis as Record<string, any>).streamRNVideoSDK = {
+      callManager: { start, stop, prepareAudioSessionForPublish: prepare },
+    };
+    const configure = vi
+      .spyOn(internalCall, 'applyDeviceConfig')
+      .mockResolvedValue(undefined);
+
+    const joinTask = call.join();
+    await vi.waitFor(() => expect(prepare).toHaveBeenCalledOnce());
+    await call.leave();
+    expect(stop).toHaveBeenCalledOnce();
+    expect(stop).toHaveBeenCalledWith(
+      expect.objectContaining({ shouldStopCallManager: true }),
+    );
+    pending.resolve();
+    await joinTask;
+
+    // the join continuation must not stop again (it could hit a newer call)
+    expect(stop).toHaveBeenCalledOnce();
+    expect(configure).not.toHaveBeenCalled();
+    expect(start).not.toHaveBeenCalled();
+    expect(call.state.callingState).toBe(CallingState.LEFT);
   });
 
   it('ignores old subscriber tracks while flushing stats during replacement', async () => {

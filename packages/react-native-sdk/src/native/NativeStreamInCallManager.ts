@@ -27,6 +27,19 @@ export interface Spec extends TurboModule {
   start(): void;
   stop(): void;
 
+  /**
+   * iOS only. Resolves whether the shared audio session is active, polling
+   * until `timeoutMs` after the pending `start()` work. Resolves `true` on Android.
+   */
+  waitForAudioSessionActive(timeoutMs: number): Promise<boolean>;
+
+  /**
+   * iOS only. Re-activates the SDK-owned audio session when iOS cleared it
+   * (interruption). Resolves whether the session is active afterwards, rejects
+   * with the AVAudioSession error code (e.g. `'561017449'` while another app
+   * owns the audio). Resolves `false` on Android.
+   */
+  reactivateAudioSession(): Promise<boolean>;
   /** iOS only. */
   showAudioRoutePicker(): void;
 
@@ -46,6 +59,18 @@ export interface Spec extends TurboModule {
   logAudioState(): void;
 
   getAudioStateLog(): string;
+
+  /** iOS only. Snapshot of the shared `AVAudioSession`; empty on Android. */
+  getAudioSessionState(): {
+    category?: string;
+    mode?: string;
+    options?: number;
+    isActive?: boolean;
+    isOtherAudioPlaying?: boolean;
+    callingxOwnsSession?: boolean;
+    route?: string;
+    micPermission?: string;
+  };
 
   /** `playIfMuted` is Android only. */
   playSound(soundName: string, playIfMuted: boolean): void;
@@ -67,6 +92,23 @@ export interface Spec extends TurboModule {
     phase: string;
     reason?: string;
     shouldResume?: boolean;
+  }>;
+
+  /** iOS only. In-call manager audio session configuration/activation results. */
+  readonly onAudioSessionDiagnostic: EventEmitter<{
+    event: string;
+    error?: string;
+    muteMode?: number;
+    enabled?: boolean;
+    result?: number;
+    category?: string;
+    mode?: string;
+    options?: number;
+    isActive?: boolean;
+    isOtherAudioPlaying?: boolean;
+    callingxOwnsSession?: boolean;
+    route?: string;
+    micPermission?: string;
   }>;
 }
 

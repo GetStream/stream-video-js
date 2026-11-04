@@ -15,6 +15,7 @@
 - Android: Kotlin modules extend the generated `Native<Name>Spec`; registered by `StreamVideoReactNativePackage` (`BaseReactPackage`). `StreamVideoReactNative.kt` is a static helper for app `MainActivity`.
 - iOS: thin ObjC++ adapters `ios/StreamVideoReactNativeModule.{h,mm}` and `ios/StreamInCallManagerModule.{h,mm}` (registered via `codegenConfig.ios.modulesProvider`) forward to Swift `StreamVideoReactNativeImpl` / `StreamInCallManagerImpl`. `ios/RTCViewPipComponentView.{h,mm}` hosts the Swift `RTCViewPip` (registered via `componentProvider`). `StreamVideoReactNative.{h,m}` keeps only the public class methods for AppDelegates (`+voipRegistration`, `+hasAnyActiveCall`).
 - Emit events only through each module's guarded helper (generated `emitOn*` crashes if the event emitter callback isn't set yet).
+- iOS: put process-wide side effects (hook registration, observers) in `RCTInitializing.initialize`, not `init`. The generated `RCTModuleProviders` does `[klass new]` on every codegen module class once as a throwaway provider that is never initialized nor invalidated, so `init` runs twice per process (`StreamInCallManagerModule` forwards `initialize` to the Swift impl).
 - Jest: `src/native/*` modules are mocked in `jest-setup.ts`.
 - Not SDK-owned (still legacy, keep): `NativeModules.WebRTCModule`, `NativeModules.ScreenCapturePickerViewManager` from `@stream-io/react-native-webrtc`.
 
@@ -31,7 +32,7 @@ The public `callManager` (`src/modules/call-manager/CallManager.ts`) is a **conf
 
 - `audioDevices` (`AudioDevicesManager`) — cross-platform picker: `getStatus`, `select(id)`, `addChangeListener`. On Android Telecom-managed calls it adapts callingx's endpoints; otherwise reads native.
 - `speaker` (`SpeakerManager`) — `setMute`, `setForceSpeakerphoneOn`. Routes via callingx on Telecom-managed Android.
-- `ios` (`IOSCallManager`) — iOS-only: `showDeviceSelector`, `addAudioInterruptionListener`.
+- `ios` (`IOSCallManager`) — iOS-only: `showDeviceSelector`, `addAudioInterruptionListener`, `addAudioSessionDiagnosticListener`, `getAudioSessionState` (both `@internal`, used by `AudioSessionDiagnosticsTracer`).
 - `start(config?)` / `stop()` — config store (see above).
 - `logAudioState`, `getAudioStateLog` — debug.
 
@@ -39,6 +40,13 @@ The public `callManager` (`src/modules/call-manager/CallManager.ts`) is a **conf
 
 - `audioRole`: `'communicator'` (default — video/voice, SDK controls routing, manual device switching supported) or `'listener'` (livestream viewing, high-quality stereo, OS controls routing).
 - `deviceEndpointType`: `'speaker'` | `'earpiece'` — communicator-only override for the default endpoint (otherwise derived from call settings).
+
+**iOS audio session + engine (RN-463 dead mic):**
+
+- Sync engine hooks (`AudioDeviceModule.addEngineHooks`, WebRTC worker thread): `StreamInCallManagerImpl` configures + activates the session in willEnable between `start()` and `stop()` only (counted activation, `weActivatedSession`; re-activates when `RTCAudioSession.isActive` is false after a failed post-interruption re-activation; no-op for pre-join lobby enables), callingx only re-applies category/mode. Hooks: no ADM calls, no `audioSessionQueue.sync`/`main.sync`, all `RTCAudioSession` locking via each package's `AudioSessionConfigLock` (lock, body, unlock like stream-video-swift; never nest: re-locking on the same thread crashes; other threads just wait).
+- Join order (iOS, non-callingx): `Call.ts` awaits `callManager.prepareAudioSessionForPublish` (start + `waitForAudioSessionActive`) before the first mic publish.
+- Recovery: `AudioSessionDiagnosticsTracer` samples `getEngineState()`, calls `recoverEngineIfNeeded` (≤3/episode, ≤6/call, ≥3 s apart), then one `call.rejoinForAudioEngineRecovery()` per call; traces `ios.audioEngine.*` and `audio.session.timeout`.
+- Recovery is skipped while an audio interruption is active. With an inactive session the tracer first calls `callManager.ios.reactivateAudioSession` (the ADM cannot restart against an inactive session); when iOS refuses (`561017449`, another app owns the audio) it waits for the next interruption end / session activation / app foreground without spending its budget or rejoining. The audio rejoin is skipped (call stays joined) when the rejoin rate limiter has no room.
 
 ## Per-Call PeerConnectionFactory (Media Engine)
 
