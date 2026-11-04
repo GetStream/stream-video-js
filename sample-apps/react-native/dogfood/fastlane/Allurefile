@@ -1,8 +1,7 @@
 allure_project_id = '168'
 allure_url = 'https://streamio.testops.cloud'
 allure_api_url = "#{allure_url}/api"
-e2e_app_path = File.absolute_path('../../e2e-test-app')
-allure_results_path = File.join(e2e_app_path, 'allure-results')
+allure_results_path = File.absolute_path('../allure-results')
 
 desc 'Creates an Allure TestOps launch and exports LAUNCH_ID to the following CI steps. Options: cron'
 lane :allure_launch do |options|
@@ -49,7 +48,7 @@ lane :allure_testcase do
 end
 
 private_lane :install_allurectl do
-  path = File.join(e2e_app_path, 'allurectl')
+  path = File.absolute_path('../allurectl')
   next path if File.exist?(path)
 
   allure_version = '2.21.1'

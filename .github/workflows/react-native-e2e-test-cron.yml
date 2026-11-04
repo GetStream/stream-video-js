@@ -79,9 +79,9 @@ jobs:
         with:
           name: e2e-nightly-android-${{ matrix.api-level }}
           path: |
-            sample-apps/react-native/e2e-test-app/artifacts
-            sample-apps/react-native/e2e-test-app/recordings
-            sample-apps/react-native/e2e-test-app/video-buddy-*.log
+            sample-apps/react-native/dogfood/artifacts
+            sample-apps/react-native/dogfood/recordings
+            sample-apps/react-native/dogfood/video-buddy-*.log
             /tmp/android-runner
 
   slack:

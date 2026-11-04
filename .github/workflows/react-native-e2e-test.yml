@@ -68,8 +68,8 @@ jobs:
         with:
           name: e2e-android-apks
           path: |
-            sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk/release/app-release.apk
-            sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk
+            sample-apps/react-native/dogfood/android/app/build/outputs/apk/release/app-release.apk
+            sample-apps/react-native/dogfood/android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk
           retention-days: 1
 
   # One launch for every batch.
@@ -127,7 +127,7 @@ jobs:
       - uses: actions/download-artifact@v7
         with:
           name: e2e-android-apks
-          path: sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk
+          path: sample-apps/react-native/dogfood/android/app/build/outputs/apk
       - uses: ./.github/actions/rn-e2e-enable-kvm
       - name: Cache stream-video-buddy's browser
         uses: actions/cache@v6
@@ -169,9 +169,9 @@ jobs:
         with:
           name: e2e-android-logs-${{ matrix.batch }}
           path: |
-            sample-apps/react-native/e2e-test-app/artifacts
-            sample-apps/react-native/e2e-test-app/recordings
-            sample-apps/react-native/e2e-test-app/video-buddy-*.log
+            sample-apps/react-native/dogfood/artifacts
+            sample-apps/react-native/dogfood/recordings
+            sample-apps/react-native/dogfood/video-buddy-*.log
             /tmp/android-runner
 
   result:

@@ -245,9 +245,9 @@ lane :deploy_android_play_store do
   )
 end
 
-# The e2e app has no Gemfile of its own: its lanes live here and run with this bundle.
+# e2e (e2e/README.md)
 
-e2e_app_path = File.absolute_path('../../e2e-test-app')
+e2e_app_path = File.absolute_path('..')
 video_buddy_port = ENV['VIDEO_BUDDY_PORT'] || '5678'
 allure_results_path = File.join(e2e_app_path, 'allure-results')
 e2e_tests_path = File.join(e2e_app_path, 'e2e', 'tests')
@@ -371,7 +371,9 @@ lane :impact_analysis do
         'packages/react-bindings/',
         'packages/react-native-sdk/',
         'packages/react-native-callingx/',
-        'sample-apps/react-native/e2e-test-app/',
+        'packages/video-filters-react-native/',
+        'packages/noise-cancellation-react-native/',
+        'sample-apps/react-native/dogfood/',
         'package.json',
         'yarn.lock'
       ],

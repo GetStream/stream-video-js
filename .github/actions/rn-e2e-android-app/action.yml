@@ -9,9 +9,9 @@ runs:
       uses: actions/cache/restore@v6
       with:
         path: |
-          sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk/release/app-release.apk
-          sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk
-        key: e2e-android-apk-${{ hashFiles('yarn.lock', 'package.json', 'packages/client/index.ts', 'packages/client/rollup.config.mjs', 'packages/client/src/**', 'packages/client/package.json', 'packages/react-bindings/index.ts', 'packages/react-bindings/rollup.config.mjs', 'packages/react-bindings/src/**', 'packages/react-bindings/package.json', 'packages/react-native-sdk/src/**', 'packages/react-native-sdk/package.json', 'packages/react-native-sdk/android/**', '!packages/react-native-sdk/android/build/**', 'sample-apps/react-native/e2e-test-app/*.js', 'sample-apps/react-native/e2e-test-app/.detoxrc.js', 'sample-apps/react-native/e2e-test-app/*.json', 'sample-apps/react-native/e2e-test-app/*.tsx', 'sample-apps/react-native/e2e-test-app/src/**', 'sample-apps/react-native/e2e-test-app/android/**', '!sample-apps/react-native/e2e-test-app/android/**/build/**', '!sample-apps/react-native/e2e-test-app/android/.gradle/**') }}
+          sample-apps/react-native/dogfood/android/app/build/outputs/apk/release/app-release.apk
+          sample-apps/react-native/dogfood/android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk
+        key: e2e-android-apk-${{ hashFiles('yarn.lock', 'package.json', 'packages/client/index.ts', 'packages/client/rollup.config.mjs', 'packages/client/src/**', 'packages/client/package.json', 'packages/react-bindings/index.ts', 'packages/react-bindings/rollup.config.mjs', 'packages/react-bindings/src/**', 'packages/react-bindings/package.json', 'packages/react-native-sdk/src/**', 'packages/react-native-sdk/package.json', 'packages/react-native-sdk/android/**', '!packages/react-native-sdk/android/build/**', 'packages/react-native-callingx/src/**', 'packages/react-native-callingx/package.json', 'packages/react-native-callingx/android/**', '!packages/react-native-callingx/android/build/**', 'packages/video-filters-react-native/src/**', 'packages/video-filters-react-native/package.json', 'packages/video-filters-react-native/android/**', '!packages/video-filters-react-native/android/build/**', 'packages/noise-cancellation-react-native/src/**', 'packages/noise-cancellation-react-native/package.json', 'packages/noise-cancellation-react-native/android/**', '!packages/noise-cancellation-react-native/android/build/**', 'sample-apps/react-native/dogfood/*.js', 'sample-apps/react-native/dogfood/.detoxrc.js', 'sample-apps/react-native/dogfood/*.json', 'sample-apps/react-native/dogfood/*.ts', 'sample-apps/react-native/dogfood/*.tsx', 'sample-apps/react-native/dogfood/src/**', 'sample-apps/react-native/dogfood/android/**', '!sample-apps/react-native/dogfood/android/**/build/**', '!sample-apps/react-native/dogfood/android/.gradle/**') }}
     - name: Build SDK packages
       if: steps.apk.outputs.cache-hit != 'true'
       shell: bash
@@ -20,7 +20,7 @@ runs:
     - name: Build app
       if: steps.apk.outputs.cache-hit != 'true'
       shell: bash
-      working-directory: sample-apps/react-native/e2e-test-app
+      working-directory: sample-apps/react-native/dogfood
       # The emulator is x86_64: skip compiling native code for the other ABIs.
       run: ORG_GRADLE_PROJECT_reactNativeArchitectures=x86_64 yarn e2e:build -c android.att.release
     - name: Save APKs
@@ -28,12 +28,12 @@ runs:
       uses: actions/cache/save@v6
       with:
         path: |
-          sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk/release/app-release.apk
-          sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk
+          sample-apps/react-native/dogfood/android/app/build/outputs/apk/release/app-release.apk
+          sample-apps/react-native/dogfood/android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk
         key: ${{ steps.apk.outputs.cache-primary-key }}
     # Frees the daemons' memory for the emulator, which otherwise can get killed mid-run.
     - name: Stop Gradle daemons
       if: steps.apk.outputs.cache-hit != 'true'
       shell: bash
-      working-directory: sample-apps/react-native/e2e-test-app/android
+      working-directory: sample-apps/react-native/dogfood/android
       run: ./gradlew --stop

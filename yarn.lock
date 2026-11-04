@@ -7496,6 +7496,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.29.7"
     "@babel/runtime": "npm:^7.29.7"
     "@gorhom/bottom-sheet": "npm:5.2.14"
+    "@jest/globals": "npm:^29.7.0"
     "@notifee/react-native": "npm:9.1.8"
     "@react-native-clipboard/clipboard": "npm:^1.16.3"
     "@react-native-community/cli": "npm:20.2.0"
@@ -7524,7 +7525,11 @@ __metadata:
     axios: "npm:^1.20.0"
     babel-jest: "npm:^29.7.0"
     babel-plugin-react-compiler: "npm:^1.0.0"
+    detox: "npm:^20.51.4"
     jest: "npm:^29.7.0"
+    jest-allure2-reporter: "npm:^2.3.0"
+    jest-docblock: "npm:^29.7.0"
+    jest-metadata: "npm:^1.6.0"
     react: "npm:19.3.0"
     react-dom: "npm:19.3.0"
     react-native: "npm:0.88.0"
@@ -7552,38 +7557,6 @@ __metadata:
     rxjs: "npm:~7.8.2"
     stream-chat: "npm:^9.54.0"
     stream-chat-react-native: "npm:^9.10.1"
-    typescript: "npm:^6.0.3"
-  languageName: unknown
-  linkType: soft
-
-"@stream-io/video-react-native-e2e-test-app@workspace:sample-apps/react-native/e2e-test-app":
-  version: 0.0.0-use.local
-  resolution: "@stream-io/video-react-native-e2e-test-app@workspace:sample-apps/react-native/e2e-test-app"
-  dependencies:
-    "@babel/core": "npm:^7.29.7"
-    "@babel/runtime": "npm:^7.29.7"
-    "@jest/globals": "npm:^29.7.0"
-    "@react-native-community/cli": "npm:20.2.0"
-    "@react-native-community/cli-platform-android": "npm:20.2.0"
-    "@react-native-community/cli-platform-ios": "npm:20.2.0"
-    "@react-native-community/netinfo": "npm:12.0.1"
-    "@react-native/babel-preset": "npm:^0.88.0"
-    "@react-native/metro-config": "npm:^0.88.0"
-    "@react-native/typescript-config": "npm:^0.88.0"
-    "@stream-io/react-native-webrtc": "npm:145.4.1"
-    "@stream-io/video-react-native-sdk": "workspace:^"
-    "@types/react": "npm:^19.3.0"
-    babel-jest: "npm:^29.7.0"
-    detox: "npm:^20.51.4"
-    jest: "npm:^29.7.0"
-    jest-allure2-reporter: "npm:^2.3.0"
-    jest-docblock: "npm:^29.7.0"
-    jest-metadata: "npm:^1.6.0"
-    react: "npm:19.3.0"
-    react-native: "npm:0.88.0"
-    react-native-launch-arguments: "npm:^4.1.1"
-    react-native-safe-area-context: "npm:~5.10.1"
-    react-native-svg: "npm:15.16.0"
     typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
@@ -18860,16 +18833,6 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/dc82d54e0bf8f89208a538bb0d14e4891af6efae27ed5b7b21be683a72c38c5219ab9be1ea9bd40aa1c905d481174e649d0b71aeceaa9946e6c707f251568282
-  languageName: node
-  linkType: hard
-
-"react-native-launch-arguments@npm:^4.1.1":
-  version: 4.1.1
-  resolution: "react-native-launch-arguments@npm:4.1.1"
-  peerDependencies:
-    react: ">=16.8.1"
-    react-native: ">=0.60.0-rc.0 <1.0.x"
-  checksum: 10/16ffa8de8f8e56553bc9f3ed6dcdd16cda88db9cc98f4ab27ba3938b7ec02079669a7128f8f1dc566e6071d99cf4d837e83bada96573f4f6f1a7bd4ce0de6ecb
   languageName: node
   linkType: hard
 
