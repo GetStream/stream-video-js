@@ -39,10 +39,6 @@ export interface Spec extends TurboModule {
     skipIncomingPushInForeground: boolean;
   }): void;
 
-  wireAudioEngineSubscription(): void;
-
-  unwireAudioEngineSubscription(): void;
-
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;
 
   setDefaultAudioDeviceEndpointType(endpointType: string): void;
