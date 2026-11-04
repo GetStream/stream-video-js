@@ -221,30 +221,6 @@ RCT_EXPORT_METHOD(setupAndroid:(NSDictionary *)options) {
 }
 #endif
 
-#pragma mark - wireAudioEngineSubscription
-
-#ifdef RCT_NEW_ARCH_ENABLED
-- (void)wireAudioEngineSubscription {
-  [_moduleImpl wireAudioEngineSubscription];
-}
-#else
-RCT_EXPORT_METHOD(wireAudioEngineSubscription) {
-  [_moduleImpl wireAudioEngineSubscription];
-}
-#endif
-
-#pragma mark - unwireAudioEngineSubscription
-
-#ifdef RCT_NEW_ARCH_ENABLED
-- (void)unwireAudioEngineSubscription {
-  [_moduleImpl unwireAudioEngineSubscription];
-}
-#else
-RCT_EXPORT_METHOD(unwireAudioEngineSubscription) {
-  [_moduleImpl unwireAudioEngineSubscription];
-}
-#endif
-
 #pragma mark - stopService
 
 #ifdef RCT_NEW_ARCH_ENABLED
