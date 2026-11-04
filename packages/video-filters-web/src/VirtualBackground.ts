@@ -26,9 +26,8 @@ export class VirtualBackground
 
   private opts!: SegmenterOptions;
 
-  private latestCategoryMask: WebGLTexture | undefined = undefined;
-  private latestConfidenceMask: WebGLTexture | undefined = undefined;
   private lastFrameTime = -1;
+  private lastSegmentationTime = -1;
 
   constructor(
     track: MediaStreamVideoTrack,
@@ -99,45 +98,54 @@ export class VirtualBackground
 
   protected async transform(frame: VideoFrame): Promise<VideoFrame> {
     const currentTime = frame.timestamp;
-    const hasNewFrame = currentTime - this.lastFrameTime > 1_000;
+    // A repeated frame (same timestamp) isn't segmented again. Sources that
+    // don't timestamp their frames at all (every frame 0) are processed.
+    const hasNewFrame = currentTime === 0 || currentTime !== this.lastFrameTime;
     this.lastFrameTime = currentTime;
 
     if (hasNewFrame && this.isSegmenterReady && this.segmenter) {
       const start = performance.now();
-
-      await this.runSegmentation(frame);
-
-      this.webGlRenderer.render(
-        frame,
-        this.opts,
-        this.latestCategoryMask,
-        this.latestConfidenceMask,
-      );
-
+      await this.segmentAndRender(frame);
       this.updateStats(performance.now() - start);
     }
 
     return new VideoFrame(this.canvas, { timestamp: frame.timestamp });
   }
 
-  private async runSegmentation(frame: VideoFrame): Promise<void> {
-    if (!this.segmenter) return;
-
-    return new Promise<void>((resolve) => {
-      const timestamp = Math.floor(performance.now());
-      this.segmenter!.segmentForVideo(frame, timestamp, (result) => {
-        try {
-          this.latestCategoryMask = result.categoryMask?.getAsWebGLTexture();
-          this.latestConfidenceMask =
-            result.confidenceMasks?.[0]?.getAsWebGLTexture();
-        } catch (err) {
-          console.error('[virtual-background] segmentation error:', err);
-          this.hooks.onError?.(err);
-        } finally {
-          result.close();
-          resolve();
-        }
-      });
+  /**
+   * Segments the frame and renders it with the resulting masks. The render
+   * happens inside the MediaPipe callback: the mask textures belong to the
+   * segmenter and are only valid until the callback returns.
+   */
+  private segmentAndRender(frame: VideoFrame): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      // MediaPipe requires strictly increasing timestamps; two frames in the
+      // same millisecond would otherwise kill the graph.
+      const timestamp = Math.max(
+        Math.floor(performance.now()),
+        this.lastSegmentationTime + 1,
+      );
+      this.lastSegmentationTime = timestamp;
+      try {
+        this.segmenter!.segmentForVideo(frame, timestamp, (result) => {
+          try {
+            this.webGlRenderer.render(
+              frame,
+              this.opts,
+              result.categoryMask?.getAsWebGLTexture(),
+              result.confidenceMasks?.[0]?.getAsWebGLTexture(),
+            );
+          } catch (err) {
+            console.error('[virtual-background] segmentation error:', err);
+            this.hooks.onError?.(err);
+          } finally {
+            result.close();
+            resolve();
+          }
+        });
+      } catch (err) {
+        reject(err);
+      }
     });
   }
 
@@ -192,13 +200,9 @@ export class VirtualBackground
     };
   }
 
-  protected onFlush(): void {
-    this.destroySegmenter();
-  }
-
   protected onStop(): void {
-    this.webGlRenderer?.close();
     this.destroySegmenter();
+    this.webGlRenderer?.close();
   }
 
   private destroySegmenter() {
