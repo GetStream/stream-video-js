@@ -23,15 +23,14 @@ export interface Spec extends TurboModule {
   /** iOS only. */
   setRecordingAlwaysPreparedMode(enabled: boolean): void;
 
-  setup(): void;
+  /**
+   * Fire-and-forget. iOS: gates the call's audio engine, configures and
+   * activates the SDK-owned audio session on its own queue, then opens the
+   * gate; a mic publish that lands before the gate opens is replayed by
+   * WebRTC, so no ordering with the publish is needed.
+   */
   start(): void;
   stop(): void;
-
-  /**
-   * iOS only. Resolves whether the shared audio session is active, polling
-   * until `timeoutMs` after the pending `start()` work. Resolves `true` on Android.
-   */
-  waitForAudioSessionActive(timeoutMs: number): Promise<boolean>;
 
   /**
    * iOS only. Re-activates the SDK-owned audio session when iOS cleared it

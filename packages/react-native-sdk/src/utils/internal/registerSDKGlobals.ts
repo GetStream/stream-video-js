@@ -23,9 +23,6 @@ const StreamInCallManagerNativeModule = NativeStreamInCallManager;
 
 const CallingxModule = getCallingxLibIfAvailable();
 
-/** Same bound as stream-video-swift's wait for an active session before publishing. */
-const AUDIO_SESSION_ACTIVE_TIMEOUT_MS = 2000;
-
 /**
  * Runs a fire-and-forget native call, logging instead of throwing on a bridge
  * error so it can't crash the caller (e.g. the join/leave flow).
@@ -92,28 +89,10 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   },
   ringingCallLifecycle: { beforeJoin, onJoinFailed, onLeave },
   callManager: {
-    setup: ({ defaultDevice, isRingingTypeCall, cid }) => {
-      const isTelecomManaged = isAndroidTelecomManaged({ cid });
-      const isCallingxManaged = shouldBypassForCallingx({ isRingingTypeCall });
-      if (Platform.OS === 'android') {
-        StreamInCallManagerNativeModule.setTelecomManagedMode(isTelecomManaged);
-      }
-
-      if (isTelecomManaged || isCallingxManaged) {
-        safeNativeCall('setup defaultAudioDevice (callingx)', () =>
-          CallingxModule?.setDefaultAudioDeviceEndpointType(defaultDevice),
-        );
-      }
-
-      if (!isTelecomManaged) {
-        safeNativeCall('setup defaultAudioDevice', () =>
-          StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
-            defaultDevice,
-          ),
-        );
-      }
-    },
-    start: ({ isRingingTypeCall, cid }) => {
+    // Fire-and-forget, once per join (before the first publish; the iOS engine gate makes the
+    // order irrelevant). The default endpoint is the call-settings-derived `defaultDevice`,
+    // overridden by the stored config's `deviceEndpointType` for the communicator role.
+    start: ({ isRingingTypeCall, cid, defaultDevice }) => {
       safeNativeCall('stopRingtone', () =>
         //stop the ringtone if it is playing before audio session setup
         StreamInCallManagerNativeModule.stopSound(),
@@ -126,20 +105,13 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
         config?.audioRole === 'communicator'
           ? config.deviceEndpointType
           : undefined;
+      const device = deviceOverride ?? defaultDevice;
 
       if (shouldBypassForCallingx({ isRingingTypeCall })) {
-        // The system call layer owns activation. Only forward an explicit endpoint override; the
-        // SpeakerManager-derived default was already forwarded via `setup`.
-        if (deviceOverride) {
-          safeNativeCall('start defaultAudioDevice (callingx)', () =>
-            CallingxModule?.setDefaultAudioDeviceEndpointType(deviceOverride),
-          );
-          safeNativeCall('start defaultAudioDevice', () =>
-            StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
-              deviceOverride,
-            ),
-          );
-        }
+        // The system call layer owns the session; callingx applies the default endpoint.
+        safeNativeCall('start defaultAudioDevice (callingx)', () =>
+          CallingxModule?.setDefaultAudioDeviceEndpointType(device),
+        );
         return;
       }
 
@@ -150,42 +122,21 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       if (config?.audioRole) {
         StreamInCallManagerNativeModule.setAudioRole(config.audioRole);
       }
-      if (deviceOverride) {
-        // Override the SpeakerManager-derived default device (set via `setup`).
-        if (isTelecomManaged) {
-          safeNativeCall('start defaultAudioDevice (callingx)', () =>
-            CallingxModule?.setDefaultAudioDeviceEndpointType(deviceOverride),
-          );
-        } else {
-          safeNativeCall('start defaultAudioDevice', () =>
-            StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
-              deviceOverride,
-            ),
-          );
-        }
+      if (isTelecomManaged) {
+        safeNativeCall('start defaultAudioDevice (callingx)', () =>
+          CallingxModule?.setDefaultAudioDeviceEndpointType(device),
+        );
+      } else {
+        safeNativeCall('start defaultAudioDevice', () =>
+          StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
+            device,
+          ),
+        );
       }
 
       const stereoOutput = config?.audioRole === 'listener';
       StreamInCallManagerNativeModule.setEnableStereoAudioOutput(stereoOutput);
       StreamInCallManagerNativeModule.start();
-    },
-    // iOS non-callingx only: start (configure + activate) the session before the mic is
-    // published, so the ADM never starts the engine on an inactive session. Goes through
-    // the full `start` so the stored audio config is applied first; the client then
-    // skips its join-time `start`. Sync: `undefined` means nothing was started; the
-    // start happens before returning, so the client can count it as started at once.
-    prepareAudioSessionForPublish: (params) => {
-      if (
-        Platform.OS !== 'ios' ||
-        shouldBypassForCallingx({ isRingingTypeCall: params.isRingingTypeCall })
-      ) {
-        return undefined;
-      }
-      streamRNVideoSDKGlobals.callManager.start(params);
-      const startedAt = Date.now();
-      return StreamInCallManagerNativeModule.waitForAudioSessionActive(
-        AUDIO_SESSION_ACTIVE_TIMEOUT_MS,
-      ).then((active) => ({ active, waitedMs: Date.now() - startedAt }));
     },
     stop: ({ isRingingTypeCall, shouldStopCallManager }) => {
       // Clear the stored audio config so it doesn't carry into the next call.

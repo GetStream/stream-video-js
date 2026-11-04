@@ -16,9 +16,7 @@ const makeNativeManager = () => ({
   setEnableStereoAudioOutput: jest.fn(),
   start: jest.fn(),
   stop: jest.fn(),
-  setup: jest.fn(),
   stopSound: jest.fn(),
-  waitForAudioSessionActive: jest.fn().mockResolvedValue(true),
   chooseAudioDeviceEndpoint: jest.fn(),
   getAudioDeviceStatus: jest.fn(),
   setForceSpeakerphoneOn: jest.fn(),
@@ -202,11 +200,20 @@ describe('CallManager Android Telecom branch', () => {
       audioRole: 'communicator',
       deviceEndpointType: 'earpiece',
     });
-    internalCallManager.start({ isRingingTypeCall: false, cid: 'type:id' });
+    internalCallManager.start({
+      isRingingTypeCall: false,
+      cid: 'type:id',
+      defaultDevice: 'speaker',
+    });
 
+    // the stored override wins over the settings-derived default, sent once, to callingx only
+    expect(callingx.setDefaultAudioDeviceEndpointType).toHaveBeenCalledTimes(1);
     expect(callingx.setDefaultAudioDeviceEndpointType).toHaveBeenCalledWith(
       'earpiece',
     );
+    expect(
+      nativeManager.setDefaultAudioDeviceEndpointType,
+    ).not.toHaveBeenCalled();
     expect(nativeManager.setTelecomManagedMode).toHaveBeenCalledWith(true);
     expect(nativeManager.setAudioRole).toHaveBeenCalledWith('communicator');
     expect(nativeManager.start).toHaveBeenCalled();
@@ -226,9 +233,51 @@ describe('CallManager Android Telecom branch', () => {
       callingx,
     });
     publicCallManager.start({ audioRole: 'communicator' });
-    internalCallManager.start({ isRingingTypeCall: false, cid: 'type:id' });
+    internalCallManager.start({
+      isRingingTypeCall: false,
+      cid: 'type:id',
+      defaultDevice: 'earpiece',
+    });
 
     expect(nativeManager.setTelecomManagedMode).toHaveBeenCalledWith(false);
+    // no override stored: the settings-derived default goes to the native manager, before start
+    expect(
+      nativeManager.setDefaultAudioDeviceEndpointType,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      nativeManager.setDefaultAudioDeviceEndpointType,
+    ).toHaveBeenCalledWith('earpiece');
+    expect(callingx.setDefaultAudioDeviceEndpointType).not.toHaveBeenCalled();
+    const [deviceOrder] =
+      nativeManager.setDefaultAudioDeviceEndpointType.mock.invocationCallOrder;
+    const [startOrder] = nativeManager.start.mock.invocationCallOrder;
+    expect(deviceOrder).toBeLessThan(startOrder!);
+    expect(nativeManager.start).toHaveBeenCalled();
+  });
+
+  it('start() sends the settings default to the native manager for a listener call (override ignored)', () => {
+    const nativeManager = makeNativeManager();
+    const callingx = makeCallingx({
+      hasRegisteredCall: jest.fn().mockReturnValue(false),
+      isCallTracked: jest.fn().mockReturnValue(false),
+    });
+    const { publicCallManager, internalCallManager } = loadCallManager({
+      os: 'android',
+      nativeManager,
+      callingx,
+    });
+    publicCallManager.start({ audioRole: 'listener' });
+    internalCallManager.start({
+      isRingingTypeCall: false,
+      cid: 'type:id',
+      defaultDevice: 'speaker',
+    });
+
+    expect(nativeManager.setAudioRole).toHaveBeenCalledWith('listener');
+    expect(
+      nativeManager.setDefaultAudioDeviceEndpointType,
+    ).toHaveBeenCalledWith('speaker');
+    expect(nativeManager.setEnableStereoAudioOutput).toHaveBeenCalledWith(true);
     expect(nativeManager.start).toHaveBeenCalled();
   });
 
@@ -320,15 +369,13 @@ describe('CallManager native events (StreamInCallManager TurboModule)', () => {
   });
 });
 
-describe('internal callManager.prepareAudioSessionForPublish', () => {
+describe('internal callManager.start on iOS', () => {
   afterEach(() => {
     jest.resetModules();
     delete (globalThis as any).streamRNVideoSDK;
   });
 
-  const params = { isRingingTypeCall: false, cid: 'type:id' };
-
-  it('starts the call manager and waits for an active session (iOS, no callingx)', async () => {
+  it('starts the native manager with the settings default (no callingx)', () => {
     const nativeManager = makeNativeManager();
     const { internalCallManager } = loadCallManager({
       os: 'ios',
@@ -336,51 +383,61 @@ describe('internal callManager.prepareAudioSessionForPublish', () => {
       callingx: undefined,
     });
 
-    const wait = internalCallManager.prepareAudioSessionForPublish!(params);
+    internalCallManager.start({
+      isRingingTypeCall: false,
+      cid: 'type:id',
+      defaultDevice: 'earpiece',
+    });
 
-    // started synchronously, before the caller awaits
+    expect(nativeManager.stopSound).toHaveBeenCalledTimes(1);
+    expect(
+      nativeManager.setDefaultAudioDeviceEndpointType,
+    ).toHaveBeenCalledWith('earpiece');
+    expect(nativeManager.setTelecomManagedMode).not.toHaveBeenCalled();
+    expect(nativeManager.setEnableStereoAudioOutput).toHaveBeenCalledWith(
+      false,
+    );
     expect(nativeManager.start).toHaveBeenCalledTimes(1);
-    expect(nativeManager.waitForAudioSessionActive).toHaveBeenCalledWith(2000);
-    const [startOrder] = nativeManager.start.mock.invocationCallOrder;
-    const [waitOrder] =
-      nativeManager.waitForAudioSessionActive.mock.invocationCallOrder;
-    expect(startOrder).toBeLessThan(waitOrder!);
-    expect(wait).toBeInstanceOf(Promise);
-    await expect(wait).resolves.toEqual({
-      active: true,
-      waitedMs: expect.any(Number),
-    });
   });
 
-  it('is a no-op when callingx owns the session (iOS)', () => {
-    const nativeManager = makeNativeManager();
-    const { internalCallManager } = loadCallManager({
-      os: 'ios',
-      nativeManager,
-      callingx: makeCallingx({ isOngoingCallsEnabled: true }),
-    });
+  it.each([
+    ['the settings default', undefined, 'earpiece'],
+    ['the stored override', 'speaker', 'speaker'],
+  ] as const)(
+    'forwards %s to callingx only when callingx owns the session',
+    (_, override, expected) => {
+      const nativeManager = makeNativeManager();
+      const callingx = makeCallingx({ isOngoingCallsEnabled: true });
+      const { publicCallManager, internalCallManager } = loadCallManager({
+        os: 'ios',
+        nativeManager,
+        callingx,
+      });
+      if (override) {
+        publicCallManager.start({
+          audioRole: 'communicator',
+          deviceEndpointType: override,
+        });
+      }
 
-    const result = internalCallManager.prepareAudioSessionForPublish!(params);
+      internalCallManager.start({
+        isRingingTypeCall: false,
+        cid: 'type:id',
+        defaultDevice: 'earpiece',
+      });
 
-    // synchronously undefined: nothing to await, nothing started
-    expect(result).toBeUndefined();
-    expect(nativeManager.start).not.toHaveBeenCalled();
-    expect(nativeManager.waitForAudioSessionActive).not.toHaveBeenCalled();
-  });
-
-  it('is a no-op on Android', () => {
-    const nativeManager = makeNativeManager();
-    const { internalCallManager } = loadCallManager({
-      os: 'android',
-      nativeManager,
-      callingx: undefined,
-    });
-
-    const result = internalCallManager.prepareAudioSessionForPublish!(params);
-
-    // synchronously undefined: nothing to await, nothing started
-    expect(result).toBeUndefined();
-    expect(nativeManager.start).not.toHaveBeenCalled();
-    expect(nativeManager.waitForAudioSessionActive).not.toHaveBeenCalled();
-  });
+      expect(callingx.setDefaultAudioDeviceEndpointType).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(callingx.setDefaultAudioDeviceEndpointType).toHaveBeenCalledWith(
+        expected,
+      );
+      expect(
+        nativeManager.setDefaultAudioDeviceEndpointType,
+      ).not.toHaveBeenCalled();
+      expect(nativeManager.setAudioRole).not.toHaveBeenCalled();
+      expect(nativeManager.setEnableStereoAudioOutput).not.toHaveBeenCalled();
+      expect(nativeManager.start).not.toHaveBeenCalled();
+    },
+  );
 });

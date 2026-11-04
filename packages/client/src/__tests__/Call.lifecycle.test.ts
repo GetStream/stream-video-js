@@ -67,6 +67,7 @@ describe('Call lifecycle wiring', () => {
     restorePublishedTracks: () => Promise<void>;
     restoreSubscribedTracks: () => void;
     applyDeviceConfig: () => Promise<void>;
+    ensureMediaFactory: Call['ensureMediaFactory'];
   };
 
   beforeEach(() => {
@@ -747,114 +748,11 @@ describe('Call lifecycle wiring', () => {
     await call.leave();
   });
 
-  it.each(['resolves', 'missing', 'undefined', 'throws', 'rejects'] as const)(
-    'call.join() prepares the audio session before the first publish: %s',
-    async (mode) => {
-      vi.spyOn(call, 'setup').mockResolvedValue(undefined);
-      call['credentials'] = fromPartial({ ice_servers: [] });
-      call['lastStatsOptions'] = fromPartial({ reporting_interval_ms: 0 });
-      call['sfuClient'] = fromPartial({
-        isHealthy: true,
-        sessionId: 'test-session',
-        leaveAndClose: vi.fn().mockResolvedValue(undefined),
-      });
-      call.state['settingsSubject'].next(
-        fromPartial({ audio: {}, screensharing: {}, video: {} }),
-      );
-      vi.spyOn(rtc, 'Subscriber').mockImplementation(function () {
-        return fromPartial<rtc.Subscriber>(makePeer());
-      });
-      vi.spyOn(rtc, 'Publisher').mockImplementation(function () {
-        return fromPartial<rtc.Publisher>(makePeer());
-      });
-      const order: string[] = [];
-      const pending = promiseWithResolvers<void>();
-      const prepare = vi.fn(() => {
-        order.push('prepare');
-        if (mode === 'undefined') return undefined;
-        if (mode === 'throws') throw new Error('sync failure');
-        return pending.promise.then(() => {
-          if (mode === 'rejects') throw new Error('native failure');
-          return { active: true, waitedMs: 5 };
-        });
-      });
-      const start = vi.fn(() => order.push('start'));
-      const stop = vi.fn();
-      (globalThis as Record<string, any>).streamRNVideoSDK = {
-        callManager: {
-          start,
-          stop,
-          ...(mode === 'missing'
-            ? {}
-            : { prepareAudioSessionForPublish: prepare }),
-        },
-      };
-      const speaker = vi.spyOn(call.speaker, 'apply').mockImplementation(() => {
-        order.push('speaker');
-        return Promise.resolve();
-      });
-      const configure = vi
-        .spyOn(internalCall, 'applyDeviceConfig')
-        .mockImplementation(async () => {
-          order.push('publish');
-        });
-      const trace = vi.spyOn(call.tracer, 'trace');
-      const warn = vi.spyOn(call.logger, 'warn');
-
-      const joinTask = call.join();
-      if (mode === 'resolves' || mode === 'rejects') {
-        await vi.waitFor(() => expect(prepare).toHaveBeenCalledOnce());
-        expect(prepare).toHaveBeenCalledWith({
-          isRingingTypeCall: false,
-          cid: call.cid,
-        });
-        // the publish waits for the session to be prepared
-        expect(speaker).toHaveBeenCalledOnce();
-        expect(configure).not.toHaveBeenCalled();
-        pending.resolve();
-      }
-      await joinTask;
-
-      const prepared = mode === 'resolves' || mode === 'rejects';
-      // the default device is set before the session is prepared;
-      // prepare already started the call manager; otherwise join starts it
-      expect(order).toEqual(
-        prepared
-          ? ['speaker', 'prepare', 'publish']
-          : mode === 'missing'
-            ? ['speaker', 'publish', 'start']
-            : ['speaker', 'prepare', 'publish', 'start'],
-      );
-      expect(configure).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({ publish: true, skipSpeakerApply: true }),
-      );
-      expect(call.state.callingState).toBe(CallingState.JOINED);
-      const prepareTraces = trace.mock.calls.filter(
-        ([tag]) => tag === 'ios.audioSession.prepare',
-      );
-      expect(prepareTraces).toEqual(
-        mode === 'resolves'
-          ? [['ios.audioSession.prepare', { active: true, waitedMs: 5 }]]
-          : [],
-      );
-      const failed = mode === 'throws' || mode === 'rejects';
-      expect(warn).toHaveBeenCalledTimes(failed ? 1 : 0);
-      if (failed) {
-        expect(warn).toHaveBeenCalledWith(
-          'Failed to prepare the audio session',
-          expect.any(Error),
-        );
-      }
-      await call.leave();
-      expect(stop).toHaveBeenCalledOnce();
-      expect(stop).toHaveBeenCalledWith(
-        expect.objectContaining({ shouldStopCallManager: true }),
-      );
-    },
-  );
-
-  it('call.join() leaves the stop to leave() when it lands during the prepare wait', async () => {
+  /** A joinable call with mocked peers and an RN call manager installed. */
+  const setupRNJoin = (
+    callManager: { start: () => void; stop: () => void },
+    settings: Record<string, unknown> = { audio: {} },
+  ) => {
     vi.spyOn(call, 'setup').mockResolvedValue(undefined);
     call['credentials'] = fromPartial({ ice_servers: [] });
     call['lastStatsOptions'] = fromPartial({ reporting_interval_ms: 0 });
@@ -864,7 +762,7 @@ describe('Call lifecycle wiring', () => {
       leaveAndClose: vi.fn().mockResolvedValue(undefined),
     });
     call.state['settingsSubject'].next(
-      fromPartial({ audio: {}, screensharing: {}, video: {} }),
+      fromPartial({ screensharing: {}, video: {}, ...settings }),
     );
     vi.spyOn(rtc, 'Subscriber').mockImplementation(function () {
       return fromPartial<rtc.Subscriber>(makePeer());
@@ -872,33 +770,70 @@ describe('Call lifecycle wiring', () => {
     vi.spyOn(rtc, 'Publisher').mockImplementation(function () {
       return fromPartial<rtc.Publisher>(makePeer());
     });
-    const pending = promiseWithResolvers<void>();
-    const prepare = vi.fn(() =>
-      pending.promise.then(() => ({ active: true, waitedMs: 5 })),
-    );
-    const start = vi.fn();
+    (globalThis as Record<string, any>).streamRNVideoSDK = { callManager };
+  };
+
+  it('call.join() starts the RN call manager once, with the settings default, before the first publish', async () => {
+    const order: string[] = [];
+    const start = vi.fn(() => order.push('start'));
     const stop = vi.fn();
-    (globalThis as Record<string, any>).streamRNVideoSDK = {
-      callManager: { start, stop, prepareAudioSessionForPublish: prepare },
-    };
+    setupRNJoin({ start, stop }, { audio: { speaker_default_on: true } });
     const configure = vi
       .spyOn(internalCall, 'applyDeviceConfig')
-      .mockResolvedValue(undefined);
+      .mockImplementation(async () => {
+        order.push('publish');
+      });
 
-    const joinTask = call.join();
-    await vi.waitFor(() => expect(prepare).toHaveBeenCalledOnce());
+    await call.join();
+
+    expect(order).toEqual(['start', 'publish']);
+    expect(start).toHaveBeenCalledOnce();
+    expect(start).toHaveBeenCalledWith({
+      isRingingTypeCall: false,
+      cid: call.cid,
+      defaultDevice: 'speaker',
+    });
+    expect(configure).toHaveBeenCalledWith(expect.anything(), {
+      publish: true,
+    });
+    expect(call.state.callingState).toBe(CallingState.JOINED);
+
     await call.leave();
     expect(stop).toHaveBeenCalledOnce();
     expect(stop).toHaveBeenCalledWith(
       expect.objectContaining({ shouldStopCallManager: true }),
     );
+  });
+
+  it('call.join() does not start the RN call manager when leave() lands before the join flow reaches it', async () => {
+    const start = vi.fn();
+    const stop = vi.fn();
+    setupRNJoin({ start, stop });
+    // leave() during the (mocked) ensureMediaFactory step, before the call manager start
+    const pending = promiseWithResolvers<void>();
+    vi.spyOn(internalCall, 'ensureMediaFactory').mockImplementation(
+      () => pending.promise,
+    );
+    const configure = vi
+      .spyOn(internalCall, 'applyDeviceConfig')
+      .mockResolvedValue(undefined);
+
+    const joinTask = call.join();
+    await vi.waitFor(() =>
+      expect(internalCall.ensureMediaFactory).toHaveBeenCalledOnce(),
+    );
+    await call.leave();
+    expect(stop).toHaveBeenCalledOnce();
+    expect(stop).toHaveBeenCalledWith(
+      expect.objectContaining({ shouldStopCallManager: false }),
+    );
     pending.resolve();
     await joinTask;
 
-    // the join continuation must not stop again (it could hit a newer call)
+    // the join continuation must not start (nor stop again: it could hit a newer call)
+    expect(start).not.toHaveBeenCalled();
     expect(stop).toHaveBeenCalledOnce();
     expect(configure).not.toHaveBeenCalled();
-    expect(start).not.toHaveBeenCalled();
     expect(call.state.callingState).toBe(CallingState.LEFT);
   });
 

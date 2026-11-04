@@ -116,24 +116,12 @@
 
 #pragma mark - Lifecycle
 
-- (void)setup {
-  [_impl setup];
-}
-
 - (void)start {
   [_impl start];
 }
 
 - (void)stop {
   [_impl stop];
-}
-
-- (void)waitForAudioSessionActive:(double)timeoutMs
-                          resolve:(RCTPromiseResolveBlock)resolve
-                           reject:(RCTPromiseRejectBlock)reject {
-  [_impl waitForAudioSessionActiveWithTimeoutMs:timeoutMs resolve:^(BOOL isActive) {
-    resolve(@(isActive));
-  }];
 }
 
 - (void)reactivateAudioSession:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
