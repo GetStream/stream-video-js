@@ -6,31 +6,31 @@
  */
 export const LobbyPage = {
   get joinCallButton() {
-    return by.id('join-call-button');
+    return by.id('stream-join-call-button');
   },
   get cameraEnabledToggle() {
-    return by.id('camera-toggle-enabled');
+    return by.id('stream-camera-toggle-enabled');
   },
   get cameraDisabledToggle() {
-    return by.id('camera-toggle-disabled');
+    return by.id('stream-camera-toggle-disabled');
   },
   get microphoneEnabledToggle() {
-    return by.id('microphone-toggle-enabled');
+    return by.id('stream-microphone-toggle-enabled');
   },
   get microphoneDisabledToggle() {
-    return by.id('microphone-toggle-disabled');
+    return by.id('stream-microphone-toggle-disabled');
   },
   get microphoneEnabledIcon() {
-    return by.id('speech-indicator');
+    return by.id('stream-speech-indicator');
   },
   get microphoneDisabledIcon() {
-    return by.id('muted-microphone-icon');
+    return by.id('stream-muted-microphone-icon');
   },
   get cameraEnabledView() {
-    return by.id('lobby-camera-preview');
+    return by.id('stream-lobby-camera-preview');
   },
   get cameraDisabledView() {
-    return by.id('participant-avatar');
+    return by.id('stream-participant-avatar');
   },
   callParticipantsCount(count: number) {
     return by.id(`lobby-participants-count-${count}`);

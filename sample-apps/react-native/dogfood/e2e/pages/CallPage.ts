@@ -16,24 +16,24 @@ export const CallPage = {
     return LobbyPage.microphoneDisabledToggle;
   },
   get hangUpButton() {
-    return by.id('hang-up-call');
+    return by.id('stream-hang-up-call');
   },
   get participantsCountBadge() {
     return by.id('participants-count-badge');
   },
   get cornerDraggableView() {
-    return by.id('local-participant');
+    return by.id('stream-local-participant');
   },
 
   ParticipantView: {
     get videoView() {
-      return by.id(/^participant-.+-is-(not-)?speaking$/);
+      return by.id(/^stream-participant-.+-is-(not-)?speaking$/);
     },
     get microphoneEnabledIcon() {
-      return by.id('speech-indicator');
+      return by.id('stream-speech-indicator');
     },
     get microphoneDisabledIcon() {
-      return by.id('muted-microphone-icon');
+      return by.id('stream-muted-microphone-icon');
     },
   },
 };

@@ -206,7 +206,7 @@ export class UserRobot extends Robot {
     return this.perform(async () => {
       // Lobby and call toggles both render after their screen opens.
       await waitToAppear(
-        by.id(/^(camera|microphone)-toggle-(enabled|disabled)$/),
+        by.id(/^stream-(camera|microphone)-toggle-(enabled|disabled)$/),
         { index: 0 },
       );
       const enable = action === UserControls.ENABLE;
