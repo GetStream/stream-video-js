@@ -88,6 +88,11 @@ export class VirtualBackground
         canvas: this.canvas,
       });
 
+      if (this.abortController.signal.aborted) {
+        this.destroySegmenter();
+        return;
+      }
+
       this.isSegmenterReady = true;
     } catch (error) {
       this.isSegmenterReady = false;
