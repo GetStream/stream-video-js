@@ -34,14 +34,23 @@ import androidx.core.content.edit
 import io.getstream.samples.androidwebview.AppState
 import io.getstream.samples.androidwebview.LogTab
 import io.getstream.samples.androidwebview.scenarios.AudioScenarios
+import io.getstream.samples.androidwebview.scenarios.NetworkScenarios
 import io.getstream.samples.androidwebview.webview.WebController
 
 private const val PREFS = "settings"
 private const val LAST_URL_KEY = "lastURL"
 
+/** A URL to load from outside the URL bar; [id] makes a repeated URL load again. */
+data class LaunchRequest(val url: String, val id: Long)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContentScreen(web: WebController, audio: AudioScenarios, launchUrl: String?) {
+fun ContentScreen(
+    web: WebController,
+    audio: AudioScenarios,
+    network: NetworkScenarios,
+    launchRequest: LaunchRequest?,
+) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
     var urlText by remember { mutableStateOf(prefs.getString(LAST_URL_KEY, "") ?: "") }
@@ -61,9 +70,9 @@ fun ContentScreen(web: WebController, audio: AudioScenarios, launchUrl: String?)
         }
     }
 
-    LaunchedEffect(launchUrl) {
-        if (launchUrl != null) {
-            urlText = launchUrl
+    LaunchedEffect(launchRequest) {
+        if (launchRequest != null) {
+            urlText = launchRequest.url
             loadUrl()
         }
     }
@@ -73,7 +82,7 @@ fun ContentScreen(web: WebController, audio: AudioScenarios, launchUrl: String?)
         topBar = {
             TopAppBar(
                 title = { Text("AndroidWebView") },
-                actions = { ScenariosMenu(audio = audio, web = web) },
+                actions = { ScenariosMenu(audio = audio, network = network, web = web) },
             )
         },
     ) { padding ->

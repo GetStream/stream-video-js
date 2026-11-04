@@ -82,6 +82,36 @@ on first launch. Grant all of them (or run
 | `webViewWebContentProcessDidTerminate`    | `WebViewClient.onRenderProcessGone`: logs the crash and swaps in a fresh WebView (tap ↻ to reload the last URL)            |
 | `WKWebView+Observation.swift`             | [`HostBridge.kt`](./app/src/main/java/io/getstream/samples/androidwebview/webview/HostBridge.kt), described below          |
 
+## Automation (debug builds)
+
+Debug builds accept `androidwebview://` commands through `am start`, with the
+same grammar as the iOS sample's `iowebview://`, so a test run can drive the
+app from the shell and read the results from logcat:
+
+```sh
+adb logcat -s AndroidWebView
+adb shell am start -n io.getstream.samples.androidwebview/.MainActivity \
+  -d 'androidwebview://scenario?name=ding-exclusive'
+```
+
+- `load?url=<percent-encoded URL>` loads a page (a plain `-d <url>` still works too).
+- `scenario?name=<id>` runs a scenario: `restore`, `ding-mix`,
+  `ding-exclusive`, `ding-auto-restore`, `ding-no-restore`,
+  `ringtone-start`, `ringtone-stop`, `notification`, `dump`,
+  `stale-offline`, `mode-<normal|ringtone|inCall|inCommunication|callScreening>`,
+  `tone-<16000|44100|48000>`, `mic-capture-<16000|44100|48000>`,
+  `mic-capture-stop`, `toggle-route`, `fgs-start`, `fgs-stop`,
+  `crash-renderer`. An unknown name logs the full list.
+- `eval?js=<percent-encoded function body>` runs JS in the page as an async
+  function (`await` works; `return` a value to log it to the Console tab as
+  `[eval] → <value>`). `eval?src=<percent-encoded http URL>` fetches the
+  script natively first (no CORS); with `adb reverse`, a script served on the
+  laptop is reachable at `http://localhost:<port>`.
+
+Each command reaches the running activity through `onNewIntent`, which briefly
+pauses and resumes it; the host bridge reports that as `willResignActive` /
+`didBecomeActive`, and the call itself isn't affected.
+
 ## Host bridge
 
 [`HostBridge.kt`](./app/src/main/java/io/getstream/samples/androidwebview/webview/HostBridge.kt)
@@ -155,22 +185,25 @@ process lifecycle: `willEnterForeground` (start), `didBecomeActive` (resume),
 
 ## Scenarios reference
 
-| Group       | Action                                                       | What it exercises                                                                                                                              |
-| ----------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Audio state | (header line)                                                | Mode, communication device, music active, focus held by the app, active recordings and how many are silenced. Re-read on every open.           |
-|             | Dump state to Lifecycle                                      | One-line dump of mode, devices, volumes, focus and recordings.                                                                                 |
-| Recovery    | Restore audio (native)                                       | Abandons any focus the app still holds, sets `MODE_IN_COMMUNICATION` and clears a forced communication device.                                 |
-| 🎛 Set mode  | normal / ringtone / inCall / inCommunication / callScreening | `AudioManager.setMode`. Logs when the OS ignores the request. Counterpart of the iOS category switcher.                                        |
-| Sounds      | Play ding (mix)                                              | Plays `res/raw/ding` with `USAGE_MEDIA` and no focus request: mixes with WebRTC audio.                                                         |
-|             | Play ding (exclusive)                                        | Requests `AUDIOFOCUS_GAIN` and never abandons it: the "webview audio goes quiet after a native sound" repro. Use Restore afterwards.           |
-|             | Play ding (exclusive, auto-restore)                          | `AUDIOFOCUS_GAIN_TRANSIENT`, abandoned on completion and the mode set back to `MODE_IN_COMMUNICATION`: the "right way".                        |
-|             | Play ding (exclusive, NO restore)                            | `AUDIOFOCUS_GAIN`, abandoned on completion without restoring the mode: does WebView recover on its own?                                        |
-|             | Ringtone loop / Stop ringtone                                | Looping `USAGE_NOTIFICATION_RINGTONE` playback with transient focus: app-owned audio overlapping WebRTC for a long time.                       |
-|             | Notification with sound (2s)                                 | Posts a high-importance notification with the default sound after 2 seconds.                                                                   |
-| Android     | Start / Stop second mic capture (meter)                      | A second `VOICE_COMMUNICATION` `AudioRecord` next to the WebView's; logs its level twice a second and shows whether a capture is silenced.     |
-|             | Toggle route (speaker ↔ earpiece)                            | `setCommunicationDevice` (Android 12+) or `setSpeakerphoneOn`. The emulator has no earpiece.                                                   |
-|             | Start / Stop foreground service (mic\|camera)                | Android blocks background capture unless a typed foreground service was started while visible. Compare minimizing the app with and without it. |
-|             | Crash renderer                                               | Loads `chrome://crash` to exercise renderer-crash handling.                                                                                    |
+| Group         | Action                                                       | What it exercises                                                                                                                                                                                                                     |
+| ------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Network       | Stale offline event (online → offline 0.5s)                  | Dispatches `online`, then `offline` 0.5 s later, while the network keeps working. The call should stay joined (or be back within about 2 s) without reconnecting.                                                                     |
+| Audio state   | (header line)                                                | Mode, communication device, music active, focus held by the app, active recordings and how many are silenced. Re-read on every open.                                                                                                  |
+|               | Dump state to Lifecycle                                      | One-line dump of mode, devices, volumes, focus, recordings, output sample rate and frames per buffer.                                                                                                                                 |
+| Recovery      | Restore audio (native)                                       | Abandons any focus the app still holds, sets `MODE_IN_COMMUNICATION` and clears a forced communication device.                                                                                                                        |
+| 🎛 Set mode    | normal / ringtone / inCall / inCommunication / callScreening | `AudioManager.setMode`. Logs when the OS ignores the request. Counterpart of the iOS category switcher.                                                                                                                               |
+| Sounds        | Play ding (mix)                                              | Plays `res/raw/ding` with `USAGE_MEDIA` and no focus request: mixes with WebRTC audio.                                                                                                                                                |
+|               | Play ding (exclusive)                                        | Requests `AUDIOFOCUS_GAIN` and never abandons it: the "webview audio goes quiet after a native sound" repro. Use Restore afterwards.                                                                                                  |
+|               | Play ding (exclusive, auto-restore)                          | `AUDIOFOCUS_GAIN_TRANSIENT`, abandoned on completion and the mode set back to `MODE_IN_COMMUNICATION`: the "right way".                                                                                                               |
+|               | Play ding (exclusive, NO restore)                            | `AUDIOFOCUS_GAIN`, abandoned on completion without restoring the mode: does WebView recover on its own?                                                                                                                               |
+|               | Ringtone loop / Stop ringtone                                | Looping `USAGE_NOTIFICATION_RINGTONE` playback with transient focus: app-owned audio overlapping WebRTC for a long time.                                                                                                              |
+|               | Notification with sound (2s)                                 | Posts a high-importance notification with the default sound after 2 seconds.                                                                                                                                                          |
+| 🎚 Sample rate | Play tone at 16000 / 44100 / 48000 Hz                        | A 3 s tone through an `AudioTrack` at that rate (`USAGE_MEDIA`, no focus), so the mixer resamples next to WebRTC. Android has no app-settable hardware rate like iOS's preferred sample rate; the dump logs the device's output rate. |
+|               | Second mic capture at 16000 / 44100 / 48000 Hz               | The second capture below, opened at that rate: a rate other than WebRTC's can make the HAL reopen the shared input stream.                                                                                                            |
+| Android       | Start / Stop second mic capture (meter)                      | A second `VOICE_COMMUNICATION` `AudioRecord` next to the WebView's; logs its level twice a second and shows whether a capture is silenced.                                                                                            |
+|               | Toggle route (speaker ↔ earpiece)                            | `setCommunicationDevice` (Android 12+) or `setSpeakerphoneOn`. The emulator has no earpiece.                                                                                                                                          |
+|               | Start / Stop foreground service (mic\|camera)                | Android blocks background capture unless a typed foreground service was started while visible. Compare minimizing the app with and without it.                                                                                        |
+|               | Crash renderer                                               | Loads `chrome://crash` to exercise renderer-crash handling.                                                                                                                                                                           |
 
 ## Customer test scenarios - crosswalk
 
