@@ -19,6 +19,13 @@ RCT_EXTERN_METHOD(start)
 
 RCT_EXTERN_METHOD(stop)
 
+RCT_EXTERN_METHOD(waitForAudioSessionActive:(double)timeoutMs
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(reactivateAudioSession:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+
 RCT_EXTERN_METHOD(showAudioRoutePicker)
 
 RCT_EXTERN_METHOD(getAudioDeviceStatus:(RCTPromiseResolveBlock)resolve
@@ -35,6 +42,8 @@ RCT_EXTERN_METHOD(setMicrophoneMute:(BOOL)enable)
 RCT_EXTERN_METHOD(logAudioState)
 
 RCT_EXTERN__BLOCKING_SYNCHRONOUS_METHOD(getAudioStateLog)
+
+RCT_EXTERN__BLOCKING_SYNCHRONOUS_METHOD(getAudioSessionState)
 
 RCT_EXTERN_METHOD(muteAudioOutput)
 

@@ -7,6 +7,7 @@ import { useScreenShareAudioMixing } from '../../hooks/useScreenShareAudioMixing
 import { AppStateListener } from './AppStateListener';
 import { DeviceStats } from './DeviceStats';
 import { AudioInterruptionTracer } from './AudioInterruptionTracer';
+import { AudioSessionDiagnosticsTracer } from './AudioSessionDiagnosticsTracer';
 import { pushUnsubscriptionCallbacks } from '../../utils/push/internal/constants';
 import { useCallingExpWithCallingStateEffect } from '../../hooks/push/useCallingExpWithCallingStateEffect';
 
@@ -41,6 +42,7 @@ export const StreamCall = ({
       <ScreenShareAudioMixer />
       <DeviceStats />
       <AudioInterruptionTracer />
+      <AudioSessionDiagnosticsTracer />
       {children}
     </StreamCallProvider>
   );

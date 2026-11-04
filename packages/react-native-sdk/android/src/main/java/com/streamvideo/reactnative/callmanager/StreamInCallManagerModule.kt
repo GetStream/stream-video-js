@@ -2,12 +2,14 @@ package com.streamvideo.reactnative.callmanager
 
 import android.util.Log
 import android.view.WindowManager
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.UiThreadUtil
+import com.facebook.react.bridge.WritableMap
 import com.streamvideo.reactnative.audio.AudioDeviceManager
 import com.streamvideo.reactnative.audio.utils.CallAudioRole
 import com.streamvideo.reactnative.audio.utils.WebRtcAudioUtils
@@ -184,6 +186,12 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun reactivateAudioSession(promise: Promise) {
+        // iOS only
+        promise.resolve(false)
+    }
+
+    @ReactMethod
     fun getAudioDeviceStatus(promise: Promise) {
         promise.resolve(mAudioDeviceManager.audioStatusMap())
     }
@@ -229,6 +237,9 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
             mAudioDeviceManager.unmuteAudioOutput()
         }
     }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun getAudioSessionState(): WritableMap = Arguments.createMap()
 
 
     override fun onHostResume() {

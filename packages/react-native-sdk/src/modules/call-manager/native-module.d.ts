@@ -1,6 +1,11 @@
 import 'react-native';
 import type { NativeModule } from 'react-native';
-import type { AudioDevicesState, AudioRole, DeviceEndpointType } from './types';
+import type {
+  AudioDevicesState,
+  AudioRole,
+  DeviceEndpointType,
+  IOSAudioSessionState,
+} from './types';
 
 export interface CallManager extends NativeModule {
   /**
@@ -79,6 +84,25 @@ export interface CallManager extends NativeModule {
    * Stop the in call manager.
    */
   stop: () => void;
+
+  /**
+   * Resolves whether the shared iOS audio session is active, polling until
+   * `timeoutMs`. Resolves at once when `start()` failed or callingx owns the
+   * session. iOS-only.
+   */
+  waitForAudioSessionActive: (timeoutMs: number) => Promise<boolean>;
+
+  /**
+   * Re-activates the SDK-owned iOS audio session when iOS cleared it.
+   * Resolves whether the session is active afterwards; rejects with the
+   * AVAudioSession error. iOS-only.
+   */
+  reactivateAudioSession: () => Promise<boolean>;
+
+  /**
+   * Snapshot of the shared iOS audio session (sync). iOS-only.
+   */
+  getAudioSessionState: () => IOSAudioSessionState;
 
   /**
    * Setup the in call manager.

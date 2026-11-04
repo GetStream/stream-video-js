@@ -49,6 +49,48 @@ export type IOSAudioInterruptionEvent = {
   shouldResume?: boolean;
 };
 
+/**
+ * Compact snapshot of the iOS shared `AVAudioSession`.
+ */
+export type IOSAudioSessionState = {
+  /** Category without the `AVAudioSessionCategory` prefix, e.g. `PlayAndRecord`. */
+  category: string;
+  /** Mode without the `AVAudioSessionMode` prefix, e.g. `VoiceChat`. */
+  mode: string;
+  /** `AVAudioSession.CategoryOptions` raw value. */
+  options: number;
+  isActive: boolean;
+  isOtherAudioPlaying: boolean;
+  callingxOwnsSession: boolean;
+  /** Input port types `>` output port types, e.g. `MicrophoneBuiltIn>Speaker`. */
+  route: string;
+  /** Anything but `granted` makes the SDK use an output-only `.playback` session. */
+  micPermission: 'granted' | 'denied' | 'undetermined' | (string & {});
+};
+
+/**
+ * Emitted by the iOS in-call manager when it configures or activates the audio
+ * session for a (non-CallKit) call, or when an audio device module call fails.
+ * Failures would otherwise only be visible in the native device logs.
+ */
+export type IOSAudioSessionDiagnosticEvent = Partial<IOSAudioSessionState> & {
+  event:
+    | 'setupError'
+    | 'engineEnableApplied'
+    | 'engineEnableError'
+    | 'startPlayoutError'
+    | 'setMuteModeError'
+    | 'setRecordingAlwaysPreparedModeError'
+    | (string & {});
+  error?: string;
+  /** `setMuteModeError` only. */
+  muteMode?: number;
+  /** `setRecordingAlwaysPreparedModeError` only. */
+  enabled?: boolean;
+  /** Native result code of the failed call. */
+  result?: number;
+};
+
 export type StreamInCallManagerConfig =
   | {
       audioRole: 'communicator';

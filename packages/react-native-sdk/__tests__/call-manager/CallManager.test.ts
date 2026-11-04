@@ -17,6 +17,8 @@ const makeNativeManager = () => ({
   start: jest.fn(),
   stop: jest.fn(),
   setup: jest.fn(),
+  stopSound: jest.fn(),
+  waitForAudioSessionActive: jest.fn().mockResolvedValue(true),
   chooseAudioDeviceEndpoint: jest.fn(),
   getAudioDeviceStatus: jest.fn(),
   setForceSpeakerphoneOn: jest.fn(),

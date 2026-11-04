@@ -13,6 +13,7 @@ import { of } from 'rxjs';
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { OwnCapability } from '../../gen/coordinator';
 import { settled, withoutConcurrency } from '../../helpers/concurrency';
+import { promiseWithResolvers } from '../../helpers/promise';
 import { ClientEventReporter } from '../../reporting';
 
 let speechActivityCallback:
@@ -107,6 +108,31 @@ describe('MicrophoneManager React Native', () => {
     await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
     expect(fn).toHaveBeenCalled();
     expect(subscribeMock).toHaveBeenCalled();
+  });
+
+  it('restarts the detection when an enable is rolled back', async () => {
+    await manager.enable();
+    await manager.disable();
+    await vi.waitUntil(() => subscribeMock.mock.calls.length === 1, {
+      timeout: 100,
+    });
+    // a slow enable: the detection stops on the intent, the failure flips the
+    // intent back while the committed status never changed
+    const pending = promiseWithResolvers<void>();
+    vi.spyOn(manager as any, 'unmuteStream').mockReturnValueOnce(
+      pending.promise,
+    );
+    const enabling = manager.enable();
+    await vi.waitUntil(() => unsubscribeMocks[0]!.mock.calls.length === 1, {
+      timeout: 100,
+    });
+    pending.reject(new Error('x'));
+    await expect(enabling).rejects.toThrow('x');
+
+    await vi.waitUntil(() => subscribeMock.mock.calls.length === 2, {
+      timeout: 100,
+    });
+    expect(manager.state.optimisticStatus).toBe('disabled');
   });
 
   it('should check native microphone permission before starting detection', async () => {
