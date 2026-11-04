@@ -93,11 +93,11 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     fun setDefaultAudioDeviceEndpointType(endpointDeviceTypeName: String) {
         AudioDeviceManager.runInAudioThread {
             if (audioManagerActivated) {
-                Log.e(TAG, "setAudioRole(): AudioManager is already activated and so default audio device cannot be changed, current audio default device is ${mAudioDeviceManager.defaultAudioDevice}")
+                Log.e(TAG, "setDefaultAudioDeviceEndpointType(): AudioManager is already activated and so default audio device cannot be changed, current audio default device is ${mAudioDeviceManager.defaultAudioDevice}")
                 return@runInAudioThread
             }
             val endpointType = endpointDeviceTypeName.lowercase(Locale.getDefault())
-            Log.d(TAG, "runInAudioThread(): $endpointDeviceTypeName $endpointType")
+            Log.d(TAG, "setDefaultAudioDeviceEndpointType(): $endpointDeviceTypeName $endpointType")
             if (endpointType == "earpiece") {
                 mAudioDeviceManager.defaultAudioDevice = AudioDeviceEndpoint.TYPE_EARPIECE
             } else {
@@ -114,13 +114,6 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
                 return@runInAudioThread
             }
             mAudioDeviceManager.enableStereo = enabled
-        }
-    }
-
-    @ReactMethod
-    fun setup() {
-        AudioDeviceManager.runInAudioThread {
-            mAudioDeviceManager.setup()
         }
     }
 

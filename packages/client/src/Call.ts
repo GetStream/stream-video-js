@@ -129,7 +129,6 @@ import {
   ClosedCaptionsSettings,
   JoinCallData,
   StartCallRecordingFnType,
-  StreamRNVideoSDKAudioSessionPrepareResult,
   TrackMuteType,
   VideoTrackType,
 } from './types';
@@ -185,6 +184,7 @@ import {
 import { getClientDetails } from './helpers/client-details';
 import {
   CameraManager,
+  getRNDefaultAudioDevice,
   MicrophoneManager,
   ScreenShareManager,
   SpeakerManager,
@@ -1646,6 +1646,18 @@ export class Call {
       );
     }
 
+    // React Native: start the native call manager once per join, before the
+    // first publish (fire-and-forget; on iOS the native engine gate makes the
+    // order with the publish irrelevant). leave() stops it (callManagerStarted).
+    if (!this.callManagerStarted && !supersededByLeave()) {
+      globalThis.streamRNVideoSDK?.callManager.start({
+        isRingingTypeCall: this.ringing,
+        cid: this.cid,
+        defaultDevice: getRNDefaultAudioDevice(this.state.settings),
+      });
+      this.callManagerStarted = true;
+    }
+
     // device settings should be applied only once, we don't have to
     // re-apply them on later reconnections or server-side data fetches
     if (
@@ -1653,34 +1665,8 @@ export class Call {
       this.state.settings &&
       !supersededByLeave()
     ) {
-      // the native default device must be set before the audio session is
-      // activated (prepare); the native setter rejects it afterwards
-      await this.speaker
-        .apply(this.state.settings)
-        .catch((err) => this.logger.warn('Speaker init failed', err));
-      if (supersededByLeave()) {
-        this.logger.debug('Join superseded by leave; not completing join flow');
-        return;
-      }
-      await this.prepareAudioSessionForPublish();
-      if (supersededByLeave()) {
-        // leave() already stopped what prepare started (callManagerStarted)
-        this.logger.debug('Join superseded by leave; not completing join flow');
-        return;
-      }
-      await this.applyDeviceConfig(this.state.settings, {
-        publish: true,
-        skipSpeakerApply: true,
-      });
+      await this.applyDeviceConfig(this.state.settings, { publish: true });
       this.deviceSettingsAppliedOnce = true;
-    }
-
-    if (!this.callManagerStarted && !supersededByLeave()) {
-      globalThis.streamRNVideoSDK?.callManager.start({
-        isRingingTypeCall: this.ringing,
-        cid: this.cid,
-      });
-      this.callManagerStarted = true;
     }
 
     // We shouldn't persist the `ring` and `notify` state after joining the call
@@ -1726,34 +1712,6 @@ export class Call {
       previousSessionId: performingRejoin ? previousSessionId || '' : '',
       reason: this.reconnectReason,
     };
-  };
-
-  /**
-   * React Native (iOS, non-callingx): activates the audio session before the
-   * first publish, so the ADM never starts the engine on an inactive session.
-   * The call manager starts synchronously, so it counts as started before the
-   * wait: a leave() during the wait stops it. A failure is logged and never
-   * blocks the join; a synchronous throw leaves the join-time start to run.
-   */
-  private prepareAudioSessionForPublish = async (): Promise<void> => {
-    const callManager = globalThis.streamRNVideoSDK?.callManager;
-    let wait: Promise<StreamRNVideoSDKAudioSessionPrepareResult> | undefined;
-    try {
-      wait = callManager?.prepareAudioSessionForPublish?.({
-        isRingingTypeCall: this.ringing,
-        cid: this.cid,
-      });
-    } catch (err) {
-      this.logger.warn('Failed to prepare the audio session', err);
-      return;
-    }
-    if (!wait) return;
-    this.callManagerStarted = true;
-    try {
-      this.tracer.trace('ios.audioSession.prepare', await wait);
-    } catch (err) {
-      this.logger.warn('Failed to prepare the audio session', err);
-    }
   };
 
   /**
@@ -3845,21 +3803,13 @@ export class Call {
     settings: CallSettingsResponse,
     opts: {
       publish: boolean;
-      skipSpeakerApply?: boolean;
       withDisabledDevices?: boolean;
     },
   ) => {
-    const {
-      publish,
-      // Skip speaker setup on RN until joining (explicitly passed as false during join())
-      skipSpeakerApply = isReactNative(),
-      withDisabledDevices,
-    } = opts;
-    if (!skipSpeakerApply) {
-      await this.speaker
-        .apply(settings)
-        .catch((err) => this.logger.warn('Speaker init failed', err));
-    }
+    const { publish, withDisabledDevices } = opts;
+    await this.speaker
+      .apply()
+      .catch((err) => this.logger.warn('Speaker init failed', err));
     await this.camera
       .apply(settings.video, publish, withDisabledDevices)
       .catch((err) => this.logger.warn('Camera init failed', err));

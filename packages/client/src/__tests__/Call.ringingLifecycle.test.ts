@@ -43,7 +43,7 @@ const install = (overrides: Record<string, unknown> = {}) => {
     ringingCallLifecycle: { beforeJoin, onJoinFailed, onLeave },
     callingX,
     // `leave()` reaches this unconditionally; the globals object is all-or-nothing
-    callManager: { setup: vi.fn(), start: vi.fn(), stop: vi.fn() },
+    callManager: { start: vi.fn(), stop: vi.fn() },
     ...overrides,
   } as any;
   return { beforeJoin, onJoinFailed, onLeave, callingX };

@@ -86,13 +86,6 @@ export interface CallManager extends NativeModule {
   stop: () => void;
 
   /**
-   * Resolves whether the shared iOS audio session is active, polling until
-   * `timeoutMs`. Resolves at once when `start()` failed or callingx owns the
-   * session. iOS-only.
-   */
-  waitForAudioSessionActive: (timeoutMs: number) => Promise<boolean>;
-
-  /**
    * Re-activates the SDK-owned iOS audio session when iOS cleared it.
    * Resolves whether the session is active afterwards; rejects with the
    * AVAudioSession error. iOS-only.
@@ -103,11 +96,6 @@ export interface CallManager extends NativeModule {
    * Snapshot of the shared iOS audio session (sync). iOS-only.
    */
   getAudioSessionState: () => IOSAudioSessionState;
-
-  /**
-   * Setup the in call manager.
-   */
-  setup: () => void;
 
   /**
    * Mutes the speaker
