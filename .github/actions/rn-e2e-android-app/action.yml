@@ -21,6 +21,8 @@ runs:
       if: steps.apk.outputs.cache-hit != 'true'
       shell: bash
       working-directory: sample-apps/react-native/dogfood
+      env:
+        GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"'
       # The emulator is x86_64: skip compiling native code for the other ABIs.
       run: ORG_GRADLE_PROJECT_reactNativeArchitectures=x86_64 yarn e2e:build -c android.att.release
     - name: Save APKs
