@@ -748,7 +748,11 @@ describe('Call lifecycle wiring', () => {
     await call.leave();
   });
 
-  it('call.join() starts the RN call manager once, with the settings default, before the first publish', async () => {
+  /** A joinable call with mocked peers and an RN call manager installed. */
+  const setupRNJoin = (
+    callManager: { start: () => void; stop: () => void },
+    settings: Record<string, unknown> = { audio: {} },
+  ) => {
     vi.spyOn(call, 'setup').mockResolvedValue(undefined);
     call['credentials'] = fromPartial({ ice_servers: [] });
     call['lastStatsOptions'] = fromPartial({ reporting_interval_ms: 0 });
@@ -758,11 +762,7 @@ describe('Call lifecycle wiring', () => {
       leaveAndClose: vi.fn().mockResolvedValue(undefined),
     });
     call.state['settingsSubject'].next(
-      fromPartial({
-        audio: { speaker_default_on: true },
-        screensharing: {},
-        video: {},
-      }),
+      fromPartial({ screensharing: {}, video: {}, ...settings }),
     );
     vi.spyOn(rtc, 'Subscriber').mockImplementation(function () {
       return fromPartial<rtc.Subscriber>(makePeer());
@@ -770,12 +770,14 @@ describe('Call lifecycle wiring', () => {
     vi.spyOn(rtc, 'Publisher').mockImplementation(function () {
       return fromPartial<rtc.Publisher>(makePeer());
     });
+    (globalThis as Record<string, any>).streamRNVideoSDK = { callManager };
+  };
+
+  it('call.join() starts the RN call manager once, with the settings default, before the first publish', async () => {
     const order: string[] = [];
     const start = vi.fn(() => order.push('start'));
     const stop = vi.fn();
-    (globalThis as Record<string, any>).streamRNVideoSDK = {
-      callManager: { start, stop },
-    };
+    setupRNJoin({ start, stop }, { audio: { speaker_default_on: true } });
     const configure = vi
       .spyOn(internalCall, 'applyDeviceConfig')
       .mockImplementation(async () => {
@@ -804,28 +806,9 @@ describe('Call lifecycle wiring', () => {
   });
 
   it('call.join() does not start the RN call manager when leave() lands before the join flow reaches it', async () => {
-    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
-    call['credentials'] = fromPartial({ ice_servers: [] });
-    call['lastStatsOptions'] = fromPartial({ reporting_interval_ms: 0 });
-    call['sfuClient'] = fromPartial({
-      isHealthy: true,
-      sessionId: 'test-session',
-      leaveAndClose: vi.fn().mockResolvedValue(undefined),
-    });
-    call.state['settingsSubject'].next(
-      fromPartial({ audio: {}, screensharing: {}, video: {} }),
-    );
-    vi.spyOn(rtc, 'Subscriber').mockImplementation(function () {
-      return fromPartial<rtc.Subscriber>(makePeer());
-    });
-    vi.spyOn(rtc, 'Publisher').mockImplementation(function () {
-      return fromPartial<rtc.Publisher>(makePeer());
-    });
     const start = vi.fn();
     const stop = vi.fn();
-    (globalThis as Record<string, any>).streamRNVideoSDK = {
-      callManager: { start, stop },
-    };
+    setupRNJoin({ start, stop });
     // leave() during the (mocked) ensureMediaFactory step, before the call manager start
     const pending = promiseWithResolvers<void>();
     vi.spyOn(internalCall, 'ensureMediaFactory').mockImplementation(

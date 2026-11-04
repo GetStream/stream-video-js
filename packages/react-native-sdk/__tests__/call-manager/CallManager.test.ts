@@ -400,56 +400,44 @@ describe('internal callManager.start on iOS', () => {
     expect(nativeManager.start).toHaveBeenCalledTimes(1);
   });
 
-  it('forwards the settings default to callingx only when callingx owns the session', () => {
-    const nativeManager = makeNativeManager();
-    const callingx = makeCallingx({ isOngoingCallsEnabled: true });
-    const { internalCallManager } = loadCallManager({
-      os: 'ios',
-      nativeManager,
-      callingx,
-    });
+  it.each([
+    ['the settings default', undefined, 'earpiece'],
+    ['the stored override', 'speaker', 'speaker'],
+  ] as const)(
+    'forwards %s to callingx only when callingx owns the session',
+    (_, override, expected) => {
+      const nativeManager = makeNativeManager();
+      const callingx = makeCallingx({ isOngoingCallsEnabled: true });
+      const { publicCallManager, internalCallManager } = loadCallManager({
+        os: 'ios',
+        nativeManager,
+        callingx,
+      });
+      if (override) {
+        publicCallManager.start({
+          audioRole: 'communicator',
+          deviceEndpointType: override,
+        });
+      }
 
-    internalCallManager.start({
-      isRingingTypeCall: false,
-      cid: 'type:id',
-      defaultDevice: 'earpiece',
-    });
+      internalCallManager.start({
+        isRingingTypeCall: false,
+        cid: 'type:id',
+        defaultDevice: 'earpiece',
+      });
 
-    expect(callingx.setDefaultAudioDeviceEndpointType).toHaveBeenCalledTimes(1);
-    expect(callingx.setDefaultAudioDeviceEndpointType).toHaveBeenCalledWith(
-      'earpiece',
-    );
-    expect(
-      nativeManager.setDefaultAudioDeviceEndpointType,
-    ).not.toHaveBeenCalled();
-    expect(nativeManager.setAudioRole).not.toHaveBeenCalled();
-    expect(nativeManager.setEnableStereoAudioOutput).not.toHaveBeenCalled();
-    expect(nativeManager.start).not.toHaveBeenCalled();
-  });
-
-  it('forwards the stored override to callingx when callingx owns the session', () => {
-    const nativeManager = makeNativeManager();
-    const callingx = makeCallingx({ isOngoingCallsEnabled: true });
-    const { publicCallManager, internalCallManager } = loadCallManager({
-      os: 'ios',
-      nativeManager,
-      callingx,
-    });
-    publicCallManager.start({
-      audioRole: 'communicator',
-      deviceEndpointType: 'speaker',
-    });
-
-    internalCallManager.start({
-      isRingingTypeCall: false,
-      cid: 'type:id',
-      defaultDevice: 'earpiece',
-    });
-
-    expect(callingx.setDefaultAudioDeviceEndpointType).toHaveBeenCalledTimes(1);
-    expect(callingx.setDefaultAudioDeviceEndpointType).toHaveBeenCalledWith(
-      'speaker',
-    );
-    expect(nativeManager.start).not.toHaveBeenCalled();
-  });
+      expect(callingx.setDefaultAudioDeviceEndpointType).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(callingx.setDefaultAudioDeviceEndpointType).toHaveBeenCalledWith(
+        expected,
+      );
+      expect(
+        nativeManager.setDefaultAudioDeviceEndpointType,
+      ).not.toHaveBeenCalled();
+      expect(nativeManager.setAudioRole).not.toHaveBeenCalled();
+      expect(nativeManager.setEnableStereoAudioOutput).not.toHaveBeenCalled();
+      expect(nativeManager.start).not.toHaveBeenCalled();
+    },
+  );
 });

@@ -61,8 +61,8 @@ const isMicPermissionGranted = async () => {
  * one SDK re-activation (`reactivateAudioSession`); when iOS refuses it
  * (another app owns the audio) the tracer waits for the next interruption
  * end, session activation or app foreground, keeping its budget; any other
- * re-activation failure is re-checked within the episode budget. Otherwise
- * an unhealthy engine
+ * re-activation failure is re-checked on a budget of its own (same size and
+ * spacing as the engine recovery below). Otherwise an unhealthy engine
  * is restarted with `AudioDeviceModule.recoverEngineIfNeeded`, at most
  * {@link MAX_EPISODE_ATTEMPTS} times per failure episode (re-checked
  * {@link ATTEMPT_INTERVAL_MS} after each failed attempt) and
@@ -125,6 +125,10 @@ export const AudioSessionDiagnosticsTracer = () => {
     let episodeAttempts = 0;
     let callAttempts = 0;
     let lastAttemptAt: number | undefined;
+    // session re-activations: a budget of their own (a successful one must
+    // leave the engine recovery its full budget)
+    let activationAttempts = 0;
+    let lastActivationAt: number | undefined;
     // the native recovery blocks (up to ~2 s): one check at a time, a trigger
     // arriving meanwhile is kept (the latest one) and checked once afterwards
     let inFlight: Promise<void> | undefined;
@@ -177,6 +181,7 @@ export const AudioSessionDiagnosticsTracer = () => {
       };
       if (isEngineHealthy(state, wantsRecording)) {
         episodeAttempts = 0;
+        activationAttempts = 0;
         lastUnhealthyKey = undefined;
         const key = JSON.stringify(minimalState);
         if (key === lastHealthyKey) return;
@@ -212,6 +217,15 @@ export const AudioSessionDiagnosticsTracer = () => {
         // hardware format) and a rejoin would build a half-initialised ADM:
         // re-activate it (WebRTC's own re-activation on interruption end runs
         // once), and wait for the next signal when iOS refuses
+        const sinceLastActivation =
+          lastActivationAt === undefined
+            ? Infinity
+            : Date.now() - lastActivationAt;
+        if (sinceLastActivation < ATTEMPT_INTERVAL_MS) {
+          scheduleCheck('recheck', ATTEMPT_INTERVAL_MS - sinceLastActivation);
+          return;
+        }
+        lastActivationAt = Date.now();
         const reason = await reactivateSession();
         if (disposed) return;
         if (reason) {
@@ -220,7 +234,7 @@ export const AudioSessionDiagnosticsTracer = () => {
               trigger,
               result: 'skipped',
               reason,
-              attempt: episodeAttempts + 1,
+              attempt: activationAttempts + 1,
             });
           }
           logger.debug(`recovery '${trigger}' postponed, ${reason}`);
@@ -230,14 +244,15 @@ export const AudioSessionDiagnosticsTracer = () => {
           }
           // bounded re-check (no rejoin against an inactive session); later
           // triggers (mic enabled, app active) keep checking
-          episodeAttempts += 1;
-          if (episodeAttempts < MAX_EPISODE_ATTEMPTS) {
+          activationAttempts += 1;
+          if (activationAttempts < MAX_EPISODE_ATTEMPTS) {
             scheduleCheck('recheck', ATTEMPT_INTERVAL_MS);
           } else {
-            episodeAttempts = 0;
+            activationAttempts = 0;
           }
           return;
         }
+        activationAttempts = 0;
       }
 
       await recoverEngine(trigger, wantsRecording, changed);
