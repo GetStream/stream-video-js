@@ -52,7 +52,7 @@ yarn install && yarn build:react-native:deps            # from the repo root
 # Everything: starts stream-video-buddy, builds, tests, stops the buddy
 bundle exec fastlane test_e2e                            # AVD from DETOX_AVD_NAME (default Pixel_API_37)
 # Options: configuration:debug, skip_build:true, device:att (a booted emulator, DETOX_ADB_NAME),
-#          test:e2e/tests/LobbyTests.e2e.ts
+#          test:e2e/tests/LobbyTests.e2e.ts, batch:0 batch_count:3 (every 3rd test, from the first)
 
 # Or by hand (yarn commands in sample-apps/react-native/e2e-test-app)
 bundle exec fastlane start_video_buddy                   # server on VIDEO_BUDDY_PORT (default 5678)
@@ -76,8 +76,14 @@ dogfood Fastfile's `impact_analysis`). The emulator job runs only when the PR to
 sources, or when the last change to them hasn't passed yet. `Test E2E Result` is the job to require in branch
 protection: it passes when the e2e jobs pass or are skipped as not required.
 
-Both workflows report to Allure TestOps (project 168, `stream-video-react-native`). Each emulator job opens a launch
-(`fastlane allure_launch`, named after the PR; `cron:true` on the nightly), uploads `allure-results/`
+The PR workflow splits the tests like the native Android SDK: `Build Android` builds (or restores) the APKs once and
+uploads them, and `Test Android` runs a matrix of up to 8 batches (`e2e_batches` from `e2e_check_required`: one per
+test when there are fewer than 8). Each batch runs `test_e2e batch:<n> batch_count:<total>`, every `total`-th test,
+round-robin, which `e2e/jest.config.js` reads from `E2E_SELECTION`.
+
+Both workflows report to Allure TestOps (project 168, `stream-video-react-native`). On PRs, `Launch Allure TestOps
+(Android)` opens one launch for every batch; the nightly opens one per emulator job (`fastlane allure_launch`, named
+after the PR; `cron:true` on the nightly). Each job uploads `allure-results/`
 (`allure_upload`), and deletes the launch when cancelled (`allure_launch_removal`). These lanes live in
 `sample-apps/react-native/dogfood/fastlane/Allurefile`, which the dogfood Fastfile imports, as on iOS. PRs from forks
 and Dependabot get no `ALLURE_TOKEN`, so they run without Allure.

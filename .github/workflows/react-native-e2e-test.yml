@@ -32,6 +32,7 @@ jobs:
     timeout-minutes: 10
     outputs:
       required: ${{ steps.check.outputs.required }}
+      e2e_batches: ${{ steps.check.outputs.e2e_batches }}
     steps:
       - uses: actions/checkout@v7
       - uses: ruby/setup-ruby@v1
@@ -44,16 +45,12 @@ jobs:
         working-directory: sample-apps/react-native/dogfood
         run: bundle exec fastlane e2e_check_required
 
-  android:
+  android-build:
+    name: Build Android
     needs: check
     if: needs.check.outputs.required == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
-    env:
-      # No camera: with an emulated one, `call.join()` sometimes never resolves (RN-474).
-      ANDROID_API_LEVEL: '36'
-      ANDROID_EMULATOR_OPTIONS: -no-snapshot-save -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -camera-front none
-      DETOX_ADB_NAME: 'emulator-5554'
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
@@ -67,22 +64,76 @@ jobs:
           cache-read-only: false
       - uses: ./.github/actions/rn-e2e-setup
       - uses: ./.github/actions/rn-e2e-android-app
+      - uses: actions/upload-artifact@v7
+        with:
+          name: e2e-android-apks
+          path: |
+            sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk/release/app-release.apk
+            sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk
+          retention-days: 1
+
+  # One launch for every batch.
+  android-allure-launch:
+    name: Launch Allure TestOps (Android)
+    needs: android-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      launch_id: ${{ steps.launch.outputs.launch_id }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+          working-directory: sample-apps/react-native/dogfood
+          bundler-cache: true
+      # Pull requests from forks and Dependabot get no secrets, so they run without Allure.
+      - name: Launch Allure TestOps
+        id: launch
+        if: env.ALLURE_TOKEN != ''
+        working-directory: sample-apps/react-native/dogfood
+        run: |
+          bundle exec fastlane allure_launch
+          echo "launch_id=$(grep '^LAUNCH_ID=' "$GITHUB_ENV" | tail -1 | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+        continue-on-error: true
+        env:
+          # Names the launch after the pull request and tags it with its labels.
+          GITHUB_EVENT: ${{ toJson(github.event) }}
+
+  android:
+    name: Test Android
+    needs: [check, android-build, android-allure-launch]
+    if: ${{ !cancelled() && needs.android-build.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        # Like the native Android SDK: up to 8, see e2e_check_required.
+        batch: ${{ fromJson(needs.check.outputs.e2e_batches) }}
+      fail-fast: false
+    env:
+      # No camera: with an emulated one, `call.join()` sometimes never resolves (RN-474).
+      ANDROID_API_LEVEL: '36'
+      ANDROID_EMULATOR_OPTIONS: -no-snapshot-save -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -camera-front none
+      DETOX_ADB_NAME: 'emulator-5554'
+      LAUNCH_ID: ${{ needs.android-allure-launch.outputs.launch_id }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+      - uses: ./.github/actions/rn-e2e-setup
+      - uses: actions/download-artifact@v7
+        with:
+          name: e2e-android-apks
+          path: sample-apps/react-native/e2e-test-app/android/app/build/outputs/apk
       - uses: ./.github/actions/rn-e2e-enable-kvm
       - name: Cache stream-video-buddy's browser
         uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
-
-      # Pull requests from forks and Dependabot get no secrets, so they run without Allure.
-      - name: Launch Allure TestOps
-        if: env.ALLURE_TOKEN != ''
-        working-directory: sample-apps/react-native/dogfood
-        run: bundle exec fastlane allure_launch
-        continue-on-error: true
-        env:
-          # Names the launch after the pull request and tags it with its labels.
-          GITHUB_EVENT: ${{ toJson(github.event) }}
 
       - name: Run e2e tests (Android emulator)
         uses: reactivecircus/android-emulator-runner@v2
@@ -93,7 +144,7 @@ jobs:
           emulator-options: ${{ env.ANDROID_EMULATOR_OPTIONS }}
           disable-animations: true
           working-directory: sample-apps/react-native/dogfood
-          script: bundle exec fastlane test_e2e device:att skip_build:true
+          script: bundle exec fastlane test_e2e device:att skip_build:true batch:${{ matrix.batch }} batch_count:${{ strategy.job-total }}
 
       - name: Upload Allure results
         if: env.LAUNCH_ID != '' && (success() || failure())
@@ -116,7 +167,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
-          name: e2e-android-logs
+          name: e2e-android-logs-${{ matrix.batch }}
           path: |
             sample-apps/react-native/e2e-test-app/artifacts
             sample-apps/react-native/e2e-test-app/recordings
@@ -129,6 +180,8 @@ jobs:
     if: always()
     needs:
       - check
+      - android-build
+      - android-allure-launch
       - android
     steps:
       - name: Check E2E results

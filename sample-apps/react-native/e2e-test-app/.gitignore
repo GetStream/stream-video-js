@@ -34,6 +34,9 @@ recordings/
 # Detox
 artifacts/
 
+# The tests of a CI batch (test_e2e batch:)
+e2e_batch_selection.json
+
 # Allure (written by jest-allure2-reporter, uploaded by the dogfood app's fastlane lanes)
 allure-results/
 allurectl
