@@ -365,7 +365,7 @@ describe('DynascaleManager', () => {
       const mediaStream = new MediaStream();
       call.state.updateParticipant('session-id', { audioStream: mediaStream });
 
-      vi.runAllTimers();
+      vi.runOnlyPendingTimers();
 
       expect(play).not.toHaveBeenCalled();
       expect(audioElement.srcObject).toBe(mediaStream);
@@ -374,7 +374,7 @@ describe('DynascaleManager', () => {
       expect(audioElement.muted).toBe(true);
 
       // @ts-expect-error private property
-      const audioContext = dynascaleManager.audioContext;
+      const audioContext = dynascaleManager.audioContextLease?.context;
       expect(audioContext).toBeDefined();
       expect(audioContext.resume).toHaveBeenCalled();
       expect(audioContext.state).toBe('running');
@@ -1669,7 +1669,7 @@ describe('DynascaleManager', () => {
       call.state.updateParticipant('session-id', {
         audioStream: new MediaStream(),
       });
-      vi.runAllTimers();
+      vi.runOnlyPendingTimers();
 
       audioElement.dispatchEvent(new Event('pause'));
       await vi.advanceTimersByTimeAsync(0);
