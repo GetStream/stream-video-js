@@ -27,6 +27,7 @@ import { withoutConcurrency } from '../helpers/concurrency';
 import { disposeOfMediaStream } from './utils';
 import { promiseWithResolvers } from '../helpers/promise';
 import { DevicePersistenceOptions } from './devicePersistence';
+import { of } from 'rxjs';
 
 export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
@@ -65,9 +66,11 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           this.call.state.ownCapabilities$,
           this.state.selectedDevice$,
           this.state.browserPermissionState$,
-          // only a trigger: queued handlers can run after the status changed
-          // again, so the live status is read below
+          // only triggers: queued handlers can run after the status changed
+          // again, so the live status is read below. RN also re-runs on the
+          // intent: a rolled-back enable leaves the committed status as is
           this.state.status$,
+          isReactNative() ? this.state.optimisticStatus$ : of(undefined),
         ]),
         async ([callingState, ownCapabilities, deviceId, permissionState]) => {
           try {
@@ -83,7 +86,12 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
             if (ownCapabilities.includes(OwnCapability.SEND_AUDIO)) {
               const hasPermission = await this.hasPermission(permissionState);
-              if (hasPermission && this.state.status !== 'enabled') {
+              // RN also checks the intent: a mic enabled before the join is
+              // published only after JOINED
+              const isMuted =
+                this.state.status !== 'enabled' &&
+                !(isReactNative() && this.state.optimisticStatus === 'enabled');
+              if (hasPermission && isMuted) {
                 this.setMutedRecordingPrepared(true);
                 await this.startSpeakingWhileMutedDetection(deviceId);
               } else {
