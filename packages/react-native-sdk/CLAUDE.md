@@ -218,7 +218,7 @@ The public `callManager` (`src/modules/call-manager/CallManager.ts`) is a **conf
 
 - `audioDevices` (`AudioDevicesManager`) — cross-platform picker: `getStatus`, `select(id)`, `addChangeListener`. On Android Telecom-managed calls it adapts callingx's endpoints; otherwise reads native.
 - `speaker` (`SpeakerManager`) — `setMute`, `setForceSpeakerphoneOn`. Routes via callingx on Telecom-managed Android.
-- `ios` (`IOSCallManager`) — iOS-only: `showDeviceSelector`, `addAudioInterruptionListener`.
+- `ios` (`IOSCallManager`) — iOS-only: `showDeviceSelector`, `addAudioInterruptionListener`, `addAudioSessionDiagnosticListener`, `getAudioSessionState` (both `@internal`, used by `AudioSessionDiagnosticsTracer`).
 - `start(config?)` / `stop()` — config store (see above).
 - `logAudioState`, `getAudioStateLog` — debug.
 
@@ -709,6 +709,13 @@ if (Platform.OS !== 'web') {
   registerGlobals(); // Creates window and navigator globals
 }
 ```
+
+**iOS audio session + engine (RN-463 dead mic):**
+
+- Sync engine hooks (`AudioDeviceModule.addEngineHooks`, WebRTC worker thread): `StreamInCallManager` configures + activates the session in willEnable between `start()` and `stop()` only (counted activation, `weActivatedSession`; re-activates when `RTCAudioSession.isActive` is false after a failed post-interruption re-activation; no-op for pre-join lobby enables), callingx only re-applies category/mode. Hooks: no ADM calls, no `audioSessionQueue.sync`/`main.sync`, all `RTCAudioSession` locking via each package's `AudioSessionConfigLock` (lock, body, unlock like stream-video-swift; never nest: re-locking on the same thread crashes; other threads just wait).
+- Join order (iOS, non-callingx): `Call.ts` awaits `callManager.prepareAudioSessionForPublish` (start + `waitForAudioSessionActive`) before the first mic publish.
+- Recovery: `AudioSessionDiagnosticsTracer` samples `getEngineState()`, calls `recoverEngineIfNeeded` (≤3/episode, ≤6/call, ≥3 s apart), then one `call.rejoinForAudioEngineRecovery()` per call; traces `ios.audioEngine.*` and `audio.session.timeout`.
+- Recovery is skipped while an audio interruption is active. With an inactive session the tracer first calls `callManager.ios.reactivateAudioSession` (the ADM cannot restart against an inactive session); when iOS refuses (`561017449`, another app owns the audio) it waits for the next interruption end / session activation / app foreground without spending its budget or rejoining. The audio rejoin is skipped (call stays joined) when the rejoin rate limiter has no room.
 
 ### 11. Per-Call PeerConnectionFactory (Media Engine)
 

@@ -20,6 +20,20 @@ describe('SlidingWindowRateLimiter', () => {
     expect(limiter.tryRegister(1501)).toBe(true);
   });
 
+  it('canRegister() checks the budget without recording', () => {
+    const limiter = new SlidingWindowRateLimiter(2, 1000);
+    expect(limiter.canRegister(0)).toBe(true);
+    expect(limiter.canRegister(0)).toBe(true);
+    limiter.tryRegister(0);
+    expect(limiter.canRegister(100)).toBe(true);
+    // canRegister() recorded nothing: one slot was still free
+    expect(limiter.tryRegister(100)).toBe(true);
+    expect(limiter.canRegister(200)).toBe(false);
+    // the attempt at t=0 leaves the window at t=1001
+    expect(limiter.canRegister(1000)).toBe(false);
+    expect(limiter.canRegister(1001)).toBe(true);
+  });
+
   it('reset() clears the attempt history', () => {
     const limiter = new SlidingWindowRateLimiter(2, 1000);
     limiter.tryRegister(0);
