@@ -187,6 +187,8 @@
   "settings.layout.label": "Layout",
   "settings.onOff.off.label": "Aus",
   "settings.onOff.on.label": "Ein",
+  "settings.pauseVideoWhenHidden.description": "Empfängt einige Sekunden nach dem Wechsel zu einem anderen Tab kein Video mehr und setzt es fort, wenn du zurückkommst. Der Ton läuft weiter.",
+  "settings.pauseVideoWhenHidden.title": "Video in Hintergrund-Tabs pausieren",
   "settings.recordingLibrary.label": "Aufnahmebibliothek",
   "settings.settings.title": "Einstellungen",
   "settings.speakingDetection.description": "Hört dein Mikrofon ab, um Pegelanzeigen und die Sprechanzeige in der Lobby zu zeigen und dich zu warnen, wenn du stummgeschaltet sprichst. Schalte es aus, wenn sich dein Audiogerät fehlerhaft verhält.",

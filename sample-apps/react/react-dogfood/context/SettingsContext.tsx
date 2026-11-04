@@ -24,6 +24,8 @@ const defaultState: Settings = {
   setDeviceSelectionPreference: () => {},
   speakingDetectionEnabled: true,
   setSpeakingDetectionEnabled: () => {},
+  pauseVideoWhenHiddenEnabled: false,
+  setPauseVideoWhenHiddenEnabled: () => {},
   segmentationModel: 'selfie_segmenter_landscape',
   setSegmentationModel: () => {},
   themeMode: 'dark',
@@ -37,6 +39,8 @@ export type Settings = {
   setDeviceSelectionPreference: (value: DeviceSelectionPreference) => void;
   speakingDetectionEnabled: boolean;
   setSpeakingDetectionEnabled: (value: boolean) => void;
+  pauseVideoWhenHiddenEnabled: boolean;
+  setPauseVideoWhenHiddenEnabled: (value: boolean) => void;
   segmentationModel: SegmentationModel;
   setSegmentationModel: (value: SegmentationModel) => void;
   themeMode: ThemeMode;
@@ -57,6 +61,8 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
     useDeviceSelectionPreference();
   const [speakingDetectionEnabled, setSpeakingDetectionEnabled] =
     usePersistedToggle('@pronto/speaking-detection-enabled', true);
+  const [pauseVideoWhenHiddenEnabled, setPauseVideoWhenHiddenEnabled] =
+    usePersistedToggle('@pronto/pause-video-when-hidden-enabled', false);
   const { themeMode, setThemeMode } = useThemeMode();
 
   const [segmentationModel, setSegmentationModel] = useState<SegmentationModel>(
@@ -80,6 +86,8 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
     setDeviceSelectionPreference,
     speakingDetectionEnabled,
     setSpeakingDetectionEnabled,
+    pauseVideoWhenHiddenEnabled,
+    setPauseVideoWhenHiddenEnabled,
     segmentationModel,
     setSegmentationModel,
     themeMode,

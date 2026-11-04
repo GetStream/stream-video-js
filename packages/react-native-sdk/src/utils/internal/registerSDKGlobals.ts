@@ -18,6 +18,7 @@ import {
   unwireAudioEngineSubscription,
 } from './callingx/callingx';
 import { registerCallMediaEngine } from './registerMediaEngine';
+import { appVisibility } from './appVisibility';
 import { beforeJoin, onJoinFailed, onLeave } from './ringingCallLifecycle';
 import { callManager as publicCallManager } from '../../modules/call-manager';
 
@@ -225,6 +226,7 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       );
     },
   },
+  appVisibility,
   nativeEvents: {
     speechActivity: {
       subscribe(cb) {

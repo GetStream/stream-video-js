@@ -1,3 +1,5 @@
+import { getInitials } from '@stream-io/video-react-bindings';
+
 // Utility to truncate long strings
 export const generateParticipantTitle = (memberUserId: string) => {
   return memberUserId.length > 15
@@ -6,16 +8,8 @@ export const generateParticipantTitle = (memberUserId: string) => {
 };
 
 // Utility to get initials of a name
-export const getInitialsOfName = (name: string) => {
-  const names = name.split(' ');
-  let initials = (names[0] as string).substring(0, 1).toUpperCase();
-  if (names.length > 1) {
-    initials += (names[names.length - 1] as string)
-      .substring(0, 1)
-      .toUpperCase();
-  }
-  return initials;
-};
+export const getInitialsOfName = (name: string) =>
+  getInitials(name).toUpperCase();
 
 export * from './push/index';
 export * from './StreamVideoRN';

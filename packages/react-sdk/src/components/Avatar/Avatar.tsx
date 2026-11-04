@@ -1,5 +1,6 @@
 import { ComponentProps, CSSProperties, useState } from 'react';
 import clsx from 'clsx';
+import { getInitials } from '@stream-io/video-react-bindings';
 
 export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
 
@@ -86,10 +87,7 @@ export const AvatarFallback = ({
       )}
       style={style}
     >
-      <div>
-        {names[0]?.[0]}
-        {!isCompact && names[1]?.[0]}
-      </div>
+      <div>{getInitials(names.join(' '), isCompact ? 1 : 2)}</div>
     </div>
   );
 };

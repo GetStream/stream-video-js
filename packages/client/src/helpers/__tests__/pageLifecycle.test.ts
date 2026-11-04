@@ -3,7 +3,10 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { tracePageLifecycle } from '../pageLifecycle';
+import {
+  createPageVisibilitySource,
+  tracePageLifecycle,
+} from '../pageLifecycle';
 import { Tracer } from '../../stats';
 
 const setVisibility = (state: DocumentVisibilityState, dispatch = true) => {
@@ -182,5 +185,161 @@ describe('tracePageLifecycle', () => {
     document.dispatchEvent(new Event('freeze'));
     expect(records(tracer)).toEqual([]);
     expect(onHidden).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('createPageVisibilitySource', () => {
+  let stop: (() => void) | undefined;
+  let boundVideo: HTMLVideoElement;
+
+  const setPiPElement = (element: Element | null) =>
+    Object.defineProperty(document, 'pictureInPictureElement', {
+      configurable: true,
+      get: () => element,
+    });
+
+  const findBoundVideo = (element: Element) =>
+    element === boundVideo
+      ? { sessionId: 'remote', trackType: 'videoTrack' as const }
+      : undefined;
+
+  beforeEach(() => {
+    setVisibility('visible', false);
+    setPiPElement(null);
+    boundVideo = document.createElement('video');
+    document.body.appendChild(boundVideo);
+  });
+
+  afterEach(() => {
+    stop?.();
+    stop = undefined;
+    boundVideo.remove();
+    // @ts-expect-error restore the prototype getter
+    delete document.visibilityState;
+    // @ts-expect-error remove the test double
+    delete document.pictureInPictureElement;
+    // @ts-expect-error remove the test double
+    delete window.documentPictureInPicture;
+  });
+
+  const start = () => {
+    const source = createPageVisibilitySource(findBoundVideo);
+    const onChange = vi.fn();
+    stop = source.watch(onChange);
+    return { source, onChange };
+  };
+
+  const installDocumentPiP = () => {
+    const documentPictureInPicture = Object.assign(new EventTarget(), {
+      window: null as Window | null,
+    });
+    Object.defineProperty(window, 'documentPictureInPicture', {
+      configurable: true,
+      value: documentPictureInPicture,
+    });
+    return documentPictureInPicture;
+  };
+
+  it('reports visibility changes', () => {
+    const { source, onChange } = start();
+    expect(source.getVisibility()).toEqual({ hidden: false });
+
+    setVisibility('hidden');
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(source.getVisibility()).toEqual({ hidden: true });
+  });
+
+  it('reports the participant video shown in picture-in-picture', () => {
+    const { source, onChange } = start();
+    setVisibility('hidden');
+
+    setPiPElement(boundVideo);
+    boundVideo.dispatchEvent(new Event('enterpictureinpicture'));
+    expect(onChange).toHaveBeenCalledTimes(2);
+    expect(source.getVisibility()).toEqual({
+      hidden: true,
+      shownTrack: { sessionId: 'remote', trackType: 'videoTrack' },
+    });
+
+    setPiPElement(null);
+    boundVideo.dispatchEvent(new Event('leavepictureinpicture'));
+    expect(onChange).toHaveBeenCalledTimes(3);
+    expect(source.getVisibility()).toEqual({ hidden: true });
+  });
+
+  it('treats a page with an unknown video in picture-in-picture as visible', () => {
+    const { source } = start();
+    setVisibility('hidden');
+    setPiPElement(document.createElement('div'));
+
+    expect(source.getVisibility()).toEqual({ hidden: false });
+  });
+
+  it('treats a hidden page with a Document Picture-in-Picture window as visible', () => {
+    const documentPictureInPicture = installDocumentPiP();
+    const { source, onChange } = start();
+    setVisibility('hidden');
+
+    const pipWindow = new EventTarget() as Window;
+    documentPictureInPicture.window = pipWindow;
+    documentPictureInPicture.dispatchEvent(
+      Object.assign(new Event('enter'), { window: pipWindow }),
+    );
+    expect(source.getVisibility()).toEqual({ hidden: false });
+
+    pipWindow.dispatchEvent(new Event('pagehide'));
+    expect(onChange).toHaveBeenCalledTimes(3);
+    expect(source.getVisibility()).toEqual({ hidden: true });
+  });
+
+  it('picks up a Document Picture-in-Picture window opened before it was created', () => {
+    const documentPictureInPicture = installDocumentPiP();
+    const pipWindow = new EventTarget() as Window;
+    documentPictureInPicture.window = pipWindow;
+    const { source } = start();
+    setVisibility('hidden');
+    expect(source.getVisibility()).toEqual({ hidden: false });
+
+    pipWindow.dispatchEvent(new Event('pagehide'));
+    expect(source.getVisibility()).toEqual({ hidden: true });
+  });
+
+  it('is never hidden in Firefox', () => {
+    const userAgent = vi
+      .spyOn(navigator, 'userAgent', 'get')
+      .mockReturnValue('Mozilla/5.0 Gecko/20100101 Firefox/133.0');
+    try {
+      const { source, onChange } = start();
+      setVisibility('hidden');
+      expect(source.getVisibility()).toEqual({ hidden: false });
+      expect(onChange).not.toHaveBeenCalled();
+    } finally {
+      userAgent.mockRestore();
+    }
+  });
+
+  it('is never hidden in React Native', () => {
+    Object.defineProperty(navigator, 'product', {
+      configurable: true,
+      value: 'ReactNative',
+    });
+    try {
+      const { source, onChange } = start();
+      setVisibility('hidden');
+      expect(source.getVisibility()).toEqual({ hidden: false });
+      expect(onChange).not.toHaveBeenCalled();
+    } finally {
+      // @ts-expect-error restore the prototype getter
+      delete navigator.product;
+    }
+  });
+
+  it('stops watching', () => {
+    const { onChange } = start();
+    stop?.();
+    stop = undefined;
+    setVisibility('hidden');
+    boundVideo.dispatchEvent(new Event('enterpictureinpicture'));
+    expect(onChange).not.toHaveBeenCalled();
   });
 });

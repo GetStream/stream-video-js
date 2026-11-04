@@ -1,4 +1,6 @@
 import type { Tracer } from '../stats';
+import type { AppVisibility, AppVisibilitySource } from '../types';
+import { isFirefox } from './browsers';
 import { isReactNative } from './platforms';
 
 export type PageLifecycleTracingOptions = {
@@ -95,4 +97,87 @@ export const tracePageLifecycle = ({
     controller.abort();
     stopHiddenTimer();
   };
+};
+
+type DocumentPictureInPicture = EventTarget & { window: Window | null };
+
+type ShownTrack = Extract<AppVisibility, { hidden: true }>['shownTrack'];
+
+const noVisibility: AppVisibilitySource = {
+  getVisibility: () => ({ hidden: false }),
+  watch: () => () => {},
+};
+
+/**
+ * Creates the {@link AppVisibilitySource} of a web page. The page counts as
+ * visible while a Document Picture-in-Picture window is open, and while a
+ * video element that isn't a bound participant video is in
+ * picture-in-picture. Never hidden outside the browser (React Native,
+ * Node.js) and in Firefox, whose built-in picture-in-picture can't be
+ * detected.
+ *
+ * @param findBoundVideo resolves a video element to the participant track
+ * it renders, if any.
+ */
+export const createPageVisibilitySource = (
+  findBoundVideo: (element: Element) => ShownTrack,
+): AppVisibilitySource => {
+  if (typeof document === 'undefined' || isReactNative() || isFirefox()) {
+    return noVisibility;
+  }
+
+  const documentPiP = (
+    window as Window & { documentPictureInPicture?: DocumentPictureInPicture }
+  ).documentPictureInPicture;
+  let documentPiPWindow = documentPiP?.window ?? undefined;
+
+  const getVisibility = (): AppVisibility => {
+    if (document.visibilityState !== 'hidden' || documentPiPWindow) {
+      return { hidden: false };
+    }
+    const pipElement = document.pictureInPictureElement;
+    if (!pipElement) return { hidden: true };
+    const shownTrack = findBoundVideo(pipElement);
+    return shownTrack ? { hidden: true, shownTrack } : { hidden: false };
+  };
+
+  const watch = (onChange: () => void) => {
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    const watchDocumentPiPWindow = (pipWindow: Window) => {
+      documentPiPWindow = pipWindow;
+      pipWindow.addEventListener(
+        'pagehide',
+        () => {
+          documentPiPWindow = undefined;
+          onChange();
+        },
+        { signal },
+      );
+    };
+
+    if (documentPiPWindow) watchDocumentPiPWindow(documentPiPWindow);
+    document.addEventListener('visibilitychange', onChange, { signal });
+    // fired at the video element, captured here for any element of the page
+    document.addEventListener('enterpictureinpicture', onChange, {
+      signal,
+      capture: true,
+    });
+    document.addEventListener('leavepictureinpicture', onChange, {
+      signal,
+      capture: true,
+    });
+    documentPiP?.addEventListener(
+      'enter',
+      (e) => {
+        watchDocumentPiPWindow((e as Event & { window: Window }).window);
+        onChange();
+      },
+      { signal },
+    );
+    return () => controller.abort();
+  };
+
+  return { getVisibility, watch };
 };

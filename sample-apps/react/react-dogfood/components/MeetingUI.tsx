@@ -191,7 +191,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   }, [call, isSortingDisabled]);
 
   const {
-    settings: { speakingDetectionEnabled },
+    settings: { speakingDetectionEnabled, pauseVideoWhenHiddenEnabled },
   } = useSettings();
   useEffect(() => {
     if (!call) return;
@@ -204,6 +204,10 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
 
     update.catch(console.error);
   }, [call, callState, speakingDetectionEnabled]);
+
+  useEffect(() => {
+    call?.setPauseIncomingVideoWhenHidden(pauseVideoWhenHiddenEnabled);
+  }, [call, pauseVideoWhenHiddenEnabled]);
 
   useKeyboardShortcuts();
   useWakeLock();

@@ -187,6 +187,8 @@
   "settings.layout.label": "Diseño",
   "settings.onOff.off.label": "Desactivado",
   "settings.onOff.on.label": "Activado",
+  "settings.pauseVideoWhenHidden.description": "Deja de recibir video unos segundos después de cambiar a otra pestaña y lo reanuda cuando vuelves. El audio sigue sonando.",
+  "settings.pauseVideoWhenHidden.title": "Pausar el video en pestañas en segundo plano",
   "settings.recordingLibrary.label": "Biblioteca de grabaciones",
   "settings.settings.title": "Ajustes",
   "settings.speakingDetection.description": "Escucha tu micrófono para mostrar los medidores de nivel y el indicador de habla en la sala de espera, y avisarte cuando hablas silenciado. Desactívalo si tu dispositivo de audio falla.",
