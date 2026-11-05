@@ -128,18 +128,23 @@ export class NoiseCancellation extends BaseNoiseCancellation {
    * unless `withSafariSupport` is set.
    */
   isSupported = async () => {
-    if (isWebKit() && !this.withSafariSupport) return false;
-    let sdk: KrispSDKClass;
-    try {
-      sdk = await loadKrispSDK();
-    } catch (err) {
-      console.warn(
-        'Failed to load the Krisp SDK, reporting it as unsupported',
-        err,
-      );
-      return false;
+    if (isWebKit()) {
+      if (!this.withSafariSupport) return false;
+      // The SDK's own check only gates Safari by version (17.4+), so the
+      // ~5 MB chunk is loaded here for WebKit only, not on every page.
+      let sdk: KrispSDKClass;
+      try {
+        sdk = await loadKrispSDK();
+      } catch (err) {
+        console.warn(
+          'Failed to load the Krisp SDK, reporting it as unsupported',
+          err,
+        );
+        return false;
+      }
+      if (!sdk.isSupported()) return false;
     }
-    return sdk.isSupported() && (await simd());
+    return simd();
   };
 
   /**
@@ -279,10 +284,20 @@ export class NoiseCancellation extends BaseNoiseCancellation {
     source: MediaStreamAudioSourceNode,
     destination: MediaStreamAudioDestinationNode,
   ) => {
-    if (!this.filterNode) {
+    const { filterNode } = this;
+    if (!filterNode) {
       throw new Error('NoiseCancellation is not initialized');
     }
-    source.connect(this.filterNode).connect(destination);
+    source.connect(filterNode).connect(destination);
+    return () => {
+      // the filter node may already be disposed
+      try {
+        source.disconnect();
+        filterNode.disconnect(destination);
+      } catch {
+        // not connected
+      }
+    };
   };
 
   /**

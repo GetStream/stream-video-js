@@ -25,6 +25,7 @@ export interface INoiseCancellation {
   setSuppressionLevel: (level: number) => void;
   toFilter: () => (mediaStream: MediaStream) => {
     output: MediaStream;
+    stop?: () => void;
   };
   on: <E extends keyof Events, T = Events[E]>(
     event: E,
@@ -106,11 +107,12 @@ export abstract class BaseNoiseCancellation implements INoiseCancellation {
 
   /**
    * Connects the filter between the given source and destination nodes.
+   * Returns a cleanup that detaches them again.
    */
   protected abstract connectFilter: (
     source: MediaStreamAudioSourceNode,
     destination: MediaStreamAudioDestinationNode,
-  ) => void;
+  ) => () => void;
 
   /**
    * Starts recovering the given audio context when the browser suspends it.
@@ -147,9 +149,9 @@ export abstract class BaseNoiseCancellation implements INoiseCancellation {
     const destination = this.audioContext.createMediaStreamDestination();
     destination.channelCount = audioTrack.getSettings().channelCount ?? 1;
 
-    this.connectFilter(source, destination);
+    const stop = this.connectFilter(source, destination);
 
-    return { output: destination.stream };
+    return { output: destination.stream, stop };
   };
 
   /**

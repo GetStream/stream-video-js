@@ -37,9 +37,18 @@ const PROCESSING_DELAY_S = (512 + 384) / SAMPLE_RATE;
 
 /**
  * How long `init()` may take in all: loading the runtime chunk, fetching the
- * model, loading the worklet, and its `ready` reply.
+ * model and loading the worklet. Each model request must get a response
+ * within 10 s (see the runtime); this only bounds slow downloads, so that a
+ * stalled init can't block cleanup forever.
  */
-const INIT_TIMEOUT_MS = 10000;
+const INIT_TIMEOUT_MS = 60000;
+
+/**
+ * How long the worklet may take to reply `ready` while the audio context is
+ * running. Time spent suspended (e.g., before a user gesture) doesn't count,
+ * since the worklet may not run then.
+ */
+const WORKLET_READY_TIMEOUT_MS = 10000;
 
 /**
  * The time constant of the gain ramps when the graph changes state.
@@ -137,6 +146,8 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
   private streamFailed = false;
   /** Mirrors the worklet's `_autoPassthrough`, from `auto_bypass` messages. */
   private workletPassthrough = false;
+  /** Whether the worklet replied `ready`, i.e., the model is loaded. */
+  private workletReady = false;
 
   private level = 100;
   private overloadCount = 0;
@@ -144,6 +155,7 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
   private warmUpEndsAt?: number;
   private restoreTimeoutId?: number;
   private passthroughTimeoutId?: number;
+  private readyTimeoutId?: number;
   /** Bumped by `dispose()`, so a pending `init()` can tell it is stale. */
   private generation = 0;
   /** Aborts the pending `init()` with the given cause; used by `dispose()`. */
@@ -199,6 +211,8 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
 
   /**
    * Creates the 48 kHz audio context and loads the worklet and the model.
+   * Resolves once the model is handed to the worklet. The worklet loads it
+   * when the audio context runs; until then, the audio passes through.
    *
    * Will throw in case the noise cancellation is not supported on this platform,
    * if it is already initialized, or if loading the model fails.
@@ -213,9 +227,8 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
     const generation = this.generation;
     this.tracer = options.tracer;
 
-    // One deadline bounds the whole init, through the worklet's `ready`.
-    // Aborting cancels the fetches and the wait for `ready`; `dispose()`
-    // aborts the same way. The cause is kept here rather than in
+    // One deadline bounds the whole init. Aborting cancels the fetches;
+    // `dispose()` aborts the same way. The cause is kept here rather than in
     // the abort reason APIs, which Safari < 15.4 lacks.
     const abortController = new AbortController();
     const { signal } = abortController;
@@ -265,8 +278,8 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
         Promise.all([loadRuntime(), simd()]),
       );
       assertCurrent();
-      // The runtime honours `signal` itself (fetches, the `ready` wait) and
-      // destroys its node once aborted; the race also bounds `addModule`.
+      // The runtime honours `signal` in its fetches and returns no node once
+      // aborted; the race also bounds `addModule`.
       workletNode = await untilAborted(
         createFastEnhancerNode(audioContext, {
           model: this.model,
@@ -290,14 +303,18 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
       delayNode.connect(dryGain);
       workletNode.connect(wetGain);
 
+      // `ready` and `error` replies queued until the port starts
       workletNode.port.addEventListener('message', this.handlePortMessage);
+      workletNode.port.start();
       workletNode.onprocessorerror = this.handleProcessorError;
+      audioContext.addEventListener('statechange', this.updateReadyTimeout);
 
       this.workletNode = workletNode;
       this.delayNode = delayNode;
       this.rawGain = rawGain;
       this.dryGain = dryGain;
       this.wetGain = wetGain;
+      this.updateReadyTimeout();
     } catch (err) {
       // an aborted step fails with a generic error, report the cause instead
       const error = abortError ?? err;
@@ -319,14 +336,16 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
     }
 
     this.resolveInitialized();
-    this.tracer?.trace('noiseCancellation.started', 'true');
+    // apply an `enable()` that came before the init completed
+    if (this.userEnabled) this.transition(() => {}, true);
   };
 
   /**
    * Checks if the noise cancellation is enabled.
-   * `false` while the filter is held off after an overload or an error.
+   * `false` before the init completes, and while the filter is held off
+   * after an overload or an error.
    */
-  isEnabled = async () => this.isFiltering();
+  isEnabled = async () => !!this.workletNode && this.isFiltering();
 
   /**
    * Enables the noise cancellation.
@@ -335,11 +354,17 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
    * Always notifies the `change` listeners, even if the filtering state
    * didn't flip, so that a caller re-enabling it (e.g., after a reconnect)
    * re-announces the state.
+   * Called before the init completes, it is applied once it does.
    */
   enable = async () => {
-    if (!this.workletNode) return;
+    if (!this.workletNode) {
+      this.userEnabled = true;
+      return;
+    }
     this.clearRestore();
-    this.warmUpEndsAt ??= performance.now() + WARM_UP_GRACE_MS;
+    if (this.workletReady) {
+      this.warmUpEndsAt ??= performance.now() + WARM_UP_GRACE_MS;
+    }
     this.transition(() => {
       this.userEnabled = true;
       this.heldOff = false;
@@ -366,7 +391,10 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
    * Always notifies the `change` listeners, like `enable()`.
    */
   disable = async () => {
-    if (!this.workletNode) return;
+    if (!this.workletNode) {
+      this.userEnabled = false;
+      return;
+    }
     this.clearRestore();
     this.transition(() => {
       this.userEnabled = false;
@@ -433,15 +461,18 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
     const destination = audioContext.createMediaStreamDestination();
     destination.channelCount = audioTrack.getSettings().channelCount ?? 1;
 
-    this.connectFilter(source, destination);
+    const stop = this.connectFilter(source, destination);
 
-    return { output: destination.stream };
+    return { output: destination.stream, stop };
   };
 
   /**
    * Connects the source to the raw, delayed dry and filtered paths,
    * all summed into the destination. The gains decide which one is heard.
    * A successful connect clears an earlier stream failure.
+   *
+   * Returns a cleanup that detaches this source and destination only, so a
+   * re-applied filter chain doesn't leave the previous stream mixed in.
    */
   protected connectFilter = (
     source: MediaStreamAudioSourceNode,
@@ -467,6 +498,21 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
     this.transition(() => {
       this.streamFailed = false;
     });
+    return () => {
+      // the nodes may already be disconnected by `dispose()`
+      const detach = (node: AudioNode, target?: AudioNode) => {
+        try {
+          if (target) node.disconnect(target);
+          else node.disconnect();
+        } catch {
+          // not connected
+        }
+      };
+      detach(source);
+      detach(rawGain, destination);
+      detach(dryGain, destination);
+      detach(wetGain, destination);
+    };
   };
 
   /**
@@ -501,8 +547,9 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
    *
    * - Filtering: raw 0, dry 1 - level, wet level, worklet bypass off.
    * - Off: raw 1, dry 0, wet 0, worklet bypass on (saves CPU).
-   * - Filtering while the worklet is in its own passthrough: raw 1, dry 0,
-   *   wet 0, worklet bypass off, so that its probes can bring it back.
+   * - Filtering while the worklet is in its own passthrough, or hasn't
+   *   loaded the model yet: raw 1, dry 0, wet 0, worklet bypass off, so that
+   *   its probes can bring it back, or it starts filtering once ready.
    */
   private applyState = () => {
     const { audioContext, workletNode, rawGain, dryGain, wetGain } = this;
@@ -510,7 +557,7 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
       return;
     }
     const filtering = this.isFiltering();
-    const audible = filtering && !this.workletPassthrough;
+    const audible = filtering && this.workletReady && !this.workletPassthrough;
     const wet = audible ? this.level / 100 : 0;
     const now = audioContext.currentTime;
     const tc = GAIN_RAMP_TIME_CONSTANT_S;
@@ -532,6 +579,14 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
   private handlePortMessage = (e: MessageEvent) => {
     const data = e.data;
     switch (data?.type) {
+      case 'ready':
+        this.handleWorkletReady();
+        break;
+      case 'error':
+        this.handleWorkletStopped(
+          `worklet init error ${String(data.message ?? 'unknown error')}`,
+        );
+        break;
       case 'auto_bypass':
         this.handleAutoBypass(!!data.enabled);
         break;
@@ -543,6 +598,49 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
         this.handleWorkletStopped('worklet destroyed');
         break;
     }
+  };
+
+  /**
+   * The worklet loaded the model: start filtering if it is wanted.
+   */
+  private handleWorkletReady = () => {
+    if (this.workletReady) return;
+    this.workletReady = true;
+    this.clearReadyTimeout();
+    this.tracer?.trace('noiseCancellation.started', 'true');
+    if (this.isFiltering()) {
+      this.warmUpEndsAt ??= performance.now() + WARM_UP_GRACE_MS;
+    }
+    this.applyState();
+  };
+
+  /**
+   * Runs the `ready` deadline only while the audio context runs, since the
+   * worklet may not run (and reply) while the context is suspended.
+   */
+  private updateReadyTimeout = () => {
+    const { audioContext } = this;
+    if (
+      !audioContext ||
+      !this.workletNode ||
+      this.workletReady ||
+      this.workletDead ||
+      audioContext.state !== 'running'
+    ) {
+      this.clearReadyTimeout();
+      return;
+    }
+    this.readyTimeoutId ??= window.setTimeout(() => {
+      this.readyTimeoutId = undefined;
+      this.handleWorkletStopped(
+        `worklet not ready within ${WORKLET_READY_TIMEOUT_MS} ms`,
+      );
+    }, WORKLET_READY_TIMEOUT_MS);
+  };
+
+  private clearReadyTimeout = () => {
+    window.clearTimeout(this.readyTimeoutId);
+    this.readyTimeoutId = undefined;
   };
 
   /**
@@ -641,6 +739,7 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
   private handleWorkletStopped = (reason: string) => {
     this.tracer?.trace('noiseCancellation.error', reason);
     this.clearRestore();
+    this.clearReadyTimeout();
     this.transition(() => {
       this.workletDead = true;
     });
@@ -674,7 +773,12 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
   private teardown = async () => {
     this.clearRestore();
     this.clearPassthroughTimeout();
+    this.clearReadyTimeout();
     this.stopRecovery();
+    this.audioContext?.removeEventListener(
+      'statechange',
+      this.updateReadyTimeout,
+    );
 
     const { workletNode } = this;
     if (workletNode) {
@@ -704,6 +808,7 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
     this.workletDead = false;
     this.streamFailed = false;
     this.workletPassthrough = false;
+    this.workletReady = false;
     this.overloadCount = 0;
     this.processErrorCount = 0;
     this.warmUpEndsAt = undefined;
