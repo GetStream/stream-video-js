@@ -62,6 +62,11 @@ export interface EmbeddedClientBaseProps {
   token?: string;
   tokenProvider?: TokenProvider;
   logLevel?: LogLevel;
+  /**
+   * Which noise cancellation provider to load. `fastenhancer` is experimental.
+   * @default 'krisp'
+   */
+  noiseCancellationProvider?: NoiseCancellationProviderName;
   layout?: LayoutOption;
   theme?: StreamThemeMode;
   style?: Record<string, string>;
@@ -78,3 +83,9 @@ export interface EmbeddedMeetingProps extends EmbeddedClientBaseProps {}
  * Props for the EmbeddedLivestream component.
  */
 export interface EmbeddedLivestreamProps extends EmbeddedClientBaseProps {}
+
+/**
+ * The noise cancellation provider that the embedded client can load.
+ * `fastenhancer` is experimental.
+ */
+export type NoiseCancellationProviderName = 'krisp' | 'fastenhancer';

@@ -4,15 +4,26 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import {
+  type Call,
   type NoiseCancellationStatus,
   OwnCapability,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
+
+/**
+ * The pending noise cancellation cleanup of each call.
+ *
+ * It lives outside the provider, so that a provider that remounts for the same
+ * call (e.g., with a replacement noise cancellation instance) initializes only
+ * after the previous instance is cleaned up. The call's microphone holds a
+ * single noise cancellation instance, so an overlapping cleanup would disable
+ * the replacement.
+ */
+const pendingCleanups = new WeakMap<Call, Promise<void>>();
 
 export type NoiseCancellationProviderProps = {
   /**
@@ -119,12 +130,11 @@ export const NoiseCancellationProvider = (
   const [isEnabled, setIsEnabled] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
-  const deinit = useRef<Promise<void>>(undefined);
   useEffect(() => {
     if (!call || !isSupported) return;
     noiseCancellation.isEnabled().then((e) => setIsEnabled(e));
     const unsubscribe = noiseCancellation.on('change', (v) => setIsEnabled(v));
-    const init = (deinit.current || Promise.resolve())
+    const init = (pendingCleanups.get(call) ?? Promise.resolve())
       .then(() => noiseCancellation.init({ tracer: call.tracer }))
       .then(() => {
         setIsReady(true);
@@ -133,12 +143,13 @@ export const NoiseCancellationProvider = (
       .catch((e) => console.error(`Can't initialize noise cancellation`, e));
 
     return () => {
-      deinit.current = init
+      const cleanup = init
         .then(() => call.microphone.disableNoiseCancellation())
         .then(() => noiseCancellation.dispose())
         .then(() => unsubscribe())
         .catch((e) => console.error("Can't clean up noise cancellation", e))
         .finally(() => setIsReady(false));
+      pendingCleanups.set(call, cleanup);
     };
   }, [call, isSupported, noiseCancellation]);
 

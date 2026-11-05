@@ -12,6 +12,8 @@ import {
   DeviceSelectorAudioInput,
   DeviceSelectorAudioOutput,
   DeviceSelectorVideo,
+  DropDownSelect,
+  DropDownSelectOption,
   Icon,
   IconButton,
   MenuToggle,
@@ -34,6 +36,18 @@ import { IncomingVideoSettingsDropdown } from '../IncomingVideoSettings';
 import { DeviceSelectionSettingsDropdown } from './DeviceSelection';
 import { OnOffSettingsDropdown } from './OnOffSettingsDropdown';
 import { useAppI18n } from '../../hooks/useAppI18n';
+import {
+  NOISE_CANCELLATION_MODELS,
+  NoiseCancellationModel,
+} from '../../helpers/noiseCancellation';
+
+const NOISE_CANCELLATION_MODEL_LABELS: Record<NoiseCancellationModel, string> =
+  {
+    krisp: 'Krisp',
+    'fastenhancer-tiny': 'FastEnhancer Tiny',
+    'fastenhancer-base': 'FastEnhancer Base',
+    'fastenhancer-small': 'FastEnhancer Small',
+  };
 
 type ToggleSettingsTabModalProps = {
   inMeeting: boolean;
@@ -144,6 +158,8 @@ export const SettingsTabModalMenu = (props: {
       setLanguage,
       speakingDetectionEnabled,
       setSpeakingDetectionEnabled,
+      noiseCancellationModel,
+      setNoiseCancellationModel,
     },
   } = useSettings();
   const { t } = useAppI18n();
@@ -203,6 +219,40 @@ export const SettingsTabModalMenu = (props: {
           {t(
             'settings.speakingDetection.description',
             'Listens to your microphone to show level meters and the lobby speaking indicator, and warn you when you speak while muted. Turn it off if your audio device misbehaves.',
+          )}
+        </div>
+        <div className="str-video__device-settings__device-kind">
+          <div className="str-video__device-settings__device-selector-title">
+            {t(
+              'settings.noiseCancellationModel.title',
+              'Noise cancellation model',
+            )}
+          </div>
+          <DropDownSelect
+            defaultSelectedIndex={NOISE_CANCELLATION_MODELS.indexOf(
+              noiseCancellationModel,
+            )}
+            defaultSelectedLabel={
+              NOISE_CANCELLATION_MODEL_LABELS[noiseCancellationModel]
+            }
+            handleSelect={(index) => {
+              const option = NOISE_CANCELLATION_MODELS[index];
+              if (option) setNoiseCancellationModel(option);
+            }}
+          >
+            {NOISE_CANCELLATION_MODELS.map((option) => (
+              <DropDownSelectOption
+                key={option}
+                label={NOISE_CANCELLATION_MODEL_LABELS[option]}
+                selected={option === noiseCancellationModel}
+              />
+            ))}
+          </DropDownSelect>
+        </div>
+        <div className="rd__tab-panel__note">
+          {t(
+            'settings.noiseCancellationModel.description',
+            'Applies the next time you join a call.',
           )}
         </div>
       </TabWrapper>
