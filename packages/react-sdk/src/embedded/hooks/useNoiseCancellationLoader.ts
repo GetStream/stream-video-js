@@ -37,11 +37,21 @@ export const useNoiseCancellationLoader = (
     const load = (ncLoader.current || Promise.resolve())
       .then(() => import('@stream-io/audio-filters-web'))
       .then(({ NoiseCancellation, FastEnhancerNoiseCancellation }) => {
-        const nc =
-          provider === 'fastenhancer'
-            ? new FastEnhancerNoiseCancellation()
-            : new NoiseCancellation({});
-        setNoiseCancellation(nc);
+        if (provider === 'fastenhancer') {
+          // older versions of the package don't export it
+          if (typeof FastEnhancerNoiseCancellation !== 'function') {
+            console.warn(
+              '[EmbeddedStreamClient] The FastEnhancer noise cancellation ' +
+                'requires a version of @stream-io/audio-filters-web that ' +
+                'exports FastEnhancerNoiseCancellation. ' +
+                'Noise cancellation is unavailable.',
+            );
+            return;
+          }
+          setNoiseCancellation(new FastEnhancerNoiseCancellation());
+          return;
+        }
+        setNoiseCancellation(new NoiseCancellation({}));
       })
       .catch((err) => {
         console.warn(
