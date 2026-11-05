@@ -136,7 +136,9 @@ export class SharedAudioContext {
    * playing when e.g. the output device changes while the tab is hidden.
    */
   private resume = (context: AudioContext) => {
-    context.resume().catch(console.error);
+    context.resume().catch(() => {
+      this.trace('audioContext.shared.resumeError', context.state);
+    });
   };
 
   /**
