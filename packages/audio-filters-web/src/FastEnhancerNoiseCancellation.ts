@@ -36,7 +36,8 @@ const SAMPLE_RATE = 48000;
 const PROCESSING_DELAY_S = (512 + 384) / SAMPLE_RATE;
 
 /**
- * How long the worklet may take to answer `ready` after `init`.
+ * How long `init()` may take in all: loading the runtime chunk, fetching the
+ * model, loading the worklet, and its `ready` reply.
  */
 const INIT_TIMEOUT_MS = 10000;
 
@@ -140,6 +141,8 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
   private passthroughTimeoutId?: number;
   /** Bumped by `dispose()`, so a pending `init()` can tell it is stale. */
   private generation = 0;
+  /** Aborts the pending `init()`: on its deadline, or by `dispose()`. */
+  private initAbortController?: AbortController;
 
   private readonly model: FastEnhancerModel;
   private readonly basePath: string;
@@ -205,6 +208,36 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
     const generation = this.generation;
     this.tracer = options.tracer;
 
+    // One deadline bounds the whole init, through the worklet's `ready`.
+    // Aborting cancels the fetches and the wait for `ready`; `dispose()`
+    // aborts the same way.
+    const abortController = new AbortController();
+    const { signal } = abortController;
+    this.initAbortController = abortController;
+    const deadlineId = window.setTimeout(() => {
+      abortController.abort(
+        new Error(
+          `FastEnhancer did not initialize within ${INIT_TIMEOUT_MS} ms`,
+        ),
+      );
+    }, INIT_TIMEOUT_MS);
+    const aborted = new Promise<never>((_, reject) => {
+      signal.addEventListener('abort', () => reject(signal.reason), {
+        once: true,
+      });
+    });
+    aborted.catch(() => {}); // raced below, and may settle after init
+    // races steps that can't be aborted themselves
+    const untilAborted = <T>(promise: Promise<T>) =>
+      Promise.race([promise, aborted]);
+    // stops a disposed or timed-out init after each await
+    const assertCurrent = () => {
+      if (generation !== this.generation) {
+        throw new Error('NoiseCancellation was disposed while initializing');
+      }
+      signal.throwIfAborted();
+    };
+
     let workletNode: AudioWorkletNode | undefined;
     try {
       const audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
@@ -216,21 +249,23 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
       }
       this.startRecovery(audioContext);
 
-      const [{ createFastEnhancerNode }, simdSupported] = await Promise.all([
-        loadRuntime(),
-        simd(),
-      ]);
-      workletNode = await createFastEnhancerNode(audioContext, {
-        model: this.model,
-        basePath: this.basePath,
-        simd: simdSupported,
-        hpf: this.hpf,
-        agc: this.agc,
-        timeoutMs: INIT_TIMEOUT_MS,
-      });
-      if (generation !== this.generation) {
-        throw new Error('NoiseCancellation was disposed while initializing');
-      }
+      const [{ createFastEnhancerNode }, simdSupported] = await untilAborted(
+        Promise.all([loadRuntime(), simd()]),
+      );
+      assertCurrent();
+      // The runtime honours `signal` itself (fetches, the `ready` wait) and
+      // destroys its node once aborted; the race also bounds `addModule`.
+      workletNode = await untilAborted(
+        createFastEnhancerNode(audioContext, {
+          model: this.model,
+          basePath: this.basePath,
+          simd: simdSupported,
+          hpf: this.hpf,
+          agc: this.agc,
+          signal,
+        }),
+      );
+      assertCurrent();
 
       const delayNode = audioContext.createDelay(PROCESSING_DELAY_S);
       delayNode.delayTime.value = PROCESSING_DELAY_S;
@@ -264,6 +299,11 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
       }
       this.rejectInitialized(err);
       throw err;
+    } finally {
+      window.clearTimeout(deadlineId);
+      if (this.initAbortController === abortController) {
+        this.initAbortController = undefined;
+      }
     }
 
     this.resolveInitialized();
@@ -315,6 +355,10 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
    */
   dispose = async () => {
     this.generation++;
+    this.initAbortController?.abort(
+      new Error('NoiseCancellation was disposed while initializing'),
+    );
+    this.initAbortController = undefined;
     await this.disable();
     await this.teardown();
   };
@@ -480,6 +524,9 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
           'noiseCancellation.bufferOverflowIgnored',
           'warm-up',
         );
+        // The passthrough deadline (armed by applyState below) applies here
+        // too, on purpose: otherwise a device that never recovers would sit
+        // "enabled" on raw audio forever.
       } else {
         this.handleOverload();
         return;

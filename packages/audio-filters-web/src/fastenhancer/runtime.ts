@@ -10,8 +10,8 @@ const MODEL_IDS: Record<FastEnhancerModel, number> = {
   small: 2,
 };
 
-const fetchAsset = async (url: string) => {
-  const response = await fetch(url);
+const fetchAsset = async (url: string, signal: AbortSignal) => {
+  const response = await fetch(url, { signal });
   if (!response.ok) {
     throw new Error(
       `Failed to fetch ${url}: ${response.status} ${response.statusText}`.trim(),
@@ -36,6 +36,10 @@ const addProcessorModule = async (ctx: AudioContext) => {
  * Resolves with the worklet node once the worklet has replied `ready`.
  * The node starts with its own bypass on, so it processes nothing until
  * `set_bypass { enabled: false }` is posted.
+ *
+ * The caller bounds the whole load with `signal`: aborting it cancels the
+ * fetches, stops waiting for `ready`, and rejects with `signal.reason`.
+ * No node is returned once the signal has aborted.
  */
 export const createFastEnhancerNode = async (
   ctx: AudioContext,
@@ -45,21 +49,25 @@ export const createFastEnhancerNode = async (
     simd: boolean;
     hpf: boolean;
     agc: boolean;
-    timeoutMs: number;
+    signal: AbortSignal;
   },
 ): Promise<AudioWorkletNode> => {
-  const { model, simd, hpf, agc, timeoutMs } = opts;
+  const { model, simd, hpf, agc, signal } = opts;
   const prefix = `${opts.basePath.replace(/\/+$/, '')}/fe_${model}`;
   const variant = simd ? 'simd' : 'scalar';
 
   const [wasmBytes, exportMap, weightBytes] = await Promise.all([
-    fetchAsset(`${prefix}_${variant}.wasm`).then((r) => r.arrayBuffer()),
-    fetchAsset(`${prefix}_${variant}.exports.json`).then(
+    fetchAsset(`${prefix}_${variant}.wasm`, signal).then((r) =>
+      r.arrayBuffer(),
+    ),
+    fetchAsset(`${prefix}_${variant}.exports.json`, signal).then(
       (r) => r.json() as Promise<Record<string, string>>,
     ),
-    fetchAsset(`${prefix}_48k.bin`).then((r) => r.arrayBuffer()),
+    fetchAsset(`${prefix}_48k.bin`, signal).then((r) => r.arrayBuffer()),
     addProcessorModule(ctx),
   ]);
+  // `addModule` can't be aborted, so check before creating the node
+  signal.throwIfAborted();
 
   const node = new AudioWorkletNode(ctx, 'fastenhancer-processor', {
     numberOfInputs: 1,
@@ -69,8 +77,8 @@ export const createFastEnhancerNode = async (
 
   try {
     await new Promise<void>((resolve, reject) => {
-      const settle = (error?: Error) => {
-        clearTimeout(timeoutId);
+      const settle = (error?: unknown) => {
+        signal.removeEventListener('abort', onAbort);
         node.port.removeEventListener('message', onMessage);
         node.removeEventListener('processorerror', onProcessorError);
         if (error) reject(error);
@@ -90,14 +98,9 @@ export const createFastEnhancerNode = async (
       const onProcessorError = () => {
         settle(new Error('FastEnhancer worklet stopped during initialization'));
       };
-      const timeoutId = setTimeout(() => {
-        settle(
-          new Error(
-            `FastEnhancer worklet did not become ready within ${timeoutMs} ms`,
-          ),
-        );
-      }, timeoutMs);
+      const onAbort = () => settle(signal.reason);
 
+      signal.addEventListener('abort', onAbort);
       node.port.addEventListener('message', onMessage);
       node.port.start();
       node.addEventListener('processorerror', onProcessorError);
@@ -116,6 +119,7 @@ export const createFastEnhancerNode = async (
       node.port.postMessage({ type: 'set_agc', enabled: agc });
       node.port.postMessage({ type: 'set_bypass', enabled: true });
     });
+    signal.throwIfAborted();
   } catch (err) {
     node.port.postMessage({ type: 'destroy' });
     node.disconnect();
