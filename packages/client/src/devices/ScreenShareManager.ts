@@ -12,6 +12,18 @@ import { createSubscription } from '../store/rxUtils';
 import { normalize } from './devicePersistence';
 import { TrackPublishOptions } from '../rtc';
 
+const contentHints: ReadonlyArray<string | undefined> = [
+  '',
+  'motion',
+  'detail',
+  'text',
+];
+
+const isContentHint = (
+  value: string | undefined,
+): value is NonNullable<ScreenShareSettings['contentHint']> =>
+  contentHints.includes(value);
+
 export class ScreenShareManager extends AudioDeviceManager<
   ScreenShareState,
   DisplayMediaStreamOptions
@@ -96,7 +108,7 @@ export class ScreenShareManager extends AudioDeviceManager<
     await this.call.ensureMediaFactory();
     const stream = await getScreenShareStream(constraints, this.call.tracer);
     const [track] = stream.getVideoTracks();
-    const { contentHint } = this.state.settings || {};
+    const contentHint = this.resolveContentHint();
     if (typeof contentHint !== 'undefined' && track && 'contentHint' in track) {
       this.call.tracer.trace(
         'navigator.mediaDevices.getDisplayMedia.contentHint',
@@ -115,10 +127,25 @@ export class ScreenShareManager extends AudioDeviceManager<
     options?: TrackPublishOptions,
   ): Promise<void> {
     return super.publishStream(stream, {
-      contentHint: this.state.settings?.contentHint,
+      contentHint: this.resolveContentHint(),
       ...options,
     });
   }
+
+  /**
+   * Resolves the content hint for the screen share track: the one set through
+   * {@link setSettings} wins, then the one from the call settings, otherwise
+   * `undefined` and the browser decides.
+   *
+   * @internal
+   */
+  resolveContentHint = (): ScreenShareSettings['contentHint'] => {
+    const contentHint = this.state.settings?.contentHint;
+    if (typeof contentHint !== 'undefined') return contentHint;
+    const fromCallSettings =
+      this.call.state.settings?.screensharing.content_hint;
+    return isContentHint(fromCallSettings) ? fromCallSettings : undefined;
+  };
 
   protected override doSetAudioBitrateProfile(profile: AudioBitrateProfile) {
     const { defaultConstraints } = this.state;

@@ -76,10 +76,35 @@ export type NoiseCancellationOptions = {
 };
 
 /**
+ * Options that can be applied after construction, usually from the call
+ * settings. They only fill in what wasn't passed to the constructor.
+ */
+export type NoiseCancellationConfiguration = {
+  /**
+   * See {@link NoiseCancellationOptions.withSafariSupport}.
+   */
+  withSafariSupport?: boolean;
+  /**
+   * The full URL of the model file to load.
+   * Ignored when a `basePath` was passed to the constructor.
+   */
+  modelPath?: string;
+};
+
+/**
  * An interface for the NoiseCancellation implementation.
  * Provided for easier unit testing.
  */
 export interface INoiseCancellation {
+  /**
+   * The noise cancellation engine this implementation runs, e.g. `krisp`.
+   */
+  engine?: string;
+  /**
+   * Applies options from the call settings.
+   * Call it before {@link isSupported} and {@link init}.
+   */
+  configure?: (configuration: NoiseCancellationConfiguration) => void;
   isSupported: () => boolean | Promise<boolean>;
   init: (options?: { tracer?: Tracer }) => Promise<void>;
   isEnabled: () => Promise<boolean>;
@@ -143,6 +168,7 @@ export type Events = {
  * A wrapper around the Krisp.AI SDK.
  */
 export class NoiseCancellation implements INoiseCancellation {
+  readonly engine = 'krisp';
   private sdk?: IKrispSDK;
   private filterNode?: IAudioFilterNode;
   private audioContext?: AudioContext;
@@ -158,9 +184,12 @@ export class NoiseCancellation implements INoiseCancellation {
   private readonly rejectInitialized!: (reason?: unknown) => void;
 
   private readonly basePath: string;
+  private readonly hasCustomBasePath: boolean;
+  private modelPath: string | undefined;
   private readonly restoreTimeoutMs: number;
   private readonly restoreAttempts: number;
-  private readonly withSafariSupport: boolean;
+  private withSafariSupport: boolean;
+  private readonly hasExplicitSafariSupport: boolean;
   private readonly krispSDKParams?: ISDKPartialOptions['params'];
 
   private readonly listeners: Partial<Record<keyof Events, Array<any>>> = {};
@@ -169,10 +198,10 @@ export class NoiseCancellation implements INoiseCancellation {
    * Constructs a new instance.
    */
   constructor({
-    basePath = `https://unpkg.com/${packageName}@${packageVersion}/src/krispai/models`,
+    basePath,
     restoreTimeoutMs = 15000,
     restoreAttempts = 3,
-    withSafariSupport = false,
+    withSafariSupport,
     krispSDKParams,
   }: NoiseCancellationOptions = {}) {
     const { promise, resolve, reject } = promiseWithResolvers<void>();
@@ -180,12 +209,32 @@ export class NoiseCancellation implements INoiseCancellation {
     this.resolveInitialized = resolve;
     this.rejectInitialized = reject;
 
-    this.basePath = basePath;
+    this.basePath =
+      basePath ??
+      `https://unpkg.com/${packageName}@${packageVersion}/src/krispai/models`;
+    this.hasCustomBasePath = typeof basePath !== 'undefined';
     this.restoreTimeoutMs = restoreTimeoutMs;
     this.restoreAttempts = restoreAttempts;
-    this.withSafariSupport = withSafariSupport;
+    this.withSafariSupport = withSafariSupport ?? false;
+    this.hasExplicitSafariSupport = typeof withSafariSupport !== 'undefined';
     this.krispSDKParams = krispSDKParams;
   }
+
+  /**
+   * Applies options from the call settings. Options passed to the
+   * constructor take precedence. Call it before {@link isSupported} and
+   * {@link init}: a model path applied after `init` takes effect on the
+   * next `init`.
+   */
+  configure = (configuration: NoiseCancellationConfiguration) => {
+    const { withSafariSupport, modelPath } = configuration;
+    if (!this.hasExplicitSafariSupport) {
+      this.withSafariSupport = withSafariSupport ?? false;
+    }
+    if (!this.hasCustomBasePath) {
+      this.modelPath = modelPath;
+    }
+  };
 
   /**
    * Checks if the noise cancellation is supported on this platform.
@@ -224,7 +273,7 @@ export class NoiseCancellation implements INoiseCancellation {
         useSharedArrayBuffer: false,
         models: {
           // https://sdk-docs.krisp.ai/docs/krisp-audio-sdk-model-selection-guide
-          modelNC: `${this.basePath}/krisp-nc-o-med-v7.kef`,
+          modelNC: this.modelPath ?? `${this.basePath}/krisp-nc-o-med-v7.kef`,
         },
         ...this.krispSDKParams,
       },

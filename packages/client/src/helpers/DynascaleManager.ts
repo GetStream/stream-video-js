@@ -45,7 +45,8 @@ export class DynascaleManager {
   private callState: CallState;
   private speaker: SpeakerManager;
   private readonly tracer: Tracer;
-  private useWebAudio = isWebKit();
+  private useWebAudio: boolean | undefined;
+  private webAudioFromCallSettings: boolean | undefined;
   private audioContextLease: AudioContextLease | undefined;
   private playbackWatchdogs = new Set<MediaPlaybackWatchdog>();
   private silentAudioPlayer: SilentAudioPlayer;
@@ -56,6 +57,7 @@ export class DynascaleManager {
   private stopWatchingAudioInterruptions: (() => void) | undefined;
   private stopTracingAudioContext: (() => void) | undefined;
   private stopWatchingVisibility: (() => void) | undefined;
+  private stopWatchingSilenceSetting: (() => void) | undefined;
 
   private trackSubscriptionManager: TrackSubscriptionManager;
   private blockedAudioTracker: BlockedAudioTracker;
@@ -82,6 +84,7 @@ export class DynascaleManager {
    * Releases the shared audio context used for Web Audio playback.
    */
   dispose = async () => {
+    this.webAudioFromCallSettings = undefined;
     this.releaseAudioPlaybackUnlock();
     this.audioContextLease?.release();
     this.audioContextLease = undefined;
@@ -97,7 +100,9 @@ export class DynascaleManager {
   keepAudioPlaybackUnlocked = () => {
     this.stopTracingAudioContext ??= sharedAudioContext.addTracer(this.tracer);
     this.getOrCreateAudioContext();
-    this.silentAudioPlayer.play();
+    if (this.isSilenceAllowed()) this.silentAudioPlayer.play();
+    // the call settings may arrive after the join started
+    this.stopWatchingSilenceSetting ??= this.watchSilenceSetting();
     if (isIOS()) {
       this.stopWatchingAudioInterruptions ??=
         sharedAudioContext.watchInterruptions(this.onAudioInterruptionChange);
@@ -111,6 +116,8 @@ export class DynascaleManager {
    * {@link keepAudioPlaybackUnlocked}.
    */
   releaseAudioPlaybackUnlock = () => {
+    this.stopWatchingSilenceSetting?.();
+    this.stopWatchingSilenceSetting = undefined;
     this.stopWatchingVisibility?.();
     this.stopWatchingVisibility = undefined;
     this.stopTracingAudioContext?.();
@@ -133,7 +140,8 @@ export class DynascaleManager {
 
   /**
    * Sets whether to use WebAudio API for audio playback.
-   * Must be set before joining the call.
+   * Takes precedence over `audio.extra_options.use_web_audio` from the call
+   * settings. Must be set before joining the call.
    *
    * @internal
    *
@@ -702,13 +710,46 @@ export class DynascaleManager {
   };
 
   /**
+   * Web Audio playback is off by default. The call settings
+   * (`audio.extra_options.use_web_audio`) can turn it on for WebKit only,
+   * and {@link setUseWebAudio} overrides both. The call settings value is
+   * latched once known, so a mid-call change can't mix the two routings.
+   */
+  private shouldUseWebAudio = (): boolean => {
+    if (typeof this.useWebAudio === 'boolean') return this.useWebAudio;
+    if (typeof this.webAudioFromCallSettings === 'boolean') {
+      return this.webAudioFromCallSettings;
+    }
+    const { settings } = this.callState;
+    const useWebAudio =
+      isWebKit() && settings?.audio.extra_options?.use_web_audio === true;
+    if (settings) this.webAudioFromCallSettings = useWebAudio;
+    return useWebAudio;
+  };
+
+  /**
+   * The silent audio element is on by default (iOS only, see
+   * SilentAudioPlayer). The call settings can only turn it off, with
+   * `audio.extra_options.play_silence: false`.
+   */
+  private isSilenceAllowed = (): boolean =>
+    this.callState.settings?.audio.extra_options?.play_silence !== false;
+
+  private watchSilenceSetting = () => {
+    const subscription = this.callState.settings$.subscribe(() => {
+      if (!this.isSilenceAllowed()) this.silentAudioPlayer.dispose();
+    });
+    return () => subscription.unsubscribe();
+  };
+
+  /**
    * Web Audio playback runs on the page-wide shared context. It resumes a
    * suspended context (a device change, a context created outside a
    * gesture) on its own or on the next user gesture, reports interruptions,
    * and restarts a context whose clock froze.
    */
   private getOrCreateAudioContext = (): AudioContext | undefined => {
-    if (!this.useWebAudio) return;
+    if (!this.shouldUseWebAudio()) return;
     if (this.audioContextLease) return this.audioContextLease.context;
     this.audioContextLease = sharedAudioContext.acquire();
     const context = this.audioContextLease?.context;

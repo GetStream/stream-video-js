@@ -2628,7 +2628,7 @@ export class Call {
           mediaStream = this.screenShare.state.mediaStream;
           options = {
             audioBitrateProfile: this.screenShare.state.audioBitrateProfile,
-            contentHint: this.screenShare.getSettings()?.contentHint,
+            contentHint: this.screenShare.resolveContentHint(),
           };
           break;
         // screen share audio can't exist without a screen share, so we handle it there

@@ -87,17 +87,27 @@ export const NoiseCancellationProvider = (
     useCallStateHooks();
   const settings = useCallSettings();
   const { noiseCancellationStatus } = useMicrophoneState();
+  const noiseCancellationSettings = settings?.audio.noise_cancellation;
+  const engine = noiseCancellationSettings?.engine;
+  const engineMatches =
+    !engine || !noiseCancellation.engine || engine === noiseCancellation.engine;
   const noiseCancellationAllowed = !!(
-    settings &&
-    settings.audio.noise_cancellation &&
-    settings.audio.noise_cancellation.mode !== 'disabled'
+    noiseCancellationSettings &&
+    noiseCancellationSettings.mode !== 'disabled' &&
+    engineMatches
   );
+  const enabledInSafari = noiseCancellationSettings?.enabled_in_safari;
+  const modelPath = noiseCancellationSettings?.model_path;
 
   const hasCapability = useHasPermissions(
     OwnCapability.ENABLE_NOISE_CANCELLATION,
   );
   const [isSupportedByBrowser, setIsSupportedByBrowser] = useState<boolean>();
   useEffect(() => {
+    noiseCancellation.configure?.({
+      withSafariSupport: enabledInSafari,
+      modelPath,
+    });
     const result = noiseCancellation.isSupported();
     if (typeof result === 'boolean') {
       setIsSupportedByBrowser(result);
@@ -111,7 +121,7 @@ export const NoiseCancellationProvider = (
           ),
         );
     }
-  }, [noiseCancellation]);
+  }, [noiseCancellation, enabledInSafari, modelPath]);
 
   const isSupported =
     isSupportedByBrowser && hasCapability && noiseCancellationAllowed;
