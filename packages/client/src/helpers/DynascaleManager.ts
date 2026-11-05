@@ -26,7 +26,7 @@ import {
   sharedAudioContext,
 } from './SharedAudioContext';
 import type { TrackSubscriptionManager } from './TrackSubscriptionManager';
-import { isFirefox, isIOS, isSafari, isWebKit } from './browsers';
+import { isFirefox, isIOS, isSafari } from './browsers';
 import { hasScreenShare, hasVideo } from './participantUtils';
 import { CallState } from '../store';
 import { SpeakerManager } from '../devices';
@@ -45,7 +45,7 @@ export class DynascaleManager {
   private callState: CallState;
   private speaker: SpeakerManager;
   private readonly tracer: Tracer;
-  private useWebAudio = isWebKit();
+  private useWebAudio = false;
   private audioContextLease: AudioContextLease | undefined;
   private playbackWatchdogs = new Set<MediaPlaybackWatchdog>();
   private silentAudioPlayer: SilentAudioPlayer;
@@ -133,7 +133,7 @@ export class DynascaleManager {
 
   /**
    * Sets whether to use WebAudio API for audio playback.
-   * Must be set before joining the call.
+   * Disabled by default. Must be set before joining the call.
    *
    * @internal
    *
