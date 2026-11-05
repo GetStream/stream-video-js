@@ -80,6 +80,9 @@ export const createFastEnhancerNode = async (
     numberOfInputs: 1,
     numberOfOutputs: 1,
     outputChannelCount: [1],
+    // the processor reads the first channel only: downmix stereo input
+    channelCount: 1,
+    channelCountMode: 'explicit',
   });
 
   try {

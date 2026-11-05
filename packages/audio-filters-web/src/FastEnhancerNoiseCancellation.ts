@@ -130,6 +130,11 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
   private failed = false;
   /** Whether the worklet stopped (`processorerror` or `destroyed`). */
   private workletDead = false;
+  /**
+   * Whether the last stream couldn't be connected to the graph, so raw audio
+   * is published without the filter. Cleared by the next successful connect.
+   */
+  private streamFailed = false;
   /** Mirrors the worklet's `_autoPassthrough`, from `auto_bypass` messages. */
   private workletPassthrough = false;
 
@@ -326,6 +331,10 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
   /**
    * Enables the noise cancellation.
    * Also re-enables it after an overload or a single processing error.
+   *
+   * Always notifies the `change` listeners, even if the filtering state
+   * didn't flip, so that a caller re-enabling it (e.g., after a reconnect)
+   * re-announces the state.
    */
   enable = async () => {
     if (!this.workletNode) return;
@@ -336,17 +345,25 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
       this.heldOff = false;
       // a single processing error may be retried, a repeated one is final
       if (this.processErrorCount < 2) this.failed = false;
-    });
-    if (this.workletDead || this.failed) {
+    }, true);
+    const reason = this.workletDead
+      ? 'worklet stopped'
+      : this.failed
+        ? 'repeated process_error'
+        : this.streamFailed
+          ? 'stream not connected'
+          : undefined;
+    if (reason) {
       this.tracer?.trace(
         'noiseCancellation.error',
-        `enable ignored: ${this.workletDead ? 'worklet stopped' : 'repeated process_error'}`,
+        `enable ignored: ${reason}`,
       );
     }
   };
 
   /**
    * Disables the noise cancellation.
+   * Always notifies the `change` listeners, like `enable()`.
    */
   disable = async () => {
     if (!this.workletNode) return;
@@ -354,7 +371,7 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
     this.transition(() => {
       this.userEnabled = false;
       this.heldOff = false;
-    });
+    }, true);
   };
 
   /**
@@ -406,7 +423,7 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       const trackRate = audioTrack.getSettings().sampleRate ?? 'unknown';
-      this.tracer?.trace('noiseCancellation.error', `toFilter ${message}`);
+      this.handleStreamFailed(`toFilter ${message}`);
       throw new Error(
         `FastEnhancerNoiseCancellation can't connect the stream (${trackRate} Hz)` +
           ` to its ${SAMPLE_RATE} Hz audio context: ${message}`,
@@ -424,6 +441,7 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
   /**
    * Connects the source to the raw, delayed dry and filtered paths,
    * all summed into the destination. The gains decide which one is heard.
+   * A successful connect clears an earlier stream failure.
    */
   protected connectFilter = (
     source: MediaStreamAudioSourceNode,
@@ -442,27 +460,40 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
       wetGain.connect(destination);
     } catch (err) {
       source.disconnect();
+      const message = err instanceof Error ? err.message : String(err);
+      this.handleStreamFailed(`connectFilter ${message}`);
       throw err;
     }
+    this.transition(() => {
+      this.streamFailed = false;
+    });
   };
 
   /**
    * Whether the filter should be audible: wanted by the user and not held
-   * off, failed or dead.
+   * off, failed, dead or without a connected stream.
    */
   private isFiltering = () =>
-    this.userEnabled && !this.heldOff && !this.failed && !this.workletDead;
+    this.userEnabled &&
+    !this.heldOff &&
+    !this.failed &&
+    !this.workletDead &&
+    !this.streamFailed;
 
   /**
    * Applies a state change, updates the graph, and fires `change`
-   * when the filtering state flips.
+   * when the filtering state flips, or always when `notify` is set.
+   * Internal transitions (overload, restore, errors) notify on flips only,
+   * so the state doesn't flap.
    */
-  private transition = (update: () => void) => {
+  private transition = (update: () => void, notify = false) => {
     const wasFiltering = this.isFiltering();
     update();
     this.applyState();
     const filtering = this.isFiltering();
-    if (filtering !== wasFiltering) this.dispatch('change', filtering);
+    if (notify || filtering !== wasFiltering) {
+      this.dispatch('change', filtering);
+    }
   };
 
   /**
@@ -615,6 +646,17 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
     });
   };
 
+  /**
+   * The stream couldn't be connected to the graph and is published raw:
+   * the filter counts as off until a stream connects.
+   */
+  private handleStreamFailed = (reason: string) => {
+    this.tracer?.trace('noiseCancellation.error', reason);
+    this.transition(() => {
+      this.streamFailed = true;
+    });
+  };
+
   private clearRestore = () => {
     window.clearTimeout(this.restoreTimeoutId);
     this.restoreTimeoutId = undefined;
@@ -660,6 +702,7 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
     this.heldOff = false;
     this.failed = false;
     this.workletDead = false;
+    this.streamFailed = false;
     this.workletPassthrough = false;
     this.overloadCount = 0;
     this.processErrorCount = 0;
