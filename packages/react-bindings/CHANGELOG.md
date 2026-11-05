@@ -7,6 +7,7 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 ### Dependency Updates
 
 - `@stream-io/video-client` updated to version `1.64.1`
+  - **audio-filters-web:** report Safari as unsupported unless opted in ([#2572](https://github.com/GetStream/stream-video-js/issues/2572)) ([c7cfd9f](https://github.com/GetStream/stream-video-js/commit/c7cfd9f7ea5da93629734356b02b935fa8fa534e))
 
 ### Bug Fixes
 

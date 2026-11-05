@@ -7,6 +7,8 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 ### Dependency Updates
 
 - `@stream-io/video-client` updated to version `1.64.1`
+  - **audio-filters-web:** report Safari as unsupported unless opted in ([#2572](https://github.com/GetStream/stream-video-js/issues/2572)) ([c7cfd9f](https://github.com/GetStream/stream-video-js/commit/c7cfd9f7ea5da93629734356b02b935fa8fa534e))
+  - **client:** let users retry mic/camera access after a denial ([#2570](https://github.com/GetStream/stream-video-js/issues/2570)) ([92b1991](https://github.com/GetStream/stream-video-js/commit/92b19912daa03ac3e9a28ee14029d04cef70c1b4))
 - `@stream-io/video-react-bindings` updated to version `1.22.1`
 
 ## [1.46.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.46.4...@stream-io/video-react-native-sdk-1.46.5) (2026-10-30)
