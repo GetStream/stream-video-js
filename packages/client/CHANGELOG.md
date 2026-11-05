@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.65.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.64.1...@stream-io/video-client-1.65.0) (2026-11-05)
+
+### Features
+
+- **client:** apply staff-managed call settings for screen share, mic and noise cancellation ([#2589](https://github.com/GetStream/stream-video-js/issues/2589)) ([a913c13](https://github.com/GetStream/stream-video-js/commit/a913c13e02be0167ef0b00160394497947c626fa))
+- **client:** play remote audio through Web Audio on WebKit ([#2584](https://github.com/GetStream/stream-video-js/issues/2584)) ([3ae8c15](https://github.com/GetStream/stream-video-js/commit/3ae8c1589fa23f06c1df7e9316f6a3937dbde10d))
+- **client:** report camera capture stats; warn about a low camera frame rate in Pronto ([#2577](https://github.com/GetStream/stream-video-js/issues/2577)) ([168aaa9](https://github.com/GetStream/stream-video-js/commit/168aaa90d5c76aa0fa9d99ff27c68a5fdb0c3572)), closes [#2445](https://github.com/GetStream/stream-video-js/issues/2445) [#2444](https://github.com/GetStream/stream-video-js/issues/2444)
+
+### Bug Fixes
+
+- **client:** remove the hidden-page check when resuming the shared AudioContext ([#2587](https://github.com/GetStream/stream-video-js/issues/2587)) ([ac8fef6](https://github.com/GetStream/stream-video-js/commit/ac8fef6ff3620ce260fcc9125c497f09e8368f3d))
+
 ## [1.64.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.64.0...@stream-io/video-client-1.64.1) (2026-11-02)
 
 ### Bug Fixes
