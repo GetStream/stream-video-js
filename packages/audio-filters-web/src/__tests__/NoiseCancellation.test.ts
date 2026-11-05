@@ -174,22 +174,31 @@ describe('NoiseCancellation', () => {
     expect(EngineStub.instances[0].init).not.toHaveBeenCalled();
   });
 
-  it('keeps the running engine until dispose', async () => {
-    const nc = new NoiseCancellation();
-    await nc.init();
-    const krisp = lastEngine();
+  it.each([
+    ['krisp', 'stream'],
+    ['stream', 'krisp'],
+  ] as const)(
+    'reports the running %s engine until dispose when %s is configured',
+    async (initialEngine, nextEngine) => {
+      const nc = new NoiseCancellation({ defaultEngine: initialEngine });
+      await nc.init();
+      const runningEngine = lastEngine();
 
-    nc.configure({ engine: 'stream' });
-    await nc.enable();
-    expect(krisp.enable).toHaveBeenCalled();
-    expect(EngineStub.instances).toHaveLength(1);
+      nc.configure({ engine: nextEngine });
+      expect(nc.engine).toBe(initialEngine);
+      await nc.enable();
+      expect(runningEngine.enable).toHaveBeenCalled();
+      expect(EngineStub.instances).toHaveLength(1);
 
-    await nc.dispose();
-    expect(krisp.dispose).toHaveBeenCalled();
-    await nc.init();
-    expect(EngineStub.instances).toHaveLength(2);
-    expect(lastEngine().engine).toBe('stream');
-  });
+      await nc.dispose();
+      expect(runningEngine.dispose).toHaveBeenCalled();
+      expect(nc.engine).toBe(nextEngine);
+      await nc.init();
+      expect(EngineStub.instances).toHaveLength(2);
+      expect(lastEngine().engine).toBe(nextEngine);
+      expect(nc.engine).toBe(nextEngine);
+    },
+  );
 
   it('delegates the API to the running engine', async () => {
     const nc = new NoiseCancellation();

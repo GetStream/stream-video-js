@@ -35,11 +35,6 @@ export type Filters<
       }>
     | ('$eq' extends FCHelper<FilterConditions>[Property]['operators']
         ? FilterValue<FCHelper<FilterConditions>[Property], '$eq'>
-        : never)
-    // `allowEmpty` marks a key whose empty filter (`{}`) has a meaning of its own,
-    // e.g. `team: {}` (all teams) in a multi-tenant channel query.
-    | (FCHelper<FilterConditions>[Property] extends { allowEmpty: true }
-        ? Record<string, never>
         : never);
 }>;
 
@@ -78,15 +73,11 @@ export type CustomHelper<T extends { type: any; operators: string }> = {
   // string extends string = true
   // string extends "custom-string" = false
   // using this "hack" to omit Record<string, any> types when custom types are not specified
-  // Object-valued custom fields are left to the `custom.${string}` index signature: a typed key with
-  // an object value would conflict with it (filters on nested custom data address `custom.a.b`).
   [
     P in keyof T['type'] as string extends P
       ? never
       : P extends string
-        ? NonNullable<T['type'][P]> extends string | boolean | number | Date
-          ? `custom.${P}`
-          : never
+        ? `custom.${P}`
         : never
   ]-?: {
     type: NonNullable<T['type'][P]>;
@@ -140,10 +131,6 @@ export interface APIError {
    */
   details: Array<number>;
   /**
-   * Milliseconds until the user's slow mode cool down period ends. Only set on code 60 (cool down) errors
-   */
-  cooldown_remaining_ms?: number;
-  /**
    * Flag that indicates if the error is unrecoverable, requests that return unrecoverable errors should not be retried, this error only applies to the request that caused it
    */
   unrecoverable?: boolean;
@@ -157,6 +144,8 @@ export interface AbsentMetric {
   metric: string;
   reason: string;
 }
+
+export interface AcceptCallRequest {}
 
 export interface AcceptCallResponse {
   /**
@@ -210,13 +199,8 @@ export interface Audience {
   shape?: string;
 }
 
-export type AudioDefaultDevice = 'speaker' | 'earpiece';
-
 export interface AudioSettingsRequest {
-  /**
-   * The device a call routes audio to by default.
-   */
-  default_device: AudioDefaultDevice;
+  default_device: 'speaker' | 'earpiece';
   access_request_enabled?: boolean;
   hifi_audio_enabled?: boolean;
   mic_default_on?: boolean;
@@ -228,10 +212,7 @@ export interface AudioSettingsRequest {
 
 export interface AudioSettingsResponse {
   access_request_enabled: boolean;
-  /**
-   * The device a call routes audio to by default.
-   */
-  default_device: AudioDefaultDevice;
+  default_device: 'speaker' | 'earpiece';
   hifi_audio_enabled: boolean;
   mic_default_on: boolean;
   opus_dtx_enabled: boolean;
@@ -610,8 +591,6 @@ export interface CallLevelEventPayload {
   payload?: Record<string, any>;
 }
 
-export type CallLifecycleMode = 'reusable' | 'single_use';
-
 export interface CallLiveStartedEvent {
   call_cid: string;
   created_at: TimestampNS;
@@ -824,10 +803,7 @@ export interface CallReactionEvent {
 export interface CallRecording {
   end_time: TimestampNS;
   filename: string;
-  /**
-   * The layout a call recording is produced in.
-   */
-  recording_type: RecordingType;
+  recording_type: string;
   session_id: string;
   start_time: TimestampNS;
   url: string;
@@ -840,7 +816,7 @@ export interface CallRecordingFailedEvent {
   /**
    * The type of recording
    */
-  recording_type: RecordingType;
+  recording_type: 'composite' | 'individual' | 'raw';
   /**
    * The type of event: "call.recording_failed" in this case
    */
@@ -854,7 +830,7 @@ export interface CallRecordingReadyEvent {
   /**
    * The type of recording
    */
-  recording_type: RecordingType;
+  recording_type: 'composite' | 'individual' | 'raw';
   /**
    * CallRecording represents a recording of a call.
    */
@@ -872,7 +848,7 @@ export interface CallRecordingStartedEvent {
   /**
    * The type of recording
    */
-  recording_type: RecordingType;
+  recording_type: 'composite' | 'individual' | 'raw';
   /**
    * The type of event: "call.recording_started" in this case
    */
@@ -886,7 +862,7 @@ export interface CallRecordingStoppedEvent {
   /**
    * The type of recording
    */
-  recording_type: RecordingType;
+  recording_type: 'composite' | 'individual' | 'raw';
   /**
    * The type of event: "call.recording_stopped" in this case
    */
@@ -1187,7 +1163,6 @@ export interface CallSettingsRequest {
   geofencing?: GeofenceSettingsRequest;
   individual_recording?: IndividualRecordingSettingsRequest;
   ingress?: IngressSettingsRequest;
-  lifecycle?: LifecycleSettingsRequest;
   limits?: LimitsSettingsRequest;
   raw_recording?: RawRecordingSettingsRequest;
   recording?: RecordSettingsRequest;
@@ -1213,10 +1188,6 @@ export interface CallSettingsResponse {
   frame_recording: FrameRecordingSettingsResponse;
   geofencing: GeofenceSettingsResponse;
   individual_recording: IndividualRecordingSettingsResponse;
-  /**
-   * LifecycleSettings is the payload for call lifecycle settings
-   */
-  lifecycle: LifecycleSettingsResponse;
   limits: LimitsSettingsResponse;
   raw_recording: RawRecordingSettingsResponse;
   /**
@@ -1397,8 +1368,6 @@ export interface CallTranscription {
   session_id: string;
   start_time: TimestampNS;
   url: string;
-  language?: string;
-  translated?: boolean;
 }
 
 export interface CallTranscriptionFailedEvent {
@@ -1517,8 +1486,6 @@ export interface CallsPerDayReportResponse {
   daily: Array<DailyAggregateCallsPerDayReportResponse>;
 }
 
-export type CameraFacing = 'front' | 'back' | 'external';
-
 export interface ChatActivityStatsResponse {
   messages?: MessageStatsResponse;
 }
@@ -1570,14 +1537,6 @@ export interface ClientEvent {
    * Reason the client initiated the join. Optional on CoordinatorJoin events; empty when not provided.
    */
   join_reason?: string;
-  /**
-   * Source of the leave that aborted a join: user, app, callkit, remote_event, sdk_error, or unknown. Not validated against this set, so SDKs may report new values. Optional; sent on failure events. Maximum 32 characters.
-   */
-  leave_initiator?: string;
-  /**
-   * Internal reason or triggering event for the leave that aborted a join. Optional; sent on failure events. Maximum 200 characters.
-   */
-  leave_reason?: string;
   /**
    * Microphone permission status: INITIATED, FAILED, GRANTED, or NOT_INITIATED. Required on every MediaDevicePermission event.
    */
@@ -1848,7 +1807,7 @@ export interface DeviceResponse {
   /**
    * Push provider
    */
-  push_provider: PushProviderName;
+  push_provider: string;
   /**
    * User ID
    */
@@ -1932,15 +1891,17 @@ export interface EncryptionSettingsRequest {
   /**
    * Encryption mode. One of: available, disabled, auto-on
    */
-  mode?: FeatureActivationMode;
+  mode?: 'available' | 'disabled' | 'auto-on';
 }
 
 export interface EncryptionSettingsResponse {
   /**
    * the resolved encryption mode for the call
    */
-  mode: FeatureActivationMode;
+  mode: 'available' | 'disabled' | 'auto-on';
 }
+
+export interface EndCallRequest {}
 
 export interface EndCallResponse {
   /**
@@ -1949,7 +1910,16 @@ export interface EndCallResponse {
   duration: string;
 }
 
-export type FeatureActivationMode = 'available' | 'disabled' | 'auto-on';
+export interface FeedsPreferencesResponse {
+  comment?: string;
+  comment_mention?: string;
+  comment_reaction?: string;
+  comment_reply?: string;
+  follow?: string;
+  mention?: string;
+  reaction?: string;
+  custom_activity_types?: Record<string, string>;
+}
 
 export interface FileUploadConfig {
   size_limit: number;
@@ -1965,19 +1935,13 @@ export interface FrameRecordingResponse {
 
 export interface FrameRecordingSettingsRequest {
   capture_interval_in_seconds: number;
-  /**
-   * Whether a call feature is available, disabled, or turned on automatically.
-   */
-  mode: FeatureActivationMode;
+  mode: 'available' | 'disabled' | 'auto-on';
   quality?: '360p' | '480p' | '720p' | '1080p' | '1440p';
 }
 
 export interface FrameRecordingSettingsResponse {
   capture_interval_in_seconds: number;
-  /**
-   * Whether a call feature is available, disabled, or turned on automatically.
-   */
-  mode: FeatureActivationMode;
+  mode: 'available' | 'disabled' | 'auto-on';
   quality?: string;
 }
 
@@ -2218,7 +2182,7 @@ export interface IndividualRecordingSettingsRequest {
   /**
    * Recording mode. One of: available, disabled, auto-on
    */
-  mode: FeatureActivationMode;
+  mode: 'available' | 'disabled' | 'auto-on';
   /**
    * Output types to include: audio_only, video_only, audio_video, screenshare_audio_only, screenshare_video_only, screenshare_audio_video
    */
@@ -2226,16 +2190,13 @@ export interface IndividualRecordingSettingsRequest {
 }
 
 export interface IndividualRecordingSettingsResponse {
-  /**
-   * Whether a call feature is available, disabled, or turned on automatically.
-   */
-  mode: FeatureActivationMode;
+  mode: 'available' | 'disabled' | 'auto-on';
   output_types?: Array<string>;
 }
 
 export interface IngressAudioEncodingOptionsRequest {
   bitrate: number;
-  channels: number;
+  channels: '1' | '2';
   enable_dtx?: boolean;
 }
 
@@ -2283,7 +2244,7 @@ export interface IngressSettingsResponse {
 }
 
 export interface IngressSourceRequest {
-  fps: number;
+  fps: '30' | '60';
   height: number;
   width: number;
 }
@@ -2356,10 +2317,7 @@ export interface IngressVideoEncodingResponse {
 
 export interface IngressVideoLayerRequest {
   bitrate: number;
-  /**
-   * The codec an ingress video layer is encoded with.
-   */
-  codec: VideoCodec;
+  codec: 'h264' | 'vp8';
   frame_rate_limit: number;
   max_dimension: number;
   min_dimension: number;
@@ -2468,32 +2426,12 @@ export interface KickedUserEvent {
   kicked_by_user?: UserResponse;
 }
 
-export type LayoutName =
-  'spotlight' | 'grid' | 'single-participant' | 'mobile' | 'custom';
-
 export interface LayoutSettingsRequest {
-  /**
-   * The layout a call recording or broadcast is composed with.
-   */
-  name: LayoutName;
+  name: 'spotlight' | 'grid' | 'single-participant' | 'mobile' | 'custom';
   detect_orientation?: boolean;
   external_app_url?: string;
   external_css_url?: string;
   options?: Record<string, any>;
-}
-
-export interface LifecycleSettingsRequest {
-  /**
-   * Call lifecycle mode. One of: reusable, single_use. A single_use call cannot be reused once it has ended; the server ends it when its ring settles without an answer (currently: when the caller cancels the ring). Fixed at call creation
-   */
-  mode?: CallLifecycleMode;
-}
-
-export interface LifecycleSettingsResponse {
-  /**
-   * Call lifecycle mode. One of: reusable, single_use. A single_use call cannot be reused once it has ended; the server ends it when its ring settles without an answer (currently: when the caller cancels the ring). Fixed at call creation
-   */
-  mode: CallLifecycleMode;
 }
 
 export interface LimitsSettingsRequest {
@@ -2626,10 +2564,7 @@ export interface NetworkMetricsReportResponse {
 }
 
 export interface NoiseCancellationSettings {
-  /**
-   * Whether a call feature is available, disabled, or turned on automatically.
-   */
-  mode: FeatureActivationMode;
+  mode: 'available' | 'disabled' | 'auto-on';
 }
 
 export const OwnCapability = {
@@ -2679,7 +2614,6 @@ export interface OwnUserResponse {
   language: string;
   role: string;
   updated_at: TimestampNS;
-  blocked_user_ids: Array<string>;
   devices: Array<DeviceResponse>;
   teams: Array<string>;
   custom: Record<string, any>;
@@ -2689,6 +2623,8 @@ export interface OwnUserResponse {
   image?: string;
   last_active?: TimestampNS;
   name?: string;
+  revoke_tokens_issued_before?: TimestampNS;
+  blocked_user_ids?: Array<string>;
   /**
    * The privacy settings of the user.
    */
@@ -2896,24 +2832,9 @@ export interface PushPreferencesResponse {
    * If provided the notifications will be disabled until the set date.
    */
   disabled_until?: TimestampNS;
+  feeds_level?: string;
   chat_preferences?: ChatPreferencesResponse;
-  /**
-   * A recurring quiet-hours schedule: while any quiet window is active, push notifications for the user are suppressed. Suppressed notifications are dropped, not delayed.
-   */
-  schedule?: PushScheduleResponse;
-}
-
-export type PushProviderName = 'firebase' | 'apn' | 'huawei' | 'xiaomi';
-
-export interface PushScheduleResponse {
-  /**
-   * IANA time zone name the quiet windows are evaluated in, for example Europe/Amsterdam.
-   */
-  timezone: string;
-  /**
-   * The quiet windows. Push is suppressed while any rule is active.
-   */
-  quiet_hours: Array<QuietHoursRuleResponse>;
+  feeds_preferences?: FeedsPreferencesResponse;
 }
 
 export interface Quality {
@@ -3343,21 +3264,6 @@ export interface QueryCallsResponse {
   prev?: string;
 }
 
-export interface QuietHoursRuleResponse {
-  /**
-   * When the window closes, as HH:MM local wall-clock time between 00:00 and 24:00. The end is exclusive. An end earlier than start wraps past midnight into the next day.
-   */
-  end: string;
-  /**
-   * When the window opens, as HH:MM local wall-clock time between 00:00 and 23:59.
-   */
-  start: string;
-  /**
-   * The days of the week the window opens on, any of mon, tue, wed, thu, fri, sat, sun. A window belongs to the day it opens: ["fri"] with 22:00 to 07:00 is quiet from Friday 22:00 until Saturday 07:00. Omitted means every day.
-   */
-  days?: Array<string>;
-}
-
 export interface RTMPBroadcastRequest {
   /**
    * Name identifier for RTMP broadcast, must be unique in call
@@ -3426,7 +3332,7 @@ export interface RawRecordingSettingsRequest {
   /**
    * Recording mode. One of: available, disabled, auto-on
    */
-  mode: FeatureActivationMode;
+  mode: 'available' | 'disabled' | 'auto-on';
   /**
    * If true, only audio tracks will be recorded
    */
@@ -3434,10 +3340,7 @@ export interface RawRecordingSettingsRequest {
 }
 
 export interface RawRecordingSettingsResponse {
-  /**
-   * Whether a call feature is available, disabled, or turned on automatically.
-   */
-  mode: FeatureActivationMode;
+  mode: 'available' | 'disabled' | 'auto-on';
   audio_only?: boolean;
 }
 
@@ -3445,7 +3348,7 @@ export interface RecordSettingsRequest {
   /**
    * Recording mode. One of: available, disabled, auto-on
    */
-  mode: FeatureActivationMode;
+  mode: 'available' | 'disabled' | 'auto-on';
   /**
    * Whether to record audio only
    */
@@ -3468,14 +3371,9 @@ export interface RecordSettingsRequest {
 
 export interface RecordSettingsResponse {
   audio_only: boolean;
-  /**
-   * Whether a call feature is available, disabled, or turned on automatically.
-   */
-  mode: FeatureActivationMode;
+  mode: string;
   quality: string;
 }
-
-export type RecordingType = 'composite' | 'individual' | 'raw';
 
 export interface RejectCallRequest {
   /**
@@ -4043,10 +3941,8 @@ export interface SortParamRequest {
   /**
    * Type of field to sort by. Empty string or omitted means string type (default). One of: number, boolean
    */
-  type?: SortParamType;
+  type?: string;
 }
-
-export type SortParamType = '' | 'number' | 'boolean';
 
 export interface SourceHealth {
   co_host_peak: number;
@@ -4079,7 +3975,44 @@ export interface StartClosedCaptionsRequest {
   /**
    * The spoken language in the call, if not provided the language defined in the transcription settings will be used. One of: auto, ar, bg, ca, cs, da, de, el, en, es, et, fi, fr, he, hi, hr, hu, id, it, ja, ko, ms, nl, no, pl, pt, ro, ru, sk, sl, sv, ta, th, tl, tr, uk, zh
    */
-  language?: TranscriptionLanguage;
+  language?:
+    | 'auto'
+    | 'en'
+    | 'fr'
+    | 'es'
+    | 'de'
+    | 'it'
+    | 'nl'
+    | 'pt'
+    | 'pl'
+    | 'ca'
+    | 'cs'
+    | 'da'
+    | 'el'
+    | 'fi'
+    | 'id'
+    | 'ja'
+    | 'ru'
+    | 'sv'
+    | 'ta'
+    | 'th'
+    | 'tr'
+    | 'hu'
+    | 'ro'
+    | 'zh'
+    | 'ar'
+    | 'tl'
+    | 'he'
+    | 'hi'
+    | 'hr'
+    | 'ko'
+    | 'ms'
+    | 'no'
+    | 'uk'
+    | 'bg'
+    | 'et'
+    | 'sl'
+    | 'sk';
   speech_segment_config?: SpeechSegmentConfig;
 }
 
@@ -4097,6 +4030,8 @@ export interface StartFrameRecordingResponse {
    */
   duration: string;
 }
+
+export interface StartHLSBroadcastingRequest {}
 
 export interface StartHLSBroadcastingResponse {
   duration: string;
@@ -4139,7 +4074,44 @@ export interface StartTranscriptionRequest {
   /**
    * The spoken language in the call, if not provided the language defined in the transcription settings will be used. One of: auto, ar, bg, ca, cs, da, de, el, en, es, et, fi, fr, he, hi, hr, hu, id, it, ja, ko, ms, nl, no, pl, pt, ro, ru, sk, sl, sv, ta, th, tl, tr, uk, zh
    */
-  language?: TranscriptionLanguage;
+  language?:
+    | 'auto'
+    | 'en'
+    | 'fr'
+    | 'es'
+    | 'de'
+    | 'it'
+    | 'nl'
+    | 'pt'
+    | 'pl'
+    | 'ca'
+    | 'cs'
+    | 'da'
+    | 'el'
+    | 'fi'
+    | 'id'
+    | 'ja'
+    | 'ru'
+    | 'sv'
+    | 'ta'
+    | 'th'
+    | 'tr'
+    | 'hu'
+    | 'ro'
+    | 'zh'
+    | 'ar'
+    | 'tl'
+    | 'he'
+    | 'hi'
+    | 'hr'
+    | 'ko'
+    | 'ms'
+    | 'no'
+    | 'uk'
+    | 'bg'
+    | 'et'
+    | 'sl'
+    | 'sk';
   /**
    * Store transcriptions in this external storage
    */
@@ -4157,6 +4129,8 @@ export interface StatsOptions {
   enable_rtc_stats: boolean;
   reporting_interval_ms: number;
 }
+
+export interface StopAllRTMPBroadcastsRequest {}
 
 export interface StopAllRTMPBroadcastsResponse {
   /**
@@ -4176,12 +4150,16 @@ export interface StopClosedCaptionsResponse {
   duration: string;
 }
 
+export interface StopFrameRecordingRequest {}
+
 export interface StopFrameRecordingResponse {
   /**
    * Duration of the request in milliseconds
    */
   duration: string;
 }
+
+export interface StopHLSBroadcastingRequest {}
 
 export interface StopHLSBroadcastingResponse {
   /**
@@ -4278,75 +4256,92 @@ export interface TrackStatsResponse {
   track_type: string;
 }
 
-export type TranscriptionLanguage =
-  | 'auto'
-  | 'en'
-  | 'fr'
-  | 'es'
-  | 'de'
-  | 'it'
-  | 'nl'
-  | 'pt'
-  | 'pl'
-  | 'ca'
-  | 'cs'
-  | 'da'
-  | 'el'
-  | 'fi'
-  | 'id'
-  | 'ja'
-  | 'ru'
-  | 'sv'
-  | 'ta'
-  | 'th'
-  | 'tr'
-  | 'hu'
-  | 'ro'
-  | 'zh'
-  | 'ar'
-  | 'tl'
-  | 'he'
-  | 'hi'
-  | 'hr'
-  | 'ko'
-  | 'ms'
-  | 'no'
-  | 'uk'
-  | 'bg'
-  | 'et'
-  | 'sl'
-  | 'sk';
-
 export interface TranscriptionSettingsRequest {
-  /**
-   * Whether a call feature is available, disabled, or turned on automatically.
-   */
-  closed_caption_mode?: FeatureActivationMode;
-  /**
-   * Language a call is transcribed or captioned in.
-   */
-  language?: TranscriptionLanguage;
-  /**
-   * Whether a call feature is available, disabled, or turned on automatically.
-   */
-  mode?: FeatureActivationMode;
+  closed_caption_mode?: 'available' | 'disabled' | 'auto-on';
+  language?:
+    | 'auto'
+    | 'en'
+    | 'fr'
+    | 'es'
+    | 'de'
+    | 'it'
+    | 'nl'
+    | 'pt'
+    | 'pl'
+    | 'ca'
+    | 'cs'
+    | 'da'
+    | 'el'
+    | 'fi'
+    | 'id'
+    | 'ja'
+    | 'ru'
+    | 'sv'
+    | 'ta'
+    | 'th'
+    | 'tr'
+    | 'hu'
+    | 'ro'
+    | 'zh'
+    | 'ar'
+    | 'tl'
+    | 'he'
+    | 'hi'
+    | 'hr'
+    | 'ko'
+    | 'ms'
+    | 'no'
+    | 'uk'
+    | 'bg'
+    | 'et'
+    | 'sl'
+    | 'sk';
+  mode?: 'available' | 'disabled' | 'auto-on';
   speech_segment_config?: SpeechSegmentConfig;
   translation?: TranslationSettings;
 }
 
 export interface TranscriptionSettingsResponse {
-  /**
-   * Whether a call feature is available, disabled, or turned on automatically.
-   */
-  closed_caption_mode: FeatureActivationMode;
-  /**
-   * Language a call is transcribed or captioned in.
-   */
-  language: TranscriptionLanguage;
-  /**
-   * Whether a call feature is available, disabled, or turned on automatically.
-   */
-  mode: FeatureActivationMode;
+  closed_caption_mode: 'available' | 'disabled' | 'auto-on';
+  language:
+    | 'auto'
+    | 'en'
+    | 'fr'
+    | 'es'
+    | 'de'
+    | 'it'
+    | 'nl'
+    | 'pt'
+    | 'pl'
+    | 'ca'
+    | 'cs'
+    | 'da'
+    | 'el'
+    | 'fi'
+    | 'id'
+    | 'ja'
+    | 'ru'
+    | 'sv'
+    | 'ta'
+    | 'th'
+    | 'tr'
+    | 'hu'
+    | 'ro'
+    | 'zh'
+    | 'ar'
+    | 'tl'
+    | 'he'
+    | 'hi'
+    | 'hr'
+    | 'ko'
+    | 'ms'
+    | 'no'
+    | 'uk'
+    | 'bg'
+    | 'et'
+    | 'sl'
+    | 'sk';
+  mode: 'available' | 'disabled' | 'auto-on';
   speech_segment_config?: SpeechSegmentConfig;
   translation?: TranslationSettings;
 }
@@ -4487,10 +4482,6 @@ export interface UserBannedEvent {
    * The type of event: "user.banned" in this case
    */
   type: string;
-  /**
-   * Whether the ban also applies to channels created later by the same creator. Without a channel, check user.banned to tell a global ban from a future-channels-only ban
-   */
-  ban_from_future_channels?: boolean;
   /**
    * The ID of the channel where the target user was banned
    */
@@ -4675,6 +4666,10 @@ export interface UserResponse {
    * Optional name of user
    */
   name?: string;
+  /**
+   * Revocation date for tokens
+   */
+  revoke_tokens_issued_before?: TimestampNS;
   teams_role?: Record<string, string>;
 }
 
@@ -4693,6 +4688,7 @@ export interface UserResponseCommonFields {
   image?: string;
   last_active?: TimestampNS;
   name?: string;
+  revoke_tokens_issued_before?: TimestampNS;
   teams_role?: Record<string, string>;
 }
 
@@ -4712,6 +4708,7 @@ export interface UserResponsePrivacyFields {
   invisible?: boolean;
   last_active?: TimestampNS;
   name?: string;
+  revoke_tokens_issued_before?: TimestampNS;
   /**
    * The privacy settings of the user.
    */
@@ -4770,8 +4767,6 @@ export interface UserUpdatedEvent {
   type: string;
   received_at?: TimestampNS;
 }
-
-export type VideoCodec = 'h264' | 'vp8';
 
 export type VideoEvent =
   | ({ type: 'app.updated' } & AppUpdatedEvent)
@@ -4877,10 +4872,7 @@ export interface VideoReactionsResponse {
 export interface VideoSettingsRequest {
   access_request_enabled?: boolean;
   camera_default_on?: boolean;
-  /**
-   * Which camera a call opens with.
-   */
-  camera_facing?: CameraFacing;
+  camera_facing?: 'front' | 'back' | 'external';
   enabled?: boolean;
   target_resolution?: TargetResolution;
 }
@@ -4888,10 +4880,7 @@ export interface VideoSettingsRequest {
 export interface VideoSettingsResponse {
   access_request_enabled: boolean;
   camera_default_on: boolean;
-  /**
-   * Which camera a call opens with.
-   */
-  camera_facing: CameraFacing;
+  camera_facing: 'front' | 'back' | 'external';
   enabled: boolean;
   target_resolution: TargetResolution;
 }

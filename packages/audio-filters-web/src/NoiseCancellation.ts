@@ -55,7 +55,7 @@ export class NoiseCancellation implements INoiseCancellation {
   private readonly defaultEngine: NoiseCancellationEngine;
 
   private configuration: NoiseCancellationConfiguration = {};
-  private delegate?: INoiseCancellation;
+  private delegate?: INoiseCancellation & { engine: NoiseCancellationEngine };
   private delegateEngine?: NoiseCancellationEngine;
   private stopForwarding?: () => void;
   private initialized = false;
@@ -77,12 +77,12 @@ export class NoiseCancellation implements INoiseCancellation {
   }
 
   /**
-   * The engine the current configuration selects. A running engine keeps
-   * running until {@link dispose}; a new engine applies on the next
-   * {@link init}.
+   * The current delegate's engine, or the configured engine when no delegate
+   * exists. A running engine stays fixed until {@link dispose}; a new engine
+   * applies on the next {@link init}.
    */
   get engine(): NoiseCancellationEngine {
-    return this.resolveEngine();
+    return this.delegate?.engine ?? this.resolveEngine();
   }
 
   /**

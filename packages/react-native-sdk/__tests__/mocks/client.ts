@@ -23,7 +23,7 @@ export const mockClientWithUser = (
       {
         id: '123',
         created_at: nowNs(),
-        push_provider: 'firebase',
+        push_provider: '',
         user_id: '',
       },
     ],
