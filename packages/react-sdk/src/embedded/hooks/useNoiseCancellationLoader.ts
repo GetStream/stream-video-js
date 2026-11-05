@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { type Call } from '@stream-io/video-client';
+import type { NoiseCancellationProviderName } from '../types';
 
 type INoiseCancellation =
   import('@stream-io/audio-filters-web').INoiseCancellation;
@@ -11,10 +12,18 @@ type INoiseCancellation =
  * The `ready` flag becomes `true` once loading completes (even on failure),
  * or immediately if noise cancellation is disabled by server settings.
  */
-export const useNoiseCancellationLoader = (call?: Call) => {
-  const [noiseCancellation, setNoiseCancellation] =
-    useState<INoiseCancellation>();
-  const [ready, setReady] = useState(false);
+export const useNoiseCancellationLoader = (
+  call?: Call,
+  provider: NoiseCancellationProviderName = 'krisp',
+) => {
+  // Both are bound to the call they were loaded for, so that a previous
+  // call's instance (being disposed by its provider) is never handed to a
+  // new call, and a new call starts out not ready.
+  const [loaded, setLoaded] = useState<{
+    call: Call;
+    noiseCancellation: INoiseCancellation;
+  }>();
+  const [readyFor, setReadyFor] = useState<Call>();
   const ncLoader = useRef<Promise<void> | undefined>(undefined);
 
   const ncSettings = call?.state.settings?.audio?.noise_cancellation;
@@ -26,15 +35,36 @@ export const useNoiseCancellationLoader = (call?: Call) => {
     if (!call) return;
 
     if (!isNoiseCancellationEnabled) {
-      setReady(true);
+      setLoaded(undefined);
+      setReadyFor(call);
       return;
     }
 
+    // set by the cleanup: a newer effect run owns the instance from then on
+    let stale = false;
     const load = (ncLoader.current || Promise.resolve())
       .then(() => import('@stream-io/audio-filters-web'))
-      .then(({ NoiseCancellation }) => {
-        const nc = new NoiseCancellation({});
-        setNoiseCancellation(nc);
+      .then(({ NoiseCancellation, FastEnhancerNoiseCancellation }) => {
+        if (stale) return;
+        if (provider === 'fastenhancer') {
+          // older versions of the package don't export it
+          if (typeof FastEnhancerNoiseCancellation !== 'function') {
+            console.warn(
+              '[EmbeddedStreamClient] The FastEnhancer noise cancellation ' +
+                'requires a version of @stream-io/audio-filters-web that ' +
+                'exports FastEnhancerNoiseCancellation. ' +
+                'Noise cancellation is unavailable.',
+            );
+            setLoaded(undefined);
+            return;
+          }
+          setLoaded({
+            call,
+            noiseCancellation: new FastEnhancerNoiseCancellation(),
+          });
+          return;
+        }
+        setLoaded({ call, noiseCancellation: new NoiseCancellation({}) });
       })
       .catch((err) => {
         console.warn(
@@ -44,16 +74,21 @@ export const useNoiseCancellationLoader = (call?: Call) => {
         );
       })
       .finally(() => {
-        setReady(true);
+        if (!stale) setReadyFor(call);
       });
 
     return () => {
-      ncLoader.current = load.then(() => {
-        setNoiseCancellation(undefined);
-        setReady(false);
-      });
+      stale = true;
+      // Keep the current instance until the next one replaces it, so that
+      // NoiseCancellationProvider stays mounted and runs the old instance's
+      // cleanup before initializing the new one. Unmounting it here would let
+      // the old cleanup disable the replacement.
+      ncLoader.current = load.then(() => {});
     };
-  }, [call, isNoiseCancellationEnabled]);
+  }, [call, isNoiseCancellationEnabled, provider]);
 
+  const noiseCancellation =
+    call && loaded?.call === call ? loaded.noiseCancellation : undefined;
+  const ready = !!call && readyFor === call;
   return { noiseCancellation, ready };
 };

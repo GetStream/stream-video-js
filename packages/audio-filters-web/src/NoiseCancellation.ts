@@ -1,40 +1,45 @@
-import KrispSDK from './krispai';
 import type {
   IAudioFilterNode,
   IKrispSDK,
   ISDKPartialOptions,
 } from './krispai';
-import { AudioContextRecovery } from './AudioContextRecovery';
 import { packageName, packageVersion } from './version';
-import { promiseWithResolvers } from './withResolvers';
 import { simd } from 'wasm-feature-detect';
 import type { Tracer } from './tracer';
+import {
+  BaseNoiseCancellation,
+  WARM_UP_GRACE_MS,
+} from './BaseNoiseCancellation';
+import { isWebKit } from './isWebKit';
+import type { NoiseCancellationConfiguration } from './INoiseCancellation';
+
+type KrispSDKClass = typeof import('./krispai').default;
+
+let krispPromise: Promise<KrispSDKClass> | undefined;
 
 /**
- * Krisp stalls once shortly after its first frames are processed (seen in
- * Safari about 1s after the first enable) and drops the backlog on its own.
- * Overflows reported within this window after the first enable are ignored.
+ * Loads the Krisp SDK on first use, so that its ~5 MB chunk isn't fetched
+ * until noise cancellation is actually needed.
+ * A failed load isn't cached, so a later call can retry.
  */
-const WARM_UP_GRACE_MS = 3000;
+const loadKrispSDK = () =>
+  (krispPromise ??= import('./krispai')
+    .then((m) => {
+      // Depending on the loader (bundler vs. native Node `import()` of CJS),
+      // the class is `m.default`, or nested one level deeper.
+      const d = (m.default ?? m) as unknown as { default?: KrispSDKClass };
+      return (d.default ?? d) as KrispSDKClass;
+    })
+    .catch((err) => {
+      krispPromise = undefined;
+      throw err;
+    }));
 
 /**
  * Krisp reports a single stall as a burst of overflow events.
  * Overflows within this window after a handled one count as the same overload.
  */
 const OVERLOAD_DEBOUNCE_MS = 1000;
-
-/**
- * Checks whether the current runtime runs on WebKit: Safari, every iOS browser,
- * and WKWebView hosts (whose user agent may omit the `Safari` token).
- * Mirrors `isWebKit()` from `@stream-io/video-client`.
- */
-const isWebKit = () => {
-  if (typeof navigator === 'undefined') return false;
-  const ua = navigator.userAgent || '';
-  if (!/AppleWebKit\//.test(ua)) return false;
-  // Desktop Chromium reuses the AppleWebKit/ token
-  return !/Chrome\/|Chromium\/|Android/.test(ua);
-};
 
 /**
  * Options to pass to the NoiseCancellation instance.
@@ -76,112 +81,16 @@ export type NoiseCancellationOptions = {
 };
 
 /**
- * Options that can be applied after construction, usually from the call
- * settings. They only fill in what wasn't passed to the constructor.
- */
-export type NoiseCancellationConfiguration = {
-  /**
-   * See {@link NoiseCancellationOptions.withSafariSupport}.
-   */
-  withSafariSupport?: boolean;
-  /**
-   * The full URL of the model file to load.
-   * Ignored when a `basePath` was passed to the constructor.
-   */
-  modelPath?: string;
-};
-
-/**
- * An interface for the NoiseCancellation implementation.
- * Provided for easier unit testing.
- */
-export interface INoiseCancellation {
-  /**
-   * The noise cancellation engine this implementation runs, e.g. `krisp`.
-   */
-  engine?: string;
-  /**
-   * Applies options from the call settings.
-   * Call it before {@link isSupported} and {@link init}.
-   */
-  configure?: (configuration: NoiseCancellationConfiguration) => void;
-  isSupported: () => boolean | Promise<boolean>;
-  init: (options?: { tracer?: Tracer }) => Promise<void>;
-  isEnabled: () => Promise<boolean>;
-  canAutoEnable?: () => Promise<boolean>;
-  enable: () => Promise<void>;
-  disable: () => Promise<void>;
-  dispose: () => Promise<void>;
-  setSuppressionLevel: (level: number) => void;
-  toFilter: () => (mediaStream: MediaStream) => {
-    output: MediaStream;
-  };
-  on: <E extends keyof Events, T = Events[E]>(
-    event: E,
-    callback: T,
-  ) => () => void;
-  off: <E extends keyof Events, T = Events[E]>(event: E, callback: T) => void;
-}
-
-/**
- * The payload of the `overload` event.
- */
-export type NoiseCancellationOverloadEvent = {
-  /**
-   * `true` when Noise Cancellation will be turned back on automatically
-   * after `restoreInMs`, `false` when it stays off.
-   */
-  willRestore: boolean;
-  /**
-   * The number of overloads detected so far.
-   */
-  overflowCount: number;
-  /**
-   * The delay before Noise Cancellation is turned back on.
-   * Set only when `willRestore` is `true`.
-   */
-  restoreInMs?: number;
-};
-
-/**
- * A list of events one can subscribe to.
- */
-export type Events = {
-  /**
-   * Fires when Noise Cancellation state changes.
-   *
-   * @param enabled true when enabled, false otherwise.
-   */
-  change: (enabled: boolean) => void;
-
-  /**
-   * Fires when Noise Cancellation is turned off automatically because
-   * the device can't keep up with the audio processing (CPU overload).
-   * Fires after the corresponding `change` event.
-   *
-   * @param event the overload details.
-   */
-  overload: (event: NoiseCancellationOverloadEvent) => void;
-};
-
-/**
  * A wrapper around the Krisp.AI SDK.
  */
-export class NoiseCancellation implements INoiseCancellation {
+export class NoiseCancellation extends BaseNoiseCancellation {
   readonly engine = 'krisp';
   private sdk?: IKrispSDK;
   private filterNode?: IAudioFilterNode;
-  private audioContext?: AudioContext;
-  private recovery?: AudioContextRecovery;
   private restoreTimeoutId?: number;
-  private tracer?: Tracer;
   private overloadCount = 0;
   private lastOverloadAt = -Infinity;
   private warmUpEndsAt?: number;
-
-  private readonly initializing: Promise<void>;
-  private readonly resolveInitialized!: () => void;
-  private readonly rejectInitialized!: (reason?: unknown) => void;
 
   private readonly basePath: string;
   private readonly hasCustomBasePath: boolean;
@@ -191,8 +100,6 @@ export class NoiseCancellation implements INoiseCancellation {
   private withSafariSupport: boolean;
   private readonly hasExplicitSafariSupport: boolean;
   private readonly krispSDKParams?: ISDKPartialOptions['params'];
-
-  private readonly listeners: Partial<Record<keyof Events, Array<any>>> = {};
 
   /**
    * Constructs a new instance.
@@ -204,11 +111,7 @@ export class NoiseCancellation implements INoiseCancellation {
     withSafariSupport,
     krispSDKParams,
   }: NoiseCancellationOptions = {}) {
-    const { promise, resolve, reject } = promiseWithResolvers<void>();
-    this.initializing = promise;
-    this.resolveInitialized = resolve;
-    this.rejectInitialized = reject;
-
+    super();
     this.basePath =
       basePath ??
       `https://unpkg.com/${packageName}@${packageVersion}/src/krispai/models`;
@@ -243,14 +146,24 @@ export class NoiseCancellation implements INoiseCancellation {
    * Safari and other WebKit-based browsers are reported as unsupported
    * unless `withSafariSupport` is set.
    */
-  isSupported = () => {
-    if (isWebKit() && !this.withSafariSupport) {
-      return false;
-    } else if (!KrispSDK.isSupported()) {
-      return false;
-    } else {
-      return simd();
+  isSupported = async () => {
+    if (isWebKit()) {
+      if (!this.withSafariSupport) return false;
+      // The SDK's own check only gates Safari by version (17.4+), so the
+      // ~5 MB chunk is loaded here for WebKit only, not on every page.
+      let sdk: KrispSDKClass;
+      try {
+        sdk = await loadKrispSDK();
+      } catch (err) {
+        console.warn(
+          'Failed to load the Krisp SDK, reporting it as unsupported',
+          err,
+        );
+        return false;
+      }
+      if (!sdk.isSupported()) return false;
     }
+    return simd();
   };
 
   /**
@@ -266,6 +179,7 @@ export class NoiseCancellation implements INoiseCancellation {
     if (this.sdk) {
       throw new Error('NoiseCancellation is already initialized');
     }
+    const KrispSDK = await loadKrispSDK();
     const sdk = new KrispSDK({
       params: {
         debugLogs: false,
@@ -285,10 +199,7 @@ export class NoiseCancellation implements INoiseCancellation {
     const audioContext = new AudioContext();
     this.audioContext = audioContext;
 
-    this.recovery = new AudioContextRecovery({
-      audioContext,
-      tracer: this.tracer,
-    });
+    this.startRecovery(audioContext);
 
     const filterNode = await sdk.createNoiseFilter(
       this.audioContext,
@@ -334,10 +245,7 @@ export class NoiseCancellation implements INoiseCancellation {
    */
   dispose = async () => {
     window.clearTimeout(this.restoreTimeoutId);
-    if (this.recovery) {
-      this.recovery.dispose();
-      this.recovery = undefined;
-    }
+    this.stopRecovery();
     if (this.filterNode) {
       await this.disable().catch((err) =>
         console.warn('Failed to disable noise cancellation on dispose', err),
@@ -389,47 +297,26 @@ export class NoiseCancellation implements INoiseCancellation {
   };
 
   /**
-   * A utility method convenient for our Microphone filters API.
+   * Connects the Krisp filter node between the given nodes.
    */
-  toFilter = () => (mediaStream: MediaStream) => {
-    if (!this.filterNode || !this.audioContext) {
+  protected connectFilter = (
+    source: MediaStreamAudioSourceNode,
+    destination: MediaStreamAudioDestinationNode,
+  ) => {
+    const { filterNode } = this;
+    if (!filterNode) {
       throw new Error('NoiseCancellation is not initialized');
     }
-
-    const [audioTrack] = mediaStream.getAudioTracks();
-    if (!audioTrack) throw new Error('No audio track found in the stream');
-
-    const source = this.audioContext.createMediaStreamSource(mediaStream);
-    const destination = this.audioContext.createMediaStreamDestination();
-    destination.channelCount = audioTrack.getSettings().channelCount ?? 1;
-
-    source.connect(this.filterNode).connect(destination);
-
-    return { output: destination.stream };
-  };
-
-  /**
-   * Registers the given callback to the event type;
-   *
-   * @param event the event to listen.
-   * @param callback the callback to call.
-   */
-  on = <E extends keyof Events, T = Events[E]>(event: E, callback: T) => {
-    (this.listeners[event] ??= [] as T[]).push(callback);
+    source.connect(filterNode).connect(destination);
     return () => {
-      this.off(event, callback);
+      // the filter node may already be disposed
+      try {
+        source.disconnect();
+        filterNode.disconnect(destination);
+      } catch {
+        // not connected
+      }
     };
-  };
-
-  /**
-   * Unregisters the given callback for the event type.
-   *
-   * @param event the event.
-   * @param callback the callback to unregister.
-   */
-  off = <E extends keyof Events, T = Events[E]>(event: E, callback: T) => {
-    const listeners = this.listeners[event] || [];
-    this.listeners[event] = listeners.filter((cb) => cb !== callback);
   };
 
   /**
@@ -447,22 +334,6 @@ export class NoiseCancellation implements INoiseCancellation {
       this.filterNode.disable();
     }
     this.dispatch('change', enabled);
-  };
-
-  /**
-   * Dispatches a new event payload for the given event type.
-   *
-   * @param event the event.
-   * @param payload the payload.
-   */
-  private dispatch = <E extends keyof Events, P = Parameters<Events[E]>[0]>(
-    event: E,
-    payload: P,
-  ) => {
-    const listeners = this.listeners[event] || [];
-    for (const listener of listeners) {
-      listener(payload);
-    }
   };
 
   /**
