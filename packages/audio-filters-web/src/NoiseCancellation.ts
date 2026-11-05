@@ -12,12 +12,6 @@ import {
 } from './BaseNoiseCancellation';
 import { isWebKit } from './isWebKit';
 
-export type {
-  Events,
-  INoiseCancellation,
-  NoiseCancellationOverloadEvent,
-} from './BaseNoiseCancellation';
-
 type KrispSDKClass = typeof import('./krispai').default;
 
 let krispPromise: Promise<KrispSDKClass> | undefined;
