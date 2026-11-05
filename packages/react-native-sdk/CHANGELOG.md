@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.47.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.46.6...@stream-io/video-react-native-sdk-1.47.0) (2026-11-05)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.13.0`
+- `@stream-io/video-client` updated to version `1.65.0`
+- `@stream-io/video-react-bindings` updated to version `1.22.2`
+
+### Features
+
+- **client:** apply staff-managed call settings for screen share, mic and noise cancellation ([#2589](https://github.com/GetStream/stream-video-js/issues/2589)) ([a913c13](https://github.com/GetStream/stream-video-js/commit/a913c13e02be0167ef0b00160394497947c626fa))
+
 ## [1.46.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.46.5...@stream-io/video-react-native-sdk-1.46.6) (2026-11-02)
 
 ### Dependency Updates
