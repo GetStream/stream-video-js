@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-2.0.0-beta.5...@stream-io/video-react-native-sdk-2.0.0-beta.6) (2026-11-05)
+
+### Bug Fixes
+
+- **deps:** bump [@stream-io](https://github.com/stream-io) toolkit packages to the .mjs/.cjs builds ([#2567](https://github.com/GetStream/stream-video-js/issues/2567)) ([42e45e8](https://github.com/GetStream/stream-video-js/commit/42e45e86efe25987efc3e0151028a94aa61bafd3)), closes [#2559](https://github.com/GetStream/stream-video-js/issues/2559) [GetStream/js-toolkit#58](https://github.com/GetStream/js-toolkit/issues/58)
+- prevent unintentional ringing pn handling ([#2521](https://github.com/GetStream/stream-video-js/issues/2521)) ([e2c7a43](https://github.com/GetStream/stream-video-js/commit/e2c7a4385900ac4d2379bc150bbaa4828e1c6ca8))
+- **react-native:** recover the iOS mic when the audio engine fails to start ([#2529](https://github.com/GetStream/stream-video-js/issues/2529)) ([36bb5e5](https://github.com/GetStream/stream-video-js/commit/36bb5e54392d5876dcd1759c583e3265f880ddcc)), closes [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#75](https://github.com/GetStream/stream-video-js/issues/75) [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#2282](https://github.com/GetStream/stream-video-js/issues/2282)
+
 ## [2.0.0-beta.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-2.0.0-beta.4...@stream-io/video-react-native-sdk-2.0.0-beta.5) (2026-10-26)
 
 ### Features
