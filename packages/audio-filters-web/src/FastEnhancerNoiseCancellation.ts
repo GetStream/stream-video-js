@@ -141,8 +141,8 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
   private passthroughTimeoutId?: number;
   /** Bumped by `dispose()`, so a pending `init()` can tell it is stale. */
   private generation = 0;
-  /** Aborts the pending `init()`: on its deadline, or by `dispose()`. */
-  private initAbortController?: AbortController;
+  /** Aborts the pending `init()` with the given cause; used by `dispose()`. */
+  private abortInit?: (error: Error) => void;
 
   private readonly model: FastEnhancerModel;
   private readonly basePath: string;
@@ -210,19 +210,26 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
 
     // One deadline bounds the whole init, through the worklet's `ready`.
     // Aborting cancels the fetches and the wait for `ready`; `dispose()`
-    // aborts the same way.
+    // aborts the same way. The cause is kept here rather than in
+    // the abort reason APIs, which Safari < 15.4 lacks.
     const abortController = new AbortController();
     const { signal } = abortController;
-    this.initAbortController = abortController;
+    let abortError: Error | undefined;
+    const abort = (error: Error) => {
+      if (abortError) return;
+      abortError = error;
+      abortController.abort();
+    };
+    this.abortInit = abort;
     const deadlineId = window.setTimeout(() => {
-      abortController.abort(
+      abort(
         new Error(
           `FastEnhancer did not initialize within ${INIT_TIMEOUT_MS} ms`,
         ),
       );
     }, INIT_TIMEOUT_MS);
     const aborted = new Promise<never>((_, reject) => {
-      signal.addEventListener('abort', () => reject(signal.reason), {
+      signal.addEventListener('abort', () => reject(abortError), {
         once: true,
       });
     });
@@ -235,7 +242,7 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
       if (generation !== this.generation) {
         throw new Error('NoiseCancellation was disposed while initializing');
       }
-      signal.throwIfAborted();
+      if (abortError) throw abortError;
     };
 
     let workletNode: AudioWorkletNode | undefined;
@@ -287,7 +294,9 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
       this.dryGain = dryGain;
       this.wetGain = wetGain;
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      // an aborted step fails with a generic error, report the cause instead
+      const error = abortError ?? err;
+      const message = error instanceof Error ? error.message : String(error);
       this.tracer?.trace('noiseCancellation.error', message);
       if (generation === this.generation) {
         await this.teardown();
@@ -297,13 +306,11 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
         workletNode.disconnect();
         workletNode.port.close();
       }
-      this.rejectInitialized(err);
-      throw err;
+      this.rejectInitialized(error);
+      throw error;
     } finally {
       window.clearTimeout(deadlineId);
-      if (this.initAbortController === abortController) {
-        this.initAbortController = undefined;
-      }
+      if (this.abortInit === abort) this.abortInit = undefined;
     }
 
     this.resolveInitialized();
@@ -355,10 +362,10 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
    */
   dispose = async () => {
     this.generation++;
-    this.initAbortController?.abort(
+    this.abortInit?.(
       new Error('NoiseCancellation was disposed while initializing'),
     );
-    this.initAbortController = undefined;
+    this.abortInit = undefined;
     await this.disable();
     await this.teardown();
   };

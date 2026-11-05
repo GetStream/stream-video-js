@@ -10,6 +10,8 @@ const MODEL_IDS: Record<FastEnhancerModel, number> = {
   small: 2,
 };
 
+const ABORTED_MESSAGE = 'FastEnhancer initialization was aborted';
+
 const fetchAsset = async (url: string, signal: AbortSignal) => {
   const response = await fetch(url, { signal });
   if (!response.ok) {
@@ -38,8 +40,10 @@ const addProcessorModule = async (ctx: AudioContext) => {
  * `set_bypass { enabled: false }` is posted.
  *
  * The caller bounds the whole load with `signal`: aborting it cancels the
- * fetches, stops waiting for `ready`, and rejects with `signal.reason`.
- * No node is returned once the signal has aborted.
+ * fetches, stops waiting for `ready`, and rejects with a generic error (the
+ * caller knows the cause). No node is returned once the signal has aborted.
+ * Only `signal.aborted` and the `abort` event are used, which older Safari
+ * versions support too.
  */
 export const createFastEnhancerNode = async (
   ctx: AudioContext,
@@ -53,6 +57,9 @@ export const createFastEnhancerNode = async (
   },
 ): Promise<AudioWorkletNode> => {
   const { model, simd, hpf, agc, signal } = opts;
+  const assertNotAborted = () => {
+    if (signal.aborted) throw new Error(ABORTED_MESSAGE);
+  };
   const prefix = `${opts.basePath.replace(/\/+$/, '')}/fe_${model}`;
   const variant = simd ? 'simd' : 'scalar';
 
@@ -67,7 +74,7 @@ export const createFastEnhancerNode = async (
     addProcessorModule(ctx),
   ]);
   // `addModule` can't be aborted, so check before creating the node
-  signal.throwIfAborted();
+  assertNotAborted();
 
   const node = new AudioWorkletNode(ctx, 'fastenhancer-processor', {
     numberOfInputs: 1,
@@ -98,7 +105,7 @@ export const createFastEnhancerNode = async (
       const onProcessorError = () => {
         settle(new Error('FastEnhancer worklet stopped during initialization'));
       };
-      const onAbort = () => settle(signal.reason);
+      const onAbort = () => settle(new Error(ABORTED_MESSAGE));
 
       signal.addEventListener('abort', onAbort);
       node.port.addEventListener('message', onMessage);
@@ -119,7 +126,7 @@ export const createFastEnhancerNode = async (
       node.port.postMessage({ type: 'set_agc', enabled: agc });
       node.port.postMessage({ type: 'set_bypass', enabled: true });
     });
-    signal.throwIfAborted();
+    assertNotAborted();
   } catch (err) {
     node.port.postMessage({ type: 'destroy' });
     node.disconnect();
