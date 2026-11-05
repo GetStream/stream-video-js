@@ -2,6 +2,7 @@
   "activeCall.header.recording.text": "Grabando...",
   "activeCall.header.streamVideoCalling.title": "Stream Video Calling",
   "activeCall.pictureInPicture.caption": "Imagen en imagen",
+  "activeCall.pictureInPicture.close.title": "Cerrar imagen en imagen",
   "activeCall.pictureInPicture.popOut.title": "Abrir imagen en imagen",
   "callControls.hiFiButton.disable.title": "Desactivar audio Hi-Fi",
   "callControls.hiFiButton.enable.title": "Activar audio Hi-Fi",

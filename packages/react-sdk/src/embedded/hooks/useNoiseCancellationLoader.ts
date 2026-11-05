@@ -16,9 +16,14 @@ export const useNoiseCancellationLoader = (
   call?: Call,
   provider: NoiseCancellationProviderName = 'krisp',
 ) => {
-  const [noiseCancellation, setNoiseCancellation] =
-    useState<INoiseCancellation>();
-  const [ready, setReady] = useState(false);
+  // Both are bound to the call they were loaded for, so that a previous
+  // call's instance (being disposed by its provider) is never handed to a
+  // new call, and a new call starts out not ready.
+  const [loaded, setLoaded] = useState<{
+    call: Call;
+    noiseCancellation: INoiseCancellation;
+  }>();
+  const [readyFor, setReadyFor] = useState<Call>();
   const ncLoader = useRef<Promise<void> | undefined>(undefined);
 
   const ncSettings = call?.state.settings?.audio?.noise_cancellation;
@@ -30,8 +35,8 @@ export const useNoiseCancellationLoader = (
     if (!call) return;
 
     if (!isNoiseCancellationEnabled) {
-      setNoiseCancellation(undefined);
-      setReady(true);
+      setLoaded(undefined);
+      setReadyFor(call);
       return;
     }
 
@@ -50,13 +55,16 @@ export const useNoiseCancellationLoader = (
                 'exports FastEnhancerNoiseCancellation. ' +
                 'Noise cancellation is unavailable.',
             );
-            setNoiseCancellation(undefined);
+            setLoaded(undefined);
             return;
           }
-          setNoiseCancellation(new FastEnhancerNoiseCancellation());
+          setLoaded({
+            call,
+            noiseCancellation: new FastEnhancerNoiseCancellation(),
+          });
           return;
         }
-        setNoiseCancellation(new NoiseCancellation({}));
+        setLoaded({ call, noiseCancellation: new NoiseCancellation({}) });
       })
       .catch((err) => {
         console.warn(
@@ -66,7 +74,7 @@ export const useNoiseCancellationLoader = (
         );
       })
       .finally(() => {
-        setReady(true);
+        if (!stale) setReadyFor(call);
       });
 
     return () => {
@@ -79,5 +87,8 @@ export const useNoiseCancellationLoader = (
     };
   }, [call, isNoiseCancellationEnabled, provider]);
 
+  const noiseCancellation =
+    call && loaded?.call === call ? loaded.noiseCancellation : undefined;
+  const ready = !!call && readyFor === call;
   return { noiseCancellation, ready };
 };
