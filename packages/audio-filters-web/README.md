@@ -66,7 +66,8 @@ unsupported by Krisp unless you pass `withSafariSupport: true`.
 
 Options passed to the `NoiseCancellation` constructor configure Krisp; FastEnhancer
 options go under `fastEnhancer`. Options you pass explicitly win over the call
-type settings.
+type settings. `defaultEngine` (`krisp` or `stream`) picks the engine for calls
+whose settings don't select one.
 
 ## FastEnhancer (experimental)
 

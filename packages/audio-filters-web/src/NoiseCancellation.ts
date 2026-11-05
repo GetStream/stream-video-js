@@ -28,6 +28,12 @@ const DEFAULT_ENGINE: NoiseCancellationEngine = 'krisp';
  */
 export type NoiseCancellationOptions = KrispNoiseCancellationOptions & {
   /**
+   * The engine to run when the call settings don't select one.
+   * @default 'krisp'
+   */
+  defaultEngine?: NoiseCancellationEngine;
+
+  /**
    * Options for the `stream` (FastEnhancer) engine.
    */
   fastEnhancer?: FastEnhancerNoiseCancellationOptions;
@@ -36,7 +42,8 @@ export type NoiseCancellationOptions = KrispNoiseCancellationOptions & {
 /**
  * Noise Cancellation that runs the engine the call settings pick
  * (`extra_opts.noise_cancellation.engine`, applied through
- * {@link configure}), or Krisp when they don't pick one.
+ * {@link configure}), or the `defaultEngine` option (Krisp unless set) when
+ * they don't pick one.
  *
  * The engine is created on the first {@link isSupported} or {@link init}
  * call and stays fixed from {@link init} until {@link dispose}. A different
@@ -45,6 +52,7 @@ export type NoiseCancellationOptions = KrispNoiseCancellationOptions & {
 export class NoiseCancellation implements INoiseCancellation {
   private readonly krispOptions: KrispNoiseCancellationOptions;
   private readonly fastEnhancerOptions?: FastEnhancerNoiseCancellationOptions;
+  private readonly defaultEngine: NoiseCancellationEngine;
 
   private configuration: NoiseCancellationConfiguration = {};
   private delegate?: INoiseCancellation;
@@ -59,11 +67,13 @@ export class NoiseCancellation implements INoiseCancellation {
    * Constructs a new instance.
    */
   constructor({
+    defaultEngine = DEFAULT_ENGINE,
     fastEnhancer,
     ...krispOptions
   }: NoiseCancellationOptions = {}) {
     this.krispOptions = krispOptions;
     this.fastEnhancerOptions = fastEnhancer;
+    this.defaultEngine = defaultEngine;
   }
 
   /**
@@ -86,7 +96,7 @@ export class NoiseCancellation implements INoiseCancellation {
     if (engine && !this.isKnownEngine(engine) && engine !== this.warnedEngine) {
       this.warnedEngine = engine;
       console.warn(
-        `Unknown noise cancellation engine "${engine}", using "${DEFAULT_ENGINE}"`,
+        `Unknown noise cancellation engine "${engine}", using "${this.defaultEngine}"`,
       );
     }
     if (this.initialized) return;
@@ -186,7 +196,7 @@ export class NoiseCancellation implements INoiseCancellation {
 
   private resolveEngine = (): NoiseCancellationEngine => {
     const engine = this.configuration.engine?.trim().toLowerCase();
-    return engines.find((name) => name === engine) ?? DEFAULT_ENGINE;
+    return engines.find((name) => name === engine) ?? this.defaultEngine;
   };
 
   private requireDelegate = (): INoiseCancellation => {

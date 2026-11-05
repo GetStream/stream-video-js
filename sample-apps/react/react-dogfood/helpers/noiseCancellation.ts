@@ -1,4 +1,4 @@
-import type { INoiseCancellation } from '@stream-io/audio-filters-web';
+import type { NoiseCancellationOptions } from '@stream-io/audio-filters-web';
 
 export type NoiseCancellationModel =
   | 'auto'
@@ -21,40 +21,42 @@ export const NOISE_CANCELLATION_MODELS: NoiseCancellationModel[] = [
  */
 const fastEnhancerBasePath = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/fastenhancer/models`;
 
-export const createNoiseCancellation = async (
+/**
+ * Maps the model picked in the settings to the options of the
+ * `NoiseCancellation` router. The pick is a hint: it applies when the call
+ * settings (`extra_opts.noise_cancellation.engine`) don't select an engine.
+ */
+export const getNoiseCancellationOptions = (
   model: NoiseCancellationModel,
-): Promise<INoiseCancellation> => {
-  const {
-    NoiseCancellation,
-    KrispNoiseCancellation,
-    FastEnhancerNoiseCancellation,
-  } = await import('@stream-io/audio-filters-web');
-  console.info('[dogfood] noise cancellation model:', model);
+): NoiseCancellationOptions => {
   switch (model) {
-    case 'fastenhancer-tiny':
-      return new FastEnhancerNoiseCancellation({
-        model: 'tiny',
-        basePath: fastEnhancerBasePath,
-      });
-    case 'fastenhancer-base':
-      return new FastEnhancerNoiseCancellation({
-        model: 'base',
-        basePath: fastEnhancerBasePath,
-      });
-    case 'fastenhancer-small':
-      return new FastEnhancerNoiseCancellation({
-        model: 'small',
-        basePath: fastEnhancerBasePath,
-      });
     case 'krisp':
-      // Krisp reports Safari as unsupported unless opted in;
-      // its SDK still requires Safari 17.4+.
-      return new KrispNoiseCancellation({ withSafariSupport: true });
+      return {
+        defaultEngine: 'krisp',
+        // Krisp reports Safari as unsupported unless opted in;
+        // its SDK still requires Safari 17.4+.
+        withSafariSupport: true,
+        fastEnhancer: { model: 'base', basePath: fastEnhancerBasePath },
+      };
+    case 'fastenhancer-tiny':
+    case 'fastenhancer-base':
+    case 'fastenhancer-small':
+      return {
+        defaultEngine: 'stream',
+        fastEnhancer: {
+          model:
+            model === 'fastenhancer-tiny'
+              ? 'tiny'
+              : model === 'fastenhancer-small'
+                ? 'small'
+                : 'base',
+          basePath: fastEnhancerBasePath,
+        },
+      };
     case 'auto':
     default:
-      // the call settings (extra_opts.noise_cancellation) pick the engine
-      return new NoiseCancellation({
-        fastEnhancer: { basePath: fastEnhancerBasePath },
-      });
+      return {
+        fastEnhancer: { model: 'base', basePath: fastEnhancerBasePath },
+      };
   }
 };

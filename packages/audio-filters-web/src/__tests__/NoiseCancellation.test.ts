@@ -96,6 +96,33 @@ describe('NoiseCancellation', () => {
     expect(lastEngine().engine).toBe('stream');
   });
 
+  it('runs the default engine when the call settings select none', async () => {
+    const nc = new NoiseCancellation({ defaultEngine: 'stream' });
+    nc.configure({});
+    expect(nc.engine).toBe('stream');
+    await nc.init();
+    expect(lastEngine().engine).toBe('stream');
+  });
+
+  it('lets the call settings override the default engine', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const nc = new NoiseCancellation({ defaultEngine: 'stream' });
+    nc.configure({ engine: 'krisp' });
+    expect(nc.engine).toBe('krisp');
+    nc.configure({ engine: 'foo' });
+    expect(nc.engine).toBe('stream');
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps defaultEngine out of the Krisp options', () => {
+    const nc = new NoiseCancellation({
+      defaultEngine: 'krisp',
+      withSafariSupport: true,
+    });
+    nc.isSupported();
+    expect(lastEngine().options).toEqual({ withSafariSupport: true });
+  });
+
   it('falls back to Krisp for an unknown engine', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const nc = new NoiseCancellation();
