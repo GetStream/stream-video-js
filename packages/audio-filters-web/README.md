@@ -36,11 +36,21 @@ import { NoiseCancellation } from '@stream-io/audio-filters-web';
 
 const noiseCancellation = new NoiseCancellation();
 if (await noiseCancellation.isSupported()) {
+  await noiseCancellation.init();
   await call.microphone.enableNoiseCancellation(noiseCancellation);
 }
+
+// on cleanup
+await call.microphone.disableNoiseCancellation();
+await noiseCancellation.dispose();
 ```
 
-`isSupported()` always returns a `Promise<boolean>`, so `await` it.
+Unlike `NoiseCancellationProvider`, the client doesn't call `init()` for you.
+`enableNoiseCancellation` throws if the user lacks the noise cancellation
+capability or the call type has noise cancellation disabled in its settings.
+
+`NoiseCancellation.isSupported()` always returns a `Promise<boolean>`, so `await` it.
+(`FastEnhancerNoiseCancellation.isSupported()` is synchronous; awaiting either is safe.)
 Safari and other WebKit browsers are reported as unsupported by `NoiseCancellation`
 unless you pass `withSafariSupport: true`.
 
@@ -72,7 +82,10 @@ With the JavaScript client:
 
 ```ts
 const noiseCancellation = new FastEnhancerNoiseCancellation({ model: 'tiny' });
-await call.microphone.enableNoiseCancellation(noiseCancellation);
+if (await noiseCancellation.isSupported()) {
+  await noiseCancellation.init();
+  await call.microphone.enableNoiseCancellation(noiseCancellation);
+}
 ```
 
 ### Options
