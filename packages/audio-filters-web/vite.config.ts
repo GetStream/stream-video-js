@@ -9,6 +9,17 @@ export default defineConfig({
     'process.env.PKG_NAME': JSON.stringify(name),
     'process.env.PKG_VERSION': JSON.stringify(version),
   },
+  plugins: [
+    {
+      name: 'cjs-real-dynamic-import',
+      renderChunk(code) {
+        return code.replace(
+          /Promise\.resolve\(\)\.then\(\(\) => require\(("[^"]+")\)\)/g,
+          'import($1)',
+        );
+      },
+    },
+  ],
   build: {
     lib: {
       entry: {
@@ -30,6 +41,10 @@ export default defineConfig({
     target: 'es2022',
     rollupOptions: {
       external,
+      output: {
+        dynamicImportInCjs: true,
+        chunkFileNames: 'cjs/[name].js',
+      },
     },
   },
 });

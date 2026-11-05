@@ -1,4 +1,3 @@
-import KrispSDK from './krispai';
 import type {
   IAudioFilterNode,
   IKrispSDK,
@@ -18,6 +17,15 @@ export type {
   INoiseCancellation,
   NoiseCancellationOverloadEvent,
 } from './BaseNoiseCancellation';
+
+let krispPromise: Promise<typeof import('./krispai').default> | undefined;
+
+/**
+ * Loads the Krisp SDK on first use, so that its ~5 MB chunk isn't fetched
+ * until noise cancellation is actually needed.
+ */
+const loadKrispSDK = () =>
+  (krispPromise ??= import('./krispai').then((m) => m.default ?? m));
 
 /**
  * Krisp reports a single stall as a burst of overflow events.
@@ -106,15 +114,10 @@ export class NoiseCancellation extends BaseNoiseCancellation {
    * Safari and other WebKit-based browsers are reported as unsupported
    * unless `withSafariSupport` is set.
    */
-  isSupported = () => {
-    if (isWebKit() && !this.withSafariSupport) {
-      return false;
-    } else if (!KrispSDK.isSupported()) {
-      return false;
-    } else {
-      return simd();
-    }
-  };
+  isSupported = async () =>
+    isWebKit() && !this.withSafariSupport
+      ? false
+      : (await loadKrispSDK()).isSupported() && (await simd());
 
   /**
    * Initializes the KrispAI SDK.
@@ -129,6 +132,7 @@ export class NoiseCancellation extends BaseNoiseCancellation {
     if (this.sdk) {
       throw new Error('NoiseCancellation is already initialized');
     }
+    const KrispSDK = await loadKrispSDK();
     const sdk = new KrispSDK({
       params: {
         debugLogs: false,
