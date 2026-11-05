@@ -1,4 +1,4 @@
-package io.getstream.rn.callingx
+package com.streamvideo.reactnative.keepalive
 
 import android.content.Context
 import android.os.Bundle
@@ -14,16 +14,21 @@ import com.facebook.react.internal.featureflags.ReactNativeFeatureFlags
 import com.facebook.react.jstasks.HeadlessJsTaskConfig
 import com.facebook.react.jstasks.HeadlessJsTaskContext
 import com.facebook.react.jstasks.HeadlessJsTaskEventListener
+import com.streamvideo.reactnative.BuildConfig
 import java.lang.ref.WeakReference
 
 /**
+ * Drives a single HeadlessJS task on behalf of a hosting service. Shared by the SDK's keep-alive
+ * service and the callingx call service, each of which owns its own instance.
+ *
+ * @param tag log tag, so each host's task logs stay distinguishable.
  * @param onTaskFinished invoked after the active task finishes, unless the manager is being
- *   released. [CallService] uses it to re-evaluate whether it still has a reason to run: a
- *   call-less service is started by `acquireBackgroundTask` alone, and nothing else would ever
- *   stop it.
+ *   released. The hosting service uses it to re-evaluate whether it still has a reason to run: a
+ *   service started only to run the task has nothing else that would ever stop it.
  */
 class HeadlessTaskManager(
         private val context: Context,
+        private val tag: String = DEFAULT_TAG,
         private val onTaskFinished: () -> Unit = {},
 ) : HeadlessJsTaskEventListener {
 
@@ -45,7 +50,7 @@ class HeadlessTaskManager(
   private var released: Boolean = false
 
   companion object {
-    private const val TAG = "[Callingx] HeadlessTaskManager"
+    private const val DEFAULT_TAG = "HeadlessTaskManager"
   }
 
   /**
@@ -66,7 +71,7 @@ class HeadlessTaskManager(
     }
 
     debugLog(
-            TAG,
+            tag,
             "[headless] liveTaskId: task ${active.id} was abandoned with its React context, dropping it"
     )
     state = TaskState.None
@@ -91,37 +96,42 @@ class HeadlessTaskManager(
           try {
             reactContext
           } catch (t: Throwable) {
-            debugLog(TAG, "[headless] currentReactContextOrNull: unavailable: ${t.message}")
+            debugLog(tag, "[headless] currentReactContextOrNull: unavailable: ${t.message}")
             null
           }
 
   private fun hasReactContext(): Boolean = reactContext != null
 
   // ensures the React context is running by booting it via the headless task if not already present
-  fun ensureReactContext() {
+  fun ensureReactContext(taskName: String, data: Bundle = Bundle()) {
     if (hasReactContext()) {
-      debugLog(TAG, "[headless] ensureReactContext: React context already running, skipping boot")
+      debugLog(tag, "[headless] ensureReactContext: React context already running, skipping boot")
       return
     }
     debugLog(
-            TAG,
+            tag,
             "[headless] ensureReactContext: booting React context via keep-alive headless task"
     )
-    startHeadlessTask(CallingxModuleImpl.HEADLESS_TASK_NAME, Bundle(), 0)
+    startHeadlessTask(taskName, data, 0)
   }
 
-  public fun startHeadlessTask(taskName: String, data: Bundle, timeout: Long) {
+  /**
+   * @return false when the request was ignored because our task is already starting or active.
+   *   That task may be about to finish (JS resolved it, the finish callback is not delivered yet),
+   *   so a host that needs a task for this request has to start again after [onTaskFinished].
+   */
+  public fun startHeadlessTask(taskName: String, data: Bundle, timeout: Long): Boolean {
     debugLog(
-            TAG,
+            tag,
             "[headless] startHeadlessTask entry: state=${state::class.simpleName}"
     )
     synchronized(stateLock) {
       if (state is TaskState.Starting || liveTaskId() != null) {
         Log.w(
-                TAG,
+                tag,
                 "[headless] startHeadlessTask: Task already starting or active, ignoring new task request"
         )
-        return
+        return false
       }
       state = TaskState.Starting
     }
@@ -135,10 +145,11 @@ class HeadlessTaskManager(
               }
       )
     }
+    return true
   }
 
   public fun stopHeadlessTask() {
-    debugLog(TAG, "[headless] stopHeadlessTask: Stopping headless task")
+    debugLog(tag, "[headless] stopHeadlessTask: Stopping headless task")
     // Deliberately via liveTaskId: HeadlessJsTaskContext.finishTask has no notion of task
     // ownership, so finishing a stale id after a context reload would cut short whichever
     // library's task inherited that number.
@@ -151,7 +162,7 @@ class HeadlessTaskManager(
     }
   }
 
-  protected fun startTask(taskConfig: HeadlessJsTaskConfig) {
+  private fun startTask(taskConfig: HeadlessJsTaskConfig) {
     UiThreadUtil.assertOnUiThread()
 
     val context = reactContext
@@ -164,17 +175,17 @@ class HeadlessTaskManager(
 
   private fun invokeStartTask(reactContext: ReactContext, taskConfig: HeadlessJsTaskConfig) {
     if (released) {
-      debugLog(TAG, "[headless] invokeStartTask: released, skipping")
+      debugLog(tag, "[headless] invokeStartTask: released, skipping")
       return
     }
-    debugLog(TAG, "[headless] invokeStartTask: Invoking start task")
+    debugLog(tag, "[headless] invokeStartTask: Invoking start task")
     val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(reactContext)
     headlessJsTaskContext.addTaskEventListener(this)
 
     UiThreadUtil.runOnUiThread {
       val taskId = headlessJsTaskContext.startTask(taskConfig)
       synchronized(stateLock) { state = TaskState.Active(taskId, WeakReference(reactContext)) }
-      debugLog(TAG, "[headless] invokeStartTask: Task started: $taskId")
+      debugLog(tag, "[headless] invokeStartTask: Task started: $taskId")
     }
   }
 
@@ -183,7 +194,7 @@ class HeadlessTaskManager(
       val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(context)
       if (headlessJsTaskContext.isTaskRunning(taskId)) {
         headlessJsTaskContext.finishTask(taskId)
-        debugLog(TAG, "[headless] stopTask: Task finished $taskId")
+        debugLog(tag, "[headless] stopTask: Task finished $taskId")
       }
     }
   }
@@ -194,8 +205,8 @@ class HeadlessTaskManager(
     // Give up the slot synchronously: a Starting state would otherwise outlive the service.
     synchronized(stateLock) { state = TaskState.None }
     // Proactively unregister the pending React-context init listener. Otherwise the callback
-    // would fire after CallService is destroyed, invokeStartTask a stale task on this dead
-    // manager, and register `this` as a task listener on the live ReactContext (leak).
+    // would fire after the hosting service is destroyed, invokeStartTask a stale task on this
+    // dead manager, and register `this` as a task listener on the live ReactContext (leak).
     pendingReactInstanceListener?.let { listener ->
       removeReactInstanceEventListener(listener)
       pendingReactInstanceListener = null
@@ -220,7 +231,7 @@ class HeadlessTaskManager(
       }
     } catch (t: Throwable) {
       // Best-effort — RN may be in a torn-down state.
-      debugLog(TAG, "[headless] failed to remove react-instance listener: ${t.message}")
+      debugLog(tag, "[headless] failed to remove react-instance listener: ${t.message}")
     }
   }
 
@@ -229,42 +240,36 @@ class HeadlessTaskManager(
 
   override fun onHeadlessJsTaskFinish(taskId: Int) {
     if (taskId != liveTaskId()) {
-      debugLog(TAG, "[headless] onHeadlessJsTaskFinish: IGNORED foreign taskId=$taskId")
+      debugLog(tag, "[headless] onHeadlessJsTaskFinish: IGNORED foreign taskId=$taskId")
       return
     }
-    debugLog(TAG, "[headless] onHeadlessJsTaskFinish: Task finished: $taskId, slot released")
+    debugLog(tag, "[headless] onHeadlessJsTaskFinish: Task finished: $taskId, slot released")
     synchronized(stateLock) { state = TaskState.None }
 
     if (released) {
-      // release() runs from CallService.onDestroy and finishes the task itself; the service is
-      // already going down, so re-entering its stop logic here would be noise at best.
-      debugLog(TAG, "[headless] onHeadlessJsTaskFinish: released, skipping onTaskFinished")
+      // release() runs from the hosting service's onDestroy and finishes the task itself; the
+      // service is already going down, so re-entering its stop logic here would be noise at best.
+      debugLog(tag, "[headless] onHeadlessJsTaskFinish: released, skipping onTaskFinished")
       return
     }
     onTaskFinished()
   }
 
   /**
-   * Get the [ReactNativeHost] used by this app. By default, assumes [getApplication] is an instance
-   * of [ReactApplication] and calls [ReactApplication.reactNativeHost].
-   *
-   * Override this method if your application class does not implement `ReactApplication` or you
-   * simply have a different mechanism for storing a `ReactNativeHost`, e.g. as a static field
-   * somewhere.
+   * The [ReactNativeHost] used by this app. Assumes the application is a [ReactApplication].
    */
   @Suppress("DEPRECATION")
-  protected open val reactNativeHost: ReactNativeHost
+  private val reactNativeHost: ReactNativeHost
     get() = (context.applicationContext as ReactApplication).reactNativeHost
 
   /**
-   * Get the [ReactHost] used by this app. By default, assumes [getApplication] is an instance of
-   * [ReactApplication] and calls [ReactApplication.reactHost]. This method assumes it is called in
-   * new architecture and returns null if not.
+   * The [ReactHost] used by this app. Assumes the application is a [ReactApplication]; returns null
+   * outside the new architecture.
    */
-  protected open val reactHost: ReactHost?
+  private val reactHost: ReactHost?
     get() = (context.applicationContext as ReactApplication).reactHost
 
-  protected val reactContext: ReactContext?
+  private val reactContext: ReactContext?
     get() {
       if (ReactNativeFeatureFlags.enableBridgelessArchitecture()) {
         val reactHost =
@@ -280,12 +285,12 @@ class HeadlessTaskManager(
     val listener = object : ReactInstanceEventListener {
       override fun onReactContextInitialized(context: ReactContext) {
         if (released) {
-          debugLog(TAG, "[headless] onReactContextInitialized fired after release, ignoring")
+          debugLog(tag, "[headless] onReactContextInitialized fired after release, ignoring")
           removeReactInstanceEventListener(this)
           pendingReactInstanceListener = null
           return
         }
-        debugLog(TAG, "createReactContextAndScheduleTask: React context initialized")
+        debugLog(tag, "createReactContextAndScheduleTask: React context initialized")
         invokeStartTask(context, taskConfig)
         removeReactInstanceEventListener(this)
         pendingReactInstanceListener = null
@@ -304,5 +309,11 @@ class HeadlessTaskManager(
         reactInstanceManager.createReactContextInBackground()
       }
     }
+  }
+}
+
+private fun debugLog(tag: String, message: String) {
+  if (BuildConfig.DEBUG) {
+    Log.d(tag, message)
   }
 }

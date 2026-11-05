@@ -250,8 +250,12 @@ export type StreamVideoConfig = {
       notificationTexts: KeepAliveAndroidNotificationTexts;
       /**
        * The task to run in the foreground service.
+       *
+       * @deprecated No longer invoked. The SDK owns the keep-alive task's lifetime, and the task
+       * runs in the same JS runtime as the app, so subscribe to the call's state from your app code
+       * instead. Will be removed in a future release.
        */
-      taskToRun: (call: Call) => Promise<void>;
+      taskToRun?: (call: Call) => Promise<void>;
     };
   };
 };

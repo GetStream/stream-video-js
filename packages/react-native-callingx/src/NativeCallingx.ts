@@ -165,7 +165,7 @@ export interface Spec extends TurboModule {
 
   setOnHoldCall(callId: string, isOnHold: boolean): boolean;
 
-  startBackgroundTask(taskName: string, timeout: number): boolean;
+  startBackgroundTask(): boolean;
 
   getFcmToken(): Promise<string>;
 

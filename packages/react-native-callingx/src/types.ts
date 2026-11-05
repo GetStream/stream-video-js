@@ -181,24 +181,12 @@ export interface ICallingxModule {
   setOnHoldCall(callId: string, isOnHold: boolean): void;
 
   /**
-   * Acquire a ref-counted background keep-alive task identified by [owner].
-   *
-   * The underlying HeadlessJS task — which keeps React Native's JS runtime and timers alive while
-   * the app is backgrounded — is started on the first acquire and stopped only once the last owner
-   * releases. Multiple independent owners (e.g. ringing-push handling and the keep-call-alive hook)
-   * can hold it simultaneously without tearing down each other's task. No-op on iOS.
+   * Start the keep-alive HeadlessJS task on the call service, starting the service if needed.
+   * Ignored while a task is already running. No-op on iOS.
    * Runs synchronously; throws if the native call fails.
-   * @param owner - A stable, unique key identifying the holder (e.g. `push:<cid>`, `keepalive:<cid>`).
+   * @internal Used by the Video SDK's keep-alive, which registers the task and owns its lifetime.
    */
-  acquireBackgroundTask(owner: string): void;
-
-  /**
-   * Release a keep-alive task previously acquired with [acquireBackgroundTask] for [owner].
-   * The native task is stopped only after all owners have released. No-op on iOS.
-   * Runs synchronously; never throws.
-   * @param owner - The same key passed to [acquireBackgroundTask].
-   */
-  releaseBackgroundTask(owner: string): void;
+  startBackgroundTask(): void;
 
   /**
    * Returns the current FCM device token (Android). Resolves an empty string on iOS.

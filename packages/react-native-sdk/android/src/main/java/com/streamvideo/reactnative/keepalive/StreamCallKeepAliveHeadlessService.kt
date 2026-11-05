@@ -1,31 +1,57 @@
 package com.streamvideo.reactnative.keepalive
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Notification
+import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.IBinder
+import android.os.PowerManager
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
-import com.facebook.react.HeadlessJsTaskService
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.jstasks.HeadlessJsTaskConfig
 import com.streamvideo.reactnative.util.CallAlivePermissionsHelper
 
 /**
  * Foreground service that runs a React Native HeadlessJS task to keep a call alive.
  *
+ * The task is driven by [HeadlessTaskManager], shared with the callingx call service. The JS side
+ * ends the keep-alive by resolving the task; the service then stops itself.
  */
-class StreamCallKeepAliveHeadlessService : HeadlessJsTaskService() {
+class StreamCallKeepAliveHeadlessService : Service() {
+
+    private lateinit var headlessTaskManager: HeadlessTaskManager
+    private var wakeLock: PowerManager.WakeLock? = null
+
+    private var lastStartId = 0
+
+    /**
+     * Call cid of a start that arrived while the previous task still held the task slot. That task
+     * may already be finishing — JS resolved it, the finish callback is not delivered yet — and its
+     * finish must start a task for this call instead of stopping the service.
+     *
+     * Only touched on the main thread: start commands and task-finish callbacks are both delivered
+     * there.
+     */
+    private var pendingTaskCallCid: String? = null
+
+    override fun onCreate() {
+        super.onCreate()
+        headlessTaskManager = HeadlessTaskManager(applicationContext, TAG) { onTaskFinished() }
+    }
+
+    override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // Without a call cid there is nothing to keep alive and getTaskConfig() would return null,
-        // which leaves the base class with a started service and no task. Stop before going
-        // foreground so we neither show an orphan notification nor hold the FGS types.
+        lastStartId = startId
+
+        // Without a call cid there is nothing to keep alive. Stop before going foreground so we
+        // neither show an orphan notification nor hold the FGS types.
         val callCid = intent?.getStringExtra(EXTRA_CALL_CID)
         if (intent == null || callCid.isNullOrBlank()) {
             Log.w(TAG, "onStartCommand: missing $EXTRA_CALL_CID extra, stopping service")
@@ -59,40 +85,70 @@ class StreamCallKeepAliveHeadlessService : HeadlessJsTaskService() {
 
         // Ensure HeadlessJS task is started
         return try {
-            super.onStartCommand(intent, flags, startId)
-            // Deliberately override the base class' START_REDELIVER_INTENT: that would have the
+            acquireWakeLock()
+            startKeepAliveTask(callCid)
+            // Deliberately START_NOT_STICKY rather than START_REDELIVER_INTENT: that would have the
             // system recreate this service (and the process) from the background after a kill,
             // which is a background foreground-service start with while-in-use types
             // (camera/microphone) and is rejected on Android 12+/14+. The call being kept alive
             // does not survive the process anyway, so there is nothing to restart for.
             START_NOT_STICKY
         } catch (e: Exception) {
-            // startTask() can throw when the app's Application is not a ReactApplication, when the
-            // bridgeless ReactHost is missing, or when the react context was already destroyed.
-            // Don't take the app down with us.
+            // Starting the task can throw when the app's Application is not a ReactApplication,
+            // when the bridgeless ReactHost is missing, or when the react context was already
+            // destroyed. Don't take the app down with us.
             Log.e(TAG, "onStartCommand: Failed to start HeadlessJS task: ${e.message}", e)
             stopSelf(startId)
             START_NOT_STICKY
         }
     }
 
-    override fun getTaskConfig(intent: Intent?): HeadlessJsTaskConfig? {
-        val callCid = intent?.getStringExtra(EXTRA_CALL_CID) ?: return null
-        val data = Arguments.createMap().apply {
-            putString("callCid", callCid)
-        }
-        // We intentionally allow long-running work (the JS task can return a never-resolving Promise).
-        return HeadlessJsTaskConfig(
-            TASK_NAME,
-            data,
-            0, // timeout (0 = no timeout)
-            true // allowedInForeground
-        )
+    override fun onDestroy() {
+        headlessTaskManager.release()
+        pendingTaskCallCid = null
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        wakeLock?.release()
+        wakeLock = null
+        super.onDestroy()
     }
 
-    override fun onDestroy() {
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        super.onDestroy()
+    private fun startKeepAliveTask(callCid: String) {
+        val data = KeepAliveTask.data(KeepAliveTask.BACKEND_SDK).apply {
+            putString(EXTRA_CALL_CID, callCid)
+        }
+        // timeout 0 = no timeout: the JS task holds until the call ends.
+        if (!headlessTaskManager.startHeadlessTask(KeepAliveTask.NAME, data, 0)) {
+            Log.w(TAG, "startKeepAliveTask: task slot busy, starting for $callCid once it finishes")
+            pendingTaskCallCid = callCid
+        }
+    }
+
+    private fun onTaskFinished() {
+        val callCid = pendingTaskCallCid
+        if (callCid != null) {
+            pendingTaskCallCid = null
+            startKeepAliveTask(callCid)
+            return
+        }
+        if (!stopSelfResult(lastStartId)) {
+            Log.w(TAG, "onTaskFinished: stop refused (startId=$lastStartId), a newer start is pending")
+        }
+    }
+
+    /**
+     * Keeps the CPU awake while the call is kept alive, as React Native's HeadlessJsTaskService does
+     * for its tasks. Held for the lifetime of the service and released in [onDestroy].
+     */
+    @SuppressLint("WakelockTimeout")
+    private fun acquireWakeLock() {
+        if (wakeLock?.isHeld == true) return
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager
+            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKE_LOCK_TAG)
+            .apply {
+                setReferenceCounted(false)
+                acquire()
+            }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -191,8 +247,6 @@ class StreamCallKeepAliveHeadlessService : HeadlessJsTaskService() {
     companion object {
         private const val TAG = "StreamCallKeepAliveHeadlessService"
 
-        const val TASK_NAME = "StreamVideoKeepCallAlive"
-
         const val EXTRA_CALL_CID = "callCid"
         const val EXTRA_CHANNEL_ID = "channelId"
         const val EXTRA_CHANNEL_NAME = "channelName"
@@ -201,6 +255,7 @@ class StreamCallKeepAliveHeadlessService : HeadlessJsTaskService() {
         const val EXTRA_SMALL_ICON_NAME = "smallIconName"
 
         private const val NOTIFICATION_ID = 6061
+        private const val WAKE_LOCK_TAG = "StreamVideo:KeepCallAlive"
 
         private const val DEFAULT_CHANNEL_ID = "stream_call_foreground_service"
         private const val DEFAULT_CHANNEL_NAME = "Call in progress"

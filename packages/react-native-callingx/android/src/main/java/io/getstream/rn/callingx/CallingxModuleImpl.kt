@@ -2,7 +2,6 @@ package io.getstream.rn.callingx
 
 import android.content.Intent
 import android.os.Build
-import android.os.Bundle
 import android.os.ParcelUuid
 import android.telecom.DisconnectCause
 import android.util.Log
@@ -16,6 +15,7 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.google.firebase.messaging.FirebaseMessaging
+import com.streamvideo.reactnative.keepalive.KeepAliveTask
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.getstream.rn.callingx.notifications.NotificationsConfig
@@ -51,8 +51,6 @@ class CallingxModuleImpl(
         // Published directly to CallEventBus (not a broadcast), so no manifest intent-filter entry.
         const val CALL_RING_PUSH_ACTION = "io.getstream.CALL_RING_PUSH"
         const val CALL_FCM_TOKEN_REFRESH_ACTION = "io.getstream.FCM_TOKEN_REFRESH"
-        // Background task name
-        const val HEADLESS_TASK_NAME = "HandleCallBackgroundState"
     }
 
     private var delayedEvents = WritableNativeArray()
@@ -348,14 +346,18 @@ class CallingxModuleImpl(
         executeServiceAction(callId, action)
     }
 
-    fun startBackgroundTask(taskName: String, timeout: Double) {
+    fun startBackgroundTask() {
         try {
             Intent(reactApplicationContext, CallService::class.java)
                     .apply {
                         this.action = CallService.ACTION_START_BACKGROUND_TASK
-                        putExtra(CallService.EXTRA_TASK_NAME, taskName)
-                        putExtra(CallService.EXTRA_TASK_DATA, Bundle())
-                        putExtra(CallService.EXTRA_TASK_TIMEOUT, timeout.toLong())
+                        putExtra(CallService.EXTRA_TASK_NAME, KeepAliveTask.NAME)
+                        putExtra(
+                                CallService.EXTRA_TASK_DATA,
+                                KeepAliveTask.data(KeepAliveTask.BACKEND_CALLINGX)
+                        )
+                        // 0 = no timeout: the JS task holds until the keep-alive is released.
+                        putExtra(CallService.EXTRA_TASK_TIMEOUT, 0L)
                     }
                     .also { reactApplicationContext.startService(it) }
         } catch (e: Exception) {

@@ -1,10 +1,5 @@
 import { Platform } from 'react-native';
 import NativeCallingModule from './NativeCallingx';
-import {
-  HEADLESS_TASK_NAME,
-  registerHeadlessTask,
-  setHeadlessTask,
-} from './utils/headlessTask';
 import { EventManager } from './EventManager';
 import type { EventListener } from './EventManager';
 import {
@@ -30,23 +25,11 @@ import {
 import { isVoipEvent } from './utils/utils';
 
 class CallingxModule implements ICallingxModule {
-  // Grace period for the debounced keep-alive stop: a re-acquire within this window (e.g. the
-  // ringing-push -> keep-alive hand-off) cancels the stop and reuses the running task.
-  private static readonly KEEP_ALIVE_STOP_DEBOUNCE_MS = 2000;
-
   private _isSetup = false;
   private _isOngoingCallsEnabled = {
     android: false,
     ios: false,
   };
-  // Ref-counted keep-alive ownership over the single native background-task slot.
-  // This prevents one caller from tearing down the task another still needs.
-  private _keepAliveOwners = new Set<string>();
-  private _keepAliveResolve: (() => void) | undefined;
-  // Pending debounced stop. When the last owner releases we defer the actual stop briefly; a
-  // re-acquire within the window cancels it and reuses the running task. This keeps the task
-  // continuous across the ringing-push -> keep-alive hand-off.
-  private _keepAliveStopTimer: ReturnType<typeof setTimeout> | undefined;
 
   private titleTransformer: (memberName: string, incoming: boolean) => string =
     (memberName: string) => memberName;
@@ -141,9 +124,6 @@ class CallingxModule implements ICallingxModule {
           defaultDeviceEndpointType,
         );
       }
-
-      registerHeadlessTask();
-      setHeadlessTask(this.keepAliveHoldTask);
     }
 
     this._isSetup = true;
@@ -301,70 +281,11 @@ class CallingxModule implements ICallingxModule {
     NativeCallingModule.setOnHoldCall(callId, isOnHold);
   };
 
-  private keepAliveHoldTask = (): Promise<void> =>
-    new Promise<void>((resolve) => {
-      if (this._keepAliveOwners.size === 0 && !this._keepAliveStopTimer) {
-        resolve();
-        return;
-      }
-      this._keepAliveResolve = () => {
-        this.log(
-          '[headless] Releasing callingx keep-alive background task',
-          'info',
-        );
-        resolve();
-      };
-    });
-
-  acquireBackgroundTask = (owner: string): void => {
+  startBackgroundTask = (): void => {
     if (Platform.OS !== 'android') {
       return;
     }
-
-    // A new owner means we keep the task alive — cancel any pending debounced stop.
-    if (this._keepAliveStopTimer) {
-      clearTimeout(this._keepAliveStopTimer);
-      this._keepAliveStopTimer = undefined;
-    }
-
-    this._keepAliveOwners.add(owner);
-
-    try {
-      // Native start is idempotent for running tasks, so we call in unconditionally, avoiding
-      // potential stale owner leaks.
-      NativeCallingModule.startBackgroundTask(HEADLESS_TASK_NAME, 0);
-    } catch (e) {
-      this._keepAliveOwners.delete(owner);
-      if (this._keepAliveOwners.size === 0) {
-        this._keepAliveResolve?.();
-        this._keepAliveResolve = undefined;
-      }
-      // Re-throw so the caller can log/handle and retry.
-      throw e;
-    }
-  };
-
-  releaseBackgroundTask = (owner: string): void => {
-    if (Platform.OS !== 'android') {
-      return;
-    }
-    if (!this._keepAliveOwners.delete(owner)) {
-      return;
-    }
-    if (this._keepAliveOwners.size > 0 || this._keepAliveStopTimer) {
-      return;
-    }
-    // Last owner released — defer the actual stop. A re-acquire within the window (e.g. the
-    // ringing-push -> keep-alive hand-off) cancels this and reuses the still-running task, avoiding
-    // a stop/restart race on the single native task slot.
-    this._keepAliveStopTimer = setTimeout(() => {
-      this._keepAliveStopTimer = undefined;
-      if (this._keepAliveOwners.size > 0) {
-        return;
-      }
-      this._keepAliveResolve?.();
-      this._keepAliveResolve = undefined;
-    }, CallingxModule.KEEP_ALIVE_STOP_DEBOUNCE_MS);
+    NativeCallingModule.startBackgroundTask();
   };
 
   getFcmToken = async (): Promise<string> => {
