@@ -22,6 +22,7 @@ const NoiseCancellationReactNative = NativeModules.NoiseCancellationReactNative
  * A wrapper around the native stream noise cancellation SDK.
  */
 export class NoiseCancellation implements INoiseCancellation {
+  readonly engine = 'krisp';
   private readonly listeners: Partial<Record<keyof Events, Array<any>>> = {};
 
   /**

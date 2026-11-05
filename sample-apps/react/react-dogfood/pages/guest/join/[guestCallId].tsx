@@ -23,7 +23,7 @@ import { useSettings } from '../../../context/SettingsContext';
 import { getSegmentationModelUrl } from '../../../hooks';
 import { getClient } from '../../../helpers/client';
 import { createToken } from '../../../helpers/jwt';
-import { createNoiseCancellation } from '../../../helpers/noiseCancellation';
+import { getNoiseCancellationOptions } from '../../../helpers/noiseCancellation';
 import { useGleap } from '../../../hooks/useGleap';
 
 type GuestCallRoomProps = {
@@ -116,9 +116,17 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const ncLoader = useRef<Promise<void>>(undefined);
   useEffect(() => {
     const load = (ncLoader.current || Promise.resolve())
-      .then(() => createNoiseCancellation(noiseCancellationModel))
-      .then((nc) => {
-        setNoiseCancellation(nc);
+      .then(() => import('@stream-io/audio-filters-web'))
+      .then(({ NoiseCancellation }) => {
+        console.info(
+          '[dogfood] noise cancellation model:',
+          noiseCancellationModel,
+        );
+        setNoiseCancellation(
+          new NoiseCancellation(
+            getNoiseCancellationOptions(noiseCancellationModel),
+          ),
+        );
       });
     return () => {
       ncLoader.current = load.then(() => setNoiseCancellation(undefined));

@@ -3,10 +3,12 @@ import React, {
   PropsWithChildren,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import {
   NoiseCancellationSettingsModeEnum,
+  getCallExtraOpts,
   OwnCapability,
   videoLoggerSystem,
 } from '@stream-io/video-client';
@@ -70,11 +72,22 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
   ] = useState<boolean>();
   const { useCallSettings, useHasPermissions } = useCallStateHooks();
   const settings = useCallSettings();
+  const { engine } = getCallExtraOpts(settings).noise_cancellation ?? {};
+  const engineMatches = useMemo(() => {
+    if (!engine) return true;
+    try {
+      const { engine: nativeEngine } = NoiseCancellationWrapper.getInstance();
+      return !nativeEngine || nativeEngine === engine;
+    } catch {
+      return false;
+    }
+  }, [engine]);
   const noiseCancellationAllowed = !!(
     settings &&
     settings.audio.noise_cancellation &&
     settings.audio.noise_cancellation.mode !==
-      NoiseCancellationSettingsModeEnum.DISABLED
+      NoiseCancellationSettingsModeEnum.DISABLED &&
+    engineMatches
   );
 
   const hasCapability = useHasPermissions(

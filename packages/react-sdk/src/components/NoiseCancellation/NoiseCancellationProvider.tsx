@@ -9,6 +9,7 @@ import {
 import {
   NoiseCancellationSettingsModeEnum,
   type Call,
+  getCallExtraOpts,
   type NoiseCancellationStatus,
   OwnCapability,
 } from '@stream-io/video-client';
@@ -99,10 +100,15 @@ export const NoiseCancellationProvider = (
     useCallStateHooks();
   const settings = useCallSettings();
   const { noiseCancellationStatus } = useMicrophoneState();
+  const noiseCancellationSettings = settings?.audio.noise_cancellation;
+  const {
+    engine,
+    enabled_in_safari: enabledInSafari,
+    model_path: modelPath,
+  } = getCallExtraOpts(settings).noise_cancellation ?? {};
   const noiseCancellationAllowed = !!(
-    settings &&
-    settings.audio.noise_cancellation &&
-    settings.audio.noise_cancellation.mode !==
+    noiseCancellationSettings &&
+    noiseCancellationSettings.mode !==
       NoiseCancellationSettingsModeEnum.DISABLED
   );
 
@@ -110,13 +116,34 @@ export const NoiseCancellationProvider = (
     OwnCapability.ENABLE_NOISE_CANCELLATION,
   );
   const [isSupportedByBrowser, setIsSupportedByBrowser] = useState<boolean>();
+  const hasSettings = !!settings;
   useEffect(() => {
+    // the call settings can pick the engine: wait for them
+    if (!hasSettings) return;
+    // a newer run (e.g., another engine) supersedes this one's result
+    let stale = false;
+    noiseCancellation.configure?.({
+      engine,
+      withSafariSupport: enabledInSafari,
+      modelPath,
+    });
+    // checked after configure: a router adopts the configured engine
+    const engineMatches =
+      !engine ||
+      !noiseCancellation.engine ||
+      engine === noiseCancellation.engine;
+    if (!engineMatches) {
+      setIsSupportedByBrowser(false);
+      return;
+    }
     const result = noiseCancellation.isSupported();
     if (typeof result === 'boolean') {
       setIsSupportedByBrowser(result);
     } else {
       result
-        .then((s) => setIsSupportedByBrowser(s))
+        .then((s) => {
+          if (!stale) setIsSupportedByBrowser(s);
+        })
         .catch((err) =>
           console.error(
             `Can't determine if noise cancellation is supported`,
@@ -124,7 +151,10 @@ export const NoiseCancellationProvider = (
           ),
         );
     }
-  }, [noiseCancellation]);
+    return () => {
+      stale = true;
+    };
+  }, [noiseCancellation, hasSettings, engine, enabledInSafari, modelPath]);
 
   const isSupported =
     isSupportedByBrowser && hasCapability && noiseCancellationAllowed;

@@ -2599,6 +2599,12 @@ export interface CallSettingsResponse {
   individual_recording: IndividualRecordingSettingsResponse;
   /**
    *
+   * @type {{ [key: string]: any; }}
+   * @memberof CallSettingsResponse
+   */
+  extra_opts?: { [key: string]: any };
+  /**
+   *
    * @type {IngressSettingsResponse}
    * @memberof CallSettingsResponse
    */
