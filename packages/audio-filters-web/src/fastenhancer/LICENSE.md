@@ -1,9 +1,10 @@
 # Licenses
 
-> Status: experimental. The model weights are under provenance review; see the
-> release gate in
-> `docs/superpowers/specs/2026-11-05-fastenhancer-noise-cancellation-design.md`.
-> Do not treat this notice as a completed license clearance.
+> Status: experimental. The pretrained model weights are distributed under the
+> upstream MIT licenses below, but the provenance of their training data is
+> still under review. `FastEnhancerNoiseCancellation` stays experimental until
+> that review is complete, or until a Stream-trained model replaces these
+> weights. Do not treat this notice as a completed license clearance.
 
 The files in this directory are derived from `fastenhancer-web@0.1.1`
 (https://github.com/ryyr-ry/fastenhancer-web), which in turn builds on
