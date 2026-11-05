@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Browsers,
   Call,
   CallingState,
   CallRequest,
@@ -69,6 +70,7 @@ export const useLobbyCall = ({
     ) {
       prev.leave().catch((e) => console.error('Failed to leave call', e));
     }
+    next.dynascaleManager?.setUseWebAudio(Browsers.isWebKit());
     activeCallRef.current = next;
     window.call = next;
     setCall(next);

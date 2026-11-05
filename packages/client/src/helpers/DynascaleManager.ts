@@ -140,8 +140,9 @@ export class DynascaleManager {
 
   /**
    * Sets whether to use WebAudio API for audio playback.
-   * Takes precedence over `audio.extra_options.use_web_audio` from the call
-   * settings. Must be set before joining the call.
+   * Disabled by default. Takes precedence over
+   * `audio.extra_options.use_web_audio` from the call settings.
+   * Must be set before joining the call.
    *
    * @internal
    *
