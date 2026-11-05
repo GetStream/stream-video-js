@@ -78,3 +78,9 @@ export interface EmbeddedMeetingProps extends EmbeddedClientBaseProps {}
  * Props for the EmbeddedLivestream component.
  */
 export interface EmbeddedLivestreamProps extends EmbeddedClientBaseProps {}
+
+/**
+ * The noise cancellation provider that the embedded client can load.
+ * `fastenhancer` is experimental.
+ */
+export type NoiseCancellationProviderName = 'krisp' | 'fastenhancer';

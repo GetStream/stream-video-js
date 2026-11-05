@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { type Call } from '@stream-io/video-client';
+import type { NoiseCancellationProviderName } from '../types';
 
 type INoiseCancellation =
   import('@stream-io/audio-filters-web').INoiseCancellation;
@@ -11,7 +12,10 @@ type INoiseCancellation =
  * The `ready` flag becomes `true` once loading completes (even on failure),
  * or immediately if noise cancellation is disabled by server settings.
  */
-export const useNoiseCancellationLoader = (call?: Call) => {
+export const useNoiseCancellationLoader = (
+  call?: Call,
+  provider: NoiseCancellationProviderName = 'krisp',
+) => {
   const [noiseCancellation, setNoiseCancellation] =
     useState<INoiseCancellation>();
   const [ready, setReady] = useState(false);
@@ -32,8 +36,11 @@ export const useNoiseCancellationLoader = (call?: Call) => {
 
     const load = (ncLoader.current || Promise.resolve())
       .then(() => import('@stream-io/audio-filters-web'))
-      .then(({ NoiseCancellation }) => {
-        const nc = new NoiseCancellation({});
+      .then(({ NoiseCancellation, FastEnhancerNoiseCancellation }) => {
+        const nc =
+          provider === 'fastenhancer'
+            ? new FastEnhancerNoiseCancellation()
+            : new NoiseCancellation({});
         setNoiseCancellation(nc);
       })
       .catch((err) => {
@@ -53,7 +60,7 @@ export const useNoiseCancellationLoader = (call?: Call) => {
         setReady(false);
       });
     };
-  }, [call, isNoiseCancellationEnabled]);
+  }, [call, isNoiseCancellationEnabled, provider]);
 
   return { noiseCancellation, ready };
 };
