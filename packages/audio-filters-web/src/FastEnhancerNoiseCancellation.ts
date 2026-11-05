@@ -125,6 +125,7 @@ export type FastEnhancerNoiseCancellationOptions = {
  * @experimental this provider and its models may change in any release.
  */
 export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
+  readonly engine = 'stream';
   private workletNode?: AudioWorkletNode;
   private rawGain?: GainNode;
   private dryGain?: GainNode;
