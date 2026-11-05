@@ -40,6 +40,8 @@ export const createNoiseCancellation = async (
       });
     case 'krisp':
     default:
-      return new NoiseCancellation();
+      // Krisp reports Safari as unsupported unless opted in;
+      // its SDK still requires Safari 17.4+.
+      return new NoiseCancellation({ withSafariSupport: true });
   }
 };
