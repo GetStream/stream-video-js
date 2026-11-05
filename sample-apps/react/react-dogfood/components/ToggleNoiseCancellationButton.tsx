@@ -7,7 +7,11 @@ import {
   useNoiseCancellation,
 } from '@stream-io/video-react-sdk';
 
-export const ToggleNoiseCancellationButton = () => {
+export const ToggleNoiseCancellationButton = ({
+  caption,
+}: {
+  caption?: string;
+}) => {
   const { isSupported, isEnabled, isReady, status, setEnabled } =
     useNoiseCancellation();
   const { t } = useI18n();
@@ -31,6 +35,8 @@ export const ToggleNoiseCancellationButton = () => {
   return (
     <WithTooltip title={title}>
       <CompositeButton
+        caption={caption}
+        aria-label={title}
         disabled={!isReady}
         onClick={() => setEnabled((v) => !v)}
         variant="primary"

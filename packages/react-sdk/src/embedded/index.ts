@@ -9,4 +9,5 @@ export type {
   EmbeddedGuestUser,
   EmbeddedAnonymousUser,
   LayoutOption,
+  NoiseCancellationProviderName,
 } from './types';

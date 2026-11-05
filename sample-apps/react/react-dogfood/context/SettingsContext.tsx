@@ -4,6 +4,11 @@ import {
   DeviceSelectionPreference,
   useDeviceSelectionPreference,
 } from '../hooks/useDeviceSelectionPreference';
+import { usePersistedChoice } from '../hooks/usePersistedChoice';
+import {
+  NOISE_CANCELLATION_MODELS,
+  NoiseCancellationModel,
+} from '../helpers/noiseCancellation';
 
 export type SegmentationModel =
   | 'selfie_segmenter_landscape'
@@ -21,6 +26,9 @@ const defaultState: Settings = {
   setDeviceSelectionPreference: () => {},
   segmentationModel: 'selfie_segmenter_landscape',
   setSegmentationModel: () => {},
+  // our own denoiser; Krisp stays selectable in the settings
+  noiseCancellationModel: 'fastenhancer-base',
+  setNoiseCancellationModel: () => {},
 };
 
 export type Settings = {
@@ -31,6 +39,8 @@ export type Settings = {
   setDeviceSelectionPreference: (value: DeviceSelectionPreference) => void;
   segmentationModel: SegmentationModel;
   setSegmentationModel: (value: SegmentationModel) => void;
+  noiseCancellationModel: NoiseCancellationModel;
+  setNoiseCancellationModel: (value: NoiseCancellationModel) => void;
 };
 
 export type SettingsContextValue = {
@@ -45,6 +55,12 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
   const { language, setLanguage, fallbackLanguage } = useLanguage();
   const { deviceSelectionPreference, setDeviceSelectionPreference } =
     useDeviceSelectionPreference();
+  const [noiseCancellationModel, setNoiseCancellationModel] =
+    usePersistedChoice(
+      '@pronto/noise-cancellation-model',
+      NOISE_CANCELLATION_MODELS,
+      defaultState.noiseCancellationModel,
+    );
 
   const [segmentationModel, setSegmentationModel] = useState<SegmentationModel>(
     () => {
@@ -68,6 +84,8 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
     setDeviceSelectionPreference,
     segmentationModel,
     setSegmentationModel,
+    noiseCancellationModel,
+    setNoiseCancellationModel,
   };
 
   return (

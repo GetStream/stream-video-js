@@ -160,6 +160,25 @@ export const ActiveCall = (props: ActiveCallProps) => {
   } = usePipWindow('@pronto/pip');
   useNotificationSounds();
 
+  // the button closes Picture-in-Picture while it is open
+  const pipTitle = pipWindow
+    ? t('Close Picture-in-Picture')
+    : t('Pop out Picture-in-Picture');
+  const renderPipButton = (caption?: string) =>
+    isPipSupported && (
+      <WithTooltip title={pipTitle}>
+        <CompositeButton
+          active={!!pipWindow}
+          variant="primary"
+          caption={caption}
+          aria-label={pipTitle}
+          onClick={pipWindow ? closePipWindow : openPipWindow}
+        >
+          <Icon icon="pip" />
+        </CompositeButton>
+      </WithTooltip>
+    );
+
   const remoteFilePublisherAPI = useRemoteFilePublisher();
 
   return (
@@ -281,7 +300,18 @@ export const ActiveCall = (props: ActiveCallProps) => {
               </div>
             )}
             <div className="str-video__call-controls__mobile">
-              <ToggleMoreOptionsListButton />
+              {/* secondary controls that don't fit the mobile call bar */}
+              <ToggleMoreOptionsListButton
+                controls={
+                  <>
+                    <ToggleNoiseCancellationButton
+                      caption={t('Noise cancellation')}
+                    />
+                    {renderPipButton(t('Picture-in-picture'))}
+                    <RecordCallConfirmationButton caption={t('Record')} />
+                  </>
+                }
+              />
             </div>
           </div>
           <DeviceDisconnectedNotification className="rd__call-controls__notification" />
@@ -315,17 +345,13 @@ export const ActiveCall = (props: ActiveCallProps) => {
               </div>
             )}
             {isPipSupported && (
-              <WithTooltip title={t('Pop out Picture-in-Picture')}>
-                <CompositeButton
-                  active={!!pipWindow}
-                  variant="primary"
-                  onClick={pipWindow ? closePipWindow : openPipWindow}
-                >
-                  <Icon icon="pip" />
-                </CompositeButton>
-              </WithTooltip>
+              <div className="str-video__call-controls__desktop">
+                {renderPipButton()}
+              </div>
             )}
-            <RecordCallConfirmationButton />
+            <div className="str-video__call-controls__desktop">
+              <RecordCallConfirmationButton />
+            </div>
             {isDemoEnvironment && (
               <div className="str-video__call-controls__desktop rd__ai-agent-anchor">
                 <AskAIAgentButton

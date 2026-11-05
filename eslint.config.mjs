@@ -16,6 +16,8 @@ export default [
       '**/dist/**',
       '**/.next/**',
       '**/__testfixtures__/**',
+      'packages/audio-filters-web/src/fastenhancer/processor.js',
+      'packages/audio-filters-web/src/fastenhancer/models/**',
     ],
   },
   { languageOptions: { globals: globals.node } },
