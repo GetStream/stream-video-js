@@ -1,6 +1,7 @@
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import {
   BackgroundFiltersProvider,
+  Browsers,
   Call,
   CallingState,
   NoiseCancellationProvider,
@@ -84,6 +85,8 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const [call, setCall] = useState<Call>();
   useEffect(() => {
     const _call = client?.call(callType, callId, { reuseInstance: true });
+    // Web Audio playback is off by default in the SDK; dogfood enables it on WebKit.
+    _call?.dynascaleManager?.setUseWebAudio(Browsers.isWebKit());
     setCall(_call);
 
     window.call = _call;
