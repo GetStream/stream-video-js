@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.12.0...@stream-io/noise-cancellation-react-native-0.13.0) (2026-11-05)
+
+### Features
+
+- **client:** apply staff-managed call settings for screen share, mic and noise cancellation ([#2589](https://github.com/GetStream/stream-video-js/issues/2589)) ([a913c13](https://github.com/GetStream/stream-video-js/commit/a913c13e02be0167ef0b00160394497947c626fa))
+
 ## [0.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.11.1...@stream-io/noise-cancellation-react-native-0.12.0) (2026-10-30)
 
 ### Features
