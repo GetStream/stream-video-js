@@ -86,6 +86,10 @@ if (await noiseCancellation.isSupported()) {
   await noiseCancellation.init();
   await call.microphone.enableNoiseCancellation(noiseCancellation);
 }
+
+// on cleanup
+await call.microphone.disableNoiseCancellation();
+await noiseCancellation.dispose();
 ```
 
 ### Options
@@ -137,3 +141,14 @@ new FastEnhancerNoiseCancellation({
   basePath: 'https://cdn.example.com/fastenhancer/models',
 });
 ```
+
+### Deployment notes
+
+- **Content Security Policy.** The worklet module is loaded from a `blob:` URL.
+  `AudioWorklet` modules fall under `script-src` (not `worker-src`), so allow
+  `blob:` there (or in `script-src-elem`). The model is compiled from WASM in the
+  worklet, so a restricted `script-src` also needs `'wasm-unsafe-eval'`.
+- **`connect-src`.** The WASM and the weights are fetched from `basePath`: allow
+  `https://unpkg.com`, or your own origin when self-hosting.
+- **CORS.** When the models are served from a different origin than your app, that
+  server must send `Access-Control-Allow-Origin` for your app's origin.
