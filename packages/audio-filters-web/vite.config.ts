@@ -27,6 +27,8 @@ export default defineConfig({
         for (const chunk of Object.values(bundle)) {
           if (chunk.type !== 'chunk') continue;
           for (const file of chunk.dynamicImports) {
+            // skip external modules, only emitted chunks are rewritten
+            if (bundle[file]?.type !== 'chunk') continue;
             const specifier = `"./${file.replace(/^cjs\//, '')}"`;
             if (
               !chunk.code.includes(`import(${specifier})`) ||

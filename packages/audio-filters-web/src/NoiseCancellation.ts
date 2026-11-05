@@ -129,8 +129,9 @@ export class NoiseCancellation extends BaseNoiseCancellation {
    */
   isSupported = async () => {
     if (isWebKit() && !this.withSafariSupport) return false;
+    let sdk: KrispSDKClass;
     try {
-      return (await loadKrispSDK()).isSupported() && (await simd());
+      sdk = await loadKrispSDK();
     } catch (err) {
       console.warn(
         'Failed to load the Krisp SDK, reporting it as unsupported',
@@ -138,6 +139,7 @@ export class NoiseCancellation extends BaseNoiseCancellation {
       );
       return false;
     }
+    return sdk.isSupported() && (await simd());
   };
 
   /**
