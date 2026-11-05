@@ -31,7 +31,8 @@ const defaultState: Settings = {
   setSpeakingDetectionEnabled: () => {},
   segmentationModel: 'selfie_segmenter_landscape',
   setSegmentationModel: () => {},
-  noiseCancellationModel: 'krisp',
+  // our own denoiser; Krisp stays selectable in the settings
+  noiseCancellationModel: 'fastenhancer-base',
   setNoiseCancellationModel: () => {},
   themeMode: 'dark',
   setThemeMode: () => {},
@@ -70,7 +71,7 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
     usePersistedChoice(
       '@pronto/noise-cancellation-model',
       NOISE_CANCELLATION_MODELS,
-      'krisp',
+      defaultState.noiseCancellationModel,
     );
   const { themeMode, setThemeMode } = useThemeMode();
 
