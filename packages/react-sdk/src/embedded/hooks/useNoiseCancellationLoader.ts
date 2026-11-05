@@ -17,7 +17,7 @@ type INoiseCancellation =
  */
 export const useNoiseCancellationLoader = (
   call?: Call,
-  provider: NoiseCancellationProviderName = 'krisp',
+  provider?: NoiseCancellationProviderName,
 ) => {
   // Both are bound to the call they were loaded for, so that a previous
   // call's instance (being disposed by its provider) is never handed to a
@@ -47,7 +47,12 @@ export const useNoiseCancellationLoader = (
     let stale = false;
     const load = (ncLoader.current || Promise.resolve())
       .then(() => import('@stream-io/audio-filters-web'))
-      .then(({ NoiseCancellation, FastEnhancerNoiseCancellation }) => {
+      .then((filters) => {
+        const {
+          NoiseCancellation,
+          KrispNoiseCancellation,
+          FastEnhancerNoiseCancellation,
+        } = filters;
         if (stale) return;
         if (provider === 'fastenhancer') {
           // older versions of the package don't export it
@@ -67,6 +72,15 @@ export const useNoiseCancellationLoader = (
           });
           return;
         }
+        if (
+          provider === 'krisp' &&
+          typeof KrispNoiseCancellation === 'function'
+        ) {
+          setLoaded({ call, noiseCancellation: new KrispNoiseCancellation() });
+          return;
+        }
+        // no provider (or an older package without KrispNoiseCancellation):
+        // the router runs the engine the call settings pick, Krisp by default
         setLoaded({ call, noiseCancellation: new NoiseCancellation({}) });
       })
       .catch((err) => {
