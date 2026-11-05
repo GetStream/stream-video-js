@@ -11,18 +11,7 @@ import { ScreenShareSettings } from '../types';
 import { createSubscription } from '../store/rxUtils';
 import { normalize } from './devicePersistence';
 import { TrackPublishOptions } from '../rtc';
-
-const contentHints: ReadonlyArray<string | undefined> = [
-  '',
-  'motion',
-  'detail',
-  'text',
-];
-
-const isContentHint = (
-  value: string | undefined,
-): value is NonNullable<ScreenShareSettings['contentHint']> =>
-  contentHints.includes(value);
+import { getCallExtraOpts } from '../helpers/extraOpts';
 
 export class ScreenShareManager extends AudioDeviceManager<
   ScreenShareState,
@@ -134,7 +123,8 @@ export class ScreenShareManager extends AudioDeviceManager<
 
   /**
    * Resolves the content hint for the screen share track: the one set through
-   * {@link setSettings} wins, then the one from the call settings, otherwise
+   * {@link setSettings} wins, then `extra_opts.screenshare_content_hint` from
+   * the call settings, otherwise
    * `undefined` and the browser decides.
    *
    * @internal
@@ -142,9 +132,7 @@ export class ScreenShareManager extends AudioDeviceManager<
   resolveContentHint = (): ScreenShareSettings['contentHint'] => {
     const contentHint = this.state.settings?.contentHint;
     if (typeof contentHint !== 'undefined') return contentHint;
-    const fromCallSettings =
-      this.call.state.settings?.screensharing.content_hint;
-    return isContentHint(fromCallSettings) ? fromCallSettings : undefined;
+    return getCallExtraOpts(this.call.state.settings).screenshare_content_hint;
   };
 
   protected override doSetAudioBitrateProfile(profile: AudioBitrateProfile) {

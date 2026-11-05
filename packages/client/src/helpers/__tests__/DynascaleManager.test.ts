@@ -1769,7 +1769,7 @@ describe('DynascaleManager', () => {
     const setAudioSettings = (audio: object | undefined) => {
       setCurrentValue(call.state['settingsSubject'], {
         // @ts-expect-error partial data
-        audio: { ...audio },
+        extra_opts: { audio },
       });
     };
     const shouldUseWebAudio = () =>

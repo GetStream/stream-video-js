@@ -6,7 +6,11 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { OwnCapability, videoLoggerSystem } from '@stream-io/video-client';
+import {
+  getCallExtraOpts,
+  OwnCapability,
+  videoLoggerSystem,
+} from '@stream-io/video-client';
 
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
@@ -67,7 +71,7 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
   ] = useState<boolean>();
   const { useCallSettings, useHasPermissions } = useCallStateHooks();
   const settings = useCallSettings();
-  const engine = settings?.audio.noise_cancellation?.engine;
+  const { engine } = getCallExtraOpts(settings).noise_cancellation ?? {};
   const engineMatches = useMemo(() => {
     if (!engine) return true;
     try {

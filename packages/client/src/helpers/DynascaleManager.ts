@@ -33,6 +33,7 @@ import { SpeakerManager } from '../devices';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
 import { timeboxed } from '../coordinator/connection/utils';
+import { getCallExtraOpts } from './extraOpts';
 
 /**
  * A manager class that handles dynascale related tasks like:
@@ -141,7 +142,7 @@ export class DynascaleManager {
   /**
    * Sets whether to use WebAudio API for audio playback.
    * Disabled by default. Takes precedence over
-   * `audio.use_web_audio` from the call settings.
+   * `extra_opts.audio.use_web_audio` from the call settings.
    * Must be set before joining the call.
    *
    * @internal
@@ -712,7 +713,7 @@ export class DynascaleManager {
 
   /**
    * Web Audio playback is off by default. The call settings
-   * (`audio.use_web_audio`) can turn it on for WebKit only,
+   * (`extra_opts.audio.use_web_audio`) can turn it on for WebKit only,
    * and {@link setUseWebAudio} overrides both. The call settings value is
    * latched once known, so a mid-call change can't mix the two routings.
    */
@@ -722,7 +723,8 @@ export class DynascaleManager {
       return this.webAudioFromCallSettings;
     }
     const { settings } = this.callState;
-    const useWebAudio = isWebKit() && settings?.audio.use_web_audio === true;
+    const useWebAudio =
+      isWebKit() && getCallExtraOpts(settings).audio?.use_web_audio === true;
     if (settings) this.webAudioFromCallSettings = useWebAudio;
     return useWebAudio;
   };
@@ -730,10 +732,10 @@ export class DynascaleManager {
   /**
    * The silent audio element is on by default (iOS only, see
    * SilentAudioPlayer). The call settings can only turn it off, with
-   * `audio.play_silence: false`.
+   * `extra_opts.audio.play_silence: false`.
    */
   private isSilenceAllowed = (): boolean =>
-    this.callState.settings?.audio.play_silence !== false;
+    getCallExtraOpts(this.callState.settings).audio?.play_silence !== false;
 
   private watchSilenceSetting = () => {
     const subscription = this.callState.settings$.subscribe(() => {

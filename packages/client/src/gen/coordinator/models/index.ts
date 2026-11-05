@@ -212,21 +212,6 @@ export interface Audience {
 
 export type AudioDefaultDevice = 'speaker' | 'earpiece';
 
-export interface AudioMediaConstraintsResponse {
-  /**
-   * The autoGainControl capture constraint
-   */
-  auto_gain_control?: boolean;
-  /**
-   * The echoCancellation capture constraint
-   */
-  echo_cancellation?: boolean;
-  /**
-   * The noiseSuppression capture constraint
-   */
-  noise_suppression?: boolean;
-}
-
 export interface AudioSettingsRequest {
   /**
    * The device a call routes audio to by default.
@@ -252,18 +237,6 @@ export interface AudioSettingsResponse {
   opus_dtx_enabled: boolean;
   redundant_coding_enabled: boolean;
   speaker_default_on: boolean;
-  /**
-   * Whether the SDK keeps a silent audio element playing so audio playback stays unlocked (iOS only). Managed by Stream. Unset means the SDK default
-   */
-  play_silence?: boolean;
-  /**
-   * Whether remote audio plays through the Web Audio API (WebKit only). Managed by Stream. Unset means the SDK default
-   */
-  use_web_audio?: boolean;
-  /**
-   * Overrides for the microphone capture constraints. Unset fields mean the SDK default
-   */
-  media_constraints?: AudioMediaConstraintsResponse;
   noise_cancellation?: NoiseCancellationSettings;
 }
 
@@ -1256,6 +1229,7 @@ export interface CallSettingsResponse {
   thumbnails: ThumbnailsSettingsResponse;
   transcription: TranscriptionSettingsResponse;
   video: VideoSettingsResponse;
+  extra_opts?: Record<string, any>;
   ingress?: IngressSettingsResponse;
 }
 
@@ -2656,18 +2630,6 @@ export interface NoiseCancellationSettings {
    * Whether a call feature is available, disabled, or turned on automatically.
    */
   mode: FeatureActivationMode;
-  /**
-   * Whether noise cancellation is allowed in Safari and other WebKit browsers. Managed by Stream: ignored on input. Unset means the SDK default
-   */
-  enabled_in_safari?: boolean;
-  /**
-   * The noise cancellation engine, e.g. krisp or stream. Managed by Stream: ignored on input. Unset means the SDK default
-   */
-  engine?: string;
-  /**
-   * URL of the noise cancellation model file. Managed by Stream: ignored on input. Unset means the SDK default
-   */
-  model_path?: string;
 }
 
 export const OwnCapability = {
@@ -3979,7 +3941,6 @@ export interface ScreensharingSettingsRequest {
 export interface ScreensharingSettingsResponse {
   access_request_enabled: boolean;
   enabled: boolean;
-  content_hint?: string;
   target_resolution?: TargetResolution;
 }
 

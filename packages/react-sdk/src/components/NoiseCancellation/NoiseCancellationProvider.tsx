@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 import {
+  getCallExtraOpts,
   type NoiseCancellationStatus,
   OwnCapability,
 } from '@stream-io/video-client';
@@ -88,7 +89,11 @@ export const NoiseCancellationProvider = (
   const settings = useCallSettings();
   const { noiseCancellationStatus } = useMicrophoneState();
   const noiseCancellationSettings = settings?.audio.noise_cancellation;
-  const engine = noiseCancellationSettings?.engine;
+  const {
+    engine,
+    enabled_in_safari: enabledInSafari,
+    model_path: modelPath,
+  } = getCallExtraOpts(settings).noise_cancellation ?? {};
   const engineMatches =
     !engine || !noiseCancellation.engine || engine === noiseCancellation.engine;
   const noiseCancellationAllowed = !!(
@@ -96,8 +101,6 @@ export const NoiseCancellationProvider = (
     noiseCancellationSettings.mode !== 'disabled' &&
     engineMatches
   );
-  const enabledInSafari = noiseCancellationSettings?.enabled_in_safari;
-  const modelPath = noiseCancellationSettings?.model_path;
 
   const hasCapability = useHasPermissions(
     OwnCapability.ENABLE_NOISE_CANCELLATION,

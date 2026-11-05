@@ -156,7 +156,7 @@ describe('ScreenShareManager', () => {
       const call = manager['call'];
       RxUtils.setCurrentValue(call.state['settingsSubject'], {
         // @ts-expect-error partial data
-        screensharing: { content_hint: contentHint },
+        extra_opts: { screenshare_content_hint: contentHint },
       });
     };
 

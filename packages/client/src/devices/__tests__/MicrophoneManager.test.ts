@@ -278,8 +278,8 @@ describe('MicrophoneManager', () => {
         fromPartial({
           egress: {},
           settings: {
-            audio: {
-              media_constraints: { echo_cancellation: false },
+            extra_opts: {
+              audio: { media_constraints: { echo_cancellation: false } },
             },
           },
         }),
@@ -626,10 +626,8 @@ describe('MicrophoneManager', () => {
         fromPartial({
           egress: {},
           settings: {
-            audio: {
-              noise_cancellation: { mode: 'available' },
-              media_constraints: mediaConstraints,
-            },
+            audio: { noise_cancellation: { mode: 'available' } },
+            extra_opts: { audio: { media_constraints: mediaConstraints } },
           },
         }),
       );
@@ -809,9 +807,8 @@ describe('MicrophoneManager', () => {
         fromPartial({
           egress: {},
           settings: {
-            audio: {
-              noise_cancellation: { mode: 'available', engine: 'stream' },
-            },
+            audio: { noise_cancellation: { mode: 'available' } },
+            extra_opts: { noise_cancellation: { engine: 'stream' } },
           },
         }),
       );
@@ -829,9 +826,8 @@ describe('MicrophoneManager', () => {
         fromPartial({
           egress: {},
           settings: {
-            audio: {
-              noise_cancellation: { mode: 'available', engine: 'krisp' },
-            },
+            audio: { noise_cancellation: { mode: 'available' } },
+            extra_opts: { noise_cancellation: { engine: 'krisp' } },
           },
         }),
       );
@@ -1074,9 +1070,9 @@ describe('MicrophoneManager', () => {
         fromPartial({
           egress: {},
           settings: {
-            audio: {
-              hifi_audio_enabled: true,
-              media_constraints: { auto_gain_control: false },
+            audio: { hifi_audio_enabled: true },
+            extra_opts: {
+              audio: { media_constraints: { auto_gain_control: false } },
             },
           },
         }),
@@ -1103,9 +1099,9 @@ describe('MicrophoneManager', () => {
         fromPartial({
           egress: {},
           settings: {
-            audio: {
-              hifi_audio_enabled: true,
-              media_constraints: { auto_gain_control: true },
+            audio: { hifi_audio_enabled: true },
+            extra_opts: {
+              audio: { media_constraints: { auto_gain_control: true } },
             },
           },
         }),
