@@ -64,7 +64,7 @@ export interface EmbeddedClientBaseProps {
   logLevel?: LogLevel;
   /**
    * Which noise cancellation provider to load. `fastenhancer` is experimental.
-   * @default 'krisp'
+   * When unset, the call settings pick the provider, Krisp by default.
    */
   noiseCancellationProvider?: NoiseCancellationProviderName;
   layout?: LayoutOption;

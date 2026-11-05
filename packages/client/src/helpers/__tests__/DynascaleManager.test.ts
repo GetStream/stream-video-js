@@ -21,7 +21,7 @@ import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { ClientEventReporter } from '../../reporting';
 import { ClientState } from '../../store';
-import { getCurrentValue } from '../../store/rxUtils';
+import { getCurrentValue, setCurrentValue } from '../../store/rxUtils';
 import { VisibilityState } from '../../types';
 import { noopComparator } from '../../sorting';
 import { TrackType } from '../../gen/video/sfu/models/models';
@@ -1762,6 +1762,91 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenLastCalledWith('videoTrack', {
         'session-id': { dimension: undefined },
       });
+    });
+  });
+
+  describe('audio settings from the call', () => {
+    const setAudioSettings = (audio: object | undefined) => {
+      setCurrentValue(call.state['settingsSubject'], {
+        // @ts-expect-error partial data
+        extra_opts: { audio },
+      });
+    };
+    const shouldUseWebAudio = () =>
+      dynascaleManager['shouldUseWebAudio']() as boolean;
+
+    afterEach(() => {
+      globalThis._isWebKit = undefined;
+      globalThis._isIOS = undefined;
+    });
+
+    it('does not use Web Audio by default, not even on WebKit', () => {
+      globalThis._isWebKit = true;
+      setAudioSettings(undefined);
+      expect(shouldUseWebAudio()).toBe(false);
+    });
+
+    it('uses Web Audio on WebKit when the call settings turn it on', () => {
+      globalThis._isWebKit = true;
+      setAudioSettings({ use_web_audio: true });
+      expect(shouldUseWebAudio()).toBe(true);
+    });
+
+    it('does not use Web Audio on WebKit when the call settings turn it off', () => {
+      globalThis._isWebKit = true;
+      setAudioSettings({ use_web_audio: false });
+      expect(shouldUseWebAudio()).toBe(false);
+    });
+
+    it('ignores use_web_audio outside WebKit', () => {
+      globalThis._isWebKit = false;
+      setAudioSettings({ use_web_audio: true });
+      expect(shouldUseWebAudio()).toBe(false);
+    });
+
+    it('keeps the first known use_web_audio value for the rest of the call', () => {
+      globalThis._isWebKit = true;
+      setCurrentValue(call.state['settingsSubject'], undefined);
+      expect(shouldUseWebAudio()).toBe(false);
+
+      setAudioSettings({ use_web_audio: true });
+      expect(shouldUseWebAudio()).toBe(true);
+
+      setAudioSettings({ use_web_audio: false });
+      expect(shouldUseWebAudio()).toBe(true);
+    });
+
+    it('lets setUseWebAudio override the call settings', () => {
+      globalThis._isWebKit = true;
+      setAudioSettings({ use_web_audio: true });
+      dynascaleManager.setUseWebAudio(false);
+      expect(shouldUseWebAudio()).toBe(false);
+    });
+
+    it('plays silence unless the call settings turn it off', () => {
+      const player = dynascaleManager['silentAudioPlayer'];
+      const play = vi.spyOn(player, 'play').mockImplementation(() => {});
+      setAudioSettings(undefined);
+      dynascaleManager.keepAudioPlaybackUnlocked();
+      expect(play).toHaveBeenCalledTimes(1);
+      dynascaleManager.releaseAudioPlaybackUnlock();
+
+      play.mockClear();
+      setAudioSettings({ play_silence: false });
+      dynascaleManager.keepAudioPlaybackUnlocked();
+      expect(play).not.toHaveBeenCalled();
+    });
+
+    it('stops the silence when the call settings turn it off later', () => {
+      const player = dynascaleManager['silentAudioPlayer'];
+      vi.spyOn(player, 'play').mockImplementation(() => {});
+      const dispose = vi.spyOn(player, 'dispose');
+      setAudioSettings(undefined);
+      dynascaleManager.keepAudioPlaybackUnlocked();
+      expect(dispose).not.toHaveBeenCalled();
+
+      setAudioSettings({ play_silence: false });
+      expect(dispose).toHaveBeenCalled();
     });
   });
 });

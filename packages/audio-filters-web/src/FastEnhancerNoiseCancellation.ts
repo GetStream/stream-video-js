@@ -6,6 +6,7 @@ import {
   WARM_UP_GRACE_MS,
 } from './BaseNoiseCancellation';
 import { isWebKit } from './isWebKit';
+import type { NoiseCancellationConfiguration } from './INoiseCancellation';
 
 type FastEnhancerRuntime = typeof import('./fastenhancer/runtime');
 
@@ -125,6 +126,7 @@ export type FastEnhancerNoiseCancellationOptions = {
  * @experimental this provider and its models may change in any release.
  */
 export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
+  readonly engine = 'stream';
   private workletNode?: AudioWorkletNode;
   private rawGain?: GainNode;
   private dryGain?: GainNode;
@@ -165,7 +167,8 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
   private readonly basePath: string;
   private readonly hpf: boolean;
   private readonly agc: boolean;
-  private readonly withSafariSupport: boolean;
+  private withSafariSupport: boolean;
+  private readonly hasExplicitSafariSupport: boolean;
   private readonly restoreTimeoutMs: number;
   private readonly restoreAttempts: number;
 
@@ -177,7 +180,7 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
     basePath = `https://unpkg.com/${packageName}@${packageVersion}/src/fastenhancer/models`,
     hpf = false,
     agc = false,
-    withSafariSupport = true,
+    withSafariSupport,
     restoreTimeoutMs = 15000,
     restoreAttempts = 3,
   }: FastEnhancerNoiseCancellationOptions = {}) {
@@ -186,13 +189,25 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
     this.basePath = basePath;
     this.hpf = hpf;
     this.agc = agc;
-    this.withSafariSupport = withSafariSupport;
+    this.withSafariSupport = withSafariSupport ?? true;
+    this.hasExplicitSafariSupport = typeof withSafariSupport !== 'undefined';
     this.restoreTimeoutMs = restoreTimeoutMs;
     this.restoreAttempts = restoreAttempts;
     // `init()` reports its failures to its caller; this keeps the shared
     // promise from surfacing as an unhandled rejection.
     this.initializing.catch(() => {});
   }
+
+  /**
+   * Applies options from the call settings. A `withSafariSupport` passed to
+   * the constructor takes precedence. The model path is Krisp-only and is
+   * ignored here. Call it before {@link isSupported} and {@link init}.
+   */
+  configure = (configuration: NoiseCancellationConfiguration) => {
+    if (!this.hasExplicitSafariSupport) {
+      this.withSafariSupport = configuration.withSafariSupport ?? true;
+    }
+  };
 
   /**
    * Checks if the noise cancellation is supported on this platform.
