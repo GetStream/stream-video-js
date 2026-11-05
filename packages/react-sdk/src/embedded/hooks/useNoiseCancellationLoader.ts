@@ -30,6 +30,7 @@ export const useNoiseCancellationLoader = (
     if (!call) return;
 
     if (!isNoiseCancellationEnabled) {
+      setNoiseCancellation(undefined);
       setReady(true);
       return;
     }
@@ -46,6 +47,7 @@ export const useNoiseCancellationLoader = (
                 'exports FastEnhancerNoiseCancellation. ' +
                 'Noise cancellation is unavailable.',
             );
+            setNoiseCancellation(undefined);
             return;
           }
           setNoiseCancellation(new FastEnhancerNoiseCancellation());
@@ -65,10 +67,11 @@ export const useNoiseCancellationLoader = (
       });
 
     return () => {
-      ncLoader.current = load.then(() => {
-        setNoiseCancellation(undefined);
-        setReady(false);
-      });
+      // Keep the current instance until the next one replaces it, so that
+      // NoiseCancellationProvider stays mounted and runs the old instance's
+      // cleanup before initializing the new one. Unmounting it here would let
+      // the old cleanup disable the replacement.
+      ncLoader.current = load.then(() => {});
     };
   }, [call, isNoiseCancellationEnabled, provider]);
 
