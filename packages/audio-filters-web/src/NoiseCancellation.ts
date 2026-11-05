@@ -13,14 +13,14 @@ import type {
 } from './INoiseCancellation';
 import type { Tracer } from './tracer';
 
+const engines = ['krisp', 'stream'] as const;
+
 /**
  * The noise cancellation engines {@link NoiseCancellation} can run.
  */
-export type NoiseCancellationEngine = 'krisp' | 'stream';
+export type NoiseCancellationEngine = (typeof engines)[number];
 
 const DEFAULT_ENGINE: NoiseCancellationEngine = 'krisp';
-
-const engines: ReadonlyArray<string> = ['krisp', 'stream'];
 
 /**
  * Options to pass to the NoiseCancellation instance.
@@ -51,6 +51,7 @@ export class NoiseCancellation implements INoiseCancellation {
   private delegateEngine?: NoiseCancellationEngine;
   private stopForwarding?: () => void;
   private initialized = false;
+  private warnedEngine?: string;
 
   private readonly listeners: Partial<Record<keyof Events, Array<any>>> = {};
 
@@ -81,6 +82,13 @@ export class NoiseCancellation implements INoiseCancellation {
    */
   configure = (configuration: NoiseCancellationConfiguration) => {
     this.configuration = configuration;
+    const { engine } = configuration;
+    if (engine && !this.isKnownEngine(engine) && engine !== this.warnedEngine) {
+      this.warnedEngine = engine;
+      console.warn(
+        `Unknown noise cancellation engine "${engine}", using "${DEFAULT_ENGINE}"`,
+      );
+    }
     if (this.initialized) return;
     if (this.delegate && this.delegateEngine !== this.resolveEngine()) {
       this.dropDelegate();
@@ -90,40 +98,76 @@ export class NoiseCancellation implements INoiseCancellation {
 
   isSupported = () => this.getDelegate().isSupported();
 
+  /**
+   * Initializes the selected engine. When that fails, the engine is
+   * discarded, so the next `init` picks the engine again.
+   */
   init = async (options?: { tracer?: Tracer }) => {
+    // a repeated init goes to the running engine, which reports it
+    if (this.initialized && this.delegate) return this.delegate.init(options);
     const delegate = this.getDelegate();
     this.initialized = true;
     options?.tracer?.trace('noiseCancellation.engine', this.delegateEngine);
-    await delegate.init(options);
+    try {
+      await delegate.init(options);
+    } catch (err) {
+      if (this.delegate === delegate) {
+        this.initialized = false;
+        this.dropDelegate();
+        delegate.dispose().catch((e) => {
+          console.warn('Failed to dispose the noise cancellation engine', e);
+        });
+      }
+      throw err;
+    }
   };
 
   isEnabled = async () => (this.delegate ? this.delegate.isEnabled() : false);
 
   canAutoEnable = async () => {
-    const { canAutoEnable } = this.getDelegate();
+    const canAutoEnable = this.delegate?.canAutoEnable;
     return canAutoEnable ? canAutoEnable() : true;
   };
 
-  enable = () => this.getDelegate().enable();
-
-  disable = () => this.getDelegate().disable();
+  /**
+   * Enables the running engine. Does nothing when no engine was created yet
+   * or after {@link dispose}.
+   */
+  enable = async () => {
+    await this.delegate?.enable();
+  };
 
   /**
-   * Disposes the running engine. The next {@link isSupported} or
+   * Disables the running engine. Does nothing when no engine was created yet
+   * or after {@link dispose}.
+   */
+  disable = async () => {
+    await this.delegate?.disable();
+  };
+
+  /**
+   * Disposes the running engine. Its events, including the final `change`,
+   * are forwarded until it is disposed. The next {@link isSupported} or
    * {@link init} picks the engine again.
    */
   dispose = async () => {
     const delegate = this.delegate;
+    const stopForwarding = this.stopForwarding;
+    this.stopForwarding = undefined;
     this.dropDelegate();
     this.initialized = false;
-    await delegate?.dispose();
+    try {
+      await delegate?.dispose();
+    } finally {
+      stopForwarding?.();
+    }
   };
 
   setSuppressionLevel = (level: number) => {
-    this.getDelegate().setSuppressionLevel(level);
+    this.requireDelegate().setSuppressionLevel(level);
   };
 
-  toFilter = () => this.getDelegate().toFilter();
+  toFilter = () => this.requireDelegate().toFilter();
 
   on = <E extends keyof Events, T = Events[E]>(event: E, callback: T) => {
     (this.listeners[event] ??= [] as T[]).push(callback);
@@ -137,14 +181,17 @@ export class NoiseCancellation implements INoiseCancellation {
     this.listeners[event] = listeners.filter((cb) => cb !== callback);
   };
 
+  private isKnownEngine = (engine: string): boolean =>
+    engines.some((name) => name === engine.trim().toLowerCase());
+
   private resolveEngine = (): NoiseCancellationEngine => {
-    const { engine } = this.configuration;
-    if (!engine) return DEFAULT_ENGINE;
-    if (engines.includes(engine)) return engine as NoiseCancellationEngine;
-    console.warn(
-      `Unknown noise cancellation engine "${engine}", using "${DEFAULT_ENGINE}"`,
-    );
-    return DEFAULT_ENGINE;
+    const engine = this.configuration.engine?.trim().toLowerCase();
+    return engines.find((name) => name === engine) ?? DEFAULT_ENGINE;
+  };
+
+  private requireDelegate = (): INoiseCancellation => {
+    if (!this.delegate) throw new Error('NoiseCancellation is not initialized');
+    return this.delegate;
   };
 
   private getDelegate = (): INoiseCancellation => {

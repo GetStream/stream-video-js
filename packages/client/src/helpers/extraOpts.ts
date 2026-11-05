@@ -5,6 +5,14 @@ import type { CallSettingsResponse } from '../gen/coordinator';
  */
 export type ScreenShareContentHint = '' | 'motion' | 'detail' | 'text';
 
+const noiseCancellationEngines = ['krisp', 'stream'] as const;
+
+/**
+ * A noise cancellation engine the call settings can select.
+ */
+export type NoiseCancellationEngineName =
+  (typeof noiseCancellationEngines)[number];
+
 /**
  * The typed view of `call.settings.extra_opts`: client tuning that Stream
  * manages per call type. Every field is optional: unset means the SDK keeps
@@ -25,7 +33,7 @@ export type CallExtraOpts = {
   };
   noise_cancellation?: {
     enabled_in_safari?: boolean;
-    engine?: string;
+    engine?: NoiseCancellationEngineName;
     model_path?: string;
   };
 };
@@ -45,6 +53,17 @@ const asString = (value: unknown): string | undefined =>
 
 const asContentHint = (value: unknown): ScreenShareContentHint | undefined =>
   contentHints.includes(value) ? (value as ScreenShareContentHint) : undefined;
+
+/**
+ * Engine names are matched case-insensitively. An unknown engine reads as
+ * unset, so the default engine runs instead of noise cancellation being
+ * turned off for a typo.
+ */
+const asEngine = (value: unknown): NoiseCancellationEngineName | undefined => {
+  if (typeof value !== 'string') return undefined;
+  const engine = value.trim().toLowerCase();
+  return noiseCancellationEngines.find((name) => name === engine);
+};
 
 /**
  * Reads `extra_opts` from the call settings. `extra_opts` is untyped on the
@@ -75,7 +94,7 @@ export const getCallExtraOpts = (
     },
     noise_cancellation: noiseCancellation && {
       enabled_in_safari: asBoolean(noiseCancellation.enabled_in_safari),
-      engine: asString(noiseCancellation.engine),
+      engine: asEngine(noiseCancellation.engine),
       model_path: asString(noiseCancellation.model_path),
     },
   };

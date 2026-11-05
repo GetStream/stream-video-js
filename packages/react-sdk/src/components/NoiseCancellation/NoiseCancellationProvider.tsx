@@ -113,7 +113,12 @@ export const NoiseCancellationProvider = (
     OwnCapability.ENABLE_NOISE_CANCELLATION,
   );
   const [isSupportedByBrowser, setIsSupportedByBrowser] = useState<boolean>();
+  const hasSettings = !!settings;
   useEffect(() => {
+    // the call settings can pick the engine: wait for them
+    if (!hasSettings) return;
+    // a newer run (e.g., another engine) supersedes this one's result
+    let stale = false;
     noiseCancellation.configure?.({
       engine,
       withSafariSupport: enabledInSafari,
@@ -133,7 +138,9 @@ export const NoiseCancellationProvider = (
       setIsSupportedByBrowser(result);
     } else {
       result
-        .then((s) => setIsSupportedByBrowser(s))
+        .then((s) => {
+          if (!stale) setIsSupportedByBrowser(s);
+        })
         .catch((err) =>
           console.error(
             `Can't determine if noise cancellation is supported`,
@@ -141,7 +148,10 @@ export const NoiseCancellationProvider = (
           ),
         );
     }
-  }, [noiseCancellation, engine, enabledInSafari, modelPath]);
+    return () => {
+      stale = true;
+    };
+  }, [noiseCancellation, hasSettings, engine, enabledInSafari, modelPath]);
 
   const isSupported =
     isSupportedByBrowser && hasCapability && noiseCancellationAllowed;

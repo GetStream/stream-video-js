@@ -821,6 +821,23 @@ describe('MicrophoneManager', () => {
       expect(registerFilter).not.toBeCalled();
     });
 
+    it('should register filter when the call settings name an unknown engine', async () => {
+      call.state.updateFromCallResponse(
+        fromPartial({
+          egress: {},
+          settings: {
+            audio: { noise_cancellation: { mode: 'available' } },
+            extra_opts: { noise_cancellation: { engine: 'Stream-v2' } },
+          },
+        }),
+      );
+      const noiseCancellation = new NoiseCancellationStub();
+      noiseCancellation.engine = 'krisp';
+      const registerFilter = vi.spyOn(manager, 'registerFilter');
+      await manager.enableNoiseCancellation(noiseCancellation);
+      expect(registerFilter).toBeCalled();
+    });
+
     it('should register filter when the engine matches the call settings', async () => {
       call.state.updateFromCallResponse(
         fromPartial({

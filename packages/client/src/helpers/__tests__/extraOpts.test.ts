@@ -74,4 +74,15 @@ describe('getCallExtraOpts', () => {
     expect(extraOpts.audio?.play_silence).toBeUndefined();
     expect(extraOpts.noise_cancellation).toBeUndefined();
   });
+
+  it('normalizes the noise cancellation engine', () => {
+    const engineOf = (engine: unknown) =>
+      getCallExtraOpts(withExtraOpts({ noise_cancellation: { engine } }))
+        .noise_cancellation?.engine;
+    expect(engineOf('krisp')).toBe('krisp');
+    expect(engineOf(' Stream ')).toBe('stream');
+    expect(engineOf('KRISP')).toBe('krisp');
+    expect(engineOf('stream-v2')).toBeUndefined();
+    expect(engineOf(42)).toBeUndefined();
+  });
 });

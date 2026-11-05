@@ -214,4 +214,74 @@ describe('NoiseCancellation', () => {
     engine.emit('change', false);
     expect(onChange).not.toHaveBeenCalled();
   });
+
+  it('matches the engine case-insensitively and warns once for an unknown one', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const nc = new NoiseCancellation();
+    nc.configure({ engine: ' Stream ' });
+    expect(nc.engine).toBe('stream');
+    expect(warn).not.toHaveBeenCalled();
+
+    nc.configure({ engine: 'foo' });
+    nc.configure({ engine: 'foo' });
+    expect(nc.engine).toBe('krisp');
+    expect(nc.engine).toBe('krisp');
+    nc.isSupported();
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  it('forwards the final change event while disposing', async () => {
+    const nc = new NoiseCancellation();
+    const onChange = vi.fn();
+    nc.on('change', onChange);
+    await nc.init();
+    const engine = lastEngine();
+    engine.dispose.mockImplementation(async () => {
+      engine.emit('change', false);
+    });
+
+    await nc.dispose();
+    expect(onChange).toHaveBeenCalledWith(false);
+  });
+
+  it('discards an engine that fails to initialize', async () => {
+    const nc = new NoiseCancellation();
+    nc.configure({ engine: 'stream' });
+    nc.isSupported();
+    const failed = lastEngine();
+    failed.init.mockRejectedValueOnce(new Error('model fetch failed'));
+
+    await expect(nc.init()).rejects.toThrow('model fetch failed');
+    expect(failed.dispose).toHaveBeenCalled();
+
+    nc.configure({ engine: 'krisp' });
+    await nc.init();
+    expect(EngineStub.instances).toHaveLength(2);
+    expect(lastEngine().engine).toBe('krisp');
+    expect(lastEngine().init).toHaveBeenCalled();
+  });
+
+  it('sends a repeated init to the running engine', async () => {
+    const nc = new NoiseCancellation();
+    await nc.init();
+    await nc.init();
+    expect(EngineStub.instances).toHaveLength(1);
+    expect(lastEngine().init).toHaveBeenCalledTimes(2);
+  });
+
+  it('creates no engine for calls made after dispose', async () => {
+    const nc = new NoiseCancellation();
+    await nc.init();
+    await nc.dispose();
+
+    await nc.enable();
+    await nc.disable();
+    expect(await nc.canAutoEnable()).toBe(true);
+    expect(await nc.isEnabled()).toBe(false);
+    expect(() => nc.toFilter()).toThrow('NoiseCancellation is not initialized');
+    expect(() => nc.setSuppressionLevel(10)).toThrow(
+      'NoiseCancellation is not initialized',
+    );
+    expect(EngineStub.instances).toHaveLength(1);
+  });
 });
