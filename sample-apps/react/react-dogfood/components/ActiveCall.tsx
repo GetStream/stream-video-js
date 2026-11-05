@@ -160,6 +160,25 @@ export const ActiveCall = (props: ActiveCallProps) => {
   } = usePipWindow('@pronto/pip');
   useNotificationSounds();
 
+  const renderPipButton = (caption?: string) =>
+    isPipSupported && (
+      <WithTooltip
+        title={t(
+          'activeCall.pictureInPicture.popOut.title',
+          'Pop out Picture-in-Picture',
+        )}
+      >
+        <CompositeButton
+          active={!!pipWindow}
+          variant={pipWindow ? 'primary' : 'secondary'}
+          caption={caption}
+          onClick={pipWindow ? closePipWindow : openPipWindow}
+        >
+          <Icon icon="pip" />
+        </CompositeButton>
+      </WithTooltip>
+    );
+
   const remoteFilePublisherAPI = useRemoteFilePublisher();
 
   return (
@@ -281,7 +300,28 @@ export const ActiveCall = (props: ActiveCallProps) => {
               </div>
             )}
             <div className="str-video__call-controls__mobile">
-              <ToggleMoreOptionsListButton />
+              {/* secondary controls that don't fit the mobile call bar */}
+              <ToggleMoreOptionsListButton
+                controls={
+                  <>
+                    <ToggleNoiseCancellationButton
+                      caption={t(
+                        'callControls.noiseCancellation.caption',
+                        'Noise cancellation',
+                      )}
+                    />
+                    {renderPipButton(
+                      t(
+                        'activeCall.pictureInPicture.caption',
+                        'Picture-in-picture',
+                      ),
+                    )}
+                    <RecordCallConfirmationButton
+                      caption={t('callControls.record.caption', 'Record')}
+                    />
+                  </>
+                }
+              />
             </div>
           </div>
           <DeviceDisconnectedNotification className="rd__call-controls__notification" />
@@ -295,7 +335,9 @@ export const ActiveCall = (props: ActiveCallProps) => {
             <div className="str-video__call-controls__desktop">
               <ToggleEffectsButton />
             </div>
-            <ToggleNoiseCancellationButton />
+            <div className="str-video__call-controls__desktop">
+              <ToggleNoiseCancellationButton />
+            </div>
             {!isRestricted && (
               <div className="str-video__call-controls__desktop">
                 <ToggleClosedCaptionsButton />
@@ -313,22 +355,13 @@ export const ActiveCall = (props: ActiveCallProps) => {
               </div>
             )}
             {isPipSupported && (
-              <WithTooltip
-                title={t(
-                  'activeCall.pictureInPicture.popOut.title',
-                  'Pop out Picture-in-Picture',
-                )}
-              >
-                <CompositeButton
-                  active={!!pipWindow}
-                  variant={pipWindow ? 'primary' : 'secondary'}
-                  onClick={pipWindow ? closePipWindow : openPipWindow}
-                >
-                  <Icon icon="pip" />
-                </CompositeButton>
-              </WithTooltip>
+              <div className="str-video__call-controls__desktop">
+                {renderPipButton()}
+              </div>
             )}
-            <RecordCallConfirmationButton />
+            <div className="str-video__call-controls__desktop">
+              <RecordCallConfirmationButton />
+            </div>
             {isDemoEnvironment && (
               <div className="str-video__call-controls__desktop rd__ai-agent-anchor">
                 <AskAIAgentButton
