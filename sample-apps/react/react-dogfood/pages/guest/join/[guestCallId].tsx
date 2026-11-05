@@ -22,6 +22,7 @@ import { useSettings } from '../../../context/SettingsContext';
 import { getSegmentationModelUrl } from '../../../hooks';
 import { getClient } from '../../../helpers/client';
 import { createToken } from '../../../helpers/jwt';
+import { createNoiseCancellation } from '../../../helpers/noiseCancellation';
 import { useGleap } from '../../../hooks/useGleap';
 
 type GuestCallRoomProps = {
@@ -49,8 +50,10 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const { apiKey, user, token, gleapApiKey } = props;
   const environment = useAppEnvironment();
   const {
-    settings: { segmentationModel },
+    settings: { segmentationModel, noiseCancellationModel: liveNcModel },
   } = useSettings();
+  // Read once: changing the setting mid-call applies on the next join.
+  const [noiseCancellationModel] = useState(() => liveNcModel);
 
   const router = useRouter();
   const callId = router.query['guestCallId'] as string;
@@ -109,17 +112,14 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const ncLoader = useRef<Promise<void>>(undefined);
   useEffect(() => {
     const load = (ncLoader.current || Promise.resolve())
-      .then(() => import('@stream-io/audio-filters-web'))
-      .then(({ NoiseCancellation }) => {
-        // const modelsPath = `${basePath}/krispai/models`;
-        // const nc = new NoiseCancellation({ basePath: modelsPath });
-        const nc = new NoiseCancellation();
+      .then(() => createNoiseCancellation(noiseCancellationModel))
+      .then((nc) => {
         setNoiseCancellation(nc);
       });
     return () => {
       ncLoader.current = load.then(() => setNoiseCancellation(undefined));
     };
-  }, []);
+  }, [noiseCancellationModel]);
 
   if (!client || !call) {
     return null;

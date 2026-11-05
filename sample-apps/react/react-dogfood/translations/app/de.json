@@ -185,6 +185,8 @@
   "settings.incomingVideoQuality.short.off.label": "Video aus",
   "settings.incomingVideoQuality.title": "Qualität des eingehenden Videos",
   "settings.layout.label": "Layout",
+  "settings.noiseCancellationModel.description": "Wird beim nächsten Beitritt zu einem Anruf angewendet.",
+  "settings.noiseCancellationModel.title": "Modell für Rauschunterdrückung",
   "settings.onOff.off.label": "Aus",
   "settings.onOff.on.label": "Ein",
   "settings.recordingLibrary.label": "Aufnahmebibliothek",

@@ -185,6 +185,8 @@
   "settings.incomingVideoQuality.short.off.label": "Sin video",
   "settings.incomingVideoQuality.title": "Calidad del video entrante",
   "settings.layout.label": "Diseño",
+  "settings.noiseCancellationModel.description": "Se aplica la próxima vez que te unas a una llamada.",
+  "settings.noiseCancellationModel.title": "Modelo de cancelación de ruido",
   "settings.onOff.off.label": "Desactivado",
   "settings.onOff.on.label": "Activado",
   "settings.recordingLibrary.label": "Biblioteca de grabaciones",

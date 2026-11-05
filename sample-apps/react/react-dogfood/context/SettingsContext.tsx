@@ -7,6 +7,11 @@ import {
 } from '../hooks/useDeviceSelectionPreference';
 import { ThemeMode, useThemeMode } from '../hooks/useThemeMode';
 import { usePersistedToggle } from '../hooks/usePersistedToggle';
+import { usePersistedChoice } from '../hooks/usePersistedChoice';
+import {
+  NOISE_CANCELLATION_MODELS,
+  NoiseCancellationModel,
+} from '../helpers/noiseCancellation';
 
 export type SegmentationModel =
   | 'selfie_segmenter_landscape'
@@ -26,6 +31,8 @@ const defaultState: Settings = {
   setSpeakingDetectionEnabled: () => {},
   segmentationModel: 'selfie_segmenter_landscape',
   setSegmentationModel: () => {},
+  noiseCancellationModel: 'krisp',
+  setNoiseCancellationModel: () => {},
   themeMode: 'dark',
   setThemeMode: () => {},
 };
@@ -39,6 +46,8 @@ export type Settings = {
   setSpeakingDetectionEnabled: (value: boolean) => void;
   segmentationModel: SegmentationModel;
   setSegmentationModel: (value: SegmentationModel) => void;
+  noiseCancellationModel: NoiseCancellationModel;
+  setNoiseCancellationModel: (value: NoiseCancellationModel) => void;
   themeMode: ThemeMode;
   setThemeMode: (value: ThemeMode) => void;
 };
@@ -57,6 +66,12 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
     useDeviceSelectionPreference();
   const [speakingDetectionEnabled, setSpeakingDetectionEnabled] =
     usePersistedToggle('@pronto/speaking-detection-enabled', true);
+  const [noiseCancellationModel, setNoiseCancellationModel] =
+    usePersistedChoice(
+      '@pronto/noise-cancellation-model',
+      NOISE_CANCELLATION_MODELS,
+      'krisp',
+    );
   const { themeMode, setThemeMode } = useThemeMode();
 
   const [segmentationModel, setSegmentationModel] = useState<SegmentationModel>(
@@ -82,6 +97,8 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
     setSpeakingDetectionEnabled,
     segmentationModel,
     setSegmentationModel,
+    noiseCancellationModel,
+    setNoiseCancellationModel,
     themeMode,
     setThemeMode,
   };
