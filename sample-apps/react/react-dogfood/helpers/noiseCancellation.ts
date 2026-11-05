@@ -10,6 +10,12 @@ export const NOISE_CANCELLATION_MODELS: NoiseCancellationModel[] = [
   'fastenhancer-small',
 ];
 
+/**
+ * The FastEnhancer models are served by this app, see
+ * scripts/copy-fastenhancer-models.mjs.
+ */
+const fastEnhancerBasePath = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/fastenhancer/models`;
+
 export const createNoiseCancellation = async (
   model: NoiseCancellationModel,
 ): Promise<INoiseCancellation> => {
@@ -18,11 +24,20 @@ export const createNoiseCancellation = async (
   console.info('[dogfood] noise cancellation model:', model);
   switch (model) {
     case 'fastenhancer-tiny':
-      return new FastEnhancerNoiseCancellation({ model: 'tiny' });
+      return new FastEnhancerNoiseCancellation({
+        model: 'tiny',
+        basePath: fastEnhancerBasePath,
+      });
     case 'fastenhancer-base':
-      return new FastEnhancerNoiseCancellation({ model: 'base' });
+      return new FastEnhancerNoiseCancellation({
+        model: 'base',
+        basePath: fastEnhancerBasePath,
+      });
     case 'fastenhancer-small':
-      return new FastEnhancerNoiseCancellation({ model: 'small' });
+      return new FastEnhancerNoiseCancellation({
+        model: 'small',
+        basePath: fastEnhancerBasePath,
+      });
     case 'krisp':
     default:
       return new NoiseCancellation();
