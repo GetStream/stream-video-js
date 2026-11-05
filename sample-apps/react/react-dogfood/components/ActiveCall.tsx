@@ -160,18 +160,18 @@ export const ActiveCall = (props: ActiveCallProps) => {
   } = usePipWindow('@pronto/pip');
   useNotificationSounds();
 
+  const pipTitle = t(
+    'activeCall.pictureInPicture.popOut.title',
+    'Pop out Picture-in-Picture',
+  );
   const renderPipButton = (caption?: string) =>
     isPipSupported && (
-      <WithTooltip
-        title={t(
-          'activeCall.pictureInPicture.popOut.title',
-          'Pop out Picture-in-Picture',
-        )}
-      >
+      <WithTooltip title={pipTitle}>
         <CompositeButton
           active={!!pipWindow}
           variant={pipWindow ? 'primary' : 'secondary'}
           caption={caption}
+          aria-label={pipTitle}
           onClick={pipWindow ? closePipWindow : openPipWindow}
         >
           <Icon icon="pip" />

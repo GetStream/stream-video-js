@@ -35,9 +35,12 @@ export const useNoiseCancellationLoader = (
       return;
     }
 
+    // set by the cleanup: a newer effect run owns the instance from then on
+    let stale = false;
     const load = (ncLoader.current || Promise.resolve())
       .then(() => import('@stream-io/audio-filters-web'))
       .then(({ NoiseCancellation, FastEnhancerNoiseCancellation }) => {
+        if (stale) return;
         if (provider === 'fastenhancer') {
           // older versions of the package don't export it
           if (typeof FastEnhancerNoiseCancellation !== 'function') {
@@ -67,6 +70,7 @@ export const useNoiseCancellationLoader = (
       });
 
     return () => {
+      stale = true;
       // Keep the current instance until the next one replaces it, so that
       // NoiseCancellationProvider stays mounted and runs the old instance's
       // cleanup before initializing the new one. Unmounting it here would let

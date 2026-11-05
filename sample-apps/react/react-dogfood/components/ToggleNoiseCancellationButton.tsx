@@ -48,6 +48,7 @@ export const ToggleNoiseCancellationButton = ({
     <WithTooltip title={title}>
       <CompositeButton
         caption={caption}
+        aria-label={title}
         disabled={!isReady}
         variant={isOverloaded ? 'destructive' : undefined}
         onClick={() => setEnabled((v) => !v)}
