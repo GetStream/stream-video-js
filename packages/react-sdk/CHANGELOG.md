@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.46.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.45.1...@stream-io/video-react-sdk-1.46.0) (2026-11-05)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.12.0`
+- `@stream-io/video-client` updated to version `1.65.0`
+- `@stream-io/video-react-bindings` updated to version `1.22.2`
+
+### Features
+
+- **audio-filters-web:** experimental FastEnhancer noise cancellation provider ([#2588](https://github.com/GetStream/stream-video-js/issues/2588)) ([85eefa4](https://github.com/GetStream/stream-video-js/commit/85eefa45ebf194637f012fc55f0db83893e006b5))
+- **client:** apply staff-managed call settings for screen share, mic and noise cancellation ([#2589](https://github.com/GetStream/stream-video-js/issues/2589)) ([a913c13](https://github.com/GetStream/stream-video-js/commit/a913c13e02be0167ef0b00160394497947c626fa))
+
 ## [1.45.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.45.0...@stream-io/video-react-sdk-1.45.1) (2026-11-02)
 
 ### Dependency Updates
