@@ -10,6 +10,8 @@ import androidx.webkit.WebViewFeature
 import io.getstream.samples.androidwebview.AppState
 import io.getstream.samples.androidwebview.LogTab
 import org.json.JSONObject
+import java.net.URL
+import kotlin.concurrent.thread
 
 /**
  * Owns the [WebView] and the bridges that wire it into [AppState]. The
@@ -46,6 +48,36 @@ class WebController(
         if (!webView.canGoBack()) return false
         webView.goBack()
         return true
+    }
+
+    /**
+     * Runs [body] as the body of an async function in the page, so `await`
+     * works and a `return`ed value is logged to the Console tab as
+     * `[eval] → <value>`.
+     */
+    fun evaluate(body: String) {
+        val script = """
+            (async () => { $body })().then(
+              (r) => console.log('[eval] →', typeof r === 'string' ? r : JSON.stringify(r)),
+              (e) => console.error('[eval] failed:', String(e)),
+            );
+        """.trimIndent()
+        webView.evaluateJavascript(script, null)
+    }
+
+    /** Fetches [src] natively (no CORS) and runs it like [evaluate]. */
+    fun evaluate(src: URL) {
+        thread(name = "eval-fetch") {
+            val body = runCatching { src.readText() }.getOrElse {
+                AppState.log(LogTab.ERRORS, "eval", "fetch $src failed: $it")
+                return@thread
+            }
+            webView.post { evaluate(body) }
+        }
+    }
+
+    fun dispatchWindowEvent(type: String) {
+        webView.evaluateJavascript("window.dispatchEvent(new Event('$type'))", null)
     }
 
     /** Kills the renderer to exercise [NavigationClient.onRenderProcessGone]. */

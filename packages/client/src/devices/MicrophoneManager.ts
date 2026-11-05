@@ -4,6 +4,7 @@ import type {
   NoiseCancellationOverloadEvent,
 } from '@stream-io/audio-filters-web';
 import { Call } from '../Call';
+import { getCallExtraOpts } from '../helpers/extraOpts';
 import {
   AudioDeviceManager,
   createAudioConstraints,
@@ -27,6 +28,7 @@ import { withoutConcurrency } from '../helpers/concurrency';
 import { disposeOfMediaStream } from './utils';
 import { promiseWithResolvers } from '../helpers/promise';
 import { DevicePersistenceOptions } from './devicePersistence';
+import { of } from 'rxjs';
 
 export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
@@ -65,9 +67,11 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           this.call.state.ownCapabilities$,
           this.state.selectedDevice$,
           this.state.browserPermissionState$,
-          // only a trigger: queued handlers can run after the status changed
-          // again, so the live status is read below
+          // only triggers: queued handlers can run after the status changed
+          // again, so the live status is read below. RN also re-runs on the
+          // intent: a rolled-back enable leaves the committed status as is
           this.state.status$,
+          isReactNative() ? this.state.optimisticStatus$ : of(undefined),
         ]),
         async ([callingState, ownCapabilities, deviceId, permissionState]) => {
           try {
@@ -83,7 +87,12 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
             if (ownCapabilities.includes(OwnCapability.SEND_AUDIO)) {
               const hasPermission = await this.hasPermission(permissionState);
-              if (hasPermission && this.state.status !== 'enabled') {
+              // RN also checks the intent: a mic enabled before the join is
+              // published only after JOINED
+              const isMuted =
+                this.state.status !== 'enabled' &&
+                !(isReactNative() && this.state.optimisticStatus === 'enabled');
+              if (hasPermission && isMuted) {
                 this.setMutedRecordingPrepared(true);
                 await this.startSpeakingWhileMutedDetection(deviceId);
               } else {
@@ -243,6 +252,16 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       noiseCancellationSettings.mode === 'disabled'
     ) {
       throw new Error('Noise cancellation is disabled for this call type.');
+    }
+    const { engine } = getCallExtraOpts(settings).noise_cancellation ?? {};
+    if (
+      engine &&
+      noiseCancellation.engine &&
+      engine !== noiseCancellation.engine
+    ) {
+      throw new Error(
+        `Noise cancellation engine ${noiseCancellation.engine} doesn't match the call type engine ${engine}.`,
+      );
     }
     try {
       this.noiseCancellation = noiseCancellation;
@@ -467,6 +486,9 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   }
 
   /**
+   * Layers the capture constraints from the call settings
+   * (`extra_opts.audio.media_constraints`) under the configured ones, so
+   * they only replace the SDK defaults.
    * Turns off the browser's own noise suppression while the noise
    * cancellation filter is registered, so the audio isn't suppressed twice.
    * Echo cancellation and auto gain control stay as configured.
@@ -474,9 +496,29 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   protected override getResolvedConstraints(
     constraints: MediaTrackConstraints,
   ): MediaTrackConstraints {
-    if (!this.disableBrowserNoiseSuppression) return constraints;
-    return { ...constraints, noiseSuppression: false };
+    const resolved = { ...this.getCallSettingsConstraints(), ...constraints };
+    if (!this.disableBrowserNoiseSuppression) return resolved;
+    return { ...resolved, noiseSuppression: false };
   }
+
+  private getCallSettingsConstraints = (): MediaTrackConstraints => {
+    const mediaConstraints = getCallExtraOpts(this.call.state.settings).audio
+      ?.media_constraints;
+    const constraints: MediaTrackConstraints = {};
+    if (!mediaConstraints) return constraints;
+    const { auto_gain_control, echo_cancellation, noise_suppression } =
+      mediaConstraints;
+    if (typeof auto_gain_control === 'boolean') {
+      constraints.autoGainControl = auto_gain_control;
+    }
+    if (typeof echo_cancellation === 'boolean') {
+      constraints.echoCancellation = echo_cancellation;
+    }
+    if (typeof noise_suppression === 'boolean') {
+      constraints.noiseSuppression = noise_suppression;
+    }
+    return constraints;
+  };
 
   protected override async getStream(
     constraints: MediaTrackConstraints,
@@ -547,9 +589,18 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   };
 
   protected override doSetAudioBitrateProfile(profile: AudioBitrateProfile) {
+    const { channelCount, ...processing } = createAudioConstraints(profile);
+    const base: MediaTrackConstraints = { ...this.state.defaultConstraints };
+    delete base.autoGainControl;
+    delete base.echoCancellation;
+    delete base.noiseSuppression;
+    // music turns the audio processing off; voice profiles leave it to the
+    // call settings and the SDK defaults
+    const isMusic = profile === AudioBitrateProfile.MUSIC_HIGH_QUALITY;
     this.setDefaultConstraints({
-      ...this.state.defaultConstraints,
-      ...createAudioConstraints(profile),
+      ...base,
+      channelCount,
+      ...(isMusic ? processing : {}),
     });
 
     if (this.noiseCancellation) {
@@ -605,10 +656,12 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
         // connected to publisher
         const stream = track
           ? new MediaStream([track])
-          : await this.getStream({
-              ...this.state.defaultConstraints,
-              deviceId: { exact: deviceId },
-            });
+          : await this.getStream(
+              this.getResolvedConstraints({
+                ...this.state.defaultConstraints,
+                deviceId: { exact: deviceId },
+              }),
+            );
         this.soundDetectorCleanup = createSoundDetector(stream, (event) => {
           this.state.setSpeakingWhileMuted(event.isSoundDetected);
         });

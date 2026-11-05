@@ -1,8 +1,6 @@
 import { Call, CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useMemo } from 'react';
-import { Platform } from 'react-native';
-import { AudioDeviceModule } from '@stream-io/react-native-webrtc';
 import { filter, take } from 'rxjs/operators';
 import { getCallDisplayName } from '../../utils/internal/callingx/callingx';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
@@ -244,73 +242,6 @@ export const useCallingExpWithCallingStateEffect = () => {
     return () => {
       activateSubscription.remove();
       deactivateSubscription.remove();
-    };
-  }, [activeCall]);
-
-  // Trace the iOS ADM recording state to detect silent-mic calls: the engine's
-  // input bring-up racing the system audio-session activation could leave
-  // recording silently never started (mic track live, zero audio RTP sent).
-  // Samples shortly after JOINED and after every didActivateAudioSession, and
-  // traces healthy calls too so the failure rate is measurable. Detection only;
-  // the engine-availability gate in callingx owns prevention.
-  useEffect(() => {
-    const callingx = getCallingxLibIfAvailable();
-    if (Platform.OS !== 'ios' || !callingx?.isSetup || !activeCall) {
-      return;
-    }
-
-    const timeouts = new Set<ReturnType<typeof setTimeout>>();
-
-    const traceRecordingState = (trigger: string) => {
-      if (activeCall.state.callingState !== CallingState.JOINED) return;
-      if (activeCall.microphone.state.status !== 'enabled') return;
-
-      let state;
-      try {
-        state = {
-          trigger,
-          isRecording: AudioDeviceModule.isRecording(),
-          isEngineRunning: AudioDeviceModule.isEngineRunning(),
-          isMicrophoneMuted: AudioDeviceModule.isMicrophoneMuted(),
-        };
-      } catch (error: unknown) {
-        logger.warn('failed to read the ADM recording state', error);
-        return;
-      }
-
-      activeCall.tracer.trace('ios.audioRecording.state', state);
-      if (!state.isRecording) {
-        logger.warn('mic is enabled but ADM is not recording', state);
-      }
-    };
-
-    const scheduleCheck = (trigger: string, delayMs: number) => {
-      const timeout = setTimeout(() => {
-        timeouts.delete(timeout);
-        traceRecordingState(trigger);
-      }, delayMs);
-      timeouts.add(timeout);
-    };
-
-    const joinedSubscription = activeCall.state.callingState$
-      .pipe(
-        filter((callingState) => callingState === CallingState.JOINED),
-        take(1),
-      )
-      // delayed so the normal engine bring-up can complete on its own
-      .subscribe(() => scheduleCheck('joined', 3000));
-
-    const activationSubscription = callingx.addEventListener(
-      'didActivateAudioSession',
-      // delayed so the activation-driven engine start can run first
-      () => scheduleCheck('audioSessionActivated', 1000),
-    );
-
-    return () => {
-      joinedSubscription.unsubscribe();
-      activationSubscription.remove();
-      timeouts.forEach(clearTimeout);
-      timeouts.clear();
     };
   }, [activeCall]);
 };

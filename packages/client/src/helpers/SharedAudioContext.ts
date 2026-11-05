@@ -41,9 +41,8 @@ export class SharedAudioContext {
    * Returns the shared context, creating it on first use.
    *
    * A context created outside a user gesture starts suspended. It is resumed
-   * here and on the next user gesture while the page is visible, which
-   * succeeds once the page may play audio; a hidden page leaves it alone so
-   * it can't take the audio session from another app.
+   * here and on the next user gesture, which succeeds once the page may play
+   * audio.
    *
    * @returns a lease on the context, or `undefined` when Web Audio is
    * unavailable.
@@ -57,7 +56,7 @@ export class SharedAudioContext {
     }
     const context = this.context;
     this.users += 1;
-    if (context.state === 'suspended') this.resumeIfVisible(context);
+    if (context.state === 'suspended') this.resume(context);
 
     let released = false;
     const release = () => {
@@ -132,9 +131,14 @@ export class SharedAudioContext {
     this.listeners.forEach((listener) => listener(value, state));
   };
 
-  private resumeIfVisible = (context: AudioContext) => {
-    if (typeof document === 'undefined' || document.hidden) return;
-    context.resume().catch(() => {});
+  /**
+   * Resumes a suspended context, also in a hidden page, so a call keeps
+   * playing when e.g. the output device changes while the tab is hidden.
+   */
+  private resume = (context: AudioContext) => {
+    context.resume().catch(() => {
+      this.trace('audioContext.shared.resumeError', context.state);
+    });
   };
 
   /**
@@ -165,7 +169,7 @@ export class SharedAudioContext {
     if (this.stopWatchingGestures || typeof document === 'undefined') return;
     const onGesture = () => {
       const context = this.context;
-      if (context?.state === 'suspended') this.resumeIfVisible(context);
+      if (context?.state === 'suspended') this.resume(context);
     };
     const controller = new AbortController();
     const options = { capture: true, passive: true, signal: controller.signal };
@@ -257,7 +261,7 @@ export class SharedAudioContext {
     const context = this.context;
     if (context?.state !== 'suspended') return;
     this.watchGestures();
-    this.resumeIfVisible(context);
+    this.resume(context);
   };
 
   private create = () => {
@@ -285,7 +289,7 @@ export class SharedAudioContext {
       if (state !== 'interrupted' && state !== 'suspended') return;
       if (!this.wasRunning) return;
       this.setInterrupted(true, state);
-      if (state === 'suspended') this.resumeIfVisible(context);
+      if (state === 'suspended') this.resume(context);
     });
     if (typeof document !== 'undefined') {
       const controller = new AbortController();
@@ -293,7 +297,7 @@ export class SharedAudioContext {
         'visibilitychange',
         () => {
           if (this.wasRunning && context.state === 'suspended') {
-            this.resumeIfVisible(context);
+            this.resume(context);
           }
         },
         { signal: controller.signal },
