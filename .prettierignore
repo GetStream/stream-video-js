@@ -2,3 +2,4 @@
 **/__testfixtures__/**
 **/.expo/**
 **/.next/**
+packages/audio-filters-web/src/fastenhancer/**
