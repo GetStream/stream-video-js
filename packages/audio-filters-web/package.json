@@ -13,7 +13,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "start": "vite build --watch",
-    "build": "yarn clean && concurrently 'vite build' 'tsc'"
+    "build": "yarn clean && concurrently 'vite build' 'tsc' 'tsc -p scripts'"
   },
   "repository": {
     "type": "git",
