@@ -212,21 +212,6 @@ export interface Audience {
 
 export type AudioDefaultDevice = 'speaker' | 'earpiece';
 
-export interface AudioExtraOptionsResponse {
-  /**
-   * Whether the SDK keeps a silent audio element playing so audio playback stays unlocked (iOS only)
-   */
-  play_silence?: boolean;
-  /**
-   * Whether remote audio plays through the Web Audio API (WebKit only)
-   */
-  use_web_audio?: boolean;
-  /**
-   * Overrides for the microphone capture constraints. Unset fields mean the SDK default
-   */
-  media_constraints?: AudioMediaConstraintsResponse;
-}
-
 export interface AudioMediaConstraintsResponse {
   /**
    * The autoGainControl capture constraint
@@ -268,9 +253,17 @@ export interface AudioSettingsResponse {
   redundant_coding_enabled: boolean;
   speaker_default_on: boolean;
   /**
-   * Client audio tuning managed by Stream. Unset fields mean the SDK default
+   * Whether the SDK keeps a silent audio element playing so audio playback stays unlocked (iOS only). Managed by Stream. Unset means the SDK default
    */
-  extra_options?: AudioExtraOptionsResponse;
+  play_silence?: boolean;
+  /**
+   * Whether remote audio plays through the Web Audio API (WebKit only). Managed by Stream. Unset means the SDK default
+   */
+  use_web_audio?: boolean;
+  /**
+   * Overrides for the microphone capture constraints. Unset fields mean the SDK default
+   */
+  media_constraints?: AudioMediaConstraintsResponse;
   noise_cancellation?: NoiseCancellationSettings;
 }
 

@@ -1766,10 +1766,10 @@ describe('DynascaleManager', () => {
   });
 
   describe('audio settings from the call', () => {
-    const setExtraOptions = (extraOptions: object | undefined) => {
+    const setAudioSettings = (audio: object | undefined) => {
       setCurrentValue(call.state['settingsSubject'], {
         // @ts-expect-error partial data
-        audio: { extra_options: extraOptions },
+        audio: { ...audio },
       });
     };
     const shouldUseWebAudio = () =>
@@ -1782,25 +1782,25 @@ describe('DynascaleManager', () => {
 
     it('does not use Web Audio by default, not even on WebKit', () => {
       globalThis._isWebKit = true;
-      setExtraOptions(undefined);
+      setAudioSettings(undefined);
       expect(shouldUseWebAudio()).toBe(false);
     });
 
     it('uses Web Audio on WebKit when the call settings turn it on', () => {
       globalThis._isWebKit = true;
-      setExtraOptions({ use_web_audio: true });
+      setAudioSettings({ use_web_audio: true });
       expect(shouldUseWebAudio()).toBe(true);
     });
 
     it('does not use Web Audio on WebKit when the call settings turn it off', () => {
       globalThis._isWebKit = true;
-      setExtraOptions({ use_web_audio: false });
+      setAudioSettings({ use_web_audio: false });
       expect(shouldUseWebAudio()).toBe(false);
     });
 
     it('ignores use_web_audio outside WebKit', () => {
       globalThis._isWebKit = false;
-      setExtraOptions({ use_web_audio: true });
+      setAudioSettings({ use_web_audio: true });
       expect(shouldUseWebAudio()).toBe(false);
     });
 
@@ -1809,16 +1809,16 @@ describe('DynascaleManager', () => {
       setCurrentValue(call.state['settingsSubject'], undefined);
       expect(shouldUseWebAudio()).toBe(false);
 
-      setExtraOptions({ use_web_audio: true });
+      setAudioSettings({ use_web_audio: true });
       expect(shouldUseWebAudio()).toBe(true);
 
-      setExtraOptions({ use_web_audio: false });
+      setAudioSettings({ use_web_audio: false });
       expect(shouldUseWebAudio()).toBe(true);
     });
 
     it('lets setUseWebAudio override the call settings', () => {
       globalThis._isWebKit = true;
-      setExtraOptions({ use_web_audio: true });
+      setAudioSettings({ use_web_audio: true });
       dynascaleManager.setUseWebAudio(false);
       expect(shouldUseWebAudio()).toBe(false);
     });
@@ -1826,13 +1826,13 @@ describe('DynascaleManager', () => {
     it('plays silence unless the call settings turn it off', () => {
       const player = dynascaleManager['silentAudioPlayer'];
       const play = vi.spyOn(player, 'play').mockImplementation(() => {});
-      setExtraOptions(undefined);
+      setAudioSettings(undefined);
       dynascaleManager.keepAudioPlaybackUnlocked();
       expect(play).toHaveBeenCalledTimes(1);
       dynascaleManager.releaseAudioPlaybackUnlock();
 
       play.mockClear();
-      setExtraOptions({ play_silence: false });
+      setAudioSettings({ play_silence: false });
       dynascaleManager.keepAudioPlaybackUnlocked();
       expect(play).not.toHaveBeenCalled();
     });
@@ -1841,11 +1841,11 @@ describe('DynascaleManager', () => {
       const player = dynascaleManager['silentAudioPlayer'];
       vi.spyOn(player, 'play').mockImplementation(() => {});
       const dispose = vi.spyOn(player, 'dispose');
-      setExtraOptions(undefined);
+      setAudioSettings(undefined);
       dynascaleManager.keepAudioPlaybackUnlocked();
       expect(dispose).not.toHaveBeenCalled();
 
-      setExtraOptions({ play_silence: false });
+      setAudioSettings({ play_silence: false });
       expect(dispose).toHaveBeenCalled();
     });
   });

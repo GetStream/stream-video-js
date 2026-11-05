@@ -486,7 +486,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
   /**
    * Layers the capture constraints from the call settings
-   * (`audio.extra_options.media_constraints`) under the configured ones, so
+   * (`audio.media_constraints`) under the configured ones, so
    * they only replace the SDK defaults.
    * Turns off the browser's own noise suppression while the noise
    * cancellation filter is registered, so the audio isn't suppressed twice.
@@ -501,8 +501,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   }
 
   private getCallSettingsConstraints = (): MediaTrackConstraints => {
-    const mediaConstraints =
-      this.call.state.settings?.audio.extra_options?.media_constraints;
+    const mediaConstraints = this.call.state.settings?.audio.media_constraints;
     const constraints: MediaTrackConstraints = {};
     if (!mediaConstraints) return constraints;
     const { auto_gain_control, echo_cancellation, noise_suppression } =

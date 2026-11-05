@@ -141,7 +141,7 @@ export class DynascaleManager {
   /**
    * Sets whether to use WebAudio API for audio playback.
    * Disabled by default. Takes precedence over
-   * `audio.extra_options.use_web_audio` from the call settings.
+   * `audio.use_web_audio` from the call settings.
    * Must be set before joining the call.
    *
    * @internal
@@ -712,7 +712,7 @@ export class DynascaleManager {
 
   /**
    * Web Audio playback is off by default. The call settings
-   * (`audio.extra_options.use_web_audio`) can turn it on for WebKit only,
+   * (`audio.use_web_audio`) can turn it on for WebKit only,
    * and {@link setUseWebAudio} overrides both. The call settings value is
    * latched once known, so a mid-call change can't mix the two routings.
    */
@@ -722,8 +722,7 @@ export class DynascaleManager {
       return this.webAudioFromCallSettings;
     }
     const { settings } = this.callState;
-    const useWebAudio =
-      isWebKit() && settings?.audio.extra_options?.use_web_audio === true;
+    const useWebAudio = isWebKit() && settings?.audio.use_web_audio === true;
     if (settings) this.webAudioFromCallSettings = useWebAudio;
     return useWebAudio;
   };
@@ -731,10 +730,10 @@ export class DynascaleManager {
   /**
    * The silent audio element is on by default (iOS only, see
    * SilentAudioPlayer). The call settings can only turn it off, with
-   * `audio.extra_options.play_silence: false`.
+   * `audio.play_silence: false`.
    */
   private isSilenceAllowed = (): boolean =>
-    this.callState.settings?.audio.extra_options?.play_silence !== false;
+    this.callState.settings?.audio.play_silence !== false;
 
   private watchSilenceSetting = () => {
     const subscription = this.callState.settings$.subscribe(() => {

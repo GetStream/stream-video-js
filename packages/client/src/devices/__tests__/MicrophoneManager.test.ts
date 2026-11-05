@@ -279,9 +279,7 @@ describe('MicrophoneManager', () => {
           egress: {},
           settings: {
             audio: {
-              extra_options: {
-                media_constraints: { echo_cancellation: false },
-              },
+              media_constraints: { echo_cancellation: false },
             },
           },
         }),
@@ -630,7 +628,7 @@ describe('MicrophoneManager', () => {
           settings: {
             audio: {
               noise_cancellation: { mode: 'available' },
-              extra_options: { media_constraints: mediaConstraints },
+              media_constraints: mediaConstraints,
             },
           },
         }),
@@ -1078,9 +1076,7 @@ describe('MicrophoneManager', () => {
           settings: {
             audio: {
               hifi_audio_enabled: true,
-              extra_options: {
-                media_constraints: { auto_gain_control: false },
-              },
+              media_constraints: { auto_gain_control: false },
             },
           },
         }),
@@ -1109,7 +1105,7 @@ describe('MicrophoneManager', () => {
           settings: {
             audio: {
               hifi_audio_enabled: true,
-              extra_options: { media_constraints: { auto_gain_control: true } },
+              media_constraints: { auto_gain_control: true },
             },
           },
         }),
