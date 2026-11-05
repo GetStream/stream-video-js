@@ -1,7 +1,6 @@
 import {
   StreamVideoClient,
   StreamVideoRN,
-  type Call,
 } from '@stream-io/video-react-native-sdk';
 import { mmkvStorage } from '../contexts/createStoreContext';
 import { createToken } from '../modules/helpers/createToken';
@@ -10,20 +9,6 @@ import { registerNonRingingNotificationHandler } from './registerNonRingingNotif
 import { attachE2EEIfConfigured, disposeE2EEManager } from './e2ee';
 
 export function setPushConfig() {
-  StreamVideoRN.updateConfig({
-    foregroundService: {
-      android: {
-        taskToRun: (call: Call) =>
-          new Promise(() => {
-            console.log(
-              'jumping to foreground service with call-cid',
-              call.cid,
-            );
-          }),
-      },
-    },
-  });
-
   StreamVideoRN.setPushConfig({
     ios: {
       pushProviderName: 'rn-apn-video',

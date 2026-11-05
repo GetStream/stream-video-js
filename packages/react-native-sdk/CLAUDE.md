@@ -68,10 +68,17 @@ The client (`packages/client`) is platform-agnostic and can't `import` React Nat
 
 ## Keeping calls alive on Android
 
-`src/hooks/useAndroidKeepCallAliveEffect.ts` picks one of two mutually-exclusive mechanisms:
+A keep-alive is a foreground service (keeps the process and mic/camera access) plus a HeadlessJS task (keeps JS timers running in the background). Ownership lives in `keepAliveController` (`src/utils/keepCallAliveController.ts`); owners are `keepalive:<cid>` (`useAndroidKeepCallAliveEffect`) and `push:<cid>` (ringing push flow, always callingx). Two backends, picked once per call by `getKeepAliveBackend(isRingingCall)` and kept until the call ends:
 
-- **SDK FGS** (`StreamCallKeepAliveHeadlessService`, FGS types `microphone | camera | mediaPlayback`) — for non-callingx calls. Started on `CallingState.JOINED` (after the POST_NOTIFICATIONS check on Android 13+), shows a persistent notification, keeps a HeadlessJS task running; stopped on `LEFT`/`IDLE` or when the app foregrounds.
-- **Callingx background task** — for calls managed by callingx (ringing calls, or `enableOngoingCalls`). The hook calls `callingx.acquireBackgroundTask(owner)` / `releaseBackgroundTask(owner)`, so the existing callingx `CallService` FGS carries the keep-alive without a second notification. Acquire as soon as the call is callingx-managed and has a cid (early acquire prevents the hand-off gap with the push flow); ownership is ref-counted inside callingx so the push→keepalive handoff can't strand the task.
+- **`sdk`** — `StreamCallKeepAliveHeadlessService` (FGS types `mediaPlayback | camera | microphone`, own notification and wakelock), for calls callingx does not manage. The hook acquires on `CallingState.JOINED` while the app is in the foreground (while-in-use FGS types can't be started from the background) and retries when the app becomes active. The last release stops the service immediately.
+- **`callingx`** — callingx's `CallService` (`phoneCall`), for ringing calls or `enableOngoingCalls`. Acquired as soon as the call is callingx-managed, so the push → keep-alive hand-off has no gap; every acquire calls `callingx.startBackgroundTask()` (idempotent). The last release ends the task after a 2s debounce, and `CallService` stops itself only when no call is registered — the SDK never stops it.
+
+Mechanics:
+
+- One task, `StreamVideoKeepCallAlive`, registered once at import (`keepAliveController.registerHeadlessTask()` in `src/index.ts`). The starting service passes `backend` in the task data; native constants are in `android/.../keepalive/KeepAliveTask.kt` and must match the JS ones. The task body holds a promise until that backend's last owner releases, and returns immediately when it has no owners (e.g. callingx booting React Native from a push).
+- Both services drive the task through the shared `keepalive/HeadlessTaskManager.kt` (one task slot per service). callingx's Android module depends on the SDK's native module for it, so the two packages ship in lockstep.
+- `acquire` never throws and returns `false` on a failed start; the owner is dropped so the caller can retry.
+- `foregroundService.android.taskToRun` is deprecated and not invoked.
 
 ## Push notifications
 
