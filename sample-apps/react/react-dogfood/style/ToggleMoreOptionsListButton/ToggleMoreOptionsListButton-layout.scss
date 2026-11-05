@@ -14,6 +14,13 @@
   }
 }
 
+// secondary call controls moved off the mobile call bar
+.rd__more-menu__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--str-video__spacing-md);
+}
+
 .rd__more-menu__item {
   margin-top: var(--str-video__spacing-md);
 }

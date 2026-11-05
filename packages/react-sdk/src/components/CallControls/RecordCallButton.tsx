@@ -63,12 +63,14 @@ const ToggleEndRecordingMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
 >(function ToggleEndRecordingMenuButtonRender(props, ref) {
+  const { t } = useI18n();
   return (
     <CompositeButton
       ref={ref}
       active={true}
       variant="secondary"
       data-testid="recording-stop-button"
+      aria-label={t('End recording')}
     >
       <Icon icon="recording-off" />
     </CompositeButton>
@@ -120,6 +122,7 @@ export const RecordCallConfirmationButton = (
           caption={caption}
           variant="secondary"
           data-testid="recording-start-button"
+          aria-label={title}
           onClick={isAwaitingResponse ? undefined : handleClick}
         >
           {isAwaitingResponse ? (

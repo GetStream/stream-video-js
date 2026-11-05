@@ -24,7 +24,11 @@
   &__tab-panel {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    // Sized by flexbox, not `height: 100%`: WebKit doesn't resolve a
+    // percentage against the stretched modal content, which clipped the
+    // bottom of every tab in Safari.
+    flex: 1;
+    min-height: 0;
   }
 
   &__tabmodal-sidebar {
@@ -46,8 +50,10 @@
       var(--str-video__border-radius-lg) 0;
     padding: var(--str-video__spacing-md);
     width: 100%;
-    max-height: 65vh;
+    height: 65vh;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   &__tab-panel__header {
@@ -74,7 +80,9 @@
   }
 
   &__tab-panel__content {
-    height: 65vh;
+    // fills the panel below its header, and scrolls
+    flex: 1;
+    min-height: 0;
     overflow-y: scroll;
 
     &::-webkit-scrollbar {

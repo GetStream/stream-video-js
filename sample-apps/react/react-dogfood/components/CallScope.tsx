@@ -13,6 +13,8 @@ import { MeetingUI } from './MeetingUI';
 import { RingingCallNotification } from './Ringing/RingingCallNotification';
 import { TourProvider } from '../context/TourContext';
 import { getSegmentationModelUrl } from '../hooks';
+import { useSettings } from '../context/SettingsContext';
+import { createNoiseCancellation } from '../helpers/noiseCancellation';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -47,19 +49,24 @@ export const CallScope = ({
   useLegacyFilters: boolean;
   segmentationModel: Parameters<typeof getSegmentationModelUrl>[0];
 }) => {
+  const { settings } = useSettings();
+  // Read once: changing the setting mid-call applies on the next join.
+  const [noiseCancellationModel] = useState(
+    () => settings.noiseCancellationModel,
+  );
   const [noiseCancellation, setNoiseCancellation] =
     useState<INoiseCancellation>();
   const ncLoader = useRef<Promise<void>>(undefined);
   useEffect(() => {
     const load = (ncLoader.current || Promise.resolve())
-      .then(() => import('@stream-io/audio-filters-web'))
-      .then(({ NoiseCancellation }) => {
-        setNoiseCancellation(new NoiseCancellation());
+      .then(() => createNoiseCancellation(noiseCancellationModel))
+      .then((nc) => {
+        setNoiseCancellation(nc);
       });
     return () => {
       ncLoader.current = load.then(() => setNoiseCancellation(undefined));
     };
-  }, []);
+  }, [noiseCancellationModel]);
 
   return (
     <StreamCall call={call}>

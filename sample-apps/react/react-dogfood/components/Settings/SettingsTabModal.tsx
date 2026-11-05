@@ -13,6 +13,8 @@ import {
   DeviceSelectorAudioInput,
   DeviceSelectorAudioOutput,
   DeviceSelectorVideo,
+  DropDownSelect,
+  DropDownSelectOption,
   Icon,
   IconButton,
   MenuToggle,
@@ -32,6 +34,18 @@ import { useSettings } from '../../context/SettingsContext';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import { IncomingVideoSettingsDropdown } from '../IncomingVideoSettings';
 import { DeviceSelectionSettingsDropdown } from './DeviceSelection';
+import {
+  NOISE_CANCELLATION_MODELS,
+  NoiseCancellationModel,
+} from '../../helpers/noiseCancellation';
+
+const NOISE_CANCELLATION_MODEL_LABELS: Record<NoiseCancellationModel, string> =
+  {
+    krisp: 'Krisp',
+    'fastenhancer-tiny': 'FastEnhancer Tiny',
+    'fastenhancer-base': 'FastEnhancer Base',
+    'fastenhancer-small': 'FastEnhancer Small',
+  };
 
 type ToggleSettingsTabModalProps = {
   inMeeting: boolean;
@@ -131,7 +145,12 @@ export const SettingsTabModalMenu = (props: {
   layoutProps: LayoutSelectorProps;
 }) => {
   const {
-    settings: { language, setLanguage },
+    settings: {
+      language,
+      setLanguage,
+      noiseCancellationModel,
+      setNoiseCancellationModel,
+    },
   } = useSettings();
   const { t } = useI18n();
 
@@ -164,6 +183,34 @@ export const SettingsTabModalMenu = (props: {
         <DeviceSelectionSettingsDropdown
           title={t('Default device preference')}
         />
+        <div className="str-video__device-settings__device-kind">
+          <div className="str-video__device-settings__device-selector-title">
+            {t('Noise cancellation model')}
+          </div>
+          <DropDownSelect
+            defaultSelectedIndex={NOISE_CANCELLATION_MODELS.indexOf(
+              noiseCancellationModel,
+            )}
+            defaultSelectedLabel={
+              NOISE_CANCELLATION_MODEL_LABELS[noiseCancellationModel]
+            }
+            handleSelect={(index) => {
+              const option = NOISE_CANCELLATION_MODELS[index];
+              if (option) setNoiseCancellationModel(option);
+            }}
+          >
+            {NOISE_CANCELLATION_MODELS.map((option) => (
+              <DropDownSelectOption
+                key={option}
+                label={NOISE_CANCELLATION_MODEL_LABELS[option]}
+                selected={option === noiseCancellationModel}
+              />
+            ))}
+          </DropDownSelect>
+        </div>
+        <div className="rd__tab-panel__note">
+          {t('Applies the next time you join a call.')}
+        </div>
       </TabWrapper>
       <TabWrapper icon="video-effects" label={t('Effects')} inMeeting>
         <VideoEffectsSettings />

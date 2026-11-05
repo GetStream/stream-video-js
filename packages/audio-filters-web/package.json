@@ -13,7 +13,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "start": "vite build --watch",
-    "build": "yarn clean && concurrently 'vite build' 'tsc'"
+    "build": "yarn clean && concurrently 'vite build' 'tsc' 'tsc -p scripts'"
   },
   "repository": {
     "type": "git",
@@ -37,6 +37,7 @@
     "@stream-io/typescript-config": "workspace:^",
     "@types/node": "^25.9.5",
     "concurrently": "^9.2.4",
+    "magic-string": "^0.30.21",
     "rimraf": "^6.1.3",
     "typescript": "^6.0.3",
     "vite": "^8.2.0"
