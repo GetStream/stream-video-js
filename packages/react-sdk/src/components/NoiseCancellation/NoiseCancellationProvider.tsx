@@ -105,12 +105,8 @@ export const NoiseCancellationProvider = (
     enabled_in_safari: enabledInSafari,
     model_path: modelPath,
   } = getCallExtraOpts(settings).noise_cancellation ?? {};
-  const engineMatches =
-    !engine || !noiseCancellation.engine || engine === noiseCancellation.engine;
   const noiseCancellationAllowed = !!(
-    noiseCancellationSettings &&
-    noiseCancellationSettings.mode !== 'disabled' &&
-    engineMatches
+    noiseCancellationSettings && noiseCancellationSettings.mode !== 'disabled'
   );
 
   const hasCapability = useHasPermissions(
@@ -119,9 +115,19 @@ export const NoiseCancellationProvider = (
   const [isSupportedByBrowser, setIsSupportedByBrowser] = useState<boolean>();
   useEffect(() => {
     noiseCancellation.configure?.({
+      engine,
       withSafariSupport: enabledInSafari,
       modelPath,
     });
+    // checked after configure: a router adopts the configured engine
+    const engineMatches =
+      !engine ||
+      !noiseCancellation.engine ||
+      engine === noiseCancellation.engine;
+    if (!engineMatches) {
+      setIsSupportedByBrowser(false);
+      return;
+    }
     const result = noiseCancellation.isSupported();
     if (typeof result === 'boolean') {
       setIsSupportedByBrowser(result);
@@ -135,7 +141,7 @@ export const NoiseCancellationProvider = (
           ),
         );
     }
-  }, [noiseCancellation, enabledInSafari, modelPath]);
+  }, [noiseCancellation, engine, enabledInSafari, modelPath]);
 
   const isSupported =
     isSupportedByBrowser && hasCapability && noiseCancellationAllowed;

@@ -6,6 +6,11 @@ import type { Tracer } from './tracer';
  */
 export type NoiseCancellationConfiguration = {
   /**
+   * The engine to run, e.g. `krisp` or `stream`.
+   * Only used by the {@link NoiseCancellation} router.
+   */
+  engine?: string;
+  /**
    * Whether Safari and other WebKit browsers are reported as supported.
    */
   withSafariSupport?: boolean;

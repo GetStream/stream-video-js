@@ -43,6 +43,7 @@ import {
 
 const NOISE_CANCELLATION_MODEL_LABELS: Record<NoiseCancellationModel, string> =
   {
+    auto: 'Call settings (auto)',
     krisp: 'Krisp',
     'fastenhancer-tiny': 'FastEnhancer Tiny',
     'fastenhancer-base': 'FastEnhancer Base',

@@ -1,14 +1,16 @@
 # @stream-io/audio-filters-web
 
 Noise cancellation for Stream Video on the web. The package ships two
-providers that share the same interface, so they can be swapped one for the other:
+engines that share the same interface, plus a router that picks one of them:
 
-- `NoiseCancellation`: based on the Krisp.AI SDK.
+- `NoiseCancellation`: runs the engine selected in your call type settings,
+  and Krisp when none is selected. Use this one unless you need a specific engine.
+- `KrispNoiseCancellation`: based on the Krisp.AI SDK.
 - `FastEnhancerNoiseCancellation`: based on the FastEnhancer model
   (**experimental**, see [below](#fastenhancer-experimental)).
 
-Both load their runtime lazily, on first use, so importing the package doesn't
-add the SDK or the models to your initial bundle.
+All of them load their runtime lazily, on first use, so importing the package
+doesn't add the SDKs or the models to your initial bundle.
 
 ## Usage with React
 
@@ -33,8 +35,16 @@ export const App = ({ children }: { children: React.ReactNode }) => {
 
 ```ts
 import { NoiseCancellation } from '@stream-io/audio-filters-web';
+import { getCallExtraOpts } from '@stream-io/video-client';
 
 const noiseCancellation = new NoiseCancellation();
+// apply the call type settings before `isSupported()` and `init()`
+const options = getCallExtraOpts(call.state.settings).noise_cancellation;
+noiseCancellation.configure({
+  engine: options?.engine,
+  withSafariSupport: options?.enabled_in_safari,
+  modelPath: options?.model_path,
+});
 if (await noiseCancellation.isSupported()) {
   await noiseCancellation.init();
   await call.microphone.enableNoiseCancellation(noiseCancellation);
@@ -45,14 +55,18 @@ await call.microphone.disableNoiseCancellation();
 await noiseCancellation.dispose();
 ```
 
-Unlike `NoiseCancellationProvider`, the client doesn't call `init()` for you.
+Unlike `NoiseCancellationProvider`, the client doesn't call `configure()` or
+`init()` for you.
 `enableNoiseCancellation` throws if the user lacks the noise cancellation
 capability or the call type has noise cancellation disabled in its settings.
 
-`NoiseCancellation.isSupported()` always returns a `Promise<boolean>`, so `await` it.
-(`FastEnhancerNoiseCancellation.isSupported()` is synchronous; awaiting either is safe.)
-Safari and other WebKit browsers are reported as unsupported by `NoiseCancellation`
-unless you pass `withSafariSupport: true`.
+`isSupported()` returns a `Promise<boolean>` for Krisp and a `boolean` for
+FastEnhancer, so `await` it. Safari and other WebKit browsers are reported as
+unsupported by Krisp unless you pass `withSafariSupport: true`.
+
+Options passed to the `NoiseCancellation` constructor configure Krisp; FastEnhancer
+options go under `fastEnhancer`. Options you pass explicitly win over the call
+type settings.
 
 ## FastEnhancer (experimental)
 

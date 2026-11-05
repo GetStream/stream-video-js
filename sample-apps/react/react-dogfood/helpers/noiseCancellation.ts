@@ -1,9 +1,14 @@
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 
 export type NoiseCancellationModel =
-  'krisp' | 'fastenhancer-tiny' | 'fastenhancer-base' | 'fastenhancer-small';
+  | 'auto'
+  | 'krisp'
+  | 'fastenhancer-tiny'
+  | 'fastenhancer-base'
+  | 'fastenhancer-small';
 
 export const NOISE_CANCELLATION_MODELS: NoiseCancellationModel[] = [
+  'auto',
   'krisp',
   'fastenhancer-tiny',
   'fastenhancer-base',
@@ -19,8 +24,11 @@ const fastEnhancerBasePath = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/fastenh
 export const createNoiseCancellation = async (
   model: NoiseCancellationModel,
 ): Promise<INoiseCancellation> => {
-  const { NoiseCancellation, FastEnhancerNoiseCancellation } =
-    await import('@stream-io/audio-filters-web');
+  const {
+    NoiseCancellation,
+    KrispNoiseCancellation,
+    FastEnhancerNoiseCancellation,
+  } = await import('@stream-io/audio-filters-web');
   console.info('[dogfood] noise cancellation model:', model);
   switch (model) {
     case 'fastenhancer-tiny':
@@ -39,9 +47,14 @@ export const createNoiseCancellation = async (
         basePath: fastEnhancerBasePath,
       });
     case 'krisp':
-    default:
       // Krisp reports Safari as unsupported unless opted in;
       // its SDK still requires Safari 17.4+.
-      return new NoiseCancellation({ withSafariSupport: true });
+      return new KrispNoiseCancellation({ withSafariSupport: true });
+    case 'auto':
+    default:
+      // the call settings (extra_opts.noise_cancellation) pick the engine
+      return new NoiseCancellation({
+        fastEnhancer: { basePath: fastEnhancerBasePath },
+      });
   }
 };
