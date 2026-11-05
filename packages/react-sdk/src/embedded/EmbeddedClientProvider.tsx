@@ -13,9 +13,9 @@ import { ConfigurationProvider } from './context';
 import { useEmbeddedClient } from './hooks';
 import type { LogLevel, TokenProvider } from '@stream-io/video-client';
 import type {
+  EmbeddedClientBaseProps,
   EmbeddedUser,
   LayoutOption,
-  NoiseCancellationProviderName,
 } from './types';
 import { LoadingIndicator } from '../components';
 
@@ -27,11 +27,7 @@ interface EmbeddedClientContentProps {
   token?: string;
   tokenProvider?: TokenProvider;
   logLevel?: LogLevel;
-  /**
-   * Which noise cancellation provider to load. `fastenhancer` is experimental.
-   * @default 'krisp'
-   */
-  noiseCancellationProvider?: NoiseCancellationProviderName;
+  noiseCancellationProvider?: EmbeddedClientBaseProps['noiseCancellationProvider'];
   onError?: (error: any) => void;
   layout?: LayoutOption;
   children: ReactNode;

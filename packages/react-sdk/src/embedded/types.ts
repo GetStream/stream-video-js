@@ -62,6 +62,11 @@ export interface EmbeddedClientBaseProps {
   token?: string;
   tokenProvider?: TokenProvider;
   logLevel?: LogLevel;
+  /**
+   * Which noise cancellation provider to load. `fastenhancer` is experimental.
+   * @default 'krisp'
+   */
+  noiseCancellationProvider?: NoiseCancellationProviderName;
   layout?: LayoutOption;
   theme?: StreamThemeMode;
   style?: Record<string, string>;
