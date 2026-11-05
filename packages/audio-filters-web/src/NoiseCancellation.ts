@@ -18,14 +18,27 @@ export type {
   NoiseCancellationOverloadEvent,
 } from './BaseNoiseCancellation';
 
-let krispPromise: Promise<typeof import('./krispai').default> | undefined;
+type KrispSDKClass = typeof import('./krispai').default;
+
+let krispPromise: Promise<KrispSDKClass> | undefined;
 
 /**
  * Loads the Krisp SDK on first use, so that its ~5 MB chunk isn't fetched
  * until noise cancellation is actually needed.
+ * A failed load isn't cached, so a later call can retry.
  */
 const loadKrispSDK = () =>
-  (krispPromise ??= import('./krispai').then((m) => m.default ?? m));
+  (krispPromise ??= import('./krispai')
+    .then((m) => {
+      // Depending on the loader (bundler vs. native Node `import()` of CJS),
+      // the class is `m.default`, or nested one level deeper.
+      const d = (m.default ?? m) as unknown as { default?: KrispSDKClass };
+      return (d.default ?? d) as KrispSDKClass;
+    })
+    .catch((err) => {
+      krispPromise = undefined;
+      throw err;
+    }));
 
 /**
  * Krisp reports a single stall as a burst of overflow events.
@@ -114,10 +127,18 @@ export class NoiseCancellation extends BaseNoiseCancellation {
    * Safari and other WebKit-based browsers are reported as unsupported
    * unless `withSafariSupport` is set.
    */
-  isSupported = async () =>
-    isWebKit() && !this.withSafariSupport
-      ? false
-      : (await loadKrispSDK()).isSupported() && (await simd());
+  isSupported = async () => {
+    if (isWebKit() && !this.withSafariSupport) return false;
+    try {
+      return (await loadKrispSDK()).isSupported() && (await simd());
+    } catch (err) {
+      console.warn(
+        'Failed to load the Krisp SDK, reporting it as unsupported',
+        err,
+      );
+      return false;
+    }
+  };
 
   /**
    * Initializes the KrispAI SDK.

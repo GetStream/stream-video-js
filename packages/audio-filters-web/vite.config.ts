@@ -10,6 +10,11 @@ export default defineConfig({
     'process.env.PKG_VERSION': JSON.stringify(version),
   },
   plugins: [
+    // Rolldown ignores `dynamicImportInCjs` for internal chunks and emits
+    // `Promise.resolve().then(() => require("./x.js"))`, which makes consumers'
+    // bundlers inline the ~5 MB lazy chunk. Rewrite it to a real `import()`.
+    // The regex matches double-quoted specifiers only; `generateBundle` fails
+    // the build if any dynamic import was left as `require()`.
     {
       name: 'cjs-real-dynamic-import',
       renderChunk(code) {
@@ -17,6 +22,22 @@ export default defineConfig({
           /Promise\.resolve\(\)\.then\(\(\) => require\(("[^"]+")\)\)/g,
           'import($1)',
         );
+      },
+      generateBundle(_, bundle) {
+        for (const chunk of Object.values(bundle)) {
+          if (chunk.type !== 'chunk') continue;
+          for (const file of chunk.dynamicImports) {
+            const specifier = `"./${file.replace(/^cjs\//, '')}"`;
+            if (
+              !chunk.code.includes(`import(${specifier})`) ||
+              chunk.code.includes(`require(${specifier})`)
+            ) {
+              this.error(
+                `${chunk.fileName}: dynamic import of ${file} was not emitted as a real import(); the cjs-real-dynamic-import rewrite no longer matches`,
+              );
+            }
+          }
+        }
       },
     },
   ],
