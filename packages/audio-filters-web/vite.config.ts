@@ -1,5 +1,6 @@
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
+import MagicString from 'magic-string';
 import { dependencies, name, version } from './package.json';
 
 const external = [...Object.keys(dependencies ?? {})];
@@ -18,10 +19,16 @@ export default defineConfig({
     {
       name: 'cjs-real-dynamic-import',
       renderChunk(code) {
-        return code.replace(
-          /Promise\.resolve\(\)\.then\(\(\) => require\(("[^"]+")\)\)/g,
-          'import($1)',
-        );
+        const s = new MagicString(code);
+        const pattern =
+          /Promise\.resolve\(\)\.then\(\(\) => require\(("[^"]+")\)\)/g;
+        for (const match of code.matchAll(pattern)) {
+          const start = match.index;
+          s.overwrite(start, start + match[0].length, `import(${match[1]})`);
+        }
+        if (!s.hasChanged()) return null;
+        // keep the chunk's sourcemap intact
+        return { code: s.toString(), map: s.generateMap({ hires: true }) };
       },
       generateBundle(_, bundle) {
         for (const chunk of Object.values(bundle)) {
