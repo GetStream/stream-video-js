@@ -24,6 +24,7 @@ import {
   SendStatsRequest,
   SetPublisherRequest,
   StartNoiseCancellationRequest,
+  StopNoiseCancellationRequest,
   TrackMuteState,
   TrackSubscriptionDetails,
 } from './gen/video/sfu/signal_rpc/signal';
@@ -548,7 +549,7 @@ export class StreamSfuClient {
   };
 
   startNoiseCancellation = async (
-    noiseCancellation: Pick<StartNoiseCancellationRequest, 'engine' | 'model'>,
+    noiseCancellation: Omit<StartNoiseCancellationRequest, 'sessionId'>,
   ) => {
     await this.joinTask;
     return retryable(
@@ -562,7 +563,7 @@ export class StreamSfuClient {
   };
 
   stopNoiseCancellation = async (
-    noiseCancellation: Pick<StartNoiseCancellationRequest, 'engine' | 'model'>,
+    noiseCancellation: Omit<StopNoiseCancellationRequest, 'sessionId'>,
   ) => {
     await this.joinTask;
     return retryable(

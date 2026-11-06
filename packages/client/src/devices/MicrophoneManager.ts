@@ -42,9 +42,9 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   private soundDetectorDeviceId?: string;
   private noAudioDetectorCleanup?: () => Promise<void>;
   private noiseCancellation: INoiseCancellation | undefined;
-  private startedNoiseCancellation?: Pick<
+  private startedNoiseCancellation?: Omit<
     StartNoiseCancellationRequest,
-    'engine' | 'model'
+    'sessionId'
   >;
   private noiseCancellationUnsubscribers: Array<() => void> = [];
   private noiseCancellationRegistration?: Promise<void>;

@@ -87,7 +87,10 @@ import {
 } from './types';
 import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
 import { ReconnectDetails } from './gen/video/sfu/event/events';
-import type { StartNoiseCancellationRequest } from './gen/video/sfu/signal_rpc/signal';
+import type {
+  StartNoiseCancellationRequest,
+  StopNoiseCancellationRequest,
+} from './gen/video/sfu/signal_rpc/signal';
 import {
   ClientCapability,
   ClientDetails,
@@ -2822,7 +2825,7 @@ export class Call {
    * @param noiseCancellation the engine and model that run.
    */
   notifyNoiseCancellationStarting = async (
-    noiseCancellation: Pick<StartNoiseCancellationRequest, 'engine' | 'model'>,
+    noiseCancellation: Omit<StartNoiseCancellationRequest, 'sessionId'>,
   ) => {
     return this.sfuClient
       ?.startNoiseCancellation(noiseCancellation)
@@ -2838,7 +2841,7 @@ export class Call {
    * @param noiseCancellation the engine and model that ran.
    */
   notifyNoiseCancellationStopped = async (
-    noiseCancellation: Pick<StartNoiseCancellationRequest, 'engine' | 'model'>,
+    noiseCancellation: Omit<StopNoiseCancellationRequest, 'sessionId'>,
   ) => {
     return this.sfuClient
       ?.stopNoiseCancellation(noiseCancellation)
