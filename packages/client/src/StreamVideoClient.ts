@@ -165,6 +165,7 @@ export class StreamVideoClient {
       this.on('call.ring', (event) => this.initCallFromEvent(event)),
       this.on('connection.changed', (event) => {
         if (!event.online) return;
+        this.clientEventReporter.flushHeldEvents();
 
         const callsToReWatch = this.state.calls
           .filter((call) => call.watching)

@@ -1,4 +1,5 @@
 import type { ScopedLogger } from '../logger';
+import { addPageResumeListeners } from '../coordinator/connection/utils';
 import { isReactNative } from './platforms';
 
 /**
@@ -67,24 +68,15 @@ export const scheduleOfflineRechecks = ({
       });
   };
 
-  const controller = new AbortController();
-  if (typeof document !== 'undefined' && !isReactNative()) {
-    const { signal } = controller;
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') run();
-    };
-    document.addEventListener('visibilitychange', onVisibilityChange, {
-      signal,
-    });
-    document.addEventListener('resume', run, { signal });
-    window.addEventListener('pageshow', run, { signal });
-  }
+  const removePageResumeListeners = isReactNative()
+    ? () => {}
+    : addPageResumeListeners(run);
 
   scheduleNext();
 
   return () => {
     stopped = true;
     clearTimeout(timeoutId);
-    controller.abort();
+    removePageResumeListeners();
   };
 };
