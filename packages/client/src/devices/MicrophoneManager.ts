@@ -274,6 +274,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     }
     try {
       this.noiseCancellation = noiseCancellation;
+      this.startedNoiseCancellation = undefined;
 
       // listen for change events and notify the SFU
       this.noiseCancellationUnsubscribers.push(
@@ -379,13 +380,12 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   };
 
   /**
-   * Reports the engine and model that were started, so the stop matches the
-   * start even after the engine was disposed or reconfigured.
+   * Reports the engine and model that were last started, so every stop
+   * matches the start even after the engine was disposed or reconfigured.
    */
   private notifyNoiseCancellationStopped = () => {
     const noiseCancellation =
       this.startedNoiseCancellation ?? this.describeNoiseCancellation();
-    this.startedNoiseCancellation = undefined;
     return this.call.notifyNoiseCancellationStopped(noiseCancellation);
   };
 

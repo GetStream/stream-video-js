@@ -548,6 +548,11 @@ export class StreamSfuClient {
     return this.rpc.sendStats({ ...stats, sessionId: this.sessionId });
   };
 
+  /**
+   * Notifies the SFU that noise cancellation started.
+   *
+   * @internal use `call.microphone.enableNoiseCancellation()` instead.
+   */
   startNoiseCancellation = async (
     noiseCancellation: Omit<StartNoiseCancellationRequest, 'sessionId'>,
   ) => {
@@ -562,6 +567,11 @@ export class StreamSfuClient {
     );
   };
 
+  /**
+   * Notifies the SFU that noise cancellation stopped.
+   *
+   * @internal use `call.microphone.disableNoiseCancellation()` instead.
+   */
   stopNoiseCancellation = async (
     noiseCancellation: Omit<StopNoiseCancellationRequest, 'sessionId'>,
   ) => {
