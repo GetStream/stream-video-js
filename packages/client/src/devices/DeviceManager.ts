@@ -106,6 +106,8 @@ export abstract class DeviceManager<
   protected devicePersistence: Required<DevicePersistenceOptions>;
   protected areSubscriptionsSetUp = false;
   private isTrackStoppedDueToTrackEnd = false;
+  // the stream was enabled while the call wasn't JOINED, so it isn't published
+  private publishDeferred = false;
   private filters: MediaStreamFilterEntry[] = [];
   private virtualDevicesSubject = new BehaviorSubject<VirtualDeviceEntry<C>[]>(
     [],
@@ -510,12 +512,36 @@ export abstract class DeviceManager<
     stream: MediaStream,
     options?: TrackPublishOptions,
   ): Promise<void> {
+    this.publishDeferred = false;
     return this.call.publish(stream, this.trackType, options);
   }
 
   protected stopPublishStream(): Promise<void> {
-    return this.call.stopPublish(this.trackType);
+    return this.call.stopPublish(...this.getPublishedTrackTypes());
   }
+
+  /**
+   * The track types this device publishes its stream as.
+   */
+  protected getPublishedTrackTypes = (): TrackType[] => [this.trackType];
+
+  /**
+   * Publishes the stream enabled while the call wasn't JOINED, after a
+   * reconnect that kept the publisher as it was before.
+   *
+   * @internal
+   */
+  syncPublishedStream = async () => {
+    await this.statusChangeSettled();
+    if (this.call.state.callingState !== CallingState.JOINED) return;
+    if (!this.publishDeferred) return;
+    this.publishDeferred = false;
+    const { mediaStream } = this.state;
+    if (!this.enabled || !mediaStream) return;
+    if (this.call.publisher?.isPublishing(this.trackType)) return;
+    if (!this.call.permissionsContext.canPublish(this.trackType)) return;
+    await this.publishStream(mediaStream);
+  };
 
   protected getTracks(): MediaStreamTrack[] {
     return this.state.mediaStream?.getTracks() ?? [];
@@ -525,9 +551,8 @@ export abstract class DeviceManager<
     const mediaStream = this.state.mediaStream;
     if (!mediaStream) return;
     this.logger.debug(`${stopTracks ? 'Stopping' : 'Disabling'} stream`);
-    if (this.call.state.callingState === CallingState.JOINED) {
-      await this.stopPublishStream();
-    }
+    this.publishDeferred = false;
+    await this.stopPublishStream();
     this.muteLocalStream(stopTracks);
     const allEnded = this.getTracks().every((t) => t.readyState === 'ended');
     if (allEnded) {
@@ -699,6 +724,8 @@ export abstract class DeviceManager<
     }
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.publishStream(stream);
+    } else {
+      this.publishDeferred = true;
     }
     if (this.state.mediaStream !== stream) {
       const rootStream = await rootStreamPromise;
