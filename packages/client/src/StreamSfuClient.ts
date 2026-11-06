@@ -23,6 +23,7 @@ import {
   SendAnswerRequest,
   SendStatsRequest,
   SetPublisherRequest,
+  StartNoiseCancellationRequest,
   TrackMuteState,
   TrackSubscriptionDetails,
 } from './gen/video/sfu/signal_rpc/signal';
@@ -546,24 +547,28 @@ export class StreamSfuClient {
     return this.rpc.sendStats({ ...stats, sessionId: this.sessionId });
   };
 
-  startNoiseCancellation = async () => {
+  startNoiseCancellation = async (
+    noiseCancellation: Pick<StartNoiseCancellationRequest, 'engine' | 'model'>,
+  ) => {
     await this.joinTask;
     return retryable(
       (invocationMeta) =>
         this.rpc.startNoiseCancellation(
-          { sessionId: this.sessionId },
+          { ...noiseCancellation, sessionId: this.sessionId },
           { invocationMeta },
         ),
       this.abortController.signal,
     );
   };
 
-  stopNoiseCancellation = async () => {
+  stopNoiseCancellation = async (
+    noiseCancellation: Pick<StartNoiseCancellationRequest, 'engine' | 'model'>,
+  ) => {
     await this.joinTask;
     return retryable(
       (invocationMeta) =>
         this.rpc.stopNoiseCancellation(
-          { sessionId: this.sessionId },
+          { ...noiseCancellation, sessionId: this.sessionId },
           { invocationMeta },
         ),
       this.abortController.signal,

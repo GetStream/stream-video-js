@@ -9,6 +9,7 @@ import { sleep } from '../../coordinator/connection/utils';
 import { OwnCapability } from '../../gen/coordinator';
 import {
   AudioBitrateProfile,
+  NoiseCancellationEngine,
   TrackType,
 } from '../../gen/video/sfu/models/models';
 import { CallingState, ClientState } from '../../store';
@@ -711,6 +712,37 @@ describe('MicrophoneManager', () => {
       await manager.enableNoiseCancellation(noiseCancellation);
       await manager.disableNoiseCancellation();
       expect(call.notifyNoiseCancellationStopped).toBeCalled();
+    });
+
+    it('reports the engine and model to the SFU', async () => {
+      const noiseCancellation = new NoiseCancellationStub();
+      noiseCancellation.engine = 'stream';
+      noiseCancellation.model = 'tiny';
+      await manager.enableNoiseCancellation(noiseCancellation);
+
+      await noiseCancellation.enable();
+      expect(call.notifyNoiseCancellationStarting).toHaveBeenCalledWith({
+        engine: NoiseCancellationEngine.STREAM,
+        model: 'tiny',
+      });
+
+      noiseCancellation.model = undefined;
+      await noiseCancellation.disable();
+      expect(call.notifyNoiseCancellationStopped).toHaveBeenCalledWith({
+        engine: NoiseCancellationEngine.STREAM,
+        model: 'tiny',
+      });
+    });
+
+    it('reports Krisp with no model when the engine is unknown', async () => {
+      const noiseCancellation = new NoiseCancellationStub();
+      await manager.enableNoiseCancellation(noiseCancellation);
+
+      await noiseCancellation.enable();
+      expect(call.notifyNoiseCancellationStarting).toHaveBeenCalledWith({
+        engine: NoiseCancellationEngine.KRISP_UNSPECIFIED,
+        model: '',
+      });
     });
 
     it('should turn off browser noise suppression while registered', async () => {
