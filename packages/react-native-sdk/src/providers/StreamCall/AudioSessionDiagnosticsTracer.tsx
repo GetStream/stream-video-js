@@ -133,11 +133,24 @@ export const AudioSessionDiagnosticsTracer = () => {
     // arriving meanwhile is kept (the latest one) and checked once afterwards
     let inFlight: Promise<void> | undefined;
     let pendingTrigger: string | undefined;
-    // iOS owns the audio during an interruption (phone call, Siri, alarm) and
-    // while it refuses to re-activate the session afterwards: no checks until
-    // the interruption ends, the session is re-activated or the app is active
-    // again (WebRTC treats the latter as an interruption end too)
+    // iOS owns the audio during an interruption (phone call, Siri, alarm): no
+    // checks until the interruption ends or the app is active again (WebRTC
+    // treats the latter as an interruption end too)
     let interrupted = false;
+    // iOS refused to activate the session (another app holds non-mixable
+    // audio, e.g. a FaceTime or phone call): no checks until a signal says the
+    // holder is gone. A route change is the only signal when the app stays in
+    // the foreground (iPad FaceTime window, the other party hanging up): no
+    // interruption is delivered to a session that was never active.
+    let sessionRefused = false;
+    // release signals are counted: one arriving while a re-activation is
+    // pending must not be undone by that attempt's refusal (the check it
+    // scheduled would skip and no further signal may come)
+    let releaseSignals = 0;
+    const onReleaseSignal = () => {
+      sessionRefused = false;
+      releaseSignals += 1;
+    };
 
     const runCheck = (trigger: string) => {
       if (inFlight) {
@@ -159,7 +172,7 @@ export const AudioSessionDiagnosticsTracer = () => {
 
     const checkEngine = async (trigger: string) => {
       if (call.state.callingState !== CallingState.JOINED) return;
-      if (interrupted) {
+      if (interrupted || sessionRefused) {
         logger.debug(
           `check '${trigger}' skipped, the audio is interrupted or the session is inactive`,
         );
@@ -226,6 +239,7 @@ export const AudioSessionDiagnosticsTracer = () => {
           return;
         }
         lastActivationAt = Date.now();
+        const signalsBefore = releaseSignals;
         const reason = await reactivateSession();
         if (disposed) return;
         if (reason) {
@@ -239,7 +253,7 @@ export const AudioSessionDiagnosticsTracer = () => {
           }
           logger.debug(`recovery '${trigger}' postponed, ${reason}`);
           if (reason === 'sessionRefused') {
-            interrupted = true;
+            if (releaseSignals === signalsBefore) sessionRefused = true;
             return;
           }
           // bounded re-check (no rejoin against an inactive session); later
@@ -309,6 +323,7 @@ export const AudioSessionDiagnosticsTracer = () => {
       // intent would unmute a muted ADM (the mic toggle checks on its own)
       if (
         interrupted ||
+        sessionRefused ||
         call.state.callingState !== CallingState.JOINED ||
         (call.microphone.state.status === 'enabled') !== wantsRecording
       ) {
@@ -353,6 +368,7 @@ export const AudioSessionDiagnosticsTracer = () => {
       const canRejoin =
         !rejoined &&
         !interrupted &&
+        !sessionRefused &&
         call.state.callingState === CallingState.JOINED &&
         AppState.currentState === 'active' &&
         call.microphone.state.status === 'enabled';
@@ -459,14 +475,19 @@ export const AudioSessionDiagnosticsTracer = () => {
         interrupted = true;
       } else if (event.phase === 'ended') {
         interrupted = false;
+        onReleaseSignal();
         scheduleCheck('interruptionEnded', 1000);
       }
     };
     const removeInterruptionListener =
       callManager.ios.addAudioInterruptionListener(onInterruption);
 
-    const removeRouteListener = callManager.audioDevices.addChangeListener(() =>
-      scheduleCheck('audioRouteChanged', 1000),
+    const removeRouteListener = callManager.audioDevices.addChangeListener(
+      () => {
+        // the holder of a refused session released the hardware
+        onReleaseSignal();
+        scheduleCheck('audioRouteChanged', 1000);
+      },
     );
 
     const appStateSubscription = AppState.addEventListener(
@@ -474,6 +495,7 @@ export const AudioSessionDiagnosticsTracer = () => {
       (appState) => {
         if (appState !== 'active') return;
         interrupted = false;
+        onReleaseSignal();
         scheduleCheck('appActive', 1000);
       },
     );
@@ -486,6 +508,7 @@ export const AudioSessionDiagnosticsTracer = () => {
             // delayed so the activation-driven engine start can run first
             () => {
               interrupted = false;
+              onReleaseSignal();
               scheduleCheck('audioSessionActivated', 1000);
             },
           ),
