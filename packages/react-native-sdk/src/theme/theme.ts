@@ -786,6 +786,10 @@ export const resolveTheme = (
         left: '20%',
         bottom: -0.5 * theme.foundations.stroke.w200,
       },
+      textContainer: {
+        backgroundColor: theme.semantics.badgeBgDefault,
+        borderRadius: theme.foundations.radius.radiusFull,
+      },
       text: {
         base: {
           fontWeight: theme.primitives.typographyFontWeightBold,
