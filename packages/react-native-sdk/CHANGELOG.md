@@ -2,6 +2,21 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.47.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.47.0...@stream-io/video-react-native-sdk-1.47.1) (2026-11-06)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.13.1`
+- `@stream-io/react-native-callingx` updated to version `0.11.6`
+- `@stream-io/video-filters-react-native` updated to version `0.16.3`
+- `@stream-io/video-client` updated to version `1.66.0`
+- `@stream-io/video-react-bindings` updated to version `1.22.3`
+
+### Bug Fixes
+
+- **react-native:** re-activate a refused iOS audio session on route change ([#2595](https://github.com/GetStream/stream-video-js/issues/2595)) ([da61d12](https://github.com/GetStream/stream-video-js/commit/da61d12f1c8dcc7e5387eeee64d2f12e8dc49cb1)), closes [#2578](https://github.com/GetStream/stream-video-js/issues/2578) [#2578](https://github.com/GetStream/stream-video-js/issues/2578) [#2593](https://github.com/GetStream/stream-video-js/issues/2593)
+- **react-native:** recover the iOS mic when the audio engine fails to start ([#2529](https://github.com/GetStream/stream-video-js/issues/2529)) ([3908c03](https://github.com/GetStream/stream-video-js/commit/3908c03b9f6d7907d237a328e2bffef03a557c53)), closes [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#75](https://github.com/GetStream/stream-video-js/issues/75) [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#2282](https://github.com/GetStream/stream-video-js/issues/2282)
+
 ## [1.47.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.46.6...@stream-io/video-react-native-sdk-1.47.0) (2026-11-05)
 
 ### Dependency Updates
