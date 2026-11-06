@@ -985,6 +985,41 @@ describe('AudioSessionDiagnosticsTracer', () => {
     ]);
   });
 
+  it('keeps a release signal that arrives while a re-activation is pending', async () => {
+    await renderJoined();
+    adm.getEngineState.mockResolvedValue({
+      ...deadEngine,
+      sessionActive: false,
+    });
+    let rejectPending: (error: unknown) => void = () => {};
+    iosCallManager.reactivateAudioSession.mockResolvedValue(true);
+    iosCallManager.reactivateAudioSession.mockImplementationOnce(
+      () =>
+        new Promise<boolean>((_, reject) => {
+          rejectPending = reject;
+        }),
+    );
+    adm.recoverEngineIfNeeded.mockResolvedValue({
+      result: 'recovered',
+      before: deadEngine,
+      after: healthyEngine,
+      codes: { stopRecording: 0, startRecording: 0 },
+    });
+
+    appStateListener('active');
+    await advance(1000);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(1);
+
+    // the holder released the hardware while the attempt was pending; the
+    // attempt's refusal must not latch over that signal
+    routeListener();
+    rejectPending(Object.assign(new Error('!int'), { code: '561017449' }));
+    // the route-change check (1 s) waits out the attempt spacing (3 s)
+    await advance(3000);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(2);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(1);
+  });
+
   it('recovers after re-activating the inactive session itself', async () => {
     const call = await renderJoined();
     adm.getEngineState.mockResolvedValue({

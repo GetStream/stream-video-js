@@ -143,6 +143,14 @@ export const AudioSessionDiagnosticsTracer = () => {
     // the foreground (iPad FaceTime window, the other party hanging up): no
     // interruption is delivered to a session that was never active.
     let sessionRefused = false;
+    // release signals are counted: one arriving while a re-activation is
+    // pending must not be undone by that attempt's refusal (the check it
+    // scheduled would skip and no further signal may come)
+    let releaseSignals = 0;
+    const onReleaseSignal = () => {
+      sessionRefused = false;
+      releaseSignals += 1;
+    };
 
     const runCheck = (trigger: string) => {
       if (inFlight) {
@@ -231,6 +239,7 @@ export const AudioSessionDiagnosticsTracer = () => {
           return;
         }
         lastActivationAt = Date.now();
+        const signalsBefore = releaseSignals;
         const reason = await reactivateSession();
         if (disposed) return;
         if (reason) {
@@ -244,7 +253,7 @@ export const AudioSessionDiagnosticsTracer = () => {
           }
           logger.debug(`recovery '${trigger}' postponed, ${reason}`);
           if (reason === 'sessionRefused') {
-            sessionRefused = true;
+            if (releaseSignals === signalsBefore) sessionRefused = true;
             return;
           }
           // bounded re-check (no rejoin against an inactive session); later
@@ -466,7 +475,7 @@ export const AudioSessionDiagnosticsTracer = () => {
         interrupted = true;
       } else if (event.phase === 'ended') {
         interrupted = false;
-        sessionRefused = false;
+        onReleaseSignal();
         scheduleCheck('interruptionEnded', 1000);
       }
     };
@@ -476,7 +485,7 @@ export const AudioSessionDiagnosticsTracer = () => {
     const removeRouteListener = callManager.audioDevices.addChangeListener(
       () => {
         // the holder of a refused session released the hardware
-        sessionRefused = false;
+        onReleaseSignal();
         scheduleCheck('audioRouteChanged', 1000);
       },
     );
@@ -486,7 +495,7 @@ export const AudioSessionDiagnosticsTracer = () => {
       (appState) => {
         if (appState !== 'active') return;
         interrupted = false;
-        sessionRefused = false;
+        onReleaseSignal();
         scheduleCheck('appActive', 1000);
       },
     );
@@ -499,7 +508,7 @@ export const AudioSessionDiagnosticsTracer = () => {
             // delayed so the activation-driven engine start can run first
             () => {
               interrupted = false;
-              sessionRefused = false;
+              onReleaseSignal();
               scheduleCheck('audioSessionActivated', 1000);
             },
           ),
