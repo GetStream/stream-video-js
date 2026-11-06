@@ -4,6 +4,7 @@ import { useCall } from '@stream-io/video-react-bindings';
 import { videoLoggerSystem } from '@stream-io/video-client';
 import { Button } from '../../utility/Button';
 import { useI18n } from '../../../i18n';
+import { ButtonTestIds } from '../../../constants/TestIds';
 
 /**
  * Props for the Join Call Button in the Lobby component.
@@ -46,6 +47,7 @@ export const JoinCallButton = ({
     <Button
       onPress={onPress}
       size="large"
+      testID={ButtonTestIds.JOIN_CALL}
       disabled={isLoading}
       text={
         isLoading
