@@ -909,8 +909,7 @@ describe('AudioSessionDiagnosticsTracer', () => {
       },
     ]);
 
-    // no checks until a signal
-    routeListener();
+    // the mic toggle is not a signal
     act(() => {
       call.status$.next('disabled');
     });
@@ -920,6 +919,14 @@ describe('AudioSessionDiagnosticsTracer', () => {
     await advance(5000);
     expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(1);
     expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+
+    // a route change is one (the holder may have released the hardware):
+    // tried again, still refused, no budget spent
+    routeListener();
+    await advance(1000);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(2);
+    expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+    expect(recoveryTraces(call)).toHaveLength(1);
 
     // the real interruption end re-activated the session: full budget left
     adm.getEngineState.mockResolvedValue(deadEngine);
@@ -932,6 +939,85 @@ describe('AudioSessionDiagnosticsTracer', () => {
         .map((t) => [t.trigger, t.attempt]),
     ).toEqual([['interruptionEnded', 1]]);
     expect(call.rejoinForAudioEngineRecovery).not.toHaveBeenCalled();
+  });
+
+  it('re-activates a refused session on a route change, when the holder released the hardware', async () => {
+    const call = await renderJoined();
+    adm.getEngineState.mockResolvedValue({
+      ...deadEngine,
+      sessionActive: false,
+    });
+    iosCallManager.reactivateAudioSession.mockResolvedValue(true);
+    iosCallManager.reactivateAudioSession.mockRejectedValueOnce(
+      Object.assign(new Error('!int'), { code: '561017449' }),
+    );
+    adm.recoverEngineIfNeeded.mockResolvedValue({
+      result: 'recovered',
+      before: deadEngine,
+      after: healthyEngine,
+      codes: { stopRecording: 0, startRecording: 0 },
+    });
+
+    appStateListener('active');
+    await advance(1000);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(1);
+    expect(adm.recoverEngineIfNeeded).not.toHaveBeenCalled();
+
+    // FaceTime ended in its own window or by the other party: the app stays
+    // in the foreground and only a route change reaches it
+    await advance(3000);
+    routeListener();
+    await advance(1000);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(2);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(1);
+    expect(recoveryTraces(call)).toEqual([
+      {
+        trigger: 'appActive',
+        result: 'skipped',
+        reason: 'sessionRefused',
+        attempt: 1,
+      },
+      expect.objectContaining({
+        trigger: 'audioRouteChanged',
+        result: 'recovered',
+        attempt: 1,
+      }),
+    ]);
+  });
+
+  it('keeps a release signal that arrives while a re-activation is pending', async () => {
+    await renderJoined();
+    adm.getEngineState.mockResolvedValue({
+      ...deadEngine,
+      sessionActive: false,
+    });
+    let rejectPending: (error: unknown) => void = () => {};
+    iosCallManager.reactivateAudioSession.mockResolvedValue(true);
+    iosCallManager.reactivateAudioSession.mockImplementationOnce(
+      () =>
+        new Promise<boolean>((_, reject) => {
+          rejectPending = reject;
+        }),
+    );
+    adm.recoverEngineIfNeeded.mockResolvedValue({
+      result: 'recovered',
+      before: deadEngine,
+      after: healthyEngine,
+      codes: { stopRecording: 0, startRecording: 0 },
+    });
+
+    appStateListener('active');
+    await advance(1000);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(1);
+
+    // the holder released the hardware while the attempt was pending; the
+    // attempt's refusal must not latch over that signal
+    routeListener();
+    rejectPending(Object.assign(new Error('!int'), { code: '561017449' }));
+    // the route-change check (1 s) waits out the attempt spacing (3 s)
+    await advance(3000);
+    expect(iosCallManager.reactivateAudioSession).toHaveBeenCalledTimes(2);
+    expect(adm.recoverEngineIfNeeded).toHaveBeenCalledTimes(1);
   });
 
   it('recovers after re-activating the inactive session itself', async () => {
