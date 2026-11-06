@@ -49,6 +49,9 @@ export interface StartNoiseCancellationResponse {
   error?: Error;
 }
 /**
+ * StopNoiseCancellationRequest repeats the engine and model sent in the
+ * matching StartNoiseCancellationRequest.
+ *
  * @generated from protobuf message stream.video.sfu.signal.StopNoiseCancellationRequest
  */
 export interface StopNoiseCancellationRequest {
