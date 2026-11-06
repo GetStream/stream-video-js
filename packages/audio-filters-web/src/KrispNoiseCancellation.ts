@@ -80,6 +80,14 @@ export type KrispNoiseCancellationOptions = {
   krispSDKParams?: ISDKPartialOptions['params'];
 };
 
+// https://sdk-docs.krisp.ai/docs/krisp-audio-sdk-model-selection-guide
+const DEFAULT_MODEL_FILE = 'krisp-nc-o-med-v7.kef';
+
+const toModelName = (url: string | undefined) => {
+  const file = url?.split(/[?#]/)[0].split('/').pop();
+  return file?.replace(/\.[^.]*$/, '') || undefined;
+};
+
 /**
  * A wrapper around the Krisp.AI SDK.
  */
@@ -121,6 +129,21 @@ export class KrispNoiseCancellation extends BaseNoiseCancellation {
     this.withSafariSupport = withSafariSupport ?? false;
     this.hasExplicitSafariSupport = typeof withSafariSupport !== 'undefined';
     this.krispSDKParams = krispSDKParams;
+  }
+
+  /**
+   * The model the engine runs: its file name without the extension,
+   * e.g. `krisp-nc-o-med-v7`.
+   */
+  get model(): string | undefined {
+    const models = this.krispSDKParams?.models;
+    if (models) {
+      const modelNC = models.modelNC;
+      return toModelName(typeof modelNC === 'string' ? modelNC : modelNC?.url);
+    }
+    return toModelName(
+      this.modelPath ?? `${this.basePath}/${DEFAULT_MODEL_FILE}`,
+    );
   }
 
   /**
@@ -186,8 +209,7 @@ export class KrispNoiseCancellation extends BaseNoiseCancellation {
         logProcessStats: false,
         useSharedArrayBuffer: false,
         models: {
-          // https://sdk-docs.krisp.ai/docs/krisp-audio-sdk-model-selection-guide
-          modelNC: this.modelPath ?? `${this.basePath}/krisp-nc-o-med-v7.kef`,
+          modelNC: this.modelPath ?? `${this.basePath}/${DEFAULT_MODEL_FILE}`,
         },
         ...this.krispSDKParams,
       },

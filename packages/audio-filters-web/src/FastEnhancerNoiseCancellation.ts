@@ -163,7 +163,10 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
   /** Aborts the pending `init()` with the given cause; used by `dispose()`. */
   private abortInit?: (error: Error) => void;
 
-  private readonly model: FastEnhancerModel;
+  /**
+   * The model size this instance runs.
+   */
+  readonly model: FastEnhancerModel;
   private readonly basePath: string;
   private readonly hpf: boolean;
   private readonly agc: boolean;

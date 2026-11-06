@@ -134,6 +134,10 @@ import {
 } from './types';
 import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
 import { ReconnectDetails } from './gen/video/sfu/event/events';
+import type {
+  StartNoiseCancellationRequest,
+  StopNoiseCancellationRequest,
+} from './gen/video/sfu/signal_rpc/signal';
 import {
   ClientCapability,
   ClientDetails,
@@ -2920,22 +2924,32 @@ export class Call {
    * Notifies the SFU that a noise cancellation process has started.
    *
    * @internal
+   * @param noiseCancellation the engine and model that run.
    */
-  notifyNoiseCancellationStarting = async () => {
-    return this.sfuClient?.startNoiseCancellation().catch((err) => {
-      this.logger.warn('Failed to notify start of noise cancellation', err);
-    });
+  notifyNoiseCancellationStarting = async (
+    noiseCancellation: Omit<StartNoiseCancellationRequest, 'sessionId'>,
+  ) => {
+    return this.sfuClient
+      ?.startNoiseCancellation(noiseCancellation)
+      .catch((err) => {
+        this.logger.warn('Failed to notify start of noise cancellation', err);
+      });
   };
 
   /**
    * Notifies the SFU that a noise cancellation process has stopped.
    *
    * @internal
+   * @param noiseCancellation the engine and model that ran.
    */
-  notifyNoiseCancellationStopped = async () => {
-    return this.sfuClient?.stopNoiseCancellation().catch((err) => {
-      this.logger.warn('Failed to notify stop of noise cancellation', err);
-    });
+  notifyNoiseCancellationStopped = async (
+    noiseCancellation: Omit<StopNoiseCancellationRequest, 'sessionId'>,
+  ) => {
+    return this.sfuClient
+      ?.stopNoiseCancellation(noiseCancellation)
+      .catch((err) => {
+        this.logger.warn('Failed to notify stop of noise cancellation', err);
+      });
   };
 
   /**

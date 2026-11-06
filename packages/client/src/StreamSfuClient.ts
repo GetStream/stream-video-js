@@ -23,6 +23,8 @@ import {
   SendAnswerRequest,
   SendStatsRequest,
   SetPublisherRequest,
+  StartNoiseCancellationRequest,
+  StopNoiseCancellationRequest,
   TrackMuteState,
   TrackSubscriptionDetails,
 } from './gen/video/sfu/signal_rpc/signal';
@@ -546,24 +548,38 @@ export class StreamSfuClient {
     return this.rpc.sendStats({ ...stats, sessionId: this.sessionId });
   };
 
-  startNoiseCancellation = async () => {
+  /**
+   * Notifies the SFU that noise cancellation started.
+   *
+   * @internal use `call.microphone.enableNoiseCancellation()` instead.
+   */
+  startNoiseCancellation = async (
+    noiseCancellation: Omit<StartNoiseCancellationRequest, 'sessionId'>,
+  ) => {
     await this.joinTask;
     return retryable(
       (invocationMeta) =>
         this.rpc.startNoiseCancellation(
-          { sessionId: this.sessionId },
+          { ...noiseCancellation, sessionId: this.sessionId },
           { invocationMeta },
         ),
       this.abortController.signal,
     );
   };
 
-  stopNoiseCancellation = async () => {
+  /**
+   * Notifies the SFU that noise cancellation stopped.
+   *
+   * @internal use `call.microphone.disableNoiseCancellation()` instead.
+   */
+  stopNoiseCancellation = async (
+    noiseCancellation: Omit<StopNoiseCancellationRequest, 'sessionId'>,
+  ) => {
     await this.joinTask;
     return retryable(
       (invocationMeta) =>
         this.rpc.stopNoiseCancellation(
-          { sessionId: this.sessionId },
+          { ...noiseCancellation, sessionId: this.sessionId },
           { invocationMeta },
         ),
       this.abortController.signal,
