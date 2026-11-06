@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.66.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.65.0...@stream-io/video-client-1.66.0) (2026-11-06)
+
+### Features
+
+- **client:** support browser-specific overrides in extra_opts ([#2594](https://github.com/GetStream/stream-video-js/issues/2594)) ([9d772b9](https://github.com/GetStream/stream-video-js/commit/9d772b9166d8a121b77724a442e0a4e8d431e250)), closes [#2589](https://github.com/GetStream/stream-video-js/issues/2589)
+
+### Bug Fixes
+
+- **client:** report the noise cancellation engine and model to the SFU ([#2596](https://github.com/GetStream/stream-video-js/issues/2596)) ([f20ed8a](https://github.com/GetStream/stream-video-js/commit/f20ed8a4fdc509eb4b08c9886a004984c63127a5))
+- **react-native:** recover the iOS mic when the audio engine fails to start ([#2529](https://github.com/GetStream/stream-video-js/issues/2529)) ([3908c03](https://github.com/GetStream/stream-video-js/commit/3908c03b9f6d7907d237a328e2bffef03a557c53)), closes [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#75](https://github.com/GetStream/stream-video-js/issues/75) [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#2282](https://github.com/GetStream/stream-video-js/issues/2282)
+
 ## [1.65.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.64.1...@stream-io/video-client-1.65.0) (2026-11-05)
 
 ### Features
