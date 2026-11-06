@@ -21,6 +21,10 @@ export const getQueryConfigParams = (query: NextRouter['query']) => {
     cameraOverride: query['camera'] as string | undefined,
     microphoneOverride: query['mic'] as string | undefined,
     encryptionKey: query['encryption_key'] as string | undefined,
+    // `?transcode=true` asks to join as a WebRTC broadcaster: publish a single
+    // high-quality layer that a transcoder egress turns into the ladder. Only
+    // honoured when the call's transcoding mode allows it.
+    transcodeMode: query['transcode'] === 'true',
   };
 };
 
@@ -42,6 +46,7 @@ export const applyQueryConfigParams = async (
     maxSimulcastLayers,
     cameraOverride,
     microphoneOverride,
+    transcodeMode,
   } = config;
   const { allowEncryption = false, encryptionKey } = options;
 
@@ -87,6 +92,8 @@ export const applyQueryConfigParams = async (
     e2ee.setSharedKey(SHARED_KEY_INDEX, rawKey);
     call.setE2EEManager(e2ee);
   }
+
+  call.setTranscodeMode(transcodeMode);
 
   call.updatePublishOptions({
     dangerouslyForceCodec: forceCodec,
