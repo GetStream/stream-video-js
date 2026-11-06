@@ -31,6 +31,11 @@ export interface INoiseCancellation {
    */
   engine?: string;
   /**
+   * The model variant the engine runs, e.g. `krisp-nc-o-med-v7` or `tiny`.
+   * Undefined when unknown.
+   */
+  readonly model?: string;
+  /**
    * Applies options from the call settings.
    * Call it before {@link isSupported} and {@link init}.
    */

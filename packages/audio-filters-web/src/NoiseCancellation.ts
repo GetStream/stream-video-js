@@ -86,6 +86,14 @@ export class NoiseCancellation implements INoiseCancellation {
   }
 
   /**
+   * The running engine's model variant, e.g. `krisp-nc-o-med-v7` or `tiny`.
+   * Undefined when no engine was created yet.
+   */
+  get model(): string | undefined {
+    return this.delegate?.model;
+  }
+
+  /**
    * Applies options from the call settings: the engine to run, and the
    * engine options. Options passed to the constructor take precedence.
    * Call it before {@link isSupported} and {@link init}.
