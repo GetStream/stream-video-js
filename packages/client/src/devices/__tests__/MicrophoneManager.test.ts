@@ -9,6 +9,7 @@ import { sleep } from '../../coordinator/connection/utils';
 import { OwnCapability } from '../../gen/coordinator';
 import {
   AudioBitrateProfile,
+  NoiseCancellationEngine,
   TrackType,
 } from '../../gen/video/sfu/models/models';
 import { CallingState, ClientState } from '../../store';
@@ -711,6 +712,59 @@ describe('MicrophoneManager', () => {
       await manager.enableNoiseCancellation(noiseCancellation);
       await manager.disableNoiseCancellation();
       expect(call.notifyNoiseCancellationStopped).toBeCalled();
+    });
+
+    it('reports the engine and model to the SFU', async () => {
+      const noiseCancellation = new NoiseCancellationStub();
+      noiseCancellation.engine = 'stream';
+      noiseCancellation.model = 'tiny';
+      await manager.enableNoiseCancellation(noiseCancellation);
+
+      await noiseCancellation.enable();
+      expect(call.notifyNoiseCancellationStarting).toHaveBeenCalledWith({
+        engine: NoiseCancellationEngine.STREAM,
+        model: 'tiny',
+      });
+
+      noiseCancellation.engine = undefined;
+      noiseCancellation.model = undefined;
+      await manager.disableNoiseCancellation();
+      // once from the change event, once as the fallback
+      expect(call.notifyNoiseCancellationStopped).toHaveBeenCalledTimes(2);
+      for (const [payload] of vi.mocked(call.notifyNoiseCancellationStopped)
+        .mock.calls) {
+        expect(payload).toEqual({
+          engine: NoiseCancellationEngine.STREAM,
+          model: 'tiny',
+        });
+      }
+    });
+
+    it('reports a new instance without the previous start', async () => {
+      const previous = new NoiseCancellationStub();
+      previous.engine = 'stream';
+      previous.model = 'tiny';
+      await manager.enableNoiseCancellation(previous);
+      await previous.enable();
+      await manager.disableNoiseCancellation();
+
+      await manager.enableNoiseCancellation(new NoiseCancellationStub());
+      await manager.disableNoiseCancellation();
+      expect(call.notifyNoiseCancellationStopped).toHaveBeenLastCalledWith({
+        engine: NoiseCancellationEngine.KRISP_UNSPECIFIED,
+        model: '',
+      });
+    });
+
+    it('reports Krisp with no model when the engine is unknown', async () => {
+      const noiseCancellation = new NoiseCancellationStub();
+      await manager.enableNoiseCancellation(noiseCancellation);
+
+      await noiseCancellation.enable();
+      expect(call.notifyNoiseCancellationStarting).toHaveBeenCalledWith({
+        engine: NoiseCancellationEngine.KRISP_UNSPECIFIED,
+        model: '',
+      });
     });
 
     it('should turn off browser noise suppression while registered', async () => {

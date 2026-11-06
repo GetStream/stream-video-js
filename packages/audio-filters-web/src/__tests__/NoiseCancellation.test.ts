@@ -10,6 +10,7 @@ class EngineStub {
   static instances: EngineStub[] = [];
   readonly engine: string;
   readonly options: unknown;
+  model?: string;
   readonly listeners: Record<string, Listener[]> = {};
   configuration?: NoiseCancellationConfiguration;
 
@@ -84,6 +85,18 @@ describe('NoiseCancellation', () => {
     expect(EngineStub.instances).toHaveLength(1);
     expect(lastEngine().engine).toBe('krisp');
     expect(lastEngine().init).toHaveBeenCalled();
+  });
+
+  it('reports the running engine model', async () => {
+    const nc = new NoiseCancellation();
+    expect(nc.model).toBeUndefined();
+
+    await nc.init();
+    lastEngine().model = 'krisp-nc-o-med-v7';
+    expect(nc.model).toBe('krisp-nc-o-med-v7');
+
+    await nc.dispose();
+    expect(nc.model).toBeUndefined();
   });
 
   it('runs the configured engine', async () => {

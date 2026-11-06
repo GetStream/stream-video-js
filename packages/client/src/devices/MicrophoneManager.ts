@@ -13,7 +13,12 @@ import { type BrowserPermissionState } from './BrowserPermission';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
 import { TrackDisableMode } from './DeviceManagerState';
 import { getAudioDevices, getAudioStream, resolveDeviceId } from './devices';
-import { AudioBitrateProfile, TrackType } from '../gen/video/sfu/models/models';
+import {
+  AudioBitrateProfile,
+  NoiseCancellationEngine,
+  TrackType,
+} from '../gen/video/sfu/models/models';
+import type { StartNoiseCancellationRequest } from '../gen/video/sfu/signal_rpc/signal';
 import { createSoundDetector } from '../helpers/sound-detector';
 import { createNoAudioDetector } from '../helpers/no-audio-detector';
 import { isReactNative } from '../helpers/platforms';
@@ -37,6 +42,10 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   private soundDetectorDeviceId?: string;
   private noAudioDetectorCleanup?: () => Promise<void>;
   private noiseCancellation: INoiseCancellation | undefined;
+  private startedNoiseCancellation?: Omit<
+    StartNoiseCancellationRequest,
+    'sessionId'
+  >;
   private noiseCancellationUnsubscribers: Array<() => void> = [];
   private noiseCancellationRegistration?: Promise<void>;
   private unregisterNoiseCancellation?: () => Promise<void>;
@@ -137,7 +146,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
             })
             .catch((err) => {
               this.logger.warn(`Failed to enable noise cancellation`, err);
-              return this.call.notifyNoiseCancellationStopped();
+              return this.notifyNoiseCancellationStopped();
             });
         } else if (callingState === CallingState.LEFT) {
           this.noiseCancellationRegistration
@@ -265,6 +274,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     }
     try {
       this.noiseCancellation = noiseCancellation;
+      this.startedNoiseCancellation = undefined;
 
       // listen for change events and notify the SFU
       this.noiseCancellationUnsubscribers.push(
@@ -274,11 +284,11 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
             enabled ? 'enabled' : 'disabled',
           );
           if (enabled) {
-            this.call.notifyNoiseCancellationStarting().catch((err) => {
+            this.notifyNoiseCancellationStarting().catch((err) => {
               this.logger.warn(`notifyNoiseCancellationStart failed`, err);
             });
           } else {
-            this.call.notifyNoiseCancellationStopped().catch((err) => {
+            this.notifyNoiseCancellationStopped().catch((err) => {
               this.logger.warn(`notifyNoiseCancellationStop failed`, err);
             });
           }
@@ -352,8 +362,32 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     this.state.setNoiseCancellationStatus('disabled');
 
     this.call.tracer.trace('noiseCancellation.disabled', true);
-    await this.call.notifyNoiseCancellationStopped();
+    await this.notifyNoiseCancellationStopped();
   }
+
+  private describeNoiseCancellation = () => ({
+    engine:
+      this.noiseCancellation?.engine === 'stream'
+        ? NoiseCancellationEngine.STREAM
+        : NoiseCancellationEngine.KRISP_UNSPECIFIED,
+    model: this.noiseCancellation?.model ?? '',
+  });
+
+  private notifyNoiseCancellationStarting = () => {
+    const noiseCancellation = this.describeNoiseCancellation();
+    this.startedNoiseCancellation = noiseCancellation;
+    return this.call.notifyNoiseCancellationStarting(noiseCancellation);
+  };
+
+  /**
+   * Reports the engine and model that were last started, so every stop
+   * matches the start even after the engine was disposed or reconfigured.
+   */
+  private notifyNoiseCancellationStopped = () => {
+    const noiseCancellation =
+      this.startedNoiseCancellation ?? this.describeNoiseCancellation();
+    return this.call.notifyNoiseCancellationStopped(noiseCancellation);
+  };
 
   /**
    * Enables speaking while muted notification.
