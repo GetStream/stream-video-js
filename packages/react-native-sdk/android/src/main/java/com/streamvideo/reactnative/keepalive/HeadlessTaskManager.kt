@@ -123,11 +123,11 @@ class HeadlessTaskManager(
   public fun startHeadlessTask(taskName: String, data: Bundle, timeout: Long): Boolean {
     debugLog(
             tag,
-            "[headless] startHeadlessTask entry: state=${state::class.simpleName}"
+            "[headless] startHeadlessTask: task=$taskName backend=${data.getString(KeepAliveTask.EXTRA_BACKEND)} state=${state::class.simpleName}"
     )
     synchronized(stateLock) {
       if (state is TaskState.Starting || liveTaskId() != null) {
-        Log.w(
+        debugLog(
                 tag,
                 "[headless] startHeadlessTask: Task already starting or active, ignoring new task request"
         )
@@ -149,16 +149,16 @@ class HeadlessTaskManager(
   }
 
   public fun stopHeadlessTask() {
-    debugLog(tag, "[headless] stopHeadlessTask: Stopping headless task")
     // Deliberately via liveTaskId: HeadlessJsTaskContext.finishTask has no notion of task
     // ownership, so finishing a stale id after a context reload would cut short whichever
     // library's task inherited that number.
-    liveTaskId()?.let { taskId ->
-      if (UiThreadUtil.isOnUiThread()) {
-        stopTask(taskId)
-      } else {
-        UiThreadUtil.runOnUiThread(Runnable { stopTask(taskId) })
-      }
+    val taskId = liveTaskId()
+    debugLog(tag, "[headless] stopHeadlessTask: taskId=$taskId")
+    if (taskId == null) return
+    if (UiThreadUtil.isOnUiThread()) {
+      stopTask(taskId)
+    } else {
+      UiThreadUtil.runOnUiThread(Runnable { stopTask(taskId) })
     }
   }
 
@@ -167,6 +167,7 @@ class HeadlessTaskManager(
 
     val context = reactContext
     if (context == null) {
+      debugLog(tag, "[headless] startTask: no React context, booting it before starting the task")
       createReactContextAndScheduleTask(taskConfig)
     } else {
       invokeStartTask(context, taskConfig)
@@ -195,11 +196,14 @@ class HeadlessTaskManager(
       if (headlessJsTaskContext.isTaskRunning(taskId)) {
         headlessJsTaskContext.finishTask(taskId)
         debugLog(tag, "[headless] stopTask: Task finished $taskId")
+      } else {
+        debugLog(tag, "[headless] stopTask: Task $taskId already finished on the JS side, nothing to finish")
       }
     }
   }
 
   fun release() {
+    debugLog(tag, "[headless] release: state=${state::class.simpleName}")
     released = true
     stopHeadlessTask()
     // Give up the slot synchronously: a Starting state would otherwise outlive the service.
@@ -239,19 +243,19 @@ class HeadlessTaskManager(
   }
 
   override fun onHeadlessJsTaskFinish(taskId: Int) {
+    if (released) {
+      // release() runs from the hosting service's onDestroy, finishes the task itself and clears
+      // the slot, so this is our task's finish arriving late. The service is already going down,
+      // so re-entering its stop logic here would be noise at best.
+      debugLog(tag, "[headless] onHeadlessJsTaskFinish: taskId=$taskId finished after release, ignoring")
+      return
+    }
     if (taskId != liveTaskId()) {
       debugLog(tag, "[headless] onHeadlessJsTaskFinish: IGNORED foreign taskId=$taskId")
       return
     }
     debugLog(tag, "[headless] onHeadlessJsTaskFinish: Task finished: $taskId, slot released")
     synchronized(stateLock) { state = TaskState.None }
-
-    if (released) {
-      // release() runs from the hosting service's onDestroy and finishes the task itself; the
-      // service is already going down, so re-entering its stop logic here would be noise at best.
-      debugLog(tag, "[headless] onHeadlessJsTaskFinish: released, skipping onTaskFinished")
-      return
-    }
     onTaskFinished()
   }
 
@@ -312,7 +316,7 @@ class HeadlessTaskManager(
   }
 }
 
-private fun debugLog(tag: String, message: String) {
+internal fun debugLog(tag: String, message: String) {
   if (BuildConfig.DEBUG) {
     Log.d(tag, message)
   }

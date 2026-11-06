@@ -49,6 +49,7 @@ class StreamCallKeepAliveHeadlessService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         lastStartId = startId
+        debugLog(TAG, "[keepalive] onStartCommand: startId=$startId callCid=${intent?.getStringExtra(EXTRA_CALL_CID)}")
 
         // Without a call cid there is nothing to keep alive. Stop before going foreground so we
         // neither show an orphan notification nor hold the FGS types.
@@ -104,6 +105,7 @@ class StreamCallKeepAliveHeadlessService : Service() {
     }
 
     override fun onDestroy() {
+        debugLog(TAG, "[keepalive] onDestroy: service destroyed")
         headlessTaskManager.release()
         pendingTaskCallCid = null
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -117,6 +119,7 @@ class StreamCallKeepAliveHeadlessService : Service() {
             putString(EXTRA_CALL_CID, callCid)
         }
         // timeout 0 = no timeout: the JS task holds until the call ends.
+        debugLog(TAG, "[keepalive] startKeepAliveTask: starting task for $callCid")
         if (!headlessTaskManager.startHeadlessTask(KeepAliveTask.NAME, data, 0)) {
             Log.w(TAG, "startKeepAliveTask: task slot busy, starting for $callCid once it finishes")
             pendingTaskCallCid = callCid
@@ -126,10 +129,12 @@ class StreamCallKeepAliveHeadlessService : Service() {
     private fun onTaskFinished() {
         val callCid = pendingTaskCallCid
         if (callCid != null) {
+            debugLog(TAG, "[keepalive] onTaskFinished: restarting the task for pending $callCid")
             pendingTaskCallCid = null
             startKeepAliveTask(callCid)
             return
         }
+        debugLog(TAG, "[keepalive] onTaskFinished: task ended, stopping service (startId=$lastStartId)")
         if (!stopSelfResult(lastStartId)) {
             Log.w(TAG, "onTaskFinished: stop refused (startId=$lastStartId), a newer start is pending")
         }
@@ -231,6 +236,7 @@ class StreamCallKeepAliveHeadlessService : Service() {
             } else {
                 startForeground(NOTIFICATION_ID, notification)
             }
+            debugLog(TAG, "[keepalive] tryStartForeground: in foreground (types=$types)")
             true
         } catch (e: Exception) {
             // Avoid crashing the app if the system rejects starting a foreground service (e.g.

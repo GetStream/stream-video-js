@@ -522,7 +522,8 @@ class CallService : Service(), CallRepository.Listener {
         val taskName = intent.getStringExtra(EXTRA_TASK_NAME)!!
         val data = intent.getBundleExtra(EXTRA_TASK_DATA)!!
         val timeout = intent.getLongExtra(EXTRA_TASK_TIMEOUT, 0)
-        headlessJSManager.startHeadlessTask(taskName, data, timeout)
+        val started = headlessJSManager.startHeadlessTask(taskName, data, timeout)
+        debugLog(TAG, "[keepalive] startBackgroundTask: started=$started")
     }
 
     private fun registerCall(intent: Intent, incoming: Boolean) {
@@ -654,6 +655,7 @@ class CallService : Service(), CallRepository.Listener {
             return
         }
 
+        debugLog(TAG, "[keepalive] stopServiceIfIdle: idle, stopping service (startId=$startId)")
         if (!stopSelfResult(startId)) {
             Log.w(
                     TAG,

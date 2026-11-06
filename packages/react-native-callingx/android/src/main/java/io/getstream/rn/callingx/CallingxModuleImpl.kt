@@ -347,6 +347,7 @@ class CallingxModuleImpl(
     }
 
     fun startBackgroundTask() {
+        debugLog(TAG, "[keepalive] startBackgroundTask: requesting the keep-alive task from CallService")
         try {
             Intent(reactApplicationContext, CallService::class.java)
                     .apply {
