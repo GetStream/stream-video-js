@@ -1,4 +1,5 @@
 import type { CallSettingsResponse } from '../gen/coordinator';
+import { isChrome, isFirefox, isSafari, isWebKit } from './browsers';
 
 /**
  * A content hint for the screen share track.
@@ -17,6 +18,14 @@ export type NoiseCancellationEngineName =
  * The typed view of `call.settings.extra_opts`: client tuning that Stream
  * manages per call type. Every field is optional: unset means the SDK keeps
  * its default.
+ *
+ * Every option can be overridden per browser with a suffixed key next to it,
+ * e.g. `use_web_audio_safari` next to `use_web_audio`. Each browser matches
+ * exactly one suffix, which wins over the plain key: `_safari` (Safari,
+ * including the other iOS browsers, which report as Safari), `_webkit` (the
+ * other WebKit runtimes, e.g. WebViews), `_chrome` (Chromium browsers) and
+ * `_firefox`. Groups (`audio`, `media_constraints`, `noise_cancellation`)
+ * take no suffix: their options do.
  *
  * @internal
  */
@@ -66,6 +75,31 @@ const asEngine = (value: unknown): NoiseCancellationEngineName | undefined => {
 };
 
 /**
+ * The key suffix of this browser, `null` when none applies (e.g. outside a
+ * browser). The browser can't change at runtime, so it is detected once.
+ */
+let browserSuffix: string | null | undefined;
+const getBrowserSuffix = (): string | null => {
+  if (browserSuffix !== undefined) return browserSuffix;
+  if (isSafari()) browserSuffix = 'safari';
+  else if (isWebKit()) browserSuffix = 'webkit';
+  else if (isFirefox()) browserSuffix = 'firefox';
+  else if (isChrome()) browserSuffix = 'chrome';
+  else browserSuffix = null;
+  return browserSuffix;
+};
+
+/**
+ * Reads an option's raw value: the browser-suffixed key when it is set,
+ * the plain key otherwise.
+ */
+const read = (record: Record<string, unknown>, key: string): unknown => {
+  const suffix = getBrowserSuffix();
+  const value = suffix ? record[`${key}_${suffix}`] : undefined;
+  return value !== undefined ? value : record[key];
+};
+
+/**
  * Reads `extra_opts` from the call settings. `extra_opts` is untyped on the
  * wire, so values of an unexpected type are dropped and the SDK default
  * applies for them.
@@ -82,20 +116,30 @@ export const getCallExtraOpts = (
   const mediaConstraints = asRecord(audio?.media_constraints);
   const noiseCancellation = asRecord(extraOpts.noise_cancellation);
   return {
-    screenshare_content_hint: asContentHint(extraOpts.screenshare_content_hint),
+    screenshare_content_hint: asContentHint(
+      read(extraOpts, 'screenshare_content_hint'),
+    ),
     audio: audio && {
       media_constraints: mediaConstraints && {
-        auto_gain_control: asBoolean(mediaConstraints.auto_gain_control),
-        noise_suppression: asBoolean(mediaConstraints.noise_suppression),
-        echo_cancellation: asBoolean(mediaConstraints.echo_cancellation),
+        auto_gain_control: asBoolean(
+          read(mediaConstraints, 'auto_gain_control'),
+        ),
+        noise_suppression: asBoolean(
+          read(mediaConstraints, 'noise_suppression'),
+        ),
+        echo_cancellation: asBoolean(
+          read(mediaConstraints, 'echo_cancellation'),
+        ),
       },
-      use_web_audio: asBoolean(audio.use_web_audio),
-      play_silence: asBoolean(audio.play_silence),
+      use_web_audio: asBoolean(read(audio, 'use_web_audio')),
+      play_silence: asBoolean(read(audio, 'play_silence')),
     },
     noise_cancellation: noiseCancellation && {
-      enabled_in_safari: asBoolean(noiseCancellation.enabled_in_safari),
-      engine: asEngine(noiseCancellation.engine),
-      model_path: asString(noiseCancellation.model_path),
+      enabled_in_safari: asBoolean(
+        read(noiseCancellation, 'enabled_in_safari'),
+      ),
+      engine: asEngine(read(noiseCancellation, 'engine')),
+      model_path: asString(read(noiseCancellation, 'model_path')),
     },
   };
 };

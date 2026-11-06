@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { getCallExtraOpts } from '../extraOpts';
 import type { CallSettingsResponse } from '../../gen/coordinator';
@@ -84,5 +84,120 @@ describe('getCallExtraOpts', () => {
     expect(engineOf('KRISP')).toBe('krisp');
     expect(engineOf('stream-v2')).toBeUndefined();
     expect(engineOf(42)).toBeUndefined();
+  });
+
+  describe('browser overrides', () => {
+    const userAgents = {
+      safari:
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15',
+      iosChrome:
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/130.0.0.0 Mobile/15E148 Safari/604.1',
+      webView:
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148',
+      chrome:
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+      edge: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0',
+      firefox:
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:132.0) Gecko/20100101 Firefox/132.0',
+    };
+
+    const settings = withExtraOpts({
+      screenshare_content_hint: 'detail',
+      screenshare_content_hint_chrome: 'motion',
+      audio: {
+        use_web_audio: false,
+        use_web_audio_safari: true,
+        use_web_audio_webkit: 'yes',
+        play_silence: true,
+        play_silence_webkit: false,
+        media_constraints: {
+          echo_cancellation: true,
+          echo_cancellation_safari: false,
+          echo_cancellation_firefox: false,
+        },
+      },
+      noise_cancellation: { engine: 'krisp', engine_webkit: 'stream' },
+    });
+
+    // the browser suffix is detected once per module: load a fresh one
+    const readAs = async (userAgent: string | undefined) => {
+      vi.stubGlobal(
+        'navigator',
+        userAgent === undefined ? undefined : { userAgent },
+      );
+      vi.resetModules();
+      const extraOptsModule = await import('../extraOpts');
+      const opts = extraOptsModule.getCallExtraOpts(settings);
+      return {
+        contentHint: opts.screenshare_content_hint,
+        useWebAudio: opts.audio?.use_web_audio,
+        playSilence: opts.audio?.play_silence,
+        echoCancellation: opts.audio?.media_constraints?.echo_cancellation,
+        engine: opts.noise_cancellation?.engine,
+      };
+    };
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('applies _safari, not _webkit, in Safari', async () => {
+      expect(await readAs(userAgents.safari)).toEqual({
+        contentHint: 'detail',
+        useWebAudio: true,
+        playSilence: true,
+        echoCancellation: false,
+        engine: 'krisp',
+      });
+    });
+
+    it('applies _safari to the other iOS browsers, which report as Safari', async () => {
+      expect(await readAs(userAgents.iosChrome)).toEqual(
+        await readAs(userAgents.safari),
+      );
+    });
+
+    it('applies _webkit, not _safari, to WebViews', async () => {
+      expect(await readAs(userAgents.webView)).toEqual({
+        contentHint: 'detail',
+        // use_web_audio_webkit isn't a boolean, so the SDK default applies
+        useWebAudio: undefined,
+        playSilence: false,
+        echoCancellation: true,
+        engine: 'stream',
+      });
+    });
+
+    it('applies _chrome to Chromium browsers', async () => {
+      const expected = {
+        contentHint: 'motion',
+        useWebAudio: false,
+        playSilence: true,
+        echoCancellation: true,
+        engine: 'krisp',
+      };
+      expect(await readAs(userAgents.chrome)).toEqual(expected);
+      expect(await readAs(userAgents.edge)).toEqual(expected);
+    });
+
+    it('applies _firefox in Firefox', async () => {
+      expect(await readAs(userAgents.firefox)).toEqual({
+        contentHint: 'detail',
+        useWebAudio: false,
+        playSilence: true,
+        echoCancellation: false,
+        engine: 'krisp',
+      });
+    });
+
+    it('reads the plain keys outside a browser', async () => {
+      expect(await readAs(undefined)).toEqual({
+        contentHint: 'detail',
+        useWebAudio: false,
+        playSilence: true,
+        echoCancellation: true,
+        engine: 'krisp',
+      });
+    });
   });
 });
