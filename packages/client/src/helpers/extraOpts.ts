@@ -1,4 +1,5 @@
 import type { CallSettingsResponse } from '../gen/coordinator';
+import { isChrome, isFirefox, isSafari, isWebKit } from './browsers';
 
 /**
  * A content hint for the screen share track.
@@ -17,6 +18,23 @@ export type NoiseCancellationEngineName =
  * The typed view of `call.settings.extra_opts`: client tuning that Stream
  * manages per call type. Every field is optional: unset means the SDK keeps
  * its default.
+ *
+ * Every option can be overridden per browser with a suffixed key next to it,
+ * e.g. `use_web_audio_safari` next to `use_web_audio`. A suffixed value wins
+ * over the plain key; a missing or `null` one falls back to it. Each runtime
+ * matches exactly one suffix, decided by its user agent:
+ * - `_safari`: a `Safari` token and no `Chrome`: Safari, the other iOS
+ *   browsers, and iOS WebViews whose host app copies Safari's user agent.
+ * - `_webkit`: the other WebKit runtimes: iOS and macOS WebViews without a
+ *   `Safari` token.
+ * - `_firefox`: Firefox.
+ * - `_chrome`: Chromium browsers and shells, including Android WebViews and
+ *   Electron.
+ *
+ * Groups (`audio`, `media_constraints`, `noise_cancellation`) take no
+ * suffix: their options do. Options the SDK only applies on some platforms
+ * (`use_web_audio`: WebKit, `play_silence`: iOS) have no effect elsewhere,
+ * whatever the suffix.
  *
  * @internal
  */
@@ -65,6 +83,33 @@ const asEngine = (value: unknown): NoiseCancellationEngineName | undefined => {
   return noiseCancellationEngines.find((name) => name === engine);
 };
 
+type BrowserSuffix = 'safari' | 'webkit' | 'firefox' | 'chrome';
+
+/**
+ * The key suffix of this runtime, `undefined` when none applies (e.g.
+ * outside a browser).
+ */
+const getBrowserSuffix = (): BrowserSuffix | undefined => {
+  if (isSafari()) return 'safari';
+  if (isWebKit()) return 'webkit';
+  if (isFirefox()) return 'firefox';
+  if (isChrome()) return 'chrome';
+  return undefined;
+};
+
+/**
+ * Reads an option's raw value: the browser-suffixed key unless it is
+ * missing or `null`, the plain key otherwise.
+ */
+const readOption = (
+  record: Record<string, unknown>,
+  key: string,
+  suffix: BrowserSuffix | undefined,
+): unknown => {
+  const value = suffix ? record[`${key}_${suffix}`] : undefined;
+  return value ?? record[key];
+};
+
 /**
  * Reads `extra_opts` from the call settings. `extra_opts` is untyped on the
  * wire, so values of an unexpected type are dropped and the SDK default
@@ -78,24 +123,39 @@ export const getCallExtraOpts = (
   const extraOpts = asRecord(settings?.extra_opts);
   if (!extraOpts) return {};
 
+  const suffix = getBrowserSuffix();
+  const read = (record: Record<string, unknown>, key: string) =>
+    readOption(record, key, suffix);
+
   const audio = asRecord(extraOpts.audio);
   const mediaConstraints = asRecord(audio?.media_constraints);
   const noiseCancellation = asRecord(extraOpts.noise_cancellation);
+
   return {
-    screenshare_content_hint: asContentHint(extraOpts.screenshare_content_hint),
+    screenshare_content_hint: asContentHint(
+      read(extraOpts, 'screenshare_content_hint'),
+    ),
     audio: audio && {
       media_constraints: mediaConstraints && {
-        auto_gain_control: asBoolean(mediaConstraints.auto_gain_control),
-        noise_suppression: asBoolean(mediaConstraints.noise_suppression),
-        echo_cancellation: asBoolean(mediaConstraints.echo_cancellation),
+        auto_gain_control: asBoolean(
+          read(mediaConstraints, 'auto_gain_control'),
+        ),
+        noise_suppression: asBoolean(
+          read(mediaConstraints, 'noise_suppression'),
+        ),
+        echo_cancellation: asBoolean(
+          read(mediaConstraints, 'echo_cancellation'),
+        ),
       },
-      use_web_audio: asBoolean(audio.use_web_audio),
-      play_silence: asBoolean(audio.play_silence),
+      use_web_audio: asBoolean(read(audio, 'use_web_audio')),
+      play_silence: asBoolean(read(audio, 'play_silence')),
     },
     noise_cancellation: noiseCancellation && {
-      enabled_in_safari: asBoolean(noiseCancellation.enabled_in_safari),
-      engine: asEngine(noiseCancellation.engine),
-      model_path: asString(noiseCancellation.model_path),
+      enabled_in_safari: asBoolean(
+        read(noiseCancellation, 'enabled_in_safari'),
+      ),
+      engine: asEngine(read(noiseCancellation, 'engine')),
+      model_path: asString(read(noiseCancellation, 'model_path')),
     },
   };
 };
