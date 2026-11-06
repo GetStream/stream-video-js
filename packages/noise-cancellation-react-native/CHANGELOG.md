@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.13.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.13.0...@stream-io/noise-cancellation-react-native-0.13.1) (2026-11-06)
+
+### Bug Fixes
+
+- **react-native:** recover the iOS mic when the audio engine fails to start ([#2529](https://github.com/GetStream/stream-video-js/issues/2529)) ([3908c03](https://github.com/GetStream/stream-video-js/commit/3908c03b9f6d7907d237a328e2bffef03a557c53)), closes [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#75](https://github.com/GetStream/stream-video-js/issues/75) [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#2282](https://github.com/GetStream/stream-video-js/issues/2282)
+
 ## [0.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.12.0...@stream-io/noise-cancellation-react-native-0.13.0) (2026-11-05)
 
 ### Features
