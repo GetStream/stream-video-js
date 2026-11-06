@@ -99,6 +99,10 @@ describe('getCallExtraOpts', () => {
       edge: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0',
       firefox:
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:132.0) Gecko/20100101 Firefox/132.0',
+      androidWebView:
+        'Mozilla/5.0 (Linux; Android 14; Pixel 8; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.0.0 Mobile Safari/537.36',
+      googleAppWebView:
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/340.0.0 Mobile/15E148 Safari/604.1',
     };
 
     const settings = withExtraOpts({
@@ -119,15 +123,12 @@ describe('getCallExtraOpts', () => {
       noise_cancellation: { engine: 'krisp', engine_webkit: 'stream' },
     });
 
-    // the browser suffix is detected once per module: load a fresh one
-    const readAs = async (userAgent: string | undefined) => {
+    const readAs = (userAgent: string | undefined, from = settings) => {
       vi.stubGlobal(
         'navigator',
         userAgent === undefined ? undefined : { userAgent },
       );
-      vi.resetModules();
-      const extraOptsModule = await import('../extraOpts');
-      const opts = extraOptsModule.getCallExtraOpts(settings);
+      const opts = getCallExtraOpts(from);
       return {
         contentHint: opts.screenshare_content_hint,
         useWebAudio: opts.audio?.use_web_audio,
@@ -141,8 +142,8 @@ describe('getCallExtraOpts', () => {
       vi.unstubAllGlobals();
     });
 
-    it('applies _safari, not _webkit, in Safari', async () => {
-      expect(await readAs(userAgents.safari)).toEqual({
+    it('applies _safari, not _webkit, in Safari', () => {
+      expect(readAs(userAgents.safari)).toEqual({
         contentHint: 'detail',
         useWebAudio: true,
         playSilence: true,
@@ -151,14 +152,12 @@ describe('getCallExtraOpts', () => {
       });
     });
 
-    it('applies _safari to the other iOS browsers, which report as Safari', async () => {
-      expect(await readAs(userAgents.iosChrome)).toEqual(
-        await readAs(userAgents.safari),
-      );
+    it('applies _safari to the other iOS browsers, which report as Safari', () => {
+      expect(readAs(userAgents.iosChrome)).toEqual(readAs(userAgents.safari));
     });
 
-    it('applies _webkit, not _safari, to WebViews', async () => {
-      expect(await readAs(userAgents.webView)).toEqual({
+    it('applies _webkit, not _safari, to WebViews', () => {
+      expect(readAs(userAgents.webView)).toEqual({
         contentHint: 'detail',
         // use_web_audio_webkit isn't a boolean, so the SDK default applies
         useWebAudio: undefined,
@@ -168,7 +167,26 @@ describe('getCallExtraOpts', () => {
       });
     });
 
-    it('applies _chrome to Chromium browsers', async () => {
+    it('applies _chrome to Android WebViews', () => {
+      expect(readAs(userAgents.androidWebView)).toEqual(
+        readAs(userAgents.chrome),
+      );
+    });
+
+    it('applies _safari to WebViews that report as Safari', () => {
+      expect(readAs(userAgents.googleAppWebView)).toEqual(
+        readAs(userAgents.safari),
+      );
+    });
+
+    it('falls back to the plain key for a null override', () => {
+      const withNull = withExtraOpts({
+        audio: { use_web_audio: true, use_web_audio_safari: null },
+      });
+      expect(readAs(userAgents.safari, withNull).useWebAudio).toBe(true);
+    });
+
+    it('applies _chrome to Chromium browsers', () => {
       const expected = {
         contentHint: 'motion',
         useWebAudio: false,
@@ -176,12 +194,12 @@ describe('getCallExtraOpts', () => {
         echoCancellation: true,
         engine: 'krisp',
       };
-      expect(await readAs(userAgents.chrome)).toEqual(expected);
-      expect(await readAs(userAgents.edge)).toEqual(expected);
+      expect(readAs(userAgents.chrome)).toEqual(expected);
+      expect(readAs(userAgents.edge)).toEqual(expected);
     });
 
-    it('applies _firefox in Firefox', async () => {
-      expect(await readAs(userAgents.firefox)).toEqual({
+    it('applies _firefox in Firefox', () => {
+      expect(readAs(userAgents.firefox)).toEqual({
         contentHint: 'detail',
         useWebAudio: false,
         playSilence: true,
@@ -190,8 +208,8 @@ describe('getCallExtraOpts', () => {
       });
     });
 
-    it('reads the plain keys outside a browser', async () => {
-      expect(await readAs(undefined)).toEqual({
+    it('reads the plain keys outside a browser', () => {
+      expect(readAs(undefined)).toEqual({
         contentHint: 'detail',
         useWebAudio: false,
         playSilence: true,
