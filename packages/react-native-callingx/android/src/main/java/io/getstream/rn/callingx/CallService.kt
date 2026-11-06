@@ -30,7 +30,6 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
@@ -160,7 +159,8 @@ class CallService : Service(), CallRepository.Listener {
     private lateinit var notificationManager: CallNotificationManager
     private lateinit var callRepository: CallRepository
 
-    private val scope: CoroutineScope = CoroutineScope(SupervisorJob())
+    private val serviceJob = SupervisorJob()
+    private val scope: CoroutineScope = CoroutineScope(serviceJob)
     private val actionProcessingLock = Object()
 
     /**
@@ -300,7 +300,12 @@ class CallService : Service(), CallRepository.Listener {
         callRepository.release()
         headlessJSManager.release()
 
-        scope.cancel()
+        // release() above has queued a Disconnect for every call. Completing (not cancelling) the
+        // job lets each session deliver that disconnect to Telecom and end on its own; cancelling
+        // would leave the call registered in Telecom until the process dies. Completing does not
+        // stop new launches while those sessions run, but the released repository refuses new
+        // registrations.
+        serviceJob.complete()
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
