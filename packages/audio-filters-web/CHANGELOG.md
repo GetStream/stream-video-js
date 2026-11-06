@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.12.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.12.0...@stream-io/audio-filters-web-0.12.1) (2026-11-06)
+
+### Bug Fixes
+
+- **client:** report the noise cancellation engine and model to the SFU ([#2596](https://github.com/GetStream/stream-video-js/issues/2596)) ([f20ed8a](https://github.com/GetStream/stream-video-js/commit/f20ed8a4fdc509eb4b08c9886a004984c63127a5))
+
 ## [0.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.11.1...@stream-io/audio-filters-web-0.12.0) (2026-11-05)
 
 ### Features
