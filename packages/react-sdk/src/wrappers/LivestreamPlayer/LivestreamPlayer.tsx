@@ -66,9 +66,12 @@ export const LivestreamPlayer = (
       onError(e);
     });
     return () => {
-      myCall.leave().catch((e) => {
-        console.error('Failed to leave call', e);
-      });
+      myCall
+        .leave()
+        .then(() => myCall.stopWatching())
+        .catch((e) => {
+          console.error('Failed to leave call', e);
+        });
       setCall(undefined);
     };
   }, [callId, callType, client]);

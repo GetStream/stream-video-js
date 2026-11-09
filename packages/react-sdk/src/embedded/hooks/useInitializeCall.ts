@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Call, CallingState, StreamVideoClient } from '@stream-io/video-client';
+import { Call, StreamVideoClient } from '@stream-io/video-client';
 
 export interface UseInitializeCallProps {
   client?: StreamVideoClient;
@@ -39,11 +39,10 @@ export const useInitializeCall = ({
     return () => {
       cancelled = true;
       setCall(undefined);
-      if (_call.state.callingState !== CallingState.LEFT) {
-        _call
-          .leave()
-          .catch((err) => console.error('Failed to leave call:', err));
-      }
+      _call
+        .leave()
+        .then(() => _call.stopWatching())
+        .catch((err) => console.error('Failed to leave call:', err));
     };
   }, [client, callType, callId, handleError]);
 
