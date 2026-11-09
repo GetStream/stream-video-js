@@ -36,7 +36,8 @@ export const getNoiseCancellationOptions = (
         // Krisp reports Safari as unsupported unless opted in;
         // its SDK still requires Safari 17.4+.
         withSafariSupport: true,
-        fastEnhancer: { model: 'base', basePath: fastEnhancerBasePath },
+        // the model is the SDK default (small) if the call picks `stream`
+        fastEnhancer: { basePath: fastEnhancerBasePath },
       };
     case 'fastenhancer-tiny':
     case 'fastenhancer-base':
@@ -56,7 +57,8 @@ export const getNoiseCancellationOptions = (
     case 'auto':
     default:
       return {
-        fastEnhancer: { model: 'base', basePath: fastEnhancerBasePath },
+        // the model is the SDK default (small) if the call picks `stream`
+        fastEnhancer: { basePath: fastEnhancerBasePath },
       };
   }
 };
