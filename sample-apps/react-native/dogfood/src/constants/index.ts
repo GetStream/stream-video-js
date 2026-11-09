@@ -8,3 +8,11 @@ export const Z_INDEX = {
   IN_MIDDLE: 1,
   IN_FRONT: 2,
 };
+
+export const APP_ENVIRONMENTS: AppEnvironment[] = [
+  'pronto',
+  'video-moderation',
+  'demo',
+  'pronto-staging',
+  'stream-benchmark',
+];
