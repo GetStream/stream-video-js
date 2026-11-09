@@ -94,10 +94,10 @@ describe('Auto drop ringing calls', () => {
     });
   });
 
-  // REACT-1540: a callee's call built from a push starts ringing before its
-  // settings load. With nothing else to settle the ring (no answer, and no
-  // `call.rejected` from the caller), the callee's own timeout must still end it.
-  it('drops a ringing call whose settings load after it started ringing', async () => {
+  // REACT-1540: a callee's call built from a push notification starts ringing
+  // before its settings load. If nothing else ends the ring (no answer, and no
+  // `call.rejected` from the caller), the callee's own timeout must end it.
+  it('drops a ringing call whose settings load after ringing started', async () => {
     call = ringingCall({ createdById: 'the-caller', withSettings: false });
     call.state['callingStateSubject'].next(CallingState.IDLE);
 
@@ -107,7 +107,7 @@ describe('Auto drop ringing calls', () => {
     expect(call['ringTimeout']!['timeoutId']).toBeUndefined();
     await vi.advanceTimersByTimeAsync(5_000);
 
-    // e.g. `call.get()` resolving
+    // e.g. when `call.get()` resolves
     call.state['settingsSubject'].next(ringSettings());
 
     await vi.advanceTimersByTimeAsync(TIMEOUT_MS - 1);
@@ -120,10 +120,10 @@ describe('Auto drop ringing calls', () => {
     });
   });
 
-  // REACT-1540: `updateFromRingingEvent` runs `setup()`, which arms the
-  // timeout, before it applies the event's settings. The timeout has to arm
-  // once they land, or a foreground callee rings until something else ends it.
-  it('drops a call created from a call.ring event', async () => {
+  // REACT-1540: `updateFromRingingEvent` runs `setup()`, which starts the
+  // timeout, before it applies the event's settings. The timeout must start
+  // once the settings load, or a callee with the app open rings indefinitely.
+  it('drops a ringing call created from a call.ring event', async () => {
     const clientState = new ClientState();
     const streamClient = new StreamClient('abc');
     clientState.setConnectedUser(fromPartial({ id: 'the-callee' }));
@@ -163,7 +163,8 @@ describe('Auto drop ringing calls', () => {
     vi.spyOn(call, 'reject').mockResolvedValue(fromPartial({}));
 
     const leaving = call.leave({ reject: true });
-    // before the first await, so settings landing mid-leave can't arm it
+    // unsubscribed before the first await, so settings that load during the
+    // leave can't start the timeout
     expect(timeout['settingsWait']).toHaveLength(0);
     await leaving;
 

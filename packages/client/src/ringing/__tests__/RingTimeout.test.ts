@@ -186,10 +186,10 @@ describe('RingTimeout', () => {
     expect(call.leave).not.toHaveBeenCalled();
   });
 
-  describe('when the settings load after start()', () => {
+  describe('when the settings are missing at start()', () => {
     const settingsSubject = () => call.state['settingsSubject'];
-    // other managers on the call listen to the settings too, so check this
-    // instance's own subscription rather than `settingsSubject.observed`
+    // other parts of the call also subscribe to settings$, so check this
+    // instance's own subscription instead of `settingsSubject.observed`
     const isWaiting = () => ringTimeout['settingsWait'].length > 0;
     const loadSettings = () =>
       settingsSubject().next(
@@ -200,7 +200,7 @@ describe('RingTimeout', () => {
         }),
       );
 
-    it('arms once they land, counting from that moment', async () => {
+    it('starts the timeout once the settings load, counting from that moment', async () => {
       call = ringingCall({ ring: null });
       arm();
 
@@ -219,7 +219,7 @@ describe('RingTimeout', () => {
       });
     });
 
-    it('stops listening to the settings once they land', () => {
+    it('unsubscribes from settings$ once the settings load', () => {
       call = ringingCall({ ring: null });
       arm();
       expect(isWaiting()).toBe(true);
@@ -228,7 +228,7 @@ describe('RingTimeout', () => {
       expect(isWaiting()).toBe(false);
     });
 
-    it('subscribes only once across repeated start() calls', () => {
+    it('subscribes to settings$ only once when start() is called repeatedly', () => {
       call = ringingCall({ ring: null });
       arm();
       const subscriptions = ringTimeout['settingsWait'];
@@ -247,7 +247,8 @@ describe('RingTimeout', () => {
         call.state['callingStateSubject'].next(callingState);
         expect(isWaiting()).toBe(false);
 
-        // settings landing later must not arm a call that rings again
+        // settings that load later must not start the timeout, even if the
+        // call rings again
         call.state['callingStateSubject'].next(CallingState.RINGING);
         loadSettings();
         await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
@@ -263,7 +264,7 @@ describe('RingTimeout', () => {
       expect(isWaiting()).toBe(true);
     });
 
-    it('does not arm when they land while paused', async () => {
+    it('does not start the timeout if the settings load while paused', async () => {
       call = ringingCall({ ring: null });
       arm().pause();
       expect(isWaiting()).toBe(false);
@@ -273,7 +274,7 @@ describe('RingTimeout', () => {
       expect(call.leave).not.toHaveBeenCalled();
     });
 
-    it('waits again when started after a pause', async () => {
+    it('subscribes to settings$ again when start() is called after pause()', async () => {
       call = ringingCall({ ring: null });
       arm().pause();
       ringTimeout.start();
@@ -283,7 +284,7 @@ describe('RingTimeout', () => {
       expect(call.leave).toHaveBeenCalled();
     });
 
-    it('does not arm when they land after stop()', async () => {
+    it('does not start the timeout if the settings load after stop()', async () => {
       call = ringingCall({ ring: null });
       arm().stop();
       expect(isWaiting()).toBe(false);
@@ -293,7 +294,7 @@ describe('RingTimeout', () => {
       expect(call.leave).not.toHaveBeenCalled();
     });
 
-    it('does not arm when the loaded settings have no ring config', async () => {
+    it('does not start the timeout if the loaded settings have no ring config', async () => {
       call = ringingCall({ ring: null });
       arm();
 

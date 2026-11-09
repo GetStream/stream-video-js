@@ -32,8 +32,9 @@ export class RingTimeout {
 
     const settings = this.call.state.settings;
     if (!settings) {
-      // a call built from a push notification has no settings until `get()`
-      // resolves: arm once they land
+      // the settings can load after ringing starts: `updateFromRingingEvent`
+      // applies them after `setup()`, and a call built from a push notification
+      // gets them from `get()`. Start the timeout once they load.
       this.waitForSettings();
       return;
     }
@@ -83,7 +84,8 @@ export class RingTimeout {
    * Pauses the timeout while preserving its original deadline.
    */
   pause = () => {
-    // settings landing while paused (e.g. mid-leave) must not arm the timeout
+    // settings that load while paused (e.g. during a leave) must not start
+    // the timeout
     this.stopWaitingForSettings();
     if (this.stopped || this.timeoutId === undefined) return;
     getTimers().clearTimeout(this.timeoutId);
