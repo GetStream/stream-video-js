@@ -32,9 +32,17 @@ export class RingTimeout {
 
     const settings = this.call.state.settings;
     if (!settings) {
-      // the settings can load after ringing starts: `updateFromRingingEvent`
-      // applies them after `setup()`, and a call built from a push notification
-      // gets them from `get()`. Start the timeout once they load.
+      // Why we wait: the settings usually arrive with
+      // `call.created`, which the server sends before `call.ring`, so the call
+      // has them by the time it rings. A callee whose app is in the background
+      // can miss `call.created`. The ring then comes by push, and
+      // `StreamVideoClient.onRingingCall` → `Call.get()` runs `setup()`, which
+      // starts the ringing, before the response brings the settings. Without
+      // this wait the timeout never starts and the call rings until something
+      // else ends it.
+      // To reproduce: put the callee's app in the background, ring it, and
+      // keep the caller from cancelling (e.g. kill the caller's app right after
+      // it rings). The callee keeps ringing past `incoming_call_timeout_ms`.
       this.waitForSettings();
       return;
     }

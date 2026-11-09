@@ -94,7 +94,7 @@ describe('Auto drop ringing calls', () => {
     });
   });
 
-  // REACT-1540: a callee's call built from a push notification starts ringing
+  // A callee's call built from a push notification starts ringing
   // before its settings load. If nothing else ends the ring (no answer, and no
   // `call.rejected` from the caller), the callee's own timeout must end it.
   it('hangs up after the ring timeout when the settings arrive late', async () => {
@@ -120,9 +120,11 @@ describe('Auto drop ringing calls', () => {
     });
   });
 
-  // REACT-1540: `updateFromRingingEvent` runs `setup()`, which starts the
-  // timeout, before it applies the event's settings. The timeout must start
-  // once the settings load, or a callee with the app open rings indefinitely.
+  // `updateFromRingingEvent` runs `setup()`, which starts the
+  // timeout, before it applies the event's settings. That matters when
+  // `call.ring` is the first event the app gets for the call: `call.created`
+  // usually comes first and brings the settings, but an app in the background
+  // can miss it.
   it('hangs up after the ring timeout for a call created from a call.ring event', async () => {
     const clientState = new ClientState();
     const streamClient = new StreamClient('abc');
