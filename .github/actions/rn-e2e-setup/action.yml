@@ -1,0 +1,17 @@
+name: 'RN E2E Setup'
+description: 'Node, the yarn workspace and the dogfood bundle (which runs the e2e fastlane lanes)'
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-node@v6
+      with:
+        node-version: 24.x
+        cache: 'yarn'
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.4
+        working-directory: sample-apps/react-native/dogfood
+        bundler-cache: true
+    - name: Install dependencies
+      shell: bash
+      run: yarn install --immutable
