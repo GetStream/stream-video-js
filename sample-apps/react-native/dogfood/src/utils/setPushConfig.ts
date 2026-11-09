@@ -8,6 +8,7 @@ import { createToken } from '../modules/helpers/createToken';
 import { setNotificationListeners } from './setNotificationListeners';
 import { registerNonRingingNotificationHandler } from './registerNonRingingNotifications';
 import { attachE2EEIfConfigured, disposeE2EEManager } from './e2ee';
+import { ignoreRingEventsFromWebSocketForE2EUser } from './ignoreRingEventsFromWebSocket';
 
 export function setPushConfig() {
   StreamVideoRN.updateConfig({
@@ -62,7 +63,7 @@ const createStreamVideoClient = async () => {
   let appEnvironment = JSON.parse(
     mmkvStorage.getString('appEnvironment') ?? '',
   );
-  if (appEnvironment !== 'pronto' || appEnvironment !== 'demo') {
+  if (appEnvironment !== 'pronto' && appEnvironment !== 'demo') {
     appEnvironment = 'pronto';
   }
   if (!userId || !userImageUrl) {
@@ -78,7 +79,7 @@ const createStreamVideoClient = async () => {
   };
   const { apiKey, token } = await fetchAuthDetails();
   const tokenProvider = () => fetchAuthDetails().then((auth) => auth.token);
-  return StreamVideoClient.getOrCreateInstance({
+  const client = StreamVideoClient.getOrCreateInstance({
     apiKey,
     user,
     token,
@@ -94,6 +95,8 @@ const createStreamVideoClient = async () => {
       rejectCallWhenBusy: false,
     },
   });
+  ignoreRingEventsFromWebSocketForE2EUser(client, user.id);
+  return client;
 };
 
 /**

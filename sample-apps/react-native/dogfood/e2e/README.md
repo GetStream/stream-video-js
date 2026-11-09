@@ -7,13 +7,13 @@ The suite is a port of the Android Video SDK's e2e tests (`demo-app/src/androidT
 matches the React Native Chat SDK's (`examples/E2ETestApp`), so tests can be ported almost line by line. It runs on
 Android only for now; iOS is RN-476.
 
-| Path                                        | What                                                                  | Native counterpart                           |
-| ------------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------- |
-| `robots/ParticipantRobot.ts`                | the other participants: stream-video-buddy's `/join` and `/ring`      | `ParticipantRobot`                           |
-| `robots/UserRobot.ts` + `UserRobot*Asserts` | UI actions as the app user + assert extensions                        | `UserRobot` + `UserRobot*Asserts.kt`         |
-| `pages/`                                    | page objects: `LoginPage`, `CallDetailsPage`, `LobbyPage`, `CallPage` | `pages/*Page.kt`                             |
-| `support/`                                  | `setUpStreamTestCase()`, `step()`, uiautomator-like `Element` helpers | `StreamTestCase`, `step {}`, `uiautomator/*` |
-| `tests/*.e2e.ts`                            | the tests, same class, test and step names as on Android              | `tests/*Tests.kt`                            |
+| Path                                        | What                                                                                                                                      | Native counterpart                           |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `robots/ParticipantRobot.ts`                | the other participants: stream-video-buddy's `/join` and `/ring`, and a caller that rings and disappears (`support/ringAndDisappear.mjs`) | `ParticipantRobot`                           |
+| `robots/UserRobot.ts` + `UserRobot*Asserts` | UI actions as the app user + assert extensions                                                                                            | `UserRobot` + `UserRobot*Asserts.kt`         |
+| `pages/`                                    | page objects: `LoginPage`, `CallDetailsPage`, `LobbyPage`, `CallPage`, `RingingPage`                                                      | `pages/*Page.kt`                             |
+| `support/`                                  | `setUpStreamTestCase()`, `step()`, uiautomator-like `Element` helpers                                                                     | `StreamTestCase`, `step {}`, `uiautomator/*` |
+| `tests/*.e2e.ts`                            | the tests, same class, test and step names as on Android                                                                                  | `tests/*Tests.kt`                            |
 
 Robots are fluent like the native ones; every call is queued and the chain runs when awaited:
 
@@ -139,6 +139,20 @@ What CI caches. GitHub only lets a PR restore caches from its own branch or the 
   `playwright@1.52.0`); with another build it fails to launch, and the participant never joins.
 - The buddy server handles join requests one at a time: a stuck request delays every later one.
 - Call ids start with `e2e-` and users with `e2e_`, so the suite's calls and users are easy to tell apart.
+- A ringing call switches the app to its Call mode, and the app keeps that mode across launches. Call mode has no call id
+  field, so a ringing test signs out afterwards (`RingingTests`' `afterEach`), and the next test signs in to Meeting mode.
+- To test the user's own ring timeout, the caller must not hang up first. stream-video-buddy's browser hangs up after the
+  call type's `auto_cancel_timeout_ms` (25s for `default`, the same as `incoming_call_timeout_ms`), so
+  `ParticipantRobot.ringUserAndDisappear` rings from `support/ringAndDisappear.mjs` instead: a Node script that rings over
+  the API and exits, as if the caller's app was killed. The server then only sends `call.missed`, which doesn't end the
+  call. The script runs in its own process because Jest's test environment doesn't expose Node's `WebSocket`.
+- A ring can't be tested with the app killed: Detox's runner lives in the app's process, so when that process dies
+  Android force-stops the app, and then drops its pushes. `RingingTests` signs in with an id starting with `e2e_ring_`
+  instead, and the app then ignores `call.created` from the WebSocket (`src/utils/ignoreRingEventsFromWebSocket.ts`, app
+  code, not SDK code), the event an app in the background misses. `call.ring` then starts ringing before the call's
+  settings arrive. CI's emulator image has no Google Play services, so no push can arrive there. To test the push path
+  locally on a device with Google Play services, set `RING_BY_PUSH` to `true` in that file: the app then also ignores
+  `call.ring`, and the ring arrives by push.
 - The sign-out confirmation is a native alert: `CallDetailsPage.logOutConfirmButton` selects its `OK` button by text.
 - A ported test keeps the native expectation. If the SDK disagrees, fix the SDK or skip the test against a ticket.
   Exception: `assertUserMicrophone` checks only the toggle. Android also checks the mic icon on the user's own video,
