@@ -43,6 +43,10 @@ body {
   }
 }
 
+.str-chat.str-chat__chat-view {
+  --str-chat__thread-list-width: 30%;
+}
+
 .str-chat__channel {
   flex: 1;
   min-width: 0;
@@ -52,11 +56,6 @@ body {
   .str-chat__message-list-scroll {
     width: 100%;
   }
-}
-
-.str-chat__main-panel {
-  min-width: 0;
-  flex: 1;
 }
 
 .str-chat__thread-container {

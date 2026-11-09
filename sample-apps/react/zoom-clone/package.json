@@ -7,7 +7,6 @@
     "start": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "scripts:init": "node scripts/init.js",
     "scripts:populate-tokens": "node scripts/populateTokens.js"
   },
   "dependencies": {
@@ -17,8 +16,8 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-router": "^8.3.0",
-    "stream-chat": "^9.54.0",
-    "stream-chat-react": "^14.13.2"
+    "stream-chat": "^10.0.0",
+    "stream-chat-react": "^15.0.0"
   },
   "devDependencies": {
     "@stream-io/typescript-config": "workspace:^",
