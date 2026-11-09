@@ -83,7 +83,7 @@ import { NoiseCancellationProvider } from '@stream-io/video-react-sdk';
 
 export const App = ({ children }: { children: React.ReactNode }) => {
   const [noiseCancellation] = useState(
-    () => new FastEnhancerNoiseCancellation({ model: 'tiny' }),
+    () => new FastEnhancerNoiseCancellation({ model: 'small' }),
   );
   return (
     <NoiseCancellationProvider noiseCancellation={noiseCancellation}>
@@ -96,7 +96,7 @@ export const App = ({ children }: { children: React.ReactNode }) => {
 With the JavaScript client:
 
 ```ts
-const noiseCancellation = new FastEnhancerNoiseCancellation({ model: 'tiny' });
+const noiseCancellation = new FastEnhancerNoiseCancellation({ model: 'small' });
 if (await noiseCancellation.isSupported()) {
   await noiseCancellation.init();
   await call.microphone.enableNoiseCancellation(noiseCancellation);
@@ -111,7 +111,7 @@ await noiseCancellation.dispose();
 
 | Option              | Default                        | Description                                                                        |
 | ------------------- | ------------------------------ | ---------------------------------------------------------------------------------- |
-| `model`             | `'tiny'`                       | `'tiny'`, `'base'` or `'small'`. See below.                                        |
+| `model`             | `'small'`                      | `'tiny'`, `'base'` or `'small'`. See below.                                        |
 | `basePath`          | unpkg, for the package version | Where the WASM and the weights are loaded from. See [Self-hosting](#self-hosting). |
 | `hpf`               | `false`                        | High-pass filter for low-frequency rumble.                                         |
 | `agc`               | `false`                        | Automatic gain control in the model's post-processing.                             |
@@ -121,8 +121,8 @@ await noiseCancellation.dispose();
 
 ### Models
 
-`tiny` is the default and the cheapest on CPU. `base` and `small` suppress noise
-better, at the cost of more CPU. Pick a larger one only if your users' devices can afford it.
+`small` is the default and suppresses noise best. `base` and `tiny` use less CPU
+and suit lower-end devices; `tiny` is the cheapest.
 If the device can't keep up, the filter turns itself off, and restores per
 `restoreTimeoutMs` and `restoreAttempts`.
 
