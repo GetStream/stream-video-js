@@ -74,7 +74,7 @@ export type FastEnhancerModel = 'tiny' | 'base' | 'small';
 export type FastEnhancerNoiseCancellationOptions = {
   /**
    * The model size.
-   * @default 'tiny'
+   * @default 'small'
    */
   model?: FastEnhancerModel;
 
@@ -179,7 +179,7 @@ export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
    * Constructs a new instance.
    */
   constructor({
-    model = 'tiny',
+    model = 'small',
     basePath = `https://unpkg.com/${packageName}@${packageVersion}/src/fastenhancer/models`,
     hpf = false,
     agc = false,
