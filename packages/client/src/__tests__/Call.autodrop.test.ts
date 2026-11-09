@@ -154,6 +154,24 @@ describe('Auto drop ringing calls', () => {
     });
   });
 
+  it('unsubscribes from settings$ when the call is left', async () => {
+    call = ringingCall({ createdById: 'the-caller', withSettings: false });
+    call['handleRingingCall']();
+    const timeout = call['ringTimeout']!;
+    expect(timeout['settingsWait']).toHaveLength(2);
+    vi.spyOn(call, 'leave').mockRestore();
+    vi.spyOn(call, 'reject').mockResolvedValue(fromPartial({}));
+
+    const leaving = call.leave({ reject: true });
+    // before the first await, so settings landing mid-leave can't arm it
+    expect(timeout['settingsWait']).toHaveLength(0);
+    await leaving;
+
+    call.state['settingsSubject'].next(ringSettings());
+    await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
+    expect(timeout['timeoutId']).toBeUndefined();
+  });
+
   it('is cancelled by cancelAutoDrop', async () => {
     call['scheduleAutoDrop']();
 

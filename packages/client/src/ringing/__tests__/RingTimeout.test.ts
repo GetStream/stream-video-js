@@ -239,7 +239,7 @@ describe('RingTimeout', () => {
     });
 
     it.each([CallingState.JOINED, CallingState.LEFT])(
-      'stops waiting once the call is %s',
+      'unsubscribes from settings$ once the call is %s',
       async (callingState) => {
         call = ringingCall({ ring: null });
         arm();
@@ -255,7 +255,7 @@ describe('RingTimeout', () => {
       },
     );
 
-    it('keeps waiting while the call is joining', () => {
+    it('stays subscribed to settings$ while the call is joining', () => {
       call = ringingCall({ ring: null });
       arm();
 
