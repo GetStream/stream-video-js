@@ -1,5 +1,6 @@
 import type { Call } from '../Call';
 import { CallingState } from '../store';
+import { createSubscription } from '../store/rxUtils';
 import { getTimers } from '../timers';
 import { videoLoggerSystem } from '../logger';
 
@@ -14,6 +15,7 @@ export class RingTimeout {
   private timeoutId: number | undefined;
   private deadlineAt: number | undefined;
   private stopped: boolean = false;
+  private settingsWait: Array<() => void> = [];
 
   constructor(call: Call) {
     this.call = call;
@@ -28,7 +30,16 @@ export class RingTimeout {
     // ignore if the call is not ringing
     if (this.call.state.callingState !== CallingState.RINGING) return;
 
-    const ring = this.call.state.settings?.ring;
+    const settings = this.call.state.settings;
+    if (!settings) {
+      // a call built from a push notification has no settings until `get()`
+      // resolves: arm once they land
+      this.waitForSettings();
+      return;
+    }
+    this.stopWaitingForSettings();
+
+    const ring = settings.ring;
     if (!ring) return;
 
     const isCaller = this.call.isCreatedByMe;
@@ -72,6 +83,8 @@ export class RingTimeout {
    * Pauses the timeout while preserving its original deadline.
    */
   pause = () => {
+    // settings landing while paused (e.g. mid-leave) must not arm the timeout
+    this.stopWaitingForSettings();
     if (this.stopped || this.timeoutId === undefined) return;
     getTimers().clearTimeout(this.timeoutId);
     this.timeoutId = undefined;
@@ -83,8 +96,38 @@ export class RingTimeout {
   stop = () => {
     if (this.stopped) return;
     this.stopped = true;
+    this.stopWaitingForSettings();
     getTimers().clearTimeout(this.timeoutId);
     this.timeoutId = undefined;
     this.deadlineAt = undefined;
+  };
+
+  /**
+   * Calls `start()` again once the call settings are known, and gives up once
+   * the call is joined or left. Only called while the call is ringing and the
+   * settings are missing, so the values replayed on subscribe are no-ops.
+   */
+  private waitForSettings = () => {
+    if (this.settingsWait.length > 0) return;
+    this.settingsWait.push(
+      createSubscription(this.call.state.settings$, (settings) => {
+        if (!settings) return;
+        this.stopWaitingForSettings();
+        this.start();
+      }),
+      createSubscription(this.call.state.callingState$, (callingState) => {
+        if (
+          callingState === CallingState.JOINED ||
+          callingState === CallingState.LEFT
+        ) {
+          this.stopWaitingForSettings();
+        }
+      }),
+    );
+  };
+
+  private stopWaitingForSettings = () => {
+    this.settingsWait.forEach((unsubscribe) => unsubscribe());
+    this.settingsWait = [];
   };
 }

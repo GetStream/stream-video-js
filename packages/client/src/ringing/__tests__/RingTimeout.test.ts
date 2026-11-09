@@ -14,6 +14,15 @@ import { CallSettingsResponse } from '../../gen/coordinator';
 
 const TIMEOUT_MS = 30_000;
 
+const buildSettings = (ring?: Partial<CallSettingsResponse['ring']>) =>
+  fromPartial<CallSettingsResponse>({
+    ring,
+    screensharing: {
+      enabled: false,
+      target_resolution: { width: 100, height: 100 },
+    },
+  });
+
 describe('RingTimeout', () => {
   const userId = 'jane';
   let call: Call;
@@ -46,15 +55,7 @@ describe('RingTimeout', () => {
     // leaving `settings` unset is how a call built from a push notification
     // looks until `get()` resolves
     if (ring) {
-      newCall.state['settingsSubject'].next(
-        fromPartial<CallSettingsResponse>({
-          ring,
-          screensharing: {
-            enabled: false,
-            target_resolution: { width: 100, height: 100 },
-          },
-        }),
-      );
+      newCall.state['settingsSubject'].next(buildSettings(ring));
     }
     newCall.state['callingStateSubject'].next(CallingState.RINGING);
 
@@ -183,6 +184,124 @@ describe('RingTimeout', () => {
     expect(ringTimeout['timeoutId']).toBeUndefined();
     await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
     expect(call.leave).not.toHaveBeenCalled();
+  });
+
+  describe('when the settings load after start()', () => {
+    const settingsSubject = () => call.state['settingsSubject'];
+    // other managers on the call listen to the settings too, so check this
+    // instance's own subscription rather than `settingsSubject.observed`
+    const isWaiting = () => ringTimeout['settingsWait'].length > 0;
+    const loadSettings = () =>
+      settingsSubject().next(
+        buildSettings({
+          auto_cancel_timeout_ms: TIMEOUT_MS,
+          incoming_call_timeout_ms: TIMEOUT_MS,
+          missed_call_timeout_ms: TIMEOUT_MS,
+        }),
+      );
+
+    it('arms once they land, counting from that moment', async () => {
+      call = ringingCall({ ring: null });
+      arm();
+
+      await vi.advanceTimersByTimeAsync(5_000);
+      loadSettings();
+      expect(ringTimeout['timeoutId']).toBeDefined();
+
+      await vi.advanceTimersByTimeAsync(TIMEOUT_MS - 1);
+      expect(call.leave).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(call.leave).toHaveBeenCalledWith({
+        reject: true,
+        reason: 'timeout',
+        message: 'ringing timeout - no one accepted',
+      });
+    });
+
+    it('stops listening to the settings once they land', () => {
+      call = ringingCall({ ring: null });
+      arm();
+      expect(isWaiting()).toBe(true);
+
+      loadSettings();
+      expect(isWaiting()).toBe(false);
+    });
+
+    it('subscribes only once across repeated start() calls', () => {
+      call = ringingCall({ ring: null });
+      arm();
+      const subscriptions = ringTimeout['settingsWait'];
+
+      ringTimeout.start();
+      expect(ringTimeout['settingsWait']).toBe(subscriptions);
+      expect(subscriptions).toHaveLength(2);
+    });
+
+    it.each([CallingState.JOINED, CallingState.LEFT])(
+      'stops waiting once the call is %s',
+      async (callingState) => {
+        call = ringingCall({ ring: null });
+        arm();
+
+        call.state['callingStateSubject'].next(callingState);
+        expect(isWaiting()).toBe(false);
+
+        // settings landing later must not arm a call that rings again
+        call.state['callingStateSubject'].next(CallingState.RINGING);
+        loadSettings();
+        await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
+        expect(call.leave).not.toHaveBeenCalled();
+      },
+    );
+
+    it('keeps waiting while the call is joining', () => {
+      call = ringingCall({ ring: null });
+      arm();
+
+      call.state['callingStateSubject'].next(CallingState.JOINING);
+      expect(isWaiting()).toBe(true);
+    });
+
+    it('does not arm when they land while paused', async () => {
+      call = ringingCall({ ring: null });
+      arm().pause();
+      expect(isWaiting()).toBe(false);
+
+      loadSettings();
+      await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
+      expect(call.leave).not.toHaveBeenCalled();
+    });
+
+    it('waits again when started after a pause', async () => {
+      call = ringingCall({ ring: null });
+      arm().pause();
+      ringTimeout.start();
+
+      loadSettings();
+      await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
+      expect(call.leave).toHaveBeenCalled();
+    });
+
+    it('does not arm when they land after stop()', async () => {
+      call = ringingCall({ ring: null });
+      arm().stop();
+      expect(isWaiting()).toBe(false);
+
+      loadSettings();
+      await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
+      expect(call.leave).not.toHaveBeenCalled();
+    });
+
+    it('does not arm when the loaded settings have no ring config', async () => {
+      call = ringingCall({ ring: null });
+      arm();
+
+      settingsSubject().next(buildSettings());
+      expect(isWaiting()).toBe(false);
+      await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
+      expect(call.leave).not.toHaveBeenCalled();
+    });
   });
 
   it('treats a zero timeout as no auto-drop', async () => {
