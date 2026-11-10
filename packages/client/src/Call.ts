@@ -1715,6 +1715,7 @@ export class Call {
     opts: { includeSubscriber?: boolean; includePublisher?: boolean } = {},
   ) => {
     const { includeSubscriber = true, includePublisher = true } = opts;
+    this.sfuStatsReporter?.setSfuClient(nextSfuClient);
     if (this.subscriber) {
       this.subscriber.setSfuClient(nextSfuClient);
       if (includeSubscriber) {

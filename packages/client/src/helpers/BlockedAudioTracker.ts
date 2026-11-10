@@ -11,6 +11,7 @@ import { timeboxed } from '../coordinator/connection/utils';
 type BlockedAudioElement = {
   element: HTMLAudioElement;
   sessionId?: string;
+  resume?: () => Promise<void>;
 };
 
 /**
@@ -86,11 +87,18 @@ export class BlockedAudioTracker {
 
   /**
    * Registers an audio element as blocked by the browser's autoplay policy.
+   *
+   * @param audioElement the audio element.
+   * @param blocked whether the element is blocked.
+   * @param sessionId the session id of the participant the element plays.
+   * @param resume starts the audio from a user gesture when it doesn't play
+   * through the element itself (e.g. Web Audio). Defaults to `element.play()`.
    */
   markBlocked = (
     audioElement: HTMLAudioElement,
     blocked: boolean,
     sessionId?: string,
+    resume?: () => Promise<void>,
   ) => {
     setCurrentValue(this.blockedElementsSubject, (elements) => {
       if (!blocked) {
@@ -101,12 +109,16 @@ export class BlockedAudioTracker {
       if (existing) {
         return elements.map((entry) =>
           entry.element === audioElement
-            ? { element: audioElement, sessionId: sessionId ?? entry.sessionId }
+            ? {
+                element: audioElement,
+                sessionId: sessionId ?? entry.sessionId,
+                resume: resume ?? entry.resume,
+              }
             : entry,
         );
       }
 
-      return [...elements, { element: audioElement, sessionId }];
+      return [...elements, { element: audioElement, sessionId, resume }];
     });
   };
 
@@ -140,9 +152,13 @@ export class BlockedAudioTracker {
       async (elements) => {
         let next = elements;
         await Promise.all(
-          elements.map(async ({ element }) => {
+          elements.map(async ({ element, resume }) => {
             try {
-              if (element.srcObject) await timeboxed([element.play()], 2000);
+              if (resume) {
+                await timeboxed([resume()], 2000);
+              } else if (element.srcObject) {
+                await timeboxed([element.play()], 2000);
+              }
               next = next.filter((entry) => entry.element !== element);
             } catch (err) {
               this.logger.warn(`Can't resume audio for element`, element, err);

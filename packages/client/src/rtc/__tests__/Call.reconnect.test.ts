@@ -27,6 +27,7 @@ import { SfuJoinError } from '../../errors';
 import { FastReconnectRejectedError } from '../../errors/FastReconnectRejectedError';
 import { settled } from '../../helpers/concurrency';
 import { promiseWithResolvers } from '../../helpers/promise';
+import { SfuStatsReporter } from '../../stats/SfuStatsReporter';
 
 vi.mock('../../StreamSfuClient', () => ({
   StreamSfuClient: vi.fn(),
@@ -907,6 +908,34 @@ describe('Call reconnect wiring (PC event → leave)', () => {
     await call['restoreICE'](sfuClient, { includeSubscriber: false });
 
     expect(restartIceSpy).toHaveBeenCalled();
+  });
+
+  it('FAST path moves stats reporting to the new SFU client', async () => {
+    const makeClient = () => ({
+      sendStats: vi.fn().mockResolvedValue({ response: {} }),
+      getTrace: vi.fn(() => undefined),
+    });
+    const previousClient = makeClient();
+    const nextClient = makeClient();
+    const reporter = new SfuStatsReporter(previousClient as never, {
+      options: { reporting_interval_ms: 1000, enable_rtc_stats: true } as never,
+      clientDetails: {} as never,
+      subscriber: {
+        stats: {
+          takeSample: vi.fn().mockResolvedValue([]),
+          clearPendingDeltas: vi.fn(),
+        },
+      } as never,
+      tracer: { take: () => ({ snapshot: [], rollback: vi.fn() }) } as never,
+      unifiedSessionId: 'unified',
+    });
+    call['sfuStatsReporter'] = reporter;
+
+    await call['restoreICE'](nextClient as never, { includeSubscriber: false });
+    await reporter.flush();
+
+    await vi.waitFor(() => expect(nextClient.sendStats).toHaveBeenCalled());
+    expect(previousClient.sendStats).not.toHaveBeenCalled();
   });
 
   /**
