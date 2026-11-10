@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.67.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.66.0...@stream-io/video-client-1.67.0) (2026-11-10)
+
+### Features
+
+- **client:** opt-in capture recovery after iOS interruptions, gesture and device-switch fixes ([#2609](https://github.com/GetStream/stream-video-js/issues/2609)) ([6372ca2](https://github.com/GetStream/stream-video-js/commit/6372ca2690d260fff65a3fad734fea1f06d949b1)), closes [#2454](https://github.com/GetStream/stream-video-js/issues/2454) [#2422](https://github.com/GetStream/stream-video-js/issues/2422)
+
+### Bug Fixes
+
+- **client:** iPadOS mobile detection, stats after FAST reconnect, Web Audio autoplay-blocked signal ([#2608](https://github.com/GetStream/stream-video-js/issues/2608)) ([ec17bc7](https://github.com/GetStream/stream-video-js/commit/ec17bc7f1992149b1ad5bd5d6cabf5d64f24412c))
+
 ## [1.66.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.65.0...@stream-io/video-client-1.66.0) (2026-11-06)
 
 ### Features
