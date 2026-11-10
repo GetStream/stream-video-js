@@ -1,5 +1,6 @@
 **/node_modules/
 **/dist/
+!packages/audio-filters-web/src/krispai/dist/
 **/.env*
 **/.DS_Store
 .yarn/*
