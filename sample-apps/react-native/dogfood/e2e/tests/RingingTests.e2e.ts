@@ -1,7 +1,7 @@
 import { afterEach, describe, it } from '@jest/globals';
 
 import {
-  E2E_RING_USER_PREFIX,
+  E2E_RING_FROM_PUSH_USER_PREFIX,
   RING_BY_PUSH,
 } from '../../src/utils/ignoreRingEventsFromWebSocket';
 import { seconds } from '../support/Element';
@@ -34,7 +34,7 @@ describe('RingingTests', () => {
   // (`incoming_call_timeout_ms`, 25s for the `default` call type) can end it.
   it('testIncomingCallEndsAfterTheRingTimeoutWhenTheSettingsArriveLate', async () => {
     const { userRobot, participantRobot } = testCase;
-    const userId = `${E2E_RING_USER_PREFIX}${Math.random().toString(36).slice(2, 10)}`;
+    const userId = `${E2E_RING_FROM_PUSH_USER_PREFIX}${Math.random().toString(36).slice(2, 10)}`;
 
     await step('GIVEN user is signed in and the app misses call.created', () =>
       userRobot.logout().login(userId),

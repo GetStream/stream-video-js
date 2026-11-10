@@ -147,7 +147,7 @@ What CI caches. GitHub only lets a PR restore caches from its own branch or the 
   the API and exits, as if the caller's app was killed. The server then only sends `call.missed`, which doesn't end the
   call. The script runs in its own process because Jest's test environment doesn't expose Node's `WebSocket`.
 - A ring can't be tested with the app killed: Detox's runner lives in the app's process, so when that process dies
-  Android force-stops the app, and then drops its pushes. `RingingTests` signs in with an id starting with `e2e_ring_`
+  Android force-stops the app, and then drops its pushes. `RingingTests` signs in with an id starting with `e2e_ring_from_push_`
   instead, and the app then ignores `call.created` from the WebSocket (`src/utils/ignoreRingEventsFromWebSocket.ts`, app
   code, not SDK code), the event an app in the background misses. `call.ring` then starts ringing before the call's
   settings arrive. CI's emulator image has no Google Play services, so no push can arrive there. To test the push path
