@@ -1846,4 +1846,153 @@ describe('DynascaleManager', () => {
       expect(dispose).toHaveBeenCalled();
     });
   });
+
+  describe('audio: autoplay blocking on the Web Audio path', () => {
+    const withContext = async (
+      initialState: AudioContextState,
+      test: (
+        context: { state: AudioContextState; resume: Mock },
+        setContextState: (state: AudioContextState) => void,
+      ) => Promise<void>,
+    ) => {
+      vi.useFakeTimers();
+      const context = Object.assign(new EventTarget(), {
+        state: initialState,
+        currentTime: 0,
+        destination: {},
+        resume: vi.fn(async () => {}),
+        suspend: vi.fn(async () => {}),
+        close: vi.fn(async () => {}),
+        createMediaStreamSource: () => ({
+          connect: (node: unknown) => node,
+          disconnect: vi.fn(),
+        }),
+        createGain: () => ({
+          gain: { value: 1 },
+          connect: (node: unknown) => node,
+          disconnect: vi.fn(),
+        }),
+      });
+      const setContextState = (state: AudioContextState) => {
+        context.state = state;
+        context.dispatchEvent(new Event('statechange'));
+      };
+      const { AudioContext } = globalThis;
+      globalThis.AudioContext = vi.fn(function () {
+        return context;
+      }) as unknown as typeof AudioContext;
+      try {
+        await test(context, setContextState);
+      } finally {
+        globalThis.AudioContext = AudioContext;
+        vi.useRealTimers();
+      }
+    };
+
+    const bindRemoteAudio = () => {
+      dynascaleManager.setUseWebAudio(true);
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      const play = vi.spyOn(audioElement, 'play').mockResolvedValue();
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+      call.state.updateParticipant('session-id', {
+        audioStream: new MediaStream(),
+      });
+      vi.runOnlyPendingTimers();
+      return { audioElement, play, cleanup };
+    };
+
+    const isBlocked = () =>
+      getCurrentValue(call.blockedAudioTracker.autoplayBlocked$);
+
+    it('reports blocked audio until the shared context runs', async () => {
+      await withContext('suspended', async (_, setContextState) => {
+        const { audioElement, cleanup } = bindRemoteAudio();
+
+        expect(isBlocked()).toBe(true);
+        expect(
+          getCurrentValue(call.blockedAudioTracker.blockedSessionIds$),
+        ).toEqual(['session-id']);
+
+        // the muted element playing doesn't mean the audio is audible
+        audioElement.dispatchEvent(new Event('playing'));
+        expect(isBlocked()).toBe(true);
+
+        setContextState('running');
+        expect(isBlocked()).toBe(false);
+        cleanup?.();
+      });
+    });
+
+    it('resumeAudio resumes the shared context', async () => {
+      await withContext('suspended', async (context, setContextState) => {
+        const { play, cleanup } = bindRemoteAudio();
+        expect(isBlocked()).toBe(true);
+
+        context.resume.mockClear();
+        context.resume.mockImplementation(async () => {
+          setContextState('running');
+        });
+        await call.resumeAudio();
+
+        expect(context.resume).toHaveBeenCalledTimes(1);
+        expect(play).not.toHaveBeenCalled();
+        expect(isBlocked()).toBe(false);
+        cleanup?.();
+      });
+    });
+
+    it('keeps reporting blocked audio when the context stays suspended', async () => {
+      await withContext('suspended', async (context) => {
+        const { cleanup } = bindRemoteAudio();
+        context.resume.mockRejectedValue(new Error('NotAllowedError'));
+
+        await call.resumeAudio();
+
+        expect(isBlocked()).toBe(true);
+        cleanup?.();
+        expect(isBlocked()).toBe(false);
+      });
+    });
+
+    it('does not report an interrupted context as blocked', async () => {
+      await withContext('running', async (context, setContextState) => {
+        const { cleanup } = bindRemoteAudio();
+        expect(isBlocked()).toBe(false);
+
+        context.resume.mockClear();
+        setContextState('interrupted');
+        expect(isBlocked()).toBe(false);
+
+        await call.resumeAudio();
+        expect(context.resume).not.toHaveBeenCalled();
+        cleanup?.();
+      });
+    });
+
+    it('stops reporting blocked audio and never resumes once interrupted', async () => {
+      await withContext('suspended', async (context, setContextState) => {
+        const { cleanup } = bindRemoteAudio();
+        expect(isBlocked()).toBe(true);
+
+        context.resume.mockClear();
+        setContextState('interrupted');
+        expect(isBlocked()).toBe(false);
+
+        await call.resumeAudio();
+        expect(context.resume).not.toHaveBeenCalled();
+        cleanup?.();
+      });
+    });
+  });
 });

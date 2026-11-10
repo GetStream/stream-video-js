@@ -69,13 +69,13 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     try {
       await this.unmuteStream();
     } catch (error) {
-      if (error instanceof Error && error.name === 'NotReadableError') {
-        // the camera is already in use, and the device can't use it unless it's released.
-        // in that case, we need to stop the stream and start it again.
-        await this.muteStream();
-        await this.unmuteStream();
+      if (!(error instanceof Error) || error.name !== 'NotReadableError') {
+        throw error;
       }
-      throw error;
+      // the camera is already in use, and the device can't use it unless it's released.
+      // in that case, we need to stop the stream and start it again.
+      await this.muteStream();
+      await this.unmuteStream();
     }
   }
 
