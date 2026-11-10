@@ -27,5 +27,10 @@ RUN yarn build:react:deps
 
 COPY ./sample-apps/ ./sample-apps/
 
-RUN chown -R node:node /e2e /ms-playwright
+ARG LOCAL_UID=1000
+ARG LOCAL_GID=1000
+RUN test "$LOCAL_UID" -gt 0 \
+    && groupmod --non-unique --gid "$LOCAL_GID" node \
+    && usermod --non-unique --uid "$LOCAL_UID" --gid "$LOCAL_GID" node \
+    && chown -R node:node /home/node /e2e /ms-playwright
 USER node
