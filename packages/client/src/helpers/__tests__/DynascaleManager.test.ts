@@ -917,6 +917,76 @@ describe('DynascaleManager', () => {
       cleanup?.();
     });
 
+    describe('video: play on user gesture', () => {
+      const bindPausedVideoElement = () => {
+        Object.defineProperties(videoElement, {
+          paused: { writable: true, configurable: true },
+          readyState: { writable: true, configurable: true },
+        });
+        // @ts-expect-error simulate paused, ready-to-play element
+        videoElement.paused = true;
+        // @ts-expect-error simulate paused, ready-to-play element
+        videoElement.readyState = 4;
+        const play = vi.spyOn(videoElement, 'play');
+
+        // @ts-expect-error incomplete data
+        call.state.updateOrAddParticipant('session-id', {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          publishedTracks: [TrackType.VIDEO],
+        });
+        const cleanup = dynascaleManager.bindVideoElement(
+          videoElement,
+          'session-id',
+          'videoTrack',
+        );
+        call.state.updateParticipant('session-id', {
+          videoStream: new MediaStream(),
+        });
+        vi.runAllTimers();
+        return { play, cleanup };
+      };
+
+      beforeEach(() => {
+        vi.useFakeTimers();
+        globalThis._isIOS = true;
+      });
+
+      afterEach(() => {
+        dynascaleManager.releaseAudioPlaybackUnlock();
+        globalThis._isIOS = undefined;
+      });
+
+      it('plays a paused video', async () => {
+        const { play, cleanup } = bindPausedVideoElement();
+        play.mockResolvedValue();
+        dynascaleManager.keepAudioPlaybackUnlocked();
+        videoElement.dispatchEvent(new Event('pause'));
+        await vi.advanceTimersByTimeAsync(6000);
+        const callsBeforeGesture = play.mock.calls.length;
+
+        document.body.dispatchEvent(new Event('touchend', { bubbles: true }));
+
+        expect(play.mock.calls.length).toBe(callsBeforeGesture + 1);
+        cleanup?.();
+      });
+
+      it('leaves a playing video alone', async () => {
+        const { play, cleanup } = bindPausedVideoElement();
+        play.mockResolvedValue();
+        dynascaleManager.keepAudioPlaybackUnlocked();
+        await vi.advanceTimersByTimeAsync(6000);
+        // @ts-expect-error simulate a playing element
+        videoElement.paused = false;
+        const callsWhilePlaying = play.mock.calls.length;
+
+        document.body.dispatchEvent(new Event('touchend', { bubbles: true }));
+
+        expect(play.mock.calls.length).toBe(callsWhilePlaying);
+        cleanup?.();
+      });
+    });
+
     it('video: watchdog re-plays element after a pause event', async () => {
       vi.useFakeTimers();
       Object.defineProperties(videoElement, {
