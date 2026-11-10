@@ -6,7 +6,6 @@ import {
   useDeviceSelectionPreference,
 } from '../hooks/useDeviceSelectionPreference';
 import { ThemeMode, useThemeMode } from '../hooks/useThemeMode';
-import { usePersistedToggle } from '../hooks/usePersistedToggle';
 import { usePersistedChoice } from '../hooks/usePersistedChoice';
 import {
   NOISE_CANCELLATION_MODELS,
@@ -65,8 +64,9 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
   const { language, setLanguage } = useLanguage();
   const { deviceSelectionPreference, setDeviceSelectionPreference } =
     useDeviceSelectionPreference();
-  const [speakingDetectionEnabled, setSpeakingDetectionEnabled] =
-    usePersistedToggle('@pronto/speaking-detection-enabled', true);
+  const [speakingDetectionEnabled, setSpeakingDetectionEnabled] = useState(
+    defaultState.speakingDetectionEnabled,
+  );
   const [noiseCancellationModel, setNoiseCancellationModel] =
     usePersistedChoice(
       '@pronto/noise-cancellation-model',
