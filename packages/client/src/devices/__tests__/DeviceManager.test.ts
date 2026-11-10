@@ -25,6 +25,7 @@ import { TrackType } from '../../gen/video/sfu/models/models';
 import { PermissionsContext } from '../../permissions';
 import { defaultDeviceId, readPreferences } from '../devicePersistence';
 import { promiseWithResolvers } from '../../helpers/promise';
+import { setCurrentValue } from '../../store/rxUtils';
 
 vi.mock('../../reporting/ClientEventReporter', () => ({
   ClientEventReporter: vi.fn(function () {
@@ -805,6 +806,7 @@ describe('Device Manager', () => {
       beforeEach(() => {
         vi.useFakeTimers();
         setUserAgent(IPHONE_UA);
+        manager.resumeAfterInterruption = true;
       });
 
       afterEach(() => {
@@ -829,6 +831,74 @@ describe('Device Manager', () => {
 
         expect(manager.state.status).toBe('enabled');
         expect(manager.getStream).toHaveBeenCalledTimes(2);
+      });
+
+      it('stays disabled unless resumeAfterInterruption is turned on', async () => {
+        manager.resumeAfterInterruption = false;
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+        await endTrack(track);
+        await vi.advanceTimersByTimeAsync(10_000);
+        expect(manager.state.status).toBe('disabled');
+        expect(manager.getStream).toHaveBeenCalledTimes(1);
+      });
+
+      const setExtraOpts = (extraOpts: Record<string, unknown>) => {
+        setCurrentValue(manager['call'].state['settingsSubject'], {
+          extra_opts: extraOpts,
+        } as any);
+      };
+
+      it('follows the call settings when the app has not set it', async () => {
+        manager.resumeAfterInterruption = undefined;
+        setExtraOpts({ video: { resume_after_interruption: true } });
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+        await endTrack(track);
+
+        await vi.advanceTimersByTimeAsync(1000);
+
+        expect(manager.state.status).toBe('enabled');
+      });
+
+      it('ignores the call settings of the other device kind', async () => {
+        manager.resumeAfterInterruption = undefined;
+        setExtraOpts({ audio: { resume_after_interruption: true } });
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+        await endTrack(track);
+        await vi.advanceTimersByTimeAsync(10_000);
+        expect(manager.state.status).toBe('disabled');
+      });
+
+      it('lets the app turn it off against the call settings', async () => {
+        manager.resumeAfterInterruption = false;
+        setExtraOpts({ video: { resume_after_interruption: true } });
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+        await endTrack(track);
+        await vi.advanceTimersByTimeAsync(10_000);
+        expect(manager.state.status).toBe('disabled');
+      });
+
+      it('is turned off by default', () => {
+        const streamClient = new StreamClient('abc123');
+        const fresh = new TestInputMediaDeviceManager(
+          new Call({
+            id: '',
+            type: '',
+            streamClient,
+            videoApi: new VideoApi(new ApiClient(streamClient)),
+            clientEventReporter: new ClientEventReporter({ streamClient }),
+            clientState: new ClientState(),
+          }),
+        );
+        expect(fresh.resumeAfterInterruption).toBeUndefined();
+        fresh.dispose();
       });
 
       it('stays disabled when the track ends without an interruption', async () => {

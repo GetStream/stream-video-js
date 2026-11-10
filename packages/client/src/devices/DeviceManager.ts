@@ -23,6 +23,7 @@ import { isMobile } from '../helpers/compatibility';
 import { isIOS, isWebKit } from '../helpers/browsers';
 import { sharedAudioContext } from '../helpers/SharedAudioContext';
 import { USER_GESTURE_EVENTS } from '../helpers/userGestures';
+import { getCallExtraOpts } from '../helpers/extraOpts';
 import { isReactNative } from '../helpers/platforms';
 import { ScopedLogger, videoLoggerSystem } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
@@ -65,6 +66,19 @@ export abstract class DeviceManager<
    * if true, stops the media stream when call is left
    */
   stopOnLeave = true;
+  /**
+   * When `true`, the device is turned on again once an interruption that
+   * made the system end its track is over (e.g. a phone call or Siri on
+   * iOS). When `false`, the device stays off until the user turns it on
+   * again, so nothing is captured without a user action.
+   *
+   * Left unset, the call settings decide, and without a value there the
+   * device stays off.
+   *
+   * Only applies to the camera and the microphone on iOS browsers and
+   * WebViews.
+   */
+  resumeAfterInterruption: boolean | undefined = undefined;
   logger: ScopedLogger;
 
   state: S;
@@ -816,6 +830,7 @@ export abstract class DeviceManager<
    * Siri or another app, and doesn't restart them afterwards.
    */
   private isEndedByInterruption = () => {
+    if (!this.shouldResumeAfterInterruption()) return false;
     if (isReactNative() || !isIOS()) return false;
     if (
       this.trackType !== TrackType.AUDIO &&
@@ -828,6 +843,21 @@ export abstract class DeviceManager<
       !!localParticipant?.interruptedTracks?.includes(this.trackType) ||
       this.isCaptureInterrupted()
     );
+  };
+
+  /**
+   * The value the app set wins, then `resume_after_interruption` of this
+   * device kind in the call settings (`extra_opts.audio` or
+   * `extra_opts.video`). Off without either.
+   */
+  private shouldResumeAfterInterruption = () => {
+    if (this.resumeAfterInterruption !== undefined) {
+      return this.resumeAfterInterruption;
+    }
+    const extraOpts = getCallExtraOpts(this.call.state.settings);
+    const group =
+      this.trackType === TrackType.AUDIO ? extraOpts.audio : extraOpts.video;
+    return group?.resume_after_interruption === true;
   };
 
   private isCaptureInterrupted = () => {

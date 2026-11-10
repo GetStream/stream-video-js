@@ -31,9 +31,10 @@ export type NoiseCancellationEngineName =
  * - `_chrome`: Chromium browsers and shells, including Android WebViews and
  *   Electron.
  *
- * Groups (`audio`, `media_constraints`, `noise_cancellation`) take no
+ * Groups (`audio`, `video`, `media_constraints`, `noise_cancellation`) take no
  * suffix: their options do. Options the SDK only applies on some platforms
- * (`use_web_audio`: WebKit, `play_silence`: iOS) have no effect elsewhere,
+ * (`use_web_audio`: WebKit, `play_silence` and `resume_after_interruption`:
+ * iOS) have no effect elsewhere,
  * whatever the suffix.
  *
  * @internal
@@ -48,6 +49,10 @@ export type CallExtraOpts = {
     };
     use_web_audio?: boolean;
     play_silence?: boolean;
+    resume_after_interruption?: boolean;
+  };
+  video?: {
+    resume_after_interruption?: boolean;
   };
   noise_cancellation?: {
     enabled_in_safari?: boolean;
@@ -128,6 +133,7 @@ export const getCallExtraOpts = (
     readOption(record, key, suffix);
 
   const audio = asRecord(extraOpts.audio);
+  const video = asRecord(extraOpts.video);
   const mediaConstraints = asRecord(audio?.media_constraints);
   const noiseCancellation = asRecord(extraOpts.noise_cancellation);
 
@@ -149,6 +155,14 @@ export const getCallExtraOpts = (
       },
       use_web_audio: asBoolean(read(audio, 'use_web_audio')),
       play_silence: asBoolean(read(audio, 'play_silence')),
+      resume_after_interruption: asBoolean(
+        read(audio, 'resume_after_interruption'),
+      ),
+    },
+    video: video && {
+      resume_after_interruption: asBoolean(
+        read(video, 'resume_after_interruption'),
+      ),
     },
     noise_cancellation: noiseCancellation && {
       enabled_in_safari: asBoolean(
