@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   DropDownSelect,
   DropDownSelectOption,
@@ -105,6 +105,9 @@ export const DevMenu = () => {
       </li>
       <li className="rd__dev-menu__item">
         <RestartSubscriber />
+      </li>
+      <li>
+        <ToggleResumeAfterInterruption />
       </li>
 
       <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
@@ -598,6 +601,29 @@ const RestartPublisher = () => {
     >
       <Icon className="rd__button__icon" icon="recording-off" />
       ICERestart Publisher
+    </button>
+  );
+};
+
+const ToggleResumeAfterInterruption = () => {
+  const call = useCall();
+  const [enabled, setEnabled] = useState(
+    () => call?.microphone.resumeAfterInterruption ?? false,
+  );
+  return (
+    <button
+      className="rd__button rd__button--align-left"
+      hidden={!call}
+      onClick={() => {
+        if (!call) return;
+        const next = !enabled;
+        call.microphone.resumeAfterInterruption = next;
+        call.camera.resumeAfterInterruption = next;
+        setEnabled(next);
+      }}
+    >
+      <Icon className="rd__button__icon" icon="mic" />
+      Resume mic/camera after interruption: {enabled ? 'on' : 'off'}
     </button>
   );
 };
