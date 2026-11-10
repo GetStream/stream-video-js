@@ -1,5 +1,6 @@
 import type { RTCStatsDataType, Tracer } from '../stats';
 import { isWebKit } from './browsers';
+import { USER_GESTURE_EVENTS } from './userGestures';
 
 /**
  * A reference to the shared {@link AudioContext}. Call `release` once done
@@ -14,8 +15,6 @@ type InterruptionListener = (
   interrupted: boolean,
   state: AudioContextState,
 ) => void;
-
-const GESTURE_EVENTS = ['click', 'touchend', 'keydown'] as const;
 
 /**
  * One {@link AudioContext} shared by the SDK's analysers, detectors, and the
@@ -173,7 +172,7 @@ export class SharedAudioContext {
     };
     const controller = new AbortController();
     const options = { capture: true, passive: true, signal: controller.signal };
-    GESTURE_EVENTS.forEach((type) =>
+    USER_GESTURE_EVENTS.forEach((type) =>
       document.addEventListener(type, onGesture, options),
     );
     this.stopWatchingGestures = () => controller.abort();

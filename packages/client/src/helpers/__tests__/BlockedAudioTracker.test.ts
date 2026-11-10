@@ -155,7 +155,7 @@ describe('BlockedAudioTracker', () => {
     expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(false);
   });
 
-  it.each(['click', 'keydown'])(
+  it.each(['click', 'touchend', 'keydown'])(
     'resumes blocked audio on a %s anywhere on the page',
     async (type) => {
       const el = createAudioElement();
@@ -170,6 +170,15 @@ describe('BlockedAudioTracker', () => {
       );
     },
   );
+
+  it('stops listening for touchend once nothing is blocked', () => {
+    const el = createAudioElement();
+    const play = vi.spyOn(el, 'play').mockResolvedValue();
+    tracker.markBlocked(el, true, 'session-id');
+    tracker.markBlocked(el, false);
+    document.body.dispatchEvent(new Event('touchend', { bubbles: true }));
+    expect(play).not.toHaveBeenCalled();
+  });
 
   it('stops listening for user gestures once nothing is blocked', () => {
     const el = createAudioElement();

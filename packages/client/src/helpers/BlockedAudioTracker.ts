@@ -7,6 +7,7 @@ import {
   setCurrentValueAsync,
 } from '../store/rxUtils';
 import { timeboxed } from '../coordinator/connection/utils';
+import { USER_GESTURE_EVENTS } from './userGestures';
 
 type BlockedAudioElement = {
   element: HTMLAudioElement;
@@ -27,8 +28,8 @@ export class BlockedAudioTracker {
   /**
    * Whether the browser's autoplay policy is blocking audio playback.
    * Will be `true` when at least one audio element is currently blocked.
-   * Use {@link resumeAudio} within a user gesture to unblock. Any click or
-   * key press on the page unblocks it as well.
+   * Use {@link resumeAudio} within a user gesture to unblock. Any click, tap
+   * or key press on the page unblocks it as well.
    */
   autoplayBlocked$ = this.blockedElementsSubject.pipe(
     map((elements) => elements.length > 0),
@@ -69,7 +70,7 @@ export class BlockedAudioTracker {
    */
   private toggleResumeOnGesture = (blocked: boolean) => {
     if (typeof document === 'undefined') return;
-    for (const type of ['click', 'keydown'] as const) {
+    for (const type of USER_GESTURE_EVENTS) {
       if (blocked) {
         document.addEventListener(type, this.resumeOnGesture, true);
       } else {

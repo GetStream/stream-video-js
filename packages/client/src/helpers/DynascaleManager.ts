@@ -34,6 +34,7 @@ import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
 import { timeboxed } from '../coordinator/connection/utils';
 import { getCallExtraOpts } from './extraOpts';
+import { USER_GESTURE_EVENTS } from './userGestures';
 
 /**
  * A manager class that handles dynascale related tasks like:
@@ -625,9 +626,9 @@ export class DynascaleManager {
   };
 
   /**
-   * Audio rejected outside a user gesture starts on the next one: the silent
-   * element and any paused or autoplay-blocked remote audio. A tap on the
-   * visible page means the user is back, so it also lifts an interruption
+   * Media rejected outside a user gesture starts on the next one: the silent
+   * element and any paused or autoplay-blocked remote audio or video. A tap
+   * on the visible page means the user is back, so it also lifts an interruption
    * WebKit never ended. A pending restart waits for the shared context to
    * run again. Skipped while a restart is in progress, which plays the
    * elements itself.
@@ -638,13 +639,11 @@ export class DynascaleManager {
       if (document.hidden || this.restartTimer) return;
       sharedAudioContext.clearInterruption();
       this.silentAudioPlayer.resume();
-      this.playbackWatchdogs.forEach((watchdog) => {
-        if (watchdog.kind === 'audio') watchdog.playOnGesture();
-      });
+      this.playbackWatchdogs.forEach((watchdog) => watchdog.playOnGesture());
     };
     const controller = new AbortController();
     const options = { capture: true, passive: true, signal: controller.signal };
-    ['click', 'touchend', 'keydown'].forEach((type) =>
+    USER_GESTURE_EVENTS.forEach((type) =>
       document.addEventListener(type, onGesture, options),
     );
     this.stopWatchingGestures = () => controller.abort();
