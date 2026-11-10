@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.12.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.12.1...@stream-io/audio-filters-web-0.12.2) (2026-11-10)
+
+### Bug Fixes
+
+- **audio-filters-web:** default FastEnhancer to the small model ([#2599](https://github.com/GetStream/stream-video-js/issues/2599)) ([b8adeec](https://github.com/GetStream/stream-video-js/commit/b8adeec24c020c4daa9126dec6b80391353de805)), closes [#2588](https://github.com/GetStream/stream-video-js/issues/2588)
+
 ## [0.12.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.12.0...@stream-io/audio-filters-web-0.12.1) (2026-11-06)
 
 ### Bug Fixes
