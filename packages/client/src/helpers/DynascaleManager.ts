@@ -406,6 +406,8 @@ export class DynascaleManager {
     let gainNode: GainNode | undefined = undefined;
     let audioWatchdog: MediaPlaybackWatchdog | undefined = undefined;
     let blockedByGiveUp = false;
+    let playsThroughWebAudio = false;
+    let stopWatchingAudioContext: (() => void) | undefined;
 
     const clearBlockedAudio = () => {
       blockedByGiveUp = false;
@@ -417,7 +419,24 @@ export class DynascaleManager {
     const onPlaying = () => {
       if (audioElement.paused) return;
       this.silentAudioPlayer.resume();
-      clearBlockedAudio();
+      // the muted element plays even while the audio context is blocked
+      if (!playsThroughWebAudio) clearBlockedAudio();
+    };
+
+    /**
+     * On the Web Audio path, the audio is blocked while the autoplay policy
+     * keeps the shared audio context from starting.
+     */
+    const syncWebAudioBlocked = () => {
+      const blocked =
+        playsThroughWebAudio && sharedAudioContext.isAutoplayBlocked();
+      if (blocked === this.blockedAudioTracker.isBlocked(audioElement)) return;
+      this.blockedAudioTracker.markBlocked(
+        audioElement,
+        blocked,
+        sessionId,
+        sharedAudioContext.resumeFromGesture,
+      );
     };
     audioElement.addEventListener('playing', onPlaying);
 
@@ -449,6 +468,7 @@ export class DynascaleManager {
           this.disposePlaybackWatchdog(audioWatchdog);
           audioWatchdog = undefined;
           if (!source) {
+            playsThroughWebAudio = false;
             clearBlockedAudio();
             return;
           }
@@ -469,6 +489,10 @@ export class DynascaleManager {
             gainNode ??= audioContext.createGain();
             gainNode.gain.value = p.audioVolume ?? this.speaker.state.volume;
             sourceNode.connect(gainNode).connect(audioContext.destination);
+            playsThroughWebAudio = true;
+            stopWatchingAudioContext ??=
+              sharedAudioContext.watchState(syncWebAudioBlocked);
+            syncWebAudioBlocked();
           } else {
             // we will play audio directly through the audio element in other browsers
             audioElement.muted = false;
@@ -546,6 +570,7 @@ export class DynascaleManager {
 
     return () => {
       audioElement.removeEventListener('playing', onPlaying);
+      stopWatchingAudioContext?.();
       clearBlockedAudio();
       sinkIdSubscription?.unsubscribe();
       volumeSubscription.unsubscribe();
