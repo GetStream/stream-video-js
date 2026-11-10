@@ -67,9 +67,6 @@ export const BottomControls = () => {
 };
 
 const useStyles = () => {
-  const {
-    theme: { primitives },
-  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
@@ -84,29 +81,7 @@ const useStyles = () => {
         right: {
           flexDirection: 'row',
         },
-        containerLandscape: {
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          paddingTop: primitives.spacingSm,
-          paddingBottom: primitives.spacingSm,
-          // matches the top controls' horizontal padding so hang-up lines up
-          paddingHorizontal: primitives.spacingMd,
-        },
-        // a ScrollView grows by default and would take width from the video
-        landscapeScroll: {
-          flexGrow: 0,
-          flexShrink: 0,
-        },
-        landscapeContent: {
-          flexGrow: 1,
-        },
-        groupLandscape: {
-          flex: 0,
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'flex-start',
-        },
       }),
-    [primitives],
+    [],
   );
 };
