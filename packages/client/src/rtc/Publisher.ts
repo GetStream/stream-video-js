@@ -8,9 +8,11 @@ import {
 import { isFirefox } from '../helpers/browsers';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { isReactNative } from '../helpers/platforms';
+import { promiseWithResolvers } from '../helpers/promise';
 import { BasePeerConnection } from './BasePeerConnection';
 import { isSvcCodec } from './codecs';
 import {
+  contentHintToRTCDegradationPreference,
   fromRTCDegradationPreference,
   toRTCDegradationPreference,
 } from './helpers/degradationPreference';
@@ -41,6 +43,7 @@ export class Publisher extends BasePeerConnection {
   private publishOptions: PublishOption[];
   private readonly selfSubEnabled: boolean;
   private readonly transceiverLockKey = `pub.tx.${this.lock}`;
+  private readonly disposed = promiseWithResolvers<void>();
 
   /**
    * Constructs a new `Publisher` instance.
@@ -85,12 +88,9 @@ export class Publisher extends BasePeerConnection {
    */
   async dispose(): Promise<void> {
     await super.dispose();
-    try {
-      await this.stopAllTracks();
-    } catch (err) {
-      this.logger.warn('Failed to stop tracks during dispose', err);
-    }
+    this.stopAllTracks();
     this.clonedTracks.clear();
+    this.disposed.resolve();
   }
 
   /**
@@ -150,6 +150,16 @@ export class Publisher extends BasePeerConnection {
     const sendEncodings = isSvcCodec(publishOption.codec?.name)
       ? toSvcEncodings(encodings)
       : encodings;
+    // on a constrained uplink, let the screen share out-bid the camera.
+    // priority is per sender: Chrome and Safari reject it on any encoding
+    // other than the first one. networkPriority is left unset on purpose:
+    // a non-default value takes audio out of libwebrtc's bitrate allocation.
+    const priority: RTCPriorityType | undefined = isAudioTrackType(trackType)
+      ? 'high'
+      : trackType === TrackType.SCREEN_SHARE
+        ? 'medium'
+        : undefined;
+    if (priority && sendEncodings?.[0]) sendEncodings[0].priority = priority;
     // An E2EE sender must never have media before its transform is attached,
     // including when another track or an ICE restart negotiates this PC.
     const transceiver = this.pc.addTransceiver(this.e2ee ? track.kind : track, {
@@ -164,9 +174,18 @@ export class Publisher extends BasePeerConnection {
     this.logger.debug(`Added ${TrackType[trackType]} transceiver`);
 
     if (this.e2ee) {
-      await this.initEncryptedSender(transceiver, track, publishOption);
+      await this.initEncryptedSender(
+        transceiver,
+        track,
+        publishOption,
+        options,
+      );
     } else {
-      await this.setDegradationPreference(transceiver.sender, publishOption);
+      await this.setDegradationPreference(
+        transceiver.sender,
+        publishOption,
+        options,
+      );
     }
 
     await this.negotiate();
@@ -183,13 +202,14 @@ export class Publisher extends BasePeerConnection {
     transceiver: RTCRtpTransceiver,
     track: MediaStreamTrack,
     publishOption: PublishOption,
+    options: TrackPublishOptions,
   ) => {
     try {
       const { sender } = transceiver;
       const codec = publishOption.codec?.name.toLowerCase();
       this.e2ee!.encrypt(sender, codec, TrackType[publishOption.trackType]);
       this.logger.debug('E2EE encryptor attached to sender');
-      await this.setDegradationPreference(sender, publishOption);
+      await this.setDegradationPreference(sender, publishOption, options);
       await sender.replaceTrack(track);
     } catch (err) {
       this.retireTransceiver(transceiver, track);
@@ -197,12 +217,21 @@ export class Publisher extends BasePeerConnection {
     }
   };
 
+  /**
+   * Applies the degradation preference implied by the video track's content
+   * hint, falling back to the SFU's preference when the app set no hint.
+   */
   private setDegradationPreference = async (
     sender: RTCRtpSender,
     publishOption: PublishOption,
+    options: TrackPublishOptions,
   ) => {
     const params = sender.getParameters();
+    const hintedPreference = isAudioTrackType(publishOption.trackType)
+      ? undefined
+      : contentHintToRTCDegradationPreference(options.contentHint);
     params.degradationPreference =
+      hintedPreference ??
       toRTCDegradationPreference(publishOption.degradationPreference) ??
       'maintain-framerate';
     await sender.setParameters(params);
@@ -244,6 +273,17 @@ export class Publisher extends BasePeerConnection {
     const trackType = publishOption.trackType;
     const sender = transceiver.sender;
     if (sender.track) this.trackIdToTrackType.delete(sender.track.id);
+    if (
+      track &&
+      !isAudioTrackType(trackType) &&
+      bundle.options.contentHint !== options.contentHint
+    ) {
+      // changePublishQuality also writes this sender's parameters
+      await withoutConcurrency(this.eventLockKey('changePublishQuality'), () =>
+        this.setDegradationPreference(sender, publishOption, options),
+      );
+      this.transceiverCache.update(publishOption, { options });
+    }
     await sender.replaceTrack(track);
     if (track) {
       this.trackIdToTrackType.set(track.id, trackType);
@@ -380,9 +420,13 @@ export class Publisher extends BasePeerConnection {
 
   /**
    * Stops the cloned track that is being published to the SFU.
+   *
+   * Settles once this Publisher is disposed, as dispose() stops every track:
+   * a `changePublishQuality` handler stuck on a `setParameters()` that never
+   * settles after close would otherwise keep this call queued forever.
    */
   stopTracks = async (...trackTypes: TrackType[]) => {
-    return withoutConcurrency(
+    const stopping = withoutConcurrency(
       this.eventLockKey('changePublishQuality'),
       async () => {
         for (const item of this.transceiverCache.items()) {
@@ -394,25 +438,23 @@ export class Publisher extends BasePeerConnection {
         }
       },
     );
+    return Promise.race([stopping, this.disposed.promise]);
   };
 
   /**
    * Stops all the cloned tracks that are being published to the SFU.
+   *
+   * Takes no lock, as it runs after the peer connection is closed: a
+   * `setParameters()` pending at that point may never settle (Chromium),
+   * so a `changePublishQuality` handler awaiting it never releases its lock.
    */
-  stopAllTracks = async () => {
-    return withoutConcurrency(
-      this.eventLockKey('changePublishQuality'),
-      async () => {
-        for (const item of this.transceiverCache.items()) {
-          const track = item.transceiver.sender.track;
-          await this.silenceSenderOnFirefox(item);
-          this.stopTrack(track);
-        }
-        for (const track of this.clonedTracks) {
-          this.stopTrack(track);
-        }
-      },
-    );
+  stopAllTracks = () => {
+    for (const item of this.transceiverCache.items()) {
+      this.stopTrack(item.transceiver.sender.track);
+    }
+    for (const track of this.clonedTracks) {
+      this.stopTrack(track);
+    }
   };
 
   private changePublishQuality = async (
@@ -485,9 +527,12 @@ export class Publisher extends BasePeerConnection {
       }
     }
 
-    const degradationPreference = toRTCDegradationPreference(
-      videoSender.degradationPreference,
-    );
+    // a content hint was applied on publish and takes precedence over the SFU
+    const degradationPreference = contentHintToRTCDegradationPreference(
+      bundle?.options.contentHint,
+    )
+      ? undefined
+      : toRTCDegradationPreference(videoSender.degradationPreference);
     if (
       degradationPreference &&
       params.degradationPreference !== degradationPreference
@@ -680,7 +725,11 @@ export class Publisher extends BasePeerConnection {
 
   private stopTrack = (track: MediaStreamTrack | null | undefined) => {
     if (!track) return;
-    track.stop();
+    try {
+      track.stop();
+    } catch (err) {
+      this.logger.warn('Failed to stop track', err);
+    }
     this.clonedTracks.delete(track);
   };
 

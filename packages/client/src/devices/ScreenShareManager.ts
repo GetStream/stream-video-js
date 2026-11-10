@@ -10,6 +10,8 @@ import { getScreenShareStream } from './devices';
 import { ScreenShareSettings } from '../types';
 import { createSubscription } from '../store/rxUtils';
 import { normalize } from './devicePersistence';
+import { TrackPublishOptions } from '../rtc';
+import { getCallExtraOpts } from '../helpers/extraOpts';
 
 export class ScreenShareManager extends AudioDeviceManager<
   ScreenShareState,
@@ -95,7 +97,7 @@ export class ScreenShareManager extends AudioDeviceManager<
     await this.call.ensureMediaFactory();
     const stream = await getScreenShareStream(constraints, this.call.tracer);
     const [track] = stream.getVideoTracks();
-    const { contentHint } = this.state.settings || {};
+    const contentHint = this.resolveContentHint();
     if (typeof contentHint !== 'undefined' && track && 'contentHint' in track) {
       this.call.tracer.trace(
         'navigator.mediaDevices.getDisplayMedia.contentHint',
@@ -105,6 +107,33 @@ export class ScreenShareManager extends AudioDeviceManager<
     }
     return stream;
   }
+
+  /**
+   * Overrides the default `publishStream` method to inject the content hint.
+   */
+  protected override publishStream(
+    stream: MediaStream,
+    options?: TrackPublishOptions,
+  ): Promise<void> {
+    return super.publishStream(stream, {
+      contentHint: this.resolveContentHint(),
+      ...options,
+    });
+  }
+
+  /**
+   * Resolves the content hint for the screen share track: the one set through
+   * {@link setSettings} wins, then `extra_opts.screenshare_content_hint` from
+   * the call settings, otherwise
+   * `undefined` and the browser decides.
+   *
+   * @internal
+   */
+  resolveContentHint = (): ScreenShareSettings['contentHint'] => {
+    const contentHint = this.state.settings?.contentHint;
+    if (typeof contentHint !== 'undefined') return contentHint;
+    return getCallExtraOpts(this.call.state.settings).screenshare_content_hint;
+  };
 
   protected override doSetAudioBitrateProfile(profile: AudioBitrateProfile) {
     const { defaultConstraints } = this.state;

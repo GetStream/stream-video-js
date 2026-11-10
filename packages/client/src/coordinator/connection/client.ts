@@ -656,6 +656,15 @@ export class StreamClient {
     return this.tokenManager.getToken();
   };
 
+  /**
+   * Checks that the coordinator WebSocket still reaches the server, even
+   * when an `offline` event marked it unhealthy.
+   *
+   * @returns `false` without an open connection.
+   */
+  probeConnection = (): Promise<boolean> =>
+    this.wsConnection?.probe() ?? Promise.resolve(false);
+
   updateNetworkConnectionStatus = (
     event: { type: 'online' | 'offline' } | Event,
   ) => {

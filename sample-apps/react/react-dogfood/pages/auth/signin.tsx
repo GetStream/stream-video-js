@@ -8,9 +8,9 @@ import {
   useIsDemoEnvironment,
   useIsRestrictedEnvironment,
 } from '../../context/AppEnvironmentContext';
-import { getRandomName } from '../../lib/names';
+import { getSavedDisplayName } from '../../hooks/useSavedDisplayName';
 
-import { authOptions } from '../api/auth/[...nextauth]';
+import { authOptions, signsInAutomatically } from '../api/auth/[...nextauth]';
 import clsx from 'clsx';
 import { useAppI18n } from '../../hooks/useAppI18n';
 
@@ -23,25 +23,25 @@ type ProntoProviders = Record<string, ProntoProvider>;
 
 export default function SignIn({
   providers,
+  autoSignInAllowed,
 }: {
   providers: ProntoProviders;
-  randomName: string;
+  autoSignInAllowed: boolean;
 }) {
   const { t } = useAppI18n();
   const params = useSearchParams();
   const callbackUrl =
     params.get('callbackUrl') || process.env.NEXT_PUBLIC_BASE_PATH || '/';
-  const signInAutomatically = Boolean(params.get('signIn'));
+  const signInAutomatically =
+    autoSignInAllowed && Boolean(params.get('signIn'));
   const isDemoEnvironment = useIsDemoEnvironment();
   const isRestricted = useIsRestrictedEnvironment();
 
   useEffect(() => {
     if (signInAutomatically) {
-      signIn('stream-demo-login', { name: getRandomName(), callbackUrl }).catch(
-        (err) => {
-          console.error('Error logging in:', err);
-        },
-      );
+      signInAsGuest(callbackUrl).catch((err) => {
+        console.error('Error logging in:', err);
+      });
     }
   }, [signInAutomatically, callbackUrl]);
 
@@ -72,11 +72,7 @@ export default function SignIn({
           {Object.values(providers || {}).map((provider) => {
             if (provider.id === 'stream-demo-login') {
               return (
-                <GuestLoginItem
-                  key={provider.id}
-                  provider={provider}
-                  callbackUrl={callbackUrl}
-                />
+                <GuestLoginItem key={provider.id} callbackUrl={callbackUrl} />
               );
             }
             return (
@@ -115,15 +111,21 @@ export default function SignIn({
   );
 }
 
-const GuestLoginItem = (props: {
-  provider: ProntoProvider;
-  callbackUrl: string;
-}) => {
-  const { provider, callbackUrl } = props;
-  const logIn = useCallback(
-    () => signIn(provider.id, { callbackUrl }),
-    [callbackUrl, provider.id],
-  );
+/**
+ * Signs in with the demo account, keeping the name picked last time in this
+ * browser.
+ */
+const signInAsGuest = (callbackUrl: string) => {
+  const name = getSavedDisplayName();
+  return signIn('stream-demo-login', {
+    callbackUrl,
+    ...(name ? { name } : {}),
+  });
+};
+
+const GuestLoginItem = (props: { callbackUrl: string }) => {
+  const { callbackUrl } = props;
+  const logIn = useCallback(() => signInAsGuest(callbackUrl), [callbackUrl]);
   const params = useSearchParams();
   const fromQR = params.get('from_qr');
   useEffect(() => {
@@ -173,7 +175,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   return {
     props: {
       providers,
-      randomName: getRandomName(),
+      autoSignInAllowed: signsInAutomatically,
     },
   };
 }

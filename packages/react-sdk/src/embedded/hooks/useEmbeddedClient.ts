@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useInitializeVideoClient } from './useInitializeVideoClient';
 import { useInitializeCall } from './useInitializeCall';
 import { useNoiseCancellationLoader } from './useNoiseCancellationLoader';
-import type { EmbeddedUser } from '../types';
+import type { EmbeddedUser, NoiseCancellationProviderName } from '../types';
 import { LogLevel, TokenProvider } from '@stream-io/video-client';
 
 export interface UseEmbeddedClientProps {
@@ -13,6 +13,7 @@ export interface UseEmbeddedClientProps {
   token?: string;
   tokenProvider?: TokenProvider;
   logLevel?: LogLevel;
+  noiseCancellationProvider?: NoiseCancellationProviderName;
   handleError: (error: any) => void;
 }
 
@@ -28,6 +29,7 @@ export const useEmbeddedClient = ({
   token,
   tokenProvider,
   logLevel,
+  noiseCancellationProvider,
   handleError,
 }: UseEmbeddedClientProps) => {
   const client = useInitializeVideoClient({
@@ -53,7 +55,7 @@ export const useEmbeddedClient = ({
   }, [call, callType]);
 
   const { noiseCancellation, ready: noiseCancellationReady } =
-    useNoiseCancellationLoader(call);
+    useNoiseCancellationLoader(call, noiseCancellationProvider);
 
   return {
     client,

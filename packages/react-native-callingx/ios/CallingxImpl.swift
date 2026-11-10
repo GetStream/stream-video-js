@@ -45,15 +45,19 @@ import stream_react_native_webrtc
 
     private var canSendEvents: Bool = false
     private var isSetup: Bool = false
-    /// Combine subscription to the AudioDeviceModule's engine-lifecycle publisher.
-    /// Wired lazily in `setup()` because `webRTCModule` (the ADM source) is injected
-    /// from the TurboModule host after `init`.
-    private var engineSubscription: AnyCancellable?
-    /// The ADM `engineSubscription` is bound to. Tracked so we can detect a new ADM
-    /// (a JS reload recreates WebRTCModule) and re-wire instead of staying on a dead publisher.
-    private weak var subscribedADM: AudioDeviceModule?
+    /// Token for the process-wide ADM engine hooks registered in `init`. Registering in `init` is
+    /// safe here (unlike `StreamInCallManagerImpl`, which needs `RCTInitializing.initialize`):
+    /// `CallingxImpl` is a process singleton via `getSharedInstance`, and `CallingxModule` is a
+    /// `dispatch_once` singleton, so the throwaway `[klass new]` from `RCTModuleProviders` returns
+    /// the same instance and never registers a second hook set.
+    private var engineHooksToken: NSObject?
     /// Backing storage for the backend's view of the desired engine gate.
     private var desiredEngineAvailability: RTCAudioEngineAvailability = .default
+    /// Serializes each store+apply (`setDesiredEngineAvailability`) and read+apply (`didCreateModule`
+    /// replay) so a late replay can't overwrite a newer value. Lock order: this queue → registry lock
+    /// (`currentAudioDeviceModuleOrNil`) → BlockingCall onto the WebRTC worker. The worker-thread hooks
+    /// (`willEnable`/`willStart`/`didDisable`) must never touch it: its holder may be blocked on the
+    /// worker in `setEngineAvailability`, so that would deadlock.
     private let engineAvailabilityQueue = DispatchQueue(label: "io.getstream.callingx.engineAvailability")
 
     @objc public static func getSharedInstance() -> CallingxImpl {
@@ -82,6 +86,43 @@ import stream_react_native_webrtc
             object: nil
         )
 
+        // Process-wide (every per-call ADM). `willEnable`/`willStart`/`didDisable` run synchronously on
+        // the WebRTC worker thread inside the engine state transition: no ADM calls and no
+        // `engineAvailabilityQueue` there. Activation stays with the system call backend (`didActivate`).
+        engineHooksToken = AudioDeviceModule.addEngineHooks(
+            willEnable: { _, isRecordingEnabled in
+                guard CallingxSessionOwnership.callingxOwnsSession else { return 0 }
+                // Re-apply the callingx category/mode so an engine rebuild starts on it.
+                let result = AudioSessionManager.shared.applyConfigurationForEngineEnable(isRecordingEnabled: isRecordingEnabled)
+                if result == 0 {
+                    // Set before libwebrtc's voice-processing mute toggle (between willEnable and
+                    // willStart), so the backend ignores that startup mute instead of reporting it.
+                    CallingxImpl.existingBackend()?.setAudioEngineStarting(true)
+                }
+                return result
+            },
+            willStart: { _, _ in
+                // Engine is now rendering; voice-processing mute reflects real intent again. Not gated
+                // on ownership: clearing is harmless for non-callingx calls.
+                CallingxImpl.existingBackend()?.setAudioEngineStarting(false)
+            },
+            didDisable: { _, _ in
+                // Stuck-flag guard: willEnable fired but no willStart follows (enable rolled back,
+                // engine prepared but never started). A later start sets/clears it again.
+                CallingxImpl.existingBackend()?.setAudioEngineStarting(false)
+            },
+            didCreateModule: { [weak self] adm in
+                // Replays the desired gate onto the new per-call ADM, for a system callback that landed
+                // before join built the factory. Runs before `createCallFactory` resolves, so before any
+                // engine enable. Only when callingx owns the session: a stale `.none` from `didDeactivate`
+                // must never reach a non-callingx call's ADM. Idempotent.
+                guard let self, CallingxSessionOwnership.callingxOwnsSession else { return }
+                self.engineAvailabilityQueue.sync {
+                    _ = adm.setEngineAvailability(self.desiredEngineAvailability)
+                }
+            }
+        )
+
         CallingxImpl.sharedInstance = self
 
         if CallingxImpl.uuidStorage == nil {
@@ -92,8 +133,9 @@ import stream_react_native_webrtc
     
     deinit {
         NotificationCenter.default.removeObserver(self)
-        engineSubscription?.cancel()
-        engineSubscription = nil
+        if let engineHooksToken {
+            AudioDeviceModule.removeEngineHooks(engineHooksToken)
+        }
         canSendEvents = false
         isSetup = false
     }
@@ -288,6 +330,7 @@ import stream_react_native_webrtc
     @objc public func setup(options: [String: Any]) {
         // Persist first: the backend is chosen from the persisted settings when it is created.
         Settings.setSettings(options)
+        Settings.initVoipTokenRegisteredIfNeeded()
         let backend = CallingxImpl.currentBackend()
         backend.applyConfiguration()
         let requestedKind = CallingxImpl.preferredBackendKind()
@@ -517,7 +560,7 @@ import stream_react_native_webrtc
     /// Records the desired engine availability and applies it to the current call's ADM if one
     /// exists. When the ADM doesn't exist yet (a system call callback landed before join built the
     /// per-call factory), the direct apply is a no-op and the stored value is replayed onto the
-    /// ADM in `wireAudioEngineSubscription()`.
+    /// ADM in the `didCreateModule` engine hook.
     func setDesiredEngineAvailability(_ availability: RTCAudioEngineAvailability) {
         engineAvailabilityQueue.sync {
             self.desiredEngineAvailability = availability

@@ -174,18 +174,6 @@ class CallingxModule implements ICallingxModule {
     this.callBackListeners.forEach((listener) => listener(params));
   };
 
-  wireAudioEngineSubscription(): void {
-    if (Platform.OS !== 'ios') return;
-
-    NativeCallingModule.wireAudioEngineSubscription();
-  }
-
-  unwireAudioEngineSubscription(): void {
-    if (Platform.OS !== 'ios') return;
-
-    NativeCallingModule.unwireAudioEngineSubscription();
-  }
-
   setShouldRejectCallWhenBusy = (shouldReject: boolean): void => {
     NativeCallingModule.setShouldRejectCallWhenBusy(shouldReject);
   };
@@ -415,6 +403,10 @@ class CallingxModule implements ICallingxModule {
 
   registerVoipToken = (): void => {
     NativeCallingModule.registerVoipToken();
+  };
+
+  setVoipTokenRegistered = (registered: boolean): void => {
+    NativeCallingModule.setVoipTokenRegistered(registered);
   };
 
   stopService = (): void => {

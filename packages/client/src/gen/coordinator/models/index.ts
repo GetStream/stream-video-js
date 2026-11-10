@@ -1200,6 +1200,7 @@ export interface CallSettingsResponse {
   thumbnails: ThumbnailsSettingsResponse;
   transcription: TranscriptionSettingsResponse;
   video: VideoSettingsResponse;
+  extra_opts?: Record<string, any>;
   ingress?: IngressSettingsResponse;
 }
 

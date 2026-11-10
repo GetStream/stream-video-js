@@ -3,6 +3,7 @@ package io.getstream.rn.callingx
 import android.content.Context
 import android.os.Bundle
 import com.google.firebase.messaging.RemoteMessage
+import io.getstream.rn.callingx.notifications.NotificationsConfig
 import io.getstream.rn.callingx.utils.LifecycleListener
 import io.getstream.rn.callingx.utils.SettingsStore
 
@@ -57,8 +58,8 @@ object StreamMessagingHelper {
 
   /**
    * Handles a Stream Video `call.ring` payload by starting the incoming call flow.
-   * No-op for any other payload, so it is safe to call unconditionally from a host
-   * messaging service.
+   * No-op for any other payload, or until the app has called `StreamVideoRN.setPushConfig`
+   * at least once, so it is safe to call unconditionally from a host messaging service.
    */
   @JvmStatic
   fun handleMessage(context: Context, remoteMessage: RemoteMessage) {
@@ -66,6 +67,14 @@ object StreamMessagingHelper {
 
     if (!isStreamCallRing(remoteMessage)) {
       debugLog(TAG, "sender or type is not supported, skipping CallService start")
+      return
+    }
+
+    if (!NotificationsConfig.isSaved(context)) {
+      debugLog(
+        TAG,
+        "callingx setup() was never called (StreamVideoRN.setPushConfig), skipping CallService start",
+      )
       return
     }
 

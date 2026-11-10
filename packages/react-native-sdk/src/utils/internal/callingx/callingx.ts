@@ -2,7 +2,6 @@
  * Internal utils for callingx library usage from video-client.
  * See @./registerSDKGlobals.ts for more usage details.
  */
-import { Platform } from 'react-native';
 import type { EndCallReason } from '@stream-io/react-native-callingx';
 import { getCallingxLibIfAvailable } from '../../push/libs/callingx';
 import type {
@@ -218,40 +217,6 @@ export async function endCallingxCall(call: Call, reason?: EndCallReason) {
   } catch (error) {
     logger.error(
       `endCallingxCall: Error ending call in callingx: ${call.cid}`,
-      error,
-    );
-  }
-}
-
-export async function wireAudioEngineSubscription() {
-  if (!CallingxModule || !CallingxModule.isSetup || Platform.OS !== 'ios') {
-    return;
-  }
-  const logger = videoLoggerSystem.getLogger('callingx');
-
-  try {
-    logger.debug('wireEngineSubscription: Wiring engine subscription');
-    CallingxModule.wireAudioEngineSubscription();
-  } catch (error) {
-    logger.error(
-      'wireAudioEngineSubscription: Error wiring engine subscription',
-      error,
-    );
-  }
-}
-
-export function unwireAudioEngineSubscription() {
-  if (!CallingxModule || !CallingxModule.isSetup || Platform.OS !== 'ios') {
-    return;
-  }
-  const logger = videoLoggerSystem.getLogger('callingx');
-
-  try {
-    logger.debug('unwireEngineSubscription: Cancelling engine subscription');
-    CallingxModule.unwireAudioEngineSubscription();
-  } catch (error) {
-    logger.error(
-      'unwireAudioEngineSubscription: Error cancelling engine subscription',
       error,
     );
   }

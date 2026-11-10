@@ -24,6 +24,7 @@ import { useAppI18n } from '../../hooks/useAppI18n';
 import { useOrientation } from '../../hooks/useOrientation';
 import { Button } from '@stream-io/video-react-native-sdk/src/components/utility/Button';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ButtonTestIds, InputTestIds } from '../../constants/TestIds';
 
 const StreamLogo = require('../../assets/images/stream_placeholder.png');
 
@@ -116,6 +117,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           <View style={styles.createCall}>
             <TextInput
               placeholder={t('joinMeeting.callId.label', 'Enter Call ID')}
+              testID={InputTestIds.CALL_ID}
               value={callId}
               autoCapitalize="none"
               autoCorrect={false}
@@ -126,6 +128,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
             <Button
               onPress={joinCallHandler}
               text={t('joinMeeting.join.label', 'Join Call')}
+              testID={ButtonTestIds.JOIN_MEETING}
               size="large"
               disabled={!isValidCall}
             />
@@ -143,6 +146,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
               startNewCallHandler(randomCallID);
             }}
             text={t('joinMeeting.startNewCall.label', 'Start a New Call')}
+            testID={ButtonTestIds.START_NEW_CALL}
             size="large"
           />
         </View>

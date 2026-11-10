@@ -36,10 +36,6 @@ export interface Spec extends TurboModule {
     callsHistory: boolean;
   }): boolean;
 
-  wireAudioEngineSubscription(): boolean;
-
-  unwireAudioEngineSubscription(): boolean;
-
   setShouldRejectCallWhenBusy(shouldReject: boolean): boolean;
 
   setDefaultAudioDeviceEndpointType(endpointType: string): boolean;
@@ -178,6 +174,8 @@ export interface Spec extends TurboModule {
   fulfillEndCallAction(callId: string, didFail: boolean): void;
 
   registerVoipToken(): boolean;
+
+  setVoipTokenRegistered(registered: boolean): boolean;
 
   stopService(): void;
 

@@ -15,10 +15,16 @@ import { StreamClient } from '../coordinator/connection/client';
 import { ErrorFromResponse } from '../coordinator/connection/types';
 import { ClientEventReporter } from '../reporting';
 import type { GetCallResponse, JoinCallResponse } from '../gen/coordinator';
-import { WebsocketReconnectStrategy } from '../gen/video/sfu/models/models';
+import {
+  TrackType,
+  WebsocketReconnectStrategy,
+} from '../gen/video/sfu/models/models';
+import { SfuEvent } from '../gen/video/sfu/event/events';
+import type { DispatchableMessage } from '../rtc/Dispatcher';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { CallingState, ClientState } from '../store';
 import { promiseWithResolvers } from '../helpers/promise';
+import { withoutConcurrency } from '../helpers/concurrency';
 import type { StreamResponse } from '../coordinator/connection/api-client';
 
 // A controlled stand-in for the retry backoff. Unless a test installs a hook,
@@ -40,7 +46,6 @@ const installCallingX = () => {
   const callingX = {
     joinCall: vi.fn().mockResolvedValue(undefined),
     endCall: vi.fn(),
-    wireAudioEngineSubscription: vi.fn(),
   };
   (globalThis as Record<string, any>).streamRNVideoSDK = {
     callingX,
@@ -62,6 +67,7 @@ describe('Call lifecycle wiring', () => {
     restorePublishedTracks: () => Promise<void>;
     restoreSubscribedTracks: () => void;
     applyDeviceConfig: () => Promise<void>;
+    ensureMediaFactory: Call['ensureMediaFactory'];
   };
 
   beforeEach(() => {
@@ -135,6 +141,61 @@ describe('Call lifecycle wiring', () => {
 
     expect(trackSubOrder).toBeLessThan(audioBindingsOrder);
     expect(audioBindingsOrder).toBeLessThan(dynascaleOrder);
+  });
+
+  it('call.leave() sends the leave request while a quality change is stuck in setParameters', async () => {
+    const publisher = new rtc.Publisher(
+      {
+        sfuClient: fromPartial({}),
+        dispatcher: call['dispatcher'],
+        state: call.state,
+        tag: 'test',
+      },
+      [fromPartial({ id: 1, trackType: TrackType.VIDEO })],
+    );
+    const transceiver = new RTCRtpTransceiver();
+    vi.spyOn(transceiver.sender, 'getParameters').mockReturnValue(
+      fromPartial({ codecs: [], encodings: [{ rid: 'q', active: true }] }),
+    );
+    // Chromium never settles a setParameters() that is still pending when
+    // its peer connection closes
+    const setParameters = vi
+      .spyOn(transceiver.sender, 'setParameters')
+      .mockReturnValue(new Promise(() => {}));
+    publisher['transceiverCache'].add({
+      publishOption: publisher['publishOptions'][0],
+      transceiver,
+      options: {},
+    });
+    const leaveAndClose = vi.fn().mockResolvedValue(undefined);
+    call['sfuClient'] = fromPartial({ leaveAndClose });
+    call['publisher'] = publisher;
+    call.state.setCallingState(CallingState.JOINED);
+
+    call['dispatcher'].dispatch(
+      SfuEvent.create({
+        eventPayload: {
+          oneofKind: 'changePublishQuality',
+          changePublishQuality: {
+            audioSenders: [],
+            videoSenders: [
+              fromPartial({
+                publishOptionId: 1,
+                trackType: TrackType.VIDEO,
+                layers: [],
+              }),
+            ],
+          },
+        },
+      }) as DispatchableMessage<'changePublishQuality'>,
+      'test',
+    );
+    expect(setParameters).toHaveBeenCalled();
+
+    await call.leave();
+
+    expect(leaveAndClose).toHaveBeenCalled();
+    expect(call.state.callingState).toBe(CallingState.LEFT);
   });
 
   // `joinSource` is reporting-only: it must reach the event reporter and never
@@ -351,9 +412,6 @@ describe('Call lifecycle wiring', () => {
     pending.resolve();
 
     await expect(joinTask).resolves.toBeUndefined();
-    if (phase === 'media factory') {
-      expect(callingX!.wireAudioEngineSubscription).not.toHaveBeenCalled();
-    }
     if (phase === 'media factory' || phase === 'location hint') {
       expect(request).not.toHaveBeenCalled();
     }
@@ -483,6 +541,72 @@ describe('Call lifecycle wiring', () => {
       );
     },
   );
+
+  describe('rejoinForAudioEngineRecovery()', () => {
+    const spyReconnect = () =>
+      vi
+        .spyOn(call as unknown as { reconnect: Call['leave'] }, 'reconnect')
+        .mockResolvedValue(undefined);
+
+    it('rejoins with the audio engine reason when JOINED', () => {
+      call.state.setCallingState(CallingState.JOINED);
+      const reconnect = spyReconnect();
+
+      expect(call.rejoinForAudioEngineRecovery()).toBe(true);
+      expect(reconnect).toHaveBeenCalledExactlyOnceWith(
+        WebsocketReconnectStrategy.REJOIN,
+        'audio_engine_dead',
+      );
+    });
+
+    it.each(['short', 'long'] as const)(
+      'skips the rejoin without leaving when the %s window limiter is full',
+      (window) => {
+        call.state.setCallingState(CallingState.JOINED);
+        const limiter =
+          window === 'short'
+            ? call['rejoinRateLimiter']
+            : call['rejoinLongWindowRateLimiter']!;
+        while (limiter.tryRegister()) {
+          // fill the window
+        }
+        const reconnect = spyReconnect();
+        const leave = vi.spyOn(call, 'leave');
+
+        expect(call.rejoinForAudioEngineRecovery()).toBe(false);
+        expect(reconnect).not.toHaveBeenCalled();
+        expect(leave).not.toHaveBeenCalled();
+        expect(call.state.callingState).toBe(CallingState.JOINED);
+      },
+    );
+
+    it('skips the rejoin while a reconnect is pending', async () => {
+      call.state.setCallingState(CallingState.JOINED);
+      const pending = promiseWithResolvers<void>();
+      const running = withoutConcurrency(
+        call['reconnectConcurrencyTag'],
+        () => pending.promise,
+      );
+      const reconnect = spyReconnect();
+
+      expect(call.rejoinForAudioEngineRecovery()).toBe(false);
+      expect(reconnect).not.toHaveBeenCalled();
+      pending.resolve();
+      await running;
+    });
+
+    it.each([
+      CallingState.JOINING,
+      CallingState.RECONNECTING,
+      CallingState.LEFT,
+    ])('skips the rejoin when the call is %s', (state) => {
+      call.state.setCallingState(state);
+      const reconnect = spyReconnect();
+
+      expect(call.rejoinForAudioEngineRecovery()).toBe(false);
+      expect(reconnect).not.toHaveBeenCalled();
+    });
+  });
 
   it.each([false, true])(
     'get() respects leave during fetch: %s',
@@ -622,6 +746,95 @@ describe('Call lifecycle wiring', () => {
     expect(newSubscriber.dispose).not.toHaveBeenCalled();
     expect(call['subscriber']).toBe(newSubscriber);
     await call.leave();
+  });
+
+  /** A joinable call with mocked peers and an RN call manager installed. */
+  const setupRNJoin = (
+    callManager: { start: () => void; stop: () => void },
+    settings: Record<string, unknown> = { audio: {} },
+  ) => {
+    vi.spyOn(call, 'setup').mockResolvedValue(undefined);
+    call['credentials'] = fromPartial({ ice_servers: [] });
+    call['lastStatsOptions'] = fromPartial({ reporting_interval_ms: 0 });
+    call['sfuClient'] = fromPartial({
+      isHealthy: true,
+      sessionId: 'test-session',
+      leaveAndClose: vi.fn().mockResolvedValue(undefined),
+    });
+    call.state['settingsSubject'].next(
+      fromPartial({ screensharing: {}, video: {}, ...settings }),
+    );
+    vi.spyOn(rtc, 'Subscriber').mockImplementation(function () {
+      return fromPartial<rtc.Subscriber>(makePeer());
+    });
+    vi.spyOn(rtc, 'Publisher').mockImplementation(function () {
+      return fromPartial<rtc.Publisher>(makePeer());
+    });
+    (globalThis as Record<string, any>).streamRNVideoSDK = { callManager };
+  };
+
+  it('call.join() starts the RN call manager once, with the settings default, before the first publish', async () => {
+    const order: string[] = [];
+    const start = vi.fn(() => order.push('start'));
+    const stop = vi.fn();
+    setupRNJoin({ start, stop }, { audio: { speaker_default_on: true } });
+    const configure = vi
+      .spyOn(internalCall, 'applyDeviceConfig')
+      .mockImplementation(async () => {
+        order.push('publish');
+      });
+
+    await call.join();
+
+    expect(order).toEqual(['start', 'publish']);
+    expect(start).toHaveBeenCalledOnce();
+    expect(start).toHaveBeenCalledWith({
+      isRingingTypeCall: false,
+      cid: call.cid,
+      defaultDevice: 'speaker',
+    });
+    expect(configure).toHaveBeenCalledWith(expect.anything(), {
+      publish: true,
+    });
+    expect(call.state.callingState).toBe(CallingState.JOINED);
+
+    await call.leave();
+    expect(stop).toHaveBeenCalledOnce();
+    expect(stop).toHaveBeenCalledWith(
+      expect.objectContaining({ shouldStopCallManager: true }),
+    );
+  });
+
+  it('call.join() does not start the RN call manager when leave() lands before the join flow reaches it', async () => {
+    const start = vi.fn();
+    const stop = vi.fn();
+    setupRNJoin({ start, stop });
+    // leave() during the (mocked) ensureMediaFactory step, before the call manager start
+    const pending = promiseWithResolvers<void>();
+    vi.spyOn(internalCall, 'ensureMediaFactory').mockImplementation(
+      () => pending.promise,
+    );
+    const configure = vi
+      .spyOn(internalCall, 'applyDeviceConfig')
+      .mockResolvedValue(undefined);
+
+    const joinTask = call.join();
+    await vi.waitFor(() =>
+      expect(internalCall.ensureMediaFactory).toHaveBeenCalledOnce(),
+    );
+    await call.leave();
+    expect(stop).toHaveBeenCalledOnce();
+    expect(stop).toHaveBeenCalledWith(
+      expect.objectContaining({ shouldStopCallManager: false }),
+    );
+    pending.resolve();
+    await joinTask;
+
+    // the join continuation must not start (nor stop again: it could hit a newer call)
+    expect(start).not.toHaveBeenCalled();
+    expect(stop).toHaveBeenCalledOnce();
+    expect(configure).not.toHaveBeenCalled();
+    expect(call.state.callingState).toBe(CallingState.LEFT);
   });
 
   it('ignores old subscriber tracks while flushing stats during replacement', async () => {

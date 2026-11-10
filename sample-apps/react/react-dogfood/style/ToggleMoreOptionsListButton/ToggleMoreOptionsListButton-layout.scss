@@ -9,6 +9,13 @@
   max-width: calc(100vw - var(--str-video__spacing-md) * 2);
 }
 
+// secondary call controls moved off the mobile call bar
+.rd__more-menu__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--str-video__spacing-md);
+}
+
 .rd__more-menu__item {
   padding-inline: var(--str-video__spacing-md);
 

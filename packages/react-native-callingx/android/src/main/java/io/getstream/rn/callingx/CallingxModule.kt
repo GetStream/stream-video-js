@@ -50,16 +50,6 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         return true
     }
 
-    override fun wireAudioEngineSubscription(): Boolean {
-        // leave empty
-        return true
-    }
-
-    override fun unwireAudioEngineSubscription(): Boolean {
-        // leave empty
-        return true
-    }
-
     override fun setupAndroid(options: ReadableMap): Boolean {
         impl.setupAndroid(options)
         return true
@@ -80,6 +70,11 @@ class CallingxModule(reactContext: ReactApplicationContext) :
     }
 
     override fun registerVoipToken(): Boolean {
+        // leave empty
+        return true
+    }
+
+    override fun setVoipTokenRegistered(registered: Boolean): Boolean {
         // leave empty
         return true
     }

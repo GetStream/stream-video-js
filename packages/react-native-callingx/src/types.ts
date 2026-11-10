@@ -49,18 +49,6 @@ export interface ICallingxModule {
   setup(options: CallingExpOptions): void;
 
   /**
-   * Wire the audio engine subscription to the live call factory's ADM.
-   */
-  wireAudioEngineSubscription(): void;
-
-  /**
-   * Cancels the ADM engine-lifecycle subscription wired by
-   * {@link wireAudioEngineSubscription}. iOS only; no-op on Android.
-   * Call when the per-call media engine is disposed.
-   */
-  unwireAudioEngineSubscription(): void;
-
-  /**
    * Set whether to reject calls when the user is busy.
    * The value is used in iOS native module to prevent calls registration in the system call UI when the user is busy.
    * @param shouldReject - Whether to reject calls when the user is busy.
@@ -222,6 +210,17 @@ export interface ICallingxModule {
   fulfillEndCallAction(callId: string, didFail: boolean): void;
 
   registerVoipToken(): void;
+
+  /**
+   * Marks whether the VoIP token was registered with the backend for a logged-in user.
+   * iOS-only; no-op on Android.
+   *
+   * The native PushKit registration at app launch (`voipRegistration()` in the AppDelegate)
+   * only runs while this is `true`. Set it after the token was added for a user and clear it
+   * on logout, so a reinstall doesn't revive a token still bound to a previous user.
+   * @param registered - Whether the token is registered for a logged-in user.
+   */
+  setVoipTokenRegistered(registered: boolean): void;
 
   /**
    * Asks the Android call service to stop. Android-only; no-op on iOS.
