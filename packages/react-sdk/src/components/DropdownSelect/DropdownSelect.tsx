@@ -47,18 +47,12 @@ const Select = (props: {
   const {
     children,
     icon,
-    defaultSelectedLabel,
-    defaultSelectedIndex,
+    defaultSelectedLabel: selectedLabel,
+    defaultSelectedIndex: selectedIndex,
     handleSelect: handleSelectProp,
   } = props;
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(
-    defaultSelectedIndex,
-  );
-  const [selectedLabel, setSelectedLabel] = useState<string | null>(
-    defaultSelectedLabel,
-  );
 
   const { refs, context } = useFloating({
     placement: 'bottom-start',
@@ -73,12 +67,8 @@ const Select = (props: {
 
   const handleSelect = useCallback(
     (index: number | null) => {
-      setSelectedIndex(index);
       handleSelectProp(index || 0);
       setIsOpen(false);
-      if (index !== null) {
-        setSelectedLabel(labelsRef.current[index]);
-      }
     },
     [handleSelectProp],
   );
