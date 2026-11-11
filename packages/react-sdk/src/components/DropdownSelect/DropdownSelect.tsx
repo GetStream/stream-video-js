@@ -40,15 +40,15 @@ const SelectContext = createContext<SelectContextValue>(
 const Select = (props: {
   children: ReactNode;
   icon?: string;
-  defaultSelectedLabel: string;
-  defaultSelectedIndex: number;
+  selectedLabel: string;
+  selectedIndex: number;
   handleSelect: (index: number) => void;
 }) => {
   const {
     children,
     icon,
-    defaultSelectedLabel: selectedLabel,
-    defaultSelectedIndex: selectedIndex,
+    selectedLabel,
+    selectedIndex,
     handleSelect: handleSelectProp,
   } = props;
   const [isOpen, setIsOpen] = useState(false);
@@ -179,26 +179,20 @@ export const DropDownSelectOption = (props: DropDownSelectOptionProps) => {
 
 export const DropDownSelect = (props: {
   icon?: string;
-  defaultSelectedLabel: string;
-  defaultSelectedIndex: number;
+  selectedLabel: string;
+  selectedIndex: number;
   handleSelect: (index: number) => void;
   children:
     | ReactElement<DropDownSelectOptionProps>
     | ReactElement<DropDownSelectOptionProps>[];
 }) => {
-  const {
-    children,
-    icon,
-    handleSelect,
-    defaultSelectedLabel,
-    defaultSelectedIndex,
-  } = props;
+  const { children, icon, handleSelect, selectedLabel, selectedIndex } = props;
   return (
     <Select
       icon={icon}
       handleSelect={handleSelect}
-      defaultSelectedIndex={defaultSelectedIndex}
-      defaultSelectedLabel={defaultSelectedLabel}
+      selectedIndex={selectedIndex}
+      selectedLabel={selectedLabel}
     >
       {children}
     </Select>

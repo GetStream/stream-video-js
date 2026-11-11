@@ -175,8 +175,8 @@ export const VideoEffectsSettings = () => {
             }
           >
             <DropDownSelect
-              defaultSelectedIndex={selectedModelIndex}
-              defaultSelectedLabel={
+              selectedIndex={selectedModelIndex}
+              selectedLabel={
                 selectedModel ? segmentationModelLabel(t, selectedModel) : ''
               }
               handleSelect={(index) => {
