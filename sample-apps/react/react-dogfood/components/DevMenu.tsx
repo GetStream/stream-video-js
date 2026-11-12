@@ -574,8 +574,8 @@ const CodecSelector = ({ kind }: { kind: 'video' | 'audio' }) => {
   return (
     <DropDownSelect
       icon="mediation"
-      defaultSelectedIndex={currentIndex}
-      defaultSelectedLabel={`${
+      selectedIndex={currentIndex}
+      selectedLabel={`${
         kind === 'video' ? 'Video' : 'Audio'
       }: ${describeCodec(options[currentIndex])}`}
       handleSelect={handleSelect}
