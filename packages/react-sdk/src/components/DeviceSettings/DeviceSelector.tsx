@@ -189,6 +189,7 @@ const DeviceSelectorDropdown = (props: {
         {title}
       </div>
       <DropDownSelect
+        key={selectedDeviceInfo.deviceId}
         icon={icon}
         defaultSelectedIndex={selectedIndex}
         defaultSelectedLabel={selectedDeviceInfo.label}
