@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Detox talks to the release build over plain WS on localhost (adb reverse), see e2e/README.md.
+     Debug builds allow all cleartext traffic instead (src/debug/AndroidManifest.xml). -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">localhost</domain>
+    </domain-config>
+</network-security-config>

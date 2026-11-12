@@ -7,10 +7,12 @@
     "ios": "react-native run-ios",
     "ios-device": "react-native run-ios --device",
     "start": "react-native start --reset-cache",
-    "build": "tsc",
+    "build": "tsc && tsc --noEmit -p e2e",
     "test": "jest",
     "test-ci": "jest --ci --runInBand",
-    "setup": "yarn && yarn build:react-native:deps && npx pod-install"
+    "setup": "yarn && yarn build:react-native:deps && npx pod-install",
+    "e2e:build": "detox build",
+    "e2e:test": "detox test"
   },
   "codegenConfig": {
     "name": "FoldRegionSpec",
@@ -66,13 +68,14 @@
     "react-native-vision-camera": "^4.7.3",
     "react-native-worklets": "0.13.0",
     "rxjs": "~7.8.2",
-    "stream-chat": "^10.0.0",
-    "stream-chat-react-native": "^10.0.0"
+    "stream-chat": "^10.0.2",
+    "stream-chat-react-native": "^10.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
     "@babel/preset-env": "^7.29.7",
     "@babel/runtime": "^7.29.7",
+    "@jest/globals": "^29.7.0",
     "@react-native-community/cli": "20.2.0",
     "@react-native-community/cli-platform-android": "20.2.0",
     "@react-native-community/cli-platform-ios": "20.2.0",
@@ -86,7 +89,11 @@
     "@types/react-test-renderer": "^19.3.0",
     "babel-jest": "^29.7.0",
     "babel-plugin-react-compiler": "^1.0.0",
+    "detox": "^20.51.4",
     "jest": "^29.7.0",
+    "jest-allure2-reporter": "^2.3.0",
+    "jest-docblock": "^29.7.0",
+    "jest-metadata": "^1.6.0",
     "react-dom": "19.3.0",
     "react-test-renderer": "19.3.0",
     "typescript": "^6.0.3"

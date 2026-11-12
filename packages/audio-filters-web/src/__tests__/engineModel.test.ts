@@ -27,7 +27,7 @@ describe('KrispNoiseCancellation model', () => {
 
 describe('FastEnhancerNoiseCancellation model', () => {
   it('reports the model size', () => {
-    expect(new FastEnhancerNoiseCancellation().model).toBe('tiny');
+    expect(new FastEnhancerNoiseCancellation().model).toBe('small');
     expect(new FastEnhancerNoiseCancellation({ model: 'base' }).model).toBe(
       'base',
     );

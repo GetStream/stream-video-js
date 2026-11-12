@@ -7,14 +7,8 @@ import {
 import { View } from 'react-native';
 import { Button } from '@stream-io/video-react-native-sdk/src/components';
 import { useTheme } from '@stream-io/video-react-native-sdk';
+import { APP_ENVIRONMENTS } from '../../constants';
 
-const appEnvironments: AppEnvironment[] = [
-  'pronto',
-  'video-moderation',
-  'demo',
-  'pronto-staging',
-  'stream-benchmark',
-];
 export default function EnvSwitcherButton() {
   const [modalVisible, setModalVisible] = useState(false);
   const closeModal = () => setModalVisible(false);
@@ -31,7 +25,7 @@ export default function EnvSwitcherButton() {
       >
         <Pressable style={styles.centeredView} onPress={closeModal}>
           <View style={styles.modalView} onStartShouldSetResponder={() => true}>
-            {appEnvironments.map((environment) => (
+            {APP_ENVIRONMENTS.map((environment) => (
               <SwitcherButton
                 key={environment}
                 environment={environment}

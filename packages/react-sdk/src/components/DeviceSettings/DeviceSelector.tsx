@@ -190,8 +190,8 @@ const DeviceSelectorDropdown = (props: {
       </div>
       <DropDownSelect
         icon={icon}
-        defaultSelectedIndex={selectedIndex}
-        defaultSelectedLabel={selectedDeviceInfo.label}
+        selectedIndex={selectedIndex}
+        selectedLabel={selectedDeviceInfo.label}
         handleSelect={handleSelect}
       >
         {deviceList.map((device) => (

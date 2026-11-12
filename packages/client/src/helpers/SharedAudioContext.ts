@@ -1,5 +1,6 @@
 import type { RTCStatsDataType, Tracer } from '../stats';
 import { isWebKit } from './browsers';
+import { USER_GESTURE_EVENTS } from './userGestures';
 
 /**
  * A reference to the shared {@link AudioContext}. Call `release` once done
@@ -15,7 +16,7 @@ type InterruptionListener = (
   state: AudioContextState,
 ) => void;
 
-const GESTURE_EVENTS = ['click', 'touchend', 'keydown'] as const;
+type StateListener = (state: AudioContextState) => void;
 
 /**
  * One {@link AudioContext} shared by the SDK's analysers, detectors, and the
@@ -32,6 +33,7 @@ export class SharedAudioContext {
   private wasRunning = false;
   private restartTimer: ReturnType<typeof setTimeout> | undefined;
   private listeners = new Set<InterruptionListener>();
+  private stateListeners = new Set<StateListener>();
   private tracers = new Set<Tracer>();
   private stuckCheckTimer: ReturnType<typeof setInterval> | undefined;
   private stopWatchingVisibility: (() => void) | undefined;
@@ -84,6 +86,42 @@ export class SharedAudioContext {
    * Whether the shared context exists and is running.
    */
   isRunning = () => this.context?.state === 'running';
+
+  /**
+   * Whether the autoplay policy keeps the context from starting: it is
+   * suspended and has never run, as a context created outside a user gesture
+   * is. A context stopped by an audio interruption doesn't count.
+   */
+  isAutoplayBlocked = () =>
+    this.context?.state === 'suspended' && !this.wasRunning;
+
+  /**
+   * Resumes a context that the autoplay policy keeps from starting (see
+   * {@link isAutoplayBlocked}). Call it from a user gesture. Any other
+   * context, an interrupted one included, is left alone.
+   *
+   * @returns a promise that rejects when the context stays suspended.
+   */
+  resumeFromGesture = async () => {
+    const context = this.context;
+    if (!context || !this.isAutoplayBlocked()) return;
+    await context.resume();
+    if (this.isAutoplayBlocked()) {
+      throw new Error('The shared AudioContext is still suspended');
+    }
+  };
+
+  /**
+   * Invokes `listener` whenever the shared context changes state.
+   *
+   * @returns a function that stops listening.
+   */
+  watchState = (listener: StateListener) => {
+    this.stateListeners.add(listener);
+    return () => {
+      this.stateListeners.delete(listener);
+    };
+  };
 
   /**
    * Lifts the playback gate of {@link isInterrupted}, e.g. when the user
@@ -173,7 +211,7 @@ export class SharedAudioContext {
     };
     const controller = new AbortController();
     const options = { capture: true, passive: true, signal: controller.signal };
-    GESTURE_EVENTS.forEach((type) =>
+    USER_GESTURE_EVENTS.forEach((type) =>
       document.addEventListener(type, onGesture, options),
     );
     this.stopWatchingGestures = () => controller.abort();
@@ -274,6 +312,7 @@ export class SharedAudioContext {
       if (context !== this.context) return;
       const { state } = context;
       this.trace('audioContext.shared.state', { state, users: this.users });
+      this.stateListeners.forEach((listener) => listener(state));
       if (this.restartTimer) {
         if (state === 'suspended') return;
         this.endRestart();
