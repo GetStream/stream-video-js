@@ -14,7 +14,7 @@ import { RingingCallNotification } from './Ringing/RingingCallNotification';
 import { TourProvider } from '../context/TourContext';
 import { getSegmentationModelUrl } from '../hooks';
 import { useSettings } from '../context/SettingsContext';
-import { getNoiseCancellationOptions } from '../helpers/noiseCancellation';
+import { createNoiseCancellation } from '../helpers/noiseCancellation';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -57,17 +57,13 @@ export const CallScope = ({
   const ncLoader = useRef<Promise<void>>(undefined);
   useEffect(() => {
     const load = (ncLoader.current || Promise.resolve())
-      .then(() => import('@stream-io/audio-filters-web'))
-      .then(({ NoiseCancellation }) => {
+      .then(() => createNoiseCancellation(noiseCancellationModel))
+      .then((nc) => {
         console.info(
           '[dogfood] noise cancellation model:',
           noiseCancellationModel,
         );
-        setNoiseCancellation(
-          new NoiseCancellation(
-            getNoiseCancellationOptions(noiseCancellationModel),
-          ),
-        );
+        setNoiseCancellation(nc);
       });
     return () => {
       ncLoader.current = load.then(() => setNoiseCancellation(undefined));

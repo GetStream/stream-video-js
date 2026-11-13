@@ -41,3 +41,16 @@ const destination = join(appDir, 'public', 'fastenhancer', 'models');
 rmSync(destination, { recursive: true, force: true });
 cpSync(source, destination, { recursive: true });
 console.log(`[copy-fastenhancer-models] copied ${source} to ${destination}`);
+
+// The app's own mol model build and its worklet (noise-cancellation/),
+// served from public/noise-cancellation.
+const molSource = join(appDir, 'noise-cancellation');
+const molDestination = join(appDir, 'public', 'noise-cancellation');
+rmSync(molDestination, { recursive: true, force: true });
+cpSync(join(molSource, 'models'), join(molDestination, 'models'), {
+  recursive: true,
+});
+cpSync(join(molSource, 'processor.js'), join(molDestination, 'processor.js'));
+console.log(
+  `[copy-fastenhancer-models] copied ${molSource} to ${molDestination}`,
+);

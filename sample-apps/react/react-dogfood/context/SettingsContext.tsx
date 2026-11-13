@@ -31,7 +31,7 @@ const defaultState: Settings = {
   segmentationModel: 'selfie_segmenter_landscape',
   setSegmentationModel: () => {},
   // our own denoiser; Krisp stays selectable in the settings
-  noiseCancellationModel: 'fastenhancer-small',
+  noiseCancellationModel: 'mol',
   setNoiseCancellationModel: () => {},
   themeMode: 'dark',
   setThemeMode: () => {},
