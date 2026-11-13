@@ -1,6 +1,8 @@
 import Foundation
 import AVFoundation
 import UIKit
+import Combine
+import Intents
 import stream_react_native_webrtc
 
 // MARK: - Event Names
@@ -17,6 +19,7 @@ import stream_react_native_webrtc
     public static let performEndCallAction = "endCall"
     public static let performPlayDTMFCallAction = "didPerformDTMFAction"
     public static let providerReset = "providerReset"
+    public static let callBackRequested = "callBackRequested"
 }
 
 // MARK: - Event Emitter Protocol
@@ -242,6 +245,9 @@ import stream_react_native_webrtc
             }
             
             if self.canSendEvents {
+                if name == CallingxEvents.callBackRequested {
+                    CallingxLog.core.debugPublic("[sendEvent] emitting \(name), hasEmitter = \(self.eventEmitter != nil)")
+                }
                 self.eventEmitter?.emitEvent(dictionary)
             } else {
                 CallingxImpl.delayedEvents.append(dictionary)
@@ -334,6 +340,117 @@ import stream_react_native_webrtc
         isSetup = true
     }
 
+    // MARK: - Call History Callback
+
+    private static let legacyCallIntentNames: Set<String> = [
+        "INStartVideoCallIntent",
+        "INStartAudioCallIntent",
+    ]
+
+    private static func isValidHandle(_ value: String) -> Bool {
+        let parts = value.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
+        return parts.count == 2 && !parts[0].isEmpty && !parts[1].isEmpty
+    }
+
+    /// Handles a call back from a Recents entry (`INStartCallIntent`, or the legacy
+    /// `INStartVideoCallIntent` / `INStartAudioCallIntent` Recents still sends).
+    /// Returns false for any other activity so the app's other handlers can process it.
+    /// Safe to call before React Native starts: the event is queued until JS reads initial events.
+    @objc public static func handleUserActivity(_ userActivity: NSUserActivity) -> Bool {
+        guard Settings.getCallsHistory() else { return false }
+
+        let interaction = userActivity.interaction
+        guard let intent = interaction?.intent else {
+            CallingxLog.core.debugPublic("[handleUserActivity] no intent, ignoring")
+            return false
+        }
+
+        let contacts: [INPerson]?
+        let isVideo: Bool
+        if let callIntent = intent as? INStartCallIntent {
+            contacts = callIntent.contacts
+            isVideo = callIntent.callCapability == .videoCall
+        } else if legacyCallIntentNames.contains(userActivity.activityType) {
+            // CallKit Recents still sends the pre-iOS 13 INStartVideoCallIntent /
+            // INStartAudioCallIntent. Both are deprecated, so read them via KVC instead of
+            // referencing the types (which would add deprecation warnings).
+            contacts = intent.value(forKey: "contacts") as? [INPerson]
+            isVideo = userActivity.activityType == "INStartVideoCallIntent"
+        } else {
+            CallingxLog.core.debugPublic("[handleUserActivity] not a call intent, ignoring")
+            return false
+        }
+
+        let person = contacts?.first
+        guard let handle = person?.personHandle?.value, !handle.isEmpty else {
+            CallingxLog.core.debugPublic("[handleUserActivity] call intent without a handle")
+            return false
+        }
+
+        guard isValidHandle(handle) else {
+            CallingxLog.core.debugPublic("[handleUserActivity] handle is not a call cid, ignoring")
+            return false
+        }
+
+        var body: [String: Any] = ["callId": handle, "isVideo": isVideo]
+        if let displayName = person?.displayName, !displayName.isEmpty {
+            body["displayName"] = displayName
+        }
+
+        getSharedInstance().sendEvent(CallingxEvents.callBackRequested, body: body)
+        return true
+    }
+
+    /// Wires the ADM engine-lifecycle subscription to the live call factory's ADM. A no-op when
+    /// already wired to that ADM; re-wires when the ADM changes.
+    @objc public func wireAudioEngineSubscription() {
+        // Only wire when callingx (the system call layer) owns the session. For non-callingx calls the engine gate
+        // and the sink below are irrelevant, so skipping keeps their ADM on `.default`.
+        guard CallingxSessionOwnership.callingxOwnsSession else {
+            CallingxLog.core.debugPublic("[wireEngineSubscription] skipped — callingx does not own the session")
+            return
+        }
+        guard let adm = getCurrentAudioDeviceModule() else {
+          CallingxLog.core.debugPublic("[wireEngineSubscription] skipped — adm is not instantiated")
+          return
+        }
+        guard subscribedADM !== adm else { return } // already wired to this ADM
+        engineSubscription?.cancel()                // ADM changed (e.g. JS reload) — rewire
+        subscribedADM = adm
+        CallingxLog.core.debugPublic("[wireEngineSubscription]")
+
+        // Replay fixes potential race for a case when conversation manager callbacks are invoked before adm instance exists.
+        // Serialized with setDesiredEngineAvailability so the read-then-apply pair can't interleave with a
+        // concurrent delegate-queue write; otherwise a stale value could land on the ADM after the delegate applied a newer one.
+        engineAvailabilityQueue.sync {
+            _ = adm.setEngineAvailability(self.desiredEngineAvailability)
+        }
+
+        engineSubscription = adm.publisher.sink { event in
+            guard CallingxSessionOwnership.callingxOwnsSession else { return }
+            switch event {
+            case .willEnableAudioEngine:
+                CallingxImpl.existingBackend()?.setAudioEngineStarting(true)
+                AudioSessionManager.shared.engineWillEnable()
+            case .willStartAudioEngine:
+                // Engine is now rendering; voice-processing mute reflects real intent again.
+                CallingxImpl.existingBackend()?.setAudioEngineStarting(false)
+            case .didDisableAudioEngine:
+                AudioSessionManager.shared.engineDidDisable()
+            default:
+                break
+            }
+        }
+    }
+
+    /// Cancels the ADM engine-lifecycle subscription wired by `wireAudioEngineSubscription`.
+    @objc public func unwireAudioEngineSubscription() {
+        engineSubscription?.cancel()
+        engineSubscription = nil
+        subscribedADM = nil
+        CallingxLog.core.debugPublic("[unwireEngineSubscription]")
+    }
+    
     @objc public func getInitialEvents() -> [[String: Any]] {
         var events: [[String: Any]] = []
         let action = {

@@ -64,4 +64,8 @@
   [CallingxImpl endCall:callId reason:reason];
 }
 
++ (BOOL)handleUserActivity:(NSUserActivity *)userActivity {
+  return [CallingxImpl handleUserActivity:userActivity];
+}
+
 @end

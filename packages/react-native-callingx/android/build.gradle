@@ -1,8 +1,8 @@
 buildscript {
   ext.Callingx = [
-    kotlinVersion: "2.0.21",
+    kotlinVersion: "2.2.0",
     minSdkVersion: 24,
-    compileSdkVersion: 35
+    compileSdkVersion: 37
   ]
 
   ext.getExtOrDefault = { prop ->
@@ -65,7 +65,7 @@ kotlin {
 
 dependencies {
   implementation "com.facebook.react:react-android"
-  implementation "androidx.core:core-telecom:1.0.1"
+  implementation "androidx.core:core-telecom:1.1.0-rc01"
   // Pinned at the MINIMUM version we need, not the latest, so a consumer's own
   // Firebase BOM is respected via Gradle's highest-wins resolution. Callingx only
   // references stable long-lived APIs — FirebaseMessagingService, RemoteMessage,

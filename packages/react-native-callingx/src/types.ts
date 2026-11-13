@@ -360,6 +360,13 @@ export type InternalAndroidOptions = {
    */
   skipIncomingPushInForeground?: boolean;
   /**
+   * Enable calls history. When enabled, the call will be added to the system call log.
+   * Requires Android 16 QPR2 (API 36.1) or newer and a dialer that shows VoIP calls;
+   * no-op on older versions. Tapping a call log entry opens the app.
+   * @default false
+   */
+  callsHistory?: boolean;
+  /**
    * Default audio endpoint for Telecom-managed calls on Android.
    * Applied at call registration as `CallAttributesCompat.preferredStartingCallEndpoint`
    * Note: Works only before the call is registered.
@@ -409,6 +416,7 @@ export type EventName =
   | 'didDeactivateAudioSession'
   | 'providerReset'
   | 'ringCallPushReceived'
+  | 'callBackRequested'
   | 'fcmTokenRefresh';
 
 export type RingCallPushPayload = {
@@ -466,10 +474,21 @@ export type EventParams = {
     callCids: string[];
   };
   ringCallPushReceived: RingCallPushPayload;
+  callBackRequested: CallBackRequestedParams;
   /** Fired on Android when Firebase rotates the device's FCM token. */
   fcmTokenRefresh: {
     token: string;
   };
+};
+
+/**
+ * Sent when the user taps a call entry in the system call history (Android call log, iOS
+ * Recents) to call back. Requires `callsHistory`. The app decides how to call back.
+ */
+export type CallBackRequestedParams = {
+  callId: string; // cid of the call the history entry belongs to
+  displayName?: string;
+  isVideo: boolean;
 };
 
 export type VoipEventName =

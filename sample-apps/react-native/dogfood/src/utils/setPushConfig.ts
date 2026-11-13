@@ -34,6 +34,8 @@ export function setPushConfig() {
     },
     android: {
       pushProviderName: 'rn-fcm-video',
+      enableOngoingCalls: true,
+      callsHistory: true,
     },
     shouldRejectCallWhenBusy: false,
     createStreamVideoClient,

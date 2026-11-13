@@ -17,6 +17,7 @@ import io.getstream.rn.callingx.debugLog
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.utils.AudioEndpointUtils
+import io.getstream.rn.callingx.utils.CallLogStore
 import io.getstream.rn.callingx.utils.SettingsStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -217,6 +218,20 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
 
                 // Call is now registered in Telecom — mark as no longer pending
                 updateCallById(callId) { copy(isPending = false) }
+
+                if (attributes.isLogExcluded != true) {
+                    CallLogStore.put(
+                            context,
+                            getCallId().uuid.toString(),
+                            CallLogStore.Entry(
+                                    callId = callId,
+                                    displayName = attributes.displayName.toString(),
+                                    isVideo =
+                                            attributes.callType ==
+                                                    CallAttributesCompat.CALL_TYPE_VIDEO_CALL,
+                            ),
+                    )
+                }
 
                 // Consume the actions to interact with the call inside the scope
                 launch { processCallActions(callId, flags, actionSource.consumeAsFlow()) }

@@ -74,6 +74,10 @@ import UIKit
         setVoipTokenRegistered(false)
     }
 
+    public static func getCallsHistory() -> Bool {
+        return getSettings()["includesCallsInRecents"] as? Bool ?? false
+    }
+
     public static func getSkipIncomingPushInForeground() -> Bool {
         guard let skip = getSettings()["skipIncomingPushInForeground"] as? Bool else {
             return false
