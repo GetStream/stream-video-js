@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.46.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.46.2...@stream-io/video-react-sdk-1.46.3) (2026-11-13)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.16.1`
+- `@stream-io/video-client` updated to version `1.67.1`
+- `@stream-io/video-react-bindings` updated to version `1.22.5`
+
+### Bug Fixes
+
+- **react-sdk:** refresh device dropdown when selected device changes ([#2617](https://github.com/GetStream/stream-video-js/issues/2617)) ([3161903](https://github.com/GetStream/stream-video-js/commit/3161903c3d899c1a47d30b0896acc94dd2bbe477)), closes [#2613](https://github.com/GetStream/stream-video-js/issues/2613) [#2613](https://github.com/GetStream/stream-video-js/issues/2613)
+
 ## [1.46.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.46.1...@stream-io/video-react-sdk-1.46.2) (2026-11-10)
 
 ### Dependency Updates
