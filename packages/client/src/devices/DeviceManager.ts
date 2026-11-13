@@ -20,7 +20,10 @@ import {
   type InputDeviceStatus,
 } from './DeviceManagerState';
 import { isMobile } from '../helpers/compatibility';
-import { isWebKit } from '../helpers/browsers';
+import { isIOS, isWebKit } from '../helpers/browsers';
+import { sharedAudioContext } from '../helpers/SharedAudioContext';
+import { USER_GESTURE_EVENTS } from '../helpers/userGestures';
+import { getCallExtraOpts } from '../helpers/extraOpts';
 import { isReactNative } from '../helpers/platforms';
 import { ScopedLogger, videoLoggerSystem } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
@@ -53,6 +56,7 @@ import {
   VirtualDeviceHandle,
 } from './VirtualDevice';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
+import { InterruptedTrackRecovery } from './InterruptedTrackRecovery';
 
 export abstract class DeviceManager<
   S extends DeviceManagerState<C>,
@@ -62,9 +66,55 @@ export abstract class DeviceManager<
    * if true, stops the media stream when call is left
    */
   stopOnLeave = true;
+  /**
+   * When `true`, the device is turned on again once an interruption that
+   * made the system end its track is over (e.g. a phone call or Siri on
+   * iOS). When `false`, the device stays off until the user turns it on
+   * again, so nothing is captured without a user action.
+   *
+   * Left unset, the call settings decide, and without a value there the
+   * device stays off.
+   *
+   * Only applies to the camera and the microphone on iOS browsers and
+   * WebViews.
+   */
+  resumeAfterInterruption: boolean | undefined = undefined;
   logger: ScopedLogger;
 
   state: S;
+
+  private captureWindow: Window | undefined;
+
+  /**
+   * Captures camera/microphone through the given window's
+   * `navigator.mediaDevices` (for example a Document Picture-in-Picture window)
+   * instead of the current window's, including permission probes.
+   * The window is only used while it has focus (Firefox hangs capture requests
+   * from an unfocused window); otherwise, or once it is closed, capture falls
+   * back to the current window.
+   * Web only. Pass undefined to restore the default.
+   * Applies to future captures; existing streams are not restarted.
+   * Streams belong to the window that captured them: their sources stop when
+   * that window closes.
+   */
+  setCaptureWindow = (win: Window | undefined): void => {
+    if (
+      isReactNative() ||
+      (this.trackType !== TrackType.AUDIO && this.trackType !== TrackType.VIDEO)
+    ) {
+      throw new Error(
+        'Custom capture windows are only supported for web camera and microphone managers.',
+      );
+    }
+    this.captureWindow = win;
+  };
+
+  protected getCaptureMediaDevices = (): MediaDevices | undefined => {
+    const win = this.captureWindow;
+    return win && !win.closed && win.document.hasFocus()
+      ? win.navigator.mediaDevices
+      : undefined;
+  };
 
   protected readonly call: Call;
   protected readonly trackType: TrackType;
@@ -75,6 +125,8 @@ export abstract class DeviceManager<
   private isTrackStoppedDueToTrackEnd = false;
   // the stream was enabled while the call wasn't JOINED, so it isn't published
   private publishDeferred = false;
+  private interruptedTrackRecovery: InterruptedTrackRecovery;
+  private isRecoveringInterruptedTrack = false;
   private filters: MediaStreamFilterEntry[] = [];
   private virtualDevicesSubject = new BehaviorSubject<VirtualDeviceEntry<C>[]>(
     [],
@@ -99,6 +151,17 @@ export abstract class DeviceManager<
     this.logger = videoLoggerSystem.getLogger(
       `${TrackType[trackType].toLowerCase()} manager`,
     );
+    this.interruptedTrackRecovery = new InterruptedTrackRecovery({
+      recover: this.recoverInterruptedTrack,
+      isInterrupted: this.isCaptureInterrupted,
+      watch: this.watchInterruptionEnd,
+      trace: (phase, attempt) =>
+        this.call.tracer.trace('navigator.mediaDevices.trackEnded.recovery', {
+          trackType: TrackType[this.trackType],
+          phase,
+          attempt,
+        }),
+    });
     this.setup();
   }
 
@@ -270,6 +333,7 @@ export abstract class DeviceManager<
    * Starts stream.
    */
   async enable() {
+    this.cancelInterruptedTrackRecovery();
     this.state.prevStatus = this.state.optimisticStatus;
     if (this.state.optimisticStatus === 'enabled') {
       return;
@@ -299,6 +363,7 @@ export abstract class DeviceManager<
         ? forceStopOrOptions
         : (forceStopOrOptions?.forceStop ?? false);
 
+    this.cancelInterruptedTrackRecovery();
     this.state.prevStatus = this.state.optimisticStatus;
     this.state.setError(undefined);
     if (!forceStop && this.state.optimisticStatus === 'disabled') {
@@ -346,6 +411,11 @@ export abstract class DeviceManager<
    * else it will disable it.
    */
   async toggle() {
+    if (this.interruptedTrackRecovery.isArmed()) {
+      // the device shows as off while its recovery waits: a toggle turns it
+      // on, also when the same tap just started a recovery attempt
+      return await this.enable();
+    }
     if (this.state.optimisticStatus === 'enabled') {
       return await this.disable();
     } else {
@@ -414,18 +484,35 @@ export abstract class DeviceManager<
     if (isReactNative()) {
       throw new Error('This method is not supported in React Native.');
     }
+    this.cancelInterruptedTrackRecovery();
     const prevDeviceId = this.state.selectedDevice;
     if (deviceId === prevDeviceId) {
       return;
     }
+    const wasEnabled = this.enabled;
     try {
       this.state.setDevice(deviceId);
       await this.applySettingsToStream();
     } catch (error) {
       this.state.setDevice(prevDeviceId);
+      await this.restorePreviousDevice(wasEnabled);
       throw error;
     }
   }
+
+  /**
+   * A failed switch has already stopped the previous stream. Starts it
+   * again, unless a newer status change is queued and decides the outcome.
+   */
+  private restorePreviousDevice = async (wasEnabled: boolean) => {
+    if (!wasEnabled || this.state.status !== 'disabled') return;
+    if (hasPending(this.statusChangeConcurrencyTag)) return;
+    try {
+      await this.enable();
+    } catch (err) {
+      this.logger.warn('Failed to restore the previous device', err);
+    }
+  };
 
   /**
    * Disposes the manager.
@@ -433,6 +520,7 @@ export abstract class DeviceManager<
    * @internal
    */
   dispose = () => {
+    this.interruptedTrackRecovery.cancel();
     this.runCurrentStreamCleanups();
     this.subscriptions.forEach((s) => s());
     this.subscriptions = [];
@@ -744,6 +832,7 @@ export abstract class DeviceManager<
           this.call.tracer.trace('navigator.mediaDevices.trackEnded', {
             trackType: TrackType[this.trackType],
           });
+          const endedByInterruption = this.isEndedByInterruption();
           this.setLocalInterrupted(false);
           await this.statusChangeSettled();
           if (this.enabled) {
@@ -752,6 +841,7 @@ export abstract class DeviceManager<
               this.isTrackStoppedDueToTrackEnd = false;
             }, 2000);
             await this.disable();
+            if (endedByInterruption) this.interruptedTrackRecovery.arm();
           }
         };
         const createTrackMuteHandler = (muted: boolean) => () => {
@@ -801,6 +891,93 @@ export abstract class DeviceManager<
       }
     }
   }
+
+  /**
+   * Whether the system, not the user or a removed device, is the likely
+   * reason a track of this manager ended just now. iOS ends the capture
+   * tracks of a page that loses the microphone or camera to a phone call,
+   * Siri or another app, and doesn't restart them afterwards.
+   */
+  private isEndedByInterruption = () => {
+    if (!this.shouldResumeAfterInterruption()) return false;
+    if (isReactNative() || !isIOS()) return false;
+    if (
+      this.trackType !== TrackType.AUDIO &&
+      this.trackType !== TrackType.VIDEO
+    ) {
+      return false;
+    }
+    const { localParticipant } = this.call.state;
+    return (
+      !!localParticipant?.interruptedTracks?.includes(this.trackType) ||
+      this.isCaptureInterrupted()
+    );
+  };
+
+  /**
+   * The value the app set wins, then `resume_after_interruption` of this
+   * device kind in the call settings (`extra_opts.audio` or
+   * `extra_opts.video`). Off without either.
+   */
+  private shouldResumeAfterInterruption = () => {
+    if (this.resumeAfterInterruption !== undefined) {
+      return this.resumeAfterInterruption;
+    }
+    const extraOpts = getCallExtraOpts(this.call.state.settings);
+    const group =
+      this.trackType === TrackType.AUDIO ? extraOpts.audio : extraOpts.video;
+    return group?.resume_after_interruption === true;
+  };
+
+  private isCaptureInterrupted = () => {
+    if (typeof document === 'undefined') return false;
+    return document.hidden || sharedAudioContext.isInterrupted();
+  };
+
+  /**
+   * Invokes `onMaybeOver` when the page becomes visible, the shared audio
+   * context reports the end of an interruption, or the user interacts with
+   * the page.
+   */
+  private watchInterruptionEnd = (onMaybeOver: () => void) => {
+    const controller = new AbortController();
+    const { signal } = controller;
+    document.addEventListener('visibilitychange', onMaybeOver, { signal });
+    const options = { capture: true, passive: true, signal };
+    USER_GESTURE_EVENTS.forEach((type) =>
+      document.addEventListener(type, onMaybeOver, options),
+    );
+    const unwatchAudio = sharedAudioContext.watchInterruptions(
+      (interrupted) => {
+        if (!interrupted) onMaybeOver();
+      },
+    );
+    return () => {
+      controller.abort();
+      unwatchAudio();
+    };
+  };
+
+  /**
+   * Enables the device again without counting as a user action, which
+   * would cancel the recovery in progress.
+   */
+  private recoverInterruptedTrack = async () => {
+    this.isRecoveringInterruptedTrack = true;
+    let enabling: Promise<void>;
+    try {
+      enabling = this.enable();
+    } finally {
+      this.isRecoveringInterruptedTrack = false;
+    }
+    await enabling;
+    if (!this.enabled) throw new Error('The device is still disabled');
+  };
+
+  private cancelInterruptedTrackRecovery = () => {
+    if (this.isRecoveringInterruptedTrack) return;
+    this.interruptedTrackRecovery.cancel();
+  };
 
   private setLocalInterrupted = (interrupted: boolean) => {
     const localParticipant = this.call.state.localParticipant;

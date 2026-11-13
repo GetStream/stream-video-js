@@ -5,7 +5,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { TranslationLanguages } from 'stream-chat';
+import type { TranslationLanguage } from 'stream-chat';
 
 import { CallScope } from '../../components/CallScope';
 import { LobbyE2EEContext } from '../../context/LobbyE2EEContext';
@@ -68,7 +68,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     userData: {
       id: '!anon',
       ...(user as Omit<User, 'type' | 'push_notifications'>),
-      language: user.language as TranslationLanguages | undefined,
+      language: user.language as TranslationLanguage | undefined,
     },
   });
 

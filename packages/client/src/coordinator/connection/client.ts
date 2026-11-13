@@ -32,6 +32,7 @@ import {
 } from './types';
 import { getLocationHint } from './location';
 import { stringifyQueryParams } from './query-params';
+import { buildRequestMetadata } from './api-client';
 import type { ConnectedEvent } from '../../gen/coordinator';
 import type { CreateGuestRequest, CreateGuestResponse } from '../../gen/shims';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
@@ -538,6 +539,7 @@ export class StreamClient {
           unrecoverable: responseData.unrecoverable ?? null,
           response: response,
           status: status,
+          metadata: buildRequestMetadata(response),
         });
       }
     }
@@ -655,6 +657,15 @@ export class StreamClient {
 
     return this.tokenManager.getToken();
   };
+
+  /**
+   * Checks that the coordinator WebSocket still reaches the server, even
+   * when an `offline` event marked it unhealthy.
+   *
+   * @returns `false` without an open connection.
+   */
+  probeConnection = (): Promise<boolean> =>
+    this.wsConnection?.probe() ?? Promise.resolve(false);
 
   updateNetworkConnectionStatus = (
     event: { type: 'online' | 'offline' } | Event,

@@ -9,6 +9,7 @@ export const createMockAnalyserNode = (
   let fftSize = initialFftSize;
 
   return {
+    disconnect: vi.fn(),
     get fftSize() {
       return fftSize;
     },
@@ -53,6 +54,8 @@ export const createMockAudioContext = (): Partial<AudioContext> => {
     close: vi.fn(async () => {
       contextState = 'closed';
     }),
+    resume: vi.fn(async () => {}),
+    addEventListener: vi.fn(),
   };
 };
 

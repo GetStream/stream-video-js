@@ -13,7 +13,6 @@
 		29E1DD2F4D27C2F74A39C25E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319B6F992B4602D9A571E884 /* ContentView.swift */; };
 		33719CC1D6D7FC882065074A /* ScenariosMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB5BA7910C4FCACFA90C66A3 /* ScenariosMenu.swift */; };
 		3B8798B8AEEC33480469EFC8 /* PermissionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E013F718BC75F5AD6E4F3178 /* PermissionCoordinator.swift */; };
-		406942882FACDD7C00BC823D /* WKWebView+Observation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 406942872FACDD7C00BC823D /* WKWebView+Observation.swift */; };
 		423028E0A8D2848DB53C417A /* AudioScenarios.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E71B2A1BECA28F7F3E3AD7 /* AudioScenarios.swift */; };
 		498377EE7CA24F5A0426C140 /* error-capture.js in Resources */ = {isa = PBXBuildFile; fileRef = 35429890281B5750745E6CA0 /* error-capture.js */; };
 		6225026E87FB6C90353547FA /* NavigationInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AC518543C212E9F5C3BD223 /* NavigationInterceptor.swift */; };
@@ -21,42 +20,40 @@
 		651FD5B731584E0524C3748E /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0B61D4F85004B9D8C6A2357 /* AppState.swift */; };
 		92FA665D6C543D4078839233 /* ConsoleBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8C95C0317F57AE066E511D3 /* ConsoleBridge.swift */; };
 		954B8D2BFE3631E88902F1EF /* ErrorBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF05510E92C48ACB89A6860 /* ErrorBridge.swift */; };
+		9D06959897A1B5DADAB778A2 /* NetworkScenarios.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38A82B89CA58A2FB0076585E /* NetworkScenarios.swift */; };
 		D103BE82D7F108B09B3CFE60 /* console-mirror.js in Resources */ = {isa = PBXBuildFile; fileRef = BAF6B45004224C7276B8AE68 /* console-mirror.js */; };
 		E339C51CBDC5C3906FA25F90 /* ding.caf in Resources */ = {isa = PBXBuildFile; fileRef = 4D602AF2903F25E1E5512ED9 /* ding.caf */; };
+		F7EFF02F22503D82C42444D9 /* AutomationRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D5009100C321C7A96CE4D5C /* AutomationRouter.swift */; };
+		FBC9937F0B8368455C7621F7 /* WKWebView+Observation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D95C2EF22F63F819623B5CA2 /* WKWebView+Observation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0270236FF923B373E3585429 /* IOSWebViewApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSWebViewApp.swift; sourceTree = "<group>"; };
+		1D5009100C321C7A96CE4D5C /* AutomationRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationRouter.swift; sourceTree = "<group>"; };
 		319B6F992B4602D9A571E884 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		35429890281B5750745E6CA0 /* error-capture.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "error-capture.js"; sourceTree = "<group>"; };
-		387DBD1A5444E4EB9B9877CE /* IOSWebView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IOSWebView.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		406942872FACDD7C00BC823D /* WKWebView+Observation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WKWebView+Observation.swift"; sourceTree = "<group>"; };
-		4D602AF2903F25E1E5512ED9 /* ding.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ding.caf; sourceTree = "<group>"; };
+		387DBD1A5444E4EB9B9877CE /* IOSWebView.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = IOSWebView.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		38A82B89CA58A2FB0076585E /* NetworkScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkScenarios.swift; sourceTree = "<group>"; };
+		4D602AF2903F25E1E5512ED9 /* ding.caf */ = {isa = PBXFileReference; path = ding.caf; sourceTree = "<group>"; };
 		61B4AF4E42F84875AF1AC245 /* WebViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewRepresentable.swift; sourceTree = "<group>"; };
 		6BF05510E92C48ACB89A6860 /* ErrorBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorBridge.swift; sourceTree = "<group>"; };
 		7D6FDAC9A0FE1C6690D7B350 /* DebugOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverlay.swift; sourceTree = "<group>"; };
 		8AC518543C212E9F5C3BD223 /* NavigationInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationInterceptor.swift; sourceTree = "<group>"; };
 		A8C95C0317F57AE066E511D3 /* ConsoleBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleBridge.swift; sourceTree = "<group>"; };
 		BAF6B45004224C7276B8AE68 /* console-mirror.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "console-mirror.js"; sourceTree = "<group>"; };
-		BCCF451A612F7C857AD81978 /* ringtone.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ringtone.caf; sourceTree = "<group>"; };
+		BCCF451A612F7C857AD81978 /* ringtone.caf */ = {isa = PBXFileReference; path = ringtone.caf; sourceTree = "<group>"; };
 		C4E71B2A1BECA28F7F3E3AD7 /* AudioScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioScenarios.swift; sourceTree = "<group>"; };
 		CB5BA7910C4FCACFA90C66A3 /* ScenariosMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenariosMenu.swift; sourceTree = "<group>"; };
+		D95C2EF22F63F819623B5CA2 /* WKWebView+Observation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WKWebView+Observation.swift"; sourceTree = "<group>"; };
 		E013F718BC75F5AD6E4F3178 /* PermissionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionCoordinator.swift; sourceTree = "<group>"; };
 		E0B61D4F85004B9D8C6A2357 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
-		406942862FACDD5B00BC823D /* WKWebView+Extensions */ = {
-			isa = PBXGroup;
-			children = (
-				406942872FACDD7C00BC823D /* WKWebView+Observation.swift */,
-			);
-			path = "WKWebView+Extensions";
-			sourceTree = "<group>";
-		};
 		5094496513CD5B4E638A86DA /* WebView */ = {
 			isa = PBXGroup;
 			children = (
+				1D5009100C321C7A96CE4D5C /* AutomationRouter.swift */,
 				A8C95C0317F57AE066E511D3 /* ConsoleBridge.swift */,
 				6BF05510E92C48ACB89A6860 /* ErrorBridge.swift */,
 				8AC518543C212E9F5C3BD223 /* NavigationInterceptor.swift */,
@@ -79,6 +76,7 @@
 			isa = PBXGroup;
 			children = (
 				C4E71B2A1BECA28F7F3E3AD7 /* AudioScenarios.swift */,
+				38A82B89CA58A2FB0076585E /* NetworkScenarios.swift */,
 				CB5BA7910C4FCACFA90C66A3 /* ScenariosMenu.swift */,
 			);
 			path = Scenarios;
@@ -90,6 +88,14 @@
 				7D6FDAC9A0FE1C6690D7B350 /* DebugOverlay.swift */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		9CCB63D690942703CF19DDC8 /* WKWebView+Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				D95C2EF22F63F819623B5CA2 /* WKWebView+Observation.swift */,
+			);
+			path = "WKWebView+Extensions";
 			sourceTree = "<group>";
 		};
 		A34E67C7C293EC834B8E9A1F /* Resources */ = {
@@ -105,7 +111,6 @@
 		A848C870267432DB9616E9C3 /* IOSWebView */ = {
 			isa = PBXGroup;
 			children = (
-				406942862FACDD5B00BC823D /* WKWebView+Extensions */,
 				E0B61D4F85004B9D8C6A2357 /* AppState.swift */,
 				319B6F992B4602D9A571E884 /* ContentView.swift */,
 				0270236FF923B373E3585429 /* IOSWebViewApp.swift */,
@@ -113,6 +118,7 @@
 				6A7083CFECBA32E4BFAC081F /* Scenarios */,
 				77C160A2629FD93C3A56481F /* UI */,
 				5094496513CD5B4E638A86DA /* WebView */,
+				9CCB63D690942703CF19DDC8 /* WKWebView+Extensions */,
 			);
 			path = IOSWebView;
 			sourceTree = "<group>";
@@ -208,15 +214,17 @@
 			files = (
 				651FD5B731584E0524C3748E /* AppState.swift in Sources */,
 				423028E0A8D2848DB53C417A /* AudioScenarios.swift in Sources */,
-				406942882FACDD7C00BC823D /* WKWebView+Observation.swift in Sources */,
+				F7EFF02F22503D82C42444D9 /* AutomationRouter.swift in Sources */,
 				92FA665D6C543D4078839233 /* ConsoleBridge.swift in Sources */,
 				29E1DD2F4D27C2F74A39C25E /* ContentView.swift in Sources */,
 				187B1503E512FDE76E19CD0B /* DebugOverlay.swift in Sources */,
 				954B8D2BFE3631E88902F1EF /* ErrorBridge.swift in Sources */,
 				63EB5159F86853374E114490 /* IOSWebViewApp.swift in Sources */,
 				6225026E87FB6C90353547FA /* NavigationInterceptor.swift in Sources */,
+				9D06959897A1B5DADAB778A2 /* NetworkScenarios.swift in Sources */,
 				3B8798B8AEEC33480469EFC8 /* PermissionCoordinator.swift in Sources */,
 				33719CC1D6D7FC882065074A /* ScenariosMenu.swift in Sources */,
+				FBC9937F0B8368455C7621F7 /* WKWebView+Observation.swift in Sources */,
 				161794A3EE200083EB6D6717 /* WebViewRepresentable.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -230,11 +238,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = EHV7XZLAHA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = IOSWebView/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -252,11 +259,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = EHV7XZLAHA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = IOSWebView/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -313,7 +319,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -375,7 +381,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

@@ -1,3 +1,5 @@
+import { sharedAudioContext } from './SharedAudioContext';
+
 export type SoundDetectorOptions = {
   /**
    * Defines how often the detector should check whether a sound is present.
@@ -58,12 +60,20 @@ export const createSoundDetector = (
     destroyStreamOnStop = true,
   } = options;
 
-  const audioContext = new AudioContext();
-  const analyser = audioContext.createAnalyser();
-  analyser.fftSize = fftSize;
-
-  const microphone = audioContext.createMediaStreamSource(audioStream);
-  microphone.connect(analyser);
+  const shared = sharedAudioContext.acquire();
+  if (!shared) throw new Error('Web Audio is not supported');
+  const { context: audioContext, release } = shared;
+  let analyser: AnalyserNode;
+  let microphone: MediaStreamAudioSourceNode;
+  try {
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = fftSize;
+    microphone = audioContext.createMediaStreamSource(audioStream);
+    microphone.connect(analyser);
+  } catch (err) {
+    release();
+    throw err;
+  }
 
   const intervalId = setInterval(() => {
     const data = new Uint8Array(analyser.frequencyBinCount);
@@ -93,9 +103,7 @@ export const createSoundDetector = (
     // clean-up the AudioContext elements
     microphone.disconnect();
     analyser.disconnect();
-    if (audioContext.state !== 'closed') {
-      await audioContext.close();
-    }
+    release();
 
     // stop the stream
     if (destroyStreamOnStop) {

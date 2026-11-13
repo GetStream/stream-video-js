@@ -27,6 +27,15 @@ export class SlidingWindowRateLimiter {
   };
 
   /**
+   * Returns `true` if an attempt at `now` would fit inside the budget.
+   * Records nothing.
+   */
+  canRegister = (now: number = Date.now()): boolean => {
+    this.prune(now);
+    return this.timestamps.length < this.maxAttempts;
+  };
+
+  /**
    * Clears the attempt history.
    */
   reset = (): void => {

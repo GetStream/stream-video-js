@@ -1,6 +1,8 @@
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 
 export class NoiseCancellationStub implements INoiseCancellation {
+  engine?: string;
+  model?: string;
   private listeners: { [event: string]: Array<(arg: any) => void> } = {};
 
   canAutoEnable = async () => true;

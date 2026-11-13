@@ -12,7 +12,11 @@ import {
 import { ConfigurationProvider } from './context';
 import { useEmbeddedClient } from './hooks';
 import type { LogLevel, TokenProvider } from '@stream-io/video-client';
-import type { EmbeddedUser, LayoutOption } from './types';
+import type {
+  EmbeddedClientBaseProps,
+  EmbeddedUser,
+  LayoutOption,
+} from './types';
 import { LoadingIndicator } from '../components';
 
 interface EmbeddedClientContentProps {
@@ -23,6 +27,7 @@ interface EmbeddedClientContentProps {
   token?: string;
   tokenProvider?: TokenProvider;
   logLevel?: LogLevel;
+  noiseCancellationProvider?: EmbeddedClientBaseProps['noiseCancellationProvider'];
   onError?: (error: any) => void;
   layout?: LayoutOption;
   children: ReactNode;
@@ -73,6 +78,7 @@ const EmbeddedClientContent = ({
   token,
   tokenProvider,
   logLevel,
+  noiseCancellationProvider,
   onError,
   layout,
   children,
@@ -97,6 +103,7 @@ const EmbeddedClientContent = ({
       token,
       tokenProvider,
       logLevel,
+      noiseCancellationProvider,
       handleError,
     });
 

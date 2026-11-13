@@ -23,10 +23,22 @@ export interface Spec extends TurboModule {
   /** iOS only. */
   setRecordingAlwaysPreparedMode(enabled: boolean): void;
 
-  setup(): void;
+  /**
+   * Fire-and-forget. iOS: gates the call's audio engine, configures and
+   * activates the SDK-owned audio session on its own queue, then opens the
+   * gate; a mic publish that lands before the gate opens is replayed by
+   * WebRTC, so no ordering with the publish is needed.
+   */
   start(): void;
   stop(): void;
 
+  /**
+   * iOS only. Re-activates the SDK-owned audio session when iOS cleared it
+   * (interruption). Resolves whether the session is active afterwards, rejects
+   * with the AVAudioSession error code (e.g. `'561017449'` while another app
+   * owns the audio). Resolves `false` on Android.
+   */
+  reactivateAudioSession(): Promise<boolean>;
   /** iOS only. */
   showAudioRoutePicker(): void;
 
@@ -46,6 +58,18 @@ export interface Spec extends TurboModule {
   logAudioState(): void;
 
   getAudioStateLog(): string;
+
+  /** iOS only. Snapshot of the shared `AVAudioSession`; empty on Android. */
+  getAudioSessionState(): {
+    category?: string;
+    mode?: string;
+    options?: number;
+    isActive?: boolean;
+    isOtherAudioPlaying?: boolean;
+    callingxOwnsSession?: boolean;
+    route?: string;
+    micPermission?: string;
+  };
 
   /** `playIfMuted` is Android only. */
   playSound(soundName: string, playIfMuted: boolean): void;
@@ -67,6 +91,23 @@ export interface Spec extends TurboModule {
     phase: string;
     reason?: string;
     shouldResume?: boolean;
+  }>;
+
+  /** iOS only. In-call manager audio session configuration/activation results. */
+  readonly onAudioSessionDiagnostic: EventEmitter<{
+    event: string;
+    error?: string;
+    muteMode?: number;
+    enabled?: boolean;
+    result?: number;
+    category?: string;
+    mode?: string;
+    options?: number;
+    isActive?: boolean;
+    isOtherAudioPlaying?: boolean;
+    callingxOwnsSession?: boolean;
+    route?: string;
+    micPermission?: string;
   }>;
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-client",
-  "version": "2.0.0-beta.4",
+  "version": "2.0.0-beta.5",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "browser": "dist/index.browser.es.js",
@@ -33,8 +33,8 @@
     "@protobuf-ts/runtime": "^2.11.1",
     "@protobuf-ts/runtime-rpc": "^2.11.1",
     "@protobuf-ts/twirp-transport": "^2.11.1",
-    "@stream-io/logger": "^2.0.0",
-    "@stream-io/worker-timer": "^1.2.5",
+    "@stream-io/logger": "^2.1.0",
+    "@stream-io/worker-timer": "^1.3.0",
     "axios": "^1.20.0",
     "rxjs": "~7.8.2",
     "sdp-transform": "^2.15.0",

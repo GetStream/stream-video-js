@@ -81,3 +81,15 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+# e2e (e2e/README.md)
+# stream-video-buddy, started from here by the fastlane e2e lanes
+video-buddy-*.log
+video-buddy-session.json
+recordings/
+# Detox
+artifacts/
+# The tests of a CI batch (test_e2e batch:)
+e2e_batch_selection.json
+# Allure, written by jest-allure2-reporter and uploaded by the Allurefile lanes
+allure-results/
+allurectl

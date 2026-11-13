@@ -17,9 +17,17 @@ struct ContentView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                ScenariosMenuView(audio: web.audioScenarios)
+                ScenariosMenuView(
+                    audio: web.audioScenarios,
+                    network: web.networkScenarios
+                )
             }
         }
+        #if DEBUG
+        .onOpenURL { url in
+            AutomationRouter(web: web, onLoad: { urlText = $0.absoluteString }).handle(url)
+        }
+        #endif
     }
 
     private var urlBar: some View {
