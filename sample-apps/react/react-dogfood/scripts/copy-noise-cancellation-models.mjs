@@ -1,36 +1,12 @@
-// Copies the noise cancellation model from @stream-io/audio-filters-web into
-// public/noise-cancellation/models, so that the app serves them itself.
-import { cpSync, existsSync, readFileSync, realpathSync, rmSync } from 'fs';
-import { createRequire } from 'module';
+// Copies the app's own noise cancellation model builds (noise-cancellation/models,
+// vendored from GetStream/mol) into public/noise-cancellation/models, so that
+// the app serves them itself. See noise-cancellation/README.md.
+import { cpSync, existsSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
-const packageName = '@stream-io/audio-filters-web';
-const require = createRequire(import.meta.url);
-
-// The package exports only its entry point, which may not be built yet,
-// so look for its directory along the module resolution paths instead.
-const findPackageDir = () => {
-  for (const nodeModules of require.resolve.paths(packageName) ?? []) {
-    const packageJson = join(nodeModules, packageName, 'package.json');
-    if (!existsSync(packageJson)) continue;
-    if (JSON.parse(readFileSync(packageJson, 'utf8')).name !== packageName) {
-      continue;
-    }
-    return realpathSync(dirname(packageJson));
-  }
-  return undefined;
-};
-
-const packageDir = findPackageDir();
-if (!packageDir) {
-  console.error(
-    `[copy-noise-cancellation-models] ${packageName} is not installed.`,
-  );
-  process.exit(1);
-}
-
-const source = join(packageDir, 'src', 'stream', 'models');
+const appDir = dirname(dirname(fileURLToPath(import.meta.url)));
+const source = join(appDir, 'noise-cancellation', 'models');
 if (!existsSync(source)) {
   console.error(
     `[copy-noise-cancellation-models] Noise cancellation models not found at ${source}.`,
@@ -38,7 +14,6 @@ if (!existsSync(source)) {
   process.exit(1);
 }
 
-const appDir = dirname(dirname(fileURLToPath(import.meta.url)));
 const destination = join(appDir, 'public', 'noise-cancellation', 'models');
 rmSync(destination, { recursive: true, force: true });
 cpSync(source, destination, { recursive: true });

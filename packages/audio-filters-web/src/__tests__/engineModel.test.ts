@@ -29,4 +29,10 @@ describe('StreamNoiseCancellation model', () => {
   it('reports the vendored model build', () => {
     expect(new StreamNoiseCancellation().model).toBe('c4-clean-s24-230k');
   });
+
+  it('reports a model build passed in the options', () => {
+    expect(
+      new StreamNoiseCancellation({ basePath: '/nc', model: 'c5-next' }).model,
+    ).toBe('c5-next');
+  });
 });

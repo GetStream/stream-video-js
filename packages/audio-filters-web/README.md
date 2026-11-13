@@ -110,6 +110,7 @@ await noiseCancellation.dispose();
 | Option              | Default                        | Description                                                                        |
 | ------------------- | ------------------------------ | ---------------------------------------------------------------------------------- |
 | `basePath`          | unpkg, for the package version | Where the WASM and the weights are loaded from. See [Self-hosting](#self-hosting). |
+| `model`             | bundled build                  | The model build under `basePath` to load. See [Self-hosting](#self-hosting).       |
 | `withSafariSupport` | `true`                         | Set to `false` to report Safari and other WebKit browsers as unsupported.          |
 | `restoreTimeoutMs`  | `15000`                        | How long the filter stays off after an overload.                                   |
 | `restoreAttempts`   | `3`                            | Overloads after which the filter stays off.                                        |
@@ -150,6 +151,16 @@ your server, keeping its folder structure, and pass the URL:
 ```ts
 new StreamNoiseCancellation({
   basePath: 'https://cdn.example.com/noise-cancellation/models',
+});
+```
+
+To run a different model build than the bundled one, host its folder
+(`engine.wasm` and `weights.bin`) next to it and pass its name as `model`:
+
+```ts
+new StreamNoiseCancellation({
+  basePath: 'https://cdn.example.com/noise-cancellation/models',
+  model: 'my-model-build',
 });
 ```
 

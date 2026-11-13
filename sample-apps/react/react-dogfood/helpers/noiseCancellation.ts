@@ -1,4 +1,5 @@
 import type { NoiseCancellationOptions } from '@stream-io/audio-filters-web';
+import { MODEL } from '../noise-cancellation/model';
 
 export type NoiseCancellationModel = 'auto' | 'krisp' | 'stream';
 
@@ -9,10 +10,14 @@ export const NOISE_CANCELLATION_MODELS: NoiseCancellationModel[] = [
 ];
 
 /**
- * The `stream` engine's model is served by this app, see
- * scripts/copy-noise-cancellation-models.mjs.
+ * The `stream` engine runs the app's own model build, served by the app
+ * (see noise-cancellation/README.md), so a new build ships with Pronto
+ * without an SDK release.
  */
-const streamBasePath = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/noise-cancellation/models`;
+const streamOptions = {
+  basePath: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/noise-cancellation/models`,
+  model: MODEL,
+};
 
 /**
  * Maps the model picked in the settings to the options of the
@@ -29,17 +34,17 @@ export const getNoiseCancellationOptions = (
         // Krisp reports Safari as unsupported unless opted in;
         // its SDK still requires Safari 17.4+.
         withSafariSupport: true,
-        stream: { basePath: streamBasePath },
+        stream: streamOptions,
       };
     case 'stream':
       return {
         defaultEngine: 'stream',
-        stream: { basePath: streamBasePath },
+        stream: streamOptions,
       };
     case 'auto':
     default:
       return {
-        stream: { basePath: streamBasePath },
+        stream: streamOptions,
       };
   }
 };

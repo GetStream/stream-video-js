@@ -5,3 +5,6 @@
 packages/audio-filters-web/src/stream/models/**
 packages/audio-filters-web/src/stream/README.md
 packages/audio-filters-web/src/stream/LICENSE.md
+sample-apps/react/react-dogfood/noise-cancellation/README.md
+sample-apps/react/react-dogfood/noise-cancellation/models/**
+sample-apps/react/react-dogfood/noise-cancellation/LICENSE.md

@@ -12,7 +12,7 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 
 /** One entry of `mol/models/versions.json`. */
@@ -176,10 +176,10 @@ in mol while vendoring.
 \`\`\`sh
 git clone https://github.com/GetStream/mol /tmp/mol
 git -C /tmp/mol checkout ${commit}
-node packages/audio-filters-web/scripts/vendor-mol.mts \\
+node ${relative(process.cwd(), process.argv[1])} \\
   --mol /tmp/mol \\
   --model ${model} \\
-  --out packages/audio-filters-web/src/stream
+  --out ${relative(process.cwd(), outDir) || '.'}
 \`\`\`
 
 ## Files

@@ -1,5 +1,4 @@
 import processorSource from './processor.js?raw';
-import { MODEL } from './model';
 
 /**
  * How long a model file request may wait for the server's response.
@@ -98,10 +97,10 @@ const addProcessorModule = async (ctx: AudioContext) => {
  */
 export const createProcessorNode = async (
   ctx: AudioContext,
-  opts: { basePath: string; signal: AbortSignal },
+  opts: { basePath: string; model: string; signal: AbortSignal },
 ): Promise<AudioWorkletNode> => {
   const { signal } = opts;
-  const prefix = `${opts.basePath.replace(/\/+$/, '')}/${MODEL}`;
+  const prefix = `${opts.basePath.replace(/\/+$/, '')}/${opts.model}`;
   const weightsUrl = `${prefix}/weights.bin`;
 
   const [wasmBytes, weightBytes] = await Promise.all([

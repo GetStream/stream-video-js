@@ -92,6 +92,14 @@ export type StreamNoiseCancellationOptions = {
   basePath?: string;
 
   /**
+   * The model build to load: the folder under `basePath` that holds its
+   * `engine.wasm` and `weights.bin`. Set it together with `basePath` to run
+   * a build you host yourself.
+   * @default the build bundled with this package version
+   */
+  model?: string;
+
+  /**
    * Whether Safari and other WebKit browsers (all iOS browsers, WKWebView)
    * are reported as supported. Unlike Krisp, this engine supports them by
    * default. Set to false to opt out.
@@ -160,7 +168,7 @@ export class StreamNoiseCancellation extends BaseNoiseCancellation {
   /**
    * The model build this instance runs.
    */
-  readonly model = MODEL;
+  readonly model: string;
   private readonly basePath: string;
   private withSafariSupport: boolean;
   private readonly hasExplicitSafariSupport: boolean;
@@ -172,12 +180,14 @@ export class StreamNoiseCancellation extends BaseNoiseCancellation {
    */
   constructor({
     basePath = `https://unpkg.com/${packageName}@${packageVersion}/src/stream/models`,
+    model = MODEL,
     withSafariSupport,
     restoreTimeoutMs = 15000,
     restoreAttempts = 3,
   }: StreamNoiseCancellationOptions = {}) {
     super();
     this.basePath = basePath;
+    this.model = model;
     this.withSafariSupport = withSafariSupport ?? true;
     this.hasExplicitSafariSupport = typeof withSafariSupport !== 'undefined';
     this.restoreTimeoutMs = restoreTimeoutMs;
@@ -287,6 +297,7 @@ export class StreamNoiseCancellation extends BaseNoiseCancellation {
       workletNode = await untilAborted(
         createProcessorNode(audioContext, {
           basePath: this.basePath,
+          model: this.model,
           signal,
         }),
       );
