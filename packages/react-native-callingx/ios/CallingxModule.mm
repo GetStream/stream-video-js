@@ -249,8 +249,7 @@
 
 #pragma mark - Background Tasks and Service
 
-- (NSNumber *)startBackgroundTask:(NSString *)taskName
-                          timeout:(double)timeout {
+- (NSNumber *)startBackgroundTask {
   // Not implemented on iOS
   return @YES;
 }

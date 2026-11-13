@@ -153,8 +153,8 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         return true
     }
 
-    override fun startBackgroundTask(taskName: String, timeout: Double): Boolean {
-        impl.startBackgroundTask(taskName, timeout)
+    override fun startBackgroundTask(): Boolean {
+        impl.startBackgroundTask()
         return true
     }
 

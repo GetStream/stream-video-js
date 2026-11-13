@@ -32,12 +32,7 @@ beforeEach(() => {
   jest.doMock('react-native', () => ({
     TurboModuleRegistry: { getEnforcing },
     Platform: platform,
-    AppRegistry: { registerHeadlessTask: jest.fn() },
   }));
-});
-
-afterEach(() => {
-  jest.useRealTimers();
 });
 
 test('looks the native module up by its registered name on import', () => {
@@ -59,6 +54,7 @@ test.each([
   ['setOnHoldCall', ['call-1', true], ['call-1', true]],
   ['requestAudioEndpointChange', ['call-1', 'e1'], ['call-1', 'e1']],
   ['stopService', [], []],
+  ['startBackgroundTask', [], []],
 ] as const)(
   '%s runs synchronously and rethrows native errors',
   (method, args, nativeArgs) => {
@@ -96,21 +92,6 @@ describe('getAvailableAudioEndpoints', () => {
     expect(load().getAvailableAudioEndpoints('call-1')).toEqual(emptySnapshot);
     expect(nativeModule.getAvailableAudioEndpoints).not.toHaveBeenCalled();
   });
-});
-
-test('acquireBackgroundTask rethrows native failures without retaining the owner', () => {
-  // releaseBackgroundTask schedules the debounced stop; keep that timer off the real clock.
-  jest.useFakeTimers();
-  const module = load();
-  const error = new Error('start failed');
-  nativeModule.startBackgroundTask.mockImplementationOnce(() => {
-    throw error;
-  });
-  expect(() => module.acquireBackgroundTask('owner')).toThrow(error);
-
-  expect(module.acquireBackgroundTask('owner')).toBeUndefined();
-  expect(nativeModule.startBackgroundTask).toHaveBeenCalledTimes(2);
-  expect(module.releaseBackgroundTask('owner')).toBeUndefined();
 });
 
 test('addEventListener subscribes once and removes after the last listener', () => {

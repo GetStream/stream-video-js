@@ -10,6 +10,7 @@ import { getCallingxLib, getCallingxLibIfAvailable } from '../libs';
 import { StreamVideoRN } from '../../StreamVideoRN';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { canListenToWS, shouldCallBeClosed } from './utils';
+import { keepAliveController } from '../../keepCallAliveController';
 
 /**
  * Handles a Stream Video `call.ring` push payload: connects the WS to watch the ringing call
@@ -74,7 +75,7 @@ export const onRingNotificationReceived = async (
 
   const finishBackgroundTask = () => {
     nativeLog(`Finishing background task for callCid: ${call_cid}`);
-    callingx.releaseBackgroundTask(backgroundTaskOwner);
+    keepAliveController.release(backgroundTaskOwner, 'callingx');
   };
 
   /**
@@ -110,14 +111,14 @@ export const onRingNotificationReceived = async (
     // initialize the callback array immediately to avoid race condition
     pushUnsubscriptionCallbacks.set(call_cid, []);
     nativeLog(`acquiring background task for callCid: ${call_cid}`);
-    try {
-      callingx.acquireBackgroundTask(backgroundTaskOwner);
-    } catch (e) {
-      nativeLog(
-        `Failed to acquire background task for callCid: ${call_cid} error: ${e}`,
-        'error',
-      );
-    }
+    keepAliveController.acquire(backgroundTaskOwner, 'callingx').then((ok) => {
+      if (!ok) {
+        nativeLog(
+          `Failed to acquire background task for callCid: ${call_cid}`,
+          'error',
+        );
+      }
+    });
   }
 
   let client: StreamVideoClient | undefined;
