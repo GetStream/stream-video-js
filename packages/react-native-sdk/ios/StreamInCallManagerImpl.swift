@@ -1,7 +1,7 @@
 import Foundation
+import os
 import UIKit
 import AVFoundation
-import Combine
 import stream_react_native_webrtc
 import AVKit
 import MediaPlayer
@@ -48,6 +48,7 @@ private enum Constants {
 @objc public protocol StreamInCallManagerEventEmitter: AnyObject {
     func emitAudioDeviceChanged(_ payload: [String: Any])
     func emitAudioInterruption(_ payload: [String: Any])
+    func emitAudioSessionDiagnostic(_ payload: [String: Any])
 }
 
 /// Stable device-id scheme for the JS layer. The built-in speaker is synthetic; every
@@ -66,39 +67,136 @@ private enum AudioDeviceId {
 
     private let audioSessionQueue = DispatchQueue(label: "io.getstream.rn.audioSessionQueue")
 
-    private var audioManagerActivated = false
-    private var callAudioRole: CallAudioRole = .communicator
-    private var defaultAudioDevice: DefaultAudioDevice = .speaker
-    /// The user's explicit output pick, or `nil` to use the category default.
-    /// Re-applied on every engine rebuild so the pick survives interruptions.
-    private var selectedOutput: OutputRouting?
+    /// Inputs of the session config. Written on `audioSessionQueue`, read by the engine hooks on the
+    /// WebRTC worker thread, so guarded by `configInputsLock`.
+    private struct ConfigInputs {
+        var callAudioRole: CallAudioRole = .communicator
+        var defaultAudioDevice: DefaultAudioDevice = .speaker
+        /// The user's explicit output pick, or `nil` to use the category default.
+        /// Re-applied on every engine rebuild so the pick survives interruptions.
+        var selectedOutput: OutputRouting?
+        /// Between `start()` and `stop()` (a live non-CallKit call): the idempotency guard of
+        /// `start()` and of the pre-start setters, and the willEnable hook is a no-op outside it
+        /// (lobby tracks, stray default-factory ADMs). Set in `start()` before the engine gate
+        /// opens: the replayed enable runs the hook synchronously on the worker thread.
+        var isStarted = false
+        /// Set once `start()` or `reactivateAudioSession` activated the SDK-owned session (the
+        /// engine gate is open from then on); cleared in `stop()`. Read by the `didCreateModule`
+        /// hook, which must keep gating after a `start()` whose activation failed.
+        var isSessionActivated = false
+    }
+    private let configInputsLock = NSLock()
+    private var configInputs = ConfigInputs()
+
+    private var callAudioRole: CallAudioRole {
+        get { configInputsSnapshot().callAudioRole }
+        set { updateConfigInputs { $0.callAudioRole = newValue } }
+    }
+    private var defaultAudioDevice: DefaultAudioDevice {
+        get { configInputsSnapshot().defaultAudioDevice }
+        set { updateConfigInputs { $0.defaultAudioDevice = newValue } }
+    }
+    private var selectedOutput: OutputRouting? {
+        get { configInputsSnapshot().selectedOutput }
+        set { updateConfigInputs { $0.selectedOutput = newValue } }
+    }
+    private var isStarted: Bool {
+        get { configInputsSnapshot().isStarted }
+        set { updateConfigInputs { $0.isStarted = newValue } }
+    }
+    private var isSessionActivated: Bool {
+        get { configInputsSnapshot().isSessionActivated }
+        set { updateConfigInputs { $0.isSessionActivated = newValue } }
+    }
+
+    /// Whether we hold an `RTCAudioSession` activation (activations are counted). Only read/written
+    /// inside `AudioSessionConfigLock.run`.
+    ///
+    /// Engine availability is the gate (same model as callingx): the call ADM is born gated
+    /// (`.none` in the `didCreateModule` hook), `start()` configures + activates the session on
+    /// `audioSessionQueue` and only then opens the gate (`.default`); WebRTC remembers the
+    /// playout/recording requests made while gated and replays them when it opens, so the engine
+    /// never starts against an inactive session and the JS publish order does not matter. The
+    /// willEnable hook only re-applies the configuration. The activation is held from `start()` to
+    /// `stop()` (repaired on interruption end and by the tracer): the engine can be fully disabled
+    /// and rebuilt mid-call (a REJOIN reconnect recreates the peer connections), so no engine hook
+    /// releases it, or the rebuilt engine starts against an inactive session.
+    /// `setEngineAvailability` is a blocking call onto the WebRTC worker thread: only from
+    /// `audioSessionQueue` or the `didCreateModule` hook, never from the worker-thread hooks (same
+    /// thread) nor inside `AudioSessionConfigLock.run` (the hooks take that lock while the caller
+    /// is blocked). `adm.reset()` re-arms `.default`.
+    private var weActivatedSession = false
+    /// Token of the process-wide ADM engine hooks; removed in `invalidate()`.
+    private var engineHooksToken: NSObject?
+
     private var enableStereo: Bool = false
     private var previousVolume: Float = 0.75
-
-    private struct AudioSessionState {
-        let category: AVAudioSession.Category
-        let mode: AVAudioSession.Mode
-        let options: AVAudioSession.CategoryOptions
-    }
 
     private var hasRegisteredRouteObserver = false
     private var hasRegisteredInterruptionObserver = false
     private var stereoRefreshWorkItem: DispatchWorkItem?
-    /// Combine subscription to the AudioDeviceModule's engine-lifecycle publisher.
-    /// Wired in `setup()`; torn down in `stop()`.
-    private var engineSubscription: AnyCancellable?
 
     private let soundPlayer = SoundPlayer()
 
+    /// Called from the TurboModule's `RCTInitializing.initialize`, i.e. only on the instance React
+    /// Native wires to JS. Keep process-wide side effects out of `init`: the generated
+    /// `RCTModuleProviders` also instantiates every codegen module class once as a throwaway
+    /// provider that is never initialized nor invalidated.
+    @objc public func initialize() {
+        guard engineHooksToken == nil else { return }
+        // Process-wide (every per-call ADM), run synchronously on the WebRTC worker thread.
+        engineHooksToken = AudioDeviceModule.addEngineHooks(
+            willEnable: { [weak self] isPlayoutEnabled, isRecordingEnabled in
+                self?.handleEngineWillEnable(isPlayoutEnabled: isPlayoutEnabled, isRecordingEnabled: isRecordingEnabled) ?? 0
+            },
+            // No didDisable hook: the activation is released by stop(), never by the engine.
+            didDisable: nil,
+            didCreateModule: { [weak self] adm in
+                self?.handleModuleCreated(adm)
+            }
+        )
+    }
+
+    /// `didCreateModule` hook (WebRTCModule method queue, before `createCallFactory` resolves to JS,
+    /// outside the registry lock): the call ADM is born gated so no enable edge (mic publish,
+    /// lobby track re-enable) can start an engine before `start()` activated the session. Skipped
+    /// while callingx owns the session (its own hook gates its calls) and once our session is
+    /// active (a factory is never created mid-call; `stop()` clears the flag before the next
+    /// join). A started call whose activation failed keeps gating: `reactivateAudioSession`
+    /// opens the gate once the session is active.
+    private func handleModuleCreated(_ adm: AudioDeviceModule) {
+        if Self.callingxOwnsSession() || isSessionActivated {
+            return
+        }
+        let result = adm.setEngineAvailability(.none)
+        log("didCreateModule: gated the engine until start() activates the session (result=\(result))")
+    }
+
     @objc public func invalidate() {
+        if let engineHooksToken {
+            AudioDeviceModule.removeEngineHooks(engineHooksToken)
+            self.engineHooksToken = nil
+        }
         stopSound()
         stop()
+    }
+
+    private func configInputsSnapshot() -> ConfigInputs {
+        configInputsLock.lock()
+        defer { configInputsLock.unlock() }
+        return configInputs
+    }
+
+    private func updateConfigInputs(_ update: (inout ConfigInputs) -> Void) {
+        configInputsLock.lock()
+        defer { configInputsLock.unlock() }
+        update(&configInputs)
     }
 
     @objc(setAudioRole:)
     public func setAudioRole(audioRole: String) {
         audioSessionQueue.async { [self] in
-            if audioManagerActivated {
+            if isStarted {
                 log("AudioManager is already activated, audio role cannot be changed.")
                 return
             }
@@ -109,7 +207,7 @@ private enum AudioDeviceId {
     @objc(setDefaultAudioDeviceEndpointType:)
     public func setDefaultAudioDeviceEndpointType(endpointType: String) {
         audioSessionQueue.async { [self] in
-            if audioManagerActivated {
+            if isStarted {
                 log("AudioManager is already activated, default audio device cannot be changed.")
                 return
             }
@@ -120,7 +218,7 @@ private enum AudioDeviceId {
     @objc(setEnableStereoAudioOutput:)
     public func setEnableStereoAudioOutput(enabled: Bool) {
         audioSessionQueue.async { [self] in
-            if audioManagerActivated {
+            if isStarted {
                 log("AudioManager is already activated, enable stereo audio output cannot be changed.")
                 return
             }
@@ -136,7 +234,11 @@ private enum AudioDeviceId {
                 return
             }
             let muteMode = RTCAudioEngineMuteMode(rawValue: mode) ?? .voiceProcessing
-            _ = adm.setMuteMode(muteMode)
+            let result = adm.setMuteMode(muteMode)
+            if result != 0 {
+                log("setMuteMode(\(mode)) failed: \(result)")
+                sendAudioSessionDiagnostic("setMuteModeError", extra: ["muteMode": mode, "result": result], includeSession: false)
+            }
         }
     }
 
@@ -147,17 +249,33 @@ private enum AudioDeviceId {
                 log("setRecordingAlwaysPreparedMode(\(enabled)) skipped: no live call ADM")
                 return
             }
-            _ = adm.setRecordingAlwaysPreparedMode(enabled)
+            let result = adm.setRecordingAlwaysPreparedMode(enabled)
+            if result != 0 {
+                log("setRecordingAlwaysPreparedMode(\(enabled)) failed: \(result)")
+                sendAudioSessionDiagnostic("setRecordingAlwaysPreparedModeError", extra: ["enabled": enabled, "result": result], includeSession: false)
+            }
         }
     }
 
-    /// Builds the audio config for the current role/device and sets it as WebRTC's default.
-    private func makeAudioConfiguration(for routing: OutputRouting?) -> RTCAudioSessionConfiguration {
+    /// Builds the audio config for the given role/device and sets it as WebRTC's default.
+    /// - Parameters:
+    ///   - isRecordingEnabled: whether the engine being enabled records (`false` outside the hook).
+    ///   - currentCategory: the live `RTCAudioSession.category`, so an output-only enable never
+    ///     downgrades a `.playAndRecord` session.
+    private func makeAudioConfiguration(
+        inputs: ConfigInputs,
+        routing: OutputRouting?,
+        isRecordingEnabled: Bool,
+        currentCategory: String
+    ) -> RTCAudioSessionConfiguration {
         let category: AVAudioSession.Category
         let mode: AVAudioSession.Mode
         let options: AVAudioSession.CategoryOptions
+        let wantsPlayAndRecord = isRecordingEnabled
+            || micPermissionGranted()
+            || currentCategory == AVAudioSession.Category.playAndRecord.rawValue
 
-        if callAudioRole == .listener {
+        if inputs.callAudioRole == .listener {
             // High quality audio playback, microphone disabled.
             // .spokenAudio + .mixWithOthers: listener flow is passive spoken-audio
             // playback, so let other apps' audio coexist (music keeps playing under it)
@@ -168,12 +286,17 @@ private enum AudioDeviceId {
             // TODO: for stereo we should disallow BluetoothHFP and allow only allowBluetoothA2DP
             // note: this is the behaviour of iOS native SDK, but fails here with (OSStatus error -50.)
             // options = self.enableStereo ? [.allowBluetoothA2DP] : []
-        } else if !micPermissionGranted() {
-            // Communicator without mic permission (denied or not yet asked): use a
-            // pure-output, no-VPIO session so the output-only AVAudioEngine renders
-            // remote audio. Mirrors stream-video-swift
-            // (isRecordingEnabled ? .playAndRecord : .playback). We can't record anyway.
-            // Self-heals: granting permission + unmuting rebuilds the engine.
+        } else if !wantsPlayAndRecord {
+            // Communicator without mic permission (denied or not yet asked) and nothing
+            // recording yet: an output-only engine under .playAndRecord/.voiceChat (VPIO)
+            // can render no remote audio. With the mic permission we keep the input chain
+            // prepared (always-prepared mode) to avoid that; without it we can't, so use a
+            // pure-output, no-VPIO .playback session to keep remote audio audible.
+            // Not self-healing on its own: a later recording enable (mic published after
+            // the grant) runs the willEnable hook with isRecordingEnabled=true, which
+            // upgrades to .playAndRecord before the engine starts. Once in .playAndRecord we
+            // stay there: the speaker-only fallback enables with isRecordingEnabled=false and
+            // must not downgrade the session mid-call.
             // Known gap: .playback can't route to the receiver (earpiece) — that route
             // only exists under .playAndRecord.
             category = .playback
@@ -190,7 +313,7 @@ private enum AudioDeviceId {
             category = .playAndRecord
             mode = .voiceChat
             
-            var mustSetDefaultToSpeaker = defaultAudioDevice == .speaker
+            var mustSetDefaultToSpeaker = inputs.defaultAudioDevice == .speaker
             if case .input(let uid) = routing, isBuiltInMicUid(uid) {
                 // the selected output is a built-in mic
                 // then we always can't use defaultToSpeaker
@@ -216,105 +339,166 @@ private enum AudioDeviceId {
         }
     }
 
-    @objc
-    public func setup() {
-        audioSessionQueue.async { [self] in
-            let adm = getAudioDeviceModule()
-            selectedOutput = nil
-
-            // This path (no CallKit) owns audio-session activation itself, so the
-            // engine must be allowed to start. Restores availability in case a
-            // prior CallKit call had gated it off.
-            _ = adm?.setEngineAvailability(.default)
-
-            // Stereo is listener-only and applies live. Cleared by stop()'s reset().
-            if callAudioRole == .listener && enableStereo {
-                adm?.setStereoPlayoutPreference(true)
+    /// `granted` / `denied` / `undetermined`; anything but `granted` selects the `.playback` session.
+    private func micPermissionState() -> String {
+        if #available(iOS 17.0, *) {
+            switch AVAudioApplication.shared.recordPermission {
+            case .granted: return "granted"
+            case .denied: return "denied"
+            case .undetermined: return "undetermined"
+            @unknown default: return "unknown"
             }
-
-            let rtcConfig = makeAudioConfiguration(for: selectedOutput)
-            log("Setup with category: \(rtcConfig.category), mode: \(rtcConfig.mode), options: \(rtcConfig.categoryOptions)")
-
-            let session = RTCAudioSession.sharedInstance()
-            session.lockForConfiguration()
-            defer { session.unlockForConfiguration() }
-            do {
-                try session.setConfiguration(rtcConfig)
-            } catch {
-                // String(describing:) shows the real error; localizedDescription prints a useless "error 0".
-                log("Error setting audio session: \(String(describing: error))")
+        } else {
+            switch AVAudioSession.sharedInstance().recordPermission {
+            case .granted: return "granted"
+            case .denied: return "denied"
+            case .undetermined: return "undetermined"
+            @unknown default: return "unknown"
             }
+        }
+    }
 
-            // Subscribe to the AudioDeviceModule's engine lifecycle (idempotent).
-            // The sink does the authoritative reapply on every engine rebuild
-            // (interruption recovery, mode swap) and owns `setActive(true/false)`
-            // since there's no CallKit on this path.
-            // Skipped when callingx owns the session (CallKit-managed call active).
-            if engineSubscription == nil {
-                #if DEBUG
-                NSLog("%@","[StreamInCallManager][wireEngineSubscription]")
-                #endif
-                engineSubscription = adm?.publisher.sink { [weak self] event in
-                    guard let self else { return }
-                    self.audioSessionQueue.async {
-                        switch event {
-                        case .willEnableAudioEngine:
-                            self.applyConfigForEngineEnable()
-                        case .didDisableAudioEngine:
-                            self.applyConfigForEngineDisable()
-                        default:
-                            // .willStartAudioEngine / .didStopAudioEngine intentionally ignored:
-                            // WebRTC's engine stop/restart around interruptions — it re-activates the
-                            // session itself via AVAudioEngine.start(). We only (re)apply config +
-                            // setActive on enable/disable.
-                            break
-                        }
+    // MARK: - Engine Hooks (non-callingx path)
+
+    /// `AudioDeviceModule` willEnable hook: runs synchronously on the WebRTC worker thread on an
+    /// enable edge only (input or output being enabled: the replay when `start()` opens the gate,
+    /// voice-processing retries, speaker-only fallback), so the session configuration matches
+    /// that engine (e.g. `.playAndRecord` once recording is on). Not run for rebuilds without an
+    /// enable edge (device change, stop recording with playout on, interruption-end restart).
+    /// Configuration only: activation is owned by `start()`, `reactivateAudioSession` and the
+    /// interruption-ended repair on `audioSessionQueue`, and the gate guarantees no enable edge
+    /// reaches a started call before its session is active. Acts between `start()` and `stop()`
+    /// only (a pre-join lobby enable on a default ADM is left alone).
+    /// Must not touch `audioSessionQueue`, the main queue (sync) or ADM APIs.
+    /// Non-zero fails the enable (configuration errors only), so WebRTC rolls it back instead of
+    /// starting a broken engine. A routing re-apply failure is logged and never fails the enable:
+    /// WebRTC does not retry, so it would kill every voice-processing/speaker fallback.
+    private func handleEngineWillEnable(isPlayoutEnabled: Bool, isRecordingEnabled: Bool) -> Int {
+        if Self.callingxOwnsSession() {
+            return 0
+        }
+
+        let inputs = configInputsSnapshot()
+        guard inputs.isStarted else {
+            log("engineWillEnable: skipped, call manager not started")
+            return 0
+        }
+        do {
+            let (rtcConfig, routingError) = try AudioSessionConfigLock.run { session in
+                let rtcConfig = makeAudioConfiguration(
+                    inputs: inputs,
+                    routing: inputs.selectedOutput,
+                    isRecordingEnabled: isRecordingEnabled,
+                    currentCategory: session.category
+                )
+                if session.category != rtcConfig.category
+                    || session.mode != rtcConfig.mode
+                    || session.categoryOptions != rtcConfig.categoryOptions {
+                    try session.setConfiguration(rtcConfig)
+                }
+                // Re-apply the explicit pick (if any) so it survives the engine rebuild.
+                var routingError: Error?
+                if let selectedOutput = inputs.selectedOutput {
+                    do {
+                        try applyOutputRouting(selectedOutput)
+                    } catch {
+                        log("engineWillEnable routing error: \(String(describing: error))")
+                        routingError = error
                     }
                 }
+                return (rtcConfig, routingError)
             }
-        }
-    }
-
-    // MARK: - Engine Lifecycle Handlers (non-CallKit path)
-
-    /// Reapplies the same `AVAudioSessionConfiguration` that `setup()` writes
-    /// on every engine rebuild, then activates the session.
-    /// No-ops when callingx owns the session.
-    private func applyConfigForEngineEnable() {
-        if Self.callingxOwnsSession() {
-            log("engineWillEnable: callingx owns the session, skipping")
-            return
-        }
-
-        let rtcConfig = makeAudioConfiguration(for: selectedOutput)
-        let session = RTCAudioSession.sharedInstance()
-        session.lockForConfiguration()
-        defer { session.unlockForConfiguration() }
-        do {
-            try session.setConfiguration(rtcConfig, active: true)
-            // Re-apply the explicit pick (if any) so it survives the engine rebuild.
-            if let selectedOutput {
-                try applyOutputRouting(selectedOutput)
+            log("engineWillEnable: applied category=\(rtcConfig.category) mode=\(rtcConfig.mode) playout=\(isPlayoutEnabled) recording=\(isRecordingEnabled)")
+            let extra: [String: Any] = routingError.map {
+                ["routingError": String(String(describing: $0).prefix(200))]
+            } ?? [:]
+            DispatchQueue.main.async { [weak self] in
+                self?.sendAudioSessionDiagnostic("engineEnableApplied", extra: extra)
             }
-            log("engineWillEnable: applied category=\(rtcConfig.category) mode=\(rtcConfig.mode) activated=true")
+            return 0
         } catch {
             log("engineWillEnable error: \(String(describing: error))")
+            DispatchQueue.main.async { [weak self] in
+                self?.sendAudioSessionDiagnostic("engineEnableError", error: error)
+            }
+            return -4100
         }
     }
 
-    private func applyConfigForEngineDisable() {
-        if Self.callingxOwnsSession() {
-            return
+    /// Releases our session activation, if we hold one (`stop()` only). Idempotent; never throws.
+    /// Runs even when callingx owns the session: ownership can flip to callingx mid-call after
+    /// we activated, and skipping would leak our activation. CallKit's own activation also
+    /// counts in RTCAudioSession, so our `setActive(false)` only decrements the count and never
+    /// really deactivates a CallKit-owned session.
+    /// Inside `AudioSessionConfigLock`. Activates the session unless our activation is still in
+    /// place. `isActive` is cleared by an interruption and stays cleared when WebRTC's
+    /// re-activation on interruption-end fails, while our activation count is still held:
+    /// re-activate then, or the engine restarts against an inactive session for the rest of the call.
+    private func activateSessionIfNeeded(_ session: RTCAudioSession) throws -> (activated: Bool, reactivated: Bool) {
+        let reactivated = weActivatedSession && !session.isActive
+        guard !weActivatedSession || reactivated else { return (false, false) }
+        if reactivated {
+            // Release the stale count first (no system call while inactive), so the
+            // re-activation does not take a second one that stop() never releases.
+            weActivatedSession = false
+            try? session.setActive(false)
         }
+        try session.setActive(true)
+        weActivatedSession = true
+        return (true, reactivated)
+    }
 
-        let session = RTCAudioSession.sharedInstance()
-        session.lockForConfiguration()
-        defer { session.unlockForConfiguration() }
-        do {
-            try session.setActive(false)
-            log("engineDidDisable: deactivated session")
-        } catch {
-            log("engineDidDisable error: \(String(describing: error))")
+    /// Diagnostics tracer recovery. The ADM cannot restart its engine against an inactive
+    /// session (no hardware format), and WebRTC re-activates the session only once per
+    /// interruption end: re-activate it here when iOS cleared it, then open the engine gate
+    /// (a no-op when `start()` already opened it; replays the playout/recording requests left
+    /// gated by a `start()` whose activation failed). Resolves whether the session is active
+    /// afterwards (`false` when the call manager is not started or callingx owns the session);
+    /// rejects with the AVAudioSession error, e.g. `561017449` ('!int') while another app still
+    /// owns the audio.
+    @objc public func reactivateAudioSession(resolve: @escaping (Bool) -> Void, reject: @escaping (NSError) -> Void) {
+        audioSessionQueue.async { [self] in
+            guard isStarted, !Self.callingxOwnsSession() else {
+                log("reactivateAudioSession: skipped, \(isStarted ? "callingx owns the session" : "call manager not started")")
+                resolve(false)
+                return
+            }
+            do {
+                let (activated, isActive) = try AudioSessionConfigLock.run { session in
+                    (try activateSessionIfNeeded(session).activated, session.isActive)
+                }
+                log("reactivateAudioSession: activated=\(activated) isActive=\(isActive)")
+                if isActive {
+                    isSessionActivated = true
+                    openEngineGateIfOwned(source: "reactivateAudioSession")
+                }
+                if activated {
+                    DispatchQueue.main.async { [weak self] in
+                        self?.sendAudioSessionDiagnostic("sessionReactivated")
+                    }
+                }
+                resolve(isActive)
+            } catch {
+                log("reactivateAudioSession error: \(String(describing: error))")
+                DispatchQueue.main.async { [weak self] in
+                    self?.sendAudioSessionDiagnostic("sessionReactivateError", error: error)
+                }
+                reject(error as NSError)
+            }
+        }
+    }
+
+    private func deactivateSessionIfNeeded(source: String) {
+        AudioSessionConfigLock.run { session in
+            guard weActivatedSession else { return }
+            // RTCAudioSession decrements its activation count even when deactivation fails.
+            weActivatedSession = false
+            do {
+                try session.setActive(false)
+                log("\(source): deactivated session")
+            } catch {
+                log("\(source) deactivate error: \(String(describing: error))")
+            }
         }
     }
 
@@ -322,14 +506,13 @@ private enum AudioDeviceId {
         if Self.callingxOwnsSession() {
             return
         }
-        let session = RTCAudioSession.sharedInstance()
-        session.lockForConfiguration()
-        defer { session.unlockForConfiguration() }
-        do {
-            try session.overrideOutputAudioPort(.none)
-            try AVAudioSession.sharedInstance().setPreferredInput(nil)
-        } catch {
-            log("clearOutputRouting error: \(String(describing: error))")
+        AudioSessionConfigLock.run { session in
+            do {
+                try session.overrideOutputAudioPort(.none)
+                try AVAudioSession.sharedInstance().setPreferredInput(nil)
+            } catch {
+                log("clearOutputRouting error: \(String(describing: error))")
+            }
         }
     }
 
@@ -343,13 +526,61 @@ private enum AudioDeviceId {
         return ((cls as AnyObject).value(forKey: "callingxOwnsSession") as? Bool) ?? false
     }
 
+    /// Fire-and-forget (the JS publish may land before or after it; see `weActivatedSession`).
+    /// On `audioSessionQueue`: gate the engine → configure + activate the session → open the
+    /// gate → request playout. callingx ownership (a mid-flight flip; callingx calls bypass this
+    /// method in JS) skips only the session/gate steps, like the willEnable hook.
     @objc
     public func start() {
-        setup()
         audioSessionQueue.async { [self] in
-            if audioManagerActivated {
+            if isStarted {
                 return
             }
+            let owned = Self.callingxOwnsSession()
+            let adm = getAudioDeviceModule()
+
+            // Gate first: a no-op for the (born gated) call ADM, else stops and releases a stray
+            // engine so it is rebuilt after activation.
+            if !owned {
+                _ = adm?.setEngineAvailability(.none)
+            }
+
+            selectedOutput = nil
+            // Stereo is listener-only and applies live. Cleared by stop()'s reset().
+            if callAudioRole == .listener && enableStereo {
+                adm?.setStereoPlayoutPreference(true)
+            }
+
+            var sessionActive = false
+            if owned {
+                log("start: callingx owns the session, configuration and activation skipped")
+            } else {
+                let inputs = configInputsSnapshot()
+                do {
+                    let (rtcConfig, activated) = try AudioSessionConfigLock.run { session in
+                        let rtcConfig = makeAudioConfiguration(
+                            inputs: inputs,
+                            routing: nil,
+                            isRecordingEnabled: false,
+                            currentCategory: session.category
+                        )
+                        try session.setConfiguration(rtcConfig)
+                        let (activated, _) = try activateSessionIfNeeded(session)
+                        return (rtcConfig, activated)
+                    }
+                    sessionActive = true
+                    isSessionActivated = true
+                    log("start: configured category=\(rtcConfig.category) mode=\(rtcConfig.mode) options=\(rtcConfig.categoryOptions) activated=\(activated)")
+                    sendAudioSessionDiagnostic("sessionActivated", extra: ["activated": activated])
+                } catch {
+                    // Keep the gate closed: the engine must not start against an inactive session.
+                    // `reactivateAudioSession` (diagnostics tracer) activates and opens it later.
+                    // String(describing:) shows the real error; localizedDescription prints a useless "error 0".
+                    log("start error: \(String(describing: error))")
+                    sendAudioSessionDiagnostic("startError", error: error)
+                }
+            }
+
             DispatchQueue.main.async {
                 // Enable wake lock to prevent the screen from dimming/locking during a call
                 UIApplication.shared.isIdleTimerDisabled = true
@@ -360,36 +591,64 @@ private enum AudioDeviceId {
                 self.log("Wake lock enabled (idle timer disabled)")
                 self.log("defaultAudioDevice: \(self.defaultAudioDevice)")
             }
-            // setPlayout(true) triggers .willEnableAudioEngine, whose sink
-            // applies the preset and calls setActive(true). No explicit
-            // session.setActive(true) here.
-            do {
-                let adm = getAudioDeviceModule()
-                try adm?.setPlayout(true)
-                self.log("adm.setPlayout(true) done")
-            } catch {
-                // String(describing:) surfaces the real error code (see setup()).
-                log("Error starting playout: \(String(describing: error))")
-            }
 
-            audioManagerActivated = true
+            // Before the gate opens: the replayed enable runs the willEnable hook, which passes
+            // its started guard and re-applies the configuration (recording may be requested).
+            // Also what makes a second start() and the pre-start setters no-ops from here on.
+            isStarted = true
+            if sessionActive {
+                openEngineGateIfOwned(source: "start")
+            }
+            if let adm {
+                do {
+                    try adm.setPlayout(true)
+                    self.log("adm.setPlayout(true) done")
+                } catch {
+                    log("Error starting playout: \(String(describing: error))")
+                    sendAudioSessionDiagnostic("startPlayoutError", error: error)
+                }
+            } else {
+                log("start: no audio device module, playout not started")
+                sendAudioSessionDiagnostic("startNoAudioDeviceModule")
+            }
         }
+    }
+
+    /// Opens the engine gate (`.default`) on the live call ADM; WebRTC replays the playout and
+    /// recording requests made while gated, synchronously on its worker thread (willEnable hook
+    /// included). On `audioSessionQueue`, outside `AudioSessionConfigLock`. Ownership is re-read:
+    /// a gate callingx just closed must stay closed.
+    private func openEngineGateIfOwned(source: String) {
+        if Self.callingxOwnsSession() {
+            log("\(source): engine gate left to callingx")
+            return
+        }
+        guard let adm = getAudioDeviceModule() else { return }
+        let result = adm.setEngineAvailability(.default)
+        log("\(source): opened the engine gate (result=\(result))")
     }
 
     @objc
     public func stop() {
         audioSessionQueue.async { [self] in
-            if !audioManagerActivated {
+            if !isStarted {
+                // Releases an activation if one is held; no-op otherwise.
+                deactivateSessionIfNeeded(source: "stop")
                 return
             }
+            // Outside AudioSessionConfigLock: ADM calls hop to the worker thread (hooks).
+            // reset() stops/releases the engine and re-arms the engine availability to
+            // `.default` (a stale `.none` is never left behind). Known gap: on a factory shared
+            // with a callingx call that took ownership mid-call, this also re-opens callingx's gate.
             let adm = getAudioDeviceModule()
             adm?.reset()
             clearOutputRouting()
-            // Deactivate directly: the .didDisableAudioEngine sink is async and we cancel it below.
-            applyConfigForEngineDisable()
-            // Tear down the engine-observer subscription so a re-setup wires a fresh one.
-            engineSubscription?.cancel()
-            engineSubscription = nil
+            // After the engine stopped: the only place our activation is released.
+            deactivateSessionIfNeeded(source: "stop")
+            // After reset(): later willEnable edges (lobby tracks) must not configure the session,
+            // and the next call's ADM is born gated again (didCreateModule hook).
+            isStarted = false
+            isSessionActivated = false
             // Cancel any pending debounced stereo refresh
             stereoRefreshWorkItem?.cancel()
             stereoRefreshWorkItem = nil
@@ -397,7 +656,6 @@ private enum AudioDeviceId {
             defaultAudioDevice = .speaker
             selectedOutput = nil
             enableStereo = false
-            audioManagerActivated = false
         }
         // Disable wake lock and proximity when call manager stops so the device can sleep again
         DispatchQueue.main.async {
@@ -426,20 +684,17 @@ private enum AudioDeviceId {
     @objc(setForceSpeakerphoneOn:)
     public func setForceSpeakerphoneOn(enable: Bool) {
         audioSessionQueue.async { [self] in
-            let session = RTCAudioSession.sharedInstance()
-            session.lockForConfiguration()
-            defer {
-                session.unlockForConfiguration()
-            }
-            do {
-                if enable {
-                    try applyOutputRouting(.speaker)
-                } else {
-                    try session.overrideOutputAudioPort(.none)
-                    try AVAudioSession.sharedInstance().setPreferredInput(nil)
+            AudioSessionConfigLock.run { session in
+                do {
+                    if enable {
+                        try applyOutputRouting(.speaker)
+                    } else {
+                        try session.overrideOutputAudioPort(.none)
+                        try AVAudioSession.sharedInstance().setPreferredInput(nil)
+                    }
+                } catch {
+                    self.log("Error setting speakerphone: \(error)")
                 }
-            } catch {
-                self.log("Error setting speakerphone: \(error)")
             }
         }
     }
@@ -469,19 +724,24 @@ private enum AudioDeviceId {
 
             let routing: OutputRouting = id == AudioDeviceId.speaker ? .speaker : .input(uid: id)
 
-            let session = RTCAudioSession.sharedInstance()
-            session.lockForConfiguration()
-            defer { session.unlockForConfiguration() }
-            do {
-                // Reconfigure first so the live category matches the pick (e.g. the earpiece
-                // drops `.defaultToSpeaker`, otherwise overrideOutputAudioPort(.none) would
-                // resolve back to the speaker). Then drive the route.
-                try session.setConfiguration(makeAudioConfiguration(for: routing))
-                try applyOutputRouting(routing)
-                selectedOutput = routing
-            } catch {
-                // a failure leaves the previous route intact.
-                log("chooseAudioDeviceEndpoint error: \(String(describing: error))")
+            let inputs = configInputsSnapshot()
+            AudioSessionConfigLock.run { session in
+                do {
+                    // Reconfigure first so the live category matches the pick (e.g. the earpiece
+                    // drops `.defaultToSpeaker`, otherwise overrideOutputAudioPort(.none) would
+                    // resolve back to the speaker). Then drive the route.
+                    try session.setConfiguration(makeAudioConfiguration(
+                        inputs: inputs,
+                        routing: routing,
+                        isRecordingEnabled: false,
+                        currentCategory: session.category
+                    ))
+                    try applyOutputRouting(routing)
+                    selectedOutput = routing
+                } catch {
+                    // a failure leaves the previous route intact.
+                    log("chooseAudioDeviceEndpoint error: \(String(describing: error))")
+                }
             }
         }
     }
@@ -493,13 +753,12 @@ private enum AudioDeviceId {
     public func reapplyAudioRoute() {
         audioSessionQueue.async { [self] in
             guard callAudioRole == .communicator, let routing = selectedOutput else { return }
-            let session = RTCAudioSession.sharedInstance()
-            session.lockForConfiguration()
-            defer { session.unlockForConfiguration() }
-            do {
-                try applyOutputRouting(routing)
-            } catch {
-                log("reapplyAudioRoute error: \(String(describing: error))")
+            AudioSessionConfigLock.run { _ in
+                do {
+                    try applyOutputRouting(routing)
+                } catch {
+                    log("reapplyAudioRoute error: \(String(describing: error))")
+                }
             }
         }
     }
@@ -612,6 +871,26 @@ private enum AudioDeviceId {
         return result
     }
 
+    /// Compact snapshot of the shared audio session, attached to the JS-side diagnostics traces
+    /// (stored with the call stats, so keep it small).
+    @objc public func getAudioSessionState() -> [String: Any] {
+        let session = AVAudioSession.sharedInstance()
+        let route = session.currentRoute
+        let inputs = route.inputs.map { $0.portType.rawValue }.joined(separator: ",")
+        let outputs = route.outputs.map { $0.portType.rawValue }.joined(separator: ",")
+        return [
+            // e.g. "PlayAndRecord" / "VoiceChat" instead of "AVAudioSessionCategoryPlayAndRecord"
+            "category": session.category.rawValue.replacingOccurrences(of: "AVAudioSessionCategory", with: ""),
+            "mode": session.mode.rawValue.replacingOccurrences(of: "AVAudioSessionMode", with: ""),
+            "options": session.categoryOptions.rawValue,
+            "isActive": RTCAudioSession.sharedInstance().isActive,
+            "isOtherAudioPlaying": session.isOtherAudioPlaying,
+            "callingxOwnsSession": Self.callingxOwnsSession(),
+            "route": "\(inputs)>\(outputs)",
+            "micPermission": micPermissionState(),
+        ]
+    }
+
     @objc
     public func logAudioState() {
         log(getAudioStateLog())
@@ -625,44 +904,46 @@ private enum AudioDeviceId {
             return "No audio device module found"
         }
         
-        // WebRTC wraps AVAudioSession with RTCAudioSession; log its state as well.
-        let rtcSession = RTCAudioSession.sharedInstance()
-        rtcSession.lockForConfiguration()
-        defer {
-            rtcSession.unlockForConfiguration()
-        }
-
-        let rtcAVSession = rtcSession.session
-        let logString = """
-        AVAudioSession State:
-          Category: \(session.category.rawValue)
-          Mode: \(session.mode.rawValue)
-          Output Port: \(session.currentRoute.outputs.first?.portName ?? "N/A")
-          Input Port: \(session.currentRoute.inputs.first?.portName ?? "N/A")
-          Category Options: \(session.categoryOptions)
-          InputNumberOfChannels: \(session.inputNumberOfChannels)
-          OutputNumberOfChannels: \(session.outputNumberOfChannels)
-
-        AudioDeviceModule State:
+        // Read the ADM first: its getters hop to the worker thread and must not run under
+        // AudioSessionConfigLock.
+        let admState = """
           IsPlaying: \(adm.isPlaying)
           IsRecording: \(adm.isRecording)
           IsVoiceProcessingAGCEnabled: \(adm.isVoiceProcessingAGCEnabled)
           IsVoiceProcessingBypassed: \(adm.isVoiceProcessingBypassed)
           IsVoiceProcessingEnabled: \(adm.isVoiceProcessingEnabled)
           IsStereoPlayoutEnabled: \(adm.isStereoPlayoutEnabled)
-        
-        RTCAudioSession State:
-          Wrapped Category: \(rtcAVSession.category.rawValue)
-          Wrapped Mode: \(rtcAVSession.mode.rawValue)
-          Wrapped Output Port: \(rtcAVSession.currentRoute.outputs.first?.portName ?? "N/A")
-          Wrapped Input Port: \(rtcAVSession.currentRoute.inputs.first?.portName ?? "N/A")
-          Wrapped Category Options: \(rtcAVSession.categoryOptions)
-          UseManualAudio: \(rtcSession.useManualAudio)
-          IsAudioEnabled: \(rtcSession.isAudioEnabled)
-          IsActive: \(rtcSession.isActive)
-          ActivationCount: \(rtcSession.activationCount)
         """
-        return logString
+
+        // WebRTC wraps AVAudioSession with RTCAudioSession; log its state as well.
+        return AudioSessionConfigLock.run { rtcSession in
+            let rtcAVSession = rtcSession.session
+            let logString = """
+            AVAudioSession State:
+              Category: \(session.category.rawValue)
+              Mode: \(session.mode.rawValue)
+              Output Port: \(session.currentRoute.outputs.first?.portName ?? "N/A")
+              Input Port: \(session.currentRoute.inputs.first?.portName ?? "N/A")
+              Category Options: \(session.categoryOptions)
+              InputNumberOfChannels: \(session.inputNumberOfChannels)
+              OutputNumberOfChannels: \(session.outputNumberOfChannels)
+
+            AudioDeviceModule State:
+            \(admState)
+
+            RTCAudioSession State:
+              Wrapped Category: \(rtcAVSession.category.rawValue)
+              Wrapped Mode: \(rtcAVSession.mode.rawValue)
+              Wrapped Output Port: \(rtcAVSession.currentRoute.outputs.first?.portName ?? "N/A")
+              Wrapped Input Port: \(rtcAVSession.currentRoute.inputs.first?.portName ?? "N/A")
+              Wrapped Category Options: \(rtcAVSession.categoryOptions)
+              UseManualAudio: \(rtcSession.useManualAudio)
+              IsAudioEnabled: \(rtcSession.isAudioEnabled)
+              IsActive: \(rtcSession.isActive)
+              ActivationCount: \(rtcSession.activationCount)
+            """
+            return logString
+        }
     }
 
     @objc(muteAudioOutput)
@@ -744,9 +1025,11 @@ private enum AudioDeviceId {
     // MARK: - Interruption Handling
 
     /// Observes `AVAudioSession.interruptionNotification` to trace and log *why* an interruption fired
-    /// (mic-mute / route-disconnect / PSTN-Siri). Recovery is NOT done here: WebRTC's
-    /// AudioEngineDevice owns it — it stops the engine on interruption-begin and restarts it on
-    /// interruption-end (re-activating the session itself via AVAudioEngine.start)
+    /// (mic-mute / route-disconnect / PSTN-Siri). Engine recovery is NOT done here: WebRTC's
+    /// AudioEngineDevice stops the engine on interruption-begin and restarts it in place on
+    /// interruption-end, while RTCAudioSession re-activates the session once (no retry on
+    /// failure); a failed re-activation is repaired here on interruption-end (see
+    /// `repairSessionAfterInterruption`) and by the diagnostics tracer's `reactivateAudioSession`.
     private func registerInterruptionObserver() {
         if hasRegisteredInterruptionObserver { return }
         NotificationCenter.default.addObserver(
@@ -796,8 +1079,35 @@ private enum AudioDeviceId {
             #if DEBUG
             log("Audio interruption ended (shouldResume=\(shouldResume)). WebRTC restarts the engine.")
             #endif
+            repairSessionAfterInterruption()
         @unknown default:
             break
+        }
+    }
+
+    /// Interruption-ended repair: RTCAudioSession re-activates the session once (synchronously,
+    /// before this notification reaches us) and the ADM then restarts its engine; when that
+    /// re-activation failed (`isActive` false while our activation count is held), the engine
+    /// would restart against an inactive session for the rest of the call. Re-activate on
+    /// `audioSessionQueue`; no ADM calls (the gate is already open, the ADM restarts by itself).
+    private func repairSessionAfterInterruption() {
+        audioSessionQueue.async { [self] in
+            guard isStarted, !Self.callingxOwnsSession() else { return }
+            let reactivated: Bool
+            do {
+                reactivated = try AudioSessionConfigLock.run { session in
+                    guard weActivatedSession, !session.isActive else { return false }
+                    return try activateSessionIfNeeded(session).reactivated
+                }
+            } catch {
+                log("interruptionEnded reactivate error: \(String(describing: error))")
+                sendAudioSessionDiagnostic("sessionReactivateError", error: error, extra: ["trigger": "interruptionEnded"])
+                return
+            }
+            if reactivated {
+                log("interruptionEnded: re-activated the session")
+                sendAudioSessionDiagnostic("sessionReactivated", extra: ["trigger": "interruptionEnded"])
+            }
         }
     }
 
@@ -836,7 +1146,7 @@ private enum AudioDeviceId {
         // Notify JS of the updated device list / selection.
         audioSessionQueue.async { [weak self] in
             guard let self,
-                  self.audioManagerActivated,
+                  self.isStarted,
                   self.callAudioRole == .communicator,
                   !Self.callingxOwnsSession() else { return }
             self.eventEmitter?.emitAudioDeviceChanged(self.buildAudioDevicesState())
@@ -850,7 +1160,7 @@ private enum AudioDeviceId {
 
     private func updateProximityMonitoring() {
         // Proximity is only meaningful while a call is active
-        guard audioManagerActivated else {
+        guard isStarted else {
             setProximityMonitoringEnabled(false)
             return
         }
@@ -887,6 +1197,22 @@ private enum AudioDeviceId {
     @objc(stopSound)
     public func stopSound() {
         soundPlayer.stopSound()
+    }
+
+    /// Surfaces native audio-session results/failures (otherwise only NSLog'd) to the JS call tracer.
+    private func sendAudioSessionDiagnostic(
+        _ event: String,
+        error: Error? = nil,
+        extra: [String: Any] = [:],
+        includeSession: Bool = true
+    ) {
+        var body = includeSession ? getAudioSessionState() : [:]
+        body.merge(extra) { _, new in new }
+        body["event"] = event
+        if let error {
+            body["error"] = String(String(describing: error).prefix(200))
+        }
+        eventEmitter?.emitAudioSessionDiagnostic(body)
     }
 
     // MARK: - Helper Methods
@@ -959,8 +1285,12 @@ private enum AudioDeviceId {
     }
 
     // MARK: - Logging Helper
+    /// Unified log, public message: `NSLog` payloads are redacted to `<private>` when streamed
+    /// from a device (`idevicesyslog`, Console), which hid every line of this module.
+    private static let logger = Logger(subsystem: "io.getstream.video", category: "InCallManager")
+
     private func log(_ message: String) {
-        NSLog("InCallManager: %@", message)
+        Self.logger.notice("InCallManager: \(message, privacy: .public)")
     }
 
 }

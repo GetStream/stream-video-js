@@ -9,7 +9,6 @@ import {
   StreamVideo,
   StreamVideoClient,
   useCallStateHooks,
-  User,
 } from '@stream-io/video-react-sdk';
 
 import '@stream-io/video-react-sdk/dist/css/styles.css';
@@ -18,7 +17,6 @@ import './style.css';
 // For demo credentials, check out our video calling tutorial:
 // https://getstream.io/video/sdk/react/tutorial/video-calling/
 const userId = 'video-tutorial-' + Math.random().toString(16).substring(2);
-const apiKey = 'mmhfdzb5evj2';
 
 // Optional URL overrides - useful for joining a specific call from a webview
 // host (e.g. the iOS WKWebView sample). Currently supports ?call_id=...;
@@ -28,26 +26,29 @@ const params =
     ? new URLSearchParams(window.location.search)
     : new URLSearchParams();
 const callIdOverride = params.get('call_id')?.trim() || null;
-const tokenProvider = async () => {
+// The demo token endpoint decides which app the token is for, so the client
+// is created with the `apiKey` it returns instead of a hardcoded one.
+const fetchCredentials = async () => {
   const provider = new URL('https://pronto.getstream.io/api/auth/create-token');
-  provider.searchParams.set('api_key', apiKey);
+  provider.searchParams.set('environment', 'demo');
   provider.searchParams.set('user_id', userId);
-  const { token } = await fetch(provider).then((res) => res.json());
-  return token as string;
+  const res = await fetch(provider).then((r) => r.json());
+  return res as { apiKey: string; token: string };
 };
 
-const user: User = {
+const user = {
   id: userId,
   name: 'Oliver',
   image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver',
 };
 
-// initialize the StreamVideoClient
-const client = new StreamVideoClient({ apiKey, user, tokenProvider });
-
 export default function App() {
+  const [client, setClient] = useState<StreamVideoClient>();
   const [call, setCall] = useState<Call>();
   useEffect(() => {
+    let myClient: StreamVideoClient | undefined;
+    let myCall: Call | undefined;
+    let cancelled = false;
     const callId =
       callIdOverride ??
       `video-tutorial-${Math.random().toString(16).substring(2)}`;
@@ -66,24 +67,43 @@ export default function App() {
         window.history.replaceState(null, '', url.toString());
       }
     }
-    const myCall = client.call('default', callId);
-    myCall.join({ create: true }).catch((err) => {
-      console.error(`Failed to join the call`, err);
-    });
-    // @ts-expect-error makes it easy to debug in the browser console
-    window.call = myCall;
+    fetchCredentials()
+      .then(({ apiKey, token }) => {
+        if (cancelled) return;
+        myClient = new StreamVideoClient({
+          apiKey,
+          user,
+          token,
+          tokenProvider: () => fetchCredentials().then((c) => c.token),
+        });
+        myCall = myClient.call('default', callId);
+        myCall.join({ create: true }).catch((err) => {
+          console.error(`Failed to join the call`, err);
+        });
+        // @ts-expect-error makes it easy to debug in the browser console
+        window.call = myCall;
 
-    setCall(myCall);
+        setClient(myClient);
+        setCall(myCall);
+      })
+      .catch((err) => {
+        console.error(`Failed to fetch demo credentials`, err);
+      });
 
     return () => {
+      cancelled = true;
       setCall(undefined);
-      myCall.leave().catch((err) => {
+      setClient(undefined);
+      myCall?.leave().catch((err) => {
         console.error(`Failed to leave the call`, err);
+      });
+      myClient?.disconnectUser().catch((err) => {
+        console.error(`Failed to disconnect the user`, err);
       });
     };
   }, []);
 
-  if (!call) return null;
+  if (!client || !call) return null;
 
   return (
     <StreamVideo client={client}>

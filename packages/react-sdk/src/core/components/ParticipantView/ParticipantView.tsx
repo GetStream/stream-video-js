@@ -9,7 +9,6 @@ import {
 import clsx from 'clsx';
 import {
   hasAudio,
-  hasScreenShareAudio,
   hasVideo,
   StreamVideoParticipant,
   VideoTrackType,
@@ -87,12 +86,17 @@ export const ParticipantView = memo(
       },
       ref,
     ) {
-      const { isLocalParticipant, isSpeaking, isDominantSpeaker, sessionId } =
-        participant;
+      const {
+        isLocalParticipant,
+        isSpeaking,
+        isDominantSpeaker,
+        sessionId,
+        audioStream,
+        screenShareAudioStream,
+      } = participant;
 
       const hasAudioTrack = hasAudio(participant);
       const hasVideoTrack = hasVideo(participant);
-      const hasScreenShareAudioTrack = hasScreenShareAudio(participant);
 
       const [trackedElement, setTrackedElement] =
         useState<HTMLDivElement | null>(null);
@@ -166,10 +170,10 @@ export const ParticipantView = memo(
             {/* mute the local participant, as we don't want to hear ourselves */}
             {!isLocalParticipant && !muteAudio && (
               <>
-                {hasAudioTrack && (
+                {audioStream && (
                   <Audio participant={participant} trackType="audioTrack" />
                 )}
-                {hasScreenShareAudioTrack && (
+                {screenShareAudioStream && (
                   <Audio
                     participant={participant}
                     trackType="screenShareAudioTrack"

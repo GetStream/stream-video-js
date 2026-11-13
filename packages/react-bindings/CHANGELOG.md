@@ -2,6 +2,26 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-2.0.0-beta.3...@stream-io/video-react-bindings-2.0.0-beta.4) (2026-11-05)
+
+### Features
+
+- surface noise cancellation overload status ([#2528](https://github.com/GetStream/stream-video-js/issues/2528)) ([a90bc74](https://github.com/GetStream/stream-video-js/commit/a90bc742d6763fa810a314beb23045156312d86a))
+
+### Bug Fixes
+
+- **client:** let users retry mic/camera access after a denial ([#2570](https://github.com/GetStream/stream-video-js/issues/2570)) ([7281ea7](https://github.com/GetStream/stream-video-js/commit/7281ea7d99f7e86f77c5caa3c39cb6ff82d1dbd3))
+
+## [2.0.0-beta.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-2.0.0-beta.2...@stream-io/video-react-bindings-2.0.0-beta.3) (2026-10-20)
+
+## [2.0.0-beta.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-2.0.0-beta.1...@stream-io/video-react-bindings-2.0.0-beta.2) (2026-10-16)
+
+### Features
+
+- **client:** integrate OpenAPI generated client ([#2454](https://github.com/GetStream/stream-video-js/issues/2454)) ([710afe0](https://github.com/GetStream/stream-video-js/commit/710afe0ce976f7c0c54436055102e6dd2bc14236))
+- **react-bindings:** report render errors from StreamCall ([#2514](https://github.com/GetStream/stream-video-js/issues/2514)) ([a7a31a1](https://github.com/GetStream/stream-video-js/commit/a7a31a1fdd63799caead7f8404d32ef087cfadd9))
+- **react-sdk:** show a notification when the camera can't start ([#2462](https://github.com/GetStream/stream-video-js/issues/2462)) ([794144f](https://github.com/GetStream/stream-video-js/commit/794144fbb3497981ad0657274d4427ac23a9bd22))
+
 ## [2.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-2.0.0-beta.0...@stream-io/video-react-bindings-2.0.0-beta.1) (2026-09-28)
 
 ### ⚠ BREAKING CHANGES

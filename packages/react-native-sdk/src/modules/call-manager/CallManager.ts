@@ -3,6 +3,8 @@ import type {
   AudioDeviceEndpointType,
   AudioDevicesState,
   IOSAudioInterruptionEvent,
+  IOSAudioSessionDiagnosticEvent,
+  IOSAudioSessionState,
   StreamInCallManagerConfig,
 } from './types';
 import type {
@@ -104,7 +106,7 @@ class AudioDevicesManager {
   private interruptionReassertSetup = false;
 
   /**
-   * iOS + CallKit only: re-assert the user's output pick after an interruption ends.
+   * iOS + callingx only: re-assert the user's output pick after an interruption ends.
    *
    * On interruption-end iOS clears the ephemeral route override (`setPreferredInput` /
    * `overrideOutputAudioPort`) and doesn't restore it, and callingx re-applies its config
@@ -177,7 +179,7 @@ class AudioDevicesManager {
     let active = true;
     const unsubscribes: Array<() => void> = [];
 
-    // callingx-owned route changes (Android Telecom + iOS CallKit). The event is
+    // callingx-owned route changes (Android Telecom + iOS CallKit/LiveCommunicationKit). The event is
     // signal-only, so re-read the current state — ignoring a resolve that lands
     // after unsubscribe, and swallowing bridge rejections.
     if (CallingxModule) {
@@ -231,6 +233,45 @@ class IOSCallManager {
       onInterruption(event as IOSAudioInterruptionEvent),
     );
     return () => s.remove();
+  };
+
+  /**
+   * Register a listener for iOS audio session diagnostics (configuration,
+   * activation and engine start results of the in-call manager).
+   *
+   * @param onDiagnostic callback to be called for every diagnostic event.
+   * @internal used by the SDK's audio session diagnostics tracer.
+   */
+  addAudioSessionDiagnosticListener = (
+    onDiagnostic: (event: IOSAudioSessionDiagnosticEvent) => void,
+  ): (() => void) => {
+    invariant(Platform.OS === 'ios', 'Supported only on iOS');
+    const s = NativeManager.onAudioSessionDiagnostic((event) =>
+      onDiagnostic(event as IOSAudioSessionDiagnosticEvent),
+    );
+    return () => s.remove();
+  };
+
+  /**
+   * Returns a snapshot of the shared iOS audio session.
+   * Meant for debugging purposes.
+   * @internal used by the SDK's audio session diagnostics tracer.
+   */
+  getAudioSessionState = (): IOSAudioSessionState => {
+    invariant(Platform.OS === 'ios', 'Supported only on iOS');
+    return NativeManager.getAudioSessionState() as IOSAudioSessionState;
+  };
+
+  /**
+   * Re-activates the SDK-owned iOS audio session when iOS cleared it.
+   * Resolves whether the session is active afterwards; rejects with the
+   * AVAudioSession error (`code` is the OSStatus as a string, e.g.
+   * `'561017449'` while another app owns the audio).
+   * @internal used by the SDK's audio session diagnostics tracer.
+   */
+  reactivateAudioSession = (): Promise<boolean> => {
+    invariant(Platform.OS === 'ios', 'Supported only on iOS');
+    return NativeManager.reactivateAudioSession();
   };
 }
 

@@ -1,6 +1,7 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ConnectedEvent, TimestampNS, VideoEvent } from '../../gen/coordinator';
 import type { UserRequest } from '../../gen/shims';
+import type { RequestMetadata } from './api-client';
 import { AllSfuEvents } from '../../rtc';
 import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
 import type { DevicePersistenceOptions } from '../../devices/devicePersistence';
@@ -64,6 +65,12 @@ export class ErrorFromResponse<T> extends Error {
   public response: AxiosResponse<T>;
   public name = 'ErrorFromResponse';
   public unrecoverable: boolean | null;
+  /**
+   * The same request metadata a successful response carries: the
+   * `client_request_id` to quote to Stream support, the rate limit, the
+   * status code and the response headers.
+   */
+  public metadata?: RequestMetadata;
 
   constructor({
     message,
@@ -71,15 +78,17 @@ export class ErrorFromResponse<T> extends Error {
     status,
     response,
     unrecoverable,
+    metadata,
   }: Pick<
     ErrorFromResponse<T>,
-    'message' | 'code' | 'status' | 'response' | 'unrecoverable'
+    'message' | 'code' | 'status' | 'response' | 'unrecoverable' | 'metadata'
   >) {
     super(message);
     this.code = code;
     this.response = response;
     this.status = status;
     this.unrecoverable = unrecoverable;
+    this.metadata = metadata;
   }
 
   // Vitest helper (serialized errors are too large to read)

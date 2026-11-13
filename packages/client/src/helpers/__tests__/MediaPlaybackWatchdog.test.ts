@@ -377,6 +377,40 @@ describe('MediaPlaybackWatchdog', () => {
       expect(play).toHaveBeenCalledTimes(1);
     });
 
+    it('waits for the configured delay before playing', async () => {
+      watchdog.dispose();
+      el = createMediaElement('audio');
+      play = vi.spyOn(el, 'play').mockResolvedValue();
+      watchdog = new MediaPlaybackWatchdog({
+        element: el,
+        kind: 'audio',
+        tracer,
+        rearmDelay: 1000,
+      });
+
+      watchdog.rearm();
+      await vi.advanceTimersByTimeAsync(999);
+      expect(play).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1);
+      expect(play).toHaveBeenCalledTimes(1);
+    });
+
+    it('pauses for a restart without starting a recovery', async () => {
+      setup({ state: { paused: false } });
+      const pause = vi.spyOn(el, 'pause').mockImplementation(() => {});
+
+      watchdog.pauseForRestart();
+      el.dispatchEvent(new Event('pause'));
+      await vi.advanceTimersByTimeAsync(6000);
+      expect(pause).toHaveBeenCalledTimes(1);
+      expect(play).not.toHaveBeenCalled();
+
+      setPaused(el, true);
+      watchdog.playNow();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(play).toHaveBeenCalledTimes(1);
+    });
+
     it('tries an element that regular recovery skips as not ready', async () => {
       setup({ state: { readyState: 0 } });
 
@@ -435,6 +469,38 @@ describe('MediaPlaybackWatchdog', () => {
 
       expect(play).not.toHaveBeenCalled();
     });
+  });
+
+  it('stops recovering audio rejected by the autoplay policy', async () => {
+    watchdog.dispose();
+    const onPlayBlocked = vi.fn();
+    watchdog = new MediaPlaybackWatchdog({
+      element: el,
+      kind: 'audio',
+      tracer,
+      onPlayBlocked,
+    });
+    play.mockRejectedValue(new DOMException('', 'NotAllowedError'));
+
+    el.dispatchEvent(new Event('pause'));
+    for (let i = 0; i < 20; i++) {
+      await vi.advanceTimersByTimeAsync(6000);
+    }
+
+    expect(play).toHaveBeenCalledTimes(1);
+    expect(onPlayBlocked).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps recovering video rejected by the autoplay policy', async () => {
+    setup({ kind: 'video' });
+    play.mockRejectedValue(new DOMException('', 'NotAllowedError'));
+
+    el.dispatchEvent(new Event('pause'));
+    for (let i = 0; i < 20; i++) {
+      await vi.advanceTimersByTimeAsync(6000);
+    }
+
+    expect(play).toHaveBeenCalledTimes(10);
   });
 
   it('does not stack timers when pause fires multiple times before the first attempt', async () => {

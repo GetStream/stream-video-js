@@ -1,5 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
   <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -31,7 +30,7 @@
     <service
       android:name="io.getstream.rn.callingx.StreamMessagingService"
       android:exported="false">
-      <intent-filter>
+      <intent-filter android:priority="0">
         <action android:name="com.google.firebase.MESSAGING_EVENT" />
       </intent-filter>
     </service>
@@ -53,9 +52,5 @@
       </intent-filter>
     </receiver>
 
-    <!-- Remove default FCM service so StreamMessagingService is the single handler -->
-    <service
-      android:name="io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService"
-      tools:node="remove" />
   </application>
 </manifest>

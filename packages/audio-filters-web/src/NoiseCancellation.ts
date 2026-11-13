@@ -1,99 +1,65 @@
-import KrispSDK from './krispai';
+import {
+  KrispNoiseCancellation,
+  type KrispNoiseCancellationOptions,
+} from './KrispNoiseCancellation';
+import {
+  FastEnhancerNoiseCancellation,
+  type FastEnhancerNoiseCancellationOptions,
+} from './FastEnhancerNoiseCancellation';
 import type {
-  IAudioFilterNode,
-  IKrispSDK,
-  ISDKPartialOptions,
-} from './krispai';
-import { AudioContextRecovery } from './AudioContextRecovery';
-import { packageName, packageVersion } from './version';
-import { promiseWithResolvers } from './withResolvers';
-import { simd } from 'wasm-feature-detect';
+  Events,
+  INoiseCancellation,
+  NoiseCancellationConfiguration,
+} from './INoiseCancellation';
 import type { Tracer } from './tracer';
+
+const engines = ['krisp', 'stream'] as const;
+
+/**
+ * The noise cancellation engines {@link NoiseCancellation} can run.
+ */
+export type NoiseCancellationEngine = (typeof engines)[number];
+
+const DEFAULT_ENGINE: NoiseCancellationEngine = 'krisp';
 
 /**
  * Options to pass to the NoiseCancellation instance.
+ * The top-level options configure the Krisp engine.
  */
-export type NoiseCancellationOptions = {
+export type NoiseCancellationOptions = KrispNoiseCancellationOptions & {
   /**
-   * The base path to load the models from.
-   * You can override this if you want to host the models yourself.
-   * @default `https://unpkg.com/@stream-io/audio-filters-web@${packageVersion}/src/krispai/models`.
+   * The engine to run when the call settings don't select one.
+   * @default 'krisp'
    */
-  basePath?: string;
+  defaultEngine?: NoiseCancellationEngine;
 
   /**
-   * When Krisp SDK detects buffer overflow, it will disable the filter and
-   * wait for this timeout before enabling it again.
-   * Defaults to 15000 ms.
+   * Options for the `stream` (FastEnhancer) engine.
    */
-  restoreTimeoutMs?: number;
-
-  /**
-   * The number of attempts to restore the filter after a buffer overflow.
-   * Defaults to 3.
-   */
-  restoreAttempts?: number;
-
-  /**
-   * Optional Krisp SDK parameters.
-   */
-  krispSDKParams?: ISDKPartialOptions['params'];
+  fastEnhancer?: FastEnhancerNoiseCancellationOptions;
 };
 
 /**
- * An interface for the NoiseCancellation implementation.
- * Provided for easier unit testing.
- */
-export interface INoiseCancellation {
-  isSupported: () => boolean | Promise<boolean>;
-  init: (options?: { tracer?: Tracer }) => Promise<void>;
-  isEnabled: () => Promise<boolean>;
-  canAutoEnable?: () => Promise<boolean>;
-  enable: () => Promise<void>;
-  disable: () => Promise<void>;
-  dispose: () => Promise<void>;
-  setSuppressionLevel: (level: number) => void;
-  toFilter: () => (mediaStream: MediaStream) => {
-    output: MediaStream;
-  };
-  on: <E extends keyof Events, T = Events[E]>(
-    event: E,
-    callback: T,
-  ) => () => void;
-  off: <E extends keyof Events, T = Events[E]>(event: E, callback: T) => void;
-}
-
-/**
- * A list of events one can subscribe to.
- */
-export type Events = {
-  /**
-   * Fires when Noise Cancellation state changes.
-   *
-   * @param enabled true when enabled, false otherwise.
-   */
-  change: (enabled: boolean) => void;
-};
-
-/**
- * A wrapper around the Krisp.AI SDK.
+ * Noise Cancellation that runs the engine the call settings pick
+ * (`extra_opts.noise_cancellation.engine`, applied through
+ * {@link configure}), or the `defaultEngine` option (Krisp unless set) when
+ * they don't pick one.
+ *
+ * The engine is created on the first {@link isSupported} or {@link init}
+ * call and stays fixed from {@link init} until {@link dispose}. A different
+ * engine configured in the meantime applies on the next `init`.
  */
 export class NoiseCancellation implements INoiseCancellation {
-  private sdk?: IKrispSDK;
-  private filterNode?: IAudioFilterNode;
-  private audioContext?: AudioContext;
-  private recovery?: AudioContextRecovery;
-  private restoreTimeoutId?: number;
-  private tracer?: Tracer;
+  private readonly krispOptions: KrispNoiseCancellationOptions;
+  private readonly fastEnhancerOptions?: FastEnhancerNoiseCancellationOptions;
+  private readonly defaultEngine: NoiseCancellationEngine;
 
-  private readonly initializing: Promise<void>;
-  private readonly resolveInitialized!: () => void;
-  private readonly rejectInitialized!: (reason?: unknown) => void;
-
-  private readonly basePath: string;
-  private readonly restoreTimeoutMs: number;
-  private readonly restoreAttempts: number;
-  private readonly krispSDKParams?: ISDKPartialOptions['params'];
+  private configuration: NoiseCancellationConfiguration = {};
+  private delegate?: INoiseCancellation & { engine: NoiseCancellationEngine };
+  private delegateEngine?: NoiseCancellationEngine;
+  private stopForwarding?: () => void;
+  private initialized = false;
+  private warnedEngine?: string;
 
   private readonly listeners: Partial<Record<keyof Events, Array<any>>> = {};
 
@@ -101,190 +67,126 @@ export class NoiseCancellation implements INoiseCancellation {
    * Constructs a new instance.
    */
   constructor({
-    basePath = `https://unpkg.com/${packageName}@${packageVersion}/src/krispai/models`,
-    restoreTimeoutMs = 15000,
-    restoreAttempts = 3,
-    krispSDKParams,
+    defaultEngine = DEFAULT_ENGINE,
+    fastEnhancer,
+    ...krispOptions
   }: NoiseCancellationOptions = {}) {
-    const { promise, resolve, reject } = promiseWithResolvers<void>();
-    this.initializing = promise;
-    this.resolveInitialized = resolve;
-    this.rejectInitialized = reject;
-
-    this.basePath = basePath;
-    this.restoreTimeoutMs = restoreTimeoutMs;
-    this.restoreAttempts = restoreAttempts;
-    this.krispSDKParams = krispSDKParams;
+    this.krispOptions = krispOptions;
+    this.fastEnhancerOptions = fastEnhancer;
+    this.defaultEngine = defaultEngine;
   }
 
   /**
-   * Checks if the noise cancellation is supported on this platform.
-   * Make sure you call this method before trying to enable the noise cancellation.
+   * The current delegate's engine, or the configured engine when no delegate
+   * exists. A running engine stays fixed until {@link dispose}; a new engine
+   * applies on the next {@link init}.
    */
-  isSupported = () => {
-    if (!KrispSDK.isSupported()) {
-      return false;
-    } else {
-      return simd();
+  get engine(): NoiseCancellationEngine {
+    return this.delegate?.engine ?? this.resolveEngine();
+  }
+
+  /**
+   * The running engine's model variant, e.g. `krisp-nc-o-med-v7` or `tiny`.
+   * Undefined when no engine was created yet.
+   */
+  get model(): string | undefined {
+    return this.delegate?.model;
+  }
+
+  /**
+   * Applies options from the call settings: the engine to run, and the
+   * engine options. Options passed to the constructor take precedence.
+   * Call it before {@link isSupported} and {@link init}.
+   */
+  configure = (configuration: NoiseCancellationConfiguration) => {
+    this.configuration = configuration;
+    const { engine } = configuration;
+    if (engine && !this.isKnownEngine(engine) && engine !== this.warnedEngine) {
+      this.warnedEngine = engine;
+      console.warn(
+        `Unknown noise cancellation engine "${engine}", using "${this.defaultEngine}"`,
+      );
+    }
+    if (this.initialized) return;
+    if (this.delegate && this.delegateEngine !== this.resolveEngine()) {
+      this.dropDelegate();
+    }
+    this.delegate?.configure?.(configuration);
+  };
+
+  isSupported = () => this.getDelegate().isSupported();
+
+  /**
+   * Initializes the selected engine. When that fails, the engine is
+   * discarded, so the next `init` picks the engine again.
+   */
+  init = async (options?: { tracer?: Tracer }) => {
+    // a repeated init goes to the running engine, which reports it
+    if (this.initialized && this.delegate) return this.delegate.init(options);
+    const delegate = this.getDelegate();
+    this.initialized = true;
+    options?.tracer?.trace('noiseCancellation.engine', this.delegateEngine);
+    try {
+      await delegate.init(options);
+    } catch (err) {
+      if (this.delegate === delegate) {
+        this.initialized = false;
+        this.dropDelegate();
+        delegate.dispose().catch((e) => {
+          console.warn('Failed to dispose the noise cancellation engine', e);
+        });
+      }
+      throw err;
     }
   };
 
-  /**
-   * Initializes the KrispAI SDK.
-   *
-   * Will throw in case the noise cancellation is not supported on this platform
-   * or if the SDK is already initialized.
-   */
-  init = async (options: { tracer?: Tracer } = {}) => {
-    if (!(await this.isSupported())) {
-      throw new Error('NoiseCancellation is not supported on this platform');
-    }
-    if (this.sdk) {
-      throw new Error('NoiseCancellation is already initialized');
-    }
-    const sdk = new KrispSDK({
-      params: {
-        debugLogs: false,
-        logProcessStats: false,
-        useSharedArrayBuffer: false,
-        models: {
-          // https://sdk-docs.krisp.ai/docs/krisp-audio-sdk-model-selection-guide
-          modelNC: `${this.basePath}/krisp-nc-o-med-v7.kef`,
-        },
-        ...this.krispSDKParams,
-      },
-    });
-    await sdk.init();
-    this.sdk = sdk;
-    this.tracer = options.tracer;
+  isEnabled = async () => (this.delegate ? this.delegate.isEnabled() : false);
 
-    const audioContext = new AudioContext();
-    this.audioContext = audioContext;
-
-    this.recovery = new AudioContextRecovery({
-      audioContext,
-      tracer: this.tracer,
-    });
-
-    const filterNode = await sdk.createNoiseFilter(this.audioContext, () => {
-      this.tracer?.trace('noiseCancellation.started', 'true');
-      this.resolveInitialized();
-    });
-    filterNode.addEventListener('buffer_overflow', this.handleBufferOverflow);
-    filterNode.addEventListener('error', this.handleError);
-    this.filterNode = filterNode;
-
-    return this.initializing;
+  canAutoEnable = async () => {
+    const canAutoEnable = this.delegate?.canAutoEnable;
+    return canAutoEnable ? canAutoEnable() : true;
   };
 
   /**
-   * Checks if the noise cancellation is enabled.
-   */
-  isEnabled = async () => {
-    if (!this.filterNode) return false;
-    return this.filterNode.isEnabled();
-  };
-
-  /**
-   * Enables the noise cancellation.
+   * Enables the running engine. Does nothing when no engine was created yet
+   * or after {@link dispose}.
    */
   enable = async () => {
-    if (!this.filterNode) return;
-    await this.initializing;
-
-    this.filterNode.enable();
-    this.dispatch('change', true);
+    await this.delegate?.enable();
   };
 
   /**
-   * Disables the noise cancellation.
+   * Disables the running engine. Does nothing when no engine was created yet
+   * or after {@link dispose}.
    */
   disable = async () => {
-    if (!this.filterNode) return;
-    await this.initializing;
-
-    this.filterNode.disable();
-    this.dispatch('change', false);
+    await this.delegate?.disable();
   };
 
   /**
-   * Disposes the instance and releases all resources.
+   * Disposes the running engine. Its events, including the final `change`,
+   * are forwarded until it is disposed. The next {@link isSupported} or
+   * {@link init} picks the engine again.
    */
   dispose = async () => {
-    window.clearTimeout(this.restoreTimeoutId);
-    if (this.recovery) {
-      this.recovery.dispose();
-      this.recovery = undefined;
-    }
-    if (this.filterNode) {
-      await this.disable().catch((err) =>
-        console.warn('Failed to disable noise cancellation on dispose', err),
-      );
-      this.filterNode.removeEventListener('error', this.handleError);
-      this.filterNode.removeEventListener(
-        'buffer_overflow',
-        this.handleBufferOverflow,
-      );
-      this.filterNode.dispose();
-      this.filterNode = undefined;
-    }
-    if (this.audioContext && this.audioContext.state !== 'closed') {
-      await this.audioContext.close().catch((err) => {
-        console.warn('Failed to close the audio context', err);
-      });
-      this.audioContext = undefined;
-    }
-    if (this.sdk) {
-      this.sdk.dispose();
-      this.sdk = undefined;
+    const delegate = this.delegate;
+    const stopForwarding = this.stopForwarding;
+    this.stopForwarding = undefined;
+    this.dropDelegate();
+    this.initialized = false;
+    try {
+      await delegate?.dispose();
+    } finally {
+      stopForwarding?.();
     }
   };
 
-  /**
-   * Sets the noise suppression level (0-100).
-   *
-   * @param level 0 for no suppression, 100 for maximum suppression.
-   */
   setSuppressionLevel = (level: number) => {
-    // @ts-expect-error not yet in the types, but exists in the implementation
-    if (!this.filterNode || !this.filterNode.setNoiseSuppressionLevel) {
-      throw new Error(
-        'NoiseCancellation is not initialized with a filter node that supports noise suppression level',
-      );
-    }
-    if (level < 0 || level > 100) {
-      throw new Error('NoiseCancellation level must be between 0 and 100');
-    }
-    // @ts-expect-error not yet in the types, but exists in the implementation
-    this.filterNode.setNoiseSuppressionLevel(level);
+    this.requireDelegate().setSuppressionLevel(level);
   };
 
-  /**
-   * A utility method convenient for our Microphone filters API.
-   */
-  toFilter = () => (mediaStream: MediaStream) => {
-    if (!this.filterNode || !this.audioContext) {
-      throw new Error('NoiseCancellation is not initialized');
-    }
+  toFilter = () => this.requireDelegate().toFilter();
 
-    const [audioTrack] = mediaStream.getAudioTracks();
-    if (!audioTrack) throw new Error('No audio track found in the stream');
-
-    const source = this.audioContext.createMediaStreamSource(mediaStream);
-    const destination = this.audioContext.createMediaStreamDestination();
-    destination.channelCount = audioTrack.getSettings().channelCount ?? 1;
-
-    source.connect(this.filterNode).connect(destination);
-
-    return { output: destination.stream };
-  };
-
-  /**
-   * Registers the given callback to the event type;
-   *
-   * @param event the event to listen.
-   * @param callback the callback to call.
-   */
   on = <E extends keyof Events, T = Events[E]>(event: E, callback: T) => {
     (this.listeners[event] ??= [] as T[]).push(callback);
     return () => {
@@ -292,91 +194,52 @@ export class NoiseCancellation implements INoiseCancellation {
     };
   };
 
-  /**
-   * Unregisters the given callback for the event type.
-   *
-   * @param event the event.
-   * @param callback the callback to unregister.
-   */
   off = <E extends keyof Events, T = Events[E]>(event: E, callback: T) => {
     const listeners = this.listeners[event] || [];
     this.listeners[event] = listeners.filter((cb) => cb !== callback);
   };
 
-  /**
-   * Dispatches a new event payload for the given event type.
-   *
-   * @param event the event.
-   * @param payload the payload.
-   */
-  private dispatch = <E extends keyof Events, P = Parameters<Events[E]>[0]>(
-    event: E,
-    payload: P,
-  ) => {
-    const listeners = this.listeners[event] || [];
-    for (const listener of listeners) {
-      listener(payload);
-    }
+  private isKnownEngine = (engine: string): boolean =>
+    engines.some((name) => name === engine.trim().toLowerCase());
+
+  private resolveEngine = (): NoiseCancellationEngine => {
+    const engine = this.configuration.engine?.trim().toLowerCase();
+    return engines.find((name) => name === engine) ?? this.defaultEngine;
   };
 
-  /**
-   * Traces errors reported by the Krisp SDK.
-   *
-   * The SDK surfaces model fetch/load and unsupported sample-rate failures
-   * (`MODEL_URL_FETCH_ERROR`, `MODEL_LOAD_ERROR`, `SAMPLING_RATE_NOT_SUPPORTED`)
-   * via an `error` event on the filter node, separately from the `ready` callback.
-   * We record them for diagnostics.
-   */
-  private handleError = (
-    e: Event & { data?: { errorCode?: string; errorMessage?: string } },
-  ) => {
-    const code = (e && e.data && e.data.errorCode) || 'UNKNOWN';
-    const message = (e && e.data && e.data.errorMessage) || '';
-    this.tracer?.trace('noiseCancellation.error', `${code} ${message}`.trim());
-    this.rejectInitialized(
-      new Error(
-        `NoiseCancellation failed to initialize: ${code} ${message}`.trim(),
-      ),
-    );
+  private requireDelegate = (): INoiseCancellation => {
+    if (!this.delegate) throw new Error('NoiseCancellation is not initialized');
+    return this.delegate;
   };
 
-  /**
-   * Handles the buffer overflow event.
-   * Disables the filter and waits for the restore timeout before enabling it again.
-   *
-   * Based on: https://sdk-docs.krisp.ai/docs/getting-started-js#system-overload-handling
-   */
-  private handleBufferOverflow = (
-    // extending the Event type to include the data property as it is not yet
-    // in the types but exists in the implementation
-    e: Event & {
-      data?: {
-        overflowCount?: number;
-        isBufferDropped?: boolean;
+  private getDelegate = (): INoiseCancellation => {
+    if (this.delegate) return this.delegate;
+    const engine = this.resolveEngine();
+    const delegate =
+      engine === 'stream'
+        ? new FastEnhancerNoiseCancellation(this.fastEnhancerOptions)
+        : new KrispNoiseCancellation(this.krispOptions);
+    delegate.configure?.(this.configuration);
+    const forward =
+      <E extends keyof Events>(event: E) =>
+      (payload: Parameters<Events[E]>[0]) => {
+        for (const listener of this.listeners[event] || []) listener(payload);
       };
-    },
-  ) => {
-    const count = (e && e.data && e.data.overflowCount) ?? 0;
-    const isBufferDropped = (e && e.data && e.data.isBufferDropped) ?? false;
+    const offChange = delegate.on('change', forward('change'));
+    const offOverload = delegate.on('overload', forward('overload'));
+    this.stopForwarding = () => {
+      offChange();
+      offOverload();
+    };
+    this.delegate = delegate;
+    this.delegateEngine = engine;
+    return delegate;
+  };
 
-    this.tracer?.trace('noiseCancellation.bufferOverflowCount', String(count));
-
-    window.clearTimeout(this.restoreTimeoutId);
-    this.disable().catch((err) =>
-      console.error('Failed to disable noise cancellation ', err),
-    );
-
-    if (isBufferDropped) {
-      this.tracer?.trace('noiseCancellation.bufferDropped', 'true');
-      return;
-    }
-
-    if (count < this.restoreAttempts) {
-      this.restoreTimeoutId = window.setTimeout(() => {
-        this.enable().catch((err) =>
-          console.error('Failed to enable noise cancellation ', err),
-        );
-      }, this.restoreTimeoutMs);
-    }
+  private dropDelegate = () => {
+    this.stopForwarding?.();
+    this.stopForwarding = undefined;
+    this.delegate = undefined;
+    this.delegateEngine = undefined;
   };
 }

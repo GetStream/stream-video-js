@@ -37,9 +37,11 @@ describe('AudioBindingsWatchdog', () => {
     watchdog = new AudioBindingsWatchdog(call.state, call.tracer);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     watchdog.dispose();
-    call.leave();
+    if (call.state.callingState !== CallingState.LEFT) {
+      await call.leave();
+    }
     vi.useRealTimers();
   });
 
@@ -166,14 +168,36 @@ describe('AudioBindingsWatchdog', () => {
       audioStream: new MediaStream(),
     });
 
+    call.state.setCallingState(CallingState.JOINED);
     watchdog.setEnabled(false);
-    watchdog.setEnabled(true);
+    vi.advanceTimersByTime(3000);
+    expect(warnSpy).not.toHaveBeenCalled();
 
+    watchdog.setEnabled(true);
     vi.advanceTimersByTime(3000);
 
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining('Dangling audio bindings detected'),
     );
+  });
+
+  it('setEnabled should not start the watchdog outside of JOINED', () => {
+    // @ts-expect-error private property
+    const warnSpy = vi.spyOn(watchdog.logger, 'warn');
+    // @ts-expect-error private property
+    const traceSpy = vi.spyOn(watchdog, 'traceBindingStates');
+
+    addRemoteParticipant('session-1', 'user-1', {
+      audioStream: new MediaStream(),
+    });
+
+    call.state.setCallingState(CallingState.JOINED);
+    call.state.setCallingState(CallingState.LEFT);
+    watchdog.setEnabled(true);
+    vi.advanceTimersByTime(6000);
+
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(traceSpy).not.toHaveBeenCalled();
   });
 
   it('should warn when binding a different element to the same key', () => {
@@ -353,5 +377,61 @@ describe('AudioBindingsWatchdog', () => {
     vi.advanceTimersByTime(6000);
 
     expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('setup should resume the watchdog after dispose', () => {
+    // @ts-expect-error private property
+    const warnSpy = vi.spyOn(watchdog.logger, 'warn');
+
+    addRemoteParticipant('session-1', 'user-1', {
+      audioStream: new MediaStream(),
+    });
+    watchdog.register(
+      document.createElement('audio'),
+      'session-1',
+      'audioTrack',
+    );
+
+    call.state.setCallingState(CallingState.JOINED);
+    vi.advanceTimersByTime(3000);
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    watchdog.dispose();
+    call.state.setCallingState(CallingState.LEFT);
+    call.state.setCallingState(CallingState.JOINED);
+    vi.advanceTimersByTime(6000);
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    watchdog.setup();
+    vi.advanceTimersByTime(3000);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Dangling audio bindings detected'),
+    );
+  });
+
+  it('keeps working when the call is left and joined again', async () => {
+    const callWatchdog = call.audioBindingsWatchdog!;
+    // @ts-expect-error private property
+    const warnSpy = vi.spyOn(callWatchdog.logger, 'warn');
+    // @ts-expect-error private property
+    const traceSpy = vi.spyOn(callWatchdog, 'traceBindingStates');
+
+    call.state.setCallingState(CallingState.JOINED);
+    await call.leave();
+    expect(call.state.callingState).toBe(CallingState.LEFT);
+
+    traceSpy.mockClear();
+    vi.advanceTimersByTime(6000);
+    expect(traceSpy).not.toHaveBeenCalled();
+
+    await call.setup();
+    addRemoteParticipant('session-2', 'user-2', {
+      audioStream: new MediaStream(),
+    });
+    call.state.setCallingState(CallingState.JOINED);
+    vi.advanceTimersByTime(3000);
+
+    expect(traceSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('user-2'));
   });
 });

@@ -1,3 +1,6 @@
+import Foundation
+import stream_react_native_webrtc
+
 @objc(VideoFiltersReactNativeImpl)
 public final class VideoFiltersReactNativeImpl: NSObject {
 

@@ -1,45 +1,28 @@
 import {
-  CallContentProps,
   ScreenShareToggleButton,
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import React, { useEffect, useMemo, useState } from 'react';
-import { LayoutChangeEvent, ScrollView, StyleSheet, View } from 'react-native';
+import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { MoreActionsButton } from '../MoreActionsButton';
 import { ParticipantsButton } from './ParticipantsButton';
 import { ChatButton } from './ChatButton';
 import { RecordCallButton } from './RecordCallButton';
 import { SubtitleContainer } from './SubtitleContainer';
 import { useFoldAwareBarLayout } from '../../../contexts/FoldAwareBarLayoutContext';
+import { Z_INDEX } from '../../../constants';
 
-export type BottomControlsProps = Pick<
-  CallContentProps,
-  'supportedReactions'
-> & {
-  onChatOpenHandler?: () => void;
-  onParticipantInfoPress: () => void;
-  toggleCallRecording: () => Promise<void>;
-  isAwaitingResponse: boolean;
-  isCallRecordingInProgress: boolean;
-  landscape?: boolean;
-};
-
-export const BottomControls = ({
-  onChatOpenHandler,
-  onParticipantInfoPress,
-  toggleCallRecording,
-  isAwaitingResponse,
-  isCallRecordingInProgress,
-  landscape = false,
-}: BottomControlsProps) => {
+export const BottomControls = () => {
   const styles = useStyles();
+  const {
+    theme: { callControls },
+  } = useTheme();
   const [measuredHeight, setMeasuredHeight] = useState<number>();
   // drawers and subtitles are lifted above the controls only when the
   // controls are below the video; beside the video there is nothing to clear
-  const controlsContainerHeight =
-    measuredHeight === undefined ? undefined : landscape ? 0 : measuredHeight;
+  const controlsContainerHeight = measuredHeight;
 
   const onLayout = (event: LayoutChangeEvent) => {
     setMeasuredHeight(event.nativeEvent.layout.height);
@@ -52,47 +35,30 @@ export const BottomControls = ({
 
   const buttons = (
     <>
-      <View style={[styles.left, landscape && styles.groupLandscape]}>
+      <View style={[styles.left]}>
         <MoreActionsButton controlsContainerHeight={controlsContainerHeight} />
         <ToggleAudioPublishingButton />
         <ToggleVideoPublishingButton />
+      </View>
+      <View style={[styles.right]}>
         <ScreenShareToggleButton
           screenShareOptions={{ type: 'broadcast', includeAudio: true }}
         />
-        <RecordCallButton
-          toggleCallRecording={toggleCallRecording}
-          isAwaitingResponse={isAwaitingResponse}
-          isCallRecordingInProgress={isCallRecordingInProgress}
-        />
-      </View>
-      <View style={[styles.right, landscape && styles.groupLandscape]}>
-        <ParticipantsButton onParticipantInfoPress={onParticipantInfoPress} />
-        {onChatOpenHandler && <ChatButton onPressHandler={onChatOpenHandler} />}
+        <RecordCallButton />
+        <ParticipantsButton />
+        <ChatButton />
       </View>
     </>
   );
 
   return (
     <>
-      {landscape ? (
-        // a short window cannot fit the whole column, so let it scroll
-        <ScrollView
-          style={styles.landscapeScroll}
-          showsVerticalScrollIndicator={false}
-          bounces={false}
-          onLayout={onLayout}
-          contentContainerStyle={[
-            styles.containerLandscape,
-            styles.landscapeContent,
-          ]}
-        >
-          {buttons}
-        </ScrollView>
-      ) : (
-        <View style={styles.container} onLayout={onLayout}>
-          {buttons}
-        </View>
-      )}
+      <View
+        style={[styles.container, callControls.container]}
+        onLayout={onLayout}
+      >
+        {buttons}
+      </View>
       {controlsContainerHeight !== undefined && (
         <SubtitleContainer controlsContainerHeight={controlsContainerHeight} />
       )}
@@ -101,54 +67,21 @@ export const BottomControls = ({
 };
 
 const useStyles = () => {
-  const {
-    theme: { primitives },
-  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          paddingTop: primitives.spacingSm,
-          paddingBottom: primitives.spacingMd,
-          paddingHorizontal: primitives.spacingMd,
           flexDirection: 'row',
-          justifyContent: 'flex-start',
+          justifyContent: 'space-between',
+          zIndex: Z_INDEX.IN_FRONT,
         },
         left: {
-          flex: 2.5,
           flexDirection: 'row',
-          alignItems: 'flex-start',
-          gap: primitives.spacingXs,
         },
         right: {
-          flex: 1,
           flexDirection: 'row',
-          justifyContent: 'flex-end',
-          gap: primitives.spacingXs,
-        },
-        containerLandscape: {
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          paddingTop: primitives.spacingSm,
-          paddingBottom: primitives.spacingSm,
-          // matches the top controls' horizontal padding so hang-up lines up
-          paddingHorizontal: primitives.spacingMd,
-        },
-        // a ScrollView grows by default and would take width from the video
-        landscapeScroll: {
-          flexGrow: 0,
-          flexShrink: 0,
-        },
-        landscapeContent: {
-          flexGrow: 1,
-        },
-        groupLandscape: {
-          flex: 0,
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'flex-start',
         },
       }),
-    [primitives],
+    [],
   );
 };

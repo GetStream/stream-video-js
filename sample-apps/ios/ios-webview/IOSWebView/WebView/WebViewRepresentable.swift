@@ -12,6 +12,7 @@ final class WebController: ObservableObject {
     let errorBridge = ErrorBridge()
 
     lazy var audioScenarios: AudioScenarios = AudioScenarios()
+    lazy var networkScenarios: NetworkScenarios = NetworkScenarios(webView: webView)
 
     init() {
         let config = WKWebViewConfiguration()

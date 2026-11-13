@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import type { Channel as StreamChannel } from 'stream-chat';
 import {
   Channel,
   ChannelHeader,
   MessageComposer,
   MessageList,
   useChatContext,
-  Window,
 } from 'stream-chat-react';
 import { useParams } from 'react-router';
 
@@ -15,23 +15,35 @@ const channelType = import.meta.env.VITE_CHANNEL_TYPE ?? DEFAULT_CHANNEL_TYPE;
 
 export const ChatSidebar = () => {
   const { callId } = useParams();
-  const { client, setActiveChannel } = useChatContext();
+  const { client } = useChatContext();
+  const [channel, setChannel] = useState<StreamChannel>();
 
   useEffect(() => {
-    const channel = client.channel(channelType, callId);
+    if (!callId) return;
+    let cancelled = false;
+    client
+      .channel(channelType, callId)
+      .watch()
+      .then((watched) => {
+        if (!cancelled) setChannel(watched);
+      })
+      .catch((err) => console.error('Failed to watch chat channel', err));
 
-    setActiveChannel(channel);
-  }, [callId, client, setActiveChannel]);
+    return () => {
+      cancelled = true;
+      setChannel(undefined);
+    };
+  }, [callId, client]);
 
   return (
     <div className="flex w-4/12">
-      <Channel>
-        <Window>
+      {channel && (
+        <Channel channel={channel}>
           <ChannelHeader />
           <MessageList />
           <MessageComposer focus />
-        </Window>
-      </Channel>
+        </Channel>
+      )}
     </div>
   );
 };

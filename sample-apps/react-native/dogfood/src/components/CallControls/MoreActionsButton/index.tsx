@@ -17,17 +17,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
-import MoreActions from '../../../assets/MoreActions';
+import {
+  ControlButtonIcon,
+  IconWrapper,
+  MoreVert,
+} from '@stream-io/video-react-native-sdk/src/icons';
 import { BottomControlsDrawer, DrawerOption } from './BottomControlsDrawer';
 import Feedback from '../../../assets/Feedback';
 import FeedbackModal from '../../FeedbackModal';
-import {
-  ThemeMode,
-  useAppGlobalStoreSetState,
-  useAppGlobalStoreValue,
-} from '../../../contexts/AppContext';
-import LightDark from '../../../assets/LightDark';
 import Stats from '../../../assets/Stats';
 import ClosedCaptions from '../../../assets/ClosedCaptions';
 import Screenshot from '../../../assets/Screenshot';
@@ -59,7 +56,7 @@ export const MoreActionsButton = ({
   controlsContainerHeight,
 }: MoreActionsButtonProps) => {
   const {
-    theme: { moreActionsButton, components, primitives, semantics },
+    theme: { components, semantics },
   } = useTheme();
   const {
     isSupported,
@@ -74,8 +71,6 @@ export const MoreActionsButton = ({
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [screenshotModalVisible, setScreenshotModalVisible] = useState(false);
   const [screenshotImage, setScreenshotImage] = useState<string | null>(null);
-  const setState = useAppGlobalStoreSetState();
-  const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
   const call = useCall();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const {
@@ -110,13 +105,6 @@ export const MoreActionsButton = ({
       .catch((err) => console.warn('Failed to submit call feedback', err));
 
     setFeedbackModalVisible(false);
-  };
-
-  const getName = (theme: ThemeMode) => {
-    if (theme === 'light') {
-      return 'Dark mode';
-    }
-    return 'Light mode';
   };
 
   const getCaptionsLabel = () =>
@@ -197,26 +185,6 @@ export const MoreActionsButton = ({
       },
     },
     {
-      id: '3',
-      label: getName(themeMode),
-      icon: (
-        <IconWrapper>
-          <LightDark
-            color={semantics.accentNeutral}
-            size={components.iconSizeMd}
-          />
-        </IconWrapper>
-      ),
-      onPress: () => {
-        if (themeMode === 'light') {
-          setState({ themeMode: 'dark' });
-        } else {
-          setState({ themeMode: 'light' });
-        }
-        setIsDrawerVisible(false);
-      },
-    },
-    {
       id: '4',
       label: 'Take Screenshot',
       icon: (
@@ -289,10 +257,6 @@ export const MoreActionsButton = ({
       : []),
   ];
 
-  const buttonColor = isDrawerVisible
-    ? semantics.accentPrimary
-    : semantics.accentNeutral;
-
   return (
     <CallControlsButton
       onPress={() => {
@@ -301,8 +265,6 @@ export const MoreActionsButton = ({
         }
         setIsDrawerVisible(!isDrawerVisible);
       }}
-      style={moreActionsButton}
-      color={buttonColor}
     >
       {controlsContainerHeight !== undefined && (
         <AudioRoutePickerDrawer
@@ -357,12 +319,7 @@ export const MoreActionsButton = ({
           </View>
         </View>
       </Modal>
-      <IconWrapper>
-        <MoreActions
-          color={semantics.accentNeutral}
-          size={components.iconSizeMd}
-        />
-      </IconWrapper>
+      <ControlButtonIcon icon={MoreVert} />
     </CallControlsButton>
   );
 };

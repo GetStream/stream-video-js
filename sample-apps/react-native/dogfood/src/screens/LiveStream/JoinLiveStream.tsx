@@ -121,7 +121,7 @@ export const JoinLiveStream = ({
                 <QRCode
                   width={20}
                   height={20}
-                  fill={semantics.textPrimary.toString()}
+                  fill={semantics.textPrimary?.toString()}
                 />
               </TouchableOpacity>
             )}

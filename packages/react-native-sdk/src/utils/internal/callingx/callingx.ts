@@ -70,7 +70,7 @@ function getCallingxCallArgs(call: Call): [string, string, string, boolean] {
   const createdByHandle = call.state.createdBy?.id ?? callDisplayName;
   return [
     call.cid, // unique id for call
-    // handle for the native call UI. On iOS it is shown in CallKit Recents and used for
+    // handle for the native call UI. On iOS it is stored in the Recents and used for
     // call-back, so we send the caller's user id (matches the Swift SDK). On Android the
     // self-managed Telecom address is never displayed and callingx wraps it as
     // `<packageName>:<handle>`, so we send the call id (matches the Android SDK).
@@ -219,40 +219,6 @@ export async function endCallingxCall(call: Call, reason?: EndCallReason) {
   } catch (error) {
     logger.error(
       `endCallingxCall: Error ending call in callingx: ${call.cid}`,
-      error,
-    );
-  }
-}
-
-export async function wireAudioEngineSubscription() {
-  if (!CallingxModule || !CallingxModule.isSetup || Platform.OS !== 'ios') {
-    return;
-  }
-  const logger = videoLoggerSystem.getLogger('callingx');
-
-  try {
-    logger.debug('wireEngineSubscription: Wiring engine subscription');
-    CallingxModule.wireAudioEngineSubscription();
-  } catch (error) {
-    logger.error(
-      'wireAudioEngineSubscription: Error wiring engine subscription',
-      error,
-    );
-  }
-}
-
-export function unwireAudioEngineSubscription() {
-  if (!CallingxModule || !CallingxModule.isSetup || Platform.OS !== 'ios') {
-    return;
-  }
-  const logger = videoLoggerSystem.getLogger('callingx');
-
-  try {
-    logger.debug('unwireEngineSubscription: Cancelling engine subscription');
-    CallingxModule.unwireAudioEngineSubscription();
-  } catch (error) {
-    logger.error(
-      'unwireAudioEngineSubscription: Error cancelling engine subscription',
       error,
     );
   }

@@ -7,7 +7,7 @@ import {
   Text,
   View,
   ViewStyle,
-  TextInput as NativeTextInput,
+  type TextInputInstance,
   TouchableWithoutFeedback,
 } from 'react-native';
 import {
@@ -23,6 +23,7 @@ import EnvSwitcherButton from './EnvSwitcherButton';
 import { Alert } from 'react-native';
 import { Button } from '@stream-io/video-react-native-sdk/src/components';
 import { useAppI18n } from '../../hooks/useAppI18n';
+import { ButtonTestIds, InputTestIds } from '../../constants/TestIds';
 
 const generateValidUserId = (userId: string) => {
   return userId.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace('@getstream_io', '');
@@ -48,7 +49,7 @@ const LoginScreen = () => {
     (store) => store.localIpAddress,
   );
 
-  const sfuIpInputRef = useRef<NativeTextInput>(null);
+  const sfuIpInputRef = useRef<TextInputInstance>(null);
 
   const loginHandler = async () => {
     try {
@@ -124,6 +125,7 @@ const LoginScreen = () => {
           <View style={styles.textBoxContainer}>
             <TextInput
               placeholder={t('login.userName.label', 'Enter your name')}
+              testID={InputTestIds.LOGIN_USER_NAME}
               onChangeText={(text) => {
                 setLocalUserId(text);
               }}
@@ -132,6 +134,7 @@ const LoginScreen = () => {
             />
             <Button
               text={t('login.submit.label', 'Login')}
+              testID={ButtonTestIds.LOGIN}
               disabled={!localUserId}
               onPress={loginHandler}
             />

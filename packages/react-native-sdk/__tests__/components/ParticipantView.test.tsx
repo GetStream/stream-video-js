@@ -117,7 +117,9 @@ describe('ParticipantView', () => {
 
     // Participant is speaking style is applied
     expect(
-      screen.getByTestId(`participant-${testParticipant.userId}-is-speaking`),
+      screen.getByTestId(
+        `stream-participant-${testParticipant.userId}-is-speaking`,
+      ),
     ).toBeOnTheScreen();
   });
 });

@@ -2,41 +2,37 @@ import React, { useState } from 'react';
 import {
   CallControlsButton,
   useTheme,
+  useToggleCallRecording,
 } from '@stream-io/video-react-native-sdk';
 import { RecordCall } from '../../../assets/RecordCall';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import { CallRecordingModal } from './CallRecordingModal';
+import { StopRecordCall } from '../../../assets/StopRecordCall';
 
 /**
  * The props for the Record Call Button in the Call Controls.
  */
 export type RecordCallButtonProps = {
   onPressHandler?: () => void;
-  toggleCallRecording: () => Promise<void>;
-  isAwaitingResponse: boolean;
-  isCallRecordingInProgress: boolean;
 };
 
 /**
  * The Record Call Button is used in the Call Controls component
  * and allows the user to toggle call recording.
  */
-export const RecordCallButton = ({
-  onPressHandler,
-  toggleCallRecording,
-  isAwaitingResponse,
-  isCallRecordingInProgress,
-}: RecordCallButtonProps) => {
+export const RecordCallButton = ({ onPressHandler }: RecordCallButtonProps) => {
   const {
     theme: { components, semantics },
   } = useTheme();
+  const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
+    useToggleCallRecording();
 
   const [isStopRecordingModalOpen, setIsStopRecordingModalOpen] =
     useState(false);
 
   const buttonColor = isCallRecordingInProgress
-    ? semantics.accentWarning
-    : semantics.accentPrimary;
+    ? semantics.accentError
+    : undefined;
 
   const onPress = async () => {
     if (onPressHandler) {
@@ -80,10 +76,17 @@ export const RecordCallButton = ({
     >
       {endRecording}
       <IconWrapper>
-        <RecordCall
-          color={semantics.accentPrimary}
-          size={components.iconSizeSm}
-        />
+        {isCallRecordingInProgress ? (
+          <StopRecordCall
+            color={semantics.textOnAccent}
+            size={components.iconSizeMd}
+          />
+        ) : (
+          <RecordCall
+            color={semantics.textPrimary}
+            size={components.iconSizeMd}
+          />
+        )}
       </IconWrapper>
     </CallControlsButton>
   );

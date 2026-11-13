@@ -2,7 +2,7 @@
   "extends": "@stream-io/typescript-config/library-web.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "types": ["node", "dom-mediacapture-transform", "emscripten"]
+    "types": ["node", "dom-mediacapture-transform"]
   },
   "exclude": ["**/__tests__/**"],
   "include": ["./src", "index.ts"]

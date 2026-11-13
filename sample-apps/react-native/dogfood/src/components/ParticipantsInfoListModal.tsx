@@ -153,7 +153,7 @@ export const ParticipantsInfoListModal = ({
             <FlatList data={participants} renderItem={renderItem} />
             <View style={styles.buttonGroup}>
               <Pressable style={styles.inviteButton} onPress={inviteHandler}>
-                <Text style={styles.buttonText}>
+                <Text style={[styles.buttonText, styles.inviteButtonText]}>
                   {t('participantsInfo.invite.label', 'Invite')}
                 </Text>
               </Pressable>
@@ -339,6 +339,9 @@ const useStyles = () => {
           color: semantics.textPrimary,
           fontSize: 16,
           fontWeight: '500',
+        },
+        inviteButtonText: {
+          color: semantics.textOnAccent,
         },
         participant: {
           paddingHorizontal: 8,

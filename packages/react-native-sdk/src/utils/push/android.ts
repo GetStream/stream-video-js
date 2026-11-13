@@ -1,7 +1,7 @@
 import { StreamVideoClient, videoLoggerSystem } from '@stream-io/video-client';
 import { Platform } from 'react-native';
 import type { StreamVideoConfig } from '../StreamVideoRN/types';
-import { getFirebaseMessagingLib } from './libs';
+import { getCallingxLibIfAvailable } from './libs';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
@@ -14,7 +14,12 @@ export async function initAndroidPushToken(
   pushConfig: PushConfig,
   setUnsubscribeListener: (unsubscribe: () => void) => void,
 ) {
-  if (Platform.OS !== 'android' || !pushConfig.android?.pushProviderName) {
+  const callingx = getCallingxLibIfAvailable();
+  if (
+    Platform.OS !== 'android' ||
+    !pushConfig.android?.pushProviderName ||
+    !callingx
+  ) {
     return;
   }
   const logger = videoLoggerSystem.getLogger('initAndroidPushToken');
@@ -52,12 +57,23 @@ export async function initAndroidPushToken(
     });
   };
 
-  const messaging = getFirebaseMessagingLib();
-  logger.debug(`setting firebase token listeners`);
-  const unsubscribe = messaging().onTokenRefresh((refreshedToken) =>
-    setDeviceToken(refreshedToken),
+  const subscription = callingx.addEventListener(
+    'fcmTokenRefresh',
+    ({ token }) => {
+      logger.debug(`received fcm token refresh event: ${token}`);
+      setDeviceToken(token).catch((error) => {
+        logger.warn('Failed to send rotated firebase token to stream', error);
+      });
+    },
   );
-  setUnsubscribeListener(unsubscribe);
-  const token = await messaging().getToken();
+  setUnsubscribeListener(() => subscription.remove());
+  const token = await callingx.getFcmToken();
+  if (!token) {
+    logger.warn(
+      'callingx.getFcmToken() returned an empty token; skipping addDevice call',
+    );
+    return;
+  }
+  logger.debug(`sending initial firebase token: ${token}`);
   await setDeviceToken(token);
 }

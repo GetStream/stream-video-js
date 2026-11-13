@@ -30,6 +30,9 @@ export function registerVirtualBackgroundFilter(
   imageSource: ImageSourceType,
 ): string {
   const source = resolveAssetSourceFunc(imageSource);
+  if (!source) {
+    throw new Error('Unable to resolve the virtual background image source');
+  }
   const imageUri = source.uri;
   VideoFiltersReactNative.registerVirtualBackgroundFilter(imageUri);
   return imageUri;

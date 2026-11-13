@@ -47,7 +47,7 @@ const lastSubscription = <T,>(event: unknown) => {
 
 const setPlatform = (os: 'ios' | 'android', version: string | number) => {
   Platform.OS = os;
-  Platform.Version = version;
+  (Platform as { Version: string | number }).Version = version;
 };
 
 describe('native module consumers', () => {

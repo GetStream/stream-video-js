@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, View as RNView } from 'react-native';
+import { StyleSheet, type ViewInstance } from 'react-native';
 import { StreamTheme, useTheme } from '@stream-io/video-react-native-sdk';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -55,7 +55,7 @@ export const FoldAwareCallArea = ({ children }: React.PropsWithChildren) => {
   const targetProgress = getFoldProgress(fold);
   const isHorizontalFold = !!fold && fold.width > fold.height;
 
-  const containerRef = useRef<RNView>(null);
+  const containerRef = useRef<ViewInstance>(null);
   const [area, setArea] = useState<{ y: number; height: number }>();
   const [topBarHeight, setTopBarHeight] = useState(0);
   const [bottomBarHeight, setBottomBarHeight] = useState(0);

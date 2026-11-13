@@ -1,0 +1,10 @@
+@stream-io/video-filters-web
+Copyright 2024 STREAM.IO, INC.
+
+This package redistributes MediaPipe (https://github.com/google-ai-edge/mediapipe):
+the @mediapipe/tasks-vision JavaScript bundle (compiled into the background-effect
+worker), the WebAssembly runtime under mediapipe/wasm and the selfie segmentation
+models under mediapipe/models.
+
+Copyright 2019 The MediaPipe Authors.
+Licensed under the Apache License, Version 2.0; see LICENSE.

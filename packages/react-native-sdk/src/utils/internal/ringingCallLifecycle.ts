@@ -10,7 +10,7 @@ const logger = videoLoggerSystem.getLogger('ringingCallLifecycle');
 /**
  * How long `onBeforeCallJoin` may take before the join gives up on it.
  *
- * The hook runs inside the CallKit accept, which iOS gives a hard deadline of
+ * The hook runs inside the system accept action, which iOS gives a hard deadline of
  * roughly 30s before killing the app. Failing well short of that leaves room to
  * report the failure and end the native call cleanly, and a hook that legitimately
  * needs longer than this does not belong on the accept path at all.

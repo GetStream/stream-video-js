@@ -9,7 +9,7 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { CallState } from '../store';
 import { Dispatcher } from './Dispatcher';
 import type { OptimalVideoLayer } from './layers';
-import type { ClientPublishOptions } from '../types';
+import type { ClientPublishOptions, ScreenShareSettings } from '../types';
 import type { E2EEManager } from './e2ee/E2EEManager';
 import type { VideoSender } from '../gen/video/sfu/event/events';
 
@@ -116,6 +116,11 @@ export type BasePeerConnectionOpts = {
 
 export type TrackPublishOptions = {
   audioBitrateProfile?: AudioBitrateProfile;
+  /**
+   * The content hint set on the published track. When set, it takes
+   * precedence over the SFU's degradation preference.
+   */
+  contentHint?: ScreenShareSettings['contentHint'];
 };
 
 export type PublishBundle = {

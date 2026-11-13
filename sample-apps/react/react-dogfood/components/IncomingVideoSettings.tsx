@@ -136,8 +136,8 @@ export const IncomingVideoSettingsDropdown = ({ title }: { title: string }) => {
       </div>
       <DropDownSelect
         icon="sliders-fill"
-        defaultSelectedIndex={currentIndex}
-        defaultSelectedLabel={longQualityLabel(t, currentSetting)}
+        selectedIndex={currentIndex}
+        selectedLabel={longQualityLabel(t, currentSetting)}
         handleSelect={onChange}
       >
         {incomingVideoSettings.map((value) => {

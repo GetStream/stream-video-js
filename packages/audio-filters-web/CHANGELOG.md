@@ -2,6 +2,25 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0-beta.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-1.0.0-beta.2...@stream-io/audio-filters-web-1.0.0-beta.3) (2026-11-05)
+
+### Features
+
+- **audio-filters-web:** experimental FastEnhancer noise cancellation provider ([#2588](https://github.com/GetStream/stream-video-js/issues/2588)) ([b292353](https://github.com/GetStream/stream-video-js/commit/b292353eba497340fc62c713803ca0cfb92f9343))
+- surface noise cancellation overload status ([#2528](https://github.com/GetStream/stream-video-js/issues/2528)) ([a90bc74](https://github.com/GetStream/stream-video-js/commit/a90bc742d6763fa810a314beb23045156312d86a))
+
+### Bug Fixes
+
+- **audio-filters-web:** report Safari as unsupported unless opted in ([#2572](https://github.com/GetStream/stream-video-js/issues/2572)) ([7a9d349](https://github.com/GetStream/stream-video-js/commit/7a9d349d367e614389a6e4ffdba4e285070aab14))
+
+## [1.0.0-beta.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-1.0.0-beta.1...@stream-io/audio-filters-web-1.0.0-beta.2) (2026-10-26)
+
+### Features
+
+- **audio-filters-web:** upgrade krisp to 2.3.10 ([#2537](https://github.com/GetStream/stream-video-js/issues/2537)) ([5f4cd35](https://github.com/GetStream/stream-video-js/commit/5f4cd35799989002b4e6a27c3b080d28c2b669f5))
+
+## [1.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-1.0.0-beta.0...@stream-io/audio-filters-web-1.0.0-beta.1) (2026-10-20)
+
 ## [1.0.0-beta.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.10.4...@stream-io/audio-filters-web-1.0.0-beta.0) (2026-09-04)
 
 ## [0.10.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.10.3...@stream-io/audio-filters-web-0.10.4) (2026-08-07)

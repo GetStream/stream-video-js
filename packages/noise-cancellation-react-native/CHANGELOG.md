@@ -2,6 +2,26 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0-beta.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-1.0.0-beta.2...@stream-io/noise-cancellation-react-native-1.0.0-beta.3) (2026-11-05)
+
+### Features
+
+- surface noise cancellation overload status ([#2528](https://github.com/GetStream/stream-video-js/issues/2528)) ([a90bc74](https://github.com/GetStream/stream-video-js/commit/a90bc742d6763fa810a314beb23045156312d86a))
+
+### Bug Fixes
+
+- **react-native:** recover the iOS mic when the audio engine fails to start ([#2529](https://github.com/GetStream/stream-video-js/issues/2529)) ([36bb5e5](https://github.com/GetStream/stream-video-js/commit/36bb5e54392d5876dcd1759c583e3265f880ddcc)), closes [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#75](https://github.com/GetStream/stream-video-js/issues/75) [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#2282](https://github.com/GetStream/stream-video-js/issues/2282)
+
+## [1.0.0-beta.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-1.0.0-beta.1...@stream-io/noise-cancellation-react-native-1.0.0-beta.2) (2026-10-16)
+
+### ⚠ BREAKING CHANGES
+
+- remove deprecated APIs and legacy code for v2 (#2498)
+
+### Features
+
+- remove deprecated APIs and legacy code for v2 ([#2498](https://github.com/GetStream/stream-video-js/issues/2498)) ([7a20921](https://github.com/GetStream/stream-video-js/commit/7a209213d0eddb7ad8f1d21e55bd43910391666e)), closes [#2493](https://github.com/GetStream/stream-video-js/issues/2493)
+
 ## [1.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-1.0.0-beta.0...@stream-io/noise-cancellation-react-native-1.0.0-beta.1) (2026-09-28)
 
 ### ⚠ BREAKING CHANGES

@@ -14,9 +14,9 @@ yarn add @stream-io/video-filters-web
 
 ```typescript
 import {
+  createVirtualBackground,
   isMediaPipePlatformSupported,
   loadMediaPipe,
-  VirtualBackground,
 } from '@stream-io/video-filters-web';
 
 // 1. Check if the platform is supported
@@ -28,8 +28,8 @@ if (!isSupported) {
 // 2. Load the MediaPipe model
 const mediaPipeModel = await loadMediaPipe();
 
-// 3. Create the processor
-const processor = new VirtualBackground(
+// 3. Create the processor for the current browser
+const processor = createVirtualBackground(
   track,
   {
     modelPath: mediaPipeModel.modelPath,
@@ -83,6 +83,20 @@ Notes:
 - When several updates overlap, the last one wins.
 - If the background image fails to load, the promise rejects and the current
   background keeps rendering.
+
+## Safari
+
+Safari is opted into with `isMediaPipePlatformSupported({ forceSafariSupport: true })`.
+On Safari 18+ `createVirtualBackground` runs the whole pipeline in a Web Worker
+(Safari exposes `MediaStreamTrackProcessor` only in workers), so the effect keeps
+its frame rate when the tab is in the background.
+
+## Content-Security-Policy
+
+The worker is bundled into the library and started from a `blob:` URL, so pages
+with a CSP need `worker-src blob:`. Without it `start()` rejects with an error
+that says so. The MediaPipe WebAssembly and model files are fetched from
+`basePath`, which `script-src` and `connect-src` have to allow as usual.
 
 ## Known limitations
 

@@ -8,7 +8,7 @@ import { act, render, screen, within } from '../utils/RNTLTools';
 import { CallParticipantsList } from '../../src/components/Call/CallParticipantsList/CallParticipantsList';
 import { ParticipantView } from '../../src/components/Participant/ParticipantView/ParticipantView';
 import { VideoRenderer } from '../../src/components/Participant/ParticipantView/VideoRenderer';
-import { ViewToken } from 'react-native';
+import type { ListViewToken } from 'react-native';
 import { CallParticipantsGrid } from '../../src/components/Call/CallLayout/CallParticipantsGrid';
 
 console.warn = jest.fn();
@@ -58,7 +58,9 @@ describe('CallParticipantsGrid', () => {
 
     // Locating and verifying that all ParticipantViews are rendered
     const participant1 = within(
-      screen.getByTestId(`participant-${P_IDS.REMOTE_1}-is-not-speaking`),
+      screen.getByTestId(
+        `stream-participant-${P_IDS.REMOTE_1}-is-not-speaking`,
+      ),
     );
 
     expect(
@@ -117,7 +119,7 @@ describe('CallParticipantsGrid', () => {
     const visibleParticipantsItems = call.state.participants.map((p) => ({
       key: p.sessionId,
       item: 'some-item',
-      index: null,
+      index: undefined,
       isViewable: true,
     }));
 
@@ -126,10 +128,14 @@ describe('CallParticipantsGrid', () => {
     // Locating and verifying that all ParticipantViews are rendered
 
     const participant2 = within(
-      screen.getByTestId(`participant-${P_IDS.REMOTE_2}-is-not-speaking`),
+      screen.getByTestId(
+        `stream-participant-${P_IDS.REMOTE_2}-is-not-speaking`,
+      ),
     );
     const participant3 = within(
-      screen.getByTestId(`participant-${P_IDS.REMOTE_3}-is-not-speaking`),
+      screen.getByTestId(
+        `stream-participant-${P_IDS.REMOTE_3}-is-not-speaking`,
+      ),
     );
 
     // Verifying that the local partic.'s video/audio are rendered within their respective participant
@@ -147,7 +153,7 @@ describe('CallParticipantsGrid', () => {
 });
 
 const simulateOnViewableItemsChanged = async (
-  viewableItems: Array<ViewToken>,
+  viewableItems: Array<ListViewToken>,
 ) => {
   const flatList = await screen.findByTestId(
     ComponentTestIds.CALL_PARTICIPANTS_LIST,

@@ -17,6 +17,7 @@ export const defaultiOSOptions: Required<InternalIOSOptions> = {
   enableOngoingCalls: false,
   skipIncomingPushInForeground: false,
   defaultDeviceEndpointType: 'speaker',
+  useLiveCommunicationKit: false,
 };
 
 export const defaultAndroidOptions: Omit<
@@ -38,15 +39,15 @@ export const defaultAndroidOptions: Omit<
   enableOngoingCalls: false,
 };
 
-// iOS: maps to CXCallEndedReason raw values.
-// See https://developer.apple.com/documentation/callkit/cxcallendedreason
-// CXCallEndedReason: failed=1, remoteEnded=2, unanswered=3, answeredElsewhere=4, declinedElsewhere=5
+// iOS: maps to `CXCallEndedReason` (CallKit) or `Conversation.EndedReason` (LiveCommunicationKit), mapped natively.
+// See https://developer.apple.com/documentation/livecommunicationkit/conversation/endedreason
+// ints: failed=1, remoteEnded=2, unanswered=3, joinedElsewhere=4, declinedElsewhere=5
 export const iosEndCallReasonMap: Record<EndCallReason, number> = {
   local: -1, // special: uses endCall() instead of endCallWithReason()
   remote: 2, // .remoteEnded
   rejected: 5, // .declinedElsewhere
   busy: 3, // .unanswered
-  answeredElsewhere: 4, // .answeredElsewhere
+  answeredElsewhere: 4, // .joinedElsewhere
   missed: 3, // .unanswered
   error: 1, // .failed
   canceled: 2, // .remoteEnded (caller canceled before answer)

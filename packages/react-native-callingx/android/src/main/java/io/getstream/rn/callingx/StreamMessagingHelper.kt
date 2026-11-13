@@ -3,10 +3,9 @@ package io.getstream.rn.callingx
 import android.content.Context
 import android.os.Bundle
 import com.google.firebase.messaging.RemoteMessage
+import io.getstream.rn.callingx.notifications.NotificationsConfig
 import io.getstream.rn.callingx.utils.LifecycleListener
 import io.getstream.rn.callingx.utils.SettingsStore
-import io.invertase.firebase.common.ReactNativeFirebaseEventEmitter
-import io.invertase.firebase.messaging.ReactNativeFirebaseMessagingSerializer
 
 
 /**
@@ -18,13 +17,13 @@ import io.invertase.firebase.messaging.ReactNativeFirebaseMessagingSerializer
  *     android:name="io.getstream.rn.callingx.StreamMessagingService"
  *     tools:node="remove" />
  * ```
- * then invoke [handleMessage] from the app's own messaging service:
- * ```
- * class AppMessagingService : ReactNativeFirebaseMessagingService() {
- *   override fun onMessageReceived(remoteMessage: RemoteMessage) {
- *     // pass remote message to React Native Firebase JS background handler
- *     super.onMessageReceived(remoteMessage)
+ * (Alternatively, bump your own intent-filter's `android:priority` above `0` — ours declares
+ * priority `0` by default.)
  *
+ * Then invoke [handleMessage] from the app's own messaging service:
+ * ```
+ * class AppMessagingService : FirebaseMessagingService() {
+ *   override fun onMessageReceived(remoteMessage: RemoteMessage) {
  *     // Optional gate — provided for finer control over the forwarding flow.
  *     // `handleMessage` is also safe to call unconditionally; it no-ops for
  *     // payloads that aren't a Stream `call.ring`.
@@ -34,16 +33,13 @@ import io.invertase.firebase.messaging.ReactNativeFirebaseMessagingSerializer
  *       // forward to other push SDKs
  *     }
  *   }
- * }
- * ```
  *
- * If your service does NOT extend [ReactNativeFirebaseMessagingService] (e.g. it extends
- * another SDK's service), also forward token refreshes so Stream can re-register the device:
- * ```
  *   override fun onNewToken(token: String) {
- *     super.onNewToken(token)
+ *     // Notify Stream of the new token so the SDK's token rotation flow still fires.
  *     StreamMessagingHelper.forwardNewToken(token)
+ *     // ... plus consumer's own SDKs
  *   }
+ * }
  * ```
  */
 object StreamMessagingHelper {
@@ -62,8 +58,8 @@ object StreamMessagingHelper {
 
   /**
    * Handles a Stream Video `call.ring` payload by starting the incoming call flow.
-   * No-op for any other payload, so it is safe to call unconditionally from a host
-   * messaging service.
+   * No-op for any other payload, or until the app has called `StreamVideoRN.setPushConfig`
+   * at least once, so it is safe to call unconditionally from a host messaging service.
    */
   @JvmStatic
   fun handleMessage(context: Context, remoteMessage: RemoteMessage) {
@@ -71,6 +67,14 @@ object StreamMessagingHelper {
 
     if (!isStreamCallRing(remoteMessage)) {
       debugLog(TAG, "sender or type is not supported, skipping CallService start")
+      return
+    }
+
+    if (!NotificationsConfig.isSaved(context)) {
+      debugLog(
+        TAG,
+        "callingx setup() was never called (StreamVideoRN.setPushConfig), skipping CallService start",
+      )
       return
     }
 
@@ -98,18 +102,17 @@ object StreamMessagingHelper {
   }
 
   /**
-   * Re-emits React Native Firebase's `onTokenRefresh` JS event so Stream can re-register the
-   * rotated device token. Call from your service's `onNewToken` when the base class is NOT
-   * `ReactNativeFirebaseMessagingService` (otherwise the base already emits it). No-op if React
-   * Native Firebase is unavailable.
+   * Forwards a rotated FCM device token to the Stream SDK so the `fcmTokenRefresh` JS event
+   * fires and `client.addDevice` is re-invoked with the new token. Call from your service's
+   * `onNewToken` when your app hosts its own [com.google.firebase.messaging.FirebaseMessagingService].
    */
   @JvmStatic
   fun forwardNewToken(token: String) {
-    try {
-      ReactNativeFirebaseEventEmitter.getSharedInstance()
-        .sendEvent(ReactNativeFirebaseMessagingSerializer.newTokenToTokenEvent(token))
-    } catch (t: Throwable) {
-      debugLog(TAG, "failed to forward new FCM token to JS: ${t.message}")
+    val extras = Bundle().apply {
+      putString(StreamMessagingService.EXTRA_TOKEN, token)
     }
+    CallEventBus.publish(
+      CallEvent(CallingxModuleImpl.CALL_FCM_TOKEN_REFRESH_ACTION, extras),
+    )
   }
 }

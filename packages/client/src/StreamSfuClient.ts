@@ -23,10 +23,12 @@ import {
   SendAnswerRequest,
   SendStatsRequest,
   SetPublisherRequest,
+  StartNoiseCancellationRequest,
+  StopNoiseCancellationRequest,
   TrackMuteState,
   TrackSubscriptionDetails,
 } from './gen/video/sfu/signal_rpc/signal';
-import { ICETrickle } from './gen/video/sfu/models/models';
+import { ErrorCode, ICETrickle } from './gen/video/sfu/models/models';
 import { StreamClient } from './coordinator/connection/client';
 import { generateUUIDv4, sleep } from './coordinator/connection/utils';
 import { Credentials } from './gen/coordinator';
@@ -42,6 +44,7 @@ import { getTimers } from './timers';
 import { getSdkInfo } from './helpers/client-details';
 import { getStreamClientId, Tracer, TraceSlice } from './stats';
 import { SfuJoinError, SfuTimeoutError } from './errors';
+import { FastReconnectRejectedError } from './errors/FastReconnectRejectedError';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -185,7 +188,6 @@ export class StreamSfuClient {
   private lastMessageTimestamp?: number;
   private readonly tracer?: Tracer;
   private readonly unsubscribeIceTrickle: () => void;
-  private readonly unsubscribeNetworkChanged: () => void;
   private readonly onSignalClose: ((reason: string) => void) | undefined;
   private readonly logger: ScopedLogger;
   readonly tag: string;
@@ -195,7 +197,6 @@ export class StreamSfuClient {
   private readonly subscriptionsConcurrencyTag = Symbol(
     'subscriptionsConcurrencyTag',
   );
-  private networkAvailableTask: PromiseWithResolvers<void> | undefined;
   /**
    * Promise that resolves when the JoinResponse is received.
    * Rejects after a certain threshold if the response is not received,
@@ -290,16 +291,6 @@ export class StreamSfuClient {
     // once the remoteDescription is known and set.
     this.unsubscribeIceTrickle = dispatcher.on('iceTrickle', tag, (t) => {
       this.iceTrickleBuffer.push(t);
-    });
-
-    // listen to network changes to handle offline state
-    // we shouldn't attempt to recover websocket connection when offline
-    this.unsubscribeNetworkChanged = streamClient.on('network.changed', (e) => {
-      if (!e.online) {
-        this.networkAvailableTask = promiseWithResolvers();
-      } else {
-        this.networkAvailableTask?.resolve();
-      }
     });
 
     this.createWebSocket({
@@ -419,7 +410,6 @@ export class StreamSfuClient {
   private dispose = (reason?: string) => {
     this.logger.debug('Disposing SFU client');
     this.unsubscribeIceTrickle();
-    this.unsubscribeNetworkChanged();
     const timers = getTimers();
     timers.clearInterval(this.keepAliveInterval);
     timers.clearInterval(this.connectionCheckInterval);
@@ -558,24 +548,38 @@ export class StreamSfuClient {
     return this.rpc.sendStats({ ...stats, sessionId: this.sessionId });
   };
 
-  startNoiseCancellation = async () => {
+  /**
+   * Notifies the SFU that noise cancellation started.
+   *
+   * @internal use `call.microphone.enableNoiseCancellation()` instead.
+   */
+  startNoiseCancellation = async (
+    noiseCancellation: Omit<StartNoiseCancellationRequest, 'sessionId'>,
+  ) => {
     await this.joinTask;
     return retryable(
       (invocationMeta) =>
         this.rpc.startNoiseCancellation(
-          { sessionId: this.sessionId },
+          { ...noiseCancellation, sessionId: this.sessionId },
           { invocationMeta },
         ),
       this.abortController.signal,
     );
   };
 
-  stopNoiseCancellation = async () => {
+  /**
+   * Notifies the SFU that noise cancellation stopped.
+   *
+   * @internal use `call.microphone.disableNoiseCancellation()` instead.
+   */
+  stopNoiseCancellation = async (
+    noiseCancellation: Omit<StopNoiseCancellationRequest, 'sessionId'>,
+  ) => {
     await this.joinTask;
     return retryable(
       (invocationMeta) =>
         this.rpc.stopNoiseCancellation(
-          { sessionId: this.sessionId },
+          { ...noiseCancellation, sessionId: this.sessionId },
           { invocationMeta },
         ),
       this.abortController.signal,
@@ -647,6 +651,19 @@ export class StreamSfuClient {
         if (SfuJoinError.isJoinErrorCode(event)) {
           cleanupJoinSubscriptions();
           current.reject(new SfuJoinError(event));
+        } else if (
+          data.fastReconnect &&
+          event.error?.code === ErrorCode.PARTICIPANT_NOT_FOUND
+        ) {
+          // The SFU already dropped our session, so it can't be resumed.
+          // Fail now instead of waiting for the join timeout, the reconnect
+          // loop then rejoins.
+          cleanupJoinSubscriptions();
+          current.reject(
+            new FastReconnectRejectedError(
+              event.error.message || 'SFU did not find the participant',
+            ),
+          );
         }
       },
     );
@@ -693,6 +710,51 @@ export class StreamSfuClient {
         },
       }),
     );
+  };
+
+  /**
+   * Checks that the signal connection still reaches the SFU by completing
+   * `roundTrips` health checks in a row, each sent after the previous
+   * response. More than one round trip keeps a response that was already
+   * on its way, or queued while the page was frozen, from passing as proof.
+   *
+   * @param roundTrips the number of consecutive round trips required.
+   * @param timeoutMs the time budget for all round trips.
+   * @returns whether all round trips completed within the budget.
+   */
+  probe = async (roundTrips: number, timeoutMs: number): Promise<boolean> => {
+    const deadline = Date.now() + timeoutMs;
+    for (let i = 0; i < roundTrips; i++) {
+      if (!this.isHealthy) return false;
+      const responded = await this.pingAndWait(deadline - Date.now());
+      if (!responded) return false;
+    }
+    return true;
+  };
+
+  private pingAndWait = (timeoutMs: number) => {
+    return new Promise<boolean>((resolve) => {
+      const { signal } = this.abortController;
+      if (timeoutMs <= 0 || signal.aborted) return resolve(false);
+      const timeoutId = setTimeout(() => done(false), timeoutMs);
+      const unsubscribe = this.dispatcher.on(
+        'healthCheckResponse',
+        this.tag,
+        () => done(true),
+      );
+      const onAbort = () => done(false);
+      const done = (responded: boolean) => {
+        clearTimeout(timeoutId);
+        unsubscribe();
+        signal.removeEventListener('abort', onAbort);
+        resolve(responded);
+      };
+      signal.addEventListener('abort', onAbort);
+      this.ping().catch((err) => {
+        this.logger.warn('Failed to send a probing healthCheckRequest', err);
+        done(false);
+      });
+    });
   };
 
   private notifyLeave = async (reason: string) => {

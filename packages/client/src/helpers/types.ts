@@ -1,5 +1,3 @@
-export type AudioSessionState = 'inactive' | 'active' | 'interrupted';
-
 export type AudioSessionType =
   | 'auto'
   | 'playback'
@@ -10,9 +8,6 @@ export type AudioSessionType =
 
 export interface AudioSession extends EventTarget {
   type: AudioSessionType;
-  state: AudioSessionState;
-
-  onstatechange: EventListenerOrEventListenerObject;
 }
 
 declare global {
@@ -22,5 +17,14 @@ declare global {
      * https://github.com/w3c/audio-session/blob/main/explainer.md
      */
     audioSession?: AudioSession;
+  }
+
+  interface Document {
+    /**
+     * Whether the browser discarded the page in the background and
+     * reloaded it. Chromium only. See:
+     * https://developer.chrome.com/docs/web-platform/page-lifecycle-api
+     */
+    readonly wasDiscarded?: boolean;
   }
 }

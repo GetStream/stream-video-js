@@ -33,7 +33,7 @@ static BOOL isAppInForeground(void) {
     return state != UIApplicationStateBackground;
 }
 
-// Extracts CallKit-display fields from the Stream payload and reports the
+// Extracts system-call-display fields from the Stream payload and reports the
 // incoming call via Callingx.
 static void reportIncomingCallFromStreamPayload(NSDictionary *streamPayload,
                                                 void (^_Nullable completion)(void)) {
@@ -163,7 +163,7 @@ static void reportIncomingCallFromStreamPayload(NSDictionary *streamPayload,
     if (!mustReport &&
         [Callingx shouldSkipIncomingPushInForeground] &&
         isAppInForeground()) {
-        // Foreground skip: hide CallKit, let JS render the ringing UI.
+        // Foreground skip: hide the system call UI, let JS render the ringing UI.
         [VoipNotificationsManager didReceiveIncomingPushWithPayload:payload forType:type];
         if (completion) {
             completion();

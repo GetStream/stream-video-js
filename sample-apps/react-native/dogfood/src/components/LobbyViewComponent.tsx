@@ -1,5 +1,6 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
+  Button,
   JoinCallButton,
   Lobby,
   useTheme,
@@ -17,9 +18,9 @@ import { useOrientation } from '../hooks/useOrientation';
 import { isCallEncrypted } from '../utils/e2ee';
 import { useLobbyE2EE } from '../contexts/LobbyE2EEContext';
 import { LobbyEncryption } from './LobbyEncryption';
-import { Button } from './Button';
 import { useAppI18n } from '../hooks/useAppI18n';
 import { NavigationHeader } from './NavigationHeader';
+import { ComponentTestIds } from '../constants/TestIds';
 
 type LobbyViewComponentType = NativeStackScreenProps<
   MeetingStackParamList,
@@ -45,8 +46,9 @@ const LobbyJoinSection = ({ onJoinCallHandler }: JoinCallButtonProps) => {
   const { t } = useAppI18n();
   const navigation = useNavigation<LobbyNavigation>();
   const route = useRoute<LobbyViewComponentType['route']>();
-  const { useCallSettings } = useCallStateHooks();
+  const { useCallSettings, useParticipantCount } = useCallStateHooks();
   const settings = useCallSettings();
+  const participantCount = useParticipantCount();
   const e2ee = useLobbyE2EE();
   const styles = useStyles();
   // An `auto-on` call requires E2EE of every participant, so the backend rejects
@@ -59,13 +61,23 @@ const LobbyJoinSection = ({ onJoinCallHandler }: JoinCallButtonProps) => {
       {needsEncryptionKey ? (
         <Button
           disabled
-          title={t(
+          text={t(
             'lobby.enterEncryptionKey.text',
             'Enter the shared encryption key to join',
           )}
         />
       ) : (
         <JoinCallButton onPressHandler={onJoinCallHandler} />
+      )}
+      {participantCount > 0 && (
+        <Text
+          style={styles.participantsCountText}
+          testID={`${ComponentTestIds.LOBBY_PARTICIPANTS_COUNT}-${participantCount}`}
+        >
+          {t('lobbyView.participantsOnCall.text', '{{ count }} on the call', {
+            count: participantCount,
+          })}
+        </Text>
       )}
       <LobbyEncryption />
       {route.name !== 'MeetingScreen' && (
@@ -157,6 +169,12 @@ const useStyles = () => {
         },
         closeIcon: {
           color: semantics.buttonSecondaryText,
+        },
+        participantsCountText: {
+          marginTop: primitives.spacingXs,
+          fontSize: primitives.typographyFontSizeSm,
+          color: semantics.textSecondary,
+          textAlign: 'center',
         },
         anonymousButton: {
           marginTop: 8,

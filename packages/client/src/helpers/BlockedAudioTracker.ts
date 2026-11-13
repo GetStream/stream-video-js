@@ -7,10 +7,12 @@ import {
   setCurrentValueAsync,
 } from '../store/rxUtils';
 import { timeboxed } from '../coordinator/connection/utils';
+import { USER_GESTURE_EVENTS } from './userGestures';
 
 type BlockedAudioElement = {
   element: HTMLAudioElement;
   sessionId?: string;
+  resume?: () => Promise<void>;
 };
 
 /**
@@ -27,7 +29,8 @@ export class BlockedAudioTracker {
   /**
    * Whether the browser's autoplay policy is blocking audio playback.
    * Will be `true` when at least one audio element is currently blocked.
-   * Use {@link resumeAudio} within a user gesture to unblock.
+   * Use {@link resumeAudio} within a user gesture to unblock. Any click, tap
+   * or key press on the page unblocks it as well.
    */
   autoplayBlocked$ = this.blockedElementsSubject.pipe(
     map((elements) => elements.length > 0),
@@ -58,15 +61,45 @@ export class BlockedAudioTracker {
 
   constructor(tracer: Tracer) {
     this.tracer = tracer;
+    this.autoplayBlocked$.subscribe(this.toggleResumeOnGesture);
   }
 
   /**
+   * While audio is blocked, any user gesture on the page resumes it.
+   * WebKit keeps an element whose play() was rejected restricted until it
+   * is played from within a gesture, even after the page had interactions.
+   */
+  private toggleResumeOnGesture = (blocked: boolean) => {
+    if (typeof document === 'undefined') return;
+    for (const type of USER_GESTURE_EVENTS) {
+      if (blocked) {
+        document.addEventListener(type, this.resumeOnGesture, true);
+      } else {
+        document.removeEventListener(type, this.resumeOnGesture, true);
+      }
+    }
+  };
+
+  private resumeOnGesture = () => {
+    this.resumeAudio().catch((err) => {
+      this.logger.warn(`Can't resume audio on user gesture`, err);
+    });
+  };
+
+  /**
    * Registers an audio element as blocked by the browser's autoplay policy.
+   *
+   * @param audioElement the audio element.
+   * @param blocked whether the element is blocked.
+   * @param sessionId the session id of the participant the element plays.
+   * @param resume starts the audio from a user gesture when it doesn't play
+   * through the element itself (e.g. Web Audio). Defaults to `element.play()`.
    */
   markBlocked = (
     audioElement: HTMLAudioElement,
     blocked: boolean,
     sessionId?: string,
+    resume?: () => Promise<void>,
   ) => {
     setCurrentValue(this.blockedElementsSubject, (elements) => {
       if (!blocked) {
@@ -77,12 +110,16 @@ export class BlockedAudioTracker {
       if (existing) {
         return elements.map((entry) =>
           entry.element === audioElement
-            ? { element: audioElement, sessionId: sessionId ?? entry.sessionId }
+            ? {
+                element: audioElement,
+                sessionId: sessionId ?? entry.sessionId,
+                resume: resume ?? entry.resume,
+              }
             : entry,
         );
       }
 
-      return [...elements, { element: audioElement, sessionId }];
+      return [...elements, { element: audioElement, sessionId, resume }];
     });
   };
 
@@ -116,9 +153,13 @@ export class BlockedAudioTracker {
       async (elements) => {
         let next = elements;
         await Promise.all(
-          elements.map(async ({ element }) => {
+          elements.map(async ({ element, resume }) => {
             try {
-              if (element.srcObject) await timeboxed([element.play()], 2000);
+              if (resume) {
+                await timeboxed([resume()], 2000);
+              } else if (element.srcObject) {
+                await timeboxed([element.play()], 2000);
+              }
               next = next.filter((entry) => entry.element !== element);
             } catch (err) {
               this.logger.warn(`Can't resume audio for element`, element, err);

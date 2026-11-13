@@ -386,6 +386,9 @@ export const useCameraState = ({
   const selectedDevice = useObservableValue(state.selectedDevice$);
   const { getDevices } = useLazyDeviceList(camera);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
+  const isBrowserPermissionBlocked = useObservableValue(
+    state.isBrowserPermissionBlocked$,
+  );
   const isPromptingPermission = useObservableValue(
     state.isPromptingPermission$,
   );
@@ -400,6 +403,7 @@ export const useCameraState = ({
       return getDevices();
     },
     hasBrowserPermission,
+    isBrowserPermissionBlocked,
     isPromptingPermission,
     selectedDevice,
     error,
@@ -425,10 +429,16 @@ export const useMicrophoneState = ({
   const selectedDevice = useObservableValue(state.selectedDevice$);
   const { getDevices } = useLazyDeviceList(microphone);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
+  const isBrowserPermissionBlocked = useObservableValue(
+    state.isBrowserPermissionBlocked$,
+  );
   const isPromptingPermission = useObservableValue(
     state.isPromptingPermission$,
   );
   const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
+  const noiseCancellationStatus = useObservableValue(
+    state.noiseCancellationStatus$,
+  );
   const audioBitrateProfile = useObservableValue(state.audioBitrateProfile$);
   const error = useObservableValue(state.error$);
 
@@ -440,8 +450,10 @@ export const useMicrophoneState = ({
     },
     selectedDevice,
     hasBrowserPermission,
+    isBrowserPermissionBlocked,
     isPromptingPermission,
     isSpeakingWhileMuted,
+    noiseCancellationStatus,
     audioBitrateProfile,
     error,
     ...getComputedStatus(

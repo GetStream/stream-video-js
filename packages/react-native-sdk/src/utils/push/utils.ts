@@ -1,4 +1,3 @@
-import type { FirebaseRemoteMessage } from './libs/firebaseMessaging';
 import type { NonRingingPushEvent } from '../StreamVideoRN/types';
 
 export type StreamPushPayload =
@@ -8,6 +7,10 @@ export type StreamPushPayload =
       sender: string;
     }
   | undefined;
+
+export type FirebaseRemoteMessage = {
+  data?: Record<string, string | object> | undefined;
+};
 
 export function isFirebaseStreamVideoMessage(message: FirebaseRemoteMessage) {
   return message.data?.sender === 'stream.video';

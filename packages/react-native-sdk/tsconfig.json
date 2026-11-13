@@ -3,7 +3,12 @@
   "compilerOptions": {
     "rootDir": "./src",
     "lib": ["ES2022", "DOM"],
-    "declaration": true
+    "declaration": true,
+    "paths": {
+      "react-native/Libraries/Types/CodegenTypes": [
+        "../../node_modules/react-native/types_generated/Libraries/Types/CodegenTypes.d.ts"
+      ]
+    }
   },
   "include": ["src"]
 }

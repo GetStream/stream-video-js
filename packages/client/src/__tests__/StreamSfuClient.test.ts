@@ -4,7 +4,15 @@ import { Dispatcher } from '../rtc';
 import { StreamClient } from '../coordinator/connection/client';
 import { getTimers } from '../timers';
 import { getSdkInfo, setSdkInfo } from '../helpers/client-details';
-import { SdkType } from '../gen/video/sfu/models/models';
+import {
+  ErrorCode,
+  NoiseCancellationEngine,
+  SdkType,
+  WebsocketReconnectStrategy,
+} from '../gen/video/sfu/models/models';
+import { FastReconnectRejectedError } from '../errors/FastReconnectRejectedError';
+import { fromPartial } from '@total-typescript/shoehorn';
+import type { JoinRequest } from '../gen/video/sfu/event/events';
 
 /**
  * Minimal `WebSocket` stub used to drive `StreamSfuClient.close()` while the
@@ -41,6 +49,8 @@ class CapturingWebSocket {
     this.closeArgs = { code, reason };
     this.readyState = CapturingWebSocket.CLOSED;
   }
+  /** Outbound frames are not inspected by any test. */
+  send() {}
   /** Test helper: synchronously fire a registered event (e.g. `close`). */
   emit(event: string, payload: unknown) {
     this.listeners.get(event)?.forEach((listener) => listener(payload));
@@ -468,7 +478,10 @@ describe('StreamSfuClient RPC headers', () => {
         }
       ).joinResponseTask.resolve({});
 
-      await sfuClient.startNoiseCancellation();
+      await sfuClient.startNoiseCancellation({
+        engine: NoiseCancellationEngine.STREAM,
+        model: 'tiny',
+      });
 
       const [, init] = fetchMock.mock.calls[0];
       expect(new Headers(init.headers).get('x-stream-client')).toBe(
@@ -477,5 +490,176 @@ describe('StreamSfuClient RPC headers', () => {
     } finally {
       setSdkInfo(sdkInfo!);
     }
+  });
+});
+
+describe('StreamSfuClient fast reconnect rejected by the SFU', () => {
+  const participantNotFound = () => ({
+    eventPayload: {
+      oneofKind: 'error' as const,
+      error: {
+        error: {
+          code: ErrorCode.PARTICIPANT_NOT_FOUND,
+          message: 'participant not found',
+          shouldRetry: false,
+        },
+        reconnectStrategy: WebsocketReconnectStrategy.REJOIN,
+      },
+    },
+  });
+
+  /**
+   * Starts a join, opens the socket so the join request goes out and the
+   * join listeners are registered, and reports the join's settlement.
+   */
+  const startJoin = async (fastReconnect: boolean) => {
+    const dispatcher = new Dispatcher();
+    const sfuClient = new StreamSfuClient({
+      dispatcher,
+      sessionId: 'session-id-test',
+      streamClient: new StreamClient('test-key'),
+      cid: 'default:test',
+      credentials: {
+        server: {
+          url: 'https://test.invalid',
+          ws_endpoint: 'wss://test.invalid/ws',
+          edge_name: 'sfu-test',
+        },
+        token: 'token',
+        ice_servers: [],
+      },
+      tag: 'test',
+      enableTracing: false,
+    });
+    let settled: 'pending' | 'resolved' | 'rejected' = 'pending';
+    const join = sfuClient.join(fromPartial<JoinRequest>({ fastReconnect }));
+    join.then(
+      () => (settled = 'resolved'),
+      () => (settled = 'rejected'),
+    );
+    const ws = CapturingWebSocket.instances.at(-1)!;
+    ws.readyState = CapturingWebSocket.OPEN;
+    ws.emit('open', {});
+    await vi.advanceTimersByTimeAsync(0);
+    return { dispatcher, sfuClient, join, settled: () => settled };
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    CapturingWebSocket.instances = [];
+    vi.stubGlobal('WebSocket', CapturingWebSocket);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('rejects a fast-reconnect join on PARTICIPANT_NOT_FOUND', async () => {
+    const { dispatcher, sfuClient, join } = await startJoin(true);
+
+    dispatcher.dispatch(participantNotFound(), 'test');
+
+    await expect(join).rejects.toBeInstanceOf(FastReconnectRejectedError);
+    sfuClient.close(1000, 'cleanup');
+  });
+
+  it('leaves a regular join pending on PARTICIPANT_NOT_FOUND', async () => {
+    const { dispatcher, sfuClient, join, settled } = await startJoin(false);
+
+    dispatcher.dispatch(participantNotFound(), 'test');
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(settled()).toBe('pending');
+    sfuClient.close(1000, 'cleanup');
+    await expect(join).rejects.toThrow(/SFU client disposed/);
+  });
+});
+
+describe('StreamSfuClient.probe()', () => {
+  const healthCheckResponse = () => ({
+    eventPayload: {
+      oneofKind: 'healthCheckResponse' as const,
+      healthCheckResponse: {},
+    },
+  });
+
+  /**
+   * Builds a joined client over an open socket. `onPing` runs for every
+   * health check the client sends.
+   */
+  const setup = async (onPing: (respond: () => void) => void) => {
+    const sfuClient = buildSfuClient();
+    const dispatcher = sfuClient['dispatcher'];
+    sfuClient['joinResponseTask'].resolve(fromPartial({}));
+    const ws = CapturingWebSocket.instances.at(-1)!;
+    ws.readyState = CapturingWebSocket.OPEN;
+    ws.emit('open', {});
+    await vi.advanceTimersByTimeAsync(0);
+    const respond = () => dispatcher.dispatch(healthCheckResponse(), 'test');
+    const send = vi.spyOn(ws, 'send').mockImplementation(() => {
+      onPing(respond);
+    });
+    return { sfuClient, send };
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    CapturingWebSocket.instances = [];
+    vi.stubGlobal('WebSocket', CapturingWebSocket);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('passes once every health check is answered, one after another', async () => {
+    const { sfuClient, send } = await setup((respond) => respond());
+
+    await expect(sfuClient.probe(2, 1500)).resolves.toBe(true);
+    expect(send).toHaveBeenCalledTimes(2);
+    sfuClient.close(1000, 'cleanup');
+  });
+
+  it('fails when the SFU does not answer within the budget', async () => {
+    const { sfuClient } = await setup(() => {});
+
+    const probe = sfuClient.probe(2, 1500);
+    await vi.advanceTimersByTimeAsync(1500);
+
+    await expect(probe).resolves.toBe(false);
+    sfuClient.close(1000, 'cleanup');
+  });
+
+  it('does not count a response that was already queued as a round trip', async () => {
+    let pings = 0;
+    const { sfuClient } = await setup((respond) => {
+      pings++;
+      // the first ping meets a stale response plus its own, later pings
+      // go unanswered
+      if (pings === 1) {
+        respond();
+        respond();
+      }
+    });
+
+    const probe = sfuClient.probe(2, 1500);
+    await vi.advanceTimersByTimeAsync(1500);
+
+    await expect(probe).resolves.toBe(false);
+    sfuClient.close(1000, 'cleanup');
+  });
+
+  it('fails right away when the client is closed mid-probe', async () => {
+    const { sfuClient } = await setup(() => {});
+
+    const probe = sfuClient.probe(2, 1500);
+    await vi.advanceTimersByTimeAsync(0);
+    sfuClient.close(1000, 'cleanup');
+
+    await expect(probe).resolves.toBe(false);
   });
 });

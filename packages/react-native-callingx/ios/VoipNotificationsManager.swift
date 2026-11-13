@@ -52,6 +52,17 @@ import React
     // MARK: - Class Methods
     
     @objc public static func voipRegistration() {
+        Settings.migrateVoipTokenRegisteredIfNeeded()
+
+        guard Settings.getVoipTokenRegistered() else {
+            CallingxLog.voip.debugPublic("voipRegistration skipped: no VoIP token registered for a logged-in user on this install")
+            return
+        }
+
+        performVoipRegistration()
+    }
+
+    private static func performVoipRegistration() {
         if isVoipRegistered {
             CallingxLog.voip.debugPublic("voipRegistration is already registered. return _lastVoipToken = \(lastVoipToken)")
             let voipPushManager = VoipNotificationsManager.shared()
@@ -121,7 +132,7 @@ import React
             return
         }
         DispatchQueue.main.async {
-            VoipNotificationsManager.voipRegistration()
+            VoipNotificationsManager.performVoipRegistration()
         }
     }
 

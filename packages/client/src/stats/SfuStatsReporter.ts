@@ -28,7 +28,8 @@ export class SfuStatsReporter {
 
   readonly options: StatsOptions;
 
-  private readonly sfuClient: StreamSfuClient;
+  private sfuClient: StreamSfuClient;
+  private retiredSfuClients: StreamSfuClient[] = [];
   private readonly subscriber: Subscriber;
   private readonly publisher?: Publisher;
   private readonly tracer: Tracer;
@@ -73,6 +74,18 @@ export class SfuStatsReporter {
       `${browser?.name || ''}-${browser?.version || ''}` ||
       'N/A';
   }
+
+  /**
+   * Moves reporting to another SFU client, e.g. after a FAST reconnect onto a
+   * new signaling connection. The delta chain and the schedule are kept. Trace
+   * records still buffered in the previous client are delivered with the next
+   * successful report.
+   */
+  setSfuClient = (sfuClient: StreamSfuClient) => {
+    if (sfuClient === this.sfuClient) return;
+    this.retiredSfuClients.push(this.sfuClient);
+    this.sfuClient = sfuClient;
+  };
 
   sendConnectionTime = (connectionTimeSeconds: number) => {
     this.sendTelemetryData({
@@ -148,9 +161,13 @@ export class SfuStatsReporter {
       const subscriberTrace = subTracer?.take();
       const publisherTrace = pubTracer?.take();
       const tracer = this.tracer.take();
-      const sfuTrace = this.sfuClient.getTrace();
+      const sfuClient = this.sfuClient;
+      const retiredSfuClients = this.retiredSfuClients;
+      const retiredSfuTraces = retiredSfuClients.map((c) => c.getTrace());
+      const sfuTrace = sfuClient.getTrace();
       const traces: TraceRecord[] = [
         ...tracer.snapshot,
+        ...retiredSfuTraces.flatMap((t) => t?.snapshot ?? []),
         ...(sfuTrace?.snapshot ?? []),
         ...(publisherTrace?.snapshot ?? []),
         ...(subscriberTrace?.snapshot ?? []),
@@ -159,7 +176,7 @@ export class SfuStatsReporter {
       ];
 
       try {
-        const { response } = await this.sfuClient.sendStats({
+        const { response } = await sfuClient.sendStats({
           sdk: this.sdkName,
           sdkVersion: this.sdkVersion,
           webrtcVersion: this.webRTCVersion,
@@ -177,6 +194,9 @@ export class SfuStatsReporter {
           throw new Error(`SFU rejected stats: ${response.error.message}`);
         }
         // delivery confirmed: advance the delivery baseline for each chain.
+        this.retiredSfuClients = this.retiredSfuClients.filter(
+          (c) => !retiredSfuClients.includes(c),
+        );
         if (subTracer) this.subscriber.stats.commitDeltas(subPending);
         if (pubTracer && this.publisher) {
           this.publisher.stats.commitDeltas(pubPending);
@@ -188,6 +208,7 @@ export class SfuStatsReporter {
         subscriberTrace?.rollback();
         tracer.rollback();
         sfuTrace?.rollback();
+        retiredSfuTraces.forEach((t) => t?.rollback());
         throw err;
       }
     });
@@ -241,13 +262,13 @@ export class SfuStatsReporter {
   };
 
   /**
-   * Explicit/final flush (leave, migration, re-init). Time-boxes the sampling
-   * step and swallows its failures, so a slow or failing `getStats()` on a
-   * degraded or closing peer connection can never block or reject call teardown
-   * or reconnect setup. On a successful sample it fires the send best-effort;
-   * the returned promise resolves once the sample is taken (or the time-box
-   * elapses / sampling fails), never when the sending completes. No-op once the
-   * reporter has been stopped.
+   * Explicit/final flush (leave, migration, re-init, page hidden). Time-boxes
+   * the sampling step and swallows its failures, so a slow or failing
+   * `getStats()` on a degraded or closing peer connection can never block or
+   * reject call teardown or reconnect setup. On a successful sample it fires
+   * the send best-effort; the returned promise resolves once the sample is
+   * taken (or the time-box elapses / sampling fails), never when the sending
+   * completes. No-op once the reporter has been stopped.
    */
   flush = async (): Promise<void> => {
     if (this.isStopped) return;

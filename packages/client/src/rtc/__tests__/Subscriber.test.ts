@@ -947,4 +947,52 @@ describe('Subscriber', () => {
       expect(subscriber.negotiate).toHaveBeenCalledWith(subscriberOffer);
     });
   });
+
+  describe('waitForOffer', () => {
+    const dispatchOffer = () =>
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'subscriberOffer',
+            subscriberOffer: SubscriberOffer.create({ sdp: 'offer-sdp' }),
+          },
+        }) as DispatchableMessage<'subscriberOffer'>,
+        'test',
+      );
+    const markNegotiated = () => {
+      // @ts-expect-error - overriding readonly remoteDescription on the mock
+      subscriber['pc'].remoteDescription = { type: 'offer', sdp: 'v=0' };
+      // @ts-expect-error - private method
+      subscriber.negotiate = vi.fn().mockResolvedValue(undefined);
+    };
+
+    it('resolves true right away when the subscriber was never negotiated', async () => {
+      await expect(subscriber.waitForOffer()).resolves.toBe(true);
+    });
+
+    it('resolves true when an offer arrives', async () => {
+      markNegotiated();
+      const wait = subscriber.waitForOffer();
+      dispatchOffer();
+      await expect(wait).resolves.toBe(true);
+    });
+
+    it('resolves false and traces it when no offer arrives in time', async () => {
+      vi.useFakeTimers();
+      markNegotiated();
+      const trace = vi.spyOn(subscriber.tracer!, 'trace');
+      const wait = subscriber.waitForOffer();
+      // no offer is dispatched: the SFU stays silent
+      await vi.advanceTimersByTimeAsync(5000);
+      await expect(wait).resolves.toBe(false);
+      expect(trace).toHaveBeenCalledWith('subscriber.offerTimeout', 5000);
+    });
+
+    it('releases a pending wait when the handlers are detached', async () => {
+      markNegotiated();
+      const wait = subscriber.waitForOffer();
+      subscriber.detachEventHandlers();
+      await expect(wait).resolves.toBe(true);
+    });
+  });
 });

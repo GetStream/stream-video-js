@@ -3,6 +3,7 @@ import { CallApi } from './gen/coordinator/video/CallApi';
 import type { VideoApi } from './gen/coordinator/video/VideoApi';
 import type { StreamResponse } from './coordinator/connection/api-client';
 import { SfuJoinError } from './errors';
+import { FastReconnectRejectedError } from './errors/FastReconnectRejectedError';
 import {
   BasePeerConnectionOpts,
   type CallMediaEngine,
@@ -86,6 +87,10 @@ import {
 } from './types';
 import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
 import { ReconnectDetails } from './gen/video/sfu/event/events';
+import type {
+  StartNoiseCancellationRequest,
+  StopNoiseCancellationRequest,
+} from './gen/video/sfu/signal_rpc/signal';
 import {
   ClientCapability,
   ClientDetails,
@@ -112,7 +117,14 @@ import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
+import { createInboundAudioStallDetector } from './helpers/inboundAudioStallDetector';
 import { ViewportTracker } from './helpers/ViewportTracker';
+import { tracePageLifecycle } from './helpers/pageLifecycle';
+import {
+  CallOfflineState,
+  NetworkReachabilityChecker,
+} from './helpers/networkReachability';
+import { isBrowserOffline } from './helpers/offlineRechecks';
 import { PermissionsContext } from './permissions';
 import { RingStatePoller, RingTimeout, resolveOwnRingOutcome } from './ringing';
 import { CallTypes } from './CallType';
@@ -129,6 +141,7 @@ import {
 import { getClientDetails } from './helpers/client-details';
 import {
   CameraManager,
+  getRNDefaultAudioDevice,
   MicrophoneManager,
   ScreenShareManager,
   SpeakerManager,
@@ -142,11 +155,7 @@ import {
 } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
 import { pushToIfMissing } from './helpers/array';
-import {
-  makeSafePromise,
-  PromiseWithResolvers,
-  promiseWithResolvers,
-} from './helpers/promise';
+import { makeSafePromise } from './helpers/promise';
 import { isReactNative } from './helpers/platforms';
 
 /**
@@ -263,6 +272,8 @@ export class Call {
   private currentPublishOptions?: PublishOption[];
   private statsReportingIntervalInMs: number = 2000;
   private statsReporter?: StatsReporter;
+  private stopInboundAudioStallDetector?: () => void;
+  private fastReconnectOffer?: Promise<boolean>;
   private sfuStatsReporter?: SfuStatsReporter;
   private lastStatsOptions?: StatsOptions;
   private ringTimeout: RingTimeout | undefined;
@@ -281,8 +292,7 @@ export class Call {
   private reconnectReason = '';
   private fastReconnectDeadlineSeconds: number = 0;
   private disconnectionTimeoutSeconds: number = 0;
-  private lastOfflineTimestamp: number = 0;
-  private networkAvailableTask: PromiseWithResolvers<void> | undefined;
+  private readonly offlineState: CallOfflineState;
 
   // (10 attempts per rolling 120 s window).
   private readonly rejoinRateLimiter = new SlidingWindowRateLimiter(10, 120000);
@@ -311,9 +321,11 @@ export class Call {
   private joinCallData?: JoinCallData;
   private allowOwnTracksLoopback = false;
   private hasJoinedOnce = false;
+  private stopTracingPageLifecycle?: () => void;
   private deviceSettingsAppliedOnce = false;
   private callManagerStarted = false;
   private leaveGeneration = 0;
+  private leavesInProgress = 0;
   private credentials?: Credentials;
 
   private initialized = false;
@@ -375,6 +387,29 @@ export class Call {
     this.clientEventReporter = clientEventReporter;
     this.clientState = clientState;
     this.logger = videoLoggerSystem.getLogger('Call');
+    this.offlineState = new CallOfflineState({
+      state: this.state,
+      tracer: this.tracer,
+      logger: this.logger,
+      reachability: new NetworkReachabilityChecker({
+        streamClient,
+        getSfuClient: () => this.sfuClient,
+        getSubscriber: () => this.subscriber,
+      }),
+      isLeaving: () => this.leavesInProgress > 0,
+      hasPendingReconnect: () => hasPending(this.reconnectConcurrencyTag),
+      connectionsIntact: () =>
+        (this.publisher?.isIceIntact() ?? true) &&
+        (this.subscriber?.isIceIntact() ?? true),
+      discardSfuConnection: () =>
+        this.sfuClient?.close(
+          StreamSfuClient.DISPOSE_OLD_SOCKET,
+          'Closing WS to reconnect after going online',
+        ),
+      reconnect: this.reconnectAfterOffline,
+      setStatsPaused: (paused) =>
+        paused ? this.sfuStatsReporter?.stop() : this.sfuStatsReporter?.start(),
+    });
 
     const callTypeConfig = CallTypes.get(type);
     const participantSorter =
@@ -443,13 +478,15 @@ export class Call {
       this.registerEffects();
       this.registerReconnectHandlers();
 
-      // Set up the device managers again. Although this is already done
-      // in the DeviceManager's constructor, they'll need to be re-set up
-      // in the cases where a call instance is recycled (join -> leave -> join).
+      // Set up the device managers and the audio bindings watchdog again.
+      // Although this is already done in their constructors, they'll need to
+      // be re-set up in the cases where a call instance is recycled
+      // (join -> leave -> join).
       this.camera.setup();
       this.microphone.setup();
       this.screenShare.setup();
       this.speaker.setup();
+      this.audioBindingsWatchdog?.setup();
 
       if (this.state.callingState === CallingState.LEFT) {
         this.state.setCallingState(CallingState.IDLE);
@@ -517,7 +554,7 @@ export class Call {
           callingState: this.state.callingState,
         });
         if (settledByMe) this.cancelAutoDrop();
-        if (!leaveReason || hasPending(this.joinLeaveConcurrencyTag)) return;
+        if (!leaveReason || this.leavesInProgress > 0) return;
 
         globalThis.streamRNVideoSDK?.callingX?.endCall(this, leaveReason);
         this.leave().catch(() => {
@@ -682,6 +719,10 @@ export class Call {
     this.ringTimeout?.pause();
     this.ringStatePoller?.pause();
 
+    // also before the first await: `reconnect()` reads it to tell a teardown
+    // in progress from a live call, as the calling state stays JOINED until
+    // the very end.
+    this.leavesInProgress += 1;
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       const callingState = this.state.callingState;
 
@@ -734,6 +775,12 @@ export class Call {
 
       this.statsReporter?.stop();
       this.statsReporter = undefined;
+      this.stopInboundAudioStallDetector?.();
+      this.stopInboundAudioStallDetector = undefined;
+      this.stopTracingPageLifecycle?.();
+      this.stopTracingPageLifecycle = undefined;
+      // release a reconnect waiting for the network; it sees the leave and stops
+      this.offlineState.dispose();
 
       const leaveReason = message ?? reason ?? 'user is leaving the call';
       this.tracer.trace('call.leaveReason', leaveReason);
@@ -831,26 +878,29 @@ export class Call {
         this.mediaEnginePromise = undefined;
         this.logger.debug('Disposing per-call media factory');
         await enginePromise
-          .then((engine) => {
-            globalThis.streamRNVideoSDK?.callingX?.unwireAudioEngineSubscription();
-            return engine.dispose();
-          })
+          .then((engine) => engine.dispose())
           .catch((err) => {
             this.logger.warn('Failed to dispose media engine', err);
           });
       }
-    }).catch((err) => {
-      if (
-        !hasPending(this.joinLeaveConcurrencyTag) &&
-        this.state.callingState === CallingState.RINGING
-      ) {
-        // resume, never re-arm: a fresh watchdog would restart the ring
-        // window this leave was already most of the way through
-        this.ringTimeout?.start();
-        this.ringStatePoller?.resume();
-      }
-      throw err;
-    });
+    })
+      .catch((err) => {
+        if (
+          // only this leave (still counted until `finally`): a leave queued
+          // behind it owns the watchdogs now, a queued `setup()` doesn't
+          this.leavesInProgress === 1 &&
+          this.state.callingState === CallingState.RINGING
+        ) {
+          // resume, never re-arm: a fresh watchdog would restart the ring
+          // window this leave was already most of the way through
+          this.ringTimeout?.start();
+          this.ringStatePoller?.resume();
+        }
+        throw err;
+      })
+      .finally(() => {
+        this.leavesInProgress -= 1;
+      });
   };
 
   /**
@@ -1116,6 +1166,8 @@ export class Call {
       const supersededByLeave = () =>
         this.leaveGeneration !== joinLeaveGeneration;
 
+      this.dynascaleManager?.keepAudioPlaybackUnlocked();
+
       // we need this to be set before the callingx.joinCall() is
       // called to avoid registering the test call in the CallKit/Telecom
       this.allowOwnTracksLoopback = allowOwnTracksLoopback;
@@ -1235,6 +1287,7 @@ export class Call {
           },
         );
       } catch (error) {
+        this.dynascaleManager?.releaseAudioPlaybackUnlock();
         callingX?.endCall(this, 'error');
         // Ends the failed ringing flow and releases what its setup installed.
         // Never rejects, so `error` is what the caller sees.
@@ -1261,6 +1314,8 @@ export class Call {
   };
 
   private performJoin = async (data?: JoinCallData): Promise<void> => {
+    // only a fast reconnect arms this, never carry one over from a previous join
+    this.fastReconnectOffer = undefined;
     const connectStartTime = Date.now();
     const callingState = this.state.callingState;
     const joinLeaveGeneration = this.leaveGeneration;
@@ -1280,11 +1335,6 @@ export class Call {
     if (supersededByLeave()) {
       this.logger.debug('Join superseded by leave; not wiring media');
       return;
-    }
-
-    const callingX = globalThis.streamRNVideoSDK?.callingX;
-    if (callingX) {
-      callingX.wireAudioEngineSubscription();
     }
 
     const performingMigration =
@@ -1395,26 +1445,39 @@ export class Call {
       const unifiedSessionId = this.unifiedSessionId;
       const capabilities = Array.from(this.clientCapabilities);
       try {
-        const { callState, fastReconnectDeadlineSeconds, publishOptions } =
-          await this.clientEventReporter.track(this.cid, 'WSJoin', () =>
-            sfuClient.join({
-              unifiedSessionId,
-              subscriberSdp,
-              publisherSdp,
-              clientDetails,
-              fastReconnect: performingFastReconnect,
-              reconnectDetails,
-              preferredPublishOptions,
-              preferredSubscribeOptions,
-              capabilities,
-              source: ParticipantSource.WEBRTC_UNSPECIFIED,
-            }),
-          );
+        const {
+          callState,
+          fastReconnectDeadlineSeconds,
+          publishOptions,
+          reconnected,
+        } = await this.clientEventReporter.track(this.cid, 'WSJoin', () =>
+          sfuClient.join({
+            unifiedSessionId,
+            subscriberSdp,
+            publisherSdp,
+            clientDetails,
+            fastReconnect: performingFastReconnect,
+            reconnectDetails,
+            preferredPublishOptions,
+            preferredSubscribeOptions,
+            capabilities,
+            source: ParticipantSource.WEBRTC_UNSPECIFIED,
+          }),
+        );
         if (supersededByLeave()) {
           this.logger.debug(
             'Join superseded by leave; not applying SFU response',
           );
           return;
+        }
+
+        if (performingFastReconnect && !reconnected) {
+          // The SFU couldn't resume our session (e.g. it was cleaned up while
+          // this client was frozen). It won't restart the subscriber, so the
+          // call would stay silent while reporting JOINED: rejoin instead.
+          throw new FastReconnectRejectedError(
+            'SFU did not resume the session after a fast reconnect',
+          );
         }
 
         this.currentPublishOptions = publishOptions;
@@ -1454,12 +1517,29 @@ export class Call {
       this.state.setCallingState(CallingState.JOINED);
     }
     this.hasJoinedOnce = true;
+    this.stopTracingPageLifecycle ??= tracePageLifecycle({
+      tracer: this.tracer,
+      onHidden: () => {
+        if (!this.lastStatsOptions?.enable_rtc_stats) return;
+        this.sfuStatsReporter?.flush().catch((err) => {
+          this.logger.warn('Failed to flush stats on page hide', err);
+        });
+      },
+    });
 
     // when performing fast reconnect, or when we reuse the same SFU client,
     // (ws remained healthy), we just need to restore the ICE connection
     if (performingFastReconnect) {
       // the SFU automatically issues an ICE restart on the subscriber
-      // we don't have to do it ourselves
+      // we don't have to do it ourselves, but `reconnectFast` rejoins if it
+      // never arrives. Armed before `restoreICE` moves the subscriber to the
+      // new SFU client, as no offer from that client can reach it before.
+      // The SFU only restarts the subscriber in response to a fast-reconnect
+      // join: when the healthy client was reused, no join was sent and no
+      // offer is coming, so don't wait for one.
+      if (previousSfuClient !== sfuClient) {
+        this.fastReconnectOffer = this.subscriber?.waitForOffer();
+      }
       await this.restoreICE(sfuClient, { includeSubscriber: false });
     } else {
       const connectionConfig = toRtcConfiguration(this.credentials.ice_servers);
@@ -1497,6 +1577,18 @@ export class Call {
       );
     }
 
+    // React Native: start the native call manager once per join, before the
+    // first publish (fire-and-forget; on iOS the native engine gate makes the
+    // order with the publish irrelevant). leave() stops it (callManagerStarted).
+    if (!this.callManagerStarted && !supersededByLeave()) {
+      globalThis.streamRNVideoSDK?.callManager.start({
+        isRingingTypeCall: this.ringing,
+        cid: this.cid,
+        defaultDevice: getRNDefaultAudioDevice(this.state.settings),
+      });
+      this.callManagerStarted = true;
+    }
+
     // device settings should be applied only once, we don't have to
     // re-apply them on later reconnections or server-side data fetches
     if (
@@ -1504,19 +1596,8 @@ export class Call {
       this.state.settings &&
       !supersededByLeave()
     ) {
-      await this.applyDeviceConfig(this.state.settings, {
-        publish: true,
-        skipSpeakerApply: false,
-      });
+      await this.applyDeviceConfig(this.state.settings, { publish: true });
       this.deviceSettingsAppliedOnce = true;
-    }
-
-    if (!this.callManagerStarted && !supersededByLeave()) {
-      globalThis.streamRNVideoSDK?.callManager.start({
-        isRingingTypeCall: this.ringing,
-        cid: this.cid,
-      });
-      this.callManagerStarted = true;
     }
 
     // We shouldn't persist the `ring` and `notify` state after joining the call
@@ -1635,6 +1716,7 @@ export class Call {
     opts: { includeSubscriber?: boolean; includePublisher?: boolean } = {},
   ) => {
     const { includeSubscriber = true, includePublisher = true } = opts;
+    this.sfuStatsReporter?.setSfuClient(nextSfuClient);
     if (this.subscriber) {
       this.subscriber.setSfuClient(nextSfuClient);
       if (includeSubscriber) {
@@ -1676,17 +1758,8 @@ export class Call {
       enable_rtc_stats: enableTracing,
       reporting_interval_ms: reportingIntervalMs,
     } = statsOptions;
-    // Flush the previous reporter's final sample while its peer connections are
-    // still alive, before we dispose them below. Awaits only the sampling step.
-    await this.sfuStatsReporter?.flush();
-    if (this.leaveGeneration !== joinLeaveGeneration) return;
-    this.sfuStatsReporter?.stop();
-    this.sfuStatsReporter = undefined;
-    if (closePreviousInstances && this.subscriber) {
-      await this.subscriber.dispose();
-      if (this.leaveGeneration !== joinLeaveGeneration) return;
-      this.state.removeAllOrphanedTracks();
-    }
+    const previousSubscriber = this.subscriber;
+    const previousSfuStatsReporter = this.sfuStatsReporter;
     const basePeerConnectionOptions: BasePeerConnectionOpts = {
       sfuClient,
       dispatcher: this.dispatcher,
@@ -1721,12 +1794,31 @@ export class Call {
           (isReactNative() && trackType === TrackType.VIDEO);
 
         if (!reportable) return;
-
         this.clientEventReporter.reportFirstFrame(this.cid, trackType, trackId);
       },
     };
 
-    this.subscriber = new Subscriber(basePeerConnectionOptions);
+    // The SFU sends the subscriber offer right after the join response, and
+    // the dispatcher drops events nobody listens to. Create the subscriber
+    // (which registers the offer listener) before awaiting anything.
+    if (closePreviousInstances) {
+      // Keep the old peer alive for stats, but prevent late tracks from
+      // replacing and stopping streams received by the new subscriber.
+      previousSubscriber?.detachEventHandlers();
+      this.state.removeAllOrphanedTracks();
+    }
+    try {
+      this.subscriber = new Subscriber(basePeerConnectionOptions);
+
+      await previousSfuStatsReporter?.flush();
+    } finally {
+      previousSfuStatsReporter?.stop();
+      if (this.sfuStatsReporter === previousSfuStatsReporter) {
+        this.sfuStatsReporter = undefined;
+      }
+    }
+    if (closePreviousInstances) await previousSubscriber?.dispose();
+    if (this.leaveGeneration !== joinLeaveGeneration) return;
 
     // anonymous users can't publish anything hence, there is no need
     // to create Publisher Peer Connection for them
@@ -1753,8 +1845,19 @@ export class Call {
         state: this.state,
         datacenter: sfuClient.edgeName,
         pollingIntervalInMs: this.statsReportingIntervalInMs,
+        cameraState: this.camera.state,
       });
     }
+
+    this.stopInboundAudioStallDetector?.();
+    this.stopInboundAudioStallDetector =
+      enableTracing && this.subscriber
+        ? createInboundAudioStallDetector({
+            state: this.state,
+            subscriber: this.subscriber,
+            tracer: this.tracer,
+          })
+        : undefined;
 
     this.tracer.setEnabled(enableTracing);
     if (statsOptions?.reporting_interval_ms > 0) {
@@ -1800,7 +1903,7 @@ export class Call {
 
     if (this.state.callingState !== CallingState.JOINED) return;
     // without network, gathering legitimately yields no candidates
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+    if (isBrowserOffline()) return;
     const peerConnections = [this.publisher, this.subscriber];
     if (peerConnections.some((pc) => pc?.hasIceEverConnected())) return;
     if (!peerConnections.some((pc) => pc?.hasNoLocalCandidates())) return;
@@ -1811,6 +1914,34 @@ export class Call {
     ).catch((err) => {
       this.logger.warn('[Reconnect] Error reconnecting', err);
     });
+  };
+
+  /**
+   * Rejoins the call to rebuild the media stack, the last resort of the
+   * React Native SDK when the iOS audio engine can't be restarted.
+   * Skipped (returns `false`) when the call isn't JOINED, a reconnect is
+   * already pending, or the rejoin rate limiters have no room: the
+   * reconnect would then leave the call, which is worse than a dead mic.
+   *
+   * @internal
+   * @returns `true` if the rejoin started.
+   */
+  rejoinForAudioEngineRecovery = (): boolean => {
+    if (
+      this.state.callingState !== CallingState.JOINED ||
+      hasPending(this.reconnectConcurrencyTag) ||
+      !this.rejoinRateLimiter.canRegister() ||
+      this.rejoinLongWindowRateLimiter?.canRegister() === false
+    ) {
+      return false;
+    }
+    this.reconnect(
+      WebsocketReconnectStrategy.REJOIN,
+      'audio_engine_dead',
+    ).catch((err) => {
+      this.logger.warn('[Reconnect] Error rejoining for the audio engine', err);
+    });
+    return true;
   };
 
   /**
@@ -1895,6 +2026,18 @@ export class Call {
   }
 
   /**
+   * Captures camera and microphone through the given window's
+   * `navigator.mediaDevices`, for example a Document Picture-in-Picture window
+   * (Firefox blocks capture from a backgrounded tab). Shorthand for calling
+   * `setCaptureWindow` on both `call.camera` and `call.microphone`.
+   * Web only. Pass undefined to restore the default.
+   */
+  setCaptureWindow = (win: Window | undefined) => {
+    this.camera.setCaptureWindow(win);
+    this.microphone.setCaptureWindow(win);
+  };
+
+  /**
    * Ensures a {@link CallMediaEngine} exists for this call's media session and
    * returns it. Idempotent: the engine is created once via the registered
    * provider (see `setCallMediaEngineProvider`) and cached until `leave()`
@@ -1950,6 +2093,17 @@ export class Call {
       return;
     // normal close, no need to reconnect
     if (sfuClient.isLeaving || sfuClient.isClosingClean) return;
+    // the browser can't reach the network: wait for it rather than spending
+    // the reconnect budget. A cleared stale `offline` event means no new one
+    // arrives for this outage. Other states are left to `reconnect()`.
+    if (
+      (callingState === CallingState.JOINED ||
+        callingState === CallingState.OFFLINE) &&
+      isBrowserOffline()
+    ) {
+      this.offlineState.goOffline();
+      return;
+    }
 
     const strategy =
       this.publisher?.isHealthy() && this.subscriber?.isHealthy()
@@ -1989,6 +2143,14 @@ export class Call {
     // queueing more entries just replays the full REJOIN cycle (one extra
     // `POST /join` per entry) once the call is already healthy again.
     if (hasPending(this.reconnectConcurrencyTag)) return;
+
+    // A leave in progress (e.g. the SFU closed the socket on `callEnded`)
+    // bumped the generation before this snapshot, so `supersededByLeave`
+    // couldn't catch it: a reconnect here would rejoin the call it tears down.
+    if (this.leavesInProgress > 0) {
+      this.logger.debug('[Reconnect] Leave in progress; not reconnecting');
+      return;
+    }
 
     const reconnectLeaveGeneration = this.leaveGeneration;
     const supersededByLeave = () =>
@@ -2088,7 +2250,7 @@ export class Call {
         const currentStrategy = WebsocketReconnectStrategy[attemptedStrategy];
         try {
           // wait until the network is available
-          await this.networkAvailableTask?.promise;
+          await this.offlineState.networkAvailable;
           if (supersededByLeave()) return;
 
           this.logger.info(
@@ -2155,6 +2317,7 @@ export class Call {
             }
           }
 
+          if (isBrowserOffline()) this.offlineState.goOffline();
           if (this.state.callingState === CallingState.OFFLINE) {
             this.logger.debug(
               `[Reconnect] Can't reconnect while offline, stopping reconnection attempts`,
@@ -2197,6 +2360,7 @@ export class Call {
           // in some cases, we immediately switch to the REJOIN strategy.
           const shouldRejoin =
             mustPerformRejoin || // if we are past the fast reconnect deadline
+            error instanceof FastReconnectRejectedError || // SFU didn't resume
             wasMigrating || // if we were migrating, but the migration failed
             attempt >= 3 || // after 3 failed attempts
             !(this.publisher?.isHealthy() ?? true) || // if the publisher is not healthy
@@ -2235,6 +2399,20 @@ export class Call {
     this.state.setCallingState(CallingState.RECONNECTING);
     await this.doJoin(this.joinCallData);
     if (this.leaveGeneration !== reconnectLeaveGeneration) return;
+    // The SFU restarts the subscriber by sending an offer after the join. If
+    // none comes, the session wasn't resumed and the call would stay silent
+    // while JOINED: rejoin. Awaited here rather than reported through
+    // `onReconnectionNeeded`, which `reconnect()` drops while this flow runs,
+    // and before `get()`, so a coordinator hiccup can't skip the check.
+    const offerReceived = await this.fastReconnectOffer;
+    this.fastReconnectOffer = undefined;
+    if (this.leaveGeneration !== reconnectLeaveGeneration) return;
+    if (offerReceived === false) {
+      this.state.setCallingState(CallingState.RECONNECTING);
+      throw new FastReconnectRejectedError(
+        'No subscriber offer after a fast reconnect',
+      );
+    }
     await this.get(); // fetch the latest call state, as it might have changed
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.FAST,
@@ -2407,51 +2585,8 @@ export class Call {
         if (!e.online) {
           this.logger.debug('[Reconnect] Going offline');
           if (!this.hasJoinedOnce) return;
-          this.lastOfflineTimestamp = Date.now();
-          // create a new task that would resolve when the network is available
-          const networkAvailableTask = promiseWithResolvers();
-          networkAvailableTask.promise.then(() => {
-            let strategy = WebsocketReconnectStrategy.FAST;
-            if (this.lastOfflineTimestamp) {
-              const offline = (Date.now() - this.lastOfflineTimestamp) / 1000;
-              if (offline > this.fastReconnectDeadlineSeconds) {
-                // We shouldn't attempt FAST if we have exceeded the deadline.
-                // The SFU would have already wiped out the session.
-                strategy = WebsocketReconnectStrategy.REJOIN;
-              }
-            }
-
-            this.reconnect(strategy, ReconnectReason.NETWORK_BACK_ONLINE).catch(
-              (err) => {
-                this.logger.warn(
-                  '[Reconnect] Error reconnecting after going online',
-                  err,
-                );
-              },
-            );
-          });
-          this.networkAvailableTask = networkAvailableTask;
-          this.sfuStatsReporter?.stop();
-          this.state.setCallingState(CallingState.OFFLINE);
-        } else {
-          if (!this.networkAvailableTask) return;
-          this.logger.debug('[Reconnect] Going online');
-          // Only discard the socket when no reconnect is already in flight. A
-          // running reconnect owns the SFU-client lifecycle (`doJoin` closes
-          // the previous client once the new session is up). Closing here would
-          // tear down the socket it's mid-join on, leaving the in-flight rejoin
-          // to spin on SIGNAL_LOST.
-          if (!hasPending(this.reconnectConcurrencyTag)) {
-            this.sfuClient?.close(
-              StreamSfuClient.DISPOSE_OLD_SOCKET,
-              'Closing WS to reconnect after going online',
-            );
-          }
-          // we went online, release the previous waiters and reset the state
-          this.networkAvailableTask?.resolve();
-          this.networkAvailableTask = undefined;
-          this.sfuStatsReporter?.start();
         }
+        this.offlineState.handleNetworkChanged(e.online);
       },
     );
 
@@ -2459,6 +2594,26 @@ export class Call {
       .add(unregisterGoAway)
       .add(unregisterOnError)
       .add(unregisterNetworkChanged);
+  };
+
+  /**
+   * Reconnects once the network is back after being offline for `offlineMs`.
+   */
+  private reconnectAfterOffline = (offlineMs: number) => {
+    // We shouldn't attempt FAST if we have exceeded the deadline.
+    // The SFU would have already wiped out the session.
+    const strategy =
+      offlineMs / 1000 > this.fastReconnectDeadlineSeconds
+        ? WebsocketReconnectStrategy.REJOIN
+        : WebsocketReconnectStrategy.FAST;
+    this.reconnect(strategy, ReconnectReason.NETWORK_BACK_ONLINE).catch(
+      (err) => {
+        this.logger.warn(
+          '[Reconnect] Error reconnecting after going online',
+          err,
+        );
+      },
+    );
   };
 
   /**
@@ -2470,15 +2625,23 @@ export class Call {
     // otherwise, we might get `m-lines order mismatch` errors
     for (const trackType of this.trackPublishOrder) {
       let mediaStream: MediaStream | undefined;
+      let options: TrackPublishOptions | undefined;
       switch (trackType) {
         case TrackType.AUDIO:
           mediaStream = this.microphone.state.mediaStream;
+          options = {
+            audioBitrateProfile: this.microphone.state.audioBitrateProfile,
+          };
           break;
         case TrackType.VIDEO:
           mediaStream = this.camera.state.mediaStream;
           break;
         case TrackType.SCREEN_SHARE:
           mediaStream = this.screenShare.state.mediaStream;
+          options = {
+            audioBitrateProfile: this.screenShare.state.audioBitrateProfile,
+            contentHint: this.screenShare.resolveContentHint(),
+          };
           break;
         // screen share audio can't exist without a screen share, so we handle it there
         case TrackType.SCREEN_SHARE_AUDIO:
@@ -2489,7 +2652,7 @@ export class Call {
           break;
       }
 
-      if (mediaStream) await this.publish(mediaStream, trackType);
+      if (mediaStream) await this.publish(mediaStream, trackType, options);
     }
   };
 
@@ -2695,22 +2858,32 @@ export class Call {
    * Notifies the SFU that a noise cancellation process has started.
    *
    * @internal
+   * @param noiseCancellation the engine and model that run.
    */
-  notifyNoiseCancellationStarting = async () => {
-    return this.sfuClient?.startNoiseCancellation().catch((err) => {
-      this.logger.warn('Failed to notify start of noise cancellation', err);
-    });
+  notifyNoiseCancellationStarting = async (
+    noiseCancellation: Omit<StartNoiseCancellationRequest, 'sessionId'>,
+  ) => {
+    return this.sfuClient
+      ?.startNoiseCancellation(noiseCancellation)
+      .catch((err) => {
+        this.logger.warn('Failed to notify start of noise cancellation', err);
+      });
   };
 
   /**
    * Notifies the SFU that a noise cancellation process has stopped.
    *
    * @internal
+   * @param noiseCancellation the engine and model that ran.
    */
-  notifyNoiseCancellationStopped = async () => {
-    return this.sfuClient?.stopNoiseCancellation().catch((err) => {
-      this.logger.warn('Failed to notify stop of noise cancellation', err);
-    });
+  notifyNoiseCancellationStopped = async (
+    noiseCancellation: Omit<StopNoiseCancellationRequest, 'sessionId'>,
+  ) => {
+    return this.sfuClient
+      ?.stopNoiseCancellation(noiseCancellation)
+      .catch((err) => {
+        this.logger.warn('Failed to notify stop of noise cancellation', err);
+      });
   };
 
   /**
@@ -3395,21 +3568,13 @@ export class Call {
     settings: CallSettingsResponse,
     opts: {
       publish: boolean;
-      skipSpeakerApply?: boolean;
       withDisabledDevices?: boolean;
     },
   ) => {
-    const {
-      publish,
-      // Skip speaker setup on RN until joining (explicitly passed as false during join())
-      skipSpeakerApply = isReactNative(),
-      withDisabledDevices,
-    } = opts;
-    if (!skipSpeakerApply) {
-      await this.speaker
-        .apply(settings)
-        .catch((err) => this.logger.warn('Speaker init failed', err));
-    }
+    const { publish, withDisabledDevices } = opts;
+    await this.speaker
+      .apply()
+      .catch((err) => this.logger.warn('Speaker init failed', err));
     await this.camera
       .apply(settings.video, publish, withDisabledDevices)
       .catch((err) => this.logger.warn('Camera init failed', err));

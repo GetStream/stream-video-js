@@ -1,8 +1,6 @@
 import { Call, CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useMemo } from 'react';
-import { Platform } from 'react-native';
-import { AudioDeviceModule } from '@stream-io/react-native-webrtc';
 import { filter, take } from 'rxjs/operators';
 import { getCallDisplayName } from '../../utils/internal/callingx/callingx';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
@@ -10,7 +8,7 @@ import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
 const logger = videoLoggerSystem.getLogger('callingx');
 
 /**
- * This hook is used to inform sync call state with CallKit/Telecom (i.e. start call, end call, mute/unmute call).
+ * This hook is used to inform sync call state with the system call UI (CallKit/LiveCommunicationKit/Telecom) (i.e. start call, end call, mute/unmute call).
  */
 export const useCallingExpWithCallingStateEffect = () => {
   const { useMicrophoneState, useParticipants, useCallMembers } =
@@ -90,7 +88,7 @@ export const useCallingExpWithCallingStateEffect = () => {
         );
         return;
       }
-      //if incoming stream call was unmounted, we need to end the call in CallKit/Telecom
+      //if incoming stream call was unmounted, we need to end the call in the system call UI
       logger.debug(
         `useCallingExpWithCallingStateEffect: Ending call in callingx: ${activeCallCid}`,
       );
@@ -134,7 +132,7 @@ export const useCallingExpWithCallingStateEffect = () => {
     }
   }, [activeCallCid, createdByUserId, callDisplayName, isIncoming]);
 
-  // Sync microphone mute state from app → CallKit
+  // Sync microphone mute state from app → system call UI
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
     if (!callingx?.isSetup || !activeCallCid) {
@@ -165,7 +163,7 @@ export const useCallingExpWithCallingStateEffect = () => {
     }
   }, [activeCallCid, optimisticStatus]);
 
-  // Sync mute state from CallKit → app (only for system-initiated mute actions)
+  // Sync mute state from system call UI → app (only for system-initiated mute actions)
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
     if (!callingx?.isSetup || !activeCallCid) {
@@ -175,10 +173,10 @@ export const useCallingExpWithCallingStateEffect = () => {
       return;
     }
 
-    // Listen to mic toggle events from CallKit/Telecom and update stream call microphone state.
-    // Only system-initiated mute actions (e.g. user tapped mute on the native CallKit UI)
+    // Listen to mic toggle events from the system call UI/Telecom and update stream call microphone state.
+    // Only system-initiated mute actions (e.g. user tapped mute on the native call UI)
     // are sent here — app-initiated actions are filtered out on the native side to prevent
-    // the feedback loop: app mutes mic → setMutedCall → CallKit delegate → event to JS → loop.
+    // the feedback loop: app mutes mic → setMutedCall → callingx delegate → event to JS → loop.
     const subscription = callingx.addEventListener(
       'didPerformSetMutedCallAction',
       async (event: { callId: string; muted: boolean }) => {
@@ -221,7 +219,7 @@ export const useCallingExpWithCallingStateEffect = () => {
     };
   }, [activeCallCid, microphone]);
 
-  // Trace CallKit audio session activation/deactivation onto the call's tracer.
+  // Trace system audio session activation/deactivation onto the call's tracer.
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
     if (!callingx?.isSetup || !activeCall) {
@@ -244,73 +242,6 @@ export const useCallingExpWithCallingStateEffect = () => {
     return () => {
       activateSubscription.remove();
       deactivateSubscription.remove();
-    };
-  }, [activeCall]);
-
-  // Trace the iOS ADM recording state to detect silent-mic calls: the engine's
-  // input bring-up racing the CallKit audio-session activation could leave
-  // recording silently never started (mic track live, zero audio RTP sent).
-  // Samples shortly after JOINED and after every didActivateAudioSession, and
-  // traces healthy calls too so the failure rate is measurable. Detection only;
-  // the engine-availability gate in callingx owns prevention.
-  useEffect(() => {
-    const callingx = getCallingxLibIfAvailable();
-    if (Platform.OS !== 'ios' || !callingx?.isSetup || !activeCall) {
-      return;
-    }
-
-    const timeouts = new Set<ReturnType<typeof setTimeout>>();
-
-    const traceRecordingState = (trigger: string) => {
-      if (activeCall.state.callingState !== CallingState.JOINED) return;
-      if (activeCall.microphone.state.status !== 'enabled') return;
-
-      let state;
-      try {
-        state = {
-          trigger,
-          isRecording: AudioDeviceModule.isRecording(),
-          isEngineRunning: AudioDeviceModule.isEngineRunning(),
-          isMicrophoneMuted: AudioDeviceModule.isMicrophoneMuted(),
-        };
-      } catch (error: unknown) {
-        logger.warn('failed to read the ADM recording state', error);
-        return;
-      }
-
-      activeCall.tracer.trace('ios.audioRecording.state', state);
-      if (!state.isRecording) {
-        logger.warn('mic is enabled but ADM is not recording', state);
-      }
-    };
-
-    const scheduleCheck = (trigger: string, delayMs: number) => {
-      const timeout = setTimeout(() => {
-        timeouts.delete(timeout);
-        traceRecordingState(trigger);
-      }, delayMs);
-      timeouts.add(timeout);
-    };
-
-    const joinedSubscription = activeCall.state.callingState$
-      .pipe(
-        filter((callingState) => callingState === CallingState.JOINED),
-        take(1),
-      )
-      // delayed so the normal engine bring-up can complete on its own
-      .subscribe(() => scheduleCheck('joined', 3000));
-
-    const activationSubscription = callingx.addEventListener(
-      'didActivateAudioSession',
-      // delayed so the activation-driven engine start can run first
-      () => scheduleCheck('audioSessionActivated', 1000),
-    );
-
-    return () => {
-      joinedSubscription.unsubscribe();
-      activationSubscription.remove();
-      timeouts.forEach(clearTimeout);
-      timeouts.clear();
     };
   }, [activeCall]);
 };

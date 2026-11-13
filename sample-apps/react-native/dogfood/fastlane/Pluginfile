@@ -4,4 +4,4 @@
 gem 'fastlane-plugin-load_json'
 gem 'fastlane-plugin-increment_version_name'
 gem 'fastlane-plugin-increment_version_code'
-gem 'fastlane-plugin-stream_actions', '0.3.16'
+gem 'fastlane-plugin-stream_actions', '0.4.17'

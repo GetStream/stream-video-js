@@ -3,7 +3,7 @@
 - Never use RxJS observables from the client directly here; all state access goes through the bindings hooks.
 - Apps must import from this SDK (not `@stream-io/video-client` directly): importing it registers the WebRTC globals and polyfills (`src/index.ts`).
 - The SDK's own natives are New Architecture only (codegen); see "Native modules" below.
-- CallKit (iOS) and Telecom (Android) go through the workspace package `@stream-io/react-native-callingx`.
+- CallKit / LiveCommunicationKit (iOS) and Telecom (Android) go through the workspace package `@stream-io/react-native-callingx`.
 - `StreamCall` runs its side effects (app-state, keep-alive, callingx sync, screen-share audio mixing, device stats) as renderless child components.
 - Theming: `<StreamVideo style={...}>` takes a `DeepPartial<Theme>`; theme tokens are `semantics` and `components` (`src/theme/theme.ts`).
 
@@ -15,6 +15,7 @@
 - Android: Kotlin modules extend the generated `Native<Name>Spec`; registered by `StreamVideoReactNativePackage` (`BaseReactPackage`). `StreamVideoReactNative.kt` is a static helper for app `MainActivity`.
 - iOS: thin ObjC++ adapters `ios/StreamVideoReactNativeModule.{h,mm}` and `ios/StreamInCallManagerModule.{h,mm}` (registered via `codegenConfig.ios.modulesProvider`) forward to Swift `StreamVideoReactNativeImpl` / `StreamInCallManagerImpl`. `ios/RTCViewPipComponentView.{h,mm}` hosts the Swift `RTCViewPip` (registered via `componentProvider`). `StreamVideoReactNative.{h,m}` keeps only the public class methods for AppDelegates (`+voipRegistration`, `+hasAnyActiveCall`).
 - Emit events only through each module's guarded helper (generated `emitOn*` crashes if the event emitter callback isn't set yet).
+- iOS: put process-wide side effects (hook registration, observers) in `RCTInitializing.initialize`, not `init`. The generated `RCTModuleProviders` does `[klass new]` on every codegen module class once as a throwaway provider that is never initialized nor invalidated, so `init` runs twice per process (`StreamInCallManagerModule` forwards `initialize` to the Swift impl).
 - Jest: `src/native/*` modules are mocked in `jest-setup.ts`.
 - Not SDK-owned (still legacy, keep): `NativeModules.WebRTCModule`, `NativeModules.ScreenCapturePickerViewManager` from `@stream-io/react-native-webrtc`.
 
@@ -31,14 +32,22 @@ The public `callManager` (`src/modules/call-manager/CallManager.ts`) is a **conf
 
 - `audioDevices` (`AudioDevicesManager`) — cross-platform picker: `getStatus`, `select(id)`, `addChangeListener`. On Android Telecom-managed calls it adapts callingx's endpoints; otherwise reads native.
 - `speaker` (`SpeakerManager`) — `setMute`, `setForceSpeakerphoneOn`. Routes via callingx on Telecom-managed Android.
-- `ios` (`IOSCallManager`) — iOS-only: `showDeviceSelector`, `addAudioInterruptionListener`.
+- `ios` (`IOSCallManager`) — iOS-only: `showDeviceSelector`, `addAudioInterruptionListener`, `addAudioSessionDiagnosticListener`, `getAudioSessionState` (both `@internal`, used by `AudioSessionDiagnosticsTracer`).
 - `start(config?)` / `stop()` — config store (see above).
 - `logAudioState`, `getAudioStateLog` — debug.
 
 **Config shape (`StreamInCallManagerConfig`):**
 
 - `audioRole`: `'communicator'` (default — video/voice, SDK controls routing, manual device switching supported) or `'listener'` (livestream viewing, high-quality stereo, OS controls routing).
-- `deviceEndpointType`: `'speaker'` | `'earpiece'` — communicator-only override for the default endpoint (otherwise derived from call settings).
+- `deviceEndpointType`: `'speaker'` | `'earpiece'` — communicator-only override for the default endpoint (otherwise the client derives it from the call settings, `getRNDefaultAudioDevice`, and passes it as `defaultDevice` in the internal `start`).
+
+**iOS audio session + engine (RN-463 dead mic):**
+
+- Engine availability is the gate, for both paths. Non-callingx (`StreamInCallManagerImpl`): the call ADM is born gated (`didCreateModule` hook → `.none`, skipped when callingx owns the session or the manager is started), `start()` (fire-and-forget, on `audioSessionQueue`) gates again → configures + activates the session (counted activation, `weActivatedSession`) → opens the gate (`.default`) → `setPlayout(true)`; WebRTC remembers playout/recording requests made while gated and replays them when the gate opens, so the engine never starts against an inactive session and the JS publish order does not matter. Activation failure keeps the gate closed (`startError` diagnostic); `reactivateAudioSession` (tracer) activates and opens it. `adm.reset()` in `stop()` re-arms `.default`. callingx: `.none` before the system activates, `.default` on `didActivate`, `.none` on `didDeactivate`, replay in its `didCreateModule` hook.
+- Sync engine hooks (`AudioDeviceModule.addEngineHooks`, WebRTC worker thread): the SDK registers willEnable (re-applies the configuration only, between `start()` and `stop()`; never `setActive`) and didCreateModule; no didDisable: the activation is held from `start()` to `stop()` because a REJOIN reconnect fully disables and rebuilds the engine mid-call; callingx registers all four (willEnable re-applies category/mode and sets the startup-mute flag, willStart/didDisable clear it, didCreateModule replays the desired availability). Hooks: no ADM calls, no `audioSessionQueue.sync`/`main.sync`, all `RTCAudioSession` locking via each package's `AudioSessionConfigLock` (lock, body, unlock like stream-video-swift; never nest: re-locking on the same thread crashes; other threads just wait). `setEngineAvailability` is a blocking call onto the worker thread: only from `audioSessionQueue`/`engineAvailabilityQueue` or a `didCreateModule` hook, never from worker-thread hooks nor inside `AudioSessionConfigLock.run`.
+- Interruptions: the ADM stops/restarts the engine itself and `RTCAudioSession` re-activates once; a failed re-activation is repaired on interruption-end by `StreamInCallManagerImpl` (`sessionReactivated` diagnostic, `trigger: interruptionEnded`) and by the tracer.
+- Recovery: `AudioSessionDiagnosticsTracer` samples `getEngineState()`, calls `recoverEngineIfNeeded` (≤3/episode, ≤6/call, ≥3 s apart), then one `call.rejoinForAudioEngineRecovery()` per call; traces `ios.audioEngine.*` and `audio.session.timeout`.
+- Recovery is skipped while an audio interruption is active. With an inactive session the tracer first calls `callManager.ios.reactivateAudioSession` (the ADM cannot restart against an inactive session); when iOS refuses (`561017449`, another app owns the audio) it waits for the next interruption end / session activation / app foreground / audio route change (the only signal when the holder, e.g. an iPad FaceTime window, ends while the app stays in the foreground) without spending its budget or rejoining; any other re-activation failure is re-checked on a budget of its own (same size/spacing, no rejoin). The audio rejoin is skipped (call stays joined) when the rejoin rate limiter has no room.
 
 ## Per-Call PeerConnectionFactory (Media Engine)
 
@@ -59,8 +68,8 @@ The client (`packages/client`) is platform-agnostic and can't `import` React Nat
 
 **Surface:**
 
-- `callingX` — `joinCall`, `endCall`, `registerOutgoingCall`, `wireAudioEngineSubscription`, `unwireAudioEngineSubscription`. Bridge to the callingx package.
-- `callManager` — the **native-owning** call manager. `setup`/`start`/`stop` drive the native `StreamInCallManager` module at join/leave; `setMutedRecordingPrepared` (iOS-only) toggles the ADM's muted-recording chain.
+- `callingX` — `joinCall`, `endCall`, `registerOutgoingCall`. Bridge to the callingx package.
+- `callManager` — the **native-owning** call manager. `start`/`stop` drive the native `StreamInCallManager` module at join/leave (`start` carries the call-settings-derived `defaultDevice`, overridden by the stored config's `deviceEndpointType`; fire-and-forget, before the first publish); `setMutedRecordingPrepared` (iOS-only) toggles the ADM's muted-recording chain.
 - `permissions.check(permission)` — cross-platform runtime permission query for mic/camera.
 - `nativeEvents.speechActivity.subscribe(cb)` — bridges the native speech-detector event to `MicrophoneManager`.
 
@@ -76,7 +85,7 @@ The client (`packages/client`) is platform-agnostic and can't `import` React Nat
 ## Push notifications
 
 - **The SDK only handles ringing call pushes.** Non-ringing notifications (call.missed, call.live_started, call.notification) are delivered by the backend directly to the device; displaying them and handling taps is the app's responsibility.
-- iOS: VoIP push → callingx shows the CallKit UI. iOS kills the app if the CallKit UI isn't shown within ~30 seconds of a VoIP push, and the CallKit call must end when the Stream call ends. Apps register with `StreamVideoReactNative.voipRegistration()` in the AppDelegate.
+- iOS: VoIP push → callingx shows the CallKit UI, or the LiveCommunicationKit UI when `useLiveCommunicationKit` is set. The incoming call must be reported to the system before the PushKit delegate returns (callingx does it natively; Apple FB16655952 workaround), otherwise iOS kills the app and may stop delivering VoIP pushes. The system call must end when the Stream call ends. Apps register with `StreamVideoReactNative.voipRegistration()` in the AppDelegate.
 - Android: Firebase (`@react-native-firebase/messaging`) → callingx shows the incoming call via Telecom.
 
 ## Gotchas

@@ -7,3 +7,4 @@ export * from './useBreakpoints';
 export * from './useLayoutSwitcher';
 export * from './useLobbyCall';
 export * from './useThemeMode';
+export * from './useSavedDisplayName';

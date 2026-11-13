@@ -69,13 +69,13 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     try {
       await this.unmuteStream();
     } catch (error) {
-      if (error instanceof Error && error.name === 'NotReadableError') {
-        // the camera is already in use, and the device can't use it unless it's released.
-        // in that case, we need to stop the stream and start it again.
-        await this.muteStream();
-        await this.unmuteStream();
+      if (!(error instanceof Error) || error.name !== 'NotReadableError') {
+        throw error;
       }
-      throw error;
+      // the camera is already in use, and the device can't use it unless it's released.
+      // in that case, we need to stop the stream and start it again.
+      await this.muteStream();
+      await this.unmuteStream();
     }
   }
 
@@ -114,8 +114,10 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     if (this.enabled && this.state.mediaStream) {
       const [videoTrack] = this.state.mediaStream.getVideoTracks();
       if (!videoTrack) return;
-      const { width: w, height: h } = videoTrack.getSettings();
-      if (w !== width || h !== height) {
+      const { width: w = 0, height: h = 0 } = videoTrack.getSettings();
+      // mobile devices report the resolution in the device orientation,
+      // so a portrait 720x1280 track already matches a 1280x720 target
+      if (Math.max(w, h) !== width || Math.min(w, h) !== height) {
         await this.applySettingsToStream();
         this.logger.debug(
           `${width}x${height} target resolution applied to media stream`,
@@ -210,7 +212,8 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
         !forceDisabled &&
         canPublish &&
         settings.camera_default_on &&
-        enabledInCallType
+        enabledInCallType &&
+        permissionState !== 'denied'
       ) {
         await this.enable();
       }
@@ -258,6 +261,10 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     // Ensure the call's media factory exists before capture so the resulting
     // track is owned by it (the WebRTC globals resolve to the live factory).
     await this.call.ensureMediaFactory();
-    return getVideoStream(constraints, this.call.tracer);
+    return getVideoStream(
+      constraints,
+      this.call.tracer,
+      this.getCaptureMediaDevices(),
+    );
   }
 }

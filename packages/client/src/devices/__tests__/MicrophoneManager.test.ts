@@ -9,6 +9,7 @@ import { sleep } from '../../coordinator/connection/utils';
 import { OwnCapability } from '../../gen/coordinator';
 import {
   AudioBitrateProfile,
+  NoiseCancellationEngine,
   TrackType,
 } from '../../gen/video/sfu/models/models';
 import { CallingState, ClientState } from '../../store';
@@ -117,12 +118,38 @@ describe('MicrophoneManager', () => {
     expect(spy).toHaveBeenCalledWith(mockAudioDevices);
   });
 
+  it('uses the capture window for future captures and supports resetting it', async () => {
+    const mediaDevices = {} as MediaDevices;
+    const win = {
+      closed: false,
+      document: { hasFocus: () => true },
+      navigator: { mediaDevices },
+    } as unknown as Window;
+    manager.setCaptureWindow(win);
+    await manager.enable();
+    expect(getAudioStream).toHaveBeenLastCalledWith(
+      expect.any(Object),
+      expect.any(Tracer),
+      mediaDevices,
+    );
+
+    await manager.disable({ forceStop: true });
+    manager.setCaptureWindow(undefined);
+    await manager.enable();
+    expect(getAudioStream).toHaveBeenLastCalledWith(
+      expect.any(Object),
+      expect.any(Tracer),
+      undefined,
+    );
+  });
+
   it('get stream', async () => {
     await manager.enable();
 
     expect(getAudioStream).toHaveBeenCalledWith(
       { deviceId: undefined },
       expect.any(Tracer),
+      undefined,
     );
   });
 
@@ -245,6 +272,35 @@ describe('MicrophoneManager', () => {
       } finally {
         mock.mockImplementation(prevMockImplementation!);
       }
+    });
+
+    it('should capture with the call settings constraints', async () => {
+      call.state.updateFromCallResponse(
+        fromPartial({
+          egress: {},
+          settings: {
+            extra_opts: {
+              audio: { media_constraints: { echo_cancellation: false } },
+            },
+          },
+        }),
+      );
+      vi.mocked(getAudioStream).mockClear();
+      vi.mocked(createSoundDetector).mockImplementationOnce(
+        () => async () => {},
+      );
+
+      await manager['startSpeakingWhileMutedDetection']('device-1');
+
+      expect(getAudioStream).toHaveBeenCalledWith(
+        expect.objectContaining({
+          echoCancellation: false,
+          deviceId: { exact: 'device-1' },
+        }),
+        expect.any(Tracer),
+        undefined,
+      );
+      await manager['stopSpeakingWhileMutedDetection']();
     });
 
     it('should not create duplicate sound detectors for the same device', async () => {
@@ -528,6 +584,7 @@ describe('MicrophoneManager', () => {
         expect(getAudioStream).toHaveBeenCalledWith(
           expect.objectContaining({ deviceId: { exact: 'other-mic' } }),
           expect.any(Tracer),
+          undefined,
         );
       });
 
@@ -564,6 +621,80 @@ describe('MicrophoneManager', () => {
     });
   });
 
+  describe('Media constraints from call settings', () => {
+    const setMediaConstraints = (mediaConstraints: object | undefined) => {
+      call.state.updateFromCallResponse(
+        fromPartial({
+          egress: {},
+          settings: {
+            audio: { noise_cancellation: { mode: 'available' } },
+            extra_opts: { audio: { media_constraints: mediaConstraints } },
+          },
+        }),
+      );
+    };
+    const capturedConstraints = () =>
+      vi.mocked(getAudioStream).mock.calls.map(([constraints]) => constraints);
+
+    it('applies the defined constraints only', async () => {
+      setMediaConstraints({
+        auto_gain_control: false,
+        echo_cancellation: true,
+      });
+      await manager.enable();
+      expect(capturedConstraints()).toContainEqual(
+        expect.objectContaining({
+          autoGainControl: false,
+          echoCancellation: true,
+        }),
+      );
+      capturedConstraints().forEach((constraints) => {
+        expect(constraints).not.toHaveProperty('noiseSuppression');
+      });
+    });
+
+    it('adds nothing when the call settings have no constraints', async () => {
+      setMediaConstraints(undefined);
+      await manager.enable();
+      expect(capturedConstraints().length).toBeGreaterThan(0);
+      capturedConstraints().forEach((constraints) => {
+        expect(constraints).not.toHaveProperty('autoGainControl');
+        expect(constraints).not.toHaveProperty('echoCancellation');
+        expect(constraints).not.toHaveProperty('noiseSuppression');
+      });
+    });
+
+    it('lets the app constraints win', async () => {
+      setMediaConstraints({ auto_gain_control: false });
+      manager.setDefaultConstraints({ autoGainControl: true });
+      await manager.enable();
+      expect(capturedConstraints()).toContainEqual(
+        expect.objectContaining({ autoGainControl: true }),
+      );
+      expect(capturedConstraints()).not.toContainEqual(
+        expect.objectContaining({ autoGainControl: false }),
+      );
+    });
+
+    it('keeps browser noise suppression off while noise cancellation runs', async () => {
+      setMediaConstraints({ noise_suppression: true });
+      call.state.setOwnCapabilities([OwnCapability.ENABLE_NOISE_CANCELLATION]);
+      await manager.enable();
+      expect(capturedConstraints()).toContainEqual(
+        expect.objectContaining({ noiseSuppression: true }),
+      );
+
+      vi.mocked(getAudioStream).mockClear();
+      await manager.enableNoiseCancellation(new NoiseCancellationStub());
+      expect(capturedConstraints()).toContainEqual(
+        expect.objectContaining({ noiseSuppression: false }),
+      );
+      expect(capturedConstraints()).not.toContainEqual(
+        expect.objectContaining({ noiseSuppression: true }),
+      );
+    });
+  });
+
   describe('Noise Cancellation', () => {
     it('should register filter if all preconditions are met', async () => {
       call.state.setCallingState(CallingState.IDLE);
@@ -581,6 +712,121 @@ describe('MicrophoneManager', () => {
       await manager.enableNoiseCancellation(noiseCancellation);
       await manager.disableNoiseCancellation();
       expect(call.notifyNoiseCancellationStopped).toBeCalled();
+    });
+
+    it('reports the engine and model to the SFU', async () => {
+      const noiseCancellation = new NoiseCancellationStub();
+      noiseCancellation.engine = 'stream';
+      noiseCancellation.model = 'tiny';
+      await manager.enableNoiseCancellation(noiseCancellation);
+
+      await noiseCancellation.enable();
+      expect(call.notifyNoiseCancellationStarting).toHaveBeenCalledWith({
+        engine: NoiseCancellationEngine.STREAM,
+        model: 'tiny',
+      });
+
+      noiseCancellation.engine = undefined;
+      noiseCancellation.model = undefined;
+      await manager.disableNoiseCancellation();
+      // once from the change event, once as the fallback
+      expect(call.notifyNoiseCancellationStopped).toHaveBeenCalledTimes(2);
+      for (const [payload] of vi.mocked(call.notifyNoiseCancellationStopped)
+        .mock.calls) {
+        expect(payload).toEqual({
+          engine: NoiseCancellationEngine.STREAM,
+          model: 'tiny',
+        });
+      }
+    });
+
+    it('reports a new instance without the previous start', async () => {
+      const previous = new NoiseCancellationStub();
+      previous.engine = 'stream';
+      previous.model = 'tiny';
+      await manager.enableNoiseCancellation(previous);
+      await previous.enable();
+      await manager.disableNoiseCancellation();
+
+      await manager.enableNoiseCancellation(new NoiseCancellationStub());
+      await manager.disableNoiseCancellation();
+      expect(call.notifyNoiseCancellationStopped).toHaveBeenLastCalledWith({
+        engine: NoiseCancellationEngine.KRISP_UNSPECIFIED,
+        model: '',
+      });
+    });
+
+    it('reports Krisp with no model when the engine is unknown', async () => {
+      const noiseCancellation = new NoiseCancellationStub();
+      await manager.enableNoiseCancellation(noiseCancellation);
+
+      await noiseCancellation.enable();
+      expect(call.notifyNoiseCancellationStarting).toHaveBeenCalledWith({
+        engine: NoiseCancellationEngine.KRISP_UNSPECIFIED,
+        model: '',
+      });
+    });
+
+    it('should turn off browser noise suppression while registered', async () => {
+      await manager.enable();
+      const noiseCancellation = new NoiseCancellationStub();
+      vi.spyOn(noiseCancellation, 'toFilter').mockReturnValue(() => ({
+        output: mockAudioStream(),
+      }));
+
+      vi.mocked(getAudioStream).mockClear();
+      await manager.enableNoiseCancellation(noiseCancellation);
+      expect(getAudioStream).toHaveBeenLastCalledWith(
+        expect.objectContaining({ noiseSuppression: false }),
+        expect.any(Tracer),
+        undefined,
+      );
+
+      vi.mocked(getAudioStream).mockClear();
+      await manager.disableNoiseCancellation();
+      expect(getAudioStream).toHaveBeenCalled();
+      expect(vi.mocked(getAudioStream).mock.lastCall?.[0]).not.toHaveProperty(
+        'noiseSuppression',
+      );
+    });
+
+    it('should track the noise cancellation status', async () => {
+      const noiseCancellation = new NoiseCancellationStub();
+      await manager.enableNoiseCancellation(noiseCancellation);
+      expect(manager.state.noiseCancellationStatus).toBe('disabled');
+
+      await noiseCancellation.enable();
+      expect(manager.state.noiseCancellationStatus).toBe('enabled');
+
+      noiseCancellation.emit('change', false);
+      noiseCancellation.emit('overload', {
+        willRestore: true,
+        overflowCount: 1,
+        restoreInMs: 15000,
+      });
+      expect(manager.state.noiseCancellationStatus).toBe('suspended');
+
+      noiseCancellation.emit('change', true);
+      expect(manager.state.noiseCancellationStatus).toBe('enabled');
+
+      noiseCancellation.emit('change', false);
+      noiseCancellation.emit('overload', {
+        willRestore: false,
+        overflowCount: 3,
+      });
+      expect(manager.state.noiseCancellationStatus).toBe('overloaded');
+
+      await noiseCancellation.enable();
+      expect(manager.state.noiseCancellationStatus).toBe('enabled');
+
+      await manager.disableNoiseCancellation();
+      expect(manager.state.noiseCancellationStatus).toBe('disabled');
+
+      noiseCancellation.emit('overload', {
+        willRestore: true,
+        overflowCount: 1,
+      });
+      expect(manager.state.noiseCancellationStatus).toBe('disabled');
     });
 
     it('should throw when own capabilities are missing', async () => {
@@ -608,6 +854,59 @@ describe('MicrophoneManager', () => {
       await expect(() =>
         manager.enableNoiseCancellation(new NoiseCancellationStub()),
       ).rejects.toThrow();
+    });
+
+    it('should throw when the engine does not match the call settings', async () => {
+      call.state.updateFromCallResponse(
+        fromPartial({
+          egress: {},
+          settings: {
+            audio: { noise_cancellation: { mode: 'available' } },
+            extra_opts: { noise_cancellation: { engine: 'stream' } },
+          },
+        }),
+      );
+      const noiseCancellation = new NoiseCancellationStub();
+      noiseCancellation.engine = 'krisp';
+      const registerFilter = vi.spyOn(manager, 'registerFilter');
+      await expect(() =>
+        manager.enableNoiseCancellation(noiseCancellation),
+      ).rejects.toThrow();
+      expect(registerFilter).not.toBeCalled();
+    });
+
+    it('should register filter when the call settings name an unknown engine', async () => {
+      call.state.updateFromCallResponse(
+        fromPartial({
+          egress: {},
+          settings: {
+            audio: { noise_cancellation: { mode: 'available' } },
+            extra_opts: { noise_cancellation: { engine: 'Stream-v2' } },
+          },
+        }),
+      );
+      const noiseCancellation = new NoiseCancellationStub();
+      noiseCancellation.engine = 'krisp';
+      const registerFilter = vi.spyOn(manager, 'registerFilter');
+      await manager.enableNoiseCancellation(noiseCancellation);
+      expect(registerFilter).toBeCalled();
+    });
+
+    it('should register filter when the engine matches the call settings', async () => {
+      call.state.updateFromCallResponse(
+        fromPartial({
+          egress: {},
+          settings: {
+            audio: { noise_cancellation: { mode: 'available' } },
+            extra_opts: { noise_cancellation: { engine: 'krisp' } },
+          },
+        }),
+      );
+      const noiseCancellation = new NoiseCancellationStub();
+      noiseCancellation.engine = 'krisp';
+      const registerFilter = vi.spyOn(manager, 'registerFilter');
+      await manager.enableNoiseCancellation(noiseCancellation);
+      expect(registerFilter).toBeCalled();
     });
 
     it('should automatically enable noise noise suppression after joining a call', async () => {
@@ -640,6 +939,35 @@ describe('MicrophoneManager', () => {
 
       expect(noiseCancellationEnable).toBeCalled();
       expect(call.notifyNoiseCancellationStarting).toBeCalled();
+    });
+
+    it('should not automatically enable noise suppression when it cannot auto-enable', async () => {
+      call.state.setCallingState(CallingState.IDLE); // reset state
+      call.state.updateFromCallResponse(
+        fromPartial({
+          egress: {},
+          settings: {
+            audio: {
+              noise_cancellation: {
+                mode: 'auto-on',
+              },
+            },
+          },
+        }),
+      );
+
+      const noiseCancellation = new NoiseCancellationStub();
+      const canAutoEnable = vi
+        .spyOn(noiseCancellation, 'canAutoEnable')
+        .mockResolvedValue(false);
+      const noiseCancellationEnable = vi.spyOn(noiseCancellation, 'enable');
+      await manager.enableNoiseCancellation(noiseCancellation);
+
+      call.state.setCallingState(CallingState.JOINED);
+      await sleep(25);
+
+      expect(canAutoEnable).toBeCalled();
+      expect(noiseCancellationEnable).not.toBeCalled();
     });
 
     it('should automatically disable noise suppression after leaving the call', async () => {
@@ -808,6 +1136,62 @@ describe('MicrophoneManager', () => {
       );
     });
 
+    it('keeps the call settings constraints for voice profiles', async () => {
+      call.state.updateFromCallResponse(
+        fromPartial({
+          egress: {},
+          settings: {
+            audio: { hifi_audio_enabled: true },
+            extra_opts: {
+              audio: { media_constraints: { auto_gain_control: false } },
+            },
+          },
+        }),
+      );
+
+      await manager.setAudioBitrateProfile(
+        AudioBitrateProfile.MUSIC_HIGH_QUALITY,
+      );
+      await manager.setAudioBitrateProfile(AudioBitrateProfile.VOICE_STANDARD);
+      vi.mocked(getAudioStream).mockClear();
+      await manager.enable();
+
+      expect(vi.mocked(getAudioStream).mock.calls[0][0]).toMatchObject({
+        autoGainControl: false,
+        channelCount: { ideal: 1 },
+      });
+      expect(vi.mocked(getAudioStream).mock.calls[0][0]).not.toHaveProperty(
+        'echoCancellation',
+      );
+    });
+
+    it('turns the audio processing off for the music profile', async () => {
+      call.state.updateFromCallResponse(
+        fromPartial({
+          egress: {},
+          settings: {
+            audio: { hifi_audio_enabled: true },
+            extra_opts: {
+              audio: { media_constraints: { auto_gain_control: true } },
+            },
+          },
+        }),
+      );
+
+      await manager.setAudioBitrateProfile(
+        AudioBitrateProfile.MUSIC_HIGH_QUALITY,
+      );
+      vi.mocked(getAudioStream).mockClear();
+      await manager.enable();
+
+      expect(vi.mocked(getAudioStream).mock.calls[0][0]).toMatchObject({
+        autoGainControl: false,
+        echoCancellation: false,
+        noiseSuppression: false,
+        channelCount: { ideal: 2 },
+      });
+    });
+
     it('throws an error when enabling hi-fi audio if not allowed', async () => {
       call.state.updateFromCallResponse(
         fromPartial({
@@ -882,6 +1266,7 @@ describe('MicrophoneManager', () => {
       expect(getAudioStream).toHaveBeenCalledWith(
         { deviceId: { exact: deviceId } },
         expect.any(Tracer),
+        undefined,
       );
     });
 
@@ -902,6 +1287,26 @@ describe('MicrophoneManager', () => {
       await vi.waitFor(() => {
         expect(cleanupFn).toHaveBeenCalled();
       });
+    });
+    it('should return false once the test time is up twice over when the detector stays silent', async () => {
+      vi.useFakeTimers();
+      try {
+        const mock = vi.mocked(createNoAudioDetector);
+        const cleanupFn = vi.fn(async () => {});
+        mock.mockImplementationOnce(() => cleanupFn);
+
+        const result = manager.performTest('test-device-id', {
+          testDurationMs: 1000,
+        });
+        await vi.advanceTimersByTimeAsync(1999);
+        expect(cleanupFn).not.toHaveBeenCalled();
+        await vi.advanceTimersByTimeAsync(1);
+
+        await expect(result).resolves.toBe(false);
+        expect(cleanupFn).toHaveBeenCalledTimes(1);
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 

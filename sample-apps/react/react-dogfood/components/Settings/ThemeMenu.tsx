@@ -31,8 +31,8 @@ export const ThemeMenu = () => {
       </div>
       <DropDownSelect
         key={themeMode}
-        defaultSelectedIndex={themeModeOptions.indexOf(themeMode)}
-        defaultSelectedLabel={themeModeLabel(t, themeMode)}
+        selectedIndex={themeModeOptions.indexOf(themeMode)}
+        selectedLabel={themeModeLabel(t, themeMode)}
         handleSelect={(index) => setThemeMode(themeModeOptions[index])}
       >
         {themeModeOptions.map((mode) => (

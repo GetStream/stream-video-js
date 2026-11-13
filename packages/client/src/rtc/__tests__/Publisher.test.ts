@@ -1,6 +1,6 @@
 import './mocks/webrtc.mocks';
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { anyString } from 'vitest-mock-extended';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { NegotiationError } from '../NegotiationError';
@@ -24,7 +24,7 @@ import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
 import { TransceiverCache } from '../TransceiverCache';
 import { promiseWithResolvers } from '../../helpers/promise';
-import { settled } from '../../helpers/concurrency';
+import { settled, withoutConcurrency } from '../../helpers/concurrency';
 import { isFirefox } from '../../helpers/browsers';
 import { isReactNative } from '../../helpers/platforms';
 
@@ -355,6 +355,58 @@ describe('Publisher', () => {
       expect(negotiateSpy).toHaveBeenCalled();
     });
 
+    it('should set the sender priority on the first encoding only', async () => {
+      publisher.dispose();
+      publisher = new Publisher(
+        { sfuClient, dispatcher, state, tag: 'test', enableTracing: false },
+        [
+          // @ts-expect-error - incomplete data
+          { id: 1, trackType: TrackType.AUDIO, codec: { name: 'opus' } },
+          {
+            id: 2,
+            trackType: TrackType.SCREEN_SHARE,
+            bitrate: 3_000_000,
+            // @ts-expect-error - incomplete data
+            codec: { name: 'vp8' },
+            fps: 30,
+            videoDimension: { width: 2560, height: 1440 },
+          },
+          // @ts-expect-error - incomplete data
+          {
+            id: 3,
+            trackType: TrackType.SCREEN_SHARE_AUDIO,
+            codec: { name: 'opus' },
+          },
+        ],
+      );
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
+
+      const encodingsOf = async (trackType: TrackType) => {
+        vi.mocked(publisher['pc'].addTransceiver).mockClear();
+        const track = new MediaStreamTrack();
+        vi.spyOn(track, 'clone').mockReturnValue(new MediaStreamTrack());
+        await publisher.publish(track, trackType);
+        const [, init] = vi.mocked(publisher['pc'].addTransceiver).mock
+          .calls[0];
+        return init!.sendEncodings!;
+      };
+
+      const [audio] = await encodingsOf(TrackType.AUDIO);
+      expect(audio.priority).toBe('high');
+      expect(audio.networkPriority).toBeUndefined();
+
+      const [screenShareAudio] = await encodingsOf(
+        TrackType.SCREEN_SHARE_AUDIO,
+      );
+      expect(screenShareAudio.priority).toBe('high');
+
+      const [first, ...rest] = await encodingsOf(TrackType.SCREEN_SHARE);
+      expect(first.priority).toBe('medium');
+      expect(first.networkPriority).toBeUndefined();
+      expect(rest.length).toBeGreaterThan(0);
+      for (const encoding of rest) expect(encoding.priority).toBeUndefined();
+    });
+
     it('should attach an encryptor when E2EE manager is provided', async () => {
       const e2eeMock = {
         encrypt: vi.fn(),
@@ -492,6 +544,197 @@ describe('Publisher', () => {
     });
   });
 
+  describe('content hint', () => {
+    const setup = async (e2ee?: { encrypt: Mock; decrypt: Mock }) => {
+      await publisher.dispose();
+      publisher = new Publisher(
+        {
+          sfuClient,
+          dispatcher,
+          state,
+          tag: 'test',
+          enableTracing: false,
+          e2ee,
+        },
+        [
+          fromPartial<PublishOption>({
+            id: 1,
+            trackType: TrackType.SCREEN_SHARE,
+            bitrate: 3_000_000,
+            codec: { name: 'vp8' },
+            fps: 30,
+            videoDimension: { width: 1920, height: 1080 },
+            degradationPreference: DegradationPreference.MAINTAIN_RESOLUTION,
+          }),
+        ],
+      );
+      // @ts-expect-error - private method
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
+      const transceiver = new RTCRtpTransceiver();
+      vi.mocked(publisher['pc'].addTransceiver).mockReturnValue(transceiver);
+      const track = new MediaStreamTrack();
+      vi.mocked(track.clone).mockImplementation(() => new MediaStreamTrack());
+      const { sender } = transceiver;
+      const appliedPreferences = () =>
+        vi
+          .mocked(sender.setParameters)
+          .mock.calls.map(([params]) => params.degradationPreference);
+      return { transceiver, track, appliedPreferences };
+    };
+
+    it.each([
+      ['motion', 'maintain-framerate'],
+      ['detail', 'maintain-resolution'],
+      ['text', 'maintain-resolution'],
+      [undefined, 'maintain-resolution'],
+    ] as const)(
+      'applies "%s" as %s when adding the transceiver',
+      async (contentHint, expected) => {
+        const { track, appliedPreferences } = await setup();
+        await publisher.publish(track, TrackType.SCREEN_SHARE, {
+          contentHint,
+        });
+        expect(appliedPreferences()).toEqual([expected]);
+      },
+    );
+
+    it('applies the hint before attaching the track to an E2EE sender', async () => {
+      const e2ee = { encrypt: vi.fn(), decrypt: vi.fn() };
+      const { transceiver, track, appliedPreferences } = await setup(e2ee);
+      await publisher.publish(track, TrackType.SCREEN_SHARE, {
+        contentHint: 'motion',
+      });
+      const { sender } = transceiver;
+      expect(appliedPreferences()).toEqual(['maintain-framerate']);
+      expect(
+        vi.mocked(sender.setParameters).mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        vi.mocked(sender.replaceTrack).mock.invocationCallOrder[0],
+      );
+    });
+
+    it('ignores the hint on the screen share audio sender', async () => {
+      await publisher.dispose();
+      publisher = new Publisher(
+        { sfuClient, dispatcher, state, tag: 'test', enableTracing: false },
+        [
+          fromPartial<PublishOption>({
+            id: 1,
+            trackType: TrackType.SCREEN_SHARE_AUDIO,
+            codec: { name: 'opus' },
+          }),
+        ],
+      );
+      // @ts-expect-error - private method
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
+      const transceiver = new RTCRtpTransceiver();
+      vi.mocked(publisher['pc'].addTransceiver).mockReturnValue(transceiver);
+      const track = new MediaStreamTrack();
+      vi.mocked(track.clone).mockImplementation(() => new MediaStreamTrack());
+
+      await publisher.publish(track, TrackType.SCREEN_SHARE_AUDIO, {
+        contentHint: 'text',
+      });
+
+      expect(
+        vi.mocked(transceiver.sender.setParameters).mock.calls[0][0]
+          .degradationPreference,
+      ).toBe('maintain-framerate');
+    });
+
+    it('applies a changed hint before attaching the new track', async () => {
+      const { transceiver, track } = await setup();
+      await publisher.publish(track, TrackType.SCREEN_SHARE, {
+        contentHint: 'motion',
+      });
+      const { sender } = transceiver;
+      vi.mocked(sender.setParameters).mockClear();
+      vi.mocked(sender.replaceTrack).mockClear();
+
+      await publisher.publish(track, TrackType.SCREEN_SHARE, {
+        contentHint: 'text',
+      });
+
+      expect(
+        vi.mocked(sender.setParameters).mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        vi.mocked(sender.replaceTrack).mock.invocationCallOrder[0],
+      );
+    });
+
+    it('waits for a pending changePublishQuality before updating the sender', async () => {
+      const { transceiver, track, appliedPreferences } = await setup();
+      await publisher.publish(track, TrackType.SCREEN_SHARE, {
+        contentHint: 'motion',
+      });
+      vi.mocked(transceiver.sender.setParameters).mockClear();
+
+      const pending = promiseWithResolvers<void>();
+      const held = withoutConcurrency(
+        publisher['eventLockKey']('changePublishQuality'),
+        () => pending.promise,
+      );
+      const publishing = publisher.publish(track, TrackType.SCREEN_SHARE, {});
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(appliedPreferences()).toEqual([]);
+
+      pending.resolve();
+      await Promise.all([held, publishing]);
+      expect(appliedPreferences()).toEqual(['maintain-resolution']);
+    });
+
+    it('re-applies the preference only when a republish changes the hint', async () => {
+      const { transceiver, track, appliedPreferences } = await setup();
+      await publisher.publish(track, TrackType.SCREEN_SHARE, {
+        contentHint: 'motion',
+      });
+      vi.mocked(transceiver.sender.setParameters).mockClear();
+
+      await publisher.publish(track, TrackType.SCREEN_SHARE, {});
+      expect(appliedPreferences()).toEqual(['maintain-resolution']);
+      vi.mocked(transceiver.sender.setParameters).mockClear();
+
+      await publisher.publish(track, TrackType.SCREEN_SHARE, {});
+      expect(appliedPreferences()).toEqual([]);
+    });
+
+    it('leaves the hinted preference alone on SFU quality events', async () => {
+      const { transceiver, track } = await setup();
+      await publisher.publish(track, TrackType.SCREEN_SHARE, {
+        contentHint: 'motion',
+      });
+      const { sender } = transceiver;
+      vi.mocked(sender.setParameters).mockClear();
+      // Firefox doesn't report degradationPreference
+      vi.mocked(sender.getParameters).mockReturnValue(
+        fromPartial<RTCRtpSendParameters>({
+          encodings: [{ rid: 'q', active: true }],
+        }),
+      );
+
+      await publisher['changePublishQuality'](
+        {
+          publishOptionId: 1,
+          trackType: TrackType.SCREEN_SHARE,
+          degradationPreference: DegradationPreference.MAINTAIN_RESOLUTION,
+          layers: [
+            {
+              name: 'q',
+              active: true,
+              maxBitrate: 0,
+              scaleResolutionDownBy: 0,
+              maxFramerate: 0,
+              scalabilityMode: '',
+            },
+          ],
+        },
+        publisher['transceiverCache'].getBy(1, TrackType.SCREEN_SHARE),
+      );
+
+      expect(sender.setParameters).not.toHaveBeenCalled();
+    });
+  });
+
   describe('E2EE peer connection config', () => {
     const e2ee = { encrypt: vi.fn(), decrypt: vi.fn() };
 
@@ -593,6 +836,94 @@ describe('Publisher', () => {
         'test',
       );
       expect(publisher['syncPublishOptions']).toHaveBeenCalled();
+    });
+  });
+
+  describe('dispose', () => {
+    /**
+     * Publishes a video sender whose setParameters() never settles, as
+     * Chromium does for one still pending when its peer connection closes,
+     * and leaves a changePublishQuality handler stuck on it.
+     */
+    const stallQualityChange = () => {
+      const transceiver = new RTCRtpTransceiver();
+      const track = new MediaStreamTrack();
+      vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
+      vi.spyOn(transceiver.sender, 'getParameters').mockReturnValue(
+        fromPartial({ codecs: [], encodings: [{ rid: 'q', active: true }] }),
+      );
+      const setParametersSpy = vi
+        .spyOn(transceiver.sender, 'setParameters')
+        .mockReturnValue(new Promise(() => {}));
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
+        transceiver,
+        options: {},
+      });
+
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'changePublishQuality',
+            changePublishQuality: {
+              audioSenders: [],
+              videoSenders: [
+                fromPartial({
+                  publishOptionId: 1,
+                  trackType: TrackType.VIDEO,
+                  layers: [],
+                }),
+              ],
+            },
+          },
+        }) as DispatchableMessage<'changePublishQuality'>,
+        'test',
+      );
+      expect(setParametersSpy).toHaveBeenCalled();
+      return track;
+    };
+
+    it('does not wait for a changePublishQuality handler stuck in setParameters', async () => {
+      const track = stallQualityChange();
+      const trackStopSpy = vi.spyOn(track, 'stop');
+
+      await publisher.dispose();
+
+      expect(trackStopSpy).toHaveBeenCalled();
+    });
+
+    it('releases a stopTracks() queued behind a stuck changePublishQuality handler', async () => {
+      const track = stallQualityChange();
+      const trackStopSpy = vi.spyOn(track, 'stop');
+      const stopping = publisher.stopTracks(TrackType.VIDEO);
+
+      await publisher.dispose();
+      await stopping;
+
+      expect(trackStopSpy).toHaveBeenCalled();
+    });
+
+    it('does not wait for the stuck lock when stopTracks() runs after dispose', async () => {
+      stallQualityChange();
+      await publisher.dispose();
+
+      await publisher.stopTracks(TrackType.VIDEO);
+    });
+
+    it('stops the remaining tracks when one of them fails to stop', async () => {
+      const failing = new MediaStreamTrack();
+      vi.spyOn(failing, 'stop').mockImplementation(() => {
+        throw new Error('already released');
+      });
+      const healthy = new MediaStreamTrack();
+      const healthyStopSpy = vi.spyOn(healthy, 'stop');
+      publisher['clonedTracks'].add(failing);
+      publisher['clonedTracks'].add(healthy);
+
+      await publisher.dispose();
+
+      expect(healthyStopSpy).toHaveBeenCalled();
+      expect(publisher['clonedTracks'].size).toBe(0);
     });
   });
 
@@ -1673,7 +2004,7 @@ describe('Publisher', () => {
       const track = cache['cache'][0].transceiver.sender.track!;
       vi.spyOn(track, 'stop');
       expect(publisher['clonedTracks'].size).toBe(3);
-      await publisher.stopAllTracks();
+      publisher.stopAllTracks();
       expect(track!.stop).toHaveBeenCalled();
       expect(publisher['clonedTracks'].size).toBe(0);
     });
@@ -1920,45 +2251,6 @@ describe('Publisher', () => {
       expect(setParametersSpy).not.toHaveBeenCalled();
       expect(replaceTrackSpy).not.toHaveBeenCalled();
       expect(trackStopSpy).toHaveBeenCalled();
-    });
-
-    it('on Firefox, stopAllTracks deactivates video encodings and clears audio sender tracks', async () => {
-      vi.mocked(isFirefox).mockReturnValue(true);
-
-      const videoTransceiver = new RTCRtpTransceiver();
-      vi.spyOn(videoTransceiver.sender, 'track', 'get').mockReturnValue(
-        new MediaStreamTrack(),
-      );
-      const { setParametersSpy: videoSetParams } = mockSenderParams(
-        videoTransceiver,
-        [{ rid: 'q', active: true }],
-      );
-
-      const audioTransceiver = new RTCRtpTransceiver();
-      vi.spyOn(audioTransceiver.sender, 'track', 'get').mockReturnValue(
-        new MediaStreamTrack(),
-      );
-      const audioReplaceTrack = vi
-        .spyOn(audioTransceiver.sender, 'replaceTrack')
-        .mockResolvedValue();
-
-      publisher['transceiverCache'].add({
-        publishOption: publisher['publishOptions'][0],
-        transceiver: videoTransceiver,
-        options: {},
-      });
-      publisher['transceiverCache'].add({
-        // @ts-expect-error incomplete data
-        publishOption: { trackType: TrackType.AUDIO, id: 99 },
-        transceiver: audioTransceiver,
-        options: {},
-      });
-
-      await publisher.stopAllTracks();
-
-      // each track type uses the lever that actually works for it on Firefox
-      expect(videoSetParams).toHaveBeenCalledTimes(1);
-      expect(audioReplaceTrack).toHaveBeenCalledWith(null);
     });
 
     it('on Firefox, re-publishing a video track on an existing transceiver re-activates encodings', async () => {
