@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.67.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.67.0...@stream-io/video-client-1.67.1) (2026-11-13)
+
+### Bug Fixes
+
+- **client:** don't restart a portrait camera track that matches the target resolution ([#2619](https://github.com/GetStream/stream-video-js/issues/2619)) ([8302660](https://github.com/GetStream/stream-video-js/commit/83026603309de4d3ff148314ff0160fbb9c9985c))
+- **client:** make the reject in leave() best-effort ([#2615](https://github.com/GetStream/stream-video-js/issues/2615)) ([0b36326](https://github.com/GetStream/stream-video-js/commit/0b363263d4a8e7dca3d5cf466cb7b67c194e3347))
+- **client:** release the captured stream when publishing it fails ([#2552](https://github.com/GetStream/stream-video-js/issues/2552)) ([6e875ad](https://github.com/GetStream/stream-video-js/commit/6e875ad3644ed8041e0fe5910aa9793b31612cc2)), closes [#2532](https://github.com/GetStream/stream-video-js/issues/2532) [#2551](https://github.com/GetStream/stream-video-js/issues/2551)
+- **client:** start the ring timeout when the call settings arrive late ([#2602](https://github.com/GetStream/stream-video-js/issues/2602)) ([27d557f](https://github.com/GetStream/stream-video-js/commit/27d557f972e17f642d84afbc27eda2292cadaf0d))
+- **client:** stop the published tracks when a device is disabled outside JOINED ([#2551](https://github.com/GetStream/stream-video-js/issues/2551)) ([9231d2b](https://github.com/GetStream/stream-video-js/commit/9231d2be37f8c769b199617e9a2f69fa2434857c))
+
 ## [1.67.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.66.0...@stream-io/video-client-1.67.0) (2026-11-10)
 
 ### Features
