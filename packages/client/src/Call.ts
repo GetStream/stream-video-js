@@ -2717,11 +2717,7 @@ export class Call {
 
     const publisher = this.publisher;
     const trackTypes = [trackType];
-    const relatedTypes =
-      trackType === TrackType.SCREEN_SHARE
-        ? [trackType, TrackType.SCREEN_SHARE_AUDIO]
-        : [trackType];
-    const wasPublishing = relatedTypes.filter((t) => publisher.isPublishing(t));
+    const previousTracks = publisher.getPublishedTracks();
     try {
       pushToIfMissing(this.trackPublishOrder, trackType);
       await publisher.publish(track, trackType, options);
@@ -2735,12 +2731,11 @@ export class Call {
           await publisher.publish(audioTrack, screenShareAudio, options);
         }
       }
-
-      await this.updateLocalStreamState(mediaStream, ...trackTypes);
     } catch (err) {
-      await this.unpublishAfterFailure(publisher, wasPublishing, trackTypes);
+      await this.unpublishAfterFailure(publisher, previousTracks, trackTypes);
       throw err;
     }
+    await this.updateLocalStreamState(mediaStream, ...trackTypes);
   };
 
   /**
@@ -2750,15 +2745,17 @@ export class Call {
    */
   private unpublishAfterFailure = async (
     publisher: Publisher,
-    wasPublishing: TrackType[],
+    previousTracks: MediaStreamTrack[],
     trackTypes: TrackType[],
   ) => {
     // a disposed publisher has stopped all of its tracks, and its
     // replacement restores the device streams on its own
     if (publisher !== this.publisher) return;
-    const stale = trackTypes.filter(
-      (t) => !wasPublishing.includes(t) || !publisher.isPublishing(t),
-    );
+    const kept = publisher
+      .getPublishedTracks()
+      .filter((track) => previousTracks.includes(track))
+      .map((track) => publisher.getTrackType(track.id));
+    const stale = trackTypes.filter((t) => !kept.includes(t));
     if (stale.length === 0) return;
     try {
       if (isReactNative()) await publisher.detachTracks(...stale);
@@ -2827,7 +2824,11 @@ export class Call {
     const sessionId = this.sfuClient?.sessionId;
     if (!sessionId) return;
 
-    await this.notifyTrackMuteState(!mediaStream, ...trackTypes);
+    try {
+      await this.notifyTrackMuteState(!mediaStream, ...trackTypes);
+    } catch (err) {
+      this.logger.warn('Failed to send the mute state', err);
+    }
     if (this.sfuClient?.sessionId !== sessionId) return;
 
     for (const trackType of trackTypes) {
