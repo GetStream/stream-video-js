@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.11.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.11.6...@stream-io/react-native-callingx-0.11.7) (2026-11-13)
+
+### Bug Fixes
+
+- prevent CallService crash on Android 13 when R8 is enabled ([#2620](https://github.com/GetStream/stream-video-js/issues/2620)) ([37c0ec7](https://github.com/GetStream/stream-video-js/commit/37c0ec716d049d682cd41f4a6a2ed9cdcf369e91))
+
 ## [0.11.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.11.5...@stream-io/react-native-callingx-0.11.6) (2026-11-06)
 
 ### Bug Fixes
