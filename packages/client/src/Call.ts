@@ -2834,21 +2834,55 @@ export class Call {
       throw new Error(`Can't publish ended tracks.`);
     }
 
-    pushToIfMissing(this.trackPublishOrder, trackType);
-    await this.publisher.publish(track, trackType, options);
-
+    const publisher = this.publisher;
     const trackTypes = [trackType];
-    if (trackType === TrackType.SCREEN_SHARE) {
-      const [audioTrack] = mediaStream.getAudioTracks();
-      if (audioTrack) {
-        const screenShareAudio = TrackType.SCREEN_SHARE_AUDIO;
-        pushToIfMissing(this.trackPublishOrder, screenShareAudio);
-        await this.publisher.publish(audioTrack, screenShareAudio, options);
-        trackTypes.push(screenShareAudio);
-      }
-    }
+    const previousTracks = publisher.getPublishedTracks();
+    try {
+      pushToIfMissing(this.trackPublishOrder, trackType);
+      await publisher.publish(track, trackType, options);
 
+      if (trackType === TrackType.SCREEN_SHARE) {
+        const [audioTrack] = mediaStream.getAudioTracks();
+        if (audioTrack) {
+          const screenShareAudio = TrackType.SCREEN_SHARE_AUDIO;
+          pushToIfMissing(this.trackPublishOrder, screenShareAudio);
+          trackTypes.push(screenShareAudio);
+          await publisher.publish(audioTrack, screenShareAudio, options);
+        }
+      }
+    } catch (err) {
+      await this.unpublishAfterFailure(publisher, previousTracks, trackTypes);
+      throw err;
+    }
     await this.updateLocalStreamState(mediaStream, ...trackTypes);
+  };
+
+  /**
+   * Unpublishes what a failed `publish()` left behind, such as the screen
+   * share when only its audio failed, so no live clone is sent. A track the
+   * failed publish didn't get to replace is still sent, and is kept.
+   */
+  private unpublishAfterFailure = async (
+    publisher: Publisher,
+    previousTracks: MediaStreamTrack[],
+    trackTypes: TrackType[],
+  ) => {
+    // a disposed publisher has stopped all of its tracks, and its
+    // replacement restores the device streams on its own
+    if (publisher !== this.publisher) return;
+    const kept = publisher
+      .getPublishedTracks()
+      .filter((track) => previousTracks.includes(track))
+      .map((track) => publisher.getTrackType(track.id));
+    const stale = trackTypes.filter((t) => !kept.includes(t));
+    if (stale.length === 0) return;
+    try {
+      if (isReactNative()) await publisher.detachTracks(...stale);
+      else await publisher.stopTracks(...stale);
+      await this.updateLocalStreamState(undefined, ...stale);
+    } catch (err) {
+      this.logger.warn('Failed to unpublish after a failed publish', err);
+    }
   };
 
   /**
@@ -2909,7 +2943,11 @@ export class Call {
     const sessionId = this.sfuClient?.sessionId;
     if (!sessionId) return;
 
-    await this.notifyTrackMuteState(!mediaStream, ...trackTypes);
+    try {
+      await this.notifyTrackMuteState(!mediaStream, ...trackTypes);
+    } catch (err) {
+      this.logger.warn('Failed to send the mute state', err);
+    }
     if (this.sfuClient?.sessionId !== sessionId) return;
 
     for (const trackType of trackTypes) {

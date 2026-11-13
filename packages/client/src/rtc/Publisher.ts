@@ -122,14 +122,31 @@ export class Publisher extends BasePeerConnection {
         const trackToPublish = this.cloneTrack(track);
 
         const bundle = this.transceiverCache.get(publishOption);
-        if (!bundle) {
-          await this.addTransceiver(trackToPublish, publishOption, options);
-        } else {
-          const previousTrack = bundle.transceiver.sender.track;
-          await this.updateTransceiver(bundle, trackToPublish, options);
-          if (!isReactNative()) {
-            this.stopTrack(previousTrack);
+        try {
+          if (!bundle) {
+            await this.addTransceiver(trackToPublish, publishOption, options);
+          } else {
+            const previousTrack = bundle.transceiver.sender.track;
+            try {
+              await this.updateTransceiver(bundle, trackToPublish, options);
+            } catch (err) {
+              // replaced before the failure: no sender sends it any more
+              const { track: sent } = bundle.transceiver.sender;
+              if (!isReactNative() && sent !== previousTrack) {
+                this.stopTrack(previousTrack);
+              }
+              throw err;
+            }
+            if (!isReactNative()) {
+              this.stopTrack(previousTrack);
+            }
           }
+        } catch (err) {
+          // a live clone keeps the capture running, even off the sender.
+          // On React Native it shares its native source with the caller's
+          // track, so it is left to the caller (and dispose()).
+          if (!isReactNative()) this.stopTrack(trackToPublish);
+          throw err;
         }
       }
     });
@@ -439,6 +456,24 @@ export class Publisher extends BasePeerConnection {
       },
     );
     return Promise.race([stopping, this.disposed.promise]);
+  };
+
+  /**
+   * Takes the published track of the given track types off its sender,
+   * without stopping it. On React Native a clone shares its native source
+   * with the device track, so stopping it would stop the device track too.
+   */
+  detachTracks = async (...trackTypes: TrackType[]) => {
+    const detaching = withoutConcurrency(this.transceiverLockKey, async () => {
+      for (const item of this.transceiverCache.items()) {
+        if (!trackTypes.includes(item.publishOption.trackType)) continue;
+        const { sender } = item.transceiver;
+        if (!sender.track) continue;
+        this.trackIdToTrackType.delete(sender.track.id);
+        await sender.replaceTrack(null);
+      }
+    });
+    return Promise.race([detaching, this.disposed.promise]);
   };
 
   /**
