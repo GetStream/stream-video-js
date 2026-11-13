@@ -309,6 +309,21 @@ describe('CameraManager', () => {
     expect(getVideoStream).toHaveBeenCalledOnce();
   });
 
+  it('should not restart a portrait track that has the target resolution', async () => {
+    const portrait = mockVideoStream();
+    const [track] = portrait.getVideoTracks();
+    const settings = track.getSettings();
+    track.getSettings = () => ({ ...settings, width: 720, height: 1280 });
+    getVideoStream.mockResolvedValueOnce(portrait);
+    await manager.enable();
+
+    expect(getVideoStream).toHaveBeenCalledOnce();
+
+    await manager.selectTargetResolution({ width: 1280, height: 720 });
+
+    expect(getVideoStream).toHaveBeenCalledOnce();
+  });
+
   describe('selectDirection when the camera is busy', () => {
     const notReadable = () =>
       Object.assign(new Error('busy'), { name: 'NotReadableError' });
