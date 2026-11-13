@@ -241,7 +241,7 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
       enabled: true,
       readyState: 'live',
       stop: () => {
-        track.readyState = 'ended';
+        audioTrack.readyState = 'ended';
       },
       addEventListener: (
         event: string,
@@ -250,7 +250,7 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
         audioTrack.eventHandlers[event] = handler;
       },
       removeEventListener(type: string) {
-        delete track.eventHandlers[type];
+        delete audioTrack.eventHandlers[type];
       },
     };
     tracks.push(audioTrack);
