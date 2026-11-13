@@ -2,9 +2,10 @@
 **/__testfixtures__/**
 **/.expo/**
 **/.next/**
-packages/audio-filters-web/src/stream/models/**
-packages/audio-filters-web/src/stream/README.md
-packages/audio-filters-web/src/stream/LICENSE.md
+packages/audio-filters-web/src/fastenhancer/processor.js
+packages/audio-filters-web/src/fastenhancer/models/**
+packages/audio-filters-web/src/fastenhancer/README.md
+packages/audio-filters-web/src/fastenhancer/LICENSE.md
 sample-apps/react/react-dogfood/noise-cancellation/README.md
-sample-apps/react/react-dogfood/noise-cancellation/models/**
 sample-apps/react/react-dogfood/noise-cancellation/LICENSE.md
+sample-apps/react/react-dogfood/noise-cancellation/models/**

@@ -2,4 +2,4 @@ export { version } from './krispai/package.json';
 export type * from './INoiseCancellation';
 export * from './NoiseCancellation';
 export * from './KrispNoiseCancellation';
-export * from './StreamNoiseCancellation';
+export * from './FastEnhancerNoiseCancellation';

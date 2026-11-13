@@ -16,7 +16,7 @@ in mol while vendoring.
 ```sh
 git clone https://github.com/GetStream/mol /tmp/mol
 git -C /tmp/mol checkout fea823b26e7f8d41a44e61c8f1443615318d26be
-node packages/audio-filters-web/scripts/vendor-mol.mts \
+node sample-apps/react/react-dogfood/scripts/vendor-mol.mts \
   --mol /tmp/mol \
   --model c4-clean-s24-230k \
   --out sample-apps/react/react-dogfood/noise-cancellation

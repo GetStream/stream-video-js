@@ -63,7 +63,7 @@ export interface EmbeddedClientBaseProps {
   tokenProvider?: TokenProvider;
   logLevel?: LogLevel;
   /**
-   * Which noise cancellation provider to load. `stream` is experimental.
+   * Which noise cancellation provider to load. `fastenhancer` is experimental.
    * When unset, the call settings pick the provider, Krisp by default.
    */
   noiseCancellationProvider?: NoiseCancellationProviderName;
@@ -86,6 +86,6 @@ export interface EmbeddedLivestreamProps extends EmbeddedClientBaseProps {}
 
 /**
  * The noise cancellation provider that the embedded client can load.
- * `stream` is experimental.
+ * `fastenhancer` is experimental.
  */
-export type NoiseCancellationProviderName = 'krisp' | 'stream';
+export type NoiseCancellationProviderName = 'krisp' | 'fastenhancer';

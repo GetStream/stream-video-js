@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // Vendors one noise cancellation model build (engine WASM + weights) from a
-// checkout of the GetStream/mol repository into `src/stream`.
+// checkout of the GetStream/mol repository into `noise-cancellation/`.
 // No dependencies.
 //
 // Runs directly on Node.js 22.18+ (type stripping), no build step:
 //   node vendor-mol.mts --mol <mol checkout> --model <models/ folder name> \
-//     --out <src/stream>
+//     --out <noise-cancellation>
 //
-// Type-checked by `tsc -p scripts` (part of the package build).
+// Run from the repo root, see noise-cancellation/README.md.
 
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';

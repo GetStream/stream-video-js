@@ -3,10 +3,10 @@
   "private": true,
   "scripts": {
     "clean": "rimraf .next",
-    "copy-noise-cancellation-models": "node scripts/copy-noise-cancellation-models.mjs",
-    "dev": "yarn copy-noise-cancellation-models && next dev",
-    "dev:https": "yarn copy-noise-cancellation-models && next dev --experimental-https",
-    "build": "yarn copy-noise-cancellation-models && next build",
+    "copy-fastenhancer-models": "node scripts/copy-fastenhancer-models.mjs",
+    "dev": "yarn copy-fastenhancer-models && next dev",
+    "dev:https": "yarn copy-fastenhancer-models && next dev --experimental-https",
+    "build": "yarn copy-fastenhancer-models && next build",
     "start": "next start"
   },
   "dependencies": {

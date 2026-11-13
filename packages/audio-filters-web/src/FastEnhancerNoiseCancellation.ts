@@ -1,5 +1,5 @@
+import { simd } from 'wasm-feature-detect';
 import { packageName, packageVersion } from './version';
-import { MODEL } from './stream/model';
 import type { Tracer } from './tracer';
 import {
   BaseNoiseCancellation,
@@ -8,23 +8,23 @@ import {
 import { isWebKit } from './isWebKit';
 import type { NoiseCancellationConfiguration } from './INoiseCancellation';
 
-type ProcessorRuntime = typeof import('./stream/runtime');
+type FastEnhancerRuntime = typeof import('./fastenhancer/runtime');
 
-let runtimePromise: Promise<ProcessorRuntime> | undefined;
+let runtimePromise: Promise<FastEnhancerRuntime> | undefined;
 
 /**
- * Loads the runtime (the worklet source and its loader) on first
+ * Loads the FastEnhancer runtime (the worklet source and its loader) on first
  * use, so that it isn't part of the initial bundle.
  * A failed load isn't cached, so a later call can retry.
  */
 const loadRuntime = () =>
-  (runtimePromise ??= import('./stream/runtime').catch((err) => {
+  (runtimePromise ??= import('./fastenhancer/runtime').catch((err) => {
     runtimePromise = undefined;
     throw err;
   }));
 
 /**
- * The only sample rate the model runs at.
+ * The only sample rate the FastEnhancer models run at.
  */
 const SAMPLE_RATE = 48000;
 
@@ -64,44 +64,42 @@ const GAIN_RAMP_TIME_CONSTANT_S = 0.015;
 const PASSTHROUGH_RECOVERY_MS = 3000;
 
 /**
- * A minimal module that uses a v128 instruction: it validates only where
- * WebAssembly SIMD is supported, which the engine requires.
+ * The FastEnhancer model sizes. Larger models suppress better and cost more CPU.
  */
-const SIMD_TEST_MODULE = new Uint8Array([
-  0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 10, 1, 8,
-  0, 65, 0, 253, 15, 253, 98, 11,
-]);
-
-const supportsWasmSimd = () => {
-  try {
-    return WebAssembly.validate(SIMD_TEST_MODULE);
-  } catch {
-    return false;
-  }
-};
+export type FastEnhancerModel = 'tiny' | 'base' | 'small';
 
 /**
- * Options to pass to the StreamNoiseCancellation instance.
+ * Options to pass to the FastEnhancerNoiseCancellation instance.
  */
-export type StreamNoiseCancellationOptions = {
+export type FastEnhancerNoiseCancellationOptions = {
   /**
-   * The base path to load the model from.
-   * You can override this if you want to host the model yourself.
-   * @default `https://unpkg.com/@stream-io/audio-filters-web@${packageVersion}/src/stream/models`.
+   * The model size.
+   * @default 'small'
+   */
+  model?: FastEnhancerModel;
+
+  /**
+   * The base path to load the models from.
+   * You can override this if you want to host the models yourself.
+   * @default `https://unpkg.com/@stream-io/audio-filters-web@${packageVersion}/src/fastenhancer/models`.
    */
   basePath?: string;
 
   /**
-   * The model build to load: the folder under `basePath` that holds its
-   * `engine.wasm` and `weights.bin`. Set it together with `basePath` to run
-   * a build you host yourself.
-   * @default the build bundled with this package version
+   * High-pass filter for low-frequency rumble.
+   * @default false
    */
-  model?: string;
+  hpf?: boolean;
+
+  /**
+   * Automatic gain control in the model's post-processing.
+   * @default false
+   */
+  agc?: boolean;
 
   /**
    * Whether Safari and other WebKit browsers (all iOS browsers, WKWebView)
-   * are reported as supported. Unlike Krisp, this engine supports them by
+   * are reported as supported. Unlike Krisp, FastEnhancer supports them by
    * default. Set to false to opt out.
    * @default true
    */
@@ -121,13 +119,13 @@ export type StreamNoiseCancellationOptions = {
 };
 
 /**
- * Noise Cancellation based on Stream's own model (FastEnhancer architecture),
- * running in an AudioWorklet in a 48 kHz audio context. Adds about 19 ms of
- * latency while filtering.
+ * Noise Cancellation based on the FastEnhancer model, running in an
+ * AudioWorklet in a 48 kHz audio context. Adds about 19 ms of latency
+ * while filtering.
  *
- * @experimental this provider and its model may change in any release.
+ * @experimental this provider and its models may change in any release.
  */
-export class StreamNoiseCancellation extends BaseNoiseCancellation {
+export class FastEnhancerNoiseCancellation extends BaseNoiseCancellation {
   readonly engine = 'stream';
   private workletNode?: AudioWorkletNode;
   private rawGain?: GainNode;
@@ -166,10 +164,12 @@ export class StreamNoiseCancellation extends BaseNoiseCancellation {
   private abortInit?: (error: Error) => void;
 
   /**
-   * The model build this instance runs.
+   * The model size this instance runs.
    */
-  readonly model: string;
+  readonly model: FastEnhancerModel;
   private readonly basePath: string;
+  private readonly hpf: boolean;
+  private readonly agc: boolean;
   private withSafariSupport: boolean;
   private readonly hasExplicitSafariSupport: boolean;
   private readonly restoreTimeoutMs: number;
@@ -179,15 +179,19 @@ export class StreamNoiseCancellation extends BaseNoiseCancellation {
    * Constructs a new instance.
    */
   constructor({
-    basePath = `https://unpkg.com/${packageName}@${packageVersion}/src/stream/models`,
-    model = MODEL,
+    model = 'small',
+    basePath = `https://unpkg.com/${packageName}@${packageVersion}/src/fastenhancer/models`,
+    hpf = false,
+    agc = false,
     withSafariSupport,
     restoreTimeoutMs = 15000,
     restoreAttempts = 3,
-  }: StreamNoiseCancellationOptions = {}) {
+  }: FastEnhancerNoiseCancellationOptions = {}) {
     super();
-    this.basePath = basePath;
     this.model = model;
+    this.basePath = basePath;
+    this.hpf = hpf;
+    this.agc = agc;
     this.withSafariSupport = withSafariSupport ?? true;
     this.hasExplicitSafariSupport = typeof withSafariSupport !== 'undefined';
     this.restoreTimeoutMs = restoreTimeoutMs;
@@ -212,16 +216,14 @@ export class StreamNoiseCancellation extends BaseNoiseCancellation {
    * Checks if the noise cancellation is supported on this platform.
    * Make sure you call this method before trying to enable the noise cancellation.
    *
-   * Requires AudioWorklet and WebAssembly SIMD. Safari and other
-   * WebKit-based browsers are reported as supported unless
-   * `withSafariSupport` is set to false.
+   * Safari and other WebKit-based browsers are reported as supported
+   * unless `withSafariSupport` is set to false.
    */
   isSupported = () => {
     if (isWebKit() && !this.withSafariSupport) return false;
     return (
       typeof AudioWorkletNode !== 'undefined' &&
-      typeof WebAssembly !== 'undefined' &&
-      supportsWasmSimd()
+      typeof WebAssembly !== 'undefined'
     );
   };
 
@@ -258,7 +260,7 @@ export class StreamNoiseCancellation extends BaseNoiseCancellation {
     const deadlineId = window.setTimeout(() => {
       abort(
         new Error(
-          `StreamNoiseCancellation did not initialize within ${INIT_TIMEOUT_MS} ms`,
+          `FastEnhancer did not initialize within ${INIT_TIMEOUT_MS} ms`,
         ),
       );
     }, INIT_TIMEOUT_MS);
@@ -290,14 +292,19 @@ export class StreamNoiseCancellation extends BaseNoiseCancellation {
       }
       this.startRecovery(audioContext);
 
-      const { createProcessorNode } = await untilAborted(loadRuntime());
+      const [{ createFastEnhancerNode }, simdSupported] = await untilAborted(
+        Promise.all([loadRuntime(), simd()]),
+      );
       assertCurrent();
       // The runtime honours `signal` in its fetches and returns no node once
       // aborted; the race also bounds `addModule`.
       workletNode = await untilAborted(
-        createProcessorNode(audioContext, {
-          basePath: this.basePath,
+        createFastEnhancerNode(audioContext, {
           model: this.model,
+          basePath: this.basePath,
+          simd: simdSupported,
+          hpf: this.hpf,
+          agc: this.agc,
           signal,
         }),
       );
@@ -464,7 +471,7 @@ export class StreamNoiseCancellation extends BaseNoiseCancellation {
       const trackRate = audioTrack.getSettings().sampleRate ?? 'unknown';
       this.handleStreamFailed(`toFilter ${message}`);
       throw new Error(
-        `StreamNoiseCancellation can't connect the stream (${trackRate} Hz)` +
+        `FastEnhancerNoiseCancellation can't connect the stream (${trackRate} Hz)` +
           ` to its ${SAMPLE_RATE} Hz audio context: ${message}`,
         { cause: err },
       );

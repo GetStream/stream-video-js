@@ -48,22 +48,25 @@ export const useNoiseCancellationLoader = (
         const {
           NoiseCancellation,
           KrispNoiseCancellation,
-          StreamNoiseCancellation,
+          FastEnhancerNoiseCancellation,
         } = filters;
         if (stale) return;
-        if (provider === 'stream') {
+        if (provider === 'fastenhancer') {
           // older versions of the package don't export it
-          if (typeof StreamNoiseCancellation !== 'function') {
+          if (typeof FastEnhancerNoiseCancellation !== 'function') {
             console.warn(
-              '[EmbeddedStreamClient] The Stream noise cancellation ' +
+              '[EmbeddedStreamClient] The FastEnhancer noise cancellation ' +
                 'requires a version of @stream-io/audio-filters-web that ' +
-                'exports StreamNoiseCancellation. ' +
+                'exports FastEnhancerNoiseCancellation. ' +
                 'Noise cancellation is unavailable.',
             );
             setLoaded(undefined);
             return;
           }
-          setLoaded({ call, noiseCancellation: new StreamNoiseCancellation() });
+          setLoaded({
+            call,
+            noiseCancellation: new FastEnhancerNoiseCancellation(),
+          });
           return;
         }
         if (

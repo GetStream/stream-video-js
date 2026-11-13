@@ -57,8 +57,8 @@ vi.mock('../KrispNoiseCancellation', () => ({
   },
 }));
 
-vi.mock('../StreamNoiseCancellation', () => ({
-  StreamNoiseCancellation: class extends EngineStub {
+vi.mock('../FastEnhancerNoiseCancellation', () => ({
+  FastEnhancerNoiseCancellation: class extends EngineStub {
     constructor(options: unknown) {
       super('stream', options);
     }
@@ -145,24 +145,21 @@ describe('NoiseCancellation', () => {
     expect(warn).toHaveBeenCalled();
   });
 
-  it('routes the top-level options to Krisp and stream to Stream', () => {
+  it('routes the top-level options to Krisp and fastEnhancer to FastEnhancer', () => {
     const krisp = new NoiseCancellation({
       basePath: '/krisp',
-      stream: { basePath: '/fe', restoreAttempts: 2 },
+      fastEnhancer: { basePath: '/fe', model: 'base' },
     });
     krisp.isSupported();
     expect(lastEngine().options).toEqual({ basePath: '/krisp' });
 
-    const stream = new NoiseCancellation({
+    const fastEnhancer = new NoiseCancellation({
       basePath: '/krisp',
-      stream: { basePath: '/fe', restoreAttempts: 2 },
+      fastEnhancer: { basePath: '/fe', model: 'base' },
     });
-    stream.configure({ engine: 'stream' });
-    stream.isSupported();
-    expect(lastEngine().options).toEqual({
-      basePath: '/fe',
-      restoreAttempts: 2,
-    });
+    fastEnhancer.configure({ engine: 'stream' });
+    fastEnhancer.isSupported();
+    expect(lastEngine().options).toEqual({ basePath: '/fe', model: 'base' });
   });
 
   it('passes the configuration on to the engine', () => {

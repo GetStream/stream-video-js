@@ -3,9 +3,9 @@ import {
   type KrispNoiseCancellationOptions,
 } from './KrispNoiseCancellation';
 import {
-  StreamNoiseCancellation,
-  type StreamNoiseCancellationOptions,
-} from './StreamNoiseCancellation';
+  FastEnhancerNoiseCancellation,
+  type FastEnhancerNoiseCancellationOptions,
+} from './FastEnhancerNoiseCancellation';
 import type {
   Events,
   INoiseCancellation,
@@ -34,9 +34,9 @@ export type NoiseCancellationOptions = KrispNoiseCancellationOptions & {
   defaultEngine?: NoiseCancellationEngine;
 
   /**
-   * Options for the `stream` engine.
+   * Options for the `stream` (FastEnhancer) engine.
    */
-  stream?: StreamNoiseCancellationOptions;
+  fastEnhancer?: FastEnhancerNoiseCancellationOptions;
 };
 
 /**
@@ -51,7 +51,7 @@ export type NoiseCancellationOptions = KrispNoiseCancellationOptions & {
  */
 export class NoiseCancellation implements INoiseCancellation {
   private readonly krispOptions: KrispNoiseCancellationOptions;
-  private readonly streamOptions?: StreamNoiseCancellationOptions;
+  private readonly fastEnhancerOptions?: FastEnhancerNoiseCancellationOptions;
   private readonly defaultEngine: NoiseCancellationEngine;
 
   private configuration: NoiseCancellationConfiguration = {};
@@ -68,11 +68,11 @@ export class NoiseCancellation implements INoiseCancellation {
    */
   constructor({
     defaultEngine = DEFAULT_ENGINE,
-    stream,
+    fastEnhancer,
     ...krispOptions
   }: NoiseCancellationOptions = {}) {
     this.krispOptions = krispOptions;
-    this.streamOptions = stream;
+    this.fastEnhancerOptions = fastEnhancer;
     this.defaultEngine = defaultEngine;
   }
 
@@ -217,7 +217,7 @@ export class NoiseCancellation implements INoiseCancellation {
     const engine = this.resolveEngine();
     const delegate =
       engine === 'stream'
-        ? new StreamNoiseCancellation(this.streamOptions)
+        ? new FastEnhancerNoiseCancellation(this.fastEnhancerOptions)
         : new KrispNoiseCancellation(this.krispOptions);
     delegate.configure?.(this.configuration);
     const forward =

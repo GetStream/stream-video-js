@@ -45,7 +45,10 @@ const NOISE_CANCELLATION_MODEL_LABELS: Record<NoiseCancellationModel, string> =
   {
     auto: 'Auto (call settings)',
     krisp: 'Krisp',
-    stream: 'Stream',
+    'fastenhancer-tiny': 'FastEnhancer Tiny',
+    'fastenhancer-base': 'FastEnhancer Base',
+    'fastenhancer-small': 'FastEnhancer Small',
+    mol: 'Stream (mol)',
   };
 
 type ToggleSettingsTabModalProps = {
