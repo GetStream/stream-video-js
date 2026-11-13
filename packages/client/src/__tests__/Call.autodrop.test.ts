@@ -212,7 +212,14 @@ describe('Auto drop ringing calls', () => {
     expect(poller!['stopped']).toBe(true);
   });
 
-  it('restores both watchdogs when rejecting the ring fails', async () => {
+  // a failed reject no longer fails the leave, so a teardown step stands in
+  const failTeardownOnce = () => {
+    vi.spyOn(call.clientEventReporter, 'abort').mockImplementationOnce(() => {
+      throw new Error('transient');
+    });
+  };
+
+  it('restores both watchdogs when the leave fails', async () => {
     call['scheduleAutoDrop']();
     call['scheduleRingStatePolling']();
     const timeout = call['ringTimeout'];
@@ -220,7 +227,8 @@ describe('Auto drop ringing calls', () => {
     const poller = call['ringStatePoller'];
     const pollDeadlineAt = poller!['deadlineAt'];
     vi.spyOn(call, 'leave').mockRestore();
-    vi.spyOn(call, 'reject').mockRejectedValueOnce(new Error('transient'));
+    vi.spyOn(call, 'reject').mockResolvedValue(fromPartial({}));
+    failTeardownOnce();
 
     await expect(call.leave({ reject: true })).rejects.toThrow('transient');
 
@@ -239,7 +247,8 @@ describe('Auto drop ringing calls', () => {
     const timeout = call['ringTimeout'];
     const poller = call['ringStatePoller'];
     vi.spyOn(call, 'leave').mockRestore();
-    vi.spyOn(call, 'reject').mockRejectedValueOnce(new Error('transient'));
+    vi.spyOn(call, 'reject').mockResolvedValue(fromPartial({}));
+    failTeardownOnce();
     call['initialized'] = true;
 
     const leaving = call.leave({ reject: true });
