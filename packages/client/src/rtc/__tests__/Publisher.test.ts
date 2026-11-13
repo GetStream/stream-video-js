@@ -2093,6 +2093,28 @@ describe('Publisher', () => {
       expect(publisher['clonedTracks'].size).toBe(1);
     });
 
+    it('detachTracks should take the tracks off their senders without stopping them', async () => {
+      const { sender } = cache['cache'][0].transceiver;
+      const track = sender.track!;
+      vi.spyOn(track, 'stop');
+      vi.mocked(sender.replaceTrack).mockImplementation(async (t) => {
+        vi.spyOn(sender, 'track', 'get').mockReturnValue(t);
+      });
+
+      await publisher.detachTracks(TrackType.VIDEO);
+
+      expect(sender.replaceTrack).toHaveBeenCalledWith(null);
+      expect(track.stop).not.toHaveBeenCalled();
+      expect(publisher.isPublishing(TrackType.VIDEO)).toBe(false);
+      expect(publisher.isPublishing(TrackType.AUDIO)).toBe(true);
+      expect(publisher.getTrackType(track.id)).toBeUndefined();
+      expect(
+        publisher
+          .getAnnouncedTracksForReconnect()
+          .some((t) => t.trackType === TrackType.VIDEO),
+      ).toBe(false);
+    });
+
     it('stopAllTracks should stop all tracks', async () => {
       const track = cache['cache'][0].transceiver.sender.track!;
       vi.spyOn(track, 'stop');

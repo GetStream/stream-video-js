@@ -459,6 +459,24 @@ export class Publisher extends BasePeerConnection {
   };
 
   /**
+   * Takes the published track of the given track types off its sender,
+   * without stopping it. On React Native a clone shares its native source
+   * with the device track, so stopping it would stop the device track too.
+   */
+  detachTracks = async (...trackTypes: TrackType[]) => {
+    const detaching = withoutConcurrency(this.transceiverLockKey, async () => {
+      for (const item of this.transceiverCache.items()) {
+        if (!trackTypes.includes(item.publishOption.trackType)) continue;
+        const { sender } = item.transceiver;
+        if (!sender.track) continue;
+        this.trackIdToTrackType.delete(sender.track.id);
+        await sender.replaceTrack(null);
+      }
+    });
+    return Promise.race([detaching, this.disposed.promise]);
+  };
+
+  /**
    * Stops all the cloned tracks that are being published to the SFU.
    *
    * Takes no lock, as it runs after the peer connection is closed: a

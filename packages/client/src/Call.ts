@@ -2761,9 +2761,8 @@ export class Call {
     );
     if (stale.length === 0) return;
     try {
-      // on React Native a clone shares its native source, so stopping it
-      // would stop the device track too: the device releases its capture
-      if (!isReactNative()) await publisher.stopTracks(...stale);
+      if (isReactNative()) await publisher.detachTracks(...stale);
+      else await publisher.stopTracks(...stale);
       await this.updateLocalStreamState(undefined, ...stale);
     } catch (err) {
       this.logger.warn('Failed to unpublish after a failed publish', err);

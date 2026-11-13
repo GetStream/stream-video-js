@@ -142,6 +142,7 @@ describe('Publishing and Unpublishing tracks', () => {
       publisher = vi.fn() as unknown as Publisher;
       publisher.publish = vi.fn();
       publisher.stopTracks = vi.fn();
+      publisher.detachTracks = vi.fn();
       publisher.isPublishing = vi.fn(() => false);
 
       call['sfuClient'] = sfuClient;
@@ -537,7 +538,7 @@ describe('Publishing and Unpublishing tracks', () => {
         expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
       });
 
-      it('sends the mute state without stopping the clone on React Native', async () => {
+      it('detaches the clone instead of stopping it on React Native', async () => {
         vi.mocked(isReactNative).mockReturnValue(true);
         try {
           vi.mocked(publisher.publish).mockRejectedValueOnce(error);
@@ -547,6 +548,7 @@ describe('Publishing and Unpublishing tracks', () => {
           ).rejects.toBe(error);
 
           expect(publisher.stopTracks).not.toHaveBeenCalled();
+          expect(publisher.detachTracks).toHaveBeenCalledWith(TrackType.VIDEO);
           expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
             { trackType: TrackType.VIDEO, muted: true },
           ]);
