@@ -19,6 +19,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@a2ui/web_core@npm:~0.15.0":
+  version: 0.15.0
+  resolution: "@a2ui/web_core@npm:0.15.0"
+  dependencies:
+    "@lit/context": "npm:^1.1.6"
+    "@preact/signals-core": "npm:^1.14.2"
+    lit: "npm:^3.3.3"
+    redos-detector: "npm:^6.1.4"
+    validate-color: "npm:^2.2.4"
+    zod: "npm:^3.25.76"
+    zod-to-json-schema: "npm:^3.25.2"
+  checksum: 10/e02d65dc8ba9b51ae60d2f63199fe21474e5c62873e804a4b866983d4da2824d5622185cfc641985fd66b513fffe252091747dbedd66499207bafb8c684ebf4e
+  languageName: node
+  linkType: hard
+
 "@alloc/quick-lru@npm:^5.2.0":
   version: 5.2.0
   resolution: "@alloc/quick-lru@npm:5.2.0"
@@ -4426,29 +4441,51 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@khanacademy/perseus-utils@npm:2.1.5":
-  version: 2.1.5
-  resolution: "@khanacademy/perseus-utils@npm:2.1.5"
-  checksum: 10/95e1ff5983035b85aec2838772347da4fe4d2aedc92b495717683f84f6e22125c2e8365ef3de09193f101288229ad8264b95dd9a4e949be244d8d0fefa66ffea
-  languageName: node
-  linkType: hard
-
-"@khanacademy/simple-markdown@npm:^2.1.0":
-  version: 2.2.3
-  resolution: "@khanacademy/simple-markdown@npm:2.2.3"
-  dependencies:
-    "@khanacademy/perseus-utils": "npm:2.1.5"
-  peerDependencies:
-    react: ^18.2.0
-    react-dom: ^18.2.0
-  checksum: 10/266568e5a615b28b3f166a649ed6c7994094603412ba0186a97a92277b6fdfec8cd27d79c3a94ef565b30d70319d03e67cedacf7d577817e5ca0d64917c5114b
-  languageName: node
-  linkType: hard
-
 "@kurkle/color@npm:^0.3.0":
   version: 0.3.4
   resolution: "@kurkle/color@npm:0.3.4"
   checksum: 10/a15bfb55eec4ff92ee27cdacff54e85c7497ec1f9e8e0e8eaec3d39320cc90b82eb7f716d92792a8235fad1617003c6e0c0d2cd07f6a79b7b138ca17ec5eb6e7
+  languageName: node
+  linkType: hard
+
+"@legendapp/list@npm:^3.7.1":
+  version: 3.7.2
+  resolution: "@legendapp/list@npm:3.7.2"
+  dependencies:
+    use-sync-external-store: "npm:^1.5.0"
+  peerDependencies:
+    react: "*"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+  checksum: 10/9bda697573bbdf98a0197feeec87014a92256fe6b56689f5c79b8d1c9da16f6aa04b8fa2fce446d17f70e58b257a627707450816405818855e44952942e05c53
+  languageName: node
+  linkType: hard
+
+"@lit-labs/ssr-dom-shim@npm:^1.5.0":
+  version: 1.6.0
+  resolution: "@lit-labs/ssr-dom-shim@npm:1.6.0"
+  checksum: 10/144432432e1749c4878a59baf41b2afaadef565675d64b2a8e088c6f54e36f26f67ef43aa93e49d3e6dd38a5e27c41059e981c33accdb4e8c6d47c1048696b80
+  languageName: node
+  linkType: hard
+
+"@lit/context@npm:^1.1.6":
+  version: 1.1.6
+  resolution: "@lit/context@npm:1.1.6"
+  dependencies:
+    "@lit/reactive-element": "npm:^1.6.2 || ^2.1.0"
+  checksum: 10/2d59b388ced1574467f0217292b577268462248bcac1fe0570017c6b06e71022a190fd7ac66e676e5903bb4dda8489fca6cf38dc4160f3f6d6c09434139038b3
+  languageName: node
+  linkType: hard
+
+"@lit/reactive-element@npm:^1.6.2 || ^2.1.0, @lit/reactive-element@npm:^2.1.0":
+  version: 2.1.2
+  resolution: "@lit/reactive-element@npm:2.1.2"
+  dependencies:
+    "@lit-labs/ssr-dom-shim": "npm:^1.5.0"
+  checksum: 10/91ae952d34fba51ac4936f7d6b3a4300e48a54a9e7c77c8747a08148124a2a9a52cd057db059eff8424ae43c6fa342275550793e6ecfc0054bce8286df4214cb
   languageName: node
   linkType: hard
 
@@ -5144,6 +5181,13 @@ __metadata:
   version: 2.11.8
   resolution: "@popperjs/core@npm:2.11.8"
   checksum: 10/ddd16090cde777aaf102940f05d0274602079a95ad9805bd20bc55dcc7c3a2ba1b99dd5c73e5cc2753c3d31250ca52a67d58059459d7d27debb983a9f552936c
+  languageName: node
+  linkType: hard
+
+"@preact/signals-core@npm:^1.14.2":
+  version: 1.14.5
+  resolution: "@preact/signals-core@npm:1.14.5"
+  checksum: 10/3e54c57a5aa8e16d2da15956c9c811f9594fe7fd83d07be8855a1e32a02bd3c61d16fcbb7f65d2c2bd819f5f7cf53fb71eea2b08f23f759ffbec79f0b4e0aff2
   languageName: node
   linkType: hard
 
@@ -7541,7 +7585,7 @@ __metadata:
     react-test-renderer: "npm:19.3.0"
     rxjs: "npm:~7.8.2"
     stream-chat: "npm:^10.0.2"
-    stream-chat-react-native: "npm:^10.0.1"
+    stream-chat-react-native: "npm:^10.1.0"
     typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
@@ -8116,6 +8160,13 @@ __metadata:
   version: 1.3.5
   resolution: "@types/triple-beam@npm:1.3.5"
   checksum: 10/519b6a1b30d4571965c9706ad5400a200b94e4050feca3e7856e3ea7ac00ec9903e32e9a10e2762d0f7e472d5d03e5f4b29c16c0bd8c1f77c8876c683b2231f1
+  languageName: node
+  linkType: hard
+
+"@types/trusted-types@npm:^2.0.2":
+  version: 2.0.7
+  resolution: "@types/trusted-types@npm:2.0.7"
+  checksum: 10/8e4202766a65877efcf5d5a41b7dd458480b36195e580a3b1085ad21e948bc417d55d6f8af1fd2a7ad008015d4117d5fdfe432731157da3c68678487174e4ba3
   languageName: node
   linkType: hard
 
@@ -15510,6 +15561,37 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lit-element@npm:^4.2.0":
+  version: 4.2.2
+  resolution: "lit-element@npm:4.2.2"
+  dependencies:
+    "@lit-labs/ssr-dom-shim": "npm:^1.5.0"
+    "@lit/reactive-element": "npm:^2.1.0"
+    lit-html: "npm:^3.3.0"
+  checksum: 10/268705c5a88c68ceeffb4dc871ffa7a9e5b5405b4907bc408cdc3336ea865b1690b4f4a34155af287200cc0737933c25326ed6816fa2c040b747925717bc21a6
+  languageName: node
+  linkType: hard
+
+"lit-html@npm:^3.3.0":
+  version: 3.3.3
+  resolution: "lit-html@npm:3.3.3"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.2"
+  checksum: 10/d8fc4ccd983ad5c32e5efa98687e6be90dbfb29863ecda124d18452545854fdd97c8b06679182d8fbb2324e5db9ba1e210724e1d3e279545357b031e94ec9139
+  languageName: node
+  linkType: hard
+
+"lit@npm:^3.3.3":
+  version: 3.3.3
+  resolution: "lit@npm:3.3.3"
+  dependencies:
+    "@lit/reactive-element": "npm:^2.1.0"
+    lit-element: "npm:^4.2.0"
+    lit-html: "npm:^3.3.0"
+  checksum: 10/238a6574447f6499b7a4c6e30a4da89907b095ea48d6291fb1de570e937745b84550ced459f9c51632c3010c964403e2d6ebe65caf1500f03779b6049f229f12
+  languageName: node
+  linkType: hard
+
 "load-script@npm:^1.0.0":
   version: 1.0.0
   resolution: "load-script@npm:1.0.0"
@@ -19328,6 +19410,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"redos-detector@npm:^6.1.4":
+  version: 6.1.4
+  resolution: "redos-detector@npm:6.1.4"
+  dependencies:
+    regjsparser: "npm:0.13.0"
+  bin:
+    redos-detector: bin.js
+  checksum: 10/c29051663ec0ad47752b21fe583de4b5de1b48f07b2f2d8c1475be737a36d51d302bb3c0e31da4391b558ab7f028e0ab8f49d89f37652d71f059287184a55229
+  languageName: node
+  linkType: hard
+
 "reflect.getprototypeof@npm:^1.0.10, reflect.getprototypeof@npm:^1.0.9":
   version: 1.0.10
   resolution: "reflect.getprototypeof@npm:1.0.10"
@@ -19411,6 +19504,17 @@ __metadata:
   version: 0.8.0
   resolution: "regjsgen@npm:0.8.0"
   checksum: 10/b930f03347e4123c917d7b40436b4f87f625b8dd3e705b447ddd44804e4616c3addb7453f0902d6e914ab0446c30e816e445089bb641a4714237fe8141a0ef9d
+  languageName: node
+  linkType: hard
+
+"regjsparser@npm:0.13.0":
+  version: 0.13.0
+  resolution: "regjsparser@npm:0.13.0"
+  dependencies:
+    jsesc: "npm:~3.1.0"
+  bin:
+    regjsparser: bin/parser
+  checksum: 10/eeaabd3454f59394cbb3bfeb15fd789e638040f37d0bee9071a9b0b85524ddc52b5f7aaaaa4847304c36fa37429e53d109c4dbf6b878cb5ffa4f4198c1042fb7
   languageName: node
   linkType: hard
 
@@ -20390,7 +20494,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"simple-markdown@npm:^0.7.1":
+"simple-markdown@npm:^0.7.1, simple-markdown@npm:^0.7.3":
   version: 0.7.3
   resolution: "simple-markdown@npm:0.7.3"
   dependencies:
@@ -20711,12 +20815,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react-native-core@npm:10.0.1":
-  version: 10.0.1
-  resolution: "stream-chat-react-native-core@npm:10.0.1"
+"stream-chat-react-native-core@npm:10.1.0":
+  version: 10.1.0
+  resolution: "stream-chat-react-native-core@npm:10.1.0"
   dependencies:
+    "@a2ui/web_core": "npm:~0.15.0"
     "@gorhom/bottom-sheet": "npm:^5.2.14"
-    "@khanacademy/simple-markdown": "npm:^2.1.0"
+    "@legendapp/list": "npm:^3.7.1"
     "@stream-io/i18n": "npm:^1.1.0"
     "@stream-io/state-store": "npm:^1.2.0"
     "@ungap/structured-clone": "npm:^1.3.0"
@@ -20731,6 +20836,7 @@ __metadata:
     react-native-markdown-package: "npm:1.8.2"
     react-native-url-polyfill: "npm:^2.0.0"
     react-syntax-highlighter: "npm:^16.1.0"
+    simple-markdown: "npm:^0.7.3"
     stream-chat: "npm:^10.0.1"
     use-sync-external-store: "npm:^1.7.0"
     zod: "npm:^4.1.12"
@@ -20743,6 +20849,7 @@ __metadata:
     emoji-mart: ">=5.4.0"
     react-native: ">=0.79.0"
     react-native-gesture-handler: ">=2.18.0"
+    react-native-keyboard-controller: ">=1.21.7"
     react-native-reanimated: ">=3.16.0"
     react-native-safe-area-context: ">=5.4.1"
     react-native-svg: ">=15.8.0"
@@ -20759,19 +20866,21 @@ __metadata:
       optional: true
     emoji-mart:
       optional: true
+    react-native-keyboard-controller:
+      optional: true
     victory-native:
       optional: true
-  checksum: 10/dd59a1955fa1acd5cefb7c1b13be88d6c98725a9cfb604944d0f5286aac6ef3f8e85a05e32d7d054a9e98dec54d7cc5bc9b6b026228cde33eacdc9943e9e00dc
+  checksum: 10/c4929189435054eae7aabf1e43ba81922c115facfb9bde976a12d332819ed244e3f7824f250d8b5dc9b6e55197ab2db520f19de748c5507c1bc2124877e182fe
   languageName: node
   linkType: hard
 
-"stream-chat-react-native@npm:^10.0.1":
-  version: 10.0.1
-  resolution: "stream-chat-react-native@npm:10.0.1"
+"stream-chat-react-native@npm:^10.1.0":
+  version: 10.1.0
+  resolution: "stream-chat-react-native@npm:10.1.0"
   dependencies:
     es6-symbol: "npm:^3.1.3"
     mime: "npm:^4.0.7"
-    stream-chat-react-native-core: "npm:10.0.1"
+    stream-chat-react-native-core: "npm:10.1.0"
   peerDependencies:
     "@react-native-camera-roll/camera-roll": ">=7.9.0"
     "@react-native-clipboard/clipboard": ">=1.16.0"
@@ -20782,6 +20891,7 @@ __metadata:
     react-native-blob-util: ">=0.22.0"
     react-native-haptic-feedback: ">=2.3.0"
     react-native-image-picker: ">=7.1.2"
+    react-native-keyboard-controller: ">=1.21.7"
     react-native-nitro-sound: ">=0.2.9"
     react-native-share: ">=11.0.0"
     react-native-video: ">=6.18.0"
@@ -20803,6 +20913,8 @@ __metadata:
       optional: true
     react-native-image-picker:
       optional: true
+    react-native-keyboard-controller:
+      optional: true
     react-native-nitro-sound:
       optional: true
     react-native-share:
@@ -20811,7 +20923,7 @@ __metadata:
       optional: true
     victory-native:
       optional: true
-  checksum: 10/5c4cac9d6bd6960cb9d6450ec7a8c817d8cbcb6047c64bef893ec3c83ddec65dbc3c379cb90b157cfbd5559e82dd28e27fb95b8d3aa31fef66ba613be60a7bb8
+  checksum: 10/69197b8461242dcd506611429cc4f2225438a0c11c0d1fe91c8021adc73c1fd52d7361f7b6ca3549772285c9a6ceb9c962da34d316cceb5b956a063f22932b27
   languageName: node
   linkType: hard
 
@@ -22118,6 +22230,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"validate-color@npm:^2.2.4":
+  version: 2.2.4
+  resolution: "validate-color@npm:2.2.4"
+  checksum: 10/f24f7ee1ee637ee04ab1df6539694123904f2b20a17449d88286df2dc9060e9b9b819c0567ff0e6b58217724848d49435d24c886a82eae7ad4f692632bffed5a
+  languageName: node
+  linkType: hard
+
 "validate-npm-package-license@npm:^3.0.4":
   version: 3.0.4
   resolution: "validate-npm-package-license@npm:3.0.4"
@@ -22898,6 +23017,15 @@ __metadata:
   version: 1.2.2
   resolution: "yocto-queue@npm:1.2.2"
   checksum: 10/92dd9880c324dbc94ff4b677b7d350ba8d835619062b7102f577add7a59ab4d87f40edc5a03d77d369dfa9d11175b1b2ec4a06a6f8a5d8ce5d1306713f66ee41
+  languageName: node
+  linkType: hard
+
+"zod-to-json-schema@npm:^3.25.2":
+  version: 3.25.2
+  resolution: "zod-to-json-schema@npm:3.25.2"
+  peerDependencies:
+    zod: ^3.25.28 || ^4
+  checksum: 10/7035328654113f1a0b8e4c2d34a06f918c93650ef8a50d4fb30ad8f22e47d5762c163af9c82494756b34776bae3c41c26cfc6945105b0eee7dceb528cc07e665
   languageName: node
   linkType: hard
 
