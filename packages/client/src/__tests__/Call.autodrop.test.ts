@@ -10,6 +10,7 @@ import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { CallingState, ClientState } from '../store';
 import { CallSettingsResponse } from '../gen/coordinator';
+import { CallRingPayload } from './data';
 
 const TIMEOUT_MS = 30_000;
 
@@ -20,7 +21,23 @@ describe('Auto drop ringing calls', () => {
   const userId = 'jane';
   let call: Call;
 
-  const ringingCall = () => {
+  const ringSettings = () =>
+    fromPartial<CallSettingsResponse>({
+      ring: {
+        auto_cancel_timeout_ms: TIMEOUT_MS,
+        incoming_call_timeout_ms: TIMEOUT_MS,
+        missed_call_timeout_ms: TIMEOUT_MS,
+      },
+      screensharing: {
+        enabled: false,
+        target_resolution: { width: 100, height: 100 },
+      },
+    });
+
+  const ringingCall = ({
+    createdById = userId,
+    withSettings = true,
+  }: { createdById?: string; withSettings?: boolean } = {}) => {
     const clientState = new ClientState();
     const streamClient = new StreamClient('abc');
     const newCall = new Call({
@@ -34,20 +51,10 @@ describe('Auto drop ringing calls', () => {
     });
 
     clientState.setConnectedUser(fromPartial({ id: userId }));
-    newCall.state['createdBySubject'].next(fromPartial({ id: userId }));
-    newCall.state['settingsSubject'].next(
-      fromPartial<CallSettingsResponse>({
-        ring: {
-          auto_cancel_timeout_ms: TIMEOUT_MS,
-          incoming_call_timeout_ms: TIMEOUT_MS,
-          missed_call_timeout_ms: TIMEOUT_MS,
-        },
-        screensharing: {
-          enabled: false,
-          target_resolution: { width: 100, height: 100 },
-        },
-      }),
-    );
+    newCall.state['createdBySubject'].next(fromPartial({ id: createdById }));
+    // a call built from a push notification has no settings until `get()`
+    // resolves
+    if (withSettings) newCall.state['settingsSubject'].next(ringSettings());
     newCall.state['sessionSubject'].next(
       fromPartial({
         id: 'session-1',
@@ -85,6 +92,87 @@ describe('Auto drop ringing calls', () => {
       reason: 'timeout',
       message: 'ringing timeout - no one accepted',
     });
+  });
+
+  // A callee's call built from a push notification starts ringing
+  // before its settings load. If nothing else ends the ring (no answer, and no
+  // `call.rejected` from the caller), the callee's own timeout must end it.
+  it('hangs up after the ring timeout when the settings arrive late', async () => {
+    call = ringingCall({ createdById: 'the-caller', withSettings: false });
+    call.state['callingStateSubject'].next(CallingState.IDLE);
+
+    call['handleRingingCall']();
+
+    expect(call.state.callingState).toBe(CallingState.RINGING);
+    expect(call['ringTimeout']!['timeoutId']).toBeUndefined();
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    // e.g. when `call.get()` resolves
+    call.state['settingsSubject'].next(ringSettings());
+
+    await vi.advanceTimersByTimeAsync(TIMEOUT_MS - 1);
+    expect(call.leave).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(call.leave).toHaveBeenCalledWith({
+      reject: true,
+      reason: 'timeout',
+      message: `ringing timeout - user didn't interact with incoming call screen`,
+    });
+  });
+
+  // `updateFromRingingEvent` runs `setup()`, which starts the
+  // timeout, before it applies the event's settings. That matters when
+  // `call.ring` is the first event the app gets for the call: `call.created`
+  // usually comes first and brings the settings, but an app in the background
+  // can miss it.
+  it('hangs up after the ring timeout for a call created from a call.ring event', async () => {
+    const clientState = new ClientState();
+    const streamClient = new StreamClient('abc');
+    clientState.setConnectedUser(fromPartial({ id: 'the-callee' }));
+    // how `StreamVideoClient.initCallFromEvent` builds a new ringing call
+    call = new Call({
+      type: CallRingPayload.call.type,
+      id: CallRingPayload.call.id,
+      streamClient,
+      videoApi: new VideoApi(new ApiClient(streamClient)),
+      clientEventReporter: new ClientEventReporter({ streamClient }),
+      clientState,
+      members: CallRingPayload.members,
+      ringing: true,
+    });
+    vi.spyOn(call, 'leave').mockResolvedValue(undefined);
+    const { incoming_call_timeout_ms } = CallRingPayload.call.settings.ring;
+
+    await call.updateFromRingingEvent(CallRingPayload);
+
+    expect(call.state.callingState).toBe(CallingState.RINGING);
+    await vi.advanceTimersByTimeAsync(incoming_call_timeout_ms - 1);
+    expect(call.leave).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(call.leave).toHaveBeenCalledWith({
+      reject: true,
+      reason: 'timeout',
+      message: `ringing timeout - user didn't interact with incoming call screen`,
+    });
+  });
+
+  it('unsubscribes from settings$ when the call is left', async () => {
+    call = ringingCall({ createdById: 'the-caller', withSettings: false });
+    call['handleRingingCall']();
+    const timeout = call['ringTimeout']!;
+    expect(timeout['settingsWait']).toHaveLength(2);
+    vi.spyOn(call, 'leave').mockRestore();
+    vi.spyOn(call, 'reject').mockResolvedValue(fromPartial({}));
+
+    const leaving = call.leave({ reject: true });
+    // unsubscribed before the first await, so settings that load during the
+    // leave can't start the timeout
+    expect(timeout['settingsWait']).toHaveLength(0);
+    await leaving;
+
+    call.state['settingsSubject'].next(ringSettings());
+    await vi.advanceTimersByTimeAsync(TIMEOUT_MS);
+    expect(timeout['timeoutId']).toBeUndefined();
   });
 
   it('is cancelled by cancelAutoDrop', async () => {

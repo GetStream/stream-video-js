@@ -1,5 +1,6 @@
 import type { Call } from '../Call';
 import { CallingState } from '../store';
+import { createSubscription } from '../store/rxUtils';
 import { getTimers } from '../timers';
 import { videoLoggerSystem } from '../logger';
 
@@ -14,6 +15,7 @@ export class RingTimeout {
   private timeoutId: number | undefined;
   private deadlineAt: number | undefined;
   private stopped: boolean = false;
+  private settingsWait: Array<() => void> = [];
 
   constructor(call: Call) {
     this.call = call;
@@ -28,7 +30,25 @@ export class RingTimeout {
     // ignore if the call is not ringing
     if (this.call.state.callingState !== CallingState.RINGING) return;
 
-    const ring = this.call.state.settings?.ring;
+    const settings = this.call.state.settings;
+    if (!settings) {
+      // Why we wait: the settings usually arrive with
+      // `call.created`, which the server sends before `call.ring`, so the call
+      // has them by the time it rings. A callee whose app is in the background
+      // can miss `call.created`. The ring then comes by push, and
+      // `StreamVideoClient.onRingingCall` → `Call.get()` runs `setup()`, which
+      // starts the ringing, before the response brings the settings. Without
+      // this wait the timeout never starts and the call rings until something
+      // else ends it.
+      // To reproduce: put the callee's app in the background, ring it, and
+      // keep the caller from cancelling (e.g. kill the caller's app right after
+      // it rings). The callee keeps ringing past `incoming_call_timeout_ms`.
+      this.waitForSettings();
+      return;
+    }
+    this.stopWaitingForSettings();
+
+    const ring = settings.ring;
     if (!ring) return;
 
     const isCaller = this.call.isCreatedByMe;
@@ -72,6 +92,9 @@ export class RingTimeout {
    * Pauses the timeout while preserving its original deadline.
    */
   pause = () => {
+    // settings that load while paused (e.g. during a leave) must not start
+    // the timeout
+    this.stopWaitingForSettings();
     if (this.stopped || this.timeoutId === undefined) return;
     getTimers().clearTimeout(this.timeoutId);
     this.timeoutId = undefined;
@@ -83,8 +106,38 @@ export class RingTimeout {
   stop = () => {
     if (this.stopped) return;
     this.stopped = true;
+    this.stopWaitingForSettings();
     getTimers().clearTimeout(this.timeoutId);
     this.timeoutId = undefined;
     this.deadlineAt = undefined;
+  };
+
+  /**
+   * Calls `start()` again once the call settings are known, and gives up once
+   * the call is joined or left. Only called while the call is ringing and the
+   * settings are missing, so the values replayed on subscribe are no-ops.
+   */
+  private waitForSettings = () => {
+    if (this.settingsWait.length > 0) return;
+    this.settingsWait.push(
+      createSubscription(this.call.state.settings$, (settings) => {
+        if (!settings) return;
+        this.stopWaitingForSettings();
+        this.start();
+      }),
+      createSubscription(this.call.state.callingState$, (callingState) => {
+        if (
+          callingState === CallingState.JOINED ||
+          callingState === CallingState.LEFT
+        ) {
+          this.stopWaitingForSettings();
+        }
+      }),
+    );
+  };
+
+  private stopWaitingForSettings = () => {
+    this.settingsWait.forEach((unsubscribe) => unsubscribe());
+    this.settingsWait = [];
   };
 }

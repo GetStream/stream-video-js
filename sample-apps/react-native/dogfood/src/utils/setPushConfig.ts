@@ -8,6 +8,7 @@ import { setNotificationListeners } from './setNotificationListeners';
 import { registerNonRingingNotificationHandler } from './registerNonRingingNotifications';
 import { attachE2EEIfConfigured, disposeE2EEManager } from './e2ee';
 import { APP_ENVIRONMENTS } from '../constants';
+import { ignoreRingEventsFromWebSocketForE2EUser } from './ignoreRingEventsFromWebSocket';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
@@ -65,7 +66,7 @@ const createStreamVideoClient = async () => {
   };
   const { apiKey, token } = await fetchAuthDetails();
   const tokenProvider = () => fetchAuthDetails().then((auth) => auth.token);
-  return StreamVideoClient.getOrCreateInstance({
+  const client = StreamVideoClient.getOrCreateInstance({
     apiKey,
     user,
     token,
@@ -81,6 +82,8 @@ const createStreamVideoClient = async () => {
       rejectCallWhenBusy: false,
     },
   });
+  ignoreRingEventsFromWebSocketForE2EUser(client, user.id);
+  return client;
 };
 
 /**
