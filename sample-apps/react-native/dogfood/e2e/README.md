@@ -72,6 +72,58 @@ narrow it further.
 Release configurations bundle the JS, so no Metro is needed. Debug configurations need `yarn start`. Android builds need
 JDK 17 or 21 (`JAVA_HOME`). The app logs at `debug` level; read it with `adb logcat -s ReactNativeJS:V`.
 
+## Keep-call-alive tests (Android)
+
+These check that a call survives the app leaving the foreground: the SDK's or callingx's foreground service and a
+headless JS task keep it alive (`packages/react-native-sdk/src/utils/keepCallAliveController.ts`). Each test locks the
+screen (or goes home) for `E2E_AWAY_SECONDS` (60 by default) and checks, from outside the app:
+
+- the server sees the user on the call the whole time, in the same session (a new session means the user was dropped
+  and joined again) — `support/StreamCallApi.ts`;
+- JS timers keep running: the app logs `[e2e] js heartbeat` every 5s for `e2e_` users (`src/utils/e2eJsHeartbeat.ts`),
+  and the test reads it from logcat and fails on a gap of more than three ticks — `support/KeepAliveWatcher.ts`;
+- the expected service is in the foreground (`dumpsys activity services`): the SDK's
+  `StreamCallKeepAliveHeadlessService`, or callingx's `CallService` — `support/Adb.ts`.
+
+| Test                                                                      | What it covers                                                     |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `KeepCallAliveTests` `testRegularCallStaysAliveWhileTheScreenIsLocked`    | regular call, SDK service                                          |
+| `…testRegularCallStaysAliveWhileTheAppIsInTheBackground`                  | regular call, SDK service, home button instead of locking          |
+| `…testRegularCallStaysAliveWhileTheScreenIsLockedWhenCallingxManages…`    | regular call with `enableOngoingCalls`, callingx service           |
+| `…testRingingCallStaysAliveWhileTheScreenIsLocked`                        | ringing call accepted in the app, callingx service                 |
+| `…testRingingCallReceivedInTheBackgroundStaysAliveWhileTheScreenIsLocked` | ring handled in the background, then hand-over to the call         |
+| `…testRingingCallStaysAliveAfterSwitchingToAnotherRingingCall`            | ringing call A, then ringing call B accepted; both survive locking |
+| `push/KeepCallAliveFromPushTests` (local only, not Detox)                 | killed app started by a push, answered from the notification       |
+
+- Users whose id starts with `e2e_ongoing_calls_` get `enableOngoingCalls` on Android (`src/utils/setPushConfig.ts`).
+  The push config is set when the app starts, so the test relaunches the app after signing in.
+- Users whose id starts with `e2e_no_pip_` have picture-in-picture off in the call screen (`src/components/ActiveCall.tsx`).
+  With it on, Home shrinks the call into a picture-in-picture window, the app stays `active`, and the background test
+  would never reach the background.
+- Notifications (e.g. answering a call-waiting ring) are tapped with `uiautomator dump` + `adb shell input tap`
+  (`support/Adb.ts`), which works while Detox runs.
+- The device's screen lock must be "Swipe" or "None": the tests unlock it with `adb shell wm dismiss-keyguard`.
+- The app must use the same environment as the tests (`demo` by default). For a debug build switched to another one on
+  the login screen, set `E2E_STREAM_ENVIRONMENT`, e.g. `E2E_STREAM_ENVIRONMENT=pronto`.
+
+```bash
+# Detox tests, on an attached device (debug build needs `yarn start`)
+DETOX_ADB_NAME=<serial> VIDEO_BUDDY_PORT=5678 yarn e2e:test -c android.att.debug e2e/tests/KeepCallAliveTests.e2e.ts
+# Stay away longer, e.g. 4 minutes
+E2E_AWAY_SECONDS=240 DETOX_ADB_NAME=<serial> yarn e2e:test -c android.att.debug e2e/tests/KeepCallAliveTests.e2e.ts
+```
+
+**The killed-app push test** (`e2e/push/`) can't use Detox: Detox's runner lives in the app's process, and when that
+process dies Android force-stops the app and drops its pushes. So it runs as plain Jest and drives the device with adb:
+it opens the app from the launcher, signs in through `uiautomator dump` (React Native puts testIDs in `resource-id`),
+goes home and kills the app with `am kill` (which, unlike a force stop, leaves it able to receive pushes), rings it,
+answers from the notification, then locks the screen. It needs a device with Google Play services, the dogfood app
+installed and its notification permission granted, and stream-video-buddy running.
+
+```bash
+DETOX_ADB_NAME=<serial> VIDEO_BUDDY_PORT=5678 yarn e2e:test:push
+```
+
 ## CI
 
 `.github/workflows/react-native-e2e-test.yml` runs on pull requests and on demand (`workflow_dispatch`). A cheap

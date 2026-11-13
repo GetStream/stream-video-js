@@ -4,6 +4,7 @@ import { videoLoggerSystem } from '@stream-io/video-client';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { IconWrapper, Phone } from '../../../../icons';
 import { CallControlsButton } from './CallControlsButton';
+import { ButtonTestIds } from '../../../../constants/TestIds';
 
 /**
  * The props for the Accept Call button.
@@ -66,6 +67,7 @@ export const AcceptCallButton = ({
       color={semantics.controlAcceptCallButtonBg}
       disabled={isLoading || disabled}
       style={acceptCallButton}
+      testID={ButtonTestIds.ACCEPT_CALL}
     >
       <IconWrapper>
         <Phone

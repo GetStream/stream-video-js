@@ -7,4 +7,8 @@ export const RingingPage = {
   get incomingCallTitle() {
     return by.text('Incoming Call...');
   },
+  /** The SDK's accept button (`AcceptCallButton`). */
+  get acceptCallButton() {
+    return by.id('stream-accept-call');
+  },
 };

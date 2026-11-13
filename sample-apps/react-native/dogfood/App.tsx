@@ -26,6 +26,7 @@ import AudioRoomScreen from './src/screens/AudioRoom';
 import { ChatWrapper } from './src/components/ChatWrapper';
 import { AppMode } from './src/navigators/AppMode';
 import { setPushConfig } from './src/utils/setPushConfig';
+import { startE2EJsHeartbeat } from './src/utils/e2eJsHeartbeat';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -49,6 +50,10 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 // All the push notification related config must be done as soon the app starts
 // since the app can be opened from a dead state through a push notification
 setPushConfig();
+
+// Test-only: proves to the e2e suite that JS timers keep running in the background.
+// Logs nothing unless an e2e user is signed in.
+startE2EJsHeartbeat();
 
 const StackNavigator = () => {
   const appMode = useAppGlobalStoreValue((store) => store.appMode);

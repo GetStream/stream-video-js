@@ -38,6 +38,20 @@ const currentTestName = () =>
     .pop()!
     .replace(/[^\w-]/g, '_');
 
+/** Kills the app and starts it again. The app keeps the signed-in user. */
+export const relaunchApp = async () => {
+  await device.launchApp({
+    newInstance: true,
+    launchArgs: {
+      // A call never goes idle (the duration timer, speech indicator animations, WebRTC), so
+      // Detox's synchronization would wait forever. Every robot action and assert waits
+      // explicitly instead.
+      detoxEnableSynchronization: 0,
+    },
+  });
+  await device.disableSynchronization();
+};
+
 export const setUpStreamTestCase = (): StreamTestCase => {
   const testCase = new StreamTestCase();
 
@@ -46,16 +60,7 @@ export const setUpStreamTestCase = (): StreamTestCase => {
     testCase.callId = generateCallId();
     testCase.userRobot.callId = testCase.callId;
     dismissAnrDialog();
-    await device.launchApp({
-      newInstance: true,
-      launchArgs: {
-        // A call never goes idle (the duration timer, speech indicator animations, WebRTC), so
-        // Detox's synchronization would wait forever. Every robot action and assert waits
-        // explicitly instead.
-        detoxEnableSynchronization: 0,
-      },
-    });
-    await device.disableSynchronization();
+    await relaunchApp();
     await testCase.userRobot.loginIfNeeded();
   });
 

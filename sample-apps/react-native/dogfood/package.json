@@ -12,7 +12,8 @@
     "test-ci": "jest --ci --runInBand",
     "setup": "yarn && yarn build:react-native:deps && npx pod-install",
     "e2e:build": "detox build",
-    "e2e:test": "detox test"
+    "e2e:test": "detox test",
+    "e2e:test:push": "jest --config e2e/push/jest.config.js"
   },
   "codegenConfig": {
     "name": "FoldRegionSpec",

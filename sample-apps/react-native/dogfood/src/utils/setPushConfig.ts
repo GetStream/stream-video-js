@@ -9,6 +9,7 @@ import { registerNonRingingNotificationHandler } from './registerNonRingingNotif
 import { attachE2EEIfConfigured, disposeE2EEManager } from './e2ee';
 import { APP_ENVIRONMENTS } from '../constants';
 import { ignoreRingEventsFromWebSocketForE2EUser } from './ignoreRingEventsFromWebSocket';
+import { isE2EOngoingCallsUser } from './e2eJsHeartbeat';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
@@ -20,6 +21,8 @@ export function setPushConfig() {
     },
     android: {
       pushProviderName: 'rn-fcm-video',
+      // Test-only: lets the e2e suite run regular calls through callingx. Off for everyone else.
+      ...(isE2EOngoingCallsUser() && { enableOngoingCalls: true }),
     },
     shouldRejectCallWhenBusy: false,
     createStreamVideoClient,

@@ -26,6 +26,7 @@ export enum ButtonTestIds {
   PARTICIPANTS_COUNT_VIEW = 'stream-participants-count-view',
   PARTICIPANTS_COUNT_TEXT = 'stream-participants-count-text',
   HANG_UP_CALL = 'stream-hang-up-call',
+  ACCEPT_CALL = 'stream-accept-call',
   REACTION = 'stream-call-controls-reaction',
   JOIN_CALL = 'stream-join-call-button',
   MICROPHONE_ENABLED = 'stream-microphone-toggle-enabled',

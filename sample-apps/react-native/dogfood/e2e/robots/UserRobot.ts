@@ -4,6 +4,7 @@ import { CallDetailsPage } from '../pages/CallDetailsPage';
 import { CallPage } from '../pages/CallPage';
 import { LobbyPage } from '../pages/LobbyPage';
 import { LoginPage } from '../pages/LoginPage';
+import { RingingPage } from '../pages/RingingPage';
 import {
   exists,
   seconds,
@@ -166,6 +167,20 @@ export class UserRobot extends Robot {
       CallPage.microphoneEnabledToggle,
       CallPage.microphoneDisabledToggle,
     );
+  }
+
+  /** Taps Accept on the incoming call screen and waits until the call is on screen. */
+  acceptIncomingCall(): this {
+    return this.perform(() =>
+      waitToAppearAndClick(RingingPage.acceptCallButton, {
+        timeout: seconds(30),
+      }),
+    ).waitForCallToStart();
+  }
+
+  /** Brings the app back from the background, as when the user opens it from the launcher. */
+  openAppFromBackground(): this {
+    return this.perform(() => device.launchApp({ newInstance: false }));
   }
 
   endCall(): this {

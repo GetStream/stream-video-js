@@ -24,6 +24,8 @@ import { useFoldDivision } from '../hooks/useFoldDivision';
 import { useLayout } from '../contexts/LayoutContext';
 import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAppGlobalStoreValue } from '../contexts/AppContext';
+import { E2E_NO_PIP_USER_PREFIX } from '../constants/e2e';
 
 // Windows shorter than this use the landscape layout (controls on the side).
 // Taller windows, such as tablets or a large foldable display, keep the
@@ -50,6 +52,9 @@ export const ActiveCall = ({
     windowHeight < LANDSCAPE_LAYOUT_MAX_HEIGHT;
   // on a foldable, keep the grid split at the hinge
   const hasHinge = !!useFoldDivision();
+  // Test-only: the e2e suite turns picture-in-picture off to send a call to the background.
+  const userId = useAppGlobalStoreValue((store) => store.userId);
+  const disablePictureInPicture = userId.startsWith(E2E_NO_PIP_USER_PREFIX);
 
   useEffect(() => {
     return call?.on('call.moderation_warning', (event) => {
@@ -99,6 +104,7 @@ export const ActiveCall = ({
               layout={selectedLayout}
               evenGridColumns={hasHinge}
               onHangupPressHandler={onHangupCallHandler}
+              disablePictureInPicture={disablePictureInPicture}
             />
           </FoldAwareCallArea>
         </SafeAreaView>
