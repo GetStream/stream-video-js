@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-2.0.0-beta.3...@stream-io/video-react-bindings-2.0.0-beta.4) (2026-11-05)
+
+### Features
+
+- surface noise cancellation overload status ([#2528](https://github.com/GetStream/stream-video-js/issues/2528)) ([a90bc74](https://github.com/GetStream/stream-video-js/commit/a90bc742d6763fa810a314beb23045156312d86a))
+
+### Bug Fixes
+
+- **client:** let users retry mic/camera access after a denial ([#2570](https://github.com/GetStream/stream-video-js/issues/2570)) ([7281ea7](https://github.com/GetStream/stream-video-js/commit/7281ea7d99f7e86f77c5caa3c39cb6ff82d1dbd3))
+
 ## [2.0.0-beta.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-2.0.0-beta.2...@stream-io/video-react-bindings-2.0.0-beta.3) (2026-10-20)
 
 ## [2.0.0-beta.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-2.0.0-beta.1...@stream-io/video-react-bindings-2.0.0-beta.2) (2026-10-16)

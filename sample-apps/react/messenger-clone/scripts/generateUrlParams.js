@@ -1,14 +1,10 @@
-const { JWTUserToken } = require('stream-chat');
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const { createToken } = require('./createToken');
 
-require('dotenv').config();
-const secret = process.env.VITE_STREAM_SECRET;
+const THIRTY_DAYS_IN_SECONDS = 3600 * 24 * 30;
 
 (async () => {
-  if (!secret) {
-    throw new Error('Missing VITE_STREAM_SECRET in .env');
-  }
   const targetUserId = process.argv[2];
 
   if (!targetUserId) {
@@ -27,11 +23,16 @@ const secret = process.env.VITE_STREAM_SECRET;
     );
   }
 
-  const token = JWTUserToken(secret, user.id, {
-    name: user.name,
-    image: user.image,
-    exp: Math.round(Date.now() / 1000 + 3600 * 24 * 30), // in 30 days
+  const { apiKey, token } = await createToken(user.id, {
+    exp: THIRTY_DAYS_IN_SECONDS,
   });
 
-  console.log(new URLSearchParams({ user_id: targetUserId, token }).toString());
+  console.log(
+    new URLSearchParams({
+      api_key: apiKey,
+      user_id: targetUserId,
+      user_name: user.name,
+      token,
+    }).toString(),
+  );
 })();

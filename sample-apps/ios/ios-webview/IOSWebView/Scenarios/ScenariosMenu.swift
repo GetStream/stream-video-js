@@ -2,16 +2,19 @@ import AVFAudio
 import SwiftUI
 
 /// SwiftUI replacement for the UIKit `UIMenu`-based scenarios menu. Bridges
-/// nav-bar taps into `AudioScenarios`. The live-state rows reactively
-/// re-render when `AppState.audioSessionActive` flips or
+/// nav-bar taps into `NetworkScenarios` and `AudioScenarios`. The live-state
+/// rows reactively re-render when `AppState.audioSessionActive` flips or
 /// `AVAudioSession.routeChangeNotification` fires (tracked via
 /// `audioRouteVersion`).
 struct ScenariosMenuView: View {
     let audio: AudioScenarios
+    let network: NetworkScenarios
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
         Menu {
+            networkSection
+            Divider()
             liveStateSection
             Divider()
             recoverySection
@@ -19,6 +22,10 @@ struct ScenariosMenuView: View {
             categorySwitcher
             Divider()
             soundsSection
+            Divider()
+            sampleRateSection
+            Divider()
+            Button("Dump session state") { audio.dumpSessionState() }
         } label: {
             Text("Scenarios")
         }
@@ -61,5 +68,32 @@ struct ScenariosMenuView: View {
         Button("Play ding (exclusive)") { audio.playDing(mixWithOthers: false) }
         Button("Play ding (exclusive, auto-restore)") { audio.playDingWithAutoRestore() }
         Button("Play ding (exclusive, NO restore)") { audio.playDingExclusiveNoRestore() }
+        Button("Ringtone loop start") { audio.startRingtone() }
+        Button("Ringtone loop stop") { audio.stopRingtone() }
+        Button("Local notification (2s)") { audio.scheduleLocalNotification() }
+    }
+
+    private var sampleRateSection: some View {
+        Menu("🎚 Sample rate & IO buffer") {
+            Section("Preferred sample rate") {
+                ForEach(AudioScenarios.sampleRates, id: \.self) { rate in
+                    Button("\(Int(rate)) Hz") { audio.setPreferredSampleRate(rate) }
+                }
+            }
+            Section("Preferred IO buffer") {
+                ForEach(AudioScenarios.ioBufferDurations, id: \.self) { duration in
+                    Button("\(Int(duration * 1000)) ms") { audio.setPreferredIOBufferDuration(duration) }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var networkSection: some View {
+        Section("Network") {
+            Button("Stale offline event (online → offline 0.5s)") {
+                network.dispatchStaleOfflineEvent()
+            }
+        }
     }
 }

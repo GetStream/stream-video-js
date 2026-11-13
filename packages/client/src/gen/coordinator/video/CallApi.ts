@@ -1,5 +1,6 @@
 import type { StreamResponse, VideoApi } from '../../gen-imports';
 import type {
+  Filters,
   AcceptCallResponse,
   BlockUserRequest,
   BlockUserResponse,
@@ -31,6 +32,7 @@ import type {
   QueryCallParticipantSessionsResponse,
   QueryCallParticipantsRequest,
   QueryCallParticipantsResponse,
+  RecordingType,
   RejectCallRequest,
   RejectCallResponse,
   RequestPermissionRequest,
@@ -205,7 +207,7 @@ export class CallApi {
   }
 
   startRecording(
-    pathParams: { recording_type: string },
+    pathParams: { recording_type: RecordingType },
     request?: StartRecordingRequest,
   ): Promise<StreamResponse<StartRecordingResponse>> {
     return this.videoApi.startRecording(
@@ -215,7 +217,7 @@ export class CallApi {
   }
 
   stopRecording(
-    pathParams: { recording_type: string },
+    pathParams: { recording_type: RecordingType },
     request?: StopRecordingRequest,
   ): Promise<StreamResponse<StopRecordingResponse>> {
     return this.videoApi.stopRecording(
@@ -305,7 +307,37 @@ export class CallApi {
       limit?: number;
       prev?: string;
       next?: string;
-      filter_conditions?: Record<string, any>;
+      filter_conditions?: Filters<{
+        is_live: {
+          type: boolean;
+          operators: '$eq';
+        };
+
+        is_tech_user: {
+          type: boolean;
+          operators: '$eq';
+        };
+
+        published_tracks: {
+          type: string;
+          operators: '$eq' | '$in';
+        };
+
+        publisher_type: {
+          type: string;
+          operators: '$eq' | '$in';
+        };
+
+        session_id: {
+          type: string;
+          operators: '$eq' | '$in';
+        };
+
+        user_id: {
+          type: string;
+          operators: '$eq' | '$in';
+        };
+      }>;
     },
   ): Promise<StreamResponse<QueryCallParticipantSessionsResponse>> {
     return this.videoApi.queryCallParticipantSessions(

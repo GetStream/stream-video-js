@@ -62,7 +62,7 @@ export type Theme = {
   callContent?: Partial<{
     container: ViewStyle;
     callParticipantsContainer: ViewStyle;
-    topContainer: ViewStyle;
+    floatingViewContainer: ViewStyle;
   }>;
   callControls: Partial<{ container: ViewStyle }>;
 
@@ -786,6 +786,10 @@ export const resolveTheme = (
         left: '20%',
         bottom: -0.5 * theme.foundations.stroke.w200,
       },
+      textContainer: {
+        backgroundColor: theme.semantics.badgeBgDefault,
+        borderRadius: theme.foundations.radius.radiusFull,
+      },
       text: {
         base: {
           fontWeight: theme.primitives.typographyFontWeightBold,
@@ -919,6 +923,12 @@ export const resolveTheme = (
       },
       textHighlight: {
         color: theme.semantics.textTertiary,
+      },
+    },
+    callContent: {
+      floatingViewContainer: {
+        paddingTop: theme.foundations.spacing.space16,
+        paddingBottom: theme.foundations.spacing.space16,
       },
     },
     videoRenderer: {

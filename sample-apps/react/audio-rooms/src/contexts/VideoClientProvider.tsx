@@ -7,11 +7,7 @@ export const VideoClientProvider = ({ children }: PropsWithChildren) => {
   const [client, setClient] = useState<StreamVideoClient>();
 
   useEffect(() => {
-    if (!apiKey) {
-      throw new Error('Missing API key');
-    }
-
-    if (!user) return;
+    if (!apiKey || !user) return;
     const _client = new StreamVideoClient({
       apiKey,
       tokenProvider,

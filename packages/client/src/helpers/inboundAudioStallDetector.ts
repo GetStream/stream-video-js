@@ -2,6 +2,7 @@ import { CallingState, CallState } from '../store';
 import type { Subscriber } from '../rtc';
 import { Tracer } from '../stats';
 import { hasAudio, hasScreenShareAudio } from './participantUtils';
+import { countInboundPackets } from './inboundPackets';
 
 export type InboundAudioStallDetectorOptions = {
   state: CallState;
@@ -39,17 +40,6 @@ export const createInboundAudioStallDetector = ({
     lastProgressAt = now;
   };
 
-  const countInboundAudioPackets = async () => {
-    let packets = 0;
-    const report = await subscriber.getStats();
-    report.forEach((s) => {
-      if (s.type === 'inbound-rtp' && s.kind === 'audio') {
-        packets += s.packetsReceived ?? 0;
-      }
-    });
-    return packets;
-  };
-
   const check = async () => {
     const now = Date.now();
     const senders =
@@ -70,7 +60,7 @@ export const createInboundAudioStallDetector = ({
       return;
     }
 
-    const packets = await countInboundAudioPackets();
+    const packets = await countInboundPackets(subscriber, 'audio');
     if (lastPackets === undefined || packets < lastPackets) {
       // first sample, or the receivers changed: start a new baseline
       lastPackets = packets;

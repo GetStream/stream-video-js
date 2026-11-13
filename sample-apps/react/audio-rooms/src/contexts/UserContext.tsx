@@ -3,6 +3,7 @@ import {
   PropsWithChildren,
   useCallback,
   useContext,
+  useEffect,
   useState,
 } from 'react';
 import { StreamVideoClient, TokenProvider } from '@stream-io/video-react-sdk';
@@ -12,11 +13,24 @@ import { noop } from '../utils/noop';
 import type { User } from '../types';
 import { getSelectedUser, storeUser } from '../utils/user';
 
-const envApiKey =
-  (import.meta.env.VITE_STREAM_API_KEY as string | undefined) || 'mmhfdzb5evj2';
+const envApiKey = import.meta.env.VITE_STREAM_API_KEY as string | undefined;
 const tokenProviderURL =
   (import.meta.env.VITE_TOKEN_PROVIDER_URL as string | undefined) ||
   'https://pronto.getstream.io/api/auth/create-token';
+
+/**
+ * Targets an explicit API key when one is configured, otherwise the token
+ * endpoint's demo environment (whose API key it returns).
+ */
+const tokenProviderEndpoint = (explicitApiKey: string | undefined) => {
+  const url = new URL(tokenProviderURL);
+  if (explicitApiKey) {
+    url.searchParams.set('api_key', explicitApiKey);
+  } else {
+    url.searchParams.set('environment', 'demo');
+  }
+  return url;
+};
 
 export interface UserState {
   authInProgress: boolean;
@@ -38,8 +52,18 @@ const UserContext = createContext<UserState>({
 
 export const UserContextProvider = ({ children }: PropsWithChildren) => {
   const urlCredentials = getURLCredentials();
-  const apiKey = urlCredentials.api_key || envApiKey;
+  const explicitApiKey = urlCredentials.api_key || envApiKey;
   const token = urlCredentials.token;
+  const [apiKey, setApiKey] = useState(explicitApiKey);
+
+  useEffect(() => {
+    if (explicitApiKey) return;
+    fetch(tokenProviderEndpoint(undefined))
+      .then((res) => res.json())
+      .then((data) => setApiKey(data.apiKey))
+      .catch((err) => console.error('Failed to resolve the demo API key', err));
+  }, [explicitApiKey]);
+
   const [user, setUser] = useState<User | undefined>(() => {
     const selectedUser = getSelectedUser();
     if (selectedUser) storeUser(selectedUser);
@@ -59,19 +83,11 @@ export const UserContextProvider = ({ children }: PropsWithChildren) => {
   }, []);
 
   const tokenProvider = useCallback(async (): Promise<string> => {
-    if (!apiKey) {
-      throw new Error('Missing API key');
-    }
-    if (!tokenProviderURL) {
-      throw new Error('Missing VITE_TOKEN_PROVIDER_URL');
-    }
-
     if (!user) {
       throw new Error('User is not selected');
     }
 
-    const url = new URL(tokenProviderURL);
-    url.searchParams.set('api_key', apiKey);
+    const url = tokenProviderEndpoint(explicitApiKey);
     url.searchParams.set('user_id', user.id);
 
     setAuthInProgress(true);
@@ -79,7 +95,7 @@ export const UserContextProvider = ({ children }: PropsWithChildren) => {
     const data = await response.json();
     setAuthInProgress(false);
     return data.token;
-  }, [apiKey, user]);
+  }, [explicitApiKey, user]);
 
   return (
     <UserContext.Provider

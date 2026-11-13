@@ -324,6 +324,20 @@ export abstract class BasePeerConnection {
   };
 
   /**
+   * Whether ICE hasn't dropped: anything but `disconnected`, `failed` or
+   * `closed`. A connection that never connected (`new`, `checking`) counts
+   * as intact, as there is nothing to repair.
+   */
+  isIceIntact = () => {
+    const iceState = this.pc.iceConnectionState;
+    return (
+      iceState !== 'disconnected' &&
+      iceState !== 'failed' &&
+      iceState !== 'closed'
+    );
+  };
+
+  /**
    * Handles the ICECandidate event and
    * Initiates an ICE Trickle process with the SFU.
    */

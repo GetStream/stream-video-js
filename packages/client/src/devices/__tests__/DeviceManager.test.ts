@@ -25,6 +25,7 @@ import { TrackType } from '../../gen/video/sfu/models/models';
 import { PermissionsContext } from '../../permissions';
 import { defaultDeviceId, readPreferences } from '../devicePersistence';
 import { promiseWithResolvers } from '../../helpers/promise';
+import { setCurrentValue } from '../../store/rxUtils';
 
 vi.mock('../../reporting/ClientEventReporter', () => ({
   ClientEventReporter: vi.fn(function () {
@@ -416,6 +417,59 @@ describe('Device Manager', () => {
     await expect(manager.select(deviceId)).rejects.toThrow(failure);
 
     expect(manager.state.selectedDevice).toBe(previousDevice);
+  });
+
+  it('re-enables the previous device when a switch fails', async () => {
+    await manager.enable();
+    const previousDevice = manager.state.selectedDevice;
+    const failure = new Error('NotReadableError');
+    manager.getStream.mockRejectedValueOnce(failure);
+
+    await expect(manager.select(mockVideoDevices[1].deviceId)).rejects.toThrow(
+      failure,
+    );
+
+    expect(manager.state.selectedDevice).toBe(previousDevice);
+    expect(manager.state.status).toBe('enabled');
+    expect(manager.state.optimisticStatus).toBe('enabled');
+    expect(manager.state.mediaStream).toBeDefined();
+  });
+
+  it('re-enables the previous device when the switch started while enabling', async () => {
+    const enabling = manager.enable();
+    manager.getStream.mockResolvedValueOnce(mockVideoStream());
+    manager.getStream.mockRejectedValueOnce(new Error('NotReadableError'));
+    const switching = manager.select(mockVideoDevices[1].deviceId);
+    await Promise.allSettled([enabling, switching]);
+
+    expect(manager.state.status).toBe('enabled');
+  });
+
+  it('stays disabled when the previous device also fails', async () => {
+    await manager.enable();
+    const failure = new Error('NotReadableError');
+    manager.getStream.mockRejectedValue(failure);
+
+    await expect(manager.select(mockVideoDevices[1].deviceId)).rejects.toThrow(
+      failure,
+    );
+
+    expect(manager.state.status).toBe('disabled');
+  });
+
+  it('does not re-enable a device that was disabled before the switch', async () => {
+    vi.spyOn(manager, 'enable');
+    await manager.select(mockVideoDevices[1].deviceId);
+    expect(manager.enable).not.toHaveBeenCalled();
+  });
+
+  it('does not re-enable when another status change is pending', async () => {
+    await manager.enable();
+    manager.getStream.mockRejectedValueOnce(new Error('NotReadableError'));
+    const switching = manager.select(mockVideoDevices[1].deviceId);
+    const disabling = manager.disable();
+    await Promise.allSettled([switching, disabling]);
+    expect(manager.state.status).toBe('disabled');
   });
 
   it('should stop the active session and clear selection on unregister', async () => {
@@ -811,6 +865,212 @@ describe('Device Manager', () => {
       expect(oldTrack.eventHandlers['mute']).toBeUndefined();
       expect(oldTrack.eventHandlers['unmute']).toBeUndefined();
       expect(oldTrack.eventHandlers['ended']).toBeUndefined();
+    });
+
+    describe('recovery after an interruption ends the track', () => {
+      const IPHONE_UA =
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148';
+      const userAgent = Object.getOwnPropertyDescriptor(
+        window.navigator,
+        'userAgent',
+      );
+      const setUserAgent = (ua: string) => {
+        Object.defineProperty(window.navigator, 'userAgent', {
+          configurable: true,
+          get: () => ua,
+        });
+      };
+      const endTrack = async (track: MockTrack) => {
+        await (track.eventHandlers['ended'] as Function)();
+      };
+
+      beforeEach(() => {
+        vi.useFakeTimers();
+        setUserAgent(IPHONE_UA);
+        manager.resumeAfterInterruption = true;
+      });
+
+      afterEach(() => {
+        manager.dispose();
+        vi.useRealTimers();
+        if (userAgent) {
+          Object.defineProperty(window.navigator, 'userAgent', userAgent);
+        } else {
+          // @ts-expect-error drops the override, restoring the prototype getter
+          delete window.navigator.userAgent;
+        }
+      });
+
+      it('re-enables the device after a track ends while interrupted on iOS', async () => {
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+        await endTrack(track);
+        expect(manager.state.status).toBe('disabled');
+
+        await vi.advanceTimersByTimeAsync(1000);
+
+        expect(manager.state.status).toBe('enabled');
+        expect(manager.getStream).toHaveBeenCalledTimes(2);
+      });
+
+      it('stays disabled unless resumeAfterInterruption is turned on', async () => {
+        manager.resumeAfterInterruption = false;
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+        await endTrack(track);
+        await vi.advanceTimersByTimeAsync(10_000);
+        expect(manager.state.status).toBe('disabled');
+        expect(manager.getStream).toHaveBeenCalledTimes(1);
+      });
+
+      const setExtraOpts = (extraOpts: Record<string, unknown>) => {
+        setCurrentValue(manager['call'].state['settingsSubject'], {
+          extra_opts: extraOpts,
+        } as any);
+      };
+
+      it('follows the call settings when the app has not set it', async () => {
+        manager.resumeAfterInterruption = undefined;
+        setExtraOpts({ video: { resume_after_interruption: true } });
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+        await endTrack(track);
+
+        await vi.advanceTimersByTimeAsync(1000);
+
+        expect(manager.state.status).toBe('enabled');
+      });
+
+      it('ignores the call settings of the other device kind', async () => {
+        manager.resumeAfterInterruption = undefined;
+        setExtraOpts({ audio: { resume_after_interruption: true } });
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+        await endTrack(track);
+        await vi.advanceTimersByTimeAsync(10_000);
+        expect(manager.state.status).toBe('disabled');
+      });
+
+      it('lets the app turn it off against the call settings', async () => {
+        manager.resumeAfterInterruption = false;
+        setExtraOpts({ video: { resume_after_interruption: true } });
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+        await endTrack(track);
+        await vi.advanceTimersByTimeAsync(10_000);
+        expect(manager.state.status).toBe('disabled');
+      });
+
+      it('is turned off by default', () => {
+        const streamClient = new StreamClient('abc123');
+        const fresh = new TestInputMediaDeviceManager(
+          new Call({
+            id: '',
+            type: '',
+            streamClient,
+            videoApi: new VideoApi(new ApiClient(streamClient)),
+            clientEventReporter: new ClientEventReporter({ streamClient }),
+            clientState: new ClientState(),
+          }),
+        );
+        expect(fresh.resumeAfterInterruption).toBeUndefined();
+        fresh.dispose();
+      });
+
+      it('stays disabled when the track ends without an interruption', async () => {
+        await manager.enable();
+        await endTrack(currentTrack());
+        await vi.advanceTimersByTimeAsync(10_000);
+        expect(manager.state.status).toBe('disabled');
+      });
+
+      it('stays disabled outside iOS', async () => {
+        setUserAgent(
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        );
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+        await endTrack(track);
+        await vi.advanceTimersByTimeAsync(10_000);
+        expect(manager.state.status).toBe('disabled');
+      });
+
+      it('does not recover after an explicit disable', async () => {
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+        await endTrack(track);
+        await manager.disable();
+        await vi.advanceTimersByTimeAsync(10_000);
+        expect(manager.state.status).toBe('disabled');
+        expect(manager.getStream).toHaveBeenCalledTimes(1);
+      });
+
+      it('enables the device when the user toggles it during the wait', async () => {
+        const hidden = vi
+          .spyOn(document, 'hidden', 'get')
+          .mockReturnValue(true);
+        await manager.enable();
+        await endTrack(currentTrack());
+        await vi.advanceTimersByTimeAsync(1000);
+        hidden.mockReturnValue(false);
+
+        // a tap on the toggle button: the gesture wakes the recovery up
+        // right before the click handler toggles the device
+        document.body.dispatchEvent(new Event('touchend', { bubbles: true }));
+        await manager.toggle();
+        await vi.advanceTimersByTimeAsync(10_000);
+
+        expect(manager.state.status).toBe('enabled');
+        hidden.mockRestore();
+      });
+
+      it('does not recover after the manager is disposed', async () => {
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+        await endTrack(track);
+        manager.dispose();
+        await vi.advanceTimersByTimeAsync(10_000);
+        expect(manager.getStream).toHaveBeenCalledTimes(1);
+      });
+
+      it('stays disabled after 3 failed attempts', async () => {
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+        await endTrack(track);
+        manager.getStream.mockRejectedValue(new Error('NotReadableError'));
+
+        await vi.advanceTimersByTimeAsync(20_000);
+
+        expect(manager.getStream).toHaveBeenCalledTimes(4);
+        expect(manager.state.status).toBe('disabled');
+        expect(manager.state.optimisticStatus).toBe('disabled');
+      });
+
+      it('waits for the page to become visible again', async () => {
+        const hidden = vi
+          .spyOn(document, 'hidden', 'get')
+          .mockReturnValue(true);
+        await manager.enable();
+        await endTrack(currentTrack());
+        await vi.advanceTimersByTimeAsync(10_000);
+        expect(manager.state.status).toBe('disabled');
+
+        hidden.mockReturnValue(false);
+        document.dispatchEvent(new Event('visibilitychange'));
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect(manager.state.status).toBe('enabled');
+        hidden.mockRestore();
+      });
     });
 
     describe('WebKit refreshTrack on unmute (encoder stall workaround)', () => {

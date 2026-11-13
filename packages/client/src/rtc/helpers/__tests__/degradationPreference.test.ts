@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DegradationPreference } from '../../../gen/video/sfu/models/models';
 import {
+  contentHintToRTCDegradationPreference,
   fromRTCDegradationPreference,
   toRTCDegradationPreference,
 } from '../degradationPreference';
@@ -52,4 +53,23 @@ describe('fromRTCDegradationPreference', () => {
       ),
     ).toBe(DegradationPreference.UNSPECIFIED);
   });
+});
+
+describe('contentHintToRTCDegradationPreference', () => {
+  it.each([
+    ['motion', 'maintain-framerate'],
+    ['detail', 'maintain-resolution'],
+    ['text', 'maintain-resolution'],
+  ] as const)('maps "%s" to "%s"', (contentHint, expected) => {
+    expect(contentHintToRTCDegradationPreference(contentHint)).toBe(expected);
+  });
+
+  it.each(['', undefined] as const)(
+    'returns undefined for %j',
+    (contentHint) => {
+      expect(
+        contentHintToRTCDegradationPreference(contentHint),
+      ).toBeUndefined();
+    },
+  );
 });

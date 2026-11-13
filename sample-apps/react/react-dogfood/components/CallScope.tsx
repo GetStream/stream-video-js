@@ -13,6 +13,8 @@ import { MeetingUI } from './MeetingUI';
 import { RingingCallNotification } from './Ringing/RingingCallNotification';
 import { TourProvider } from '../context/TourContext';
 import { getSegmentationModelUrl } from '../hooks';
+import { useSettings } from '../context/SettingsContext';
+import { getNoiseCancellationOptions } from '../helpers/noiseCancellation';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -45,6 +47,11 @@ export const CallScope = ({
   chatClient: ComponentProps<typeof MeetingUI>['chatClient'];
   segmentationModel: Parameters<typeof getSegmentationModelUrl>[0];
 }) => {
+  const { settings } = useSettings();
+  // Read once: changing the setting mid-call applies on the next join.
+  const [noiseCancellationModel] = useState(
+    () => settings.noiseCancellationModel,
+  );
   const [noiseCancellation, setNoiseCancellation] =
     useState<INoiseCancellation>();
   const ncLoader = useRef<Promise<void>>(undefined);
@@ -52,12 +59,20 @@ export const CallScope = ({
     const load = (ncLoader.current || Promise.resolve())
       .then(() => import('@stream-io/audio-filters-web'))
       .then(({ NoiseCancellation }) => {
-        setNoiseCancellation(new NoiseCancellation());
+        console.info(
+          '[dogfood] noise cancellation model:',
+          noiseCancellationModel,
+        );
+        setNoiseCancellation(
+          new NoiseCancellation(
+            getNoiseCancellationOptions(noiseCancellationModel),
+          ),
+        );
       });
     return () => {
       ncLoader.current = load.then(() => setNoiseCancellation(undefined));
     };
-  }, []);
+  }, [noiseCancellationModel]);
 
   return (
     <StreamCall call={call}>

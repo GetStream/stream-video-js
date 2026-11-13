@@ -4,12 +4,31 @@ import dotenv from 'dotenv';
 
 const env = dotenv.config({ path: '.env.local' });
 
+/**
+ * Old calendar invites still link to the `*.vercel.app` hosts, but Google
+ * sign-in only works on the custom domains (`NEXTAUTH_URL`). Pages on these
+ * hosts redirect there; API routes stay, as the Slack command posts to them.
+ */
+const legacyHosts: Record<string, string> = {
+  'stream-calls-dogfood.vercel.app': 'https://pronto.getstream.io',
+  'stream-calls-dogfood-staging.vercel.app':
+    'https://pronto-staging.getstream.io',
+};
+
 const nextConfig: NextConfig = {
   env: env.parsed,
   productionBrowserSourceMaps: true,
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
   reactStrictMode: true,
   reactCompiler: true,
+  async redirects() {
+    return Object.entries(legacyHosts).map(([host, destination]) => ({
+      source: '/:path((?!api/|_next/|sentry|\\.well-known/).*)',
+      has: [{ type: 'host' as const, value: host }],
+      destination: `${destination}/:path`,
+      permanent: false,
+    }));
+  },
   async headers() {
     return [
       {

@@ -1,4 +1,8 @@
 export interface INoiseCancellation {
+  /**
+   * The noise cancellation engine this implementation runs, e.g. `krisp`.
+   */
+  engine?: string;
   isSupported: () => boolean | Promise<boolean>;
   init: () => Promise<void>;
   canAutoEnable?: () => Promise<boolean>;

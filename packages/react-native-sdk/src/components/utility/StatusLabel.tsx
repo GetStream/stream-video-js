@@ -4,6 +4,7 @@ import { BadNetwork, MicOff, Pin, VideoSlash } from '../../icons';
 import { SpeechIndicator } from '../Participant/ParticipantView/SpeechIndicator';
 import { Z_INDEX } from '../../constants';
 import { useTheme } from '../../contexts/ThemeContext';
+import { IconTestIds } from '../../constants/TestIds';
 
 /**
  * Props for the StatusLabel component.
@@ -97,8 +98,20 @@ export const StatusLabel = ({
             { paddingRight: isAudioMuted ? primitives.spacingXxs : 0 },
           ]}
         >
-          {isAudioMuted && <MicOff color={iconColor} size={iconSize} />}
-          {isVideoMuted && <VideoSlash color={iconColor} size={iconSize} />}
+          {isAudioMuted && (
+            <MicOff
+              color={iconColor}
+              size={iconSize}
+              testID={IconTestIds.MUTED_MICROPHONE}
+            />
+          )}
+          {isVideoMuted && (
+            <VideoSlash
+              color={iconColor}
+              size={iconSize}
+              testID={IconTestIds.MUTED_VIDEO}
+            />
+          )}
           {isTrackPaused && <BadNetwork color={iconColor} size={iconSize} />}
           {isPinned && <Pin color={iconColor} size={iconSize} />}
           {showSpeech && <SpeechIndicator isSpeaking={isSpeaking} />}

@@ -74,6 +74,9 @@ export class StableWSConnection {
   connectionCheckTimeoutRef?: number;
   /** Store the last event time for health checks */
   lastEvent: Date | null = null;
+  /** Waiters of `probe()`, released by the next health check event. */
+  private healthCheckWaiters = new Set<() => void>();
+  private probeTask?: Promise<boolean>;
 
   constructor(client: StreamClient) {
     this.client = client;
@@ -452,7 +455,33 @@ export class StableWSConnection {
     this._destroyCurrentWSConnection();
 
     if (options.refreshToken) {
-      await this.client.tokenManager.loadToken();
+      try {
+        await this.client.tokenManager.loadToken();
+      } catch (error) {
+        // Another reconnect may have restored the connection while the
+        // token was loading; leave it alone.
+        if (this.isConnecting || this.isHealthy || this.isDisconnected) {
+          this._log(
+            '_reconnect() - Abort (4) since the connection changed while refreshing the token',
+            { error },
+          );
+          return;
+        }
+
+        // _reconnect() is not awaited by its callers, so a rejection here
+        // would be unhandled. Treat a failed refresh like a failed connect
+        // and retry with backoff.
+        this.isHealthy = false;
+        this.consecutiveFailures += 1;
+        this._log(
+          '_reconnect() - Failed to refresh the token, so going to try again',
+          { error },
+          'warn',
+        );
+
+        this._reconnect({ refreshToken: true });
+        return;
+      }
     }
 
     try {
@@ -482,10 +511,29 @@ export class StableWSConnection {
         this._log('_reconnect() - WS failure, so going to try to reconnect');
 
         this._reconnect();
+      } else if (await this.hasTokenFailed()) {
+        this._log(
+          '_reconnect() - Failed to load the token, so going to try to reload token and reconnect',
+        );
+
+        this._reconnect({ refreshToken: true });
       }
     }
     this._log('_reconnect() - == END ==');
   }
+
+  /**
+   * Resolves to true when the latest token load from the tokenProvider failed.
+   */
+  private hasTokenFailed = async () => {
+    if (this.client.tokenManager.isStatic()) return false;
+    try {
+      await this.client.tokenManager.tokenReady();
+      return false;
+    } catch {
+      return true;
+    }
+  };
 
   /**
    * onlineStatusChanged - this function is called when the browser connects or disconnects from the internet.
@@ -498,6 +546,20 @@ export class StableWSConnection {
       this._log('onlineStatusChanged() - Status changing to offline');
       // we know that the app is offline so dispatch the unhealthy connection event immediately
       this._setHealth(false, true);
+      // the event may be stale (a resumed page can receive `online` and
+      // `offline` out of order) and no `online` event would then follow:
+      // health checks answered over the open socket restore the health
+      const wsID = this.wsID;
+      this.probe()
+        .then((reachable) => {
+          if (!reachable || this.wsID !== wsID) return;
+          if (this.isHealthy || this.isConnecting) return;
+          this._log('onlineStatusChanged() - Offline event stale');
+          this._setHealth(true);
+        })
+        .catch((err) => {
+          this._log('onlineStatusChanged() - Probe failed', err, 'warn');
+        });
     } else if (event.type === 'online') {
       // retry right now...
       // We check this.isHealthy, not sure if it's always
@@ -577,6 +639,10 @@ export class StableWSConnection {
     ) {
       // the initial health-check should come from the client
       this.scheduleNextPing();
+    }
+
+    if (data?.type === 'health.check') {
+      [...this.healthCheckWaiters].forEach((release) => release());
     }
 
     if (data && data.type === 'connection.ok') {
@@ -766,16 +832,67 @@ export class StableWSConnection {
     }
 
     // 30 seconds is the recommended interval (messenger uses this)
-    this.healthCheckTimeoutRef = timers.setTimeout(() => {
-      // send the healthcheck..., server replies with a health check event
-      const data = [{ type: 'health.check', client_id: this.client.clientID }];
-      // try to send on the connection
-      try {
-        this.ws?.send(JSON.stringify(data));
-      } catch {
-        // error will already be detected elsewhere
+    this.healthCheckTimeoutRef = timers.setTimeout(
+      this.sendHealthCheck,
+      this.pingInterval,
+    );
+  };
+
+  /**
+   * Checks that the open socket still reaches the server by completing two
+   * health checks in a row, each sent after the previous response. More
+   * than one round trip keeps a health check that was already on its way,
+   * or queued while the page was frozen, from passing as proof. Concurrent
+   * callers share one check.
+   *
+   * @returns whether both round trips completed within 2 s on the same socket.
+   */
+  probe = (): Promise<boolean> => {
+    this.probeTask ??= this.runProbe().finally(() => {
+      this.probeTask = undefined;
+    });
+    return this.probeTask;
+  };
+
+  private runProbe = async () => {
+    const wsID = this.wsID;
+    const deadline = Date.now() + 2000;
+    for (let i = 0; i < 2; i++) {
+      if (this.wsID !== wsID || this.ws?.readyState !== WebSocket.OPEN) {
+        return false;
       }
-    }, this.pingInterval);
+      const responded = await this.healthCheckRoundTrip(deadline - Date.now());
+      if (!responded) return false;
+    }
+    return this.wsID === wsID;
+  };
+
+  private healthCheckRoundTrip = (timeoutMs: number) => {
+    return new Promise<boolean>((resolve) => {
+      if (timeoutMs <= 0) return resolve(false);
+      const timeoutId = setTimeout(() => done(false), timeoutMs);
+      const release = () => done(true);
+      const done = (responded: boolean) => {
+        clearTimeout(timeoutId);
+        this.healthCheckWaiters.delete(release);
+        resolve(responded);
+      };
+      this.healthCheckWaiters.add(release);
+      this.sendHealthCheck();
+    });
+  };
+
+  /**
+   * Sends a health check, the server replies with a health check event.
+   */
+  private sendHealthCheck = () => {
+    const data = [{ type: 'health.check', client_id: this.client.clientID }];
+    // try to send on the connection
+    try {
+      this.ws?.send(JSON.stringify(data));
+    } catch {
+      // error will already be detected elsewhere
+    }
   };
 
   /**
