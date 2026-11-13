@@ -85,7 +85,7 @@ jobs:
             production-branch: release-v1
 
     env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ matrix.application.project-id }}
       VITE_EGRESS_SENTRY_DNS: ${{ vars.EGRESS_SENTRY_DNS }}
       PRONTO_SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN_PRONTO }}
