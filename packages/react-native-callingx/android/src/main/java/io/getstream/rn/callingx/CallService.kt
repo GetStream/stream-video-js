@@ -16,6 +16,7 @@ import android.os.IBinder
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
+import androidx.core.content.IntentCompat
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.CallNotificationManager
@@ -480,11 +481,9 @@ class CallService : Service(), CallRepository.Listener {
 
     fun processAction(intent: Intent) {
         val callId = intent.getStringExtra(EXTRA_CALL_ID) ?: return
-        val action = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-          intent.getParcelableExtra(EXTRA_ACTION, CallAction::class.java)
-        } else {
-          @Suppress("DEPRECATION") intent.getParcelableExtra(EXTRA_ACTION)
-        } ?: return
+        val action =
+                IntentCompat.getParcelableExtra(intent, EXTRA_ACTION, CallAction::class.java)
+                        ?: return
 
         processAction(callId, action)
     }
