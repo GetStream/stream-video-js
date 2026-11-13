@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0-beta.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-1.0.0-beta.3...@stream-io/react-native-callingx-1.0.0-beta.4) (2026-11-05)
+
+### Bug Fixes
+
+- fixed native spec for callingx ([#2546](https://github.com/GetStream/stream-video-js/issues/2546)) ([52a9cd0](https://github.com/GetStream/stream-video-js/commit/52a9cd0573e6d9f77beb3919ccc4bfa3bfde06d2))
+- prevent unintentional ringing pn handling ([#2521](https://github.com/GetStream/stream-video-js/issues/2521)) ([e2c7a43](https://github.com/GetStream/stream-video-js/commit/e2c7a4385900ac4d2379bc150bbaa4828e1c6ca8))
+- **react-native:** recover the iOS mic when the audio engine fails to start ([#2529](https://github.com/GetStream/stream-video-js/issues/2529)) ([36bb5e5](https://github.com/GetStream/stream-video-js/commit/36bb5e54392d5876dcd1759c583e3265f880ddcc)), closes [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#75](https://github.com/GetStream/stream-video-js/issues/75) [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#2282](https://github.com/GetStream/stream-video-js/issues/2282)
+
 ## [1.0.0-beta.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-1.0.0-beta.2...@stream-io/react-native-callingx-1.0.0-beta.3) (2026-10-26)
 
 ### Features

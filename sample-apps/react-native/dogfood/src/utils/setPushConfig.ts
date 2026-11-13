@@ -7,6 +7,7 @@ import { createToken } from '../modules/helpers/createToken';
 import { setNotificationListeners } from './setNotificationListeners';
 import { registerNonRingingNotificationHandler } from './registerNonRingingNotifications';
 import { attachE2EEIfConfigured, disposeE2EEManager } from './e2ee';
+import { APP_ENVIRONMENTS } from '../constants';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
@@ -47,7 +48,8 @@ const createStreamVideoClient = async () => {
   let appEnvironment = JSON.parse(
     mmkvStorage.getString('appEnvironment') ?? '',
   );
-  if (appEnvironment !== 'pronto' || appEnvironment !== 'demo') {
+  // Fall back to pronto only for a missing or unknown stored value.
+  if (!APP_ENVIRONMENTS.includes(appEnvironment)) {
     appEnvironment = 'pronto';
   }
   if (!userId || !userImageUrl) {

@@ -1,22 +1,29 @@
-import { useEffect } from 'react';
-import { useRouter } from 'next/router';
+import type {
+  Channel as StreamChannel,
+  MessagePaginatorState,
+} from 'stream-chat';
 import {
   Channel,
   MessageComposer,
-  useChannelStateContext,
-  useChatContext,
+  useChannel,
+  useStateStore,
   VirtualizedMessageList,
-  Window,
   WithComponents,
 } from 'stream-chat-react';
 
 import { Icon, IconButton } from '@stream-io/video-react-sdk';
-
-import { CHANNEL_TYPE } from '.';
 import { useAppI18n } from '../hooks/useAppI18n';
 
+const messagesSelector = ({ items }: MessagePaginatorState) => ({
+  messages: items,
+});
+
 const NoMessages = () => {
-  const { messages } = useChannelStateContext();
+  const channel = useChannel();
+  const { messages } = useStateStore(
+    channel.messagePaginator.state,
+    messagesSelector,
+  );
   const { t } = useAppI18n();
 
   if (messages?.length === 0) {
@@ -67,23 +74,12 @@ const NoUnreadMessagesNotification = () => null;
 
 export const ChatUI = ({
   onClose,
-  channelType = CHANNEL_TYPE,
-  channelId,
+  channel,
 }: {
   onClose: () => void;
-  channelType?: string;
-  channelId: string;
+  channel: StreamChannel;
 }) => {
-  const { client, setActiveChannel } = useChatContext();
   const { t } = useAppI18n();
-
-  const router = useRouter();
-  useEffect(() => {
-    const type = (router.query['channel_type'] as string) || channelType;
-    const channel = client.channel(type, channelId);
-
-    setActiveChannel(channel);
-  }, [channelId, channelType, client, router.query, setActiveChannel]);
 
   return (
     <WithComponents
@@ -93,34 +89,32 @@ export const ChatUI = ({
         UnreadMessagesNotification: NoUnreadMessagesNotification,
       }}
     >
-      <Channel>
-        <Window>
-          <div>
-            <div className="rd__chat-header">
-              <h2 className="rd__chat-header__title">
-                {t('chat.panel.title', 'Chat')}
-              </h2>
-              <IconButton
-                onClick={onClose}
-                size="sm"
-                variant="secondary"
-                appearance="ghost"
-                icon="close"
-              />
-            </div>
+      <Channel channel={channel}>
+        <div>
+          <div className="rd__chat-header">
+            <h2 className="rd__chat-header__title">
+              {t('chat.panel.title', 'Chat')}
+            </h2>
+            <IconButton
+              onClick={onClose}
+              size="sm"
+              variant="secondary"
+              appearance="ghost"
+              icon="close"
+            />
           </div>
-          <VirtualizedMessageList shouldGroupByUser />
-          <MessageComposer
-            focus
-            maxRows={5}
-            additionalTextareaProps={{
-              placeholder: t(
-                'chat.composer.sendMessage.placeholder',
-                'Send a message',
-              ),
-            }}
-          />
-        </Window>
+        </div>
+        <VirtualizedMessageList groupByUser />
+        <MessageComposer
+          focus
+          maxRows={5}
+          additionalTextareaProps={{
+            placeholder: t(
+              'chat.composer.sendMessage.placeholder',
+              'Send a message',
+            ),
+          }}
+        />
       </Channel>
     </WithComponents>
   );

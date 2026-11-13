@@ -50,16 +50,6 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         return true
     }
 
-    override fun wireAudioEngineSubscription(): Boolean {
-        // leave empty
-        return true
-    }
-
-    override fun unwireAudioEngineSubscription(): Boolean {
-        // leave empty
-        return true
-    }
-
     override fun setupAndroid(options: ReadableMap): Boolean {
         impl.setupAndroid(options)
         return true

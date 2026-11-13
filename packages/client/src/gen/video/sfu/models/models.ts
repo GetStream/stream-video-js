@@ -440,6 +440,11 @@ export interface Error {
    */
   message: string;
   /**
+   * Only meaningful in RPC responses: true means the client may retry the same
+   * request. On a websocket error event (stream.video.sfu.event.Error) the SFU
+   * never sets it and clients must ignore it: reconnect_strategy decides what
+   * the client does.
+   *
    * @generated from protobuf field: bool should_retry = 3;
    */
   shouldRetry: boolean;
@@ -999,6 +1004,22 @@ export enum AudioBitrateProfile {
    * @generated from protobuf enum value: AUDIO_BITRATE_PROFILE_MUSIC_HIGH_QUALITY = 2;
    */
   MUSIC_HIGH_QUALITY = 2,
+}
+/**
+ * NoiseCancellationEngine identifies the noise cancellation implementation
+ * running on the client.
+ *
+ * @generated from protobuf enum stream.video.sfu.models.NoiseCancellationEngine
+ */
+export enum NoiseCancellationEngine {
+  /**
+   * @generated from protobuf enum value: NOISE_CANCELLATION_ENGINE_KRISP_UNSPECIFIED = 0;
+   */
+  KRISP_UNSPECIFIED = 0,
+  /**
+   * @generated from protobuf enum value: NOISE_CANCELLATION_ENGINE_STREAM = 1;
+   */
+  STREAM = 1,
 }
 /**
  * @generated from protobuf enum stream.video.sfu.models.ErrorCode

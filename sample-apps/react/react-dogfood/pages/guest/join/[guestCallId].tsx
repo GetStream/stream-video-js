@@ -1,6 +1,7 @@
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import {
   BackgroundFiltersProvider,
+  Browsers,
   Call,
   CallingState,
   NoiseCancellationProvider,
@@ -22,6 +23,7 @@ import { useSettings } from '../../../context/SettingsContext';
 import { getSegmentationModelUrl } from '../../../hooks';
 import { getClient } from '../../../helpers/client';
 import { createToken } from '../../../helpers/jwt';
+import { getNoiseCancellationOptions } from '../../../helpers/noiseCancellation';
 import { useGleap } from '../../../hooks/useGleap';
 
 type GuestCallRoomProps = {
@@ -49,8 +51,10 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const { apiKey, user, token, gleapApiKey } = props;
   const environment = useAppEnvironment();
   const {
-    settings: { segmentationModel },
+    settings: { segmentationModel, noiseCancellationModel: liveNcModel },
   } = useSettings();
+  // Read once: changing the setting mid-call applies on the next join.
+  const [noiseCancellationModel] = useState(() => liveNcModel);
 
   const router = useRouter();
   const callId = router.query['guestCallId'] as string;
@@ -84,6 +88,8 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const [call, setCall] = useState<Call>();
   useEffect(() => {
     const _call = client?.call(callType, callId, { reuseInstance: true });
+    // Web Audio playback is off by default in the SDK; dogfood enables it on WebKit.
+    _call?.dynascaleManager?.setUseWebAudio(Browsers.isWebKit());
     setCall(_call);
 
     window.call = _call;
@@ -111,15 +117,20 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
     const load = (ncLoader.current || Promise.resolve())
       .then(() => import('@stream-io/audio-filters-web'))
       .then(({ NoiseCancellation }) => {
-        // const modelsPath = `${basePath}/krispai/models`;
-        // const nc = new NoiseCancellation({ basePath: modelsPath });
-        const nc = new NoiseCancellation();
-        setNoiseCancellation(nc);
+        console.info(
+          '[dogfood] noise cancellation model:',
+          noiseCancellationModel,
+        );
+        setNoiseCancellation(
+          new NoiseCancellation(
+            getNoiseCancellationOptions(noiseCancellationModel),
+          ),
+        );
       });
     return () => {
       ncLoader.current = load.then(() => setNoiseCancellation(undefined));
     };
-  }, []);
+  }, [noiseCancellationModel]);
 
   if (!client || !call) {
     return null;

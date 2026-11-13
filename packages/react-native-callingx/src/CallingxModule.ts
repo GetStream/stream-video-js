@@ -129,18 +129,6 @@ class CallingxModule implements ICallingxModule {
     this._isSetup = true;
   };
 
-  wireAudioEngineSubscription(): void {
-    if (Platform.OS !== 'ios') return;
-
-    NativeCallingModule.wireAudioEngineSubscription();
-  }
-
-  unwireAudioEngineSubscription(): void {
-    if (Platform.OS !== 'ios') return;
-
-    NativeCallingModule.unwireAudioEngineSubscription();
-  }
-
   setShouldRejectCallWhenBusy = (shouldReject: boolean): void => {
     NativeCallingModule.setShouldRejectCallWhenBusy(shouldReject);
   };

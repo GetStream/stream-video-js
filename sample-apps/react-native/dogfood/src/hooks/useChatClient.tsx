@@ -1,13 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { OwnUserResponse, StreamChat, UserResponse } from 'stream-chat';
+import { ClientUser, StreamChat } from 'stream-chat';
 import { createToken } from '../modules/helpers/createToken';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 
-export const useChatClient = ({
-  userData,
-}: {
-  userData: OwnUserResponse | UserResponse;
-}) => {
+export const useChatClient = ({ userData }: { userData: ClientUser }) => {
   const appEnvironment = useAppGlobalStoreValue(
     (store) => store.appEnvironment,
   );

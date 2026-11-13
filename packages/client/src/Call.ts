@@ -87,6 +87,10 @@ import {
 } from './types';
 import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
 import { ReconnectDetails } from './gen/video/sfu/event/events';
+import type {
+  StartNoiseCancellationRequest,
+  StopNoiseCancellationRequest,
+} from './gen/video/sfu/signal_rpc/signal';
 import {
   ClientCapability,
   ClientDetails,
@@ -137,6 +141,7 @@ import {
 import { getClientDetails } from './helpers/client-details';
 import {
   CameraManager,
+  getRNDefaultAudioDevice,
   MicrophoneManager,
   ScreenShareManager,
   SpeakerManager,
@@ -872,10 +877,7 @@ export class Call {
         this.mediaEnginePromise = undefined;
         this.logger.debug('Disposing per-call media factory');
         await enginePromise
-          .then((engine) => {
-            globalThis.streamRNVideoSDK?.callingX?.unwireAudioEngineSubscription();
-            return engine.dispose();
-          })
+          .then((engine) => engine.dispose())
           .catch((err) => {
             this.logger.warn('Failed to dispose media engine', err);
           });
@@ -1334,11 +1336,6 @@ export class Call {
       return;
     }
 
-    const callingX = globalThis.streamRNVideoSDK?.callingX;
-    if (callingX) {
-      callingX.wireAudioEngineSubscription();
-    }
-
     const performingMigration =
       this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE;
     const performingRejoin =
@@ -1579,6 +1576,18 @@ export class Call {
       );
     }
 
+    // React Native: start the native call manager once per join, before the
+    // first publish (fire-and-forget; on iOS the native engine gate makes the
+    // order with the publish irrelevant). leave() stops it (callManagerStarted).
+    if (!this.callManagerStarted && !supersededByLeave()) {
+      globalThis.streamRNVideoSDK?.callManager.start({
+        isRingingTypeCall: this.ringing,
+        cid: this.cid,
+        defaultDevice: getRNDefaultAudioDevice(this.state.settings),
+      });
+      this.callManagerStarted = true;
+    }
+
     // device settings should be applied only once, we don't have to
     // re-apply them on later reconnections or server-side data fetches
     if (
@@ -1586,19 +1595,8 @@ export class Call {
       this.state.settings &&
       !supersededByLeave()
     ) {
-      await this.applyDeviceConfig(this.state.settings, {
-        publish: true,
-        skipSpeakerApply: false,
-      });
+      await this.applyDeviceConfig(this.state.settings, { publish: true });
       this.deviceSettingsAppliedOnce = true;
-    }
-
-    if (!this.callManagerStarted && !supersededByLeave()) {
-      globalThis.streamRNVideoSDK?.callManager.start({
-        isRingingTypeCall: this.ringing,
-        cid: this.cid,
-      });
-      this.callManagerStarted = true;
     }
 
     // We shouldn't persist the `ring` and `notify` state after joining the call
@@ -1717,6 +1715,7 @@ export class Call {
     opts: { includeSubscriber?: boolean; includePublisher?: boolean } = {},
   ) => {
     const { includeSubscriber = true, includePublisher = true } = opts;
+    this.sfuStatsReporter?.setSfuClient(nextSfuClient);
     if (this.subscriber) {
       this.subscriber.setSfuClient(nextSfuClient);
       if (includeSubscriber) {
@@ -1914,6 +1913,34 @@ export class Call {
     ).catch((err) => {
       this.logger.warn('[Reconnect] Error reconnecting', err);
     });
+  };
+
+  /**
+   * Rejoins the call to rebuild the media stack, the last resort of the
+   * React Native SDK when the iOS audio engine can't be restarted.
+   * Skipped (returns `false`) when the call isn't JOINED, a reconnect is
+   * already pending, or the rejoin rate limiters have no room: the
+   * reconnect would then leave the call, which is worse than a dead mic.
+   *
+   * @internal
+   * @returns `true` if the rejoin started.
+   */
+  rejoinForAudioEngineRecovery = (): boolean => {
+    if (
+      this.state.callingState !== CallingState.JOINED ||
+      hasPending(this.reconnectConcurrencyTag) ||
+      !this.rejoinRateLimiter.canRegister() ||
+      this.rejoinLongWindowRateLimiter?.canRegister() === false
+    ) {
+      return false;
+    }
+    this.reconnect(
+      WebsocketReconnectStrategy.REJOIN,
+      'audio_engine_dead',
+    ).catch((err) => {
+      this.logger.warn('[Reconnect] Error rejoining for the audio engine', err);
+    });
+    return true;
   };
 
   /**
@@ -2606,7 +2633,7 @@ export class Call {
           mediaStream = this.screenShare.state.mediaStream;
           options = {
             audioBitrateProfile: this.screenShare.state.audioBitrateProfile,
-            contentHint: this.screenShare.getSettings()?.contentHint,
+            contentHint: this.screenShare.resolveContentHint(),
           };
           break;
         // screen share audio can't exist without a screen share, so we handle it there
@@ -2796,22 +2823,32 @@ export class Call {
    * Notifies the SFU that a noise cancellation process has started.
    *
    * @internal
+   * @param noiseCancellation the engine and model that run.
    */
-  notifyNoiseCancellationStarting = async () => {
-    return this.sfuClient?.startNoiseCancellation().catch((err) => {
-      this.logger.warn('Failed to notify start of noise cancellation', err);
-    });
+  notifyNoiseCancellationStarting = async (
+    noiseCancellation: Omit<StartNoiseCancellationRequest, 'sessionId'>,
+  ) => {
+    return this.sfuClient
+      ?.startNoiseCancellation(noiseCancellation)
+      .catch((err) => {
+        this.logger.warn('Failed to notify start of noise cancellation', err);
+      });
   };
 
   /**
    * Notifies the SFU that a noise cancellation process has stopped.
    *
    * @internal
+   * @param noiseCancellation the engine and model that ran.
    */
-  notifyNoiseCancellationStopped = async () => {
-    return this.sfuClient?.stopNoiseCancellation().catch((err) => {
-      this.logger.warn('Failed to notify stop of noise cancellation', err);
-    });
+  notifyNoiseCancellationStopped = async (
+    noiseCancellation: Omit<StopNoiseCancellationRequest, 'sessionId'>,
+  ) => {
+    return this.sfuClient
+      ?.stopNoiseCancellation(noiseCancellation)
+      .catch((err) => {
+        this.logger.warn('Failed to notify stop of noise cancellation', err);
+      });
   };
 
   /**
@@ -3496,21 +3533,13 @@ export class Call {
     settings: CallSettingsResponse,
     opts: {
       publish: boolean;
-      skipSpeakerApply?: boolean;
       withDisabledDevices?: boolean;
     },
   ) => {
-    const {
-      publish,
-      // Skip speaker setup on RN until joining (explicitly passed as false during join())
-      skipSpeakerApply = isReactNative(),
-      withDisabledDevices,
-    } = opts;
-    if (!skipSpeakerApply) {
-      await this.speaker
-        .apply(settings)
-        .catch((err) => this.logger.warn('Speaker init failed', err));
-    }
+    const { publish, withDisabledDevices } = opts;
+    await this.speaker
+      .apply()
+      .catch((err) => this.logger.warn('Speaker init failed', err));
     await this.camera
       .apply(settings.video, publish, withDisabledDevices)
       .catch((err) => this.logger.warn('Camera init failed', err));

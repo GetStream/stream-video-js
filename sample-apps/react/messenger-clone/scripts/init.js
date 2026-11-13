@@ -1,42 +1,50 @@
-const { StreamChat } = require('stream-chat');
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const { StreamChat } = require('stream-chat');
+const { createToken } = require('./createToken');
 
-require('dotenv').config();
+const connect = async ({ token: _, ...user }) => {
+  const { apiKey, token } = await createToken(user.id);
+  const client = new StreamChat(apiKey);
+  await client.connectUser(user, token);
+  return client;
+};
 
 (async () => {
-  const key = process.env.VITE_STREAM_API_KEY;
-  const secret = process.env.VITE_STREAM_SECRET;
-
   const users = JSON.parse(
     await fs.readFile(path.resolve('data', 'users.json'), 'utf-8'),
   );
 
-  const usersWithoutToken = users.map(({ token: _, ...rest }) => rest);
-
-  const client = new StreamChat(key, secret);
-
   console.log('Creating users...');
-  await client.upsertUsers(usersWithoutToken);
-
-  const channels = usersWithoutToken
-    .flatMap((user, index) =>
-      usersWithoutToken.map((nestedUser, nestedIndex) => {
-        if (index >= nestedIndex) return null;
-        return [user, nestedUser];
-      }),
-    )
-    .filter(Boolean)
-    .map(([firstUser, secondUser]) =>
-      client.channel('messaging', {
-        members: [firstUser.id, secondUser.id],
-        created_by: firstUser,
-      }),
-    );
+  for (const user of users) {
+    const client = await connect(user);
+    await client.disconnectUser();
+  }
 
   console.log('Initiating channels between two users...');
-
-  await Promise.allSettled(channels.map((c) => c.create()));
+  for (const [index, user] of users.entries()) {
+    const others = users.slice(index + 1);
+    if (!others.length) continue;
+    const client = await connect(user);
+    const results = await Promise.allSettled(
+      others.map((other) =>
+        client
+          .channel('messaging', {
+            members: [{ user_id: user.id }, { user_id: other.id }],
+          })
+          .create(),
+      ),
+    );
+    results.forEach((result, i) => {
+      if (result.status === 'rejected') {
+        console.warn(
+          `Failed to create the channel ${user.id} <> ${others[i].id}`,
+          result.reason,
+        );
+      }
+    });
+    await client.disconnectUser();
+  }
 
   console.log('Finished initialization');
 })();

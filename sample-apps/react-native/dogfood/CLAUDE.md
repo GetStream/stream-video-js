@@ -24,6 +24,7 @@ All commands should be run from this directory (`sample-apps/react-native/dogfoo
 | Unit tests                     | `yarn test` (Jest + React Native Testing Library)                          |
 | Unit tests in CI               | `yarn test-ci` (included in root `yarn test:ci:all`)                       |
 | Reinstall iOS pods             | `cd ios && bundle exec pod install`                                        |
+| E2E tests (Detox, Android)     | `bundle exec fastlane test_e2e` (see `e2e/README.md`)                      |
 
 Before running the app, the workspace SDK packages must be built first:
 
@@ -153,7 +154,7 @@ Both use `useChatClient` hook for client lifecycle and `useUnreadCount` for badg
 
 - `src/constants/index.ts` — UI dimensions (BUTTON_HEIGHT, INPUT_HEIGHT, AVATAR_SIZE, Z_INDEX)
 - `src/constants/KnownUsers.ts` — hardcoded test users (vishal, khushal, santhosh, oliver, zita, kristian) with Slack CDN avatar URLs
-- `src/constants/TestIds.ts` — test identifier enums for buttons/components
+- `src/constants/TestIds.ts` — test identifier enums for buttons/components, used by the Detox e2e suite in `e2e/` (keep them stable)
 
 ### Translations
 

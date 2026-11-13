@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../contexts';
+import { ComponentTestIds } from '../../../constants/TestIds';
 
 /**
  * Props for the SpeechIndicator component.
@@ -56,7 +57,7 @@ export const SpeechIndicator = ({ isSpeaking }: SpeechIndicatorProps) => {
   });
 
   return (
-    <View style={[styles.container]}>
+    <View style={[styles.container]} testID={ComponentTestIds.SPEECH_INDICATOR}>
       {animationValues.map((animatedValue, index) => (
         <Animated.View
           key={index}
