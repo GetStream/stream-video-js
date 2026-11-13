@@ -795,14 +795,14 @@ export class Call {
             reasonToEndCallReason[
               rejectReason as keyof typeof reasonToEndCallReason
             ] ?? 'rejected';
-          await this.reject(rejectReason);
+          void this.safeReject(rejectReason);
           globalThis.streamRNVideoSDK?.callingX?.endCall(this, endCallReason);
         } else {
           // if reject was undefined, we still have to cancel the call automatically
           // when I am the creator and everyone else left the call
           const hasOtherParticipants = this.state.remoteParticipants.length > 0;
           if (this.isCreatedByMe && !hasOtherParticipants) {
-            await this.reject('cancel');
+            void this.safeReject('cancel');
             globalThis.streamRNVideoSDK?.callingX?.endCall(this, 'canceled');
           }
         }
@@ -1198,6 +1198,23 @@ export class Call {
         { reason },
       );
     });
+  };
+
+  /**
+   * Rejects the call without letting a failed request propagate, unless asked.
+   *
+   * @param reason the reason for rejecting the call.
+   * @param silent when `true` (the default) a failure is only logged; when
+   * `false` it is logged and rethrown. Pass `false` only where the result is
+   * awaited, otherwise the rethrow becomes an unhandled rejection.
+   */
+  private safeReject = async (reason: RejectReason, silent: boolean = true) => {
+    try {
+      await this.reject(reason);
+    } catch (err) {
+      this.logger.warn(`Failed to reject the call, reason: ${reason}`, err);
+      if (!silent) throw err;
+    }
   };
 
   /**
