@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.16.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.16.0...@stream-io/video-styling-1.16.1) (2026-11-13)
+
+### Bug Fixes
+
+- **styling:** drop [@charset](https://github.com/charset) from the published CSS ([#2614](https://github.com/GetStream/stream-video-js/issues/2614)) ([548848c](https://github.com/GetStream/stream-video-js/commit/548848c3804ecb32c112eddb7fac5f980a7ad007)), closes [#2612](https://github.com/GetStream/stream-video-js/issues/2612)
+
 ## [1.16.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.15.1...@stream-io/video-styling-1.16.0) (2026-10-16)
 
 ### Features
