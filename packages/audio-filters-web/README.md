@@ -6,8 +6,8 @@ engines that share the same interface, plus a router that picks one of them:
 - `NoiseCancellation`: runs the engine selected in your call type settings,
   and Krisp when none is selected. Use this one unless you need a specific engine.
 - `KrispNoiseCancellation`: based on the Krisp.AI SDK.
-- `FastEnhancerNoiseCancellation`: based on the FastEnhancer model
-  (**experimental**, see [below](#fastenhancer-experimental)).
+- `StreamNoiseCancellation`: based on Stream's own model, built on the
+  FastEnhancer architecture (**experimental**, see [below](#streamnoisecancellation-experimental)).
 
 All of them load their runtime lazily, on first use, so importing the package
 doesn't add the SDKs or the models to your initial bundle.
@@ -61,30 +61,28 @@ Unlike `NoiseCancellationProvider`, the client doesn't call `configure()` or
 capability or the call type has noise cancellation disabled in its settings.
 
 `isSupported()` returns a `Promise<boolean>` for Krisp and a `boolean` for
-FastEnhancer, so `await` it. Safari and other WebKit browsers are reported as
+`StreamNoiseCancellation`, so `await` it. Safari and other WebKit browsers are reported as
 unsupported by Krisp unless you pass `withSafariSupport: true`.
 
-Options passed to the `NoiseCancellation` constructor configure Krisp; FastEnhancer
-options go under `fastEnhancer`. Options you pass explicitly win over the call
+Options passed to the `NoiseCancellation` constructor configure Krisp; options
+for the `stream` engine go under `stream`. Options you pass explicitly win over the call
 type settings. `defaultEngine` (`krisp` or `stream`) picks the engine for calls
 whose settings don't select one.
 
-## FastEnhancer (experimental)
+## StreamNoiseCancellation (experimental)
 
-`FastEnhancerNoiseCancellation` is an alternative provider that runs the
-[FastEnhancer](https://github.com/aask1357/fastenhancer) speech enhancement model in an
-`AudioWorklet`. It is **experimental**: it may change in any release, and its
-pretrained weights are still under provenance review.
+`StreamNoiseCancellation` is an alternative provider that runs Stream's
+noise cancellation model, a [FastEnhancer](https://github.com/aask1357/fastenhancer)
+network trained by Stream, in an `AudioWorklet`. It is **experimental**: the
+provider and its model may change in any release.
 
 ```tsx
 import { useState } from 'react';
-import { FastEnhancerNoiseCancellation } from '@stream-io/audio-filters-web';
+import { StreamNoiseCancellation } from '@stream-io/audio-filters-web';
 import { NoiseCancellationProvider } from '@stream-io/video-react-sdk';
 
 export const App = ({ children }: { children: React.ReactNode }) => {
-  const [noiseCancellation] = useState(
-    () => new FastEnhancerNoiseCancellation({ model: 'small' }),
-  );
+  const [noiseCancellation] = useState(() => new StreamNoiseCancellation());
   return (
     <NoiseCancellationProvider noiseCancellation={noiseCancellation}>
       {children}
@@ -96,7 +94,7 @@ export const App = ({ children }: { children: React.ReactNode }) => {
 With the JavaScript client:
 
 ```ts
-const noiseCancellation = new FastEnhancerNoiseCancellation({ model: 'small' });
+const noiseCancellation = new StreamNoiseCancellation();
 if (await noiseCancellation.isSupported()) {
   await noiseCancellation.init();
   await call.microphone.enableNoiseCancellation(noiseCancellation);
@@ -111,18 +109,16 @@ await noiseCancellation.dispose();
 
 | Option              | Default                        | Description                                                                        |
 | ------------------- | ------------------------------ | ---------------------------------------------------------------------------------- |
-| `model`             | `'small'`                      | `'tiny'`, `'base'` or `'small'`. See below.                                        |
 | `basePath`          | unpkg, for the package version | Where the WASM and the weights are loaded from. See [Self-hosting](#self-hosting). |
-| `hpf`               | `false`                        | High-pass filter for low-frequency rumble.                                         |
-| `agc`               | `false`                        | Automatic gain control in the model's post-processing.                             |
 | `withSafariSupport` | `true`                         | Set to `false` to report Safari and other WebKit browsers as unsupported.          |
 | `restoreTimeoutMs`  | `15000`                        | How long the filter stays off after an overload.                                   |
 | `restoreAttempts`   | `3`                            | Overloads after which the filter stays off.                                        |
 
-### Models
+### Model
 
-`small` is the default and suppresses noise best. `base` and `tiny` use less CPU
-and suit lower-end devices; `tiny` is the cheapest.
+The package ships a single model; `model` on the instance names its build.
+It needs WebAssembly SIMD, which every current browser supports;
+`isSupported()` returns `false` without it.
 If the device can't keep up, the filter turns itself off, and restores per
 `restoreTimeoutMs` and `restoreAttempts`.
 
@@ -134,26 +130,26 @@ audio only.
 
 ### Audio
 
-The model runs at 48 kHz, so FastEnhancer creates its own 48 kHz `AudioContext`.
+The model runs at 48 kHz, so `StreamNoiseCancellation` creates its own 48 kHz `AudioContext`.
 It adds about 19 ms of latency (896 samples) while the filter is on, and none
 while it's off.
 
 ### Browser support
 
-Unlike Krisp, FastEnhancer supports Safari and other WebKit browsers (including
+Unlike Krisp, `StreamNoiseCancellation` supports Safari and other WebKit browsers (including
 every iOS browser) by default. To opt out, pass `withSafariSupport: false`;
 `isSupported()` then returns `false` there.
 
 ### Self-hosting
 
 The WASM and the weights are fetched at `init()` from `basePath`, which defaults to
-`https://unpkg.com/@stream-io/audio-filters-web@<version>/src/fastenhancer/models`.
-To host them yourself, copy `src/fastenhancer/models/*` from the package to
-your server and pass the URL:
+`https://unpkg.com/@stream-io/audio-filters-web@<version>/src/stream/models`.
+To host them yourself, copy `src/stream/models/` from the package to
+your server, keeping its folder structure, and pass the URL:
 
 ```ts
-new FastEnhancerNoiseCancellation({
-  basePath: 'https://cdn.example.com/fastenhancer/models',
+new StreamNoiseCancellation({
+  basePath: 'https://cdn.example.com/noise-cancellation/models',
 });
 ```
 

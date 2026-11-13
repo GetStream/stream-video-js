@@ -1,25 +1,18 @@
 import type { NoiseCancellationOptions } from '@stream-io/audio-filters-web';
 
-export type NoiseCancellationModel =
-  | 'auto'
-  | 'krisp'
-  | 'fastenhancer-tiny'
-  | 'fastenhancer-base'
-  | 'fastenhancer-small';
+export type NoiseCancellationModel = 'auto' | 'krisp' | 'stream';
 
 export const NOISE_CANCELLATION_MODELS: NoiseCancellationModel[] = [
   'auto',
   'krisp',
-  'fastenhancer-tiny',
-  'fastenhancer-base',
-  'fastenhancer-small',
+  'stream',
 ];
 
 /**
- * The FastEnhancer models are served by this app, see
- * scripts/copy-fastenhancer-models.mjs.
+ * The `stream` engine's model is served by this app, see
+ * scripts/copy-noise-cancellation-models.mjs.
  */
-const fastEnhancerBasePath = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/fastenhancer/models`;
+const streamBasePath = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/noise-cancellation/models`;
 
 /**
  * Maps the model picked in the settings to the options of the
@@ -36,29 +29,17 @@ export const getNoiseCancellationOptions = (
         // Krisp reports Safari as unsupported unless opted in;
         // its SDK still requires Safari 17.4+.
         withSafariSupport: true,
-        // the model is the SDK default (small) if the call picks `stream`
-        fastEnhancer: { basePath: fastEnhancerBasePath },
+        stream: { basePath: streamBasePath },
       };
-    case 'fastenhancer-tiny':
-    case 'fastenhancer-base':
-    case 'fastenhancer-small':
+    case 'stream':
       return {
         defaultEngine: 'stream',
-        fastEnhancer: {
-          model:
-            model === 'fastenhancer-tiny'
-              ? 'tiny'
-              : model === 'fastenhancer-small'
-                ? 'small'
-                : 'base',
-          basePath: fastEnhancerBasePath,
-        },
+        stream: { basePath: streamBasePath },
       };
     case 'auto':
     default:
       return {
-        // the model is the SDK default (small) if the call picks `stream`
-        fastEnhancer: { basePath: fastEnhancerBasePath },
+        stream: { basePath: streamBasePath },
       };
   }
 };

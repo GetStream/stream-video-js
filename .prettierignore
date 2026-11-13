@@ -2,7 +2,6 @@
 **/__testfixtures__/**
 **/.expo/**
 **/.next/**
-packages/audio-filters-web/src/fastenhancer/processor.js
-packages/audio-filters-web/src/fastenhancer/models/**
-packages/audio-filters-web/src/fastenhancer/README.md
-packages/audio-filters-web/src/fastenhancer/LICENSE.md
+packages/audio-filters-web/src/stream/models/**
+packages/audio-filters-web/src/stream/README.md
+packages/audio-filters-web/src/stream/LICENSE.md

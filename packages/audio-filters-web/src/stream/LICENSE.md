@@ -1,14 +1,12 @@
 # Licenses
 
-> Status: experimental. The pretrained model weights are distributed under the
-> upstream MIT licenses below, but the provenance of their training data is
-> still under review. `FastEnhancerNoiseCancellation` stays experimental until
-> that review is complete, or until a Stream-trained model replaces these
-> weights. Do not treat this notice as a completed license clearance.
+The model weights in `models/` were trained by Stream from a random start, on
+permissively licensed training data only (https://github.com/GetStream/mol).
 
-The files in this directory are derived from `fastenhancer-web@0.1.1`
-(https://github.com/ryyr-ry/fastenhancer-web), which in turn builds on
-FastEnhancer (https://github.com/aask1357/fastenhancer).
+The network architecture and the WebAssembly engine derive from FastEnhancer
+(https://github.com/aask1357/fastenhancer) and the C engine of
+`fastenhancer-web` (https://github.com/ryyr-ry/fastenhancer-web), both under
+the MIT licenses below.
 
 ## fastenhancer-web
 

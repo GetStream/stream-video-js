@@ -1,5 +1,5 @@
-// Copies the FastEnhancer models from @stream-io/audio-filters-web into
-// public/fastenhancer/models, so that the app serves them itself.
+// Copies the noise cancellation model from @stream-io/audio-filters-web into
+// public/noise-cancellation/models, so that the app serves them itself.
 import { cpSync, existsSync, readFileSync, realpathSync, rmSync } from 'fs';
 import { createRequire } from 'module';
 import { dirname, join } from 'path';
@@ -24,20 +24,24 @@ const findPackageDir = () => {
 
 const packageDir = findPackageDir();
 if (!packageDir) {
-  console.error(`[copy-fastenhancer-models] ${packageName} is not installed.`);
+  console.error(
+    `[copy-noise-cancellation-models] ${packageName} is not installed.`,
+  );
   process.exit(1);
 }
 
-const source = join(packageDir, 'src', 'fastenhancer', 'models');
+const source = join(packageDir, 'src', 'stream', 'models');
 if (!existsSync(source)) {
   console.error(
-    `[copy-fastenhancer-models] FastEnhancer models not found at ${source}.`,
+    `[copy-noise-cancellation-models] Noise cancellation models not found at ${source}.`,
   );
   process.exit(1);
 }
 
 const appDir = dirname(dirname(fileURLToPath(import.meta.url)));
-const destination = join(appDir, 'public', 'fastenhancer', 'models');
+const destination = join(appDir, 'public', 'noise-cancellation', 'models');
 rmSync(destination, { recursive: true, force: true });
 cpSync(source, destination, { recursive: true });
-console.log(`[copy-fastenhancer-models] copied ${source} to ${destination}`);
+console.log(
+  `[copy-noise-cancellation-models] copied ${source} to ${destination}`,
+);

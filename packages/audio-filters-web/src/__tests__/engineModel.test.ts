@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { KrispNoiseCancellation } from '../KrispNoiseCancellation';
-import { FastEnhancerNoiseCancellation } from '../FastEnhancerNoiseCancellation';
+import { StreamNoiseCancellation } from '../StreamNoiseCancellation';
 
 describe('KrispNoiseCancellation model', () => {
   it('reports the default model', () => {
@@ -25,11 +25,8 @@ describe('KrispNoiseCancellation model', () => {
   });
 });
 
-describe('FastEnhancerNoiseCancellation model', () => {
-  it('reports the model size', () => {
-    expect(new FastEnhancerNoiseCancellation().model).toBe('small');
-    expect(new FastEnhancerNoiseCancellation({ model: 'base' }).model).toBe(
-      'base',
-    );
+describe('StreamNoiseCancellation model', () => {
+  it('reports the vendored model build', () => {
+    expect(new StreamNoiseCancellation().model).toBe('c4-clean-s24-230k');
   });
 });

@@ -39,5 +39,5 @@ yarn-error.log*
 
 certificates
 
-# FastEnhancer models, copied from @stream-io/audio-filters-web
-/public/fastenhancer/
+# Noise cancellation models, copied from @stream-io/audio-filters-web
+/public/noise-cancellation/
