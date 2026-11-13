@@ -1,28 +1,12 @@
+import type { ChannelPaginator } from 'stream-chat';
+import { ChannelNavigation, WithComponents } from 'stream-chat-react';
 import { LogoutButton } from './LogoutButton';
 import { CustomChannelSearch } from '../CustomChannelSearch';
-import { ChannelList, WithComponents } from 'stream-chat-react';
-import {
-  ChannelFilters,
-  ChannelOptions,
-  ChannelSort,
-  UserResponse,
-} from 'stream-chat';
-
 import { ChannelPreview } from '../ChannelPreview';
+import { useOpenFirstChannel } from '../../hooks';
 
-type SidebarProps = {
-  user?: UserResponse;
-};
-
-export const Sidebar = ({ user }: SidebarProps) => {
-  if (!user) return null;
-
-  const filters: ChannelFilters = {
-    members: { $in: [user.id] },
-    type: 'messaging',
-  };
-  const options: ChannelOptions = { limit: 10, presence: true, state: true };
-  const sort: ChannelSort = { last_message_at: -1, updated_at: -1 };
+export const Sidebar = ({ paginator }: { paginator: ChannelPaginator }) => {
+  useOpenFirstChannel(paginator);
 
   return (
     <div id="sidebar" className="str-chat">
@@ -32,12 +16,7 @@ export const Sidebar = ({ user }: SidebarProps) => {
           ChannelListItemUI: ChannelPreview,
         }}
       >
-        <ChannelList
-          filters={filters}
-          options={options}
-          showChannelSearch
-          sort={sort}
-        />
+        <ChannelNavigation />
       </WithComponents>
       <div id="sidebar-footer">
         <LogoutButton />
