@@ -25,6 +25,9 @@ react {
     //   skip the bundling of the JS bundle and the assets. Default is "debug", "debugOptimized".
     //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
     // debuggableVariants = ["liteDebug", "liteDebugOptimized", "prodDebug", "prodDebugOptimized"]
+    // LOCAL ONLY (FCM device testing), do not commit: bundle JS into the debug APK so killed-app
+    // and reboot tests don't depend on Metro, while keeping callingx's debug logs.
+    debuggableVariants = []
 
     /* Bundling */
     //   A list containing the node command and its flags. Default is just 'node'.
