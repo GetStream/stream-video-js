@@ -114,8 +114,10 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     if (this.enabled && this.state.mediaStream) {
       const [videoTrack] = this.state.mediaStream.getVideoTracks();
       if (!videoTrack) return;
-      const { width: w, height: h } = videoTrack.getSettings();
-      if (w !== width || h !== height) {
+      const { width: w = 0, height: h = 0 } = videoTrack.getSettings();
+      // mobile devices report the resolution in the device orientation,
+      // so a portrait 720x1280 track already matches a 1280x720 target
+      if (Math.max(w, h) !== width || Math.min(w, h) !== height) {
         await this.applySettingsToStream();
         this.logger.debug(
           `${width}x${height} target resolution applied to media stream`,
