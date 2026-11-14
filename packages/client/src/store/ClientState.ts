@@ -13,6 +13,7 @@ export class ClientState {
 
   private connectedUserSubject = subject<OwnUserResponse>();
   private callsSubject = subject<Call[]>([]);
+  private watchedCallsSet = new Set<Call>();
 
   /** Data describing a user successfully connected over WS to the coordinator. */
   connectedUser$ = this.connectedUserSubject.asObservable();
@@ -97,5 +98,39 @@ export class ClientState {
    */
   findCall = (type: string, id: string) => {
     return this.calls.find((c) => c.type === type && c.id === id);
+  };
+
+  /**
+   * Every watched call, including left ones that still follow the backend.
+   *
+   * @internal
+   */
+  get watchedCalls(): ReadonlyArray<Call> {
+    return [...this.watchedCallsSet];
+  }
+
+  /**
+   * Whether the call is watched.
+   *
+   * @internal
+   */
+  isWatched = (call: Call) => this.watchedCallsSet.has(call);
+
+  /**
+   * Tracks a watched call.
+   *
+   * @internal
+   */
+  addWatchedCall = (call: Call) => {
+    this.watchedCallsSet.add(call);
+  };
+
+  /**
+   * Stops tracking a call once it stops watching.
+   *
+   * @internal
+   */
+  removeWatchedCall = (call: Call) => {
+    this.watchedCallsSet.delete(call);
   };
 }

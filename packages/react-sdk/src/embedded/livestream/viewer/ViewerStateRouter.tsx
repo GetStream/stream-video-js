@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { CallingState, OwnCapability } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
@@ -39,16 +39,6 @@ export const ViewerStateRouter = () => {
       setJoinError(true);
     }
   }, [call, onError]);
-
-  useEffect(() => {
-    if (!call || callingState !== CallingState.LEFT) return;
-
-    return call.on('call.live_started', () => {
-      call.get().catch((e) => {
-        onError?.(e);
-      });
-    });
-  }, [call, callingState, onError]);
 
   if (joinError) {
     return <JoinError onJoin={handleJoin} />;

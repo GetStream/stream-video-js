@@ -3,7 +3,7 @@ import {
   ViewerLivestream as DefaultViewerLivestream,
   type ViewerLivestreamProps,
 } from '../ViewerLivestream';
-import { Call, CallingState, videoLoggerSystem } from '@stream-io/video-client';
+import { Call, videoLoggerSystem } from '@stream-io/video-client';
 import { StreamCall } from '../../../providers/StreamCall';
 import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 import { Insets } from '../../../theme/types';
@@ -60,12 +60,13 @@ export const LivestreamPlayer = ({
     const myCall = client.call(callType, callId);
     setCall(myCall);
     return () => {
-      if (myCall.state.callingState !== CallingState.LEFT) {
-        myCall.leave().catch((e) => {
+      myCall
+        .leave()
+        .then(() => myCall.stopWatching())
+        .catch((e) => {
           const logger = videoLoggerSystem.getLogger('LivestreamPlayer');
           logger.error('Error leaving call:', e);
         });
-      }
       setCall(undefined);
     };
   }, [callId, callType, client]);
@@ -73,12 +74,13 @@ export const LivestreamPlayer = ({
   useEffect(() => {
     return () => {
       // this handles unmount on metro reloads
-      if (call?.state.callingState !== CallingState.LEFT) {
-        call?.leave().catch((e) => {
+      call
+        ?.leave()
+        .then(() => call.stopWatching())
+        .catch((e) => {
           const logger = videoLoggerSystem.getLogger('LivestreamPlayer');
           logger.error('Error leaving call:', e);
         });
-      }
     };
   }, [call]);
 
