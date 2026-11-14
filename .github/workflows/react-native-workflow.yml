@@ -1,15 +1,9 @@
 name: React Native Dogfood Release
 env:
-  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  GOOGLE_APPLICATION_CREDENTIALS: '/home/runner/rn-samples-google-services.json'
   MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
   APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
   APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
   APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
-  STREAM_SDK_TEST_APP: ${{ secrets.STREAM_SDK_TEST_APP }}
-  STREAM_SDK_TEST_ACCOUNT_EMAIL: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_EMAIL }}
-  STREAM_SDK_TEST_ACCOUNT_PASSWORD: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_PASSWORD }}
-  STREAM_SDK_TEST_ACCOUNT_OTP_SECRET: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_OTP_SECRET }}
   RN_DOGFOOD_ANDROID_KEYSTORE: '/home/runner/stream-video-calls-rn.keystore'
   RN_DOGFOOD_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.RN_DOGFOOD_ANDROID_KEYSTORE_PASSWORD }}
   RN_DOGFOOD_ANDROID_KEYSTORE_ALIAS: ${{ secrets.RN_DOGFOOD_ANDROID_KEYSTORE_ALIAS }}
@@ -164,12 +158,6 @@ jobs:
           INSTALL_NODE: true
           INSTALL_JAVA: true
           INSTALL_RN_DEPENDENCIES: true
-
-      - name: Create Google Services JSON File
-        env:
-          DATA: ${{ secrets.GOOGLE_SERVICES_JSON_RN_SAMPLES_DEPLOYMENT }}
-        run: echo $DATA > ~/rn-samples-google-services.json
-        shell: bash
 
       - name: Create Google Service Account for Play Store Deployment
         env:
