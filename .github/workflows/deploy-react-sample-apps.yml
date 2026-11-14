@@ -85,14 +85,9 @@ jobs:
             production-branch: release-v1
 
     env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ matrix.application.project-id }}
-      VITE_STREAM_USER_TOKEN: ${{ secrets.EGRESS_USER_TOKEN }}
-      VITE_STREAM_API_KEY: ${{ vars.STREAM_API_KEY_SAMPLE_APPS }}
-      VITE_STREAM_SECRET: ${{ secrets.STREAM_SECRET_SAMPLE_APPS }}
-      VITE_EGRESS_SENTRY_DNS: ${{ secrets.EGRESS_SENTRY_DNS }}
-      VITE_TOKEN_PROVIDER_URL: ${{secrets.TOKEN_PROVIDER_URL}}
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN_PRONTO }}
+      VITE_EGRESS_SENTRY_DNS: ${{ vars.EGRESS_SENTRY_DNS }}
       PRONTO_SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN_PRONTO }}
       EGRESS_SENTRY_AUTH_TOKEN: ${{ secrets.EGRESS_SENTRY_AUTH_TOKEN }}
       MODE: ${{ github.ref_name == matrix.application.production-branch && 'production' || 'preview' }}
