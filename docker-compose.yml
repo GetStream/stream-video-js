@@ -1,5 +1,5 @@
 # this compose file exists to generate screenshots
-# for the CI to compare against, replace key and token with your own before running
+# for the CI to compare against
 # docker compose up, each change to the sources (not including tests) requires image rebuild
 # https://github.com/microsoft/playwright/issues/8161
 
@@ -13,6 +13,4 @@ services:
     volumes:
       - ./sample-apps/react/egress-composite/tests/:/e2e/sample-apps/react/egress-composite/tests/
     environment:
-      VITE_STREAM_API_KEY: hd8szvscpxvd
-      VITE_STREAM_USER_TOKEN: <jane-token>
       CI: true

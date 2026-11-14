@@ -4,7 +4,7 @@ import { ConfigurationValue } from '../src/ConfigurationContext';
 const users = ['john', 'jane', 'mark', 'martin', 'anne'];
 
 export const generateScriptTagContent = (data: Partial<ConfigurationValue>) => {
-  return `window.setupLayout(${JSON.stringify(data)});`;
+  return `window.setupLayout({ ...window.e2eCredentials, ...${JSON.stringify(data)} });`;
 };
 
 export const participants = users.map<Partial<StreamVideoParticipant>>(
