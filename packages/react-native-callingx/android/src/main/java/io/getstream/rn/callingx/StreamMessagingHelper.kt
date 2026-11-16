@@ -13,9 +13,9 @@ import io.getstream.rn.callingx.utils.SettingsStore
  *
  * Messages arrive through [StreamMessagingReceiver], which gets every push no matter which
  * [com.google.firebase.messaging.FirebaseMessagingService] the app resolves, so apps that host
- * their own service should stop forwarding messages to [handleMessage]. If they keep forwarding,
- * each ring push is handled twice; the second time does not show a second call, because
- * [CallService] ignores a call id that is already registered.
+ * their own service don't need to forward messages to [handleMessage]. Forwarding stays safe:
+ * [handleMessage] skips a message it has already handled, so a push that arrives through both the
+ * receiver and the app's own service rings once.
  *
  * Token updates only reach the winning service. [StreamMessagingService] is declared at priority
  * `-100`, so when your app has its own service, forward the token from it for immediate updates
@@ -42,6 +42,17 @@ object StreamMessagingHelper {
 
   private const val TAG = "[Callingx] StreamMessagingHelper"
 
+  /** How many handled message ids to remember. Duplicates arrive within moments of each other. */
+  private const val MAX_HANDLED_MESSAGE_IDS = 50
+
+  /**
+   * FCM message ids [handleMessage] has acted on, oldest first. The same push reaches
+   * [handleMessage] twice when the app's own service forwards it too: once from
+   * [StreamMessagingReceiver], once from the app. The receiver runs on the main thread and a
+   * messaging service on its own thread, so access is synchronized.
+   */
+  private val handledMessageIds = LinkedHashSet<String>()
+
   /**
    * Returns `true` if [remoteMessage] is a Stream Video incoming `call.ring` push.
    * Useful when you want to short-circuit other SDK forwarders for Stream pushes.
@@ -54,8 +65,9 @@ object StreamMessagingHelper {
 
   /**
    * Handles a Stream Video `call.ring` payload by starting the incoming call flow.
-   * No-op for any other payload, or until the app has called `StreamVideoRN.setPushConfig`
-   * at least once, so it is safe to call unconditionally from a host messaging service.
+   * No-op for any other payload, for a message it has already handled, or until the app has
+   * called `StreamVideoRN.setPushConfig` at least once, so it is safe to call unconditionally
+   * from a host messaging service.
    */
   @JvmStatic
   fun handleMessage(context: Context, remoteMessage: RemoteMessage) {
@@ -77,6 +89,11 @@ object StreamMessagingHelper {
     val callCid = data["call_cid"]
     if (callCid.isNullOrEmpty()) {
       debugLog(TAG, "missing call_cid for call.ring, skipping CallService start")
+      return
+    }
+
+    if (!markHandled(remoteMessage.messageId)) {
+      debugLog(TAG, "message ${remoteMessage.messageId} already handled, skipping")
       return
     }
 
@@ -110,5 +127,20 @@ object StreamMessagingHelper {
     CallEventBus.publish(
       CallEvent(CallingxModuleImpl.CALL_FCM_TOKEN_REFRESH_ACTION, extras),
     )
+  }
+
+  /**
+   * Records [messageId] as handled. Returns `false` if it was already recorded. A message
+   * without an id is always handled, since it can't be told apart from another one.
+   */
+  private fun markHandled(messageId: String?): Boolean {
+    if (messageId == null) return true
+    synchronized(handledMessageIds) {
+      if (!handledMessageIds.add(messageId)) return false
+      if (handledMessageIds.size > MAX_HANDLED_MESSAGE_IDS) {
+        handledMessageIds.remove(handledMessageIds.first())
+      }
+      return true
+    }
   }
 }
