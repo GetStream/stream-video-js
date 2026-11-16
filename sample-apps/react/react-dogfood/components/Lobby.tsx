@@ -30,15 +30,16 @@ import { LobbyEncryption } from './LobbyEncryption';
 
 import { useEdges } from '../hooks/useEdges';
 import { DefaultAppHeader } from './DefaultAppHeader';
-import { useLayoutSwitcher } from '../hooks';
+import { useLayoutSwitcher, useSavedDisplayName } from '../hooks';
 import {
+  useAppEnvironment,
   useIsDemoEnvironment,
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
 import { useLobbyE2EE } from '../context/LobbyE2EEContext';
 import { useSettings } from '../context/SettingsContext';
 import { isCallEncrypted } from '../lib/e2ee';
-import { getRandomName } from '../lib/names';
+import { getRandomName, toDisplayName } from '../lib/names';
 import { ToggleNoiseCancellationButton } from './ToggleNoiseCancellationButton';
 import { useAppI18n } from '../hooks/useAppI18n';
 
@@ -78,15 +79,18 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   // An `auto-on` call requires E2EE of every participant, so the backend rejects
   // a non-e2ee join: gate the Join button until a key is provided.
   const needsEncryptionKey = isCallEncrypted(settings) && !e2ee?.encryptionKey;
+  const { savedDisplayName } = useSavedDisplayName();
   const [displayNameOverride, setDisplayNameOverride] = useState<string | null>(
-    isDemoEnvironment ? getRandomName() : null,
+    null,
   );
+  const isProntoSales = useAppEnvironment() === 'pronto-sales';
+  const [randomName] = useState(() => (isProntoSales ? '' : getRandomName()));
   const router = useRouter();
   const displayName =
     displayNameOverride ??
-    currentUser?.name ??
+    savedDisplayName ??
     (router.query['user_id'] as string | undefined) ??
-    '';
+    randomName;
   const custom = useCallCustomData();
 
   const { t } = useAppI18n();
@@ -273,7 +277,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                 <button
                   className="rd__button rd__button--primary rd__button--large rd__lobby-join"
                   type="button"
-                  disabled={displayName.length === 0 || needsEncryptionKey}
+                  disabled={!toDisplayName(displayName) || needsEncryptionKey}
                   data-testid="join-call-button"
                   title={
                     needsEncryptionKey

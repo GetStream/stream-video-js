@@ -29,6 +29,15 @@ export function getUserIdFromEmail(email: string) {
   return sanitizeUserId(name);
 }
 
+/**
+ * Trims a display name and caps it at the lobby's input length, or returns
+ * `undefined` when there is nothing to keep.
+ */
+export function toDisplayName(value: unknown) {
+  if (typeof value !== 'string') return undefined;
+  return value.trim().slice(0, 25).trim() || undefined;
+}
+
 export function sanitizeUserId(userId: string) {
   return userId.replace(/(\s+|[^_\-0-9a-zA-Z@])/g, '_').toLowerCase();
 }
