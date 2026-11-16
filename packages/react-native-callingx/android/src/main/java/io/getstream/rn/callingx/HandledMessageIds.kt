@@ -5,11 +5,11 @@ package io.getstream.rn.callingx
  * has already handled. The same push reaches `handleMessage` twice when the app's own messaging
  * service forwards it too: once from [StreamMessagingReceiver], once from the app.
  *
- * Remembers the last [maxSize] ids, oldest dropped first: duplicates arrive within moments of each
- * other. Thread-safe: the receiver runs on the main thread and a messaging service on its own
- * thread.
+ * Remembers the last [maxSize] ids, oldest dropped first. The two copies of a push arrive well
+ * under a second apart, so the last 10 is plenty, even with several pushes in flight at once.
+ * Thread-safe: the receiver runs on the main thread and a messaging service on its own thread.
  */
-internal class HandledMessageIds(private val maxSize: Int) {
+internal class HandledMessageIds(private val maxSize: Int = DEFAULT_MAX_SIZE) {
 
   private val ids = LinkedHashSet<String>()
 
@@ -26,5 +26,9 @@ internal class HandledMessageIds(private val maxSize: Int) {
       }
       return true
     }
+  }
+
+  companion object {
+    const val DEFAULT_MAX_SIZE = 10
   }
 }

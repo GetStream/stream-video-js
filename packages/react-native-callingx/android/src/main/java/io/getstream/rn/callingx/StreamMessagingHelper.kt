@@ -43,7 +43,7 @@ object StreamMessagingHelper {
   private const val TAG = "[Callingx] StreamMessagingHelper"
 
   /** FCM message ids [handleMessage] has acted on, so a forwarded copy of a push is skipped. */
-  private val handledMessageIds = HandledMessageIds(maxSize = 50)
+  private val handledMessageIds = HandledMessageIds()
 
   /**
    * Returns `true` if [remoteMessage] is a Stream Video incoming `call.ring` push.

@@ -13,14 +13,14 @@ class HandledMessageIdsTest {
 
   @Test
   fun `a message is handled the first time`() {
-    val ids = HandledMessageIds(maxSize = 50)
+    val ids = HandledMessageIds()
 
     assertTrue(ids.markHandled("0:1"))
   }
 
   @Test
   fun `a message handled before is skipped`() {
-    val ids = HandledMessageIds(maxSize = 50)
+    val ids = HandledMessageIds()
     ids.markHandled("0:1")
 
     assertFalse(ids.markHandled("0:1"))
@@ -28,7 +28,7 @@ class HandledMessageIdsTest {
 
   @Test
   fun `different messages are all handled`() {
-    val ids = HandledMessageIds(maxSize = 50)
+    val ids = HandledMessageIds()
 
     assertTrue(ids.markHandled("0:1"))
     assertTrue(ids.markHandled("0:2"))
@@ -36,7 +36,7 @@ class HandledMessageIdsTest {
 
   @Test
   fun `a message without an id is always handled`() {
-    val ids = HandledMessageIds(maxSize = 50)
+    val ids = HandledMessageIds()
 
     assertTrue(ids.markHandled(null))
     assertTrue(ids.markHandled(null))
@@ -54,8 +54,19 @@ class HandledMessageIdsTest {
   }
 
   @Test
+  fun `by default the last 10 messages are remembered`() {
+    val ids = HandledMessageIds()
+    (1..11).forEach { ids.markHandled("0:$it") }
+
+    // 0:2 is still remembered; 0:1 was dropped to make room for the eleventh message. (0:2 is checked
+    // first: handling 0:1 again would drop 0:2.)
+    assertFalse(ids.markHandled("0:2"))
+    assertTrue(ids.markHandled("0:1"))
+  }
+
+  @Test
   fun `the same message passed in from many threads at once is handled once`() {
-    val ids = HandledMessageIds(maxSize = 50)
+    val ids = HandledMessageIds()
     val threads = 8
     val handled = AtomicInteger()
     val start = CountDownLatch(1)
