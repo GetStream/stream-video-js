@@ -42,16 +42,8 @@ object StreamMessagingHelper {
 
   private const val TAG = "[Callingx] StreamMessagingHelper"
 
-  /** How many handled message ids to remember. Duplicates arrive within moments of each other. */
-  private const val MAX_HANDLED_MESSAGE_IDS = 50
-
-  /**
-   * FCM message ids [handleMessage] has acted on, oldest first. The same push reaches
-   * [handleMessage] twice when the app's own service forwards it too: once from
-   * [StreamMessagingReceiver], once from the app. The receiver runs on the main thread and a
-   * messaging service on its own thread, so access is synchronized.
-   */
-  private val handledMessageIds = LinkedHashSet<String>()
+  /** FCM message ids [handleMessage] has acted on, so a forwarded copy of a push is skipped. */
+  private val handledMessageIds = HandledMessageIds(maxSize = 50)
 
   /**
    * Returns `true` if [remoteMessage] is a Stream Video incoming `call.ring` push.
@@ -92,7 +84,7 @@ object StreamMessagingHelper {
       return
     }
 
-    if (!markHandled(remoteMessage.messageId)) {
+    if (!handledMessageIds.markHandled(remoteMessage.messageId)) {
       debugLog(TAG, "message ${remoteMessage.messageId} already handled, skipping")
       return
     }
@@ -127,20 +119,5 @@ object StreamMessagingHelper {
     CallEventBus.publish(
       CallEvent(CallingxModuleImpl.CALL_FCM_TOKEN_REFRESH_ACTION, extras),
     )
-  }
-
-  /**
-   * Records [messageId] as handled. Returns `false` if it was already recorded. A message
-   * without an id is always handled, since it can't be told apart from another one.
-   */
-  private fun markHandled(messageId: String?): Boolean {
-    if (messageId == null) return true
-    synchronized(handledMessageIds) {
-      if (!handledMessageIds.add(messageId)) return false
-      if (handledMessageIds.size > MAX_HANDLED_MESSAGE_IDS) {
-        handledMessageIds.remove(handledMessageIds.first())
-      }
-      return true
-    }
   }
 }
