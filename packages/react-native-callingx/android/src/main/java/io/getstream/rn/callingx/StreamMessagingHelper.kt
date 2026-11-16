@@ -9,37 +9,33 @@ import io.getstream.rn.callingx.utils.SettingsStore
 
 
 /**
- * Public entry point for consumer apps that host their own [com.google.firebase.messaging.FirebaseMessagingService].
+ * Public entry point for Stream Video FCM handling.
  *
- * To opt out of the default [StreamMessagingService] registration, add to the app manifest:
- * ```
- * <service
- *     android:name="io.getstream.rn.callingx.StreamMessagingService"
- *     tools:node="remove" />
- * ```
- * (Alternatively, bump your own intent-filter's `android:priority` above `0` — ours declares
- * priority `0` by default.)
+ * Messages arrive through [StreamMessagingReceiver], which gets every push no matter which
+ * [com.google.firebase.messaging.FirebaseMessagingService] the app resolves, so apps that host
+ * their own service should stop forwarding messages to [handleMessage]. If they keep forwarding,
+ * each ring push is handled twice; the second time does not show a second call, because
+ * [CallService] ignores a call id that is already registered.
  *
- * Then invoke [handleMessage] from the app's own messaging service:
+ * Token updates only reach the winning service. [StreamMessagingService] is declared at priority
+ * `-100`, so when your app has its own service, forward the token from it for immediate updates
+ * (the SDK also registers the current token on every start):
  * ```
  * class AppMessagingService : FirebaseMessagingService() {
- *   override fun onMessageReceived(remoteMessage: RemoteMessage) {
- *     // Optional gate — provided for finer control over the forwarding flow.
- *     // `handleMessage` is also safe to call unconditionally; it no-ops for
- *     // payloads that aren't a Stream `call.ring`.
- *     if (StreamMessagingHelper.isStreamCallRing(remoteMessage)) {
- *       StreamMessagingHelper.handleMessage(applicationContext, remoteMessage)
- *     } else {
- *       // forward to other push SDKs
- *     }
- *   }
- *
  *   override fun onNewToken(token: String) {
  *     // Notify Stream of the new token so the SDK's token rotation flow still fires.
  *     StreamMessagingHelper.forwardNewToken(token)
  *     // ... plus consumer's own SDKs
  *   }
  * }
+ * ```
+ *
+ * To take over message handling completely, remove our receiver in the app manifest and call
+ * [handleMessage] from your own service:
+ * ```
+ * <receiver
+ *     android:name="io.getstream.rn.callingx.StreamMessagingReceiver"
+ *     tools:node="remove" />
  * ```
  */
 object StreamMessagingHelper {

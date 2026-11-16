@@ -27,13 +27,27 @@
       android:foregroundServiceType="phoneCall|microphone|camera"
       android:stopWithTask="true" />
 
+    <!-- Token updates only. Priority -100 loses to any other FCM service (the app's own,
+         @react-native-firebase/messaging at 0, expo-notifications at -1) so we never take
+         their MESSAGING_EVENT slot, but still beats Firebase's built-in fallback (-500). -->
     <service
       android:name="io.getstream.rn.callingx.StreamMessagingService"
       android:exported="false">
-      <intent-filter android:priority="0">
+      <intent-filter android:priority="-100">
         <action android:name="com.google.firebase.MESSAGING_EVENT" />
       </intent-filter>
     </service>
+
+    <!-- Messages. Every receiver gets the c2dm broadcast, so this works whichever FCM service
+         wins. Only Google Play services holds c2dm.permission.SEND. -->
+    <receiver
+      android:name="io.getstream.rn.callingx.StreamMessagingReceiver"
+      android:exported="true"
+      android:permission="com.google.android.c2dm.permission.SEND">
+      <intent-filter>
+        <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+      </intent-filter>
+    </receiver>
 
     <!-- Action values must match constants in CallingxModuleImpl.kt -->
     <receiver
