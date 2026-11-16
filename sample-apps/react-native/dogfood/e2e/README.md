@@ -72,6 +72,43 @@ narrow it further.
 Release configurations bundle the JS, so no Metro is needed. Debug configurations need `yarn start`. Android builds need
 JDK 17 or 21 (`JAVA_HOME`). The app logs at `debug` level; read it with `adb logcat -s ReactNativeJS:V`.
 
+## Push ringing tests (Android, local only)
+
+These check that a ring that arrives only by push shows the incoming call once. callingx handles the push natively in
+`StreamMessagingReceiver`, whichever `FirebaseMessagingService` the app has. Pushes need Google Play services, which
+CI's emulator image doesn't have, so these tests run only on a phone or a Google Play emulator.
+
+| Test                                                                                                            | App state  | App's own Firebase service | Runner     |
+| --------------------------------------------------------------------------------------------------------------- | ---------- | -------------------------- | ---------- |
+| `RingPushTests` `testIncomingCallFromAPushShowsWhileTheAppIsOpen`                                               | open       | no                         | Detox      |
+| `RingPushTests` `testIncomingCallFromAPushShowsWhileTheAppIsInTheBackground`                                    | background | no                         | Detox      |
+| `RingPushTests` `testIncomingCallFromAPushShowsInTheBackgroundWhenTheAppHasItsOwnFirebaseService`               | background | yes                        | Detox      |
+| `push/RingPushFromKilledAppTests` `testIncomingCallFromAPushStartsAKilledAppAndCanBeAnswered`                   | killed     | no                         | Jest + adb |
+| `push/RingPushFromKilledAppTests` `testIncomingCallFromAPushStartsAKilledAppWhenTheAppHasItsOwnFirebaseService` | killed     | yes                        | Jest + adb |
+
+- The test user's id starts with `e2e_push_only_`, so the app ignores `call.created` and `call.ring` from the WebSocket
+  (`src/utils/ignoreRingEventsFromWebSocket.ts`): the push is the only way the ring can arrive.
+- "Shown once" is read from callingx's debug logs (`support/RingPush.ts`), so use a debug build. The killed-app tests also
+  check Android's own log that it started the app for `StreamMessagingReceiver`, then answer from the notification and
+  check on the server that the user joined.
+- "App's own Firebase service": Android gives Firebase messages to one `FirebaseMessagingService` only, the one with the
+  highest priority. Debug builds have `E2EAppMessagingService` (`android/app/src/debug/.../e2e/`), declared above
+  callingx's `StreamMessagingService` and off by default. The test turns it on through the debug-only
+  `E2EAppMessagingServiceSwitch` receiver (Android 14+ doesn't let `adb shell pm enable` change an app's components), and
+  checks that this service got the push, callingx's service didn't, and the receiver still started one incoming call.
+  Like an app that knows nothing about Stream, it doesn't forward messages. It forwards token updates with
+  `StreamMessagingHelper.forwardNewToken`, since only the winning service gets them.
+- `RingPushTests` skips itself on a device without Google Play services, so it stays green on CI.
+- The killed-app tests can't use Detox: Detox's runner lives in the app's process, and when that process dies Android
+  force-stops the app and drops its pushes. They drive the device with adb instead (`support/Adb.ts`).
+
+```bash
+yarn start                                                        # debug builds load JS from Metro
+yarn e2e:build -c android.att.debug
+DETOX_ADB_NAME=<serial> yarn e2e:test -c android.att.debug e2e/tests/RingPushTests.e2e.ts
+DETOX_ADB_NAME=<serial> yarn e2e:test:push e2e/push/RingPushFromKilledAppTests.e2e.ts
+```
+
 ## CI
 
 `.github/workflows/react-native-e2e-test.yml` runs on pull requests and on demand (`workflow_dispatch`). A cheap

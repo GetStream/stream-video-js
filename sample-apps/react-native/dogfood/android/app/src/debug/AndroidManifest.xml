@@ -5,5 +5,23 @@
     <application
         android:usesCleartextTraffic="true"
         tools:targetApi="28"
-        tools:ignore="GoogleAppIndexingWarning"/>
+        tools:ignore="GoogleAppIndexingWarning">
+
+        <!-- E2E tests only: an app's own Firebase messaging service, above callingx's (-100), so it
+             wins MESSAGING_EVENT once a test turns it on. See the class. -->
+        <service
+            android:name=".e2e.E2EAppMessagingService"
+            android:enabled="false"
+            android:exported="false">
+            <intent-filter android:priority="10">
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- Lets the tests turn that service on and off from adb. Only `adb shell` holds DUMP. -->
+        <receiver
+            android:name=".e2e.E2EAppMessagingServiceSwitch"
+            android:exported="true"
+            android:permission="android.permission.DUMP" />
+    </application>
 </manifest>
