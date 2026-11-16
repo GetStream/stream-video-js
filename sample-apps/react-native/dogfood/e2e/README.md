@@ -78,13 +78,15 @@ These check that a ring that arrives only by push shows the incoming call once. 
 `StreamMessagingReceiver`, whichever `FirebaseMessagingService` the app has. Pushes need Google Play services, which
 CI's emulator image doesn't have, so these tests run only on a phone or a Google Play emulator.
 
-| Test                                                                                                            | App state  | App's own Firebase service | Runner     |
-| --------------------------------------------------------------------------------------------------------------- | ---------- | -------------------------- | ---------- |
-| `RingPushTests` `testIncomingCallFromAPushShowsWhileTheAppIsOpen`                                               | open       | no                         | Detox      |
-| `RingPushTests` `testIncomingCallFromAPushShowsWhileTheAppIsInTheBackground`                                    | background | no                         | Detox      |
-| `RingPushTests` `testIncomingCallFromAPushShowsInTheBackgroundWhenTheAppHasItsOwnFirebaseService`               | background | yes                        | Detox      |
-| `push/RingPushFromKilledAppTests` `testIncomingCallFromAPushStartsAKilledAppAndCanBeAnswered`                   | killed     | no                         | Jest + adb |
-| `push/RingPushFromKilledAppTests` `testIncomingCallFromAPushStartsAKilledAppWhenTheAppHasItsOwnFirebaseService` | killed     | yes                        | Jest + adb |
+| Test                                                                                                                   | App state  | App's own Firebase service | Runner     |
+| ---------------------------------------------------------------------------------------------------------------------- | ---------- | -------------------------- | ---------- |
+| `RingPushTests` `testIncomingCallFromAPushShowsWhileTheAppIsOpen`                                                      | open       | no                         | Detox      |
+| `RingPushTests` `testIncomingCallFromAPushShowsWhileTheAppIsInTheBackground`                                           | background | no                         | Detox      |
+| `RingPushTests` `testIncomingCallFromAPushShowsInTheBackgroundWhenTheAppHasItsOwnFirebaseService`                      | background | yes                        | Detox      |
+| `RingPushTests` `testIncomingCallFromAPushShowsOnceWhenTheAppAlsoForwardsThePushToStream`                              | background | yes, forwards to Stream    | Detox      |
+| `push/RingPushFromKilledAppTests` `testIncomingCallFromAPushStartsAKilledAppAndCanBeAnswered`                          | killed     | no                         | Jest + adb |
+| `push/RingPushFromKilledAppTests` `testIncomingCallFromAPushStartsAKilledAppWhenTheAppHasItsOwnFirebaseService`        | killed     | yes                        | Jest + adb |
+| `push/RingPushFromKilledAppTests` `testIncomingCallFromAPushStartsAKilledAppOnceWhenTheAppAlsoForwardsThePushToStream` | killed     | yes, forwards to Stream    | Jest + adb |
 
 - The test user's id starts with `e2e_push_only_`, so the app ignores `call.created` and `call.ring` from the WebSocket
   (`src/utils/ignoreRingEventsFromWebSocket.ts`): the push is the only way the ring can arrive.
@@ -98,6 +100,11 @@ CI's emulator image doesn't have, so these tests run only on a phone or a Google
   checks that this service got the push, callingx's service didn't, and the receiver still started one incoming call.
   Like an app that knows nothing about Stream, it doesn't forward messages. It forwards token updates with
   `StreamMessagingHelper.forwardNewToken`, since only the winning service gets them.
+- "Forwards to Stream": the service also passes every message to `StreamMessagingHelper.handleMessage`, like an app that
+  followed the old integration docs. The push then reaches `handleMessage` twice, from the receiver and from the app. The
+  test checks that it still started one incoming call, and that `handleMessage` logged `already handled, skipping` once.
+- Each background and killed-app test first waits until no incoming call notification shows: a ring keeps going after
+  its test ends, until the ring timeout (25s).
 - `RingPushTests` skips itself on a device without Google Play services, so it stays green on CI.
 - The killed-app tests can't use Detox: Detox's runner lives in the app's process, and when that process dies Android
   force-stops the app and drops its pushes. They drive the device with adb instead (`support/Adb.ts`).

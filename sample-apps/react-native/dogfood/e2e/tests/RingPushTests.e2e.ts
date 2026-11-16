@@ -6,12 +6,14 @@ import { seconds } from '../support/Element';
 import {
   assertAppMessagingServiceGotTheRingPush,
   assertAppMessagingServiceWins,
+  assertDuplicateRingPushSkipped,
   assertRingPushHandledOnce,
   collectDeviceLogs,
   enableAppMessagingService,
   hasGooglePlayServices,
   resetAppMessagingService,
   RING_PUSH_LOG_PATTERN,
+  waitForNoIncomingCallNotification,
   waitForOneIncomingCallNotification,
 } from '../support/RingPush';
 import { step } from '../support/step';
@@ -32,7 +34,9 @@ import { setUpStreamTestCase } from '../support/StreamTestCase';
  *
  * The `…WhenTheAppHasItsOwnFirebaseService` test turns on the debug build's
  * `E2EAppMessagingService`, which wins Firebase messages over callingx's `StreamMessagingService`
- * and doesn't forward them, like an app with its own service.
+ * and doesn't forward them, like an app with its own service. The `…AlsoForwardsThePushToStream`
+ * test has it forward every message to `StreamMessagingHelper.handleMessage`, so the push reaches
+ * `handleMessage` twice, and must still ring once.
  */
 const itWithPush = hasGooglePlayServices() ? it : it.skip;
 
@@ -87,6 +91,9 @@ describe('RingPushTests', () => {
         userRobot.logout().login(userId),
       );
       await step('AND the app is in the background', () => device.sendToHome());
+      await step('AND no incoming call is showing yet', () =>
+        waitForNoIncomingCallNotification(),
+      );
       await step('WHEN participant rings the user', async () => {
         logs = collectDeviceLogs(RING_PUSH_LOG_PATTERN);
         await participantRobot.ringUserAndDisappear(userId, { byPush: true });
@@ -127,6 +134,9 @@ describe('RingPushTests', () => {
         },
       );
       await step('AND the app is in the background', () => device.sendToHome());
+      await step('AND no incoming call is showing yet', () =>
+        waitForNoIncomingCallNotification(),
+      );
       await step('WHEN participant rings the user', async () => {
         logs = collectDeviceLogs(RING_PUSH_LOG_PATTERN);
         await participantRobot.ringUserAndDisappear(userId, { byPush: true });
@@ -143,6 +153,46 @@ describe('RingPushTests', () => {
       await step(
         "AND the app's own service got the push, not Stream's",
         async () => assertAppMessagingServiceGotTheRingPush(logs!),
+      );
+    },
+  );
+
+  itWithPush(
+    'testIncomingCallFromAPushShowsOnceWhenTheAppAlsoForwardsThePushToStream',
+    async () => {
+      const { userRobot, participantRobot } = testCase;
+      const userId = pushOnlyUserId();
+
+      await step('GIVEN user is signed in and gets rings only by push', () =>
+        userRobot.logout().login(userId),
+      );
+      await step(
+        "AND the app's own Firebase service gets messages and forwards them to Stream",
+        async () => {
+          await enableAppMessagingService({ forwardMessages: true });
+          await assertAppMessagingServiceWins();
+        },
+      );
+      await step('AND the app is in the background', () => device.sendToHome());
+      await step('AND no incoming call is showing yet', () =>
+        waitForNoIncomingCallNotification(),
+      );
+      await step('WHEN participant rings the user', async () => {
+        logs = collectDeviceLogs(RING_PUSH_LOG_PATTERN);
+        await participantRobot.ringUserAndDisappear(userId, { byPush: true });
+      });
+      await step('THEN one incoming call notification shows', () =>
+        waitForOneIncomingCallNotification(seconds(30)),
+      );
+      await step('AND the push started the incoming call once', () =>
+        assertRingPushHandledOnce(logs!),
+      );
+      await step(
+        "AND the app's own service got the push, not Stream's",
+        async () => assertAppMessagingServiceGotTheRingPush(logs!),
+      );
+      await step('AND the copy the app forwarded was skipped', async () =>
+        assertDuplicateRingPushSkipped(logs!),
       );
     },
   );

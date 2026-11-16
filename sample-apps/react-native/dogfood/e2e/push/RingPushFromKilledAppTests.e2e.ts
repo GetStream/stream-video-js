@@ -19,12 +19,14 @@ import {
   appStartedForRingPush,
   assertAppMessagingServiceGotTheRingPush,
   assertAppMessagingServiceWins,
+  assertDuplicateRingPushSkipped,
   assertRingPushHandledOnce,
   collectDeviceLogs,
   enableAppMessagingService,
   hasGooglePlayServices,
   resetAppMessagingService,
   RING_PUSH_LOG_PATTERN,
+  waitForNoIncomingCallNotification,
   waitForOneIncomingCallNotification,
 } from '../support/RingPush';
 import { ringUser } from '../support/ringUser';
@@ -117,9 +119,12 @@ describe('RingPushFromKilledAppTests', () => {
    * @param withAppMessagingService turns on the debug build's `E2EAppMessagingService` first. It
    * wins Firebase messages over callingx's `StreamMessagingService` and doesn't forward them, like
    * an app with its own service.
+   * @param forwardMessages makes that service forward every message to
+   * `StreamMessagingHelper.handleMessage`, so the push reaches `handleMessage` twice.
    */
   const ringAKilledAppAndAnswer = async ({
     withAppMessagingService = false,
+    forwardMessages = false,
   } = {}) => {
     const userId = `${E2E_RING_BY_PUSH_ONLY_USER_PREFIX}killed_${Math.random().toString(36).slice(2, 10)}`;
     let callId = '';
@@ -130,15 +135,20 @@ describe('RingPushFromKilledAppTests', () => {
     });
     if (withAppMessagingService) {
       await step(
-        "AND the app's own Firebase service gets messages instead of Stream's",
+        forwardMessages
+          ? "AND the app's own Firebase service gets messages and forwards them to Stream"
+          : "AND the app's own Firebase service gets messages instead of Stream's",
         async () => {
-          await enableAppMessagingService();
+          await enableAppMessagingService({ forwardMessages });
           await assertAppMessagingServiceWins();
         },
       );
     }
     await step('AND Android has killed the app', killAppInBackground);
 
+    await step('AND no incoming call is showing yet', () =>
+      waitForNoIncomingCallNotification(),
+    );
     await step('WHEN someone rings the user', async () => {
       logs = collectDeviceLogs(RING_PUSH_LOG_PATTERN);
       callId = await ringUser(userId, { byPush: true });
@@ -172,6 +182,11 @@ describe('RingPushFromKilledAppTests', () => {
         async () => assertAppMessagingServiceGotTheRingPush(logs!),
       );
     }
+    if (forwardMessages) {
+      await step('AND the copy the app forwarded was skipped', async () =>
+        assertDuplicateRingPushSkipped(logs!),
+      );
+    }
 
     await step(
       'WHEN user answers from the notification',
@@ -187,4 +202,10 @@ describe('RingPushFromKilledAppTests', () => {
 
   it('testIncomingCallFromAPushStartsAKilledAppWhenTheAppHasItsOwnFirebaseService', () =>
     ringAKilledAppAndAnswer({ withAppMessagingService: true }));
+
+  it('testIncomingCallFromAPushStartsAKilledAppOnceWhenTheAppAlsoForwardsThePushToStream', () =>
+    ringAKilledAppAndAnswer({
+      withAppMessagingService: true,
+      forwardMessages: true,
+    }));
 });

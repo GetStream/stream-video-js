@@ -66,11 +66,11 @@ export const collectDeviceLogs = (pattern: string) => {
  * The log lines {@link countRingPushesHandled}, {@link appStartedForRingPush} and
  * {@link servicesThatGotTheRingPush} read. `logcat -e` matches the message, not the tag:
  * `onReceive messageId` is the receiver's own message, `onMessageReceived messageId` is the
- * messaging services', and `StreamMessagingReceiver` matches Android's "Start proc … for broadcast …"
- * line.
+ * messaging services', `already handled, skipping` is `StreamMessagingHelper.handleMessage` skipping a
+ * duplicate, and `StreamMessagingReceiver` matches Android's "Start proc … for broadcast …" line.
  */
 export const RING_PUSH_LOG_PATTERN =
-  'onReceive messageId|onMessageReceived messageId|StreamMessagingReceiver|startIncomingCallFromPush|ForegroundServiceStartNotAllowed';
+  'onReceive messageId|onMessageReceived messageId|already handled, skipping|StreamMessagingReceiver|startIncomingCallFromPush|ForegroundServiceStartNotAllowed';
 
 // ---------------------------------------------------------------------------------------------
 // The app's own Firebase messaging service (debug builds only)
@@ -91,7 +91,10 @@ const STREAM_MESSAGING_SERVICE =
  * app's components. `-f 32` (FLAG_INCLUDE_STOPPED_PACKAGES) reaches a force-stopped app too. The app
  * keeps running.
  */
-const switchAppMessagingService = async (enabled: boolean) => {
+const switchAppMessagingService = async (
+  enabled: boolean,
+  forwardMessages = false,
+) => {
   const output = await adb(
     'shell',
     'am',
@@ -103,6 +106,9 @@ const switchAppMessagingService = async (enabled: boolean) => {
     '--ez',
     'enabled',
     String(enabled),
+    '--ez',
+    'forward',
+    String(forwardMessages),
   );
   if (!/result=0/.test(output)) {
     throw new Error(
@@ -114,8 +120,13 @@ const switchAppMessagingService = async (enabled: boolean) => {
 /**
  * Turns the app's own messaging service on. Android then delivers every Firebase message and token
  * update to it instead of callingx's service.
+ *
+ * @param forwardMessages makes it pass every message to `StreamMessagingHelper.handleMessage`, as
+ * an app that followed the old integration docs does. A ring push then reaches `handleMessage`
+ * twice: from callingx's receiver and from the app.
  */
-export const enableAppMessagingService = () => switchAppMessagingService(true);
+export const enableAppMessagingService = ({ forwardMessages = false } = {}) =>
+  switchAppMessagingService(true, forwardMessages);
 
 /** Puts the app's own messaging service back to its manifest state (off). */
 export const resetAppMessagingService = () => switchAppMessagingService(false);
@@ -192,6 +203,20 @@ export const assertAppMessagingServiceGotTheRingPush = (logs: {
 };
 
 /**
+ * Asserts that `StreamMessagingHelper.handleMessage` got the ring push a second time, from the app's
+ * own service, and skipped it. Run after {@link assertRingPushHandledOnce}, which waits for the
+ * push and checks that it started one incoming call.
+ */
+export const assertDuplicateRingPushSkipped = (logs: { lines: string[] }) => {
+  const { skippedAsDuplicate } = countRingPushesHandled(logs.lines);
+  if (skippedAsDuplicate !== 1) {
+    throw new Error(
+      `Expected handleMessage to skip the forwarded copy of the ring push once, skipped ${skippedAsDuplicate}×.\n${logs.lines.join('\n')}`,
+    );
+  }
+};
+
+/**
  * How many `call.ring` pushes callingx's receiver handled, and how many incoming calls it started
  * from them, in `lines` from {@link collectDeviceLogs}. Debug builds only (callingx's `debugLog`).
  */
@@ -208,6 +233,9 @@ export const countRingPushesHandled = (lines: string[]) => ({
     /ForegroundServiceStartNotAllowed|startIncomingCallFromPush: Failed to start service/.test(
       line,
     ),
+  ).length,
+  skippedAsDuplicate: lines.filter((line) =>
+    /StreamMessagingHelper.*already handled, skipping/.test(line),
   ).length,
 });
 
@@ -234,6 +262,33 @@ export const incomingCallNotificationCount = async () => {
         line.includes(`pkg=${APP_PACKAGE}`) &&
         line.includes(`channel=${INCOMING_CALL_CHANNEL}`),
     ).length;
+};
+
+/**
+ * Waits until no incoming call notification shows. A test's ring keeps going after the test ends,
+ * until the ring timeout (25s for the `default` call type), and its notification can still be
+ * showing when the next test starts.
+ */
+export const waitForNoIncomingCallNotification = async (timeout = 40_000) => {
+  const start = Date.now();
+  const deadline = start + timeout;
+  for (;;) {
+    const count = await incomingCallNotificationCount();
+    if (count === 0) {
+      if (Date.now() - start > 1_000) {
+        console.log(
+          `Waited ${Math.round((Date.now() - start) / 1000)}s for an earlier ring's notification to go away`,
+        );
+      }
+      return;
+    }
+    if (Date.now() > deadline) {
+      throw new Error(
+        `${count} incoming call notifications still show after ${timeout / 1000}s, from an earlier ring`,
+      );
+    }
+    await sleep(1_000);
+  }
 };
 
 /** Waits until callingx shows exactly one incoming call notification. */
