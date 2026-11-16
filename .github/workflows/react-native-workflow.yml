@@ -27,6 +27,7 @@ on:
       - 'packages/client/**'
       - 'packages/react-bindings/**'
       - 'packages/react-native-sdk/**'
+      - 'packages/react-native-callingx/**'
       - 'packages/noise-cancellation-react-native/**'
       - 'packages/video-filters-react-native/**'
   workflow_dispatch:
@@ -68,6 +69,33 @@ jobs:
 
       - name: Test RN SDK (Unit tests only)
         run: yarn test:react-native:sdk
+
+  android_unit_tests:
+    name: Android unit tests (callingx)
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/rn-bootstrap
+        timeout-minutes: 15
+        env:
+          INSTALL_NODE: true
+          INSTALL_JAVA: true
+          INSTALL_RN_DEPENDENCIES: true
+
+      # JVM tests (JUnit + Robolectric) in packages/react-native-callingx/android/src/test. callingx
+      # builds against React Native, so they run from the dogfood app's Gradle project.
+      - name: Test callingx
+        working-directory: sample-apps/react-native/dogfood/android
+        run: ./gradlew :stream-io_react-native-callingx:testDebugUnitTest --console=plain
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: callingx-unit-test-reports
+          path: packages/react-native-callingx/android/build/reports/tests/
 
   build_ios:
     name: Build iOS
