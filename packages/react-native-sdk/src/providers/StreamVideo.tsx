@@ -14,6 +14,7 @@ import { type DeepPartial, StreamTheme } from '../contexts/ThemeContext';
 import { type Theme, type ThemeColorScheme } from '../theme/theme';
 import { ScreenshotIosContextProvider } from '../contexts/internal/ScreenshotIosContext';
 import BusyTonePlayer from './BusyTonePlayer';
+import { registerLiveClient } from '../utils/push/internal/liveClients';
 
 export type StreamVideoProps = StreamVideoProviderProps &
   UseStreami18nParams & {
@@ -55,6 +56,11 @@ export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
     language,
     translations,
   });
+
+  /**
+   * Lets notification actions (e.g. Decline) reach this client's calls right away.
+   */
+  useEffect(() => registerLiveClient(client), [client]);
 
   /**
    * Effect to inform the coordinator about the online status of the app

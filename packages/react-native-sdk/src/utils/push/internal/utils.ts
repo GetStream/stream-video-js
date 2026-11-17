@@ -6,6 +6,8 @@ import {
 } from '@stream-io/video-client';
 import type { StreamVideoConfig } from '../../StreamVideoRN/types';
 import { pushUnsubscriptionCallbacks } from './constants';
+import { registerLiveClient } from './liveClients';
+import type { RNCallingxType } from '../libs';
 import { AppState } from 'react-native';
 import type {
   EndCallReason,
@@ -85,6 +87,7 @@ export const processCallFromPushInBackground = async (
     if (!videoClient) {
       throw new Error('createStreamVideoClient returned null');
     }
+    registerLiveClient(videoClient);
   } catch (e) {
     logger.error(
       'processCallFromPushInBackground: failed to create video client',
@@ -216,4 +219,64 @@ export const shouldCallBeClosed = (
     pushData?.receiver_id,
   );
   return { mustEndCall, endCallReason };
+};
+
+/**
+ * Ends a call the user ended from the system UI (e.g. Decline on the incoming call notification),
+ * for a call the app already has. Unlike {@link processCallFromPushInBackground}, nothing waits on
+ * creating a client first, and the steps run in this order:
+ *
+ * 1. Reject the call on the server (only for a ringing call the user is a member of), so the
+ *    caller stops ringing as soon as possible. Started first, not awaited before step 2.
+ * 2. Tell Telecom to remove the call. Until it does, it refuses every new incoming call from the
+ *    app, so this must not wait for the network.
+ * 3. The rest: wait for the reject, then leave the call to clean it up, without rejecting it again.
+ *
+ * A failing step is logged and the next steps still run.
+ */
+export const endLiveCallFromSystem = async (
+  call: Call,
+  callingx: Pick<RNCallingxType, 'isCallTracked' | 'endCallWithReason'>,
+) => {
+  const { callingState } = call.state;
+  const isRinging =
+    callingState === CallingState.RINGING || callingState === CallingState.IDLE;
+  const isCurrentUserMember = call.state.members.some(
+    (member) => member.user_id === call.currentUserId,
+  );
+  const reject = isRinging && isCurrentUserMember;
+  logger.debug(
+    `endLiveCallFromSystem: callCid: ${call.cid} callingState: ${callingState} reject: ${reject}`,
+  );
+
+  // 1. Reject on the server.
+  const rejecting = reject
+    ? call.reject({ reason: 'decline' }).catch((error) => {
+        logger.warn(
+          `endLiveCallFromSystem: failed to reject ${call.cid}`,
+          error,
+        );
+      })
+    : undefined;
+
+  // 2. Remove the call from Telecom. Only while callingx still tracks it: an action for a call it
+  // doesn't know about would be queued and replayed against a later call with the same id.
+  try {
+    if (callingx.isCallTracked(call.cid)) {
+      callingx.endCallWithReason(call.cid, isRinging ? 'rejected' : 'local');
+    }
+  } catch (error) {
+    logger.warn(
+      `endLiveCallFromSystem: failed to end ${call.cid} in callingx`,
+      error,
+    );
+  }
+
+  // 3. The rest.
+  await rejecting;
+  if (call.state.callingState !== CallingState.LEFT) {
+    await call.leave({ reject: false }).catch((error) => {
+      logger.warn(`endLiveCallFromSystem: failed to leave ${call.cid}`, error);
+    });
+  }
 };

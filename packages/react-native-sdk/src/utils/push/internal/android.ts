@@ -10,6 +10,7 @@ import { getCallingxLib, getCallingxLibIfAvailable } from '../libs';
 import { StreamVideoRN } from '../../StreamVideoRN';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { canListenToWS, shouldCallBeClosed } from './utils';
+import { registerLiveClient } from './liveClients';
 
 /**
  * Handles a Stream Video `call.ring` push payload: connects the WS to watch the ringing call
@@ -128,6 +129,8 @@ export const onRingNotificationReceived = async (
       await abandonPush();
       return;
     }
+    // A Decline from the notification can then reach this ringing call right away.
+    registerLiveClient(client);
   } catch (error) {
     //we need to release the background task and stop the service to avoid stale owner
     nativeLog(`Failed to create video client: ${error}`, 'error');
