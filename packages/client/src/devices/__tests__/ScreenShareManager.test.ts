@@ -205,4 +205,37 @@ describe('ScreenShareManager', () => {
       TrackType.SCREEN_SHARE_AUDIO,
     );
   });
+
+  it('stops publishing the screen share while reconnecting', async () => {
+    const call = manager['call'];
+    call.state.setCallingState(CallingState.JOINED);
+    await manager.enable();
+    call.state.setCallingState(CallingState.RECONNECTING);
+
+    await manager.disable(true);
+
+    expect(manager.state.status).toEqual('disabled');
+    expect(call.stopPublish).toHaveBeenCalledWith(
+      TrackType.SCREEN_SHARE,
+      TrackType.SCREEN_SHARE_AUDIO,
+    );
+  });
+
+  it('stops the captured screen share when publishing fails', async () => {
+    const call = manager['call'];
+    call.state.setCallingState(CallingState.JOINED);
+    const stream = mockScreenShareStream();
+    vi.mocked(getScreenShareStream).mockResolvedValueOnce(stream);
+    const error = new Error('Publisher is not initialized');
+    vi.mocked(call.publish).mockRejectedValueOnce(error);
+
+    await expect(manager.enable()).rejects.toBe(error);
+
+    expect(stream.getTracks().map((t) => t.readyState)).toEqual([
+      'ended',
+      'ended',
+    ]);
+    expect(manager.state.mediaStream).toBeUndefined();
+    expect(manager.state.status).not.toEqual('enabled');
+  });
 });

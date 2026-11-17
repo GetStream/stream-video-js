@@ -240,18 +240,22 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 {showChat && (
                   <ChatWrapper chatClient={chatClient}>
                     <div className="str-video__chat">
-                      <ChatUI
-                        onClose={() => {
-                          if (
-                            isTourActive &&
-                            currentTourStep === StepNames.Chat
-                          ) {
-                            nextTourStep();
-                          }
-                          setSidebarContent(null);
-                        }}
-                        channelId={activeCall.id}
-                      />
+                      {channel ? (
+                        <ChatUI
+                          onClose={() => {
+                            if (
+                              isTourActive &&
+                              currentTourStep === StepNames.Chat
+                            ) {
+                              nextTourStep();
+                            }
+                            setSidebarContent(null);
+                          }}
+                          channel={channel}
+                        />
+                      ) : (
+                        t('chat.loading.text', 'Loading Chat...')
+                      )}
                     </div>
                   </ChatWrapper>
                 )}

@@ -112,10 +112,10 @@ const DropdownMenu = ({
   return (
     <DropDownSelect
       icon={LayoutMap[selectedLayout].icon || 'grid'}
-      defaultSelectedIndex={Object.keys(LayoutMap).findIndex(
+      selectedIndex={Object.keys(LayoutMap).findIndex(
         (k) => k === selectedLayout,
       )}
-      defaultSelectedLabel={layoutLabel(t, selectedLayout)}
+      selectedLabel={layoutLabel(t, selectedLayout)}
       handleSelect={handleSelect}
     >
       {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>)

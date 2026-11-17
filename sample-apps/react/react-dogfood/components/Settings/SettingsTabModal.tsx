@@ -230,10 +230,10 @@ export const SettingsTabModalMenu = (props: {
             )}
           </div>
           <DropDownSelect
-            defaultSelectedIndex={NOISE_CANCELLATION_MODELS.indexOf(
+            selectedIndex={NOISE_CANCELLATION_MODELS.indexOf(
               noiseCancellationModel,
             )}
-            defaultSelectedLabel={
+            selectedLabel={
               NOISE_CANCELLATION_MODEL_LABELS[noiseCancellationModel]
             }
             handleSelect={(index) => {

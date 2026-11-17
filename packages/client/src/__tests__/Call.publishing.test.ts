@@ -10,9 +10,16 @@ import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { PermissionsContext } from '../permissions';
 import { OwnCapability } from '../gen/coordinator';
-import { ClientState } from '../store';
+import { CallingState, ClientState } from '../store';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
+import { promiseWithResolvers } from '../helpers/promise';
+import { isReactNative } from '../helpers/platforms';
+
+vi.mock('../helpers/platforms', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../helpers/platforms')>();
+  return { ...actual, isReactNative: vi.fn().mockReturnValue(false) };
+});
 
 describe('Publishing and Unpublishing tracks', () => {
   let call: Call;
@@ -135,9 +142,14 @@ describe('Publishing and Unpublishing tracks', () => {
       publisher = vi.fn() as unknown as Publisher;
       publisher.publish = vi.fn();
       publisher.stopTracks = vi.fn();
+      publisher.detachTracks = vi.fn();
+      publisher.isPublishing = vi.fn(() => false);
+      publisher.getPublishedTracks = vi.fn(() => []);
+      publisher.getTrackType = vi.fn();
 
       call['sfuClient'] = sfuClient;
       call.publisher = publisher;
+      call.state.setCallingState(CallingState.JOINED);
     });
 
     it('publish video stream', async () => {
@@ -297,6 +309,9 @@ describe('Publishing and Unpublishing tracks', () => {
       await call.stopPublish(TrackType.VIDEO);
       expect(publisher.publish).not.toHaveBeenCalled();
       expect(publisher.stopTracks).toHaveBeenCalledWith(TrackType.VIDEO);
+      expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+        { trackType: TrackType.VIDEO, muted: true },
+      ]);
       const participant = call.state.findParticipantBySessionId(sessionId);
       expect(participant!.publishedTracks).toEqual([TrackType.AUDIO]);
       expect(participant!.videoStream).toBeUndefined();
@@ -439,6 +454,336 @@ describe('Publishing and Unpublishing tracks', () => {
       expect(originalParticipant?.audioStream).toBeUndefined();
       expect(replacementParticipant?.publishedTracks).toEqual([]);
       expect(replacementParticipant?.audioStream).toBeUndefined();
+    });
+
+    describe('when publishing fails', () => {
+      const error = new Error('negotiation failed');
+      const videoStream = () => {
+        const mediaStream = new MediaStream();
+        vi.spyOn(mediaStream, 'getVideoTracks').mockReturnValue([
+          new MediaStreamTrack(),
+        ]);
+        return mediaStream;
+      };
+
+      it('stops the published tracks and sends the mute state', async () => {
+        vi.mocked(publisher.publish).mockRejectedValueOnce(error);
+
+        await expect(call.publish(videoStream(), TrackType.VIDEO)).rejects.toBe(
+          error,
+        );
+
+        expect(publisher.stopTracks).toHaveBeenCalledWith(TrackType.VIDEO);
+        expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+          { trackType: TrackType.VIDEO, muted: true },
+        ]);
+      });
+
+      it('keeps the published track when its mute state fails', async () => {
+        vi.mocked(sfuClient.updateMuteStates).mockRejectedValue(error);
+        const mediaStream = videoStream();
+
+        await call.publish(mediaStream, TrackType.VIDEO);
+
+        expect(publisher.publish).toHaveBeenCalled();
+        expect(publisher.stopTracks).not.toHaveBeenCalled();
+        const participant = call.state.findParticipantBySessionId(sessionId);
+        expect(participant!.videoStream).toBe(mediaStream);
+        expect(participant!.publishedTracks).toContain(TrackType.VIDEO);
+      });
+
+      it('stops the screen share when only its audio fails', async () => {
+        vi.mocked(publisher.publish)
+          .mockResolvedValueOnce()
+          .mockRejectedValueOnce(error);
+        const mediaStream = videoStream();
+        vi.spyOn(mediaStream, 'getAudioTracks').mockReturnValue([
+          new MediaStreamTrack(),
+        ]);
+
+        await expect(
+          call.publish(mediaStream, TrackType.SCREEN_SHARE),
+        ).rejects.toBe(error);
+
+        expect(publisher.stopTracks).toHaveBeenCalledWith(
+          TrackType.SCREEN_SHARE,
+          TrackType.SCREEN_SHARE_AUDIO,
+        );
+        expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+          { trackType: TrackType.SCREEN_SHARE, muted: true },
+          { trackType: TrackType.SCREEN_SHARE_AUDIO, muted: true },
+        ]);
+      });
+
+      it('keeps a published track the failed publish did not replace', async () => {
+        const previous = new MediaStreamTrack();
+        vi.mocked(publisher.getPublishedTracks).mockReturnValue([previous]);
+        vi.mocked(publisher.getTrackType).mockReturnValue(TrackType.VIDEO);
+        vi.mocked(publisher.publish).mockRejectedValueOnce(error);
+
+        await expect(call.publish(videoStream(), TrackType.VIDEO)).rejects.toBe(
+          error,
+        );
+
+        expect(publisher.stopTracks).not.toHaveBeenCalled();
+        expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
+      });
+
+      it('stops a screen share it replaced when only its audio fails', async () => {
+        const previous = new MediaStreamTrack();
+        const replacement = new MediaStreamTrack();
+        vi.mocked(publisher.isPublishing).mockReturnValue(true);
+        vi.mocked(publisher.getPublishedTracks).mockReturnValue([previous]);
+        vi.mocked(publisher.getTrackType).mockReturnValue(
+          TrackType.SCREEN_SHARE,
+        );
+        vi.mocked(publisher.publish)
+          .mockImplementationOnce(async () => {
+            vi.mocked(publisher.getPublishedTracks).mockReturnValue([
+              replacement,
+            ]);
+          })
+          .mockRejectedValueOnce(error);
+        const mediaStream = videoStream();
+        vi.spyOn(mediaStream, 'getAudioTracks').mockReturnValue([
+          new MediaStreamTrack(),
+        ]);
+
+        await expect(
+          call.publish(mediaStream, TrackType.SCREEN_SHARE),
+        ).rejects.toBe(error);
+
+        expect(publisher.stopTracks).toHaveBeenCalledWith(
+          TrackType.SCREEN_SHARE,
+          TrackType.SCREEN_SHARE_AUDIO,
+        );
+      });
+
+      it('defers the mute state while reconnecting', async () => {
+        call.state.setCallingState(CallingState.RECONNECTING);
+        vi.mocked(publisher.publish).mockRejectedValueOnce(error);
+
+        await expect(call.publish(videoStream(), TrackType.VIDEO)).rejects.toBe(
+          error,
+        );
+
+        expect(publisher.stopTracks).toHaveBeenCalledWith(TrackType.VIDEO);
+        expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
+      });
+
+      it('detaches the clone instead of stopping it on React Native', async () => {
+        vi.mocked(isReactNative).mockReturnValue(true);
+        try {
+          vi.mocked(publisher.publish).mockRejectedValueOnce(error);
+
+          await expect(
+            call.publish(videoStream(), TrackType.VIDEO),
+          ).rejects.toBe(error);
+
+          expect(publisher.stopTracks).not.toHaveBeenCalled();
+          expect(publisher.detachTracks).toHaveBeenCalledWith(TrackType.VIDEO);
+          expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+            { trackType: TrackType.VIDEO, muted: true },
+          ]);
+        } finally {
+          vi.mocked(isReactNative).mockReturnValue(false);
+        }
+      });
+
+      it('leaves a publisher replaced while publishing alone', async () => {
+        const replacement = vi.fn() as unknown as Publisher;
+        replacement.stopTracks = vi.fn();
+        vi.mocked(publisher.publish).mockImplementationOnce(async () => {
+          call.publisher = replacement;
+          throw error;
+        });
+
+        await expect(call.publish(videoStream(), TrackType.VIDEO)).rejects.toBe(
+          error,
+        );
+
+        expect(publisher.stopTracks).not.toHaveBeenCalled();
+        expect(replacement.stopTracks).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('while reconnecting', () => {
+      const internals = () =>
+        call as unknown as {
+          doJoin: () => Promise<void>;
+          reconnectFast: () => Promise<void>;
+          reconnectRejoin: () => Promise<void>;
+          restorePublishedTracks: () => Promise<void>;
+          syncPublishedTracks: () => void;
+        };
+
+      beforeEach(() => {
+        publisher.isPublishing = vi.fn(() => false);
+        for (const device of [call.microphone, call.camera, call.screenShare]) {
+          vi.spyOn(device, 'syncPublishedStream').mockResolvedValue();
+        }
+        call.state.setCallingState(CallingState.RECONNECTING);
+      });
+
+      it('stops the published tracks without sending the mute state', async () => {
+        const mediaStream = new MediaStream();
+        call.state.updateParticipant(sessionId, {
+          publishedTracks: [TrackType.SCREEN_SHARE, TrackType.AUDIO],
+          screenShareStream: mediaStream,
+        });
+
+        await call.stopPublish(
+          TrackType.SCREEN_SHARE,
+          TrackType.SCREEN_SHARE_AUDIO,
+        );
+
+        expect(publisher.stopTracks).toHaveBeenCalledWith(
+          TrackType.SCREEN_SHARE,
+          TrackType.SCREEN_SHARE_AUDIO,
+        );
+        expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
+        const participant = call.state.findParticipantBySessionId(sessionId);
+        expect(participant!.publishedTracks).toEqual([TrackType.AUDIO]);
+        expect(participant!.screenShareStream).toBeUndefined();
+      });
+
+      it('sends the deferred mute state once synced', async () => {
+        await call.stopPublish(TrackType.VIDEO);
+        call.state.setCallingState(CallingState.JOINED);
+
+        internals().syncPublishedTracks();
+        await vi.waitFor(() =>
+          expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+            { trackType: TrackType.VIDEO, muted: true },
+          ]),
+        );
+        expect(call.camera.syncPublishedStream).toHaveBeenCalled();
+
+        internals().syncPublishedTracks();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(sfuClient.updateMuteStates).toHaveBeenCalledTimes(1);
+      });
+
+      it('keeps the deferred mute state when the call is not joined', async () => {
+        await call.stopPublish(TrackType.VIDEO);
+
+        internals().syncPublishedTracks();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
+
+        call.state.setCallingState(CallingState.JOINED);
+        internals().syncPublishedTracks();
+        await vi.waitFor(() =>
+          expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+            { trackType: TrackType.VIDEO, muted: true },
+          ]),
+        );
+      });
+
+      it('sends the latest mute state kept while reconnecting', async () => {
+        await call.stopPublish(TrackType.VIDEO);
+        const mediaStream = new MediaStream();
+        vi.spyOn(mediaStream, 'getVideoTracks').mockReturnValue([
+          new MediaStreamTrack(),
+        ]);
+        await call.publish(mediaStream, TrackType.VIDEO);
+        vi.mocked(publisher.isPublishing).mockReturnValue(true);
+        call.state.setCallingState(CallingState.JOINED);
+
+        internals().syncPublishedTracks();
+        await vi.waitFor(() =>
+          expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+            { trackType: TrackType.VIDEO, muted: false },
+          ]),
+        );
+        expect(sfuClient.updateMuteStates).toHaveBeenCalledTimes(1);
+      });
+
+      it('sends a restored track that is no longer published as muted', async () => {
+        await call.stopPublish(TrackType.VIDEO);
+        const mediaStream = new MediaStream();
+        vi.spyOn(mediaStream, 'getVideoTracks').mockReturnValue([
+          new MediaStreamTrack(),
+        ]);
+        // a restore that attached a clone the device then stopped
+        await call.publish(mediaStream, TrackType.VIDEO);
+        call.state.setCallingState(CallingState.JOINED);
+
+        internals().syncPublishedTracks();
+        await vi.waitFor(() =>
+          expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+            { trackType: TrackType.VIDEO, muted: true },
+          ]),
+        );
+        expect(sfuClient.updateMuteStates).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not wait for a device that has not settled', async () => {
+        const { promise, resolve } = promiseWithResolvers<void>();
+        vi.mocked(call.screenShare.syncPublishedStream).mockReturnValue(
+          promise,
+        );
+        await call.stopPublish(TrackType.VIDEO);
+        call.state.setCallingState(CallingState.JOINED);
+
+        internals().syncPublishedTracks();
+        await vi.waitFor(() =>
+          expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
+            { trackType: TrackType.VIDEO, muted: true },
+          ]),
+        );
+        resolve();
+      });
+
+      it('syncs the published tracks after a fast reconnect', async () => {
+        vi.spyOn(internals(), 'doJoin').mockResolvedValue();
+        vi.spyOn(call, 'get').mockResolvedValue(
+          {} as Awaited<ReturnType<Call['get']>>,
+        );
+        const sync = vi.spyOn(internals(), 'syncPublishedTracks');
+
+        await internals().reconnectFast();
+
+        expect(sync).toHaveBeenCalled();
+      });
+
+      it('syncs the published tracks after a migration', async () => {
+        sfuClient.enterMigration = vi.fn().mockResolvedValue(undefined);
+        sfuClient.close = vi.fn();
+        publisher.detachEventHandlers = vi.fn();
+        publisher.dispose = vi.fn().mockResolvedValue(undefined);
+        const reconnectMigrate = (
+          call as unknown as { reconnectMigrate: () => Promise<void> }
+        ).reconnectMigrate;
+        vi.spyOn(internals(), 'doJoin').mockResolvedValue();
+        vi.spyOn(internals(), 'restorePublishedTracks').mockResolvedValue();
+        const sync = vi.spyOn(internals(), 'syncPublishedTracks');
+
+        await reconnectMigrate();
+
+        expect(sync).toHaveBeenCalled();
+        expect(call.state.callingState).toBe(CallingState.JOINED);
+      });
+
+      it('drops the deferred mute state on a rejoin', async () => {
+        await call.stopPublish(TrackType.VIDEO);
+        const rejoinedSfuClient = vi.fn() as unknown as StreamSfuClient;
+        // @ts-expect-error sessionId is readonly
+        rejoinedSfuClient['sessionId'] = 'rejoined-session-id';
+        rejoinedSfuClient.updateMuteStates = vi.fn();
+        vi.spyOn(internals(), 'doJoin').mockImplementation(async () => {
+          call['sfuClient'] = rejoinedSfuClient;
+          call.state.setCallingState(CallingState.JOINED);
+        });
+        vi.spyOn(internals(), 'restorePublishedTracks').mockResolvedValue();
+
+        await internals().reconnectRejoin();
+        internals().syncPublishedTracks();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(sfuClient.updateMuteStates).not.toHaveBeenCalled();
+        expect(rejoinedSfuClient.updateMuteStates).not.toHaveBeenCalled();
+      });
     });
   });
 });

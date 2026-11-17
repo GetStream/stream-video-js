@@ -19,8 +19,6 @@ import { RingStateDebugPane } from '../components/Ringing/RingStateDebugPane';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const ENABLE_RING_STATE_DEBUG = __DEV__;
-
 const CallStack = createNativeStackNavigator<CallStackParamList>();
 
 const Calls = () => {
@@ -28,6 +26,9 @@ const Calls = () => {
   const orientation = useOrientation();
   const insets = useSafeAreaInsets();
   const devMode = useAppGlobalStoreValue((store) => store.devMode);
+  const showRingStateDebugPane = useAppGlobalStoreValue(
+    (store) => store.showRingStateDebugPane,
+  );
 
   const firstCall = calls.at(-1);
 
@@ -55,7 +56,9 @@ const Calls = () => {
           CallContent={customCallContent}
           insets={insets}
         />
-        {(ENABLE_RING_STATE_DEBUG || devMode) && <RingStateDebugPane />}
+        {(__DEV__ || devMode) && showRingStateDebugPane && (
+          <RingStateDebugPane />
+        )}
       </View>
     </StreamCall>
   );

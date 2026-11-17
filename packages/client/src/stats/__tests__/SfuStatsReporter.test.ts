@@ -217,3 +217,70 @@ describe('SfuStatsReporter delta delivery', () => {
     expect(traces.some((r: unknown[]) => r[0] === 'getstats')).toBe(false);
   });
 });
+
+describe('SfuStatsReporter SFU client rebinding', () => {
+  const makeClient = (records: unknown[] = []) => {
+    let buffer = [...records];
+    return {
+      sendStats: vi.fn().mockResolvedValue(okResponse),
+      getTrace: vi.fn(() => {
+        const snapshot = buffer;
+        buffer = [];
+        return {
+          snapshot,
+          rollback: () => {
+            buffer = [...snapshot, ...buffer];
+          },
+        };
+      }),
+    };
+  };
+
+  const rtcStatsOf = (sendStats: ReturnType<typeof vi.fn>, call: number) =>
+    JSON.parse(sendStats.mock.calls[call][0].rtcStats);
+
+  const buildWith = (sfuClient: unknown) => {
+    const subStats = makeStats([]);
+    return new SfuStatsReporter(sfuClient as never, {
+      options: { reporting_interval_ms: 1000, enable_rtc_stats: true } as never,
+      clientDetails: { sdk: undefined, browser: undefined } as never,
+      subscriber: { stats: subStats, tracer: undefined } as never,
+      tracer: { take: vi.fn(makeSlice) } as never,
+      unifiedSessionId: 'unified',
+    });
+  };
+
+  it('sends through the new client and delivers the old client traces once', async () => {
+    const oldRecord = ['signal.close', null, 'old', 1];
+    const newRecord = ['signal.ws.open', null, 'new', 2];
+    const previous = makeClient([oldRecord]);
+    const next = makeClient([newRecord]);
+    const reporter = buildWith(previous);
+
+    reporter.setSfuClient(next as never);
+    await reporter.flush();
+    await vi.waitFor(() => expect(next.sendStats).toHaveBeenCalledTimes(1));
+    expect(previous.sendStats).not.toHaveBeenCalled();
+    expect(rtcStatsOf(next.sendStats, 0)).toEqual([oldRecord, newRecord]);
+
+    await reporter.flush();
+    await vi.waitFor(() => expect(next.sendStats).toHaveBeenCalledTimes(2));
+    expect(rtcStatsOf(next.sendStats, 1)).toEqual([]);
+  });
+
+  it('keeps the old client traces for the next report when a send fails', async () => {
+    const oldRecord = ['signal.close', null, 'old', 1];
+    const previous = makeClient([oldRecord]);
+    const next = makeClient();
+    next.sendStats.mockRejectedValueOnce(new Error('network down'));
+    const reporter = buildWith(previous);
+
+    reporter.setSfuClient(next as never);
+    await reporter.flush();
+    await vi.waitFor(() => expect(next.sendStats).toHaveBeenCalledTimes(1));
+
+    await reporter.flush();
+    await vi.waitFor(() => expect(next.sendStats).toHaveBeenCalledTimes(2));
+    expect(rtcStatsOf(next.sendStats, 1)).toEqual([oldRecord]);
+  });
+});

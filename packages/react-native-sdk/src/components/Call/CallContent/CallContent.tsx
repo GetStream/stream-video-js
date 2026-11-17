@@ -278,7 +278,7 @@ export const CallContent = ({
           style={[
             StyleSheet.absoluteFill,
             styles.view,
-            callContent?.topContainer,
+            callContent?.floatingViewContainer,
           ]}
           // "box-none" disallows the container view to be not take up touches
           // and allows only the top and floating view (its child views) to take up the touches

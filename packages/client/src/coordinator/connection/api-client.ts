@@ -62,7 +62,9 @@ const buildRequestUrl = (
   return baseURL + path;
 };
 
-const buildRequestMetadata = (response: AxiosResponse): RequestMetadata => {
+export const buildRequestMetadata = (
+  response: AxiosResponse,
+): RequestMetadata => {
   const responseHeaders = toStringRecord(response.headers);
   const requestHeaders = toStringRecord(response.config?.headers);
 
