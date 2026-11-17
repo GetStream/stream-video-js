@@ -28,7 +28,14 @@ object CallRegistrationStore {
                 TAG,
                 "[store] trackCallRegistration: Tracking call registration for callId: $callId"
         )
-        trackedCallIds.add(callId)
+        // A call id that isn't tracked yet starts a new registration. Drop actions left over from an
+        // earlier call with the same id, e.g. a hang-up that arrived after that call had already
+        // ended (Decline hangs up both natively and from JavaScript): replayed against this call,
+        // it would hang it up as soon as it registers. A registration already in flight keeps its
+        // queued actions.
+        if (trackedCallIds.add(callId)) {
+            pendingActionsByCallId.remove(callId)
+        }
 
         if (promise == null) return
 
