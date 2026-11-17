@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import NativeCallingModule from './NativeCallingx';
 import {
   HEADLESS_TASK_NAME,
@@ -340,6 +340,17 @@ class CallingxModule implements ICallingxModule {
       return;
     }
     if (this._keepAliveOwners.size > 0 || this._keepAliveStopTimer) {
+      return;
+    }
+    // React Native doesn't run JS timers while the app is in the background, so the debounced stop
+    // below would never fire there: the keep-alive task, and CallService with it, would keep
+    // running until the app came back to the foreground (e.g. after a call declined from the
+    // notification). In the background, stop right away. This is safe for a hand-off too: while a
+    // call is still registered, CallService keeps running whatever happens to this task, and a
+    // re-acquire simply starts the task again.
+    if (AppState.currentState !== 'active') {
+      this._keepAliveResolve?.();
+      this._keepAliveResolve = undefined;
       return;
     }
     // Last owner released — defer the actual stop. A re-acquire within the window (e.g. the
