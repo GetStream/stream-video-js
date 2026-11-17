@@ -1,5 +1,6 @@
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
+import MagicString from 'magic-string';
 import { dependencies, name, version } from './package.json';
 
 const external = [...Object.keys(dependencies ?? {})];
@@ -9,6 +10,46 @@ export default defineConfig({
     'process.env.PKG_NAME': JSON.stringify(name),
     'process.env.PKG_VERSION': JSON.stringify(version),
   },
+  plugins: [
+    // Rolldown ignores `dynamicImportInCjs` for internal chunks and emits
+    // `Promise.resolve().then(() => require("./x.js"))`, which makes consumers'
+    // bundlers inline the ~5 MB lazy chunk. Rewrite it to a real `import()`.
+    // The regex matches double-quoted specifiers only; `generateBundle` fails
+    // the build if any dynamic import was left as `require()`.
+    {
+      name: 'cjs-real-dynamic-import',
+      renderChunk(code) {
+        const s = new MagicString(code);
+        const pattern =
+          /Promise\.resolve\(\)\.then\(\(\) => require\(("[^"]+")\)\)/g;
+        for (const match of code.matchAll(pattern)) {
+          const start = match.index;
+          s.overwrite(start, start + match[0].length, `import(${match[1]})`);
+        }
+        if (!s.hasChanged()) return null;
+        // keep the chunk's sourcemap intact
+        return { code: s.toString(), map: s.generateMap({ hires: true }) };
+      },
+      generateBundle(_, bundle) {
+        for (const chunk of Object.values(bundle)) {
+          if (chunk.type !== 'chunk') continue;
+          for (const file of chunk.dynamicImports) {
+            // skip external modules, only emitted chunks are rewritten
+            if (bundle[file]?.type !== 'chunk') continue;
+            const specifier = `"./${file.replace(/^cjs\//, '')}"`;
+            if (
+              !chunk.code.includes(`import(${specifier})`) ||
+              chunk.code.includes(`require(${specifier})`)
+            ) {
+              this.error(
+                `${chunk.fileName}: dynamic import of ${file} was not emitted as a real import(); the cjs-real-dynamic-import rewrite no longer matches`,
+              );
+            }
+          }
+        }
+      },
+    },
+  ],
   build: {
     lib: {
       entry: {
@@ -30,6 +71,10 @@ export default defineConfig({
     target: 'es2022',
     rollupOptions: {
       external,
+      output: {
+        dynamicImportInCjs: true,
+        chunkFileNames: 'cjs/[name].js',
+      },
     },
   },
 });

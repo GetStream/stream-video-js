@@ -85,7 +85,7 @@ export const ActiveCall = ({
   return (
     <BackgroundFiltersProvider>
       <NoiseCancellationProvider>
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
           <FoldAwareCallArea>
             <FoldAwareTopBar>
               {/* {!isInPiPMode && <CustomTopControls />} */}

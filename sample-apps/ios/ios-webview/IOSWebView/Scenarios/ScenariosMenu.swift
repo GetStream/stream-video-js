@@ -22,6 +22,10 @@ struct ScenariosMenuView: View {
             categorySwitcher
             Divider()
             soundsSection
+            Divider()
+            sampleRateSection
+            Divider()
+            Button("Dump session state") { audio.dumpSessionState() }
         } label: {
             Text("Scenarios")
         }
@@ -64,6 +68,24 @@ struct ScenariosMenuView: View {
         Button("Play ding (exclusive)") { audio.playDing(mixWithOthers: false) }
         Button("Play ding (exclusive, auto-restore)") { audio.playDingWithAutoRestore() }
         Button("Play ding (exclusive, NO restore)") { audio.playDingExclusiveNoRestore() }
+        Button("Ringtone loop start") { audio.startRingtone() }
+        Button("Ringtone loop stop") { audio.stopRingtone() }
+        Button("Local notification (2s)") { audio.scheduleLocalNotification() }
+    }
+
+    private var sampleRateSection: some View {
+        Menu("🎚 Sample rate & IO buffer") {
+            Section("Preferred sample rate") {
+                ForEach(AudioScenarios.sampleRates, id: \.self) { rate in
+                    Button("\(Int(rate)) Hz") { audio.setPreferredSampleRate(rate) }
+                }
+            }
+            Section("Preferred IO buffer") {
+                ForEach(AudioScenarios.ioBufferDurations, id: \.self) { duration in
+                    Button("\(Int(duration * 1000)) ms") { audio.setPreferredIOBufferDuration(duration) }
+                }
+            }
+        }
     }
 
     @ViewBuilder

@@ -33,6 +33,11 @@ final class AppState: ObservableObject {
 
     @Published private(set) var entries: [LogEntry] = []
     private let maxEntries = 1000
+    private let stdoutTimestamp: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
 
     /// Audio-session "active" state, tracked client-side since AVAudioSession
     /// doesn't expose whether setActive(true) has been called. Only reflects
@@ -55,8 +60,12 @@ final class AppState: ObservableObject {
         }
     }
 
+    /// Appends to the in-memory overlay and mirrors the entry to stdout, so
+    /// `xcrun simctl launch --console-pty` (Simulator) and
+    /// `xcrun devicectl device process launch --console` (device) capture it.
     func log(_ tab: LogTab, _ level: String = "info", _ message: String) {
         let entry = LogEntry(timestamp: Date(), tab: tab, level: level, message: message)
+        print("\(stdoutTimestamp.string(from: entry.timestamp)) [\(tab.rawValue)] \(level): \(message)")
         if Thread.isMainThread {
             append(entry)
         } else {

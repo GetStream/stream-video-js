@@ -3,6 +3,7 @@ import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { Mic, MicOff, ControlButtonIcon } from '../../../../icons';
 import { CallControlsButton } from './CallControlsButton';
+import { ButtonTestIds } from '../../../../constants/TestIds';
 
 /**
  * Props for the Toggle Audio publishing button
@@ -41,6 +42,11 @@ export const ToggleAudioPublishingButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
       <CallControlsButton
         onPress={onPress}
+        testID={
+          optimisticIsMute
+            ? ButtonTestIds.MICROPHONE_DISABLED
+            : ButtonTestIds.MICROPHONE_ENABLED
+        }
         disabled={disabled}
         turnedOn={!optimisticIsMute}
       >

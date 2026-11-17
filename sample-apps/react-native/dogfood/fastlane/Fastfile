@@ -1,10 +1,16 @@
 skip_docs
+
+import 'Allurefile'
+
+require 'net/http'
 metro_port = 8081
 build_dir = 'dist'
 bundle_id = 'io.getstream.rnvideosample'
 bundle_id_broadcast = 'io.getstream.rnvideosample.Broadcast-Extension'
 provisioning_profile_prefix = 'match AppStore '
 android_package_name = 'io.getstream.rnvideosample'
+@force_check = false
+@impact = nil
 
 private_lane :latest_googleplay_version_code do |options|
   tracks = ["internal", "alpha", "beta", "production"]
@@ -40,6 +46,7 @@ private_lane :latest_appstore_version_code do |options|
 end
 
 before_all do
+  @impact = impact_analysis
   if is_ci
     setup_ci
     ENV['FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT'] = '180'
@@ -236,4 +243,141 @@ lane :deploy_android_play_store do
     json_key: ENV.fetch('RN_DOGFOOD_ANDROID_DEPLOY_SERVICE_ACCOUNT', nil),
     aab: "#{build_dir}/app.aab"
   )
+end
+
+# e2e (e2e/README.md)
+
+e2e_app_path = File.absolute_path('..')
+video_buddy_port = ENV['VIDEO_BUDDY_PORT'] || '5678'
+allure_results_path = File.join(e2e_app_path, 'allure-results')
+e2e_tests_path = File.join(e2e_app_path, 'e2e', 'tests')
+e2e_batch_selection_path = File.join(e2e_app_path, 'e2e_batch_selection.json')
+e2e_max_batches = 8
+
+desc 'Installs stream-video-buddy and the browser it drives'
+lane :install_video_buddy do
+  playwright_version = '1.52.0'
+  # The browser build has to match the playwright version stream-video-buddy runs.
+  sh("npx -y playwright@#{playwright_version} install chromium")
+
+  stream_video_buddy_version = '1.8.0'
+  sh("npm list -g stream-video-buddy | grep -q '#{stream_video_buddy_version}' || " \
+     "npm install -g 'https://github.com/GetStream/stream-video-buddy##{stream_video_buddy_version}'")
+end
+
+lane :start_video_buddy do |options|
+  install_video_buddy unless options[:skip_install]
+  stop_video_buddy unless is_ci
+  Dir.chdir(e2e_app_path) do
+    sh("stream-video-buddy server --port #{video_buddy_port} > video-buddy-server.log 2>&1 &")
+  end
+  wait_for_video_buddy(port: video_buddy_port)
+end
+
+lane :stop_video_buddy do
+  Net::HTTP.get_response(URI("http://localhost:#{video_buddy_port}/stop"))
+rescue StandardError
+  nil
+end
+
+private_lane :wait_for_video_buddy do |options|
+  require 'socket'
+  ready = false
+  60.times do
+    TCPSocket.new('localhost', options[:port].to_i).close
+    ready = true
+    break
+  rescue Errno::ECONNREFUSED
+    sleep(1)
+  end
+  UI.user_error!("stream-video-buddy did not start on port #{options[:port]}") unless ready
+end
+
+desc 'Writes `required=true|false` and `e2e_batches` to $GITHUB_OUTPUT, so CI can skip the e2e jobs before building anything'
+lane :e2e_check_required do
+  required = is_check_required(sources: @impact[:e2e][:sources], force_check: @force_check, required_checks: @impact[:e2e][:checks])
+  tests = required ? e2e_test_ids(e2e_tests_path) : []
+  # Like the native Android SDK: 8 batches, or one per test when there are fewer.
+  batches = (0...[tests.size, e2e_max_batches].min).to_a
+  UI.important("E2E batches: #{batches.size}")
+  File.write(ENV['GITHUB_OUTPUT'], "required=#{required}\ne2e_batches=#{batches.to_json}\n", mode: 'a') if ENV['GITHUB_OUTPUT']
+  required
+end
+
+# `<test file>/<test>` ids of the tests that can run, e.g. `LobbyTests.e2e/testLobbyWithTwoParticipants`.
+def e2e_test_ids(tests_path)
+  Dir.glob(File.join(tests_path, '*.e2e.ts')).sort.flat_map do |file|
+    source = File.read(file)
+    calls = source.scan(/^\s*it(?:\.skip)?\(/).size
+    tests = source.scan(/^\s*it(\.skip)?\(\s*'(test\w+)'/)
+    # A test this misses would never run on CI, so fail loudly instead.
+    UI.user_error!("#{file}: read #{tests.size} of its #{calls} tests; name each one with a `test*` literal") if tests.size != calls
+
+    suite = File.basename(file, '.ts')
+    tests.reject { |skip, _| skip }.map { |_, name| "#{suite}/#{name}" }
+  end
+end
+
+# A freshly booted CI emulator is slow enough for the launcher to hit an ANR ("Quickstep isn't
+# responding"). The dialog takes window focus, and Espresso then fails every test waiting for it.
+private_lane :prepare_android_emulator do
+  sh('adb shell settings put global hide_error_dialogs 1')
+  # Gives the post-boot CPU load a minute to settle, dismissing ANR dialogs meanwhile. Capped: the
+  # load can stay above the threshold for minutes, and each test dismisses ANR dialogs too.
+  wait_android_emu_idle(timeout: 60)
+end
+
+desc 'Runs the Detox e2e tests on Android. Options: device (emu|att), configuration (release|debug), ' \
+     'skip_build, test (a test file or -t filter), batch and batch_count (every batch_count-th test)'
+lane :test_e2e do |options|
+  next unless is_check_required(sources: @impact[:e2e][:sources], force_check: @force_check, required_checks: @impact[:e2e][:checks])
+
+  device = options[:device] || 'emu'
+  detox_config = "android.#{device}.#{options[:configuration] || 'release'}"
+  env = { 'VIDEO_BUDDY_PORT' => video_buddy_port }
+  if options[:batch] && options[:batch_count]
+    tests = e2e_test_ids(e2e_tests_path)
+    batch = options[:batch].to_i
+    batch_count = options[:batch_count].to_i
+    # Round-robin, as on native Android: slicing by a rounded-up size can leave the last batches empty.
+    batch_tests = tests.select.with_index { |_, i| i % batch_count == batch }
+    UI.user_error!("Batch #{batch} is empty: #{tests.size} tests cannot fill #{batch_count} batches") if batch_tests.empty?
+    UI.important("Batch #{batch + 1} of #{batch_count}: #{batch_tests.size} of #{tests.size} tests")
+    File.write(e2e_batch_selection_path, JSON.pretty_generate('tests' => batch_tests))
+    env['E2E_SELECTION'] = e2e_batch_selection_path
+  end
+
+  begin
+    start_video_buddy
+    # An attached emulator is already booted; Detox boots `emu` devices itself.
+    prepare_android_emulator if device == 'att'
+
+    Dir.chdir(e2e_app_path) do
+      sh("yarn e2e:build -c #{detox_config}") unless options[:skip_build]
+      FileUtils.rm_rf(allure_results_path)
+      ci_flags = is_ci ? '--retries 2 --record-logs failing --take-screenshots failing' : ''
+      sh(env, "yarn detox test -c #{detox_config} --cleanup #{ci_flags} #{options[:test]}")
+    end
+  ensure
+    stop_video_buddy
+  end
+end
+
+lane :impact_analysis do
+  {
+    e2e: {
+      sources: [
+        'packages/client/',
+        'packages/react-bindings/',
+        'packages/react-native-sdk/',
+        'packages/react-native-callingx/',
+        'packages/video-filters-react-native/',
+        'packages/noise-cancellation-react-native/',
+        'sample-apps/react-native/dogfood/',
+        'package.json',
+        'yarn.lock'
+      ],
+      checks: ['Test E2E Result']
+    }
+  }
 end

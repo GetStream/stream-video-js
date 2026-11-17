@@ -155,7 +155,24 @@ describe('BlockedAudioTracker', () => {
     expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(false);
   });
 
-  it.each(['click', 'keydown'])(
+  it('resumeAudio uses the resume callback instead of play() when given', async () => {
+    const el = createAudioElement();
+    const play = vi.spyOn(el, 'play').mockResolvedValue();
+    const resume = vi.fn().mockRejectedValueOnce(new Error('still suspended'));
+    tracker.markBlocked(el, true, 'session-id', resume);
+
+    await tracker.resumeAudio();
+    expect(resume).toHaveBeenCalledTimes(1);
+    expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(true);
+
+    resume.mockResolvedValue(undefined);
+    await tracker.resumeAudio();
+    expect(resume).toHaveBeenCalledTimes(2);
+    expect(play).not.toHaveBeenCalled();
+    expect(getCurrentValue(tracker.autoplayBlocked$)).toBe(false);
+  });
+
+  it.each(['click', 'touchend', 'keydown'])(
     'resumes blocked audio on a %s anywhere on the page',
     async (type) => {
       const el = createAudioElement();
@@ -170,6 +187,15 @@ describe('BlockedAudioTracker', () => {
       );
     },
   );
+
+  it('stops listening for touchend once nothing is blocked', () => {
+    const el = createAudioElement();
+    const play = vi.spyOn(el, 'play').mockResolvedValue();
+    tracker.markBlocked(el, true, 'session-id');
+    tracker.markBlocked(el, false);
+    document.body.dispatchEvent(new Event('touchend', { bubbles: true }));
+    expect(play).not.toHaveBeenCalled();
+  });
 
   it('stops listening for user gestures once nothing is blocked', () => {
     const el = createAudioElement();

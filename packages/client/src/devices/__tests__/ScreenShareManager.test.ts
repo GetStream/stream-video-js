@@ -151,6 +151,48 @@ describe('ScreenShareManager', () => {
     );
   });
 
+  describe('content hint from call settings', () => {
+    const setContentHint = (contentHint: string | undefined) => {
+      const call = manager['call'];
+      RxUtils.setCurrentValue(call.state['settingsSubject'], {
+        // @ts-expect-error partial data
+        screensharing: {},
+        extra_opts: { screenshare_content_hint: contentHint },
+      });
+    };
+
+    it('publishes with the content hint from the call settings', async () => {
+      const call = manager['call'];
+      call.state.setCallingState(CallingState.JOINED);
+      setContentHint('detail');
+      await manager.enable();
+      expect(call.publish).toHaveBeenCalledWith(
+        manager.state.mediaStream,
+        TrackType.SCREEN_SHARE,
+        {
+          audioBitrateProfile: AudioBitrateProfile.MUSIC_HIGH_QUALITY,
+          contentHint: 'detail',
+        },
+      );
+    });
+
+    it('prefers the content hint set by the app', () => {
+      setContentHint('detail');
+      manager.setSettings({ contentHint: 'motion' });
+      expect(manager.resolveContentHint()).toBe('motion');
+    });
+
+    it('ignores unknown content hints', () => {
+      setContentHint('cinematic');
+      expect(manager.resolveContentHint()).toBeUndefined();
+    });
+
+    it('leaves the content hint to the browser when unset', () => {
+      setContentHint(undefined);
+      expect(manager.resolveContentHint()).toBeUndefined();
+    });
+  });
+
   it('stop publish stream', async () => {
     const call = manager['call'];
     call.state.setCallingState(CallingState.JOINED);
@@ -162,5 +204,38 @@ describe('ScreenShareManager', () => {
       TrackType.SCREEN_SHARE,
       TrackType.SCREEN_SHARE_AUDIO,
     );
+  });
+
+  it('stops publishing the screen share while reconnecting', async () => {
+    const call = manager['call'];
+    call.state.setCallingState(CallingState.JOINED);
+    await manager.enable();
+    call.state.setCallingState(CallingState.RECONNECTING);
+
+    await manager.disable(true);
+
+    expect(manager.state.status).toEqual('disabled');
+    expect(call.stopPublish).toHaveBeenCalledWith(
+      TrackType.SCREEN_SHARE,
+      TrackType.SCREEN_SHARE_AUDIO,
+    );
+  });
+
+  it('stops the captured screen share when publishing fails', async () => {
+    const call = manager['call'];
+    call.state.setCallingState(CallingState.JOINED);
+    const stream = mockScreenShareStream();
+    vi.mocked(getScreenShareStream).mockResolvedValueOnce(stream);
+    const error = new Error('Publisher is not initialized');
+    vi.mocked(call.publish).mockRejectedValueOnce(error);
+
+    await expect(manager.enable()).rejects.toBe(error);
+
+    expect(stream.getTracks().map((t) => t.readyState)).toEqual([
+      'ended',
+      'ended',
+    ]);
+    expect(manager.state.mediaStream).toBeUndefined();
+    expect(manager.state.status).not.toEqual('enabled');
   });
 });

@@ -2,11 +2,13 @@ import AVFoundation
 import AVFAudio
 import AudioToolbox
 import UIKit
+import UserNotifications
 
 final class AudioScenarios: NSObject {
     private var soundPlayer: AVAudioPlayer?
     private var autoRestoringDingPlayer: AVAudioPlayer?
     private var noRestoreDingPlayer: AVAudioPlayer?
+    private var ringtonePlayer: AVAudioPlayer?
 
     override init() {
         super.init()
@@ -117,6 +119,96 @@ final class AudioScenarios: NSObject {
             AppState.shared.log(.errors, "audio",
                 "no-restore ding play failed: \(error)")
         }
+    }
+
+    /// App-owned audio overlapping WebRTC for an extended period: loops
+    /// `ringtone.caf` with an exclusive `.playback` claim, like a host app
+    /// ringing for a second incoming call. Stopping does not restore the
+    /// session; use "Restore audio (native)" afterwards if WebRTC stays silent.
+    func startRingtone() {
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playback, mode: .default, options: [])
+            try session.setActive(true, options: [])
+            AppState.shared.audioSessionActive = true
+        } catch {
+            AppState.shared.log(.errors, "audio", "ringtone setCategory failed: \(error)")
+        }
+        AppState.shared.log(.scenarios, "audio", "▶︎ ringtone loop (category=.playback, exclusive)")
+        playResource("ringtone", into: &ringtonePlayer, loops: -1)
+    }
+
+    func stopRingtone() {
+        ringtonePlayer?.stop()
+        ringtonePlayer = nil
+        AppState.shared.log(.scenarios, "audio", "■ ringtone stopped (session NOT restored)")
+    }
+
+    /// Schedules a local notification with the default sound. The app
+    /// presents it while in the foreground too, so the sound interrupts the
+    /// call even when the app stays open.
+    func scheduleLocalNotification(after seconds: TimeInterval = 2) {
+        let center = UNUserNotificationCenter.current()
+        center.delegate = self
+        center.requestAuthorization(options: [.alert, .sound]) { granted, error in
+            guard granted else {
+                AppState.shared.log(.errors, "audio",
+                    "notification permission denied: \(error.map { "\($0)" } ?? "no error")")
+                return
+            }
+            let content = UNMutableNotificationContent()
+            content.title = "IOSWebView"
+            content.body = "Test notification"
+            content.sound = .default
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: seconds, repeats: false)
+            let request = UNNotificationRequest(identifier: UUID().uuidString,
+                                                content: content, trigger: trigger)
+            center.add(request) { error in
+                if let error {
+                    AppState.shared.log(.errors, "audio", "schedule notification failed: \(error)")
+                } else {
+                    AppState.shared.log(.scenarios, "audio", "local notification in \(seconds)s")
+                }
+            }
+        }
+    }
+
+    // MARK: Sample rate / IO buffer
+
+    static let sampleRates: [Double] = [16_000, 44_100, 48_000]
+    static let ioBufferDurations: [TimeInterval] = [0.005, 0.023, 0.093]
+
+    /// Asks iOS for a hardware sample rate, re-activates the session so the
+    /// request applies mid-call, and logs the rate iOS actually granted.
+    func setPreferredSampleRate(_ rate: Double) {
+        let s = AVAudioSession.sharedInstance()
+        dumpSessionState(label: "before preferredSampleRate")
+        do {
+            try s.setPreferredSampleRate(rate)
+            try s.setActive(true, options: [])
+            AppState.shared.audioSessionActive = true
+            AppState.shared.log(.scenarios, "audio",
+                "setPreferredSampleRate(\(Int(rate))) → granted sr=\(s.sampleRate)")
+        } catch {
+            AppState.shared.log(.errors, "audio", "setPreferredSampleRate(\(Int(rate))) failed: \(error)")
+        }
+        dumpSessionState(label: "after preferredSampleRate")
+    }
+
+    /// Same as `setPreferredSampleRate(_:)` for the hardware IO buffer.
+    func setPreferredIOBufferDuration(_ duration: TimeInterval) {
+        let s = AVAudioSession.sharedInstance()
+        dumpSessionState(label: "before preferredIOBufferDuration")
+        do {
+            try s.setPreferredIOBufferDuration(duration)
+            try s.setActive(true, options: [])
+            AppState.shared.audioSessionActive = true
+            AppState.shared.log(.scenarios, "audio",
+                "setPreferredIOBufferDuration(\(duration)) → granted ioBuf=\(s.ioBufferDuration)")
+        } catch {
+            AppState.shared.log(.errors, "audio", "setPreferredIOBufferDuration(\(duration)) failed: \(error)")
+        }
+        dumpSessionState(label: "after preferredIOBufferDuration")
     }
 
     private func playResource(_ name: String,
@@ -371,3 +463,12 @@ extension AudioScenarios: AVAudioPlayerDelegate {
     }
 }
 
+extension AudioScenarios: UNUserNotificationCenterDelegate {
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler:
+                                    @escaping (UNNotificationPresentationOptions) -> Void) {
+        AppState.shared.log(.lifecycle, "audio", "notification presented (foreground, with sound)")
+        completionHandler([.banner, .sound])
+    }
+}

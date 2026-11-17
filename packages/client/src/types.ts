@@ -419,15 +419,14 @@ type StreamRNVideoSDKCallManagerRingingParams = {
   isRingingTypeCall: boolean;
 };
 
-type StreamRNVideoSDKCallManagerSetupParams =
-  StreamRNVideoSDKCallManagerRingingParams & {
-    cid: string;
-    defaultDevice: AudioSettingsRequest['default_device'];
-  };
-
 type StreamRNVideoSDKCallManagerStartParams =
   StreamRNVideoSDKCallManagerRingingParams & {
     cid: string;
+    /**
+     * The default audio output derived from the call settings
+     * (`getRNDefaultAudioDevice`); the stored call manager config may override it.
+     */
+    defaultDevice: AudioSettingsRequest['default_device'];
   };
 
 type StreamRNVideoSDKCallManagerStopParams =
@@ -474,8 +473,6 @@ type StreamRNVideoSDKCallingX = {
     reason?: StreamRNVideoSDKEndCallReason,
   ) => Promise<void>;
   registerOutgoingCall: (call: Call) => Promise<void>;
-  wireAudioEngineSubscription: () => void;
-  unwireAudioEngineSubscription: () => void;
 };
 
 /**
@@ -508,20 +505,14 @@ export type StreamRNVideoSDKGlobals = {
   ringingCallLifecycle: StreamRNVideoSDKRingingCallLifecycle;
   callManager: {
     /**
-     * Sets up the in call manager.
-     */
-    setup({
-      defaultDevice,
-      isRingingTypeCall,
-      cid,
-    }: StreamRNVideoSDKCallManagerSetupParams): void;
-
-    /**
-     * Starts the in call manager.
+     * Starts the in call manager (fire-and-forget), once per join before the
+     * first publish. On iOS the native side gates the audio engine until the
+     * audio session is active, so the publish order does not matter.
      */
     start({
       isRingingTypeCall,
       cid,
+      defaultDevice,
     }: StreamRNVideoSDKCallManagerStartParams): void;
 
     /**

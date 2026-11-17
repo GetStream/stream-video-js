@@ -1,0 +1,18 @@
+{
+  "_malloc": "j",
+  "_fe_get_input_ptr": "p",
+  "_fe_reset": "t",
+  "_fe_weight_count": "i",
+  "_fe_create": "k",
+  "_fe_get_n_fft": "w",
+  "_fe_destroy": "u",
+  "_fe_get_hop_size": "v",
+  "_fe_set_agc": "s",
+  "_fe_process_inplace": "o",
+  "_free": "l",
+  "_fe_get_output_ptr": "q",
+  "_fe_set_hpf": "r",
+  "_fe_process": "m",
+  "_fe_init": "h",
+  "_fe_process_frame": "n"
+}

@@ -43,6 +43,7 @@ export * from './src/helpers/loopback';
 export * from './src/helpers/MediaStreamRecorder';
 export * from './src/helpers/participantUtils';
 export * from './src/helpers/TypedEventEmitter';
+export * from './src/helpers/extraOpts';
 export * from './src/rtc/e2ee/E2EEManager';
 export * from './src/rtc/e2ee/EncryptionManager';
 export * as Browsers from './src/helpers/browsers';

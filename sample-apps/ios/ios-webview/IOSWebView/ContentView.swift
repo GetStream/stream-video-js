@@ -23,6 +23,11 @@ struct ContentView: View {
                 )
             }
         }
+        #if DEBUG
+        .onOpenURL { url in
+            AutomationRouter(web: web, onLoad: { urlText = $0.absoluteString }).handle(url)
+        }
+        #endif
     }
 
     private var urlBar: some View {

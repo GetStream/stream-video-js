@@ -1,5 +1,4 @@
 import { View, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ClosedCaptions } from './ClosedCaptions';
 import { SpeakingLabel } from './SpeakingLabel';
 
@@ -17,15 +16,8 @@ export const SubtitleContainer = ({
 }: {
   controlsContainerHeight: number;
 }) => {
-  const insets = useSafeAreaInsets();
-
   return (
-    <View
-      style={[
-        styles.container,
-        { bottom: controlsContainerHeight + insets.bottom },
-      ]}
-    >
+    <View style={[styles.container, { bottom: controlsContainerHeight }]}>
       <ClosedCaptions />
       <SpeakingLabel />
     </View>

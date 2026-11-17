@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0-beta.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-1.0.0-beta.2...@stream-io/video-filters-web-1.0.0-beta.3) (2026-11-05)
+
+### Features
+
+- **video-filters-web:** run the background filters in a worker on Safari ([#2539](https://github.com/GetStream/stream-video-js/issues/2539)) ([e106cce](https://github.com/GetStream/stream-video-js/commit/e106cce79363c9471b99ce49f304529395f41500))
+
+### Bug Fixes
+
+- **deps:** bump [@stream-io](https://github.com/stream-io) toolkit packages to the .mjs/.cjs builds ([#2567](https://github.com/GetStream/stream-video-js/issues/2567)) ([42e45e8](https://github.com/GetStream/stream-video-js/commit/42e45e86efe25987efc3e0151028a94aa61bafd3)), closes [#2559](https://github.com/GetStream/stream-video-js/issues/2559) [GetStream/js-toolkit#58](https://github.com/GetStream/js-toolkit/issues/58)
+
 ## [1.0.0-beta.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-1.0.0-beta.1...@stream-io/video-filters-web-1.0.0-beta.2) (2026-10-20)
 
 ## [1.0.0-beta.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-1.0.0-beta.0...@stream-io/video-filters-web-1.0.0-beta.1) (2026-10-16)

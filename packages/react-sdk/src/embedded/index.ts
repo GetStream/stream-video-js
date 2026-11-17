@@ -9,6 +9,7 @@ export type {
   EmbeddedGuestUser,
   EmbeddedAnonymousUser,
   LayoutOption,
+  NoiseCancellationProviderName,
 } from './types';
 
 export type { StreamThemeMode } from '../components/StreamTheme';

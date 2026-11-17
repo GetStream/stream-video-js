@@ -118,9 +118,13 @@ const formatMap = (map?: Record<string, number>) => {
 
 const useStyles = () => {
   const {
-    theme: { semantics, primitives },
+    theme: { semantics, primitives, callAppBar, callControlsButton },
   } = useTheme();
   const insets = useSafeAreaInsets();
+  const callAppBarHeight =
+    Number(callAppBar.container.padding) * 2 +
+    Number(callControlsButton.container.height) +
+    Number(callControlsButton.container.margin) * 2;
 
   return useMemo(() => {
     return StyleSheet.create({
@@ -128,7 +132,7 @@ const useStyles = () => {
         position: 'absolute',
         left: primitives.spacingMd,
         right: primitives.spacingMd,
-        top: insets.top + primitives.spacingMd,
+        top: insets.top + callAppBarHeight + primitives.spacingMd,
         zIndex: Z_INDEX.IN_FRONT,
         backgroundColor: semantics.backgroundCoreOverlayLight,
         borderRadius: 8,
@@ -139,7 +143,7 @@ const useStyles = () => {
         paddingHorizontal: primitives.spacingMd,
       },
       headerText: {
-        color: semantics.textOnAccent,
+        color: semantics.textPrimary,
         fontSize: 14,
         fontWeight: 'bold',
       },
@@ -159,7 +163,7 @@ const useStyles = () => {
         marginRight: primitives.spacingSm,
       },
       rowValue: {
-        color: semantics.textOnAccent,
+        color: semantics.textPrimary,
         fontSize: 12,
         flexShrink: 1,
       },
@@ -194,5 +198,5 @@ const useStyles = () => {
         fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
       },
     });
-  }, [semantics, primitives, insets]);
+  }, [semantics, primitives, insets, callAppBarHeight]);
 };

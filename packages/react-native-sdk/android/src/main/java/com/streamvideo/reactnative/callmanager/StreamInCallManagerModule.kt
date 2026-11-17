@@ -2,11 +2,13 @@ package com.streamvideo.reactnative.callmanager
 
 import android.util.Log
 import android.view.WindowManager
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
+import com.facebook.react.bridge.WritableMap
 import com.streamvideo.reactnative.NativeStreamInCallManagerSpec
 import com.streamvideo.reactnative.audio.AudioDeviceManager
 import com.streamvideo.reactnative.audio.utils.CallAudioRole
@@ -87,11 +89,11 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     override fun setDefaultAudioDeviceEndpointType(endpointDeviceTypeName: String) {
         AudioDeviceManager.runInAudioThread {
             if (audioManagerActivated) {
-                Log.e(TAG, "setAudioRole(): AudioManager is already activated and so default audio device cannot be changed, current audio default device is ${mAudioDeviceManager.defaultAudioDevice}")
+                Log.e(TAG, "setDefaultAudioDeviceEndpointType(): AudioManager is already activated and so default audio device cannot be changed, current audio default device is ${mAudioDeviceManager.defaultAudioDevice}")
                 return@runInAudioThread
             }
             val endpointType = endpointDeviceTypeName.lowercase(Locale.getDefault())
-            Log.d(TAG, "runInAudioThread(): $endpointDeviceTypeName $endpointType")
+            Log.d(TAG, "setDefaultAudioDeviceEndpointType(): $endpointDeviceTypeName $endpointType")
             if (endpointType == "earpiece") {
                 mAudioDeviceManager.defaultAudioDevice = AudioDeviceEndpoint.TYPE_EARPIECE
             } else {
@@ -107,12 +109,6 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
                 return@runInAudioThread
             }
             mAudioDeviceManager.enableStereo = enabled
-        }
-    }
-
-    override fun setup() {
-        AudioDeviceManager.runInAudioThread {
-            mAudioDeviceManager.setup()
         }
     }
 
@@ -166,6 +162,11 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
             }
             mAudioDeviceManager.setSpeakerphoneOn(enable)
         }
+    }
+
+    override fun reactivateAudioSession(promise: Promise) {
+        // iOS only
+        promise.resolve(false)
     }
 
     override fun getAudioDeviceStatus(promise: Promise) {
@@ -225,6 +226,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     override fun showAudioRoutePicker() {}
 
     override fun reapplyAudioRoute() {}
+
+    override fun getAudioSessionState(): WritableMap = Arguments.createMap()
 
 
     override fun onHostResume() {

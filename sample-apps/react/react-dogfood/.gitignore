@@ -38,3 +38,6 @@ yarn-error.log*
 .sentryclirc
 
 certificates
+
+# FastEnhancer models, copied from @stream-io/audio-filters-web
+/public/fastenhancer/

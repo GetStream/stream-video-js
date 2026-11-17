@@ -87,6 +87,10 @@ import {
 } from './types';
 import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
 import { ReconnectDetails } from './gen/video/sfu/event/events';
+import type {
+  StartNoiseCancellationRequest,
+  StopNoiseCancellationRequest,
+} from './gen/video/sfu/signal_rpc/signal';
 import {
   ClientCapability,
   ClientDetails,
@@ -111,6 +115,7 @@ import type { ClientEventReporter, JoinReason, JoinSource } from './reporting';
 import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
 import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
+import { MuteStateSync } from './helpers/MuteStateSync';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
 import { createInboundAudioStallDetector } from './helpers/inboundAudioStallDetector';
@@ -137,6 +142,7 @@ import {
 import { getClientDetails } from './helpers/client-details';
 import {
   CameraManager,
+  getRNDefaultAudioDevice,
   MicrophoneManager,
   ScreenShareManager,
   SpeakerManager,
@@ -225,6 +231,11 @@ export class Call {
    * Owns the SFU-side video-subscription state (per-session and global overrides).
    */
   readonly trackSubscriptionManager: TrackSubscriptionManager;
+
+  /**
+   * Reports the mute state of the local tracks to the SFU.
+   */
+  private readonly muteStateSync: MuteStateSync;
 
   /**
    * Warns periodically when a remote participant is publishing audio, but no
@@ -426,6 +437,12 @@ export class Call {
     this.trackSubscriptionManager = new TrackSubscriptionManager(
       this.state,
       this.tracer,
+    );
+    this.muteStateSync = new MuteStateSync(
+      this.cid,
+      this.state,
+      () => this.sfuClient,
+      (trackType) => !!this.publisher?.isPublishing(trackType),
     );
     this.blockedAudioTracker = new BlockedAudioTracker(this.tracer);
     this.leaveCallHooks.add(this.blockedAudioTracker.reset);
@@ -750,15 +767,15 @@ export class Call {
             reasonToEndCallReason[
               rejectReason as keyof typeof reasonToEndCallReason
             ] ?? 'rejected';
-          await this.reject({ reason: rejectReason });
           globalThis.streamRNVideoSDK?.callingX?.endCall(this, endCallReason);
+          void this.safeReject(rejectReason);
         } else {
           // if reject was undefined, we still have to cancel the call automatically
           // when I am the creator and everyone else left the call
           const hasOtherParticipants = this.state.remoteParticipants.length > 0;
           if (this.isCreatedByMe && !hasOtherParticipants) {
-            await this.reject({ reason: 'cancel' });
             globalThis.streamRNVideoSDK?.callingX?.endCall(this, 'canceled');
+            void this.safeReject('cancel');
           }
         }
       }
@@ -872,10 +889,7 @@ export class Call {
         this.mediaEnginePromise = undefined;
         this.logger.debug('Disposing per-call media factory');
         await enginePromise
-          .then((engine) => {
-            globalThis.streamRNVideoSDK?.callingX?.unwireAudioEngineSubscription();
-            return engine.dispose();
-          })
+          .then((engine) => engine.dispose())
           .catch((err) => {
             this.logger.warn('Failed to dispose media engine', err);
           });
@@ -1125,6 +1139,23 @@ export class Call {
   };
 
   /**
+   * Rejects the call without letting a failed request propagate, unless asked.
+   *
+   * @param reason the reason for rejecting the call.
+   * @param silent when `true` (the default) a failure is only logged; when
+   * `false` it is logged and rethrown. Pass `false` only where the result is
+   * awaited, otherwise the rethrow becomes an unhandled rejection.
+   */
+  private safeReject = async (reason: RejectReason, silent: boolean = true) => {
+    try {
+      await this.reject({ reason });
+    } catch (err) {
+      this.logger.warn(`Failed to reject the call, reason: ${reason}`, err);
+      if (!silent) throw err;
+    }
+  };
+
+  /**
    * Will start to watch for call related WebSocket events and initiate a call session with the server.
    *
    * One instance is one call flow: discard it after leaving, cancelling, or a
@@ -1334,11 +1365,6 @@ export class Call {
       return;
     }
 
-    const callingX = globalThis.streamRNVideoSDK?.callingX;
-    if (callingX) {
-      callingX.wireAudioEngineSubscription();
-    }
-
     const performingMigration =
       this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE;
     const performingRejoin =
@@ -1517,6 +1543,12 @@ export class Call {
     if (!performingMigration) {
       // in MIGRATION, `JOINED` state is set in `this.reconnectMigrate()`
       this.state.setCallingState(CallingState.JOINED);
+      // FAST flushes after syncing the published tracks
+      if (!performingFastReconnect) {
+        this.muteStateSync.flush().catch((err) => {
+          this.logger.warn('Failed to send the kept mute state', err);
+        });
+      }
     }
     this.hasJoinedOnce = true;
     this.stopTracingPageLifecycle ??= tracePageLifecycle({
@@ -1579,6 +1611,18 @@ export class Call {
       );
     }
 
+    // React Native: start the native call manager once per join, before the
+    // first publish (fire-and-forget; on iOS the native engine gate makes the
+    // order with the publish irrelevant). leave() stops it (callManagerStarted).
+    if (!this.callManagerStarted && !supersededByLeave()) {
+      globalThis.streamRNVideoSDK?.callManager.start({
+        isRingingTypeCall: this.ringing,
+        cid: this.cid,
+        defaultDevice: getRNDefaultAudioDevice(this.state.settings),
+      });
+      this.callManagerStarted = true;
+    }
+
     // device settings should be applied only once, we don't have to
     // re-apply them on later reconnections or server-side data fetches
     if (
@@ -1586,19 +1630,8 @@ export class Call {
       this.state.settings &&
       !supersededByLeave()
     ) {
-      await this.applyDeviceConfig(this.state.settings, {
-        publish: true,
-        skipSpeakerApply: false,
-      });
+      await this.applyDeviceConfig(this.state.settings, { publish: true });
       this.deviceSettingsAppliedOnce = true;
-    }
-
-    if (!this.callManagerStarted && !supersededByLeave()) {
-      globalThis.streamRNVideoSDK?.callManager.start({
-        isRingingTypeCall: this.ringing,
-        cid: this.cid,
-      });
-      this.callManagerStarted = true;
     }
 
     // We shouldn't persist the `ring` and `notify` state after joining the call
@@ -1717,6 +1750,7 @@ export class Call {
     opts: { includeSubscriber?: boolean; includePublisher?: boolean } = {},
   ) => {
     const { includeSubscriber = true, includePublisher = true } = opts;
+    this.sfuStatsReporter?.setSfuClient(nextSfuClient);
     if (this.subscriber) {
       this.subscriber.setSfuClient(nextSfuClient);
       if (includeSubscriber) {
@@ -1914,6 +1948,34 @@ export class Call {
     ).catch((err) => {
       this.logger.warn('[Reconnect] Error reconnecting', err);
     });
+  };
+
+  /**
+   * Rejoins the call to rebuild the media stack, the last resort of the
+   * React Native SDK when the iOS audio engine can't be restarted.
+   * Skipped (returns `false`) when the call isn't JOINED, a reconnect is
+   * already pending, or the rejoin rate limiters have no room: the
+   * reconnect would then leave the call, which is worse than a dead mic.
+   *
+   * @internal
+   * @returns `true` if the rejoin started.
+   */
+  rejoinForAudioEngineRecovery = (): boolean => {
+    if (
+      this.state.callingState !== CallingState.JOINED ||
+      hasPending(this.reconnectConcurrencyTag) ||
+      !this.rejoinRateLimiter.canRegister() ||
+      this.rejoinLongWindowRateLimiter?.canRegister() === false
+    ) {
+      return false;
+    }
+    this.reconnect(
+      WebsocketReconnectStrategy.REJOIN,
+      'audio_engine_dead',
+    ).catch((err) => {
+      this.logger.warn('[Reconnect] Error rejoining for the audio engine', err);
+    });
+    return true;
   };
 
   /**
@@ -2379,6 +2441,7 @@ export class Call {
         'No subscriber offer after a fast reconnect',
       );
     }
+    this.syncPublishedTracks();
     await this.get(); // fetch the latest call state, as it might have changed
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.FAST,
@@ -2471,6 +2534,7 @@ export class Call {
       // `participantMigrationComplete` event is received, signaled by
       // the `migrationTask`
       this.state.setCallingState(CallingState.JOINED);
+      this.syncPublishedTracks();
     } finally {
       await currentSubscriber?.dispose();
       await currentPublisher?.dispose();
@@ -2606,7 +2670,7 @@ export class Call {
           mediaStream = this.screenShare.state.mediaStream;
           options = {
             audioBitrateProfile: this.screenShare.state.audioBitrateProfile,
-            contentHint: this.screenShare.getSettings()?.contentHint,
+            contentHint: this.screenShare.resolveContentHint(),
           };
           break;
         // screen share audio can't exist without a screen share, so we handle it there
@@ -2668,25 +2732,62 @@ export class Call {
       throw new Error(`Can't publish ended tracks.`);
     }
 
-    pushToIfMissing(this.trackPublishOrder, trackType);
-    await this.publisher.publish(track, trackType, options);
-
+    const publisher = this.publisher;
     const trackTypes = [trackType];
-    if (trackType === TrackType.SCREEN_SHARE) {
-      const [audioTrack] = mediaStream.getAudioTracks();
-      if (audioTrack) {
-        const screenShareAudio = TrackType.SCREEN_SHARE_AUDIO;
-        pushToIfMissing(this.trackPublishOrder, screenShareAudio);
-        await this.publisher.publish(audioTrack, screenShareAudio, options);
-        trackTypes.push(screenShareAudio);
-      }
-    }
+    const previousTracks = publisher.getPublishedTracks();
+    try {
+      pushToIfMissing(this.trackPublishOrder, trackType);
+      await publisher.publish(track, trackType, options);
 
+      if (trackType === TrackType.SCREEN_SHARE) {
+        const [audioTrack] = mediaStream.getAudioTracks();
+        if (audioTrack) {
+          const screenShareAudio = TrackType.SCREEN_SHARE_AUDIO;
+          pushToIfMissing(this.trackPublishOrder, screenShareAudio);
+          trackTypes.push(screenShareAudio);
+          await publisher.publish(audioTrack, screenShareAudio, options);
+        }
+      }
+    } catch (err) {
+      await this.unpublishAfterFailure(publisher, previousTracks, trackTypes);
+      throw err;
+    }
     await this.updateLocalStreamState(mediaStream, ...trackTypes);
   };
 
   /**
+   * Unpublishes what a failed `publish()` left behind, such as the screen
+   * share when only its audio failed, so no live clone is sent. A track the
+   * failed publish didn't get to replace is still sent, and is kept.
+   */
+  private unpublishAfterFailure = async (
+    publisher: Publisher,
+    previousTracks: MediaStreamTrack[],
+    trackTypes: TrackType[],
+  ) => {
+    // a disposed publisher has stopped all of its tracks, and its
+    // replacement restores the device streams on its own
+    if (publisher !== this.publisher) return;
+    const kept = publisher
+      .getPublishedTracks()
+      .filter((track) => previousTracks.includes(track))
+      .map((track) => publisher.getTrackType(track.id));
+    const stale = trackTypes.filter((t) => !kept.includes(t));
+    if (stale.length === 0) return;
+    try {
+      if (isReactNative()) await publisher.detachTracks(...stale);
+      else await publisher.stopTracks(...stale);
+      await this.updateLocalStreamState(undefined, ...stale);
+    } catch (err) {
+      this.logger.warn('Failed to unpublish after a failed publish', err);
+    }
+  };
+
+  /**
    * Stops publishing the given track type to the call, if it is currently being published.
+   *
+   * While the call isn't JOINED, the SFU may be unreachable: the tracks are
+   * stopped right away, and the SFU is told once the call reconnects.
    *
    * @param trackTypes the track types to stop publishing.
    */
@@ -2694,6 +2795,36 @@ export class Call {
     if (!this.sfuClient || !this.publisher) return;
     await this.publisher.stopTracks(...trackTypes);
     await this.updateLocalStreamState(undefined, ...trackTypes);
+  };
+
+  /**
+   * Brings the published tracks in line with the devices after a FAST or
+   * MIGRATE reconnect, which keep or restore the publisher as it was: a
+   * device enabled in between is published, and the mute state kept in
+   * between is sent.
+   * Runs in the background, as a device may wait for user input (a screen
+   * share picker, a permission prompt) before it settles.
+   */
+  private syncPublishedTracks = () => {
+    const devices = [
+      [this.microphone, [TrackType.AUDIO]],
+      [this.camera, [TrackType.VIDEO]],
+      [
+        this.screenShare,
+        [TrackType.SCREEN_SHARE, TrackType.SCREEN_SHARE_AUDIO],
+      ],
+    ] as const;
+    for (const [device, trackTypes] of devices) {
+      device
+        .syncPublishedStream()
+        .catch((err) => {
+          this.logger.warn('Failed to sync the published stream', err);
+        })
+        .then(() => this.muteStateSync.flush(...trackTypes))
+        .catch((err) => {
+          this.logger.warn('Failed to send the kept mute state', err);
+        });
+    }
   };
 
   /**
@@ -2710,7 +2841,11 @@ export class Call {
     const sessionId = this.sfuClient?.sessionId;
     if (!sessionId) return;
 
-    await this.notifyTrackMuteState(!mediaStream, ...trackTypes);
+    try {
+      await this.notifyTrackMuteState(!mediaStream, ...trackTypes);
+    } catch (err) {
+      this.logger.warn('Failed to send the mute state', err);
+    }
     if (this.sfuClient?.sessionId !== sessionId) return;
 
     for (const trackType of trackTypes) {
@@ -2796,36 +2931,41 @@ export class Call {
    * Notifies the SFU that a noise cancellation process has started.
    *
    * @internal
+   * @param noiseCancellation the engine and model that run.
    */
-  notifyNoiseCancellationStarting = async () => {
-    return this.sfuClient?.startNoiseCancellation().catch((err) => {
-      this.logger.warn('Failed to notify start of noise cancellation', err);
-    });
+  notifyNoiseCancellationStarting = async (
+    noiseCancellation: Omit<StartNoiseCancellationRequest, 'sessionId'>,
+  ) => {
+    return this.sfuClient
+      ?.startNoiseCancellation(noiseCancellation)
+      .catch((err) => {
+        this.logger.warn('Failed to notify start of noise cancellation', err);
+      });
   };
 
   /**
    * Notifies the SFU that a noise cancellation process has stopped.
    *
    * @internal
+   * @param noiseCancellation the engine and model that ran.
    */
-  notifyNoiseCancellationStopped = async () => {
-    return this.sfuClient?.stopNoiseCancellation().catch((err) => {
-      this.logger.warn('Failed to notify stop of noise cancellation', err);
-    });
+  notifyNoiseCancellationStopped = async (
+    noiseCancellation: Omit<StopNoiseCancellationRequest, 'sessionId'>,
+  ) => {
+    return this.sfuClient
+      ?.stopNoiseCancellation(noiseCancellation)
+      .catch((err) => {
+        this.logger.warn('Failed to notify stop of noise cancellation', err);
+      });
   };
 
   /**
    * Notifies the SFU about the mute state of the given track types.
+   * While the call isn't JOINED, it is sent once the call reconnects.
    * @internal
    */
   notifyTrackMuteState = async (muted: boolean, ...trackTypes: TrackType[]) => {
-    const key = `muteState.${this.cid}.${trackTypes.join('-')}`;
-    await withoutConcurrency(key, async () => {
-      if (!this.sfuClient) return;
-      await this.sfuClient.updateMuteStates(
-        trackTypes.map((trackType) => ({ trackType, muted })),
-      );
-    });
+    await this.muteStateSync.notify(muted, ...trackTypes);
   };
 
   /**
@@ -3496,21 +3636,13 @@ export class Call {
     settings: CallSettingsResponse,
     opts: {
       publish: boolean;
-      skipSpeakerApply?: boolean;
       withDisabledDevices?: boolean;
     },
   ) => {
-    const {
-      publish,
-      // Skip speaker setup on RN until joining (explicitly passed as false during join())
-      skipSpeakerApply = isReactNative(),
-      withDisabledDevices,
-    } = opts;
-    if (!skipSpeakerApply) {
-      await this.speaker
-        .apply(settings)
-        .catch((err) => this.logger.warn('Speaker init failed', err));
-    }
+    const { publish, withDisabledDevices } = opts;
+    await this.speaker
+      .apply()
+      .catch((err) => this.logger.warn('Speaker init failed', err));
     await this.camera
       .apply(settings.video, publish, withDisabledDevices)
       .catch((err) => this.logger.warn('Camera init failed', err));

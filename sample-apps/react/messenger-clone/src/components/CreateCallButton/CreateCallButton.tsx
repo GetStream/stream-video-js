@@ -3,13 +3,13 @@ import {
   MemberRequest,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { useChannelStateContext } from 'stream-chat-react';
+import { useChannel } from 'stream-chat-react';
 import { LocalPhone } from '@mui/icons-material';
 import { meetingId } from '../../utils/meetingId';
 
 export const CreateCallButton = () => {
   const videoClient = useStreamVideoClient();
-  const { channel } = useChannelStateContext();
+  const channel = useChannel();
 
   const createCall = useCallback(() => {
     videoClient?.call('default', meetingId()).getOrCreate({

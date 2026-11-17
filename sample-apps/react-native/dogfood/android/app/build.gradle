@@ -93,6 +93,9 @@ android {
         versionName "1.0.0"
         // Added for Chat SDK
         vectorDrawables.useSupportLibrary = true
+        // Detox (e2e/README.md): `-DtestBuildType=release` builds the instrumentation APK against the release app.
+        testBuildType System.getProperty('testBuildType', 'debug')
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     signingConfigs {
         debug {
@@ -119,6 +122,7 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    androidTestImplementation('com.wix:detox:+')
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

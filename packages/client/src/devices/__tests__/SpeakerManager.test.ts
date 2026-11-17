@@ -14,7 +14,7 @@ import {
   mockDevicesWithoutAudioPermission,
 } from './mocks';
 import { of } from 'rxjs';
-import { SpeakerManager } from '../SpeakerManager';
+import { getRNDefaultAudioDevice, SpeakerManager } from '../SpeakerManager';
 import { checkIfAudioOutputChangeSupported } from '../devices';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
@@ -212,8 +212,7 @@ describe('SpeakerManager.test', () => {
 
     it('does nothing when persistence is disabled', async () => {
       const selectSpy = vi.spyOn(manager, 'select');
-      // @ts-expect-error - partial data
-      await manager.apply({});
+      await manager.apply();
       expect(selectSpy).not.toHaveBeenCalled();
     });
 
@@ -232,8 +231,7 @@ describe('SpeakerManager.test', () => {
       persist('speaker-1', 'Speaker 1');
 
       const selectSpy = vi.spyOn(persistedManager, 'select');
-      // @ts-expect-error - partial data
-      await persistedManager.apply({});
+      await persistedManager.apply();
 
       expect(selectSpy).toHaveBeenCalledWith('speaker-1');
       expect(persistedManager.state.selectedDevice).toBe('speaker-1');
@@ -259,8 +257,7 @@ describe('SpeakerManager.test', () => {
       persist('speaker-1', 'Speaker 1');
 
       const selectSpy = vi.spyOn(persistedManager, 'select');
-      // @ts-expect-error - partial data
-      await persistedManager.apply({});
+      await persistedManager.apply();
 
       expect(selectSpy).not.toHaveBeenCalled();
       expect(persistedManager.state.selectedDevice).toBe('');
@@ -274,8 +271,7 @@ describe('SpeakerManager.test', () => {
       persist('speaker-1', 'Speaker 1');
 
       const selectSpy = vi.spyOn(persistedManager, 'select');
-      // @ts-expect-error - partial data
-      await persistedManager.apply({});
+      await persistedManager.apply();
 
       expect(selectSpy).not.toHaveBeenCalled();
       expect(persistedManager.state.selectedDevice).toBe('');
@@ -290,8 +286,7 @@ describe('SpeakerManager.test', () => {
       persist('speaker-1', 'Speaker 1');
 
       const selectSpy = vi.spyOn(persistedManager, 'select');
-      // @ts-expect-error - partial data
-      await persistedManager.apply({});
+      await persistedManager.apply();
 
       expect(listDevicesSpy).not.toHaveBeenCalled();
       expect(selectSpy).not.toHaveBeenCalled();
@@ -318,8 +313,7 @@ describe('SpeakerManager.test', () => {
       persist('missing-speaker-device-id', outputDevice.label);
 
       const selectSpy = vi.spyOn(persistedManager, 'select');
-      // @ts-expect-error - partial data
-      await persistedManager.apply({});
+      await persistedManager.apply();
 
       expect(selectSpy).toHaveBeenCalledWith(outputDevice.deviceId);
       expect(selectSpy).not.toHaveBeenCalledWith(videoDevice.deviceId);
@@ -341,8 +335,7 @@ describe('SpeakerManager.test', () => {
       persist('missing-speaker-device-id', '');
 
       const selectSpy = vi.spyOn(persistedManager, 'select');
-      // @ts-expect-error - partial data
-      await persistedManager.apply({});
+      await persistedManager.apply();
 
       expect(selectSpy).not.toHaveBeenCalled();
       expect(persistedManager.state.selectedDevice).toBe('');
@@ -354,8 +347,7 @@ describe('SpeakerManager.test', () => {
       persist(defaultDeviceId, '');
 
       const selectSpy = vi.spyOn(persistedManager, 'select');
-      // @ts-expect-error - partial data
-      await persistedManager.apply({});
+      await persistedManager.apply();
 
       expect(selectSpy).toHaveBeenCalledWith('');
       expect(persistedManager.state.selectedDevice).toBe('');
@@ -369,5 +361,49 @@ describe('SpeakerManager.test', () => {
       configurable: true,
       value: undefined,
     });
+  });
+});
+
+describe('getRNDefaultAudioDevice', () => {
+  const settings = (
+    audio: Partial<{
+      speaker_default_on: boolean;
+      default_device: 'speaker' | 'earpiece';
+    }>,
+    video: Partial<{ camera_default_on: boolean }> = {},
+  ) =>
+    fromPartial<Parameters<typeof getRNDefaultAudioDevice>[0]>({
+      audio: {
+        speaker_default_on: false,
+        default_device: 'earpiece',
+        ...audio,
+      },
+      video: { camera_default_on: false, ...video },
+    });
+
+  it('prefers the speaker when the camera is on by default', () => {
+    expect(
+      getRNDefaultAudioDevice(settings({}, { camera_default_on: true })),
+    ).toBe('speaker');
+  });
+
+  it('prefers the speaker when the speaker is on by default', () => {
+    expect(
+      getRNDefaultAudioDevice(settings({ speaker_default_on: true })),
+    ).toBe('speaker');
+  });
+
+  it('prefers the speaker when the default device is the speaker', () => {
+    expect(
+      getRNDefaultAudioDevice(settings({ default_device: 'speaker' })),
+    ).toBe('speaker');
+  });
+
+  it('falls back to the earpiece otherwise', () => {
+    expect(getRNDefaultAudioDevice(settings({}))).toBe('earpiece');
+  });
+
+  it('uses the speaker (the native default) without settings', () => {
+    expect(getRNDefaultAudioDevice(undefined)).toBe('speaker');
   });
 });

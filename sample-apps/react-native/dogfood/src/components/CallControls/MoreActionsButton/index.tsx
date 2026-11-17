@@ -25,12 +25,6 @@ import {
 import { BottomControlsDrawer, DrawerOption } from './BottomControlsDrawer';
 import Feedback from '../../../assets/Feedback';
 import FeedbackModal from '../../FeedbackModal';
-import {
-  ThemeMode,
-  useAppGlobalStoreSetState,
-  useAppGlobalStoreValue,
-} from '../../../contexts/AppContext';
-import LightDark from '../../../assets/LightDark';
 import Stats from '../../../assets/Stats';
 import ClosedCaptions from '../../../assets/ClosedCaptions';
 import Screenshot from '../../../assets/Screenshot';
@@ -77,8 +71,6 @@ export const MoreActionsButton = ({
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [screenshotModalVisible, setScreenshotModalVisible] = useState(false);
   const [screenshotImage, setScreenshotImage] = useState<string | null>(null);
-  const setState = useAppGlobalStoreSetState();
-  const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
   const call = useCall();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const {
@@ -113,13 +105,6 @@ export const MoreActionsButton = ({
       .catch((err) => console.warn('Failed to submit call feedback', err));
 
     setFeedbackModalVisible(false);
-  };
-
-  const getName = (theme: ThemeMode) => {
-    if (theme === 'light') {
-      return 'Dark mode';
-    }
-    return 'Light mode';
   };
 
   const getCaptionsLabel = () =>
@@ -197,26 +182,6 @@ export const MoreActionsButton = ({
       onPress: () => {
         setShowCallStats(true);
         setIsDrawerVisible(true);
-      },
-    },
-    {
-      id: '3',
-      label: getName(themeMode),
-      icon: (
-        <IconWrapper>
-          <LightDark
-            color={semantics.accentNeutral}
-            size={components.iconSizeMd}
-          />
-        </IconWrapper>
-      ),
-      onPress: () => {
-        if (themeMode === 'light') {
-          setState({ themeMode: 'dark' });
-        } else {
-          setState({ themeMode: 'light' });
-        }
-        setIsDrawerVisible(false);
       },
     },
     {

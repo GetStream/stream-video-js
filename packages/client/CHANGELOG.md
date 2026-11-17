@@ -2,6 +2,32 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [2.0.0-beta.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-2.0.0-beta.4...@stream-io/video-client-2.0.0-beta.5) (2026-11-05)
+
+### Features
+
+- **client:** add setCaptureWindow to capture camera and mic through another window ([#2556](https://github.com/GetStream/stream-video-js/issues/2556)) ([b1fdf2f](https://github.com/GetStream/stream-video-js/commit/b1fdf2f8367be9f8cabdbc5ea5c9a8a639c91358))
+- **client:** map screen share contentHint to degradation preference ([#2557](https://github.com/GetStream/stream-video-js/issues/2557)) ([dd249fa](https://github.com/GetStream/stream-video-js/commit/dd249faec78dbd95f5d09e7ed689ff9f0b6eab4b))
+- **client:** play remote audio through Web Audio on WebKit ([#2584](https://github.com/GetStream/stream-video-js/issues/2584)) ([a8b4725](https://github.com/GetStream/stream-video-js/commit/a8b47253d3e37cb58730bc823261e437e92967d6))
+- **client:** prioritize screen share over camera on constrained uplinks ([#2542](https://github.com/GetStream/stream-video-js/issues/2542)) ([eb0c2e4](https://github.com/GetStream/stream-video-js/commit/eb0c2e46900556d06ef05b7125789a5b9a19d87c))
+- **client:** report camera capture stats; warn about a low camera frame rate in Pronto ([#2577](https://github.com/GetStream/stream-video-js/issues/2577)) ([be2185e](https://github.com/GetStream/stream-video-js/commit/be2185e671f786d55cc2196c55df0adb1ee6f720))
+- **client:** turn off browser noise suppression while noise cancellation is registered ([#2547](https://github.com/GetStream/stream-video-js/issues/2547)) ([e48781e](https://github.com/GetStream/stream-video-js/commit/e48781e8c443ee01e633308b09844fbc5af901fe)), closes [#2528](https://github.com/GetStream/stream-video-js/issues/2528)
+- surface noise cancellation overload status ([#2528](https://github.com/GetStream/stream-video-js/issues/2528)) ([a90bc74](https://github.com/GetStream/stream-video-js/commit/a90bc742d6763fa810a314beb23045156312d86a))
+
+### Bug Fixes
+
+- **audio-filters-web:** report Safari as unsupported unless opted in ([#2572](https://github.com/GetStream/stream-video-js/issues/2572)) ([7a9d349](https://github.com/GetStream/stream-video-js/commit/7a9d349d367e614389a6e4ffdba4e285070aab14))
+- **client:** don't let a stuck setParameters() block call.leave() ([#2545](https://github.com/GetStream/stream-video-js/issues/2545)) ([fd1bc86](https://github.com/GetStream/stream-video-js/commit/fd1bc86527977276129c5d68c2de221412c3fc41)), closes [#2237](https://github.com/GetStream/stream-video-js/issues/2237)
+- **client:** don't scale the screen share's bitrate cap by its capture size ([#2541](https://github.com/GetStream/stream-video-js/issues/2541)) ([753d304](https://github.com/GetStream/stream-video-js/commit/753d304e66f2681858e7c1ed116dbfa9b245fdc1))
+- **client:** handle tokenProvider rejection during reconnect token refresh ([#2561](https://github.com/GetStream/stream-video-js/issues/2561)) ([b5cfb59](https://github.com/GetStream/stream-video-js/commit/b5cfb59b3204700a750a0c4c9fd54c81ffc6a883)), closes [#2558](https://github.com/GetStream/stream-video-js/issues/2558) [GetStream/stream-chat-js#1962](https://github.com/GetStream/stream-chat-js/issues/1962) [GetStream/stream-chat-js#1963](https://github.com/GetStream/stream-chat-js/issues/1963)
+- **client:** let users retry mic/camera access after a denial ([#2570](https://github.com/GetStream/stream-video-js/issues/2570)) ([7281ea7](https://github.com/GetStream/stream-video-js/commit/7281ea7d99f7e86f77c5caa3c39cb6ff82d1dbd3))
+- **client:** recover from stale offline events on a working network ([#2548](https://github.com/GetStream/stream-video-js/issues/2548)) ([f165ac9](https://github.com/GetStream/stream-video-js/commit/f165ac97015276a4bfa1186a391d1e9d0642ddbd))
+- **client:** recover remote audio after iOS audio interruptions ([#2538](https://github.com/GetStream/stream-video-js/issues/2538)) ([93c6d01](https://github.com/GetStream/stream-video-js/commit/93c6d014b6c450a5edf3ad83ba5c3c05cba36d3d))
+- **client:** release video element streams on unbind ([#2544](https://github.com/GetStream/stream-video-js/issues/2544)) ([07b3e5f](https://github.com/GetStream/stream-video-js/commit/07b3e5ff5b3dfdf96b188cef2b035869fc8d8b2b))
+- **client:** remove the hidden-page check when resuming the shared AudioContext ([#2587](https://github.com/GetStream/stream-video-js/issues/2587)) ([2cdea93](https://github.com/GetStream/stream-video-js/commit/2cdea937ca2b595cda669aaed6d00dd101dbf365))
+- **deps:** bump [@stream-io](https://github.com/stream-io) toolkit packages to the .mjs/.cjs builds ([#2567](https://github.com/GetStream/stream-video-js/issues/2567)) ([42e45e8](https://github.com/GetStream/stream-video-js/commit/42e45e86efe25987efc3e0151028a94aa61bafd3)), closes [#2559](https://github.com/GetStream/stream-video-js/issues/2559) [GetStream/js-toolkit#58](https://github.com/GetStream/js-toolkit/issues/58)
+- **react-native:** recover the iOS mic when the audio engine fails to start ([#2529](https://github.com/GetStream/stream-video-js/issues/2529)) ([36bb5e5](https://github.com/GetStream/stream-video-js/commit/36bb5e54392d5876dcd1759c583e3265f880ddcc)), closes [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#75](https://github.com/GetStream/stream-video-js/issues/75) [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#2282](https://github.com/GetStream/stream-video-js/issues/2282)
+
 ## [2.0.0-beta.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-2.0.0-beta.3...@stream-io/video-client-2.0.0-beta.4) (2026-10-26)
 
 ### Bug Fixes
