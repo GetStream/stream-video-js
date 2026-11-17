@@ -272,6 +272,7 @@ export type InternalIOSOptions = {
   imageName?: string;
   /**
    * Enable calls history. When enabled, the call will be added to the calls history.
+   * Call-back from Recents (`callBackRequested`) works with CallKit only, not with `useLiveCommunicationKit`.
    * @default false
    */
   callsHistory?: boolean;

@@ -15,7 +15,6 @@ export const useCallBackEffect = () => {
     const subscription = CallingxModule.addEventListener(
       'callBackRequested',
       async ({ callId, isVideo }) => {
-        console.log('callBackRequested', { callId, isVideo });
         try {
           const [callType, id] = callId.split(':');
           const original = client.call(callType, id);

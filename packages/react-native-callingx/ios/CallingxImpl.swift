@@ -1,7 +1,6 @@
 import Foundation
 import AVFoundation
 import UIKit
-import Combine
 import Intents
 import stream_react_native_webrtc
 
@@ -359,6 +358,12 @@ import stream_react_native_webrtc
     @objc public static func handleUserActivity(_ userActivity: NSUserActivity) -> Bool {
         guard Settings.getCallsHistory() else { return false }
 
+        let backendKind = existingBackend()?.kind ?? preferredBackendKind()
+        guard backendKind == .callKit else {
+            CallingxLog.core.debugPublic("[handleUserActivity] call-back is not supported with LiveCommunicationKit, ignoring")
+            return false
+        }
+
         let interaction = userActivity.interaction
         guard let intent = interaction?.intent else {
             CallingxLog.core.debugPublic("[handleUserActivity] no intent, ignoring")
@@ -401,56 +406,6 @@ import stream_react_native_webrtc
         return true
     }
 
-    /// Wires the ADM engine-lifecycle subscription to the live call factory's ADM. A no-op when
-    /// already wired to that ADM; re-wires when the ADM changes.
-    @objc public func wireAudioEngineSubscription() {
-        // Only wire when callingx (the system call layer) owns the session. For non-callingx calls the engine gate
-        // and the sink below are irrelevant, so skipping keeps their ADM on `.default`.
-        guard CallingxSessionOwnership.callingxOwnsSession else {
-            CallingxLog.core.debugPublic("[wireEngineSubscription] skipped — callingx does not own the session")
-            return
-        }
-        guard let adm = getCurrentAudioDeviceModule() else {
-          CallingxLog.core.debugPublic("[wireEngineSubscription] skipped — adm is not instantiated")
-          return
-        }
-        guard subscribedADM !== adm else { return } // already wired to this ADM
-        engineSubscription?.cancel()                // ADM changed (e.g. JS reload) — rewire
-        subscribedADM = adm
-        CallingxLog.core.debugPublic("[wireEngineSubscription]")
-
-        // Replay fixes potential race for a case when conversation manager callbacks are invoked before adm instance exists.
-        // Serialized with setDesiredEngineAvailability so the read-then-apply pair can't interleave with a
-        // concurrent delegate-queue write; otherwise a stale value could land on the ADM after the delegate applied a newer one.
-        engineAvailabilityQueue.sync {
-            _ = adm.setEngineAvailability(self.desiredEngineAvailability)
-        }
-
-        engineSubscription = adm.publisher.sink { event in
-            guard CallingxSessionOwnership.callingxOwnsSession else { return }
-            switch event {
-            case .willEnableAudioEngine:
-                CallingxImpl.existingBackend()?.setAudioEngineStarting(true)
-                AudioSessionManager.shared.engineWillEnable()
-            case .willStartAudioEngine:
-                // Engine is now rendering; voice-processing mute reflects real intent again.
-                CallingxImpl.existingBackend()?.setAudioEngineStarting(false)
-            case .didDisableAudioEngine:
-                AudioSessionManager.shared.engineDidDisable()
-            default:
-                break
-            }
-        }
-    }
-
-    /// Cancels the ADM engine-lifecycle subscription wired by `wireAudioEngineSubscription`.
-    @objc public func unwireAudioEngineSubscription() {
-        engineSubscription?.cancel()
-        engineSubscription = nil
-        subscribedADM = nil
-        CallingxLog.core.debugPublic("[unwireEngineSubscription]")
-    }
-    
     @objc public func getInitialEvents() -> [[String: Any]] {
         var events: [[String: Any]] = []
         let action = {
