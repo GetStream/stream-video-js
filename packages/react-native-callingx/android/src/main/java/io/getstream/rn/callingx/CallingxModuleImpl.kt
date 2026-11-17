@@ -415,15 +415,15 @@ class CallingxModuleImpl(
                 .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
     }
 
+    /**
+     * Hands [action] straight to the call in the process-wide repository. It doesn't go through
+     * [CallService]: the service may not be running (Android can stop it, e.g. right after Decline
+     * is tapped on the notification), and starting it with `startService` from the background
+     * can throw on API 26+.
+     */
     private fun executeServiceAction(callId: String, action: CallAction) {
-        debugLog(TAG, "[module] executeServiceAction: Executing service action: $action")
-        Intent(reactApplicationContext, CallService::class.java)
-                .apply {
-                    this.action = CallService.ACTION_PROCESS_ACTION
-                    putExtra(CallService.EXTRA_CALL_ID, callId)
-                    putExtra(CallService.EXTRA_ACTION, action)
-                }
-                .also { reactApplicationContext.startService(it) }
+        debugLog(TAG, "[module] executeServiceAction: Executing call action: $action")
+        CallRepositoryHolder.get(reactApplicationContext).processAction(callId, action)
     }
 
     private fun sendJSEvent(eventName: String, params: WritableMap? = null) {

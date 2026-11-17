@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.IBinder
 import android.telecom.DisconnectCause
 import android.util.Log
+import io.getstream.rn.callingx.CallRepositoryHolder
 import io.getstream.rn.callingx.CallingxModuleImpl
 import io.getstream.rn.callingx.getDisconnectCauseString
 
@@ -83,5 +84,8 @@ class NotificationReceiverService : Service() {
     } catch (e: Exception) {
       Log.e(TAG, "Error sending call end intent", e)
     }
+    // JavaScript still rejects the call on the server (from the broadcast above). Telecom is told
+    // here, right away, so ending the call doesn't depend on JavaScript or on CallService.
+    callId?.let { CallRepositoryHolder.get(applicationContext).declineIncomingCall(it) }
   }
 }

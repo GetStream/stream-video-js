@@ -80,16 +80,11 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                     registerAppWithTelecom(capabilities)
                 }
         debugLog(TAG, "[repository] init: CallsManager created and registered")
+
+        observeCallsJob = observeCalls()
     }
 
     override fun getTag(): String = TAG
-
-    override fun setListener(listener: Listener?) {
-        this._listener = listener
-
-        observeCallsJob?.cancel()
-        observeCallsJob = observeCalls()
-    }
 
     override fun release() {
         if (isReleased) {
@@ -108,7 +103,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
 
         observeCallsJob?.cancel()
         observeCallsJob = null
-        _listener = null
+        clearListeners()
 
         scope.cancel()
     }
@@ -175,15 +170,16 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                     isVideo,
                     preferredStartingEndpoint,
             )
-            actionSource = Channel<CallAction>()
+            // Buffered, so an action sent before the call scope starts collecting is kept and
+            // handled once the call is registered instead of being dropped. processAction() still
+            // queues actions for a pending call in CallRegistrationStore; only hangUpAllCalls()
+            // sends to a pending call directly, and it relies on this buffer.
+            actionSource = Channel<CallAction>(Channel.UNLIMITED)
             flags = CallActionFlags()
             actionFlags[callId] = flags
 
             // Add call to the map early so that duplicate registrations are rejected
-            // and listeners are notified immediately. Actions sent via trySend() may arrive
-            // before the call scope starts collecting; in that case, they are dropped
-            // rather than buffered, which is acceptable because we explicitly handle
-            // pending actions in CallService/CallRegistrationStore.
+            // and listeners are notified immediately.
             val registeredCall = Call.Registered(
                     id = callId,
                     isPending = true,
@@ -353,25 +349,25 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                         val previous = previousCalls[callId]
                         if (previous == null) {
                             // New call added
-                            _listener?.onCallRegistered(callId, call.isIncoming())
+                            notifyListeners { onCallRegistered(callId, call.isIncoming()) }
                         } else {
                             // Existing call changed
                             if (previous.isMuted != call.isMuted) {
                                 debugLog(TAG, "[repository] observeCalls: Mute changed for $callId: ${call.isMuted}")
-                                _listener?.onMuteCallChanged(callId, call.isMuted)
+                                notifyListeners { onMuteCallChanged(callId, call.isMuted) }
                             }
                             if (previous.currentCallEndpoint != call.currentCallEndpoint ||
                                     previous.availableCallEndpoints != call.availableCallEndpoints) {
-                                _listener?.onCallAudioEndpointsChanged(callId)
+                                notifyListeners { onCallAudioEndpointsChanged(callId) }
                             }
                         }
-                        _listener?.onCallStateChanged(callId, call)
+                        notifyListeners { onCallStateChanged(callId, call) }
                     }
 
                     // Detect removed calls
                     for ((callId, _) in previousCalls) {
                         if (!currentCalls.containsKey(callId)) {
-                            _listener?.onCallStateChanged(callId, Call.None)
+                            notifyListeners { onCallStateChanged(callId, Call.None) }
                         }
                     }
 
@@ -509,11 +505,11 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                 val call = _calls.value[callId]
                 if (call != null) {
                     removeCall(callId)
-                    _listener?.onIsCallDisconnected(
+                    notifyListeners { onIsCallDisconnected(
                             callId,
                             DisconnectCause(DisconnectCause.BUSY),
                             EventSource.APP
-                    )
+                    ) }
                 }
             }
         }
@@ -528,7 +524,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
 
         val source = if (flags.isSelfAnswered.get()) EventSource.APP else EventSource.SYS
         if (_calls.value.containsKey(callId)) {
-            _listener?.onIsCallAnswered(callId, source)
+            notifyListeners { onIsCallAnswered(callId, source) }
         }
         flags.isSelfAnswered.set(false)
         debugLog(TAG, "[repository] onIsCallAnswered[$callId]: Call state updated to active")
@@ -542,7 +538,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         val source = if (flags.isSelfDisconnected.get()) EventSource.APP else EventSource.SYS
 
         removeCall(callId)
-        _listener?.onIsCallDisconnected(callId, cause, source)
+        notifyListeners { onIsCallDisconnected(callId, cause, source) }
         flags.isSelfDisconnected.set(false)
         debugLog(TAG, "[repository] onIsCallDisconnected[$callId]: Call removed from map")
     }
@@ -558,7 +554,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         }
 
         if (_calls.value.containsKey(callId)) {
-            _listener?.onIsCallActive(callId)
+            notifyListeners { onIsCallActive(callId) }
         }
         debugLog(TAG, "[repository] onIsCallActive[$callId]: Call state updated")
     }
@@ -568,7 +564,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         updateCallById(callId) { copy(errorCode = null, isOnHold = true) }
 
         if (_calls.value.containsKey(callId)) {
-            _listener?.onIsCallInactive(callId)
+            notifyListeners { onIsCallInactive(callId) }
         }
         debugLog(TAG, "[repository] onIsCallInactive[$callId]: Call state updated to on hold")
     }

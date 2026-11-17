@@ -23,38 +23,36 @@ class LegacyCallRepository(context: Context) : CallRepository(context) {
 
     private var observeCallsJob: Job? = null
 
-    override fun getTag(): String = TAG
-
-    override fun setListener(listener: Listener?) {
-        this._listener = listener
-        observeCallsJob?.cancel()
+    init {
         observeCallsJob = scope.launch {
             var previousCalls: Map<String, Call.Registered> = emptyMap()
             try {
                 calls.collect { currentCalls ->
                     // Notify about changes per call
                     for ((callId, call) in currentCalls) {
-                        _listener?.onCallStateChanged(callId, call)
+                        notifyListeners { onCallStateChanged(callId, call) }
                     }
                     for ((callId, _) in previousCalls) {
                         if (!currentCalls.containsKey(callId)) {
-                            _listener?.onCallStateChanged(callId, Call.None)
+                            notifyListeners { onCallStateChanged(callId, Call.None) }
                         }
                     }
                     previousCalls = currentCalls
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "[repository] setListener: Error collecting call state", e)
+                Log.e(TAG, "[repository] observeCalls: Error collecting call state", e)
             }
         }
     }
+
+    override fun getTag(): String = TAG
 
     override fun release() {
         _calls.value = emptyMap()
 
         observeCallsJob?.cancel()
         observeCallsJob = null
-        _listener = null
+        clearListeners()
 
         scope.cancel()
     }
@@ -94,7 +92,7 @@ class LegacyCallRepository(context: Context) : CallRepository(context) {
         )
 
         addCall(callId, registeredCall)
-        _listener?.onCallRegistered(callId, isIncoming)
+        notifyListeners { onCallRegistered(callId, isIncoming) }
 
         // Process actions without telecom SDK
         scope.launch {
@@ -122,18 +120,16 @@ class LegacyCallRepository(context: Context) : CallRepository(context) {
                 updateCallById(callId) { copy(isActive = true, isOnHold = false) }
                 val call = _calls.value[callId]
                 if (call != null) {
-                    _listener?.onIsCallAnswered(callId, EventSource.APP)
+                    notifyListeners { onIsCallAnswered(callId, EventSource.APP) }
                 }
             }
             is CallAction.Disconnect -> {
                 val call = _calls.value[callId]
                 if (call != null) {
                     removeCall(callId)
-                    _listener?.onIsCallDisconnected(
-                            callId,
-                            action.cause,
-                            EventSource.APP
-                    )
+                    notifyListeners {
+                            onIsCallDisconnected(callId, action.cause, EventSource.APP)
+                    }
                 }
             }
             is CallAction.ToggleMute -> {

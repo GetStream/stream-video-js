@@ -23,23 +23,19 @@ import io.getstream.rn.callingx.notifications.CallNotificationManager
 import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.getstream.rn.callingx.notifications.NotificationsConfig
 import io.getstream.rn.callingx.repo.CallRepository
-import io.getstream.rn.callingx.repo.CallRepositoryFactory
-import io.getstream.rn.callingx.utils.AudioEndpointUtils
+import io.getstream.rn.callingx.utils.CallingxScope
 import io.getstream.rn.callingx.utils.LifecycleListener
 import io.getstream.rn.callingx.utils.SettingsStore
 import java.util.concurrent.ConcurrentHashMap
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
  * This service handles the app call logic (show notification, record mic, display audio, etc..). It
  * can get started by the user or by an upcoming push notification to start a call.
  *
- * It holds the call scope used to register a call with the Telecom SDK in our
- * TelecomCallRepository.
+ * It shows the calls (notification, ringtone, foreground service) and starts their registration,
+ * but it does not own them: each call runs in the process-wide repository's scope (see
+ * [CallRepositoryHolder]), so the call keeps going in Telecom whatever happens to this service.
  *
  * When registering a call with the Telecom SDK and displaying a CallStyle notification, the SDK
  * will grant you foreground service delegation so there is no need to make this a FGS.
@@ -52,6 +48,9 @@ class CallService : Service(), CallRepository.Listener {
 
     companion object {
         private const val TAG = "[Callingx] CallService"
+
+        /** How long the hang-up on destroy waits for Telecom to end the calls. */
+        private const val HANG_UP_ON_DESTROY_TIMEOUT_MS = 2_000L
 
         internal const val DEFAULT_DISPLAY_NAME = "Unknown Caller"
 
@@ -159,10 +158,11 @@ class CallService : Service(), CallRepository.Listener {
 
     private lateinit var headlessJSManager: HeadlessTaskManager
     private lateinit var notificationManager: CallNotificationManager
+    /**
+     * The process-wide repository. It owns the calls; this service only shows them (see
+     * [CallRepositoryHolder]).
+     */
     private lateinit var callRepository: CallRepository
-
-    private val scope: CoroutineScope = CoroutineScope(SupervisorJob())
-    private val actionProcessingLock = Object()
 
     /**
      * Calls this instance has launched a registration for that have not reached the repository yet.
@@ -251,12 +251,14 @@ class CallService : Service(), CallRepository.Listener {
         debugLog(TAG, "[service] onCreate: TelecomCallService created")
 
         notificationManager = CallNotificationManager(applicationContext)
-        callRepository = CallRepositoryFactory.create(applicationContext)
-        callRepository.setListener(this)
+        callRepository = CallRepositoryHolder.get(applicationContext)
         // Constructed after callRepository: onTaskFinished reads it, and a task can only finish
         // after onStartCommand has started one.
         headlessJSManager =
                 HeadlessTaskManager(applicationContext) { stopServiceIfIdle(lastStartId) }
+        // Last, once everything onCallStateChanged uses is set up: attaching replays the calls
+        // that already exist, so this instance shows calls an earlier instance was showing.
+        callRepository.attachPresenter(this)
 
         val filter =
                 IntentFilter().apply {
@@ -290,18 +292,19 @@ class CallService : Service(), CallRepository.Listener {
         notificationManager.cancelAllNotifications()
         notificationManager.stopRingtone()
 
-        // release() below disconnects every call without emitting Call.None — it cancels the
-        // observer — so nothing else would drop these process-global entries. A left-behind
-        // tracked id makes rejectCallWhenBusy skip later pushes, and a left-behind action would
-        // be replayed against a future call with the same id.
-        (callRepository.calls.value.keys + registeringCallIds).forEach { callId ->
-            CallRegistrationStore.discardCallState(callId)
-        }
-
-        callRepository.release()
+        callRepository.detachPresenter(this)
         headlessJSManager.release()
 
-        scope.cancel()
+        // The calls don't belong to this service, so destroying it doesn't end them. But this
+        // service stops itself only once it has no calls (stopServiceIfIdle), so calls left here
+        // mean Android destroyed it, e.g. when the app was swiped away (stopWithTask). Without a
+        // service there is no notification and nothing keeps the process alive, so hang them up on
+        // purpose, as before, and wait until Telecom has ended each one. CallingxScope outlives
+        // this service, and the calls report their end to JavaScript through CallEventsPublisher.
+        if (callRepository.hasAnyCalls()) {
+            val repository = callRepository
+            CallingxScope.launch { repository.hangUpAllCalls(HANG_UP_ON_DESTROY_TIMEOUT_MS) }
+        }
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -367,7 +370,7 @@ class CallService : Service(), CallRepository.Listener {
                         "[service] onCallStateChanged[$callId]: Call registered - Active: ${call.isActive}, OnHold: ${call.isOnHold}, Muted: ${call.isMuted}"
                 )
 
-                val shouldStopExecution = processPendingActions(call)
+                val shouldStopExecution = callRepository.processPendingActions(call)
                 if (shouldStopExecution) {
                     return
                 }
@@ -398,8 +401,7 @@ class CallService : Service(), CallRepository.Listener {
                 }
             }
             is Call.None, is Call.Unregistered -> {
-                CallRegistrationStore.removeTrackedCall(callId)
-                AudioEndpointStore.clear(callId)
+                // CallEventsPublisher drops the call's tracked id and audio endpoint state.
                 repromoteForegroundIfNeeded(callId)
                 if (!callRepository.hasRingingCall()) notificationManager.stopRingtone()
 
@@ -408,105 +410,31 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
-    override fun onIsCallAnswered(callId: String, source: CallRepository.EventSource) {
-        sendBroadcastEvent(CallingxModuleImpl.CALL_ANSWERED_ACTION) {
-            putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
-            putExtra(CallingxModuleImpl.EXTRA_SOURCE, source.name.lowercase())
-        }
-    }
-
-    override fun onIsCallDisconnected(
-            callId: String?,
-            cause: DisconnectCause,
-            source: CallRepository.EventSource
-    ) {
-        sendBroadcastEvent(CallingxModuleImpl.CALL_END_ACTION) {
-            if (callId != null) {
-                putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
-            }
-            putExtra(CallingxModuleImpl.EXTRA_DISCONNECT_CAUSE, getDisconnectCauseString(cause))
-            putExtra(CallingxModuleImpl.EXTRA_SOURCE, source.name.lowercase())
-        }
-    }
-
-    override fun onIsCallInactive(callId: String) {
-        sendBroadcastEvent(CallingxModuleImpl.CALL_INACTIVE_ACTION) {
-            putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
-        }
-    }
-
-    override fun onIsCallActive(callId: String) {
-        sendBroadcastEvent(CallingxModuleImpl.CALL_ACTIVE_ACTION) {
-            putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
-        }
-    }
+    // The JavaScript broadcasts for call changes (answered, ended, registered, muted, ...) are sent
+    // by CallEventsPublisher, which keeps working while no service is running. This service only
+    // shows the calls.
 
     override fun onCallRegistered(callId: String, incoming: Boolean) {
         // The repository now reports this call, so hasAnyCalls() takes over the veto. This has to
         // happen here rather than when registerCall returns: that only happens once the call has
         // already been removed and Call.None has run the stop check.
         registeringCallIds.remove(callId)
-
-        if (incoming) {
-            sendBroadcastEvent(CallingxModuleImpl.CALL_REGISTERED_INCOMING_ACTION) {
-                putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
-            }
-        } else {
-            sendBroadcastEvent(CallingxModuleImpl.CALL_REGISTERED_ACTION) {
-                putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
-            }
-        }
     }
 
-    override fun onMuteCallChanged(callId: String, isMuted: Boolean) {
-        sendBroadcastEvent(CallingxModuleImpl.CALL_MUTED_ACTION) {
-            putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
-            putExtra(CallingxModuleImpl.EXTRA_MUTED, isMuted)
-        }
+    override fun onCallRegistrationFailed(callId: String) {
+        registeringCallIds.remove(callId)
+        repromoteForegroundIfNeeded(callId)
+        stopServiceIfIdle(lastStartId)
     }
 
-    override fun onCallAudioEndpointsChanged(callId: String) {
-        val call = callRepository.getCall(callId) ?: return
-        val snapshotJson =
-                AudioEndpointUtils.snapshotJson(
-                        call.currentCallEndpoint,
-                        call.availableCallEndpoints,
-                )
-        AudioEndpointStore.setSnapshot(callId, snapshotJson)
-
-        sendBroadcastEvent(CallingxModuleImpl.CALL_AUDIO_ENDPOINTS_CHANGED_ACTION) {
-            putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
-        }
-    }
-
-    fun processAction(intent: Intent) {
+    /** Handles [ACTION_PROCESS_ACTION]. Callers in this package use the repository directly. */
+    private fun processAction(intent: Intent) {
         val callId = intent.getStringExtra(EXTRA_CALL_ID) ?: return
         val action =
                 IntentCompat.getParcelableExtra(intent, EXTRA_ACTION, CallAction::class.java)
                         ?: return
 
-        processAction(callId, action)
-    }
-
-    fun processAction(callId: String, action: CallAction) {
-        debugLog(
-                TAG,
-                "[service] processAction[$callId]: Processing action: ${action::class.simpleName}"
-        )
-        synchronized(actionProcessingLock) {
-            val call = callRepository.getCall(callId)
-            if (call != null && !call.isPending) {
-                call.processAction(action)
-            } else {
-                // this solves race condition, when action is requested before the call is
-                // registered in Telecom
-              debugLog(
-                             TAG,
-                             "[service] processAction: Add pending action for ${call?.id} to queue"
-                     )
-                CallRegistrationStore.addPendingAction(callId, action)
-            }
-        }
+        callRepository.processAction(callId, action)
     }
 
     fun startBackgroundTask(intent: Intent) {
@@ -549,72 +477,13 @@ class CallService : Service(), CallRepository.Listener {
             return
         }
 
-        scope.launch {
-            try {
-                callRepository.registerCall(
-                        callInfo.callId,
-                        callInfo.name,
-                        callInfo.uri,
-                        incoming,
-                        callInfo.isVideo,
-                        callInfo.displayOptions,
-                )
-            } catch (e: CancellationException) {
-                // Swallow cancellation: nothing runs after this catch, and nobody awaits this launch.
-                debugLog(
-                        TAG,
-                        "[service] registerCall: Registration canceled for ${callInfo.callId} during teardown"
-                )
-                // The call never made it into the repository, so nothing else will drop its tracked
-                // id — and a stale one wrongly marks the user as busy for later pushes.
-                CallRegistrationStore.removeTrackedCall(callInfo.callId)
-                registeringCallIds.remove(callInfo.callId)
-            } catch (e: Exception) {
-                Log.e(TAG, "[service] registerCall: Error registering call: ${e.message}")
-
-                sendBroadcastEvent(CallingxModuleImpl.CALL_REGISTRATION_FAILED_ACTION) {
-                    putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callInfo.callId)
-                }
-
-                // CallingxModuleImpl also drops the tracked id when it receives the broadcast
-                // above, but only if a JS module instance is alive — which it need not be in a
-                // headless push flow. Removing it here too is idempotent.
-                CallRegistrationStore.removeTrackedCall(callInfo.callId)
-                registeringCallIds.remove(callInfo.callId)
-
-                repromoteForegroundIfNeeded(callInfo.callId)
-
-                stopServiceIfIdle(lastStartId)
-            } finally {
-                // Backstop for a registration that neither threw nor reached onCallRegistered.
-                // A no-op otherwise: the handover happens there, long before registerCall returns.
-                registeringCallIds.remove(callInfo.callId)
-            }
-        }
-    }
-
-    private fun processPendingActions(call: Call.Registered): Boolean {
-        synchronized(actionProcessingLock) {
-            val pendingActions = CallRegistrationStore.takePendingActions(call.id)
-
-            val disconnectAction = pendingActions.find { it is CallAction.Disconnect }
-            if (disconnectAction != null) {
-                // if queue contains Disconnect, execute it and ignore rest of the queue
-                debugLog(TAG, "[service] processPendingActions: Executing pending disconnect for ${call.id}")
-                call.processAction(disconnectAction)
-                return true
-            }
-
-            // process pending actions in the order they were added
-            for (action in pendingActions) {
-                call.processAction(action)
-                debugLog(
-                             TAG,
-                             "[service] processPendingActions: Executing pending action: $action for ${call.id}"
-                     )
-            }
-
-            return false
+        // The call runs in the repository's scope, not this service's, so it keeps going if this
+        // service is destroyed. A failure reaches onCallRegistrationFailed (here, if this service
+        // is still attached) and CallEventsPublisher (always).
+        callRepository.startCall(callInfo, incoming).invokeOnCompletion {
+            // Backstop for a registration that neither failed nor reached onCallRegistered.
+            // A no-op otherwise: the handover happens there, long before the call ends.
+            registeringCallIds.remove(callInfo.callId)
         }
     }
 
