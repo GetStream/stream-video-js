@@ -3,6 +3,7 @@ import fs from 'fs';
 
 type FileName =
   | 'AppDelegate.swift'
+  | 'AppDelegateSceneLifecycle.swift'
   | 'MainActivity.kt'
   | 'MainApplication.kt'
   | 'AndroidManifest.xml';
