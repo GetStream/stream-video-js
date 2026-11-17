@@ -79,10 +79,16 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Connect Bot
-        uses: webfactory/ssh-agent@v0.10.0
+      # Short-lived, read-only token for fastlane match to clone ios-certificates.
+      - name: Create certificates token
+        id: certificates-token
+        uses: actions/create-github-app-token@v3
         with:
-          ssh-private-key: ${{ secrets.BOT_SSH_PRIVATE_KEY }}
+          client-id: ${{ vars.JS_CI_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.JS_CI_BOT_PRIVATE_KEY }}
+          owner: GetStream
+          repositories: ios-certificates
+          permission-contents: read
 
       - name: Select XCode version
         run: sudo xcode-select --switch /Applications/Xcode_27.1.app
@@ -97,6 +103,8 @@ jobs:
       - name: Build
         working-directory: sample-apps/react-native/dogfood
         run: bundle exec fastlane build_ios
+        env:
+          MATCH_GIT_TOKEN: ${{ steps.certificates-token.outputs.token }}
 
       - name: Upload .ipa
         uses: actions/upload-artifact@v7

@@ -46,10 +46,10 @@ before_all do
   end
 end
 
-desc 'Installs all Certs and Profiles necessary for appstore'
+desc 'Installs all Certs and Profiles (development, adhoc and appstore). On CI, clones them with MATCH_GIT_TOKEN'
 lane :match_appstore do
-  match(
-    type: 'appstore',
+  custom_match(
+    api_key: app_store_connect_api_key,
     app_identifier: [bundle_id, bundle_id_broadcast],
     readonly: is_ci
   )
