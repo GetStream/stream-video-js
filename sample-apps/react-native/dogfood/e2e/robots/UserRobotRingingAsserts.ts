@@ -11,6 +11,7 @@ import {
   waitToDisappear,
   waitUntil,
 } from '../support/Element';
+import { isCallServiceRunning } from '../support/CallService';
 import {
   closeNotificationShade,
   isIncomingCallNotificationPosted,
@@ -21,8 +22,31 @@ declare module './UserRobot' {
     assertIncomingCall(isDisplayed: boolean, timeout?: number): this;
     assertIncomingCallNotification(isShown: boolean, timeout?: number): this;
     assertIncomingCallNotificationStaysShown(duration: number): this;
+    assertCallServiceRunning(isRunning: boolean, timeout?: number): this;
   }
 }
+
+/**
+ * Waits until callingx's `CallService` is running, or has stopped. It should stop on its own once
+ * the call has ended and JavaScript no longer needs it.
+ */
+UserRobot.prototype.assertCallServiceRunning = function (
+  shouldBeRunning,
+  timeout = defaultTimeout,
+) {
+  return this.perform(async () => {
+    let running = !shouldBeRunning;
+    await waitUntil(
+      async () => {
+        running = isCallServiceRunning();
+        return running === shouldBeRunning;
+      },
+      timeout,
+      seconds(1),
+    );
+    jestExpect(running).toBe(shouldBeRunning);
+  });
+};
 
 UserRobot.prototype.assertIncomingCall = function (
   shouldBeDisplayed,

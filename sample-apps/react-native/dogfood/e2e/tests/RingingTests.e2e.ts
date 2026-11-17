@@ -96,6 +96,9 @@ describe('RingingTests', () => {
       await step('THEN the incoming call notification goes away', () =>
         userRobot.assertIncomingCallNotification(false, seconds(10)),
       );
+      await step('AND the call service stops', () =>
+        userRobot.assertCallServiceRunning(false, seconds(15)),
+      );
       await step('WHEN participant rings the user again', () =>
         participantRobot.ringUserAndDisappear(userId, { byPush: true }),
       );
