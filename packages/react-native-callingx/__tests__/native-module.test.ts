@@ -15,12 +15,14 @@ const nativeModule = {
   requestAudioEndpointChange: jest.fn(() => true),
   stopService: jest.fn(() => true),
   startBackgroundTask: jest.fn(() => true),
+  log: jest.fn(),
   getAvailableAudioEndpoints: jest.fn(() => JSON.stringify(snapshot)),
   onNewEvent: jest.fn(() => subscription),
   onNewVoipEvent: jest.fn(() => subscription),
 };
 const getEnforcing = jest.fn(() => nativeModule);
 const platform = { OS: 'android' };
+const appState = { currentState: 'active' };
 const load = () =>
   (require('../src') as typeof import('../src')).CallingxModule;
 
@@ -28,10 +30,12 @@ beforeEach(() => {
   jest.resetModules();
   jest.clearAllMocks();
   platform.OS = 'android';
+  appState.currentState = 'active';
   getEnforcing.mockReturnValue(nativeModule);
   jest.doMock('react-native', () => ({
     TurboModuleRegistry: { getEnforcing },
     Platform: platform,
+    AppState: appState,
     AppRegistry: { registerHeadlessTask: jest.fn() },
   }));
 });
@@ -111,6 +115,66 @@ test('acquireBackgroundTask rethrows native failures without retaining the owner
   expect(module.acquireBackgroundTask('owner')).toBeUndefined();
   expect(nativeModule.startBackgroundTask).toHaveBeenCalledTimes(2);
   expect(module.releaseBackgroundTask('owner')).toBeUndefined();
+});
+
+describe('releaseBackgroundTask', () => {
+  /** Starts the keep-alive task the way the native headless task does, and tracks when it ends. */
+  const startKeepAliveTask = (module: ReturnType<typeof load>) => {
+    let finished = false;
+    (module as any).keepAliveHoldTask().then(() => {
+      finished = true;
+    });
+    return { isFinished: () => finished };
+  };
+
+  /** Lets the resolved promise run its callback. */
+  const flush = () => Promise.resolve();
+
+  test('in the background, ends the keep-alive task right away: JS timers do not run there', async () => {
+    jest.useFakeTimers();
+    appState.currentState = 'background';
+    const module = load();
+    module.acquireBackgroundTask('keepalive:call-1');
+    const task = startKeepAliveTask(module);
+
+    module.releaseBackgroundTask('keepalive:call-1');
+    await flush();
+
+    // no timer had to run
+    expect(task.isFinished()).toBe(true);
+  });
+
+  test('in the foreground, ends the keep-alive task after the hand-off grace period', async () => {
+    jest.useFakeTimers();
+    const module = load();
+    module.acquireBackgroundTask('keepalive:call-1');
+    const task = startKeepAliveTask(module);
+
+    module.releaseBackgroundTask('keepalive:call-1');
+    await flush();
+    expect(task.isFinished()).toBe(false);
+
+    jest.advanceTimersByTime(2000);
+    await flush();
+    expect(task.isFinished()).toBe(true);
+  });
+
+  test('keeps the task while another owner still holds it, in the background too', async () => {
+    jest.useFakeTimers();
+    appState.currentState = 'background';
+    const module = load();
+    module.acquireBackgroundTask('push:call-1');
+    module.acquireBackgroundTask('keepalive:call-1');
+    const task = startKeepAliveTask(module);
+
+    module.releaseBackgroundTask('push:call-1');
+    await flush();
+    expect(task.isFinished()).toBe(false);
+
+    module.releaseBackgroundTask('keepalive:call-1');
+    await flush();
+    expect(task.isFinished()).toBe(true);
+  });
 });
 
 test('addEventListener subscribes once and removes after the last listener', () => {
