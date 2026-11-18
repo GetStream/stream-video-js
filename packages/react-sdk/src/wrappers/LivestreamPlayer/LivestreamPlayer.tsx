@@ -1,4 +1,4 @@
-import { PropsWithChildren, useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { Call, CallingState } from '@stream-io/video-client';
 import {
   useCall,
@@ -15,6 +15,7 @@ import {
 } from '../../core';
 import { Button } from '../../components';
 import { useI18n } from '../../i18n';
+import { useIsLivestreamPaused } from '../../embedded/hooks/useIsLivestreamPaused';
 
 export type LivestreamPlayerProps = {
   /**
@@ -60,7 +61,10 @@ export const LivestreamPlayer = (
   const [call, setCall] = useState<Call>();
   const [error, setError] = useState<unknown>();
   const [attempt, setAttempt] = useState(0);
-  const reportError = (e: unknown) => {
+  const currentCall = useRef<Call | undefined>(undefined);
+  const reportError = (failedCall: Call, e: unknown) => {
+    // a request of a call this player no longer shows must not replace it
+    if (failedCall !== currentCall.current) return;
     setError(e);
     props.onError?.(e);
   };
@@ -69,12 +73,14 @@ export const LivestreamPlayer = (
   useEffect(() => {
     if (!client) return;
     const myCall = client.call(callType, callId);
+    currentCall.current = myCall;
     setCall(myCall);
     myCall.get().catch((e) => {
       console.error('Failed to fetch call', e);
-      onError(e);
+      onError(myCall, e);
     });
     return () => {
+      currentCall.current = undefined;
       myCall.leave().catch((e) => {
         console.error('Failed to leave call', e);
       });
@@ -103,7 +109,7 @@ const LivestreamCall = (props: {
   joinBehavior?: 'asap' | 'live';
   layoutProps?: LivestreamLayoutProps;
   backstageProps?: BackstageLayoutProps;
-  onError?: (error: any) => void;
+  onError: (call: Call, error: unknown) => void;
 }) => {
   const call = useLivestreamCall(props);
   const { useIsCallLive, useCallEndedAt } = useCallStateHooks();
@@ -140,7 +146,7 @@ const LivestreamError = (props: { onRetry: () => void }) => {
 
 const useLivestreamCall = (props: {
   joinBehavior?: 'asap' | 'live';
-  onError?: (error: any) => void;
+  onError: (call: Call, error: unknown) => void;
 }) => {
   const call = useCall();
   const {
@@ -157,33 +163,36 @@ const useLivestreamCall = (props: {
     useOwnCapabilities()?.includes('join-backstage') ?? false;
   const canJoinAsap = canJoinLive || canJoinEarly || canJoinBackstage;
   const joinBehavior = props.joinBehavior ?? 'asap';
-  const [liveEnded, setLiveEnded] = useState(false);
-  const canJoin = liveEnded
+  const isPaused = useIsLivestreamPaused();
+  const [rewatchCount, setRewatchCount] = useState(0);
+  const canJoin = isPaused
     ? canJoinLive
     : (joinBehavior === 'asap' && canJoinAsap) ||
       (joinBehavior === 'live' && canJoinLive);
-  const onError = useEffectEvent(props.onError ?? (() => {}));
+  const onError = useEffectEvent(props.onError);
 
   useEffect(() => {
     if (!call || callingState !== CallingState.LEFT) return;
-    if (endedAt || canJoinLive) return;
+    if (!isPaused || endedAt) return;
     // Stop Live took this viewer out of the call. Watch the call again and
-    // rejoin only at the next Go Live.
-    setLiveEnded(true);
-    call.get().catch((e) => {
-      console.error('Failed to fetch call', e);
-      onError(e);
-    });
-  }, [call, callingState, endedAt, canJoinLive]);
+    // rejoin only once it is live.
+    call
+      .get()
+      .then(() => setRewatchCount((c) => c + 1))
+      .catch((e) => {
+        console.error('Failed to fetch call', e);
+        onError(call, e);
+      });
+  }, [call, callingState, isPaused, endedAt]);
 
   useEffect(() => {
     if (call && call.state.callingState === CallingState.IDLE && canJoin) {
       call.join().catch((e) => {
         console.error('Failed to join call', e);
-        onError(e);
+        onError(call, e);
       });
     }
-  }, [call, canJoin]);
+  }, [call, canJoin, rewatchCount]);
 
   return call;
 };

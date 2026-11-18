@@ -24,12 +24,19 @@ export const useIsLivestreamPaused = () => {
       }
     });
 
+    const unsubError = call.on('error', (e) => {
+      if (e.error?.code === SfuModels.ErrorCode.LIVE_ENDED) {
+        setIsPaused(true);
+      }
+    });
+
     const unsubEnded = call.on('call.ended', () => {
       setIsPaused(false);
     });
 
     return () => {
       unsubSfu();
+      unsubError();
       unsubEnded();
     };
   }, [call]);
