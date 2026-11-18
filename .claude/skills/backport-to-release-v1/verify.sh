@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Verify a backport branch against untouched release-v1, from inside a backport worktree.
 #
-#   bash "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")/.claude/skills/backporting-to-release-v1/verify.sh"
+#   bash "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")/.claude/skills/backport-to-release-v1/verify.sh"
 #
 # Run it from the backport worktree root. The script lives in the main checkout: a worktree
 # branched off release-v1 does not contain .claude/skills/.

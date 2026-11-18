@@ -1,5 +1,5 @@
 ---
-name: backporting-to-release-v1
+name: backport-to-release-v1
 description: Use when a PR merged into `main` carries the `backport-v1` label and has to land on the `release-v1` branch, or when running the weekly v1 backport round in stream-video-js.
 ---
 
@@ -142,7 +142,7 @@ any scratch directory; the note file is only read while the script runs):
 cat > "$SCRATCH/note-2528.txt" <<'EOF'
 Backport note: adapted to release-v1. <what differs from main, and why>
 EOF
-bash "$ROOT/.claude/skills/backporting-to-release-v1/add-note.sh" <commit> "$SCRATCH/note-2528.txt"
+bash "$ROOT/.claude/skills/backport-to-release-v1/add-note.sh" <commit> "$SCRATCH/note-2528.txt"
 ```
 
 The script refuses a pushed commit, a dirty tree, a cherry-pick or rebase in progress, a commit
@@ -227,7 +227,7 @@ Run `verify.sh` from the backport worktree root. It lives in the main checkout, 
 worktree off `release-v1` has no `.claude/skills/`:
 
 ```bash
-bash "$ROOT/.claude/skills/backporting-to-release-v1/verify.sh"
+bash "$ROOT/.claude/skills/backport-to-release-v1/verify.sh"
 ```
 
 It keeps a baseline worktree of `origin/release-v1`. For every touched project it typechecks

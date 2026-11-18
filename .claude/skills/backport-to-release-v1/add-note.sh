@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Add a "Backport note" to a picked commit, just above its "(cherry picked from commit ...)" trailer.
 #
-#   bash "$ROOT/.claude/skills/backporting-to-release-v1/add-note.sh" <commit> <note-file>
+#   bash "$ROOT/.claude/skills/backport-to-release-v1/add-note.sh" <commit> <note-file>
 #
 # Run it from the backport worktree, after the last pick (not while a cherry-pick is in
 # progress) and before pushing. <commit> can be any unpushed commit on the branch, not just HEAD:
