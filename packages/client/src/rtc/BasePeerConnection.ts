@@ -52,6 +52,7 @@ export abstract class BasePeerConnection {
   private localCandidatesGathered = 0;
   private iceRestartTimeout?: NodeJS.Timeout;
   private preConnectStuckTimeout?: NodeJS.Timeout;
+  private noLocalCandidatesTimeout?: NodeJS.Timeout;
   protected isIceRestarting = false;
   protected isDisposed = false;
 
@@ -163,6 +164,8 @@ export abstract class BasePeerConnection {
     this.iceRestartTimeout = undefined;
     clearTimeout(this.preConnectStuckTimeout);
     this.preConnectStuckTimeout = undefined;
+    clearTimeout(this.noLocalCandidatesTimeout);
+    this.noLocalCandidatesTimeout = undefined;
     this.onReconnectionNeeded = undefined;
     this.onIceConnected = undefined;
     this.onNoLocalCandidates = undefined;
@@ -301,11 +304,13 @@ export abstract class BasePeerConnection {
 
   /**
    * Returns `true` when the latest ICE gathering round completed without
-   * producing a single local candidate.
+   * producing a single local candidate, and none arrived within the grace
+   * period after it.
    */
   hasNoLocalCandidates = () =>
     this.pc.iceGatheringState === 'complete' &&
-    this.localCandidatesGathered === 0;
+    this.localCandidatesGathered === 0 &&
+    !this.noLocalCandidatesTimeout;
 
   /**
    * Checks if the `RTCPeerConnection` is healthy.
@@ -347,7 +352,11 @@ export abstract class BasePeerConnection {
       this.logger.debug('null ice candidate');
       return;
     }
-    if (candidate.candidate) this.localCandidatesGathered++;
+    if (candidate.candidate) {
+      this.localCandidatesGathered++;
+      clearTimeout(this.noLocalCandidatesTimeout);
+      this.noLocalCandidatesTimeout = undefined;
+    }
 
     const iceCandidate = toJSON(candidate);
     this.sfuClient
@@ -549,13 +558,19 @@ export abstract class BasePeerConnection {
     this.logger.debug(`ICE Gathering State`, state);
     if (state === 'gathering') {
       this.localCandidatesGathered = 0;
+      clearTimeout(this.noLocalCandidatesTimeout);
+      this.noLocalCandidatesTimeout = undefined;
     } else if (
       state === 'complete' &&
       this.localCandidatesGathered === 0 &&
       !this.iceHasEverConnected
     ) {
-      this.logger.info('ICE gathering completed without local candidates');
-      this.onNoLocalCandidates?.(this.peerType);
+      clearTimeout(this.noLocalCandidatesTimeout);
+      this.noLocalCandidatesTimeout = setTimeout(() => {
+        this.noLocalCandidatesTimeout = undefined;
+        this.logger.info('ICE gathering completed without local candidates');
+        this.onNoLocalCandidates?.(this.peerType);
+      }, 2000);
     }
   };
 
