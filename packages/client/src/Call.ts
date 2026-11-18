@@ -2,7 +2,7 @@ import { StreamSfuClient } from './StreamSfuClient';
 import { CallApi } from './gen/coordinator/video/CallApi';
 import type { VideoApi } from './gen/coordinator/video/VideoApi';
 import type { StreamResponse } from './coordinator/connection/api-client';
-import { SfuJoinError } from './errors';
+import { CallDataRateLimitError, SfuJoinError } from './errors';
 import { FastReconnectRejectedError } from './errors/FastReconnectRejectedError';
 import {
   BasePeerConnectionOpts,
@@ -300,6 +300,10 @@ export class Call {
   private readonly offlineState: CallOfflineState;
 
   // (10 attempts per rolling 120 s window).
+  // Sequence numbers of sent data messages, per topic, for one SFU session.
+  private readonly dataSeq = new Map<string, number>();
+  private dataSeqSessionId?: string;
+
   private readonly rejoinRateLimiter = new SlidingWindowRateLimiter(10, 120000);
   // Backstop for slow REJOIN loops that stay under the short window
   // (20 attempts per rolling 30 min window). Dropped once the integrator
@@ -3465,6 +3469,56 @@ export class Call {
    */
   sendCustomEvent = async (payload: { [key: string]: any }) => {
     return this.api.sendCallEvent({ custom: payload });
+  };
+
+  /**
+   * Sends a data message on a topic to the other participants who are
+   * currently joined to the call. Receive data with `call.on('call.data', ...)`.
+   *
+   * Delivery is best effort: a message is not stored, not retried and not
+   * replayed after a reconnect, and the sender does not receive its own message.
+   * Every message carries a sequence number, counted per topic for the time
+   * this client stays joined with the same session. A receiver that sees a gap
+   * in `seq` from one `user_session_id` on one topic has missed a message.
+   * A refused message uses up its sequence number, so receivers see the gap.
+   *
+   * Requires the `send-data` capability, and the caller has to be joined.
+   *
+   * @param topic the topic, chosen by the application: letters, digits, dashes
+   * and underscores, up to 64 characters.
+   * @param data the payload. The encoded request can be at most 8 KB.
+   * @returns the sequence number the message was sent with.
+   * @throws CallDataRateLimitError when a rate limit refused the message.
+   */
+  sendData = async (
+    topic: string,
+    data: { [key: string]: any },
+  ): Promise<{ seq: number }> => {
+    const sessionId = this.sfuClient?.sessionId;
+    if (!sessionId) {
+      throw new Error('Data can be sent only while joined to the call');
+    }
+    if (this.dataSeqSessionId !== sessionId) {
+      this.dataSeqSessionId = sessionId;
+      this.dataSeq.clear();
+    }
+    const seq = (this.dataSeq.get(topic) ?? 0) + 1;
+    this.dataSeq.set(topic, seq);
+
+    try {
+      await this.api.sendCallData({
+        topic,
+        seq,
+        user_session_id: sessionId,
+        data,
+      });
+    } catch (err) {
+      if (err instanceof ErrorFromResponse && err.status === 429) {
+        throw new CallDataRateLimitError(topic, seq, err);
+      }
+      throw err;
+    }
+    return { seq };
   };
 
   /**
