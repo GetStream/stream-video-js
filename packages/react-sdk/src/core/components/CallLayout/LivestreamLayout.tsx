@@ -13,7 +13,11 @@ import {
   humanize,
 } from '@stream-io/video-client';
 import { useI18n } from '../../../i18n';
-import { ParticipantView, useParticipantViewContext } from '../ParticipantView';
+import {
+  DefaultAudioBlockedNotification,
+  ParticipantView,
+  useParticipantViewContext,
+} from '../ParticipantView';
 import { ParticipantsAudio } from '../Audio';
 import { Icon, IconButton } from '../../../components';
 import {
@@ -93,8 +97,13 @@ export type LivestreamLayoutProps = {
 };
 
 export const LivestreamLayout = (props: LivestreamLayoutProps) => {
-  const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
+  const {
+    useParticipants,
+    useHasOngoingScreenShare,
+    useAutoplayBlockedSessionIds,
+  } = useCallStateHooks();
   const call = useCall();
+  const isAudioBlocked = useAutoplayBlockedSessionIds().length > 0;
   const participants = useParticipants();
   const [currentSpeaker] = participants;
   const remoteParticipants = useRawRemoteParticipants();
@@ -114,6 +123,7 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
       showMuteButton={props.showMuteButton}
       showSpeakerName={props.showSpeakerName}
       enableFullScreen={props.enableFullScreen}
+      showAudioBlockedNotification={!muted && isAudioBlocked}
     />
   );
 
@@ -279,6 +289,7 @@ export const BackstageLayout = (props: BackstageLayoutProps) => {
 BackstageLayout.displayName = 'BackstageLayout';
 
 const ParticipantOverlay = (props: {
+  showAudioBlockedNotification?: boolean;
   enableFullScreen?: boolean;
   showParticipantCount?: boolean;
   humanizeParticipantCount?: boolean;
@@ -313,6 +324,9 @@ const ParticipantOverlay = (props: {
   const { t } = useI18n();
   return (
     <div className="str-video__livestream-layout__overlay">
+      {props.showAudioBlockedNotification && (
+        <DefaultAudioBlockedNotification />
+      )}
       {overlayBarVisible && (
         <div className="str-video__livestream-layout__overlay__bar">
           <div className="str-video__livestream-layout__overlay__bar-left">
