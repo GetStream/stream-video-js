@@ -1,11 +1,16 @@
 # this compose file exists to generate screenshots
-# for the CI to compare against, replace key and token with your own before running
-# docker compose up, each change to the sources (not including tests) requires image rebuild
+# for the CI to compare against
+# LOCAL_UID=$(id -u) LOCAL_GID=$(id -g) docker compose up --build
+# Each change to the sources (not including tests) requires image rebuild.
 # https://github.com/microsoft/playwright/issues/8161
 
 services:
   generate-screenshots:
-    build: ./
+    build:
+      context: ./
+      args:
+        LOCAL_UID: ${LOCAL_UID:-1000}
+        LOCAL_GID: ${LOCAL_GID:-1000}
     command: >
       yarn workspace @stream-io/egress-composite run test:e2e
       -u
@@ -13,6 +18,4 @@ services:
     volumes:
       - ./sample-apps/react/egress-composite/tests/:/e2e/sample-apps/react/egress-composite/tests/
     environment:
-      VITE_STREAM_API_KEY: hd8szvscpxvd
-      VITE_STREAM_USER_TOKEN: <jane-token>
       CI: true

@@ -8,13 +8,16 @@ import { ComponentTestIds } from '../../../constants/TestIds';
  * A badge that displays a number.
  *
  * @prop {number} count - The number to display in the badge.
+ * @prop {string} countTestID - The testID of the count text, for the e2e suite.
  *
  * @returns {ReactElement} A View with a Text that displays the count in the badge.
  */
 export const BadgeCountIndicator = ({
   count,
+  countTestID,
 }: {
   count: number | undefined;
+  countTestID?: string;
 }) => {
   const {} = useTheme();
   const styles = useStyles();
@@ -29,7 +32,9 @@ export const BadgeCountIndicator = ({
       testID={ComponentTestIds.BADGE_COUNT_INDICATOR}
       style={[styles.badge]}
     >
-      <Text style={[styles.badgeText]}>{count}</Text>
+      <Text testID={countTestID} style={[styles.badgeText]}>
+        {count}
+      </Text>
     </View>
   );
 };

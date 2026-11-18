@@ -97,16 +97,6 @@
 
 #pragma mark - Audio
 
-- (NSNumber *)wireAudioEngineSubscription {
-  [_moduleImpl wireAudioEngineSubscription];
-  return @YES;
-}
-
-- (NSNumber *)unwireAudioEngineSubscription {
-  [_moduleImpl unwireAudioEngineSubscription];
-  return @YES;
-}
-
 - (NSNumber *)setDefaultAudioDeviceEndpointType:(NSString *)endpointType {
   [_moduleImpl setDefaultAudioDeviceEndpointType:endpointType];
   return @YES;

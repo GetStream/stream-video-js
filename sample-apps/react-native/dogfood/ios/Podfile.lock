@@ -1,7 +1,7 @@
 PODS:
   - boost (1.84.0):
     - ReactNativeDependencies
-  - Callingx (1.0.0-beta.2):
+  - Callingx (1.0.0-beta.4):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2477,7 +2477,7 @@ PODS:
     - Yoga
   - SocketRocket (0.7.1):
     - ReactNativeDependencies
-  - stream-chat-react-native (9.10.1):
+  - stream-chat-react-native (10.1.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2500,7 +2500,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stream-io-noise-cancellation-react-native (1.0.0-beta.2):
+  - stream-io-noise-cancellation-react-native (1.0.0-beta.3):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2525,7 +2525,7 @@ PODS:
     - stream-react-native-webrtc
     - StreamVideoNoiseCancellation
     - Yoga
-  - stream-io-video-filters-react-native (1.0.0-beta.3):
+  - stream-io-video-filters-react-native (1.0.0-beta.4):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2549,10 +2549,10 @@ PODS:
     - ReactNativeDependencies
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (145.4.1):
+  - stream-react-native-webrtc (145.4.2):
     - React-Core
-    - StreamWebRTC (= 145.17.0)
-  - stream-video-react-native (2.0.0-beta.4):
+    - StreamWebRTC (= 145.25.0)
+  - stream-video-react-native (2.0.0-beta.6):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2577,7 +2577,7 @@ PODS:
     - stream-react-native-webrtc
     - Yoga
   - StreamVideoNoiseCancellation (1.0.3)
-  - StreamWebRTC (145.17.0)
+  - StreamWebRTC (145.25.0)
   - Teleport (1.2.2):
     - hermes-engine
     - RCTRequired
@@ -2993,7 +2993,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: 2a9d6e1d9873337543f08d9dbc007b288f4e113b
-  Callingx: 1d215041d938f8d7a61f85f87e18cad99f260b40
+  Callingx: d947f9e37af7f58e9e291731843030896470c298
   DoubleConversion: e85e4faac763226bfd1cc4c6a98d8355149b27a5
   fast_float: 908e5ee35999f3d91af4b962ac951acac591866c
   FBLazyVector: 953381a667ad5f4119b929026e53c4f3aa0da7e7
@@ -3100,13 +3100,13 @@ SPEC CHECKSUMS:
   RNSVG: 5ba6ae7e4887d875f114720a1cae0a2fdcffc30d
   RNWorklets: ec2adca24e3ce8d80b14b976cfe7b8d22b9d7682
   SocketRocket: d57b1af80c029e12a75cd9b218287c67381e4593
-  stream-chat-react-native: 0e7af51c6d14dc8a88d4cb28857b53ab62d0a092
-  stream-io-noise-cancellation-react-native: 74c55bb936edc77c2a31d0e7d0e65e58a63e5d5b
-  stream-io-video-filters-react-native: 7cb63ca2ab10968ee43e94a86a3820773b9872ba
-  stream-react-native-webrtc: 3a18e8ba366d5582e41519bed47cbf77155616e2
-  stream-video-react-native: b3ba96e83ac93c157ab341dde75248a6499150cd
+  stream-chat-react-native: 75225eb1bf1a4823d7a8f282b0b822edebe47e9d
+  stream-io-noise-cancellation-react-native: aa283f29f6bc6511d1433cb3227e3c14d922a2dd
+  stream-io-video-filters-react-native: 669ef657118be6817f346b467a20d31182fca163
+  stream-react-native-webrtc: 45f40f698c37e0893f5f49133add86e1c873176a
+  stream-video-react-native: 1b8270fc6cb5b7f4a782e665e98e7d59ab1a1185
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
-  StreamWebRTC: 8543c52d49cadcbe051582d0b13de01c8085735f
+  StreamWebRTC: c2bdd74ca48acfaad85403371001d0d6f905aad2
   Teleport: bc331d3a973b032ebee62a706e42bfce613f0200
   VisionCamera: 68d40255fa8866e815cbbb063730102d3da276fd
   Yoga: 58b502c52b14ad3c4468805d461fc37d275c2a42

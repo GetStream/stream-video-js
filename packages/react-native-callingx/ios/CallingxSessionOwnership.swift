@@ -7,7 +7,7 @@ import Foundation
 /// (`UUIDStorage.count() == 0`) or on `conversationManagerDidReset`.
 ///
 /// `StreamInCallManager` (in `@stream-io/video-react-native-sdk`) consults this
-/// flag from its AudioDeviceModule publisher sink and no-ops when callingx owns
+/// flag from its AudioDeviceModule engine hooks and no-ops when callingx owns
 /// the session, so the two packages don't write conflicting `AVAudioSession`
 /// configurations during the transient overlap when a system (CallKit/LiveCommunicationKit) call is winding
 /// down and the SDK is about to take over (or vice versa).

@@ -7,7 +7,7 @@ RUN find sample-apps \! -name "package.json" -mindepth 3 -maxdepth 3 -print | xa
 COPY packages/ packages/
 RUN find packages \! -name "package.json" -mindepth 2 -maxdepth 2 -print | xargs rm -rf
 
-FROM node:22-bullseye AS runner
+FROM node:22-bookworm AS runner
 WORKDIR /e2e
 
 COPY .yarn/ ./.yarn/
@@ -17,6 +17,7 @@ COPY --from=packager /e2e/sample-apps ./sample-apps
 
 RUN yarn install
 
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 RUN npx playwright install chromium
 RUN npx playwright install-deps
 
@@ -25,3 +26,11 @@ COPY ./packages ./packages
 RUN yarn build:react:deps
 
 COPY ./sample-apps/ ./sample-apps/
+
+ARG LOCAL_UID=1000
+ARG LOCAL_GID=1000
+RUN test "$LOCAL_UID" -gt 0 \
+    && groupmod --non-unique --gid "$LOCAL_GID" node \
+    && usermod --non-unique --uid "$LOCAL_UID" --gid "$LOCAL_GID" node \
+    && chown -R node:node /home/node /e2e /ms-playwright
+USER node

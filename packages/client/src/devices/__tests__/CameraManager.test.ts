@@ -309,6 +309,68 @@ describe('CameraManager', () => {
     expect(getVideoStream).toHaveBeenCalledOnce();
   });
 
+  it('should not restart a portrait track that has the target resolution', async () => {
+    const portrait = mockVideoStream();
+    const [track] = portrait.getVideoTracks();
+    const settings = track.getSettings();
+    track.getSettings = () => ({ ...settings, width: 720, height: 1280 });
+    getVideoStream.mockResolvedValueOnce(portrait);
+    await manager.enable();
+
+    expect(getVideoStream).toHaveBeenCalledOnce();
+
+    await manager.selectTargetResolution({ width: 1280, height: 720 });
+
+    expect(getVideoStream).toHaveBeenCalledOnce();
+  });
+
+  describe('selectDirection when the camera is busy', () => {
+    const notReadable = () =>
+      Object.assign(new Error('busy'), { name: 'NotReadableError' });
+
+    const spyOnStream = () => {
+      const target = manager as unknown as {
+        muteStream: () => Promise<void>;
+        unmuteStream: () => Promise<void>;
+      };
+      return {
+        mute: vi.spyOn(target, 'muteStream').mockResolvedValue(),
+        unmute: vi.spyOn(target, 'unmuteStream'),
+      };
+    };
+
+    it('resolves when the restart after a NotReadableError succeeds', async () => {
+      const { mute, unmute } = spyOnStream();
+      unmute.mockRejectedValueOnce(notReadable()).mockResolvedValueOnce();
+
+      await expect(manager.selectDirection('back')).resolves.toBeUndefined();
+      expect(mute).toHaveBeenCalledTimes(1);
+      expect(unmute).toHaveBeenCalledTimes(2);
+    });
+
+    it('rejects with the restart error when the restart fails', async () => {
+      const { unmute } = spyOnStream();
+      const restartError = new Error('restart failed');
+      unmute
+        .mockRejectedValueOnce(notReadable())
+        .mockRejectedValueOnce(restartError);
+
+      await expect(manager.selectDirection('back')).rejects.toBe(restartError);
+    });
+
+    it('rethrows other errors without restarting the camera', async () => {
+      const { mute, unmute } = spyOnStream();
+      const error = Object.assign(new Error('denied'), {
+        name: 'NotAllowedError',
+      });
+      unmute.mockRejectedValueOnce(error);
+
+      await expect(manager.selectDirection('back')).rejects.toBe(error);
+      expect(mute).not.toHaveBeenCalled();
+      expect(unmute).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('Video Settings', () => {
     beforeEach(() => {
       // @ts-expect-error - read only property

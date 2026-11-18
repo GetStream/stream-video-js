@@ -1,5 +1,6 @@
 import type { RTCStatsDataType, Tracer } from '../stats';
 import { isWebKit } from './browsers';
+import { USER_GESTURE_EVENTS } from './userGestures';
 
 /**
  * A reference to the shared {@link AudioContext}. Call `release` once done
@@ -15,7 +16,7 @@ type InterruptionListener = (
   state: AudioContextState,
 ) => void;
 
-const GESTURE_EVENTS = ['click', 'touchend', 'keydown'] as const;
+type StateListener = (state: AudioContextState) => void;
 
 /**
  * One {@link AudioContext} shared by the SDK's analysers, detectors, and the
@@ -32,6 +33,7 @@ export class SharedAudioContext {
   private wasRunning = false;
   private restartTimer: ReturnType<typeof setTimeout> | undefined;
   private listeners = new Set<InterruptionListener>();
+  private stateListeners = new Set<StateListener>();
   private tracers = new Set<Tracer>();
   private stuckCheckTimer: ReturnType<typeof setInterval> | undefined;
   private stopWatchingVisibility: (() => void) | undefined;
@@ -41,9 +43,8 @@ export class SharedAudioContext {
    * Returns the shared context, creating it on first use.
    *
    * A context created outside a user gesture starts suspended. It is resumed
-   * here and on the next user gesture while the page is visible, which
-   * succeeds once the page may play audio; a hidden page leaves it alone so
-   * it can't take the audio session from another app.
+   * here and on the next user gesture, which succeeds once the page may play
+   * audio.
    *
    * @returns a lease on the context, or `undefined` when Web Audio is
    * unavailable.
@@ -57,7 +58,7 @@ export class SharedAudioContext {
     }
     const context = this.context;
     this.users += 1;
-    if (context.state === 'suspended') this.resumeIfVisible(context);
+    if (context.state === 'suspended') this.resume(context);
 
     let released = false;
     const release = () => {
@@ -85,6 +86,42 @@ export class SharedAudioContext {
    * Whether the shared context exists and is running.
    */
   isRunning = () => this.context?.state === 'running';
+
+  /**
+   * Whether the autoplay policy keeps the context from starting: it is
+   * suspended and has never run, as a context created outside a user gesture
+   * is. A context stopped by an audio interruption doesn't count.
+   */
+  isAutoplayBlocked = () =>
+    this.context?.state === 'suspended' && !this.wasRunning;
+
+  /**
+   * Resumes a context that the autoplay policy keeps from starting (see
+   * {@link isAutoplayBlocked}). Call it from a user gesture. Any other
+   * context, an interrupted one included, is left alone.
+   *
+   * @returns a promise that rejects when the context stays suspended.
+   */
+  resumeFromGesture = async () => {
+    const context = this.context;
+    if (!context || !this.isAutoplayBlocked()) return;
+    await context.resume();
+    if (this.isAutoplayBlocked()) {
+      throw new Error('The shared AudioContext is still suspended');
+    }
+  };
+
+  /**
+   * Invokes `listener` whenever the shared context changes state.
+   *
+   * @returns a function that stops listening.
+   */
+  watchState = (listener: StateListener) => {
+    this.stateListeners.add(listener);
+    return () => {
+      this.stateListeners.delete(listener);
+    };
+  };
 
   /**
    * Lifts the playback gate of {@link isInterrupted}, e.g. when the user
@@ -132,9 +169,14 @@ export class SharedAudioContext {
     this.listeners.forEach((listener) => listener(value, state));
   };
 
-  private resumeIfVisible = (context: AudioContext) => {
-    if (typeof document === 'undefined' || document.hidden) return;
-    context.resume().catch(() => {});
+  /**
+   * Resumes a suspended context, also in a hidden page, so a call keeps
+   * playing when e.g. the output device changes while the tab is hidden.
+   */
+  private resume = (context: AudioContext) => {
+    context.resume().catch(() => {
+      this.trace('audioContext.shared.resumeError', context.state);
+    });
   };
 
   /**
@@ -165,11 +207,11 @@ export class SharedAudioContext {
     if (this.stopWatchingGestures || typeof document === 'undefined') return;
     const onGesture = () => {
       const context = this.context;
-      if (context?.state === 'suspended') this.resumeIfVisible(context);
+      if (context?.state === 'suspended') this.resume(context);
     };
     const controller = new AbortController();
     const options = { capture: true, passive: true, signal: controller.signal };
-    GESTURE_EVENTS.forEach((type) =>
+    USER_GESTURE_EVENTS.forEach((type) =>
       document.addEventListener(type, onGesture, options),
     );
     this.stopWatchingGestures = () => controller.abort();
@@ -257,7 +299,7 @@ export class SharedAudioContext {
     const context = this.context;
     if (context?.state !== 'suspended') return;
     this.watchGestures();
-    this.resumeIfVisible(context);
+    this.resume(context);
   };
 
   private create = () => {
@@ -270,6 +312,7 @@ export class SharedAudioContext {
       if (context !== this.context) return;
       const { state } = context;
       this.trace('audioContext.shared.state', { state, users: this.users });
+      this.stateListeners.forEach((listener) => listener(state));
       if (this.restartTimer) {
         if (state === 'suspended') return;
         this.endRestart();
@@ -285,7 +328,7 @@ export class SharedAudioContext {
       if (state !== 'interrupted' && state !== 'suspended') return;
       if (!this.wasRunning) return;
       this.setInterrupted(true, state);
-      if (state === 'suspended') this.resumeIfVisible(context);
+      if (state === 'suspended') this.resume(context);
     });
     if (typeof document !== 'undefined') {
       const controller = new AbortController();
@@ -293,7 +336,7 @@ export class SharedAudioContext {
         'visibilitychange',
         () => {
           if (this.wasRunning && context.state === 'suspended') {
-            this.resumeIfVisible(context);
+            this.resume(context);
           }
         },
         { signal: controller.signal },

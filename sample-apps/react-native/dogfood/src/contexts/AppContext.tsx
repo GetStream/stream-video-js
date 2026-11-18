@@ -21,6 +21,7 @@ type AppGlobalStore = {
   e2eeKeyInput: string;
   coordinatorBaseUrl?: string;
   disableRingStatePolling?: boolean;
+  showRingStateDebugPane?: boolean;
 };
 
 export const {
@@ -44,6 +45,7 @@ export const {
     e2eeKeyInput: '',
     coordinatorBaseUrl: '',
     disableRingStatePolling: false,
+    showRingStateDebugPane: true,
   },
   [
     'apiKey',
@@ -58,5 +60,6 @@ export const {
     'e2eeKeyInput',
     'coordinatorBaseUrl',
     'disableRingStatePolling',
+    'showRingStateDebugPane',
   ],
 );

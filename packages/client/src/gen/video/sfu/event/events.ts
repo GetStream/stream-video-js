@@ -306,6 +306,8 @@ export interface PinsChanged {
  */
 export interface Error {
   /**
+   * error.should_retry is not set on this event; follow reconnect_strategy.
+   *
    * @generated from protobuf field: stream.video.sfu.models.Error error = 4;
    */
   error?: Error$;

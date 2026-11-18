@@ -3,6 +3,7 @@ import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { Video, VideoSlash, ControlButtonIcon } from '../../../../icons';
 import { CallControlsButton } from './CallControlsButton';
+import { ButtonTestIds } from '../../../../constants/TestIds';
 
 /**
  * Props for the Toggle Video publishing button
@@ -39,7 +40,15 @@ export const ToggleVideoPublishingButton = ({
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
-      <CallControlsButton onPress={onPress} turnedOn={!optimisticIsMute}>
+      <CallControlsButton
+        onPress={onPress}
+        testID={
+          optimisticIsMute
+            ? ButtonTestIds.CAMERA_DISABLED
+            : ButtonTestIds.CAMERA_ENABLED
+        }
+        turnedOn={!optimisticIsMute}
+      >
         <ControlButtonIcon
           icon={Video}
           iconOff={VideoSlash}

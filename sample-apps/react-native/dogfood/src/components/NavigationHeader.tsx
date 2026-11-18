@@ -6,7 +6,7 @@ import {
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import { useAppI18n } from '../hooks/useAppI18n';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text } from 'react-native';
 import {
   useAppGlobalStoreSetState,
@@ -18,6 +18,7 @@ import { AVATAR_SIZE } from '../constants';
 import { ButtonTestIds } from '../constants/TestIds';
 import Close from '../assets/Close';
 import { Leave } from '../assets/Leave';
+import { AppSettingsSheet } from './AppSettingsSheet';
 
 export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   const videoClient = useStreamVideoClient();
@@ -27,6 +28,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   const userName = useAppGlobalStoreValue((store) => store.userName);
   const environment = useAppGlobalStoreValue((store) => store.appEnvironment);
   const appStoreSetState = useAppGlobalStoreSetState();
+  const [settingsVisible, setSettingsVisible] = useState(false);
 
   const logoutHandler = () => {
     Alert.alert(
@@ -70,7 +72,14 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
 
   return (
     <SafeAreaView style={styles.header} edges={['top', 'left', 'right']}>
-      {user && <Avatar user={user} size="lg" />}
+      {user && (
+        <Pressable
+          testID={ButtonTestIds.APP_SETTINGS}
+          onPress={() => setSettingsVisible(true)}
+        >
+          <Avatar user={user} size="lg" />
+        </Pressable>
+      )}
       <Text style={styles.userNameText}>{userName}</Text>
 
       {!showChooseModeButton ? (
@@ -92,6 +101,10 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
           <Close color={styles.icon.color} size={24} />
         </Pressable>
       )}
+      <AppSettingsSheet
+        visible={settingsVisible}
+        onClose={() => setSettingsVisible(false)}
+      />
     </SafeAreaView>
   );
 };

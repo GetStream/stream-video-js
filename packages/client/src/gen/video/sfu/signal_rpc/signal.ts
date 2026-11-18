@@ -18,6 +18,7 @@ import { OutboundRtp } from '../models/models';
 import { InboundRtp } from '../models/models';
 import { WebsocketReconnectStrategy } from '../models/models';
 import { Error } from '../models/models';
+import { NoiseCancellationEngine } from '../models/models';
 /**
  * @generated from protobuf message stream.video.sfu.signal.StartNoiseCancellationRequest
  */
@@ -26,6 +27,17 @@ export interface StartNoiseCancellationRequest {
    * @generated from protobuf field: string session_id = 1;
    */
   sessionId: string;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.NoiseCancellationEngine engine = 2;
+   */
+  engine: NoiseCancellationEngine;
+  /**
+   * The model variant the engine runs, e.g. "krisp-nc-o-med-v7" or "tiny".
+   * Empty when the client doesn't know it.
+   *
+   * @generated from protobuf field: string model = 3;
+   */
+  model: string;
 }
 /**
  * @generated from protobuf message stream.video.sfu.signal.StartNoiseCancellationResponse
@@ -37,6 +49,9 @@ export interface StartNoiseCancellationResponse {
   error?: Error;
 }
 /**
+ * StopNoiseCancellationRequest repeats the engine and model sent in the
+ * matching StartNoiseCancellationRequest.
+ *
  * @generated from protobuf message stream.video.sfu.signal.StopNoiseCancellationRequest
  */
 export interface StopNoiseCancellationRequest {
@@ -44,6 +59,17 @@ export interface StopNoiseCancellationRequest {
    * @generated from protobuf field: string session_id = 1;
    */
   sessionId: string;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.NoiseCancellationEngine engine = 2;
+   */
+  engine: NoiseCancellationEngine;
+  /**
+   * The model variant the engine runs, e.g. "krisp-nc-o-med-v7" or "tiny".
+   * Empty when the client doesn't know it.
+   *
+   * @generated from protobuf field: string model = 3;
+   */
+  model: string;
 }
 /**
  * @generated from protobuf message stream.video.sfu.signal.StopNoiseCancellationResponse
@@ -413,6 +439,17 @@ class StartNoiseCancellationRequest$Type extends MessageType<StartNoiseCancellat
   constructor() {
     super('stream.video.sfu.signal.StartNoiseCancellationRequest', [
       { no: 1, name: 'session_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 2,
+        name: 'engine',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.NoiseCancellationEngine',
+          NoiseCancellationEngine,
+          'NOISE_CANCELLATION_ENGINE_',
+        ],
+      },
+      { no: 3, name: 'model', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
     ]);
   }
 }
@@ -439,6 +476,17 @@ class StopNoiseCancellationRequest$Type extends MessageType<StopNoiseCancellatio
   constructor() {
     super('stream.video.sfu.signal.StopNoiseCancellationRequest', [
       { no: 1, name: 'session_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 2,
+        name: 'engine',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.NoiseCancellationEngine',
+          NoiseCancellationEngine,
+          'NOISE_CANCELLATION_ENGINE_',
+        ],
+      },
+      { no: 3, name: 'model', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
     ]);
   }
 }

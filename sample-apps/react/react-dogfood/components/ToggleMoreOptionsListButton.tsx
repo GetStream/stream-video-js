@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, type ReactNode } from 'react';
 
 import {
   CompositeButton,
@@ -39,10 +39,15 @@ const ToggleDevMenuButton = forwardRef<HTMLButtonElement>(
   },
 );
 
-const Menu = () => {
+const Menu = ({ controls }: { controls?: ReactNode }) => {
   const isPronto = useIsProntoEnvironment();
   return (
     <ul className="rd__more-menu">
+      {controls && (
+        <li className="rd__more-menu__item rd__more-menu__controls">
+          {controls}
+        </li>
+      )}
       <li className="rd__more-menu__item">
         <DefaultReactionsMenu reactions={defaultReactions} />
       </li>
@@ -80,10 +85,20 @@ export const ToggleMenuButton = forwardRef<
   );
 });
 
-export const ToggleMoreOptionsListButton = () => {
+/**
+ * The mobile "more" menu.
+ *
+ * @param controls secondary call controls that don't fit the mobile call bar,
+ * shown as a row of captioned buttons at the top of the menu.
+ */
+export const ToggleMoreOptionsListButton = ({
+  controls,
+}: {
+  controls?: ReactNode;
+}) => {
   return (
     <MenuToggle placement="top-start" ToggleButton={ToggleMenuButton}>
-      <Menu />
+      <Menu controls={controls} />
     </MenuToggle>
   );
 };

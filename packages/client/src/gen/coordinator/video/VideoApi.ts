@@ -1,5 +1,6 @@
 import type { ApiClient, StreamResponse } from '../../gen-imports';
 import type {
+  Filters,
   AcceptCallResponse,
   BlockUserRequest,
   BlockUserResponse,
@@ -46,6 +47,7 @@ import type {
   QueryCallStatsResponse,
   QueryCallsRequest,
   QueryCallsResponse,
+  RecordingType,
   RejectCallRequest,
   RejectCallResponse,
   ReportClientEventRequest,
@@ -372,7 +374,7 @@ export class VideoApi {
   }
 
   startRecording(
-    pathParams: { type: string; id: string; recording_type: string },
+    pathParams: { type: string; id: string; recording_type: RecordingType },
     request?: StartRecordingRequest,
   ): Promise<StreamResponse<StartRecordingResponse>> {
     return this.apiClient.sendRequest<StartRecordingResponse>(
@@ -385,7 +387,7 @@ export class VideoApi {
   }
 
   stopRecording(
-    pathParams: { type: string; id: string; recording_type: string },
+    pathParams: { type: string; id: string; recording_type: RecordingType },
     request?: StopRecordingRequest,
   ): Promise<StreamResponse<StopRecordingResponse>> {
     return this.apiClient.sendRequest<StopRecordingResponse>(
@@ -522,7 +524,37 @@ export class VideoApi {
       limit?: number;
       prev?: string;
       next?: string;
-      filter_conditions?: Record<string, any>;
+      filter_conditions?: Filters<{
+        is_live: {
+          type: boolean;
+          operators: '$eq';
+        };
+
+        is_tech_user: {
+          type: boolean;
+          operators: '$eq';
+        };
+
+        published_tracks: {
+          type: string;
+          operators: '$eq' | '$in';
+        };
+
+        publisher_type: {
+          type: string;
+          operators: '$eq' | '$in';
+        };
+
+        session_id: {
+          type: string;
+          operators: '$eq' | '$in';
+        };
+
+        user_id: {
+          type: string;
+          operators: '$eq' | '$in';
+        };
+      }>;
     },
   ): Promise<StreamResponse<QueryCallParticipantSessionsResponse>> {
     return this.apiClient.sendRequest<QueryCallParticipantSessionsResponse>(
@@ -793,7 +825,37 @@ export class VideoApi {
       prev?: string;
       next?: string;
       sort?: Array<SortParamRequest>;
-      filter_conditions?: Record<string, any>;
+      filter_conditions?: Filters<{
+        is_live: {
+          type: boolean;
+          operators: '$eq';
+        };
+
+        is_tech_user: {
+          type: boolean;
+          operators: '$eq';
+        };
+
+        published_tracks: {
+          type: string;
+          operators: '$eq' | '$in';
+        };
+
+        publisher_type: {
+          type: string;
+          operators: '$eq' | '$in';
+        };
+
+        session_id: {
+          type: string;
+          operators: '$eq' | '$in';
+        };
+
+        user_id: {
+          type: string;
+          operators: '$eq' | '$in';
+        };
+      }>;
     },
   ): Promise<StreamResponse<QueryCallSessionParticipantStatsResponse>> {
     return this.apiClient.sendRequest<QueryCallSessionParticipantStatsResponse>(

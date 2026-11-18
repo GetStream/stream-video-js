@@ -60,6 +60,7 @@ export type AvatarGroupPosition =
 export type AvatarGroupStyle = {
   container: { [key in AvatarGroupSize]: ViewStyle };
   item: { [key in AvatarGroupSize]: ViewStyle };
+  textContainer: ViewStyle;
   text: {
     base: TextStyle;
   } & { [key in AvatarGroupSize]: TextStyle };

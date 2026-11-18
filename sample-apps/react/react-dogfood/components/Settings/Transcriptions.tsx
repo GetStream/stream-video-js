@@ -111,8 +111,8 @@ export const TranscriptionSettings = () => {
       <h4>{t('common.language.label', 'Language')}</h4>
       <DropDownSelect
         icon="language-sign"
-        defaultSelectedLabel={languageLabel(t, selectedLanguage)}
-        defaultSelectedIndex={Math.max(selectedIndex - 1, 0)}
+        selectedLabel={languageLabel(t, selectedLanguage)}
+        selectedIndex={Math.max(selectedIndex - 1, 0)}
         handleSelect={(index) => updateLanguage(languages[index + 1].code)}
       >
         {languages.map((language) =>

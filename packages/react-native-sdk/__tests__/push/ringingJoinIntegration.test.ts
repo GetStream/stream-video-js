@@ -73,7 +73,7 @@ beforeEach(() => {
   (globalThis as any).streamRNVideoSDK = {
     ringingCallLifecycle: { beforeJoin, onJoinFailed, onLeave },
     callingX: { joinCall, endCall },
-    callManager: { setup: jest.fn(), start: jest.fn(), stop: jest.fn() },
+    callManager: { start: jest.fn(), stop: jest.fn() },
   };
 });
 

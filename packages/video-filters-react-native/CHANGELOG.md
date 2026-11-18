@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.0.0-beta.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-1.0.0-beta.3...@stream-io/video-filters-react-native-1.0.0-beta.4) (2026-11-05)
+
+### Bug Fixes
+
+- **react-native:** recover the iOS mic when the audio engine fails to start ([#2529](https://github.com/GetStream/stream-video-js/issues/2529)) ([36bb5e5](https://github.com/GetStream/stream-video-js/commit/36bb5e54392d5876dcd1759c583e3265f880ddcc)), closes [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#75](https://github.com/GetStream/stream-video-js/issues/75) [GetStream/react-native-webrtc#75](https://github.com/GetStream/react-native-webrtc/issues/75) [#2282](https://github.com/GetStream/stream-video-js/issues/2282)
+
 ## [1.0.0-beta.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-1.0.0-beta.2...@stream-io/video-filters-react-native-1.0.0-beta.3) (2026-10-20)
 
 ## [1.0.0-beta.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-1.0.0-beta.1...@stream-io/video-filters-react-native-1.0.0-beta.2) (2026-10-16)

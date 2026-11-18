@@ -8,6 +8,7 @@ import { ControlButtonIcon } from '@stream-io/video-react-native-sdk/src/icons';
 import { BadgeCountIndicator } from './BadgeCountIndicator';
 import { Users } from '../../../assets/Users';
 import { ParticipantsInfoListModal } from '../../ParticipantsInfoListModal';
+import { ComponentTestIds } from '../../../constants/TestIds';
 
 /**
  * The props for the Participants Button in the Call Controls.
@@ -51,7 +52,10 @@ export const ParticipantsButton = ({
   return (
     <>
       <CallControlsButton onPress={() => setIsParticipantsInfoVisible(true)}>
-        <BadgeCountIndicator count={count} />
+        <BadgeCountIndicator
+          count={count}
+          countTestID={ComponentTestIds.PARTICIPANTS_COUNT_BADGE}
+        />
         <ControlButtonIcon icon={Users} />
       </CallControlsButton>
       <ParticipantsInfoListModal

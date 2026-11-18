@@ -53,8 +53,8 @@ export const DeviceSelectionSettingsDropdown = ({
         {title}
       </div>
       <DropDownSelect
-        defaultSelectedIndex={currentIndex}
-        defaultSelectedLabel={deviceSelectionLabel(t, currentSetting)}
+        selectedIndex={currentIndex}
+        selectedLabel={deviceSelectionLabel(t, currentSetting)}
         handleSelect={handleChange}
       >
         {deviceSelectionOptions.map((value) => {

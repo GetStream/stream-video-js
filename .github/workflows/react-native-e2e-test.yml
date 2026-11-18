@@ -1,0 +1,193 @@
+name: React Native E2E Tests
+
+on:
+  pull_request:
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FASTLANE_SKIP_UPDATE_CHECK: 1
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+  GITHUB_PR_NUM: ${{ github.event.pull_request.number }}
+  GITHUB_EVENT_ACTION: ${{ github.event.action }}
+  GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+  GITHUB_EVENT_AFTER: ${{ github.event.after }}
+  # Keep in sync with `install_video_buddy` in the dogfood Fastfile.
+  PLAYWRIGHT_VERSION: '1.52.0'
+
+jobs:
+  check:
+    name: Check E2E Required
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      required: ${{ steps.check.outputs.required }}
+      e2e_batches: ${{ steps.check.outputs.e2e_batches }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+          working-directory: sample-apps/react-native/dogfood
+          bundler-cache: true
+      - name: Check if e2e tests are required
+        id: check
+        working-directory: sample-apps/react-native/dogfood
+        run: bundle exec fastlane e2e_check_required
+
+  android-build:
+    name: Build Android
+    needs: check
+    if: needs.check.outputs.required == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+      # Caches Gradle's dependencies, wrapper and build cache. It only writes on the default branch by
+      # default, and this workflow doesn't run there, so let PR runs write: their reruns reuse it.
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+      - uses: ./.github/actions/rn-e2e-setup
+      - uses: ./.github/actions/rn-e2e-android-app
+      - uses: actions/upload-artifact@v7
+        with:
+          name: e2e-android-apks
+          path: |
+            sample-apps/react-native/dogfood/android/app/build/outputs/apk/release/app-release.apk
+            sample-apps/react-native/dogfood/android/app/build/outputs/apk/androidTest/release/app-release-androidTest.apk
+          retention-days: 1
+
+  # One launch for every batch.
+  android-allure-launch:
+    name: Launch Allure TestOps (Android)
+    needs: android-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      launch_id: ${{ steps.launch.outputs.launch_id }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+          working-directory: sample-apps/react-native/dogfood
+          bundler-cache: true
+      # Pull requests from forks and Dependabot get no secrets, so they run without Allure.
+      - name: Launch Allure TestOps
+        id: launch
+        if: env.ALLURE_TOKEN != ''
+        working-directory: sample-apps/react-native/dogfood
+        run: |
+          bundle exec fastlane allure_launch
+          echo "launch_id=$(grep '^LAUNCH_ID=' "$GITHUB_ENV" | tail -1 | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+        continue-on-error: true
+        env:
+          # Names the launch after the pull request and tags it with its labels.
+          GITHUB_EVENT: ${{ toJson(github.event) }}
+
+  android:
+    name: Test Android
+    needs: [check, android-build, android-allure-launch]
+    if: ${{ !cancelled() && needs.android-build.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        # Like the native Android SDK: up to 8, see e2e_check_required.
+        batch: ${{ fromJson(needs.check.outputs.e2e_batches) }}
+      fail-fast: false
+    env:
+      # No camera: with an emulated one, `call.join()` sometimes never resolves (RN-474).
+      ANDROID_API_LEVEL: '36'
+      ANDROID_EMULATOR_OPTIONS: -no-snapshot-save -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -camera-front none
+      DETOX_ADB_NAME: 'emulator-5554'
+      LAUNCH_ID: ${{ needs.android-allure-launch.outputs.launch_id }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+      - uses: ./.github/actions/rn-e2e-setup
+      - uses: actions/download-artifact@v7
+        with:
+          name: e2e-android-apks
+          path: sample-apps/react-native/dogfood/android/app/build/outputs/apk
+      - uses: ./.github/actions/rn-e2e-enable-kvm
+      - name: Cache stream-video-buddy's browser
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+
+      - name: Run e2e tests (Android emulator)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ env.ANDROID_API_LEVEL }}
+          arch: x86_64
+          profile: pixel
+          emulator-options: ${{ env.ANDROID_EMULATOR_OPTIONS }}
+          disable-animations: true
+          working-directory: sample-apps/react-native/dogfood
+          script: bundle exec fastlane test_e2e device:att skip_build:true batch:${{ matrix.batch }} batch_count:${{ strategy.job-total }}
+
+      - name: Upload Allure results
+        if: env.LAUNCH_ID != '' && (success() || failure())
+        working-directory: sample-apps/react-native/dogfood
+        run: bundle exec fastlane allure_upload launch_id:"$LAUNCH_ID"
+
+      - name: Allure TestOps Launch Removal
+        if: env.LAUNCH_ID != '' && cancelled()
+        working-directory: sample-apps/react-native/dogfood
+        run: bundle exec fastlane allure_launch_removal launch_id:"$LAUNCH_ID"
+
+      # The emulator has vanished mid-run without any output; this shows whether the kernel killed it.
+      - name: Diagnose emulator
+        if: failure()
+        run: |
+          sudo dmesg -T | grep -i -E 'out of memory|oom-kill|killed process' || echo "No OOM kills in dmesg"
+          free -m
+          df -h
+          ls -la /tmp/android-runner 2>/dev/null || true
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: e2e-android-logs-${{ matrix.batch }}
+          path: |
+            sample-apps/react-native/dogfood/artifacts
+            sample-apps/react-native/dogfood/recordings
+            sample-apps/react-native/dogfood/video-buddy-*.log
+            /tmp/android-runner
+
+  result:
+    name: Test E2E Result
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - check
+      - android-build
+      - android-allure-launch
+      - android
+    steps:
+      - name: Check E2E results
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo "$NEEDS"
+          exit 1
+        env:
+          NEEDS: ${{ toJson(needs) }}

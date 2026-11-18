@@ -6,6 +6,7 @@ import { getTimers } from '../timers';
 import { getSdkInfo, setSdkInfo } from '../helpers/client-details';
 import {
   ErrorCode,
+  NoiseCancellationEngine,
   SdkType,
   WebsocketReconnectStrategy,
 } from '../gen/video/sfu/models/models';
@@ -477,7 +478,10 @@ describe('StreamSfuClient RPC headers', () => {
         }
       ).joinResponseTask.resolve({});
 
-      await sfuClient.startNoiseCancellation();
+      await sfuClient.startNoiseCancellation({
+        engine: NoiseCancellationEngine.STREAM,
+        model: 'tiny',
+      });
 
       const [, init] = fetchMock.mock.calls[0];
       expect(new Headers(init.headers).get('x-stream-client')).toBe(

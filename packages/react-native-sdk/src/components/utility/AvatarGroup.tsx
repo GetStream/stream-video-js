@@ -117,7 +117,13 @@ export const AvatarGroup = ({ users, size = '2xl' }: AvatarGroupProps) => {
         style={getItemStyle(avatarGroup, 'top-right', size)}
         user={usersToShow[1]!}
       />
-      <View style={[styles.textContainer, avatarGroup.item[size]]}>
+      <View
+        style={[
+          styles.textContainer,
+          avatarGroup.textContainer,
+          avatarGroup.item[size],
+        ]}
+      >
         <Text style={[avatarGroup.text.base, avatarGroup.text[size]]}>
           +{usersToShow.length - 2}
         </Text>
@@ -132,10 +138,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   textContainer: {
-    backgroundColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 100,
     position: 'absolute',
     bottom: 0,
     left: '25%',

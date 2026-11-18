@@ -1,12 +1,11 @@
 import {
-  CallContentProps,
   ScreenShareToggleButton,
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import React, { useEffect, useMemo, useState } from 'react';
-import { LayoutChangeEvent, ScrollView, StyleSheet, View } from 'react-native';
+import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { MoreActionsButton } from '../MoreActionsButton';
 import { ParticipantsButton } from './ParticipantsButton';
 import { ChatButton } from './ChatButton';
@@ -15,14 +14,7 @@ import { SubtitleContainer } from './SubtitleContainer';
 import { useFoldAwareBarLayout } from '../../../contexts/FoldAwareBarLayoutContext';
 import { Z_INDEX } from '../../../constants';
 
-export type BottomControlsProps = Pick<
-  CallContentProps,
-  'supportedReactions'
-> & {
-  landscape?: boolean;
-};
-
-export const BottomControls = ({ landscape = false }: BottomControlsProps) => {
+export const BottomControls = () => {
   const styles = useStyles();
   const {
     theme: { callControls },
@@ -30,8 +22,7 @@ export const BottomControls = ({ landscape = false }: BottomControlsProps) => {
   const [measuredHeight, setMeasuredHeight] = useState<number>();
   // drawers and subtitles are lifted above the controls only when the
   // controls are below the video; beside the video there is nothing to clear
-  const controlsContainerHeight =
-    measuredHeight === undefined ? undefined : landscape ? 0 : measuredHeight;
+  const controlsContainerHeight = measuredHeight;
 
   const onLayout = (event: LayoutChangeEvent) => {
     setMeasuredHeight(event.nativeEvent.layout.height);
@@ -44,12 +35,12 @@ export const BottomControls = ({ landscape = false }: BottomControlsProps) => {
 
   const buttons = (
     <>
-      <View style={[styles.left, landscape && styles.groupLandscape]}>
+      <View style={[styles.left]}>
         <MoreActionsButton controlsContainerHeight={controlsContainerHeight} />
         <ToggleAudioPublishingButton />
         <ToggleVideoPublishingButton />
       </View>
-      <View style={[styles.right, landscape && styles.groupLandscape]}>
+      <View style={[styles.right]}>
         <ScreenShareToggleButton
           screenShareOptions={{ type: 'broadcast', includeAudio: true }}
         />
@@ -62,28 +53,12 @@ export const BottomControls = ({ landscape = false }: BottomControlsProps) => {
 
   return (
     <>
-      {landscape ? (
-        // a short window cannot fit the whole column, so let it scroll
-        <ScrollView
-          style={styles.landscapeScroll}
-          showsVerticalScrollIndicator={false}
-          bounces={false}
-          onLayout={onLayout}
-          contentContainerStyle={[
-            styles.containerLandscape,
-            styles.landscapeContent,
-          ]}
-        >
-          {buttons}
-        </ScrollView>
-      ) : (
-        <View
-          style={[styles.container, callControls.container]}
-          onLayout={onLayout}
-        >
-          {buttons}
-        </View>
-      )}
+      <View
+        style={[styles.container, callControls.container]}
+        onLayout={onLayout}
+      >
+        {buttons}
+      </View>
       {controlsContainerHeight !== undefined && (
         <SubtitleContainer controlsContainerHeight={controlsContainerHeight} />
       )}
@@ -92,9 +67,6 @@ export const BottomControls = ({ landscape = false }: BottomControlsProps) => {
 };
 
 const useStyles = () => {
-  const {
-    theme: { primitives },
-  } = useTheme();
   return useMemo(
     () =>
       StyleSheet.create({
@@ -109,29 +81,7 @@ const useStyles = () => {
         right: {
           flexDirection: 'row',
         },
-        containerLandscape: {
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          paddingTop: primitives.spacingSm,
-          paddingBottom: primitives.spacingSm,
-          // matches the top controls' horizontal padding so hang-up lines up
-          paddingHorizontal: primitives.spacingMd,
-        },
-        // a ScrollView grows by default and would take width from the video
-        landscapeScroll: {
-          flexGrow: 0,
-          flexShrink: 0,
-        },
-        landscapeContent: {
-          flexGrow: 1,
-        },
-        groupLandscape: {
-          flex: 0,
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'flex-start',
-        },
       }),
-    [primitives],
+    [],
   );
 };

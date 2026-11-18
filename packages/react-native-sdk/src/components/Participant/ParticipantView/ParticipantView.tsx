@@ -136,8 +136,8 @@ export const ParticipantView = React.memo(
         ]}
         testID={
           isSpeaking
-            ? `participant-${userId}-is-speaking`
-            : `participant-${userId}-is-not-speaking`
+            ? `stream-participant-${userId}-is-speaking`
+            : `stream-participant-${userId}-is-not-speaking`
         }
       >
         <View style={[styles.headerContainer, participantView.headerContainer]}>

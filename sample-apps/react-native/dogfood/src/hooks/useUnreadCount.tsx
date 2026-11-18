@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useChatContext } from 'stream-chat-react-native';
-import { Channel as ChannelType, Event } from 'stream-chat';
+import { Channel as ChannelType, EventHandler } from 'stream-chat';
 import { useCall } from '@stream-io/video-react-native-sdk';
 
 /**
@@ -24,10 +24,14 @@ export const useUnreadCount = () => {
       await channel.watch();
     };
 
-    watchChannel();
+    watchChannel().catch((err) => {
+      console.warn('[Chat client]: Failed to watch the channel', err);
+    });
 
     return () => {
-      channel.stopWatching();
+      channel.stopWatching().catch((err) => {
+        console.warn('[Chat client]: Failed to stop watching the channel', err);
+      });
     };
   }, [call?.id, client]);
 
@@ -37,7 +41,7 @@ export const useUnreadCount = () => {
       return;
     }
 
-    const handleEvent = (event: Event) => {
+    const handleEvent: EventHandler<'notification.mark_read'> = (event) => {
       if (event?.cid === cid) {
         setUnreadCount(0);
       }
@@ -54,7 +58,7 @@ export const useUnreadCount = () => {
     }
 
     const handleEvent = () => {
-      const channel = client.activeChannels[cid];
+      const channel = client.channelManager.get(cid);
 
       setUnreadCount(channel?.countUnread() ?? 0);
     };
