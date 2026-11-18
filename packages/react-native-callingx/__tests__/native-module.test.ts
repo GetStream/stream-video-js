@@ -16,7 +16,7 @@ const nativeModule = {
   stopService: jest.fn(() => true),
   startBackgroundTask: jest.fn(() => true),
   getAvailableAudioEndpoints: jest.fn(() => JSON.stringify(snapshot)),
-  onNewEvent: jest.fn(() => subscription),
+  onNewEvent: jest.fn((_handler: (event: unknown) => void) => subscription),
   onNewVoipEvent: jest.fn(() => subscription),
   setShouldRejectCallWhenBusy: jest.fn(() => true),
   setupAndroid: jest.fn(() => true),
