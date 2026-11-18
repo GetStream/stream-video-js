@@ -80,6 +80,7 @@
   },
   "peerDependencies": {
     "@stream-io/react-native-webrtc": "^145.4.2",
+    "@stream-io/video-react-native-sdk": ">=2.0.0-beta.7",
     "react": "*",
     "react-native": ">=0.79.0"
   },
