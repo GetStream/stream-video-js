@@ -86,7 +86,7 @@ describe('internal events', () => {
       eventPayload: {
         oneofKind: 'error',
         // @ts-expect-error incomplete data
-        error: { code: ErrorCode.LIVE_ENDED },
+        error: { error: { code: ErrorCode.LIVE_ENDED } },
       },
     });
     expect(call.leave).toHaveBeenCalled();
@@ -108,10 +108,58 @@ describe('internal events', () => {
       eventPayload: {
         oneofKind: 'error',
         // @ts-expect-error incomplete data
-        error: { code: ErrorCode.LIVE_ENDED },
+        error: { error: { code: ErrorCode.LIVE_ENDED } },
       },
     });
     expect(call.leave).not.toHaveBeenCalled();
+  });
+
+  it('handles liveEnded when backstage is disabled', () => {
+    const dispatcher = new Dispatcher();
+    const state = new CallState();
+    state.setBackstage(false);
+    vi.spyOn(state, 'settings', 'get').mockReturnValue(
+      fromPartial({ backstage: { enabled: false } }),
+    );
+    const call = {
+      permissionsContext: { hasPermission: () => true },
+      leave: vi.fn().mockResolvedValue(undefined),
+      logger: vi.fn(),
+      state,
+    } as unknown as Call;
+
+    watchLiveEnded(dispatcher, call);
+
+    dispatcher.dispatch({
+      eventPayload: {
+        oneofKind: 'error',
+        // @ts-expect-error incomplete data
+        error: { error: { code: ErrorCode.LIVE_ENDED } },
+      },
+    });
+    expect(call.leave).toHaveBeenCalled();
+    expect(call.state.backstage).toBe(false);
+  });
+
+  it('ignores error events without an error payload', () => {
+    const dispatcher = new Dispatcher();
+    const state = new CallState();
+    state.setBackstage(false);
+    const call = {
+      permissionsContext: { hasPermission: () => false },
+      leave: vi.fn().mockResolvedValue(undefined),
+      logger: vi.fn(),
+      state,
+    } as unknown as Call;
+
+    watchLiveEnded(dispatcher, call);
+
+    dispatcher.dispatch({
+      // @ts-expect-error incomplete data
+      eventPayload: { oneofKind: 'error', error: {} },
+    });
+    expect(call.leave).not.toHaveBeenCalled();
+    expect(call.state.backstage).toBe(false);
   });
 
   it('handles pinUpdated', () => {

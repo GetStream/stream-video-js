@@ -1,8 +1,8 @@
 import { CallingState } from '../store';
 import { Call } from '../Call';
-import { OwnCapability } from '../gen/coordinator';
 import { CallEnded } from '../gen/video/sfu/event/events';
 import { CallEndedReason } from '../gen/video/sfu/models/models';
+import { applyLiveEnded } from './internal';
 
 /**
  * Event handler that watches the delivery of `call.ended` Websocket event.
@@ -39,11 +39,7 @@ export const watchSfuCallEnded = (call: Call) => {
     if (call.state.callingState === CallingState.LEFT) return;
     try {
       if (e.reason === CallEndedReason.LIVE_ENDED) {
-        call.state.setBackstage(true);
-
-        // don't leave the call if the user has permission to join backstage
-        const { hasPermission } = call.permissionsContext;
-        if (hasPermission(OwnCapability.JOIN_BACKSTAGE)) return;
+        if (applyLiveEnded(call)) return;
       } else {
         // `call.ended` event arrived after the call is already left
         // and all event handlers are detached. We need to manually
