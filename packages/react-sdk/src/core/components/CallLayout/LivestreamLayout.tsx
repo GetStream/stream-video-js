@@ -193,16 +193,18 @@ export type BackstageLayoutProps = {
 export const BackstageLayout = (props: BackstageLayoutProps) => {
   const { showEarlyParticipantCount = true, humanizeParticipantCount = true } =
     props;
-  const { useParticipantCount, useCallStartsAt } = useCallStateHooks();
+  const { useParticipantCount, useCallStartsAt, useCallEndedAt } =
+    useCallStateHooks();
   const participantCount = useParticipantCount();
   const startsAt = useCallStartsAt();
+  const endedAt = useCallEndedAt();
   const { t } = useI18n();
   const [startsAtPassed, setStartsAtPassed] = useState(
     () => !!startsAt && startsAt.getTime() < Date.now(),
   );
 
   useEffect(() => {
-    if (!startsAt || startsAtPassed) return;
+    if (!startsAt || startsAtPassed || endedAt) return;
 
     const check = () => {
       if (startsAt.getTime() < Date.now()) {
@@ -212,7 +214,19 @@ export const BackstageLayout = (props: BackstageLayoutProps) => {
 
     const interval = setInterval(check, 1000);
     return () => clearInterval(interval);
-  }, [startsAt, startsAtPassed]);
+  }, [startsAt, startsAtPassed, endedAt]);
+
+  if (endedAt) {
+    return (
+      <div className="str-video__livestream-layout__wrapper">
+        <div className="str-video__livestream-layout__backstage">
+          <span className="str-video__livestream-layout__ended">
+            {t('livestream.backstage.ended.text', 'Livestream has ended')}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="str-video__livestream-layout__wrapper">

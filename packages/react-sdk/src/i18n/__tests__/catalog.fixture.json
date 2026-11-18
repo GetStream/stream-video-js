@@ -81,6 +81,7 @@
   "deviceSettings.toggleDeviceMenu.title": "Toggle device menu",
   "joinError.couldNotConnect.text": "We couldn't connect to the server. Please check your connection and try again.",
   "joinError.failedToJoin.title": "Failed to join the call",
+  "livestream.backstage.ended.text": "Livestream has ended",
   "livestream.backstage.participantsJoinedEarly.text_one": "{{ formattedCount }} participant joined early",
   "livestream.backstage.participantsJoinedEarly.text_other": "{{ formattedCount }} participants joined early",
   "livestream.backstage.startsAt.text": "Livestream starts at {{ time }}",

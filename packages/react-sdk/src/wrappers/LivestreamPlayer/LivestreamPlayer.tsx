@@ -92,12 +92,13 @@ const LivestreamCall = (props: {
   onError?: (error: any) => void;
 }) => {
   const call = useLivestreamCall(props);
-  const { useIsCallLive } = useCallStateHooks();
+  const { useIsCallLive, useCallEndedAt } = useCallStateHooks();
   const isLive = useIsCallLive();
+  const endedAt = useCallEndedAt();
 
   if (!call) return null;
 
-  if (isLive) {
+  if (isLive && !endedAt) {
     return <LivestreamLayout {...props.layoutProps} />;
   }
 
@@ -109,17 +110,38 @@ const useLivestreamCall = (props: {
   onError?: (error: any) => void;
 }) => {
   const call = useCall();
-  const { useIsCallLive, useOwnCapabilities } = useCallStateHooks();
+  const {
+    useCallCallingState,
+    useCallEndedAt,
+    useIsCallLive,
+    useOwnCapabilities,
+  } = useCallStateHooks();
+  const callingState = useCallCallingState();
+  const endedAt = useCallEndedAt();
   const canJoinLive = useIsCallLive();
   const canJoinEarly = useCanJoinEarly();
   const canJoinBackstage =
     useOwnCapabilities()?.includes('join-backstage') ?? false;
   const canJoinAsap = canJoinLive || canJoinEarly || canJoinBackstage;
   const joinBehavior = props.joinBehavior ?? 'asap';
-  const canJoin =
-    (joinBehavior === 'asap' && canJoinAsap) ||
-    (joinBehavior === 'live' && canJoinLive);
+  const [liveEnded, setLiveEnded] = useState(false);
+  const canJoin = liveEnded
+    ? canJoinLive
+    : (joinBehavior === 'asap' && canJoinAsap) ||
+      (joinBehavior === 'live' && canJoinLive);
   const onError = useEffectEvent(props.onError ?? (() => {}));
+
+  useEffect(() => {
+    if (!call || callingState !== CallingState.LEFT) return;
+    if (endedAt || canJoinLive) return;
+    // Stop Live took this viewer out of the call. Watch the call again and
+    // rejoin only at the next Go Live.
+    setLiveEnded(true);
+    call.get().catch((e) => {
+      console.error('Failed to fetch call', e);
+      onError(e);
+    });
+  }, [call, callingState, endedAt, canJoinLive]);
 
   useEffect(() => {
     if (call && call.state.callingState === CallingState.IDLE && canJoin) {
