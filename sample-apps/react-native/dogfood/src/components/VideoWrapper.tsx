@@ -14,6 +14,7 @@ import axios, { AxiosResponseTransformer } from 'axios';
 import { Alert } from 'react-native';
 import { useRegisterNonRingingPushToken } from '../hooks/useRegisterNonRingingPushToken';
 import { useEncryptedDeepLinkEffect } from '../hooks/useDeepLinkEffect';
+import { ignoreRingEventsFromWebSocketForE2EUser } from '../utils/ignoreRingEventsFromWebSocket';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
@@ -90,6 +91,8 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
             : undefined,
         },
       });
+
+      ignoreRingEventsFromWebSocketForE2EUser(_videoClient, user.id);
 
       unsubscribeCallRejected = _videoClient?.on(
         'call.rejected',

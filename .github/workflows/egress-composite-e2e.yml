@@ -11,10 +11,6 @@ on:
       - 'packages/react-sdk/**'
       - 'packages/styling/**'
       - 'packages/react-bindings/**'
-env:
-  VITE_STREAM_API_KEY: ${{ vars.EGRESS_STREAM_API_KEY }}
-  VITE_STREAM_USER_TOKEN: ${{ secrets.EGRESS_USER_TOKEN }}
-
 permissions:
   contents: read
 

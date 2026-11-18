@@ -23,8 +23,8 @@ export const useWatchChannel = ({
     let cancelled = false;
 
     ch.watch()
-      .then(() => {
-        if (!cancelled) setChannel(ch);
+      .then((watched) => {
+        if (!cancelled) setChannel(watched);
       })
       .catch((err) => {
         console.warn('Failed to watch chat channel', err);

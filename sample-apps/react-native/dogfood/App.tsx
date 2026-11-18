@@ -34,6 +34,7 @@ import { LiveStream } from './src/navigators/Livestream';
 import { StreamTheme, useCalls } from '@stream-io/video-react-native-sdk';
 import Toast from 'react-native-toast-message';
 import { TestRecording } from './src/navigators/TestRecording';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
@@ -159,7 +160,9 @@ const StackNavigator = () => {
         <VideoWrapper>
           <RingingWatcher />
           <ChatWrapper>
-            <Stack.Navigator>{mode}</Stack.Navigator>
+            <BottomSheetModalProvider>
+              <Stack.Navigator>{mode}</Stack.Navigator>
+            </BottomSheetModalProvider>
             <Toast />
           </ChatWrapper>
         </VideoWrapper>

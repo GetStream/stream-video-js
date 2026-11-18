@@ -1,11 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import {
-  OwnUserResponse,
-  StreamChat,
-  TokenOrProvider,
-  UserResponse,
-} from 'stream-chat';
+import { ClientUser, StreamChat, TokenOrProvider } from 'stream-chat';
 import { useAppEnvironment } from '../context/AppEnvironmentContext';
 
 export const useCreateStreamChatClient = ({
@@ -14,7 +9,7 @@ export const useCreateStreamChatClient = ({
   tokenOrProvider,
 }: {
   apiKey: string | undefined;
-  userData: OwnUserResponse | UserResponse;
+  userData: ClientUser;
   tokenOrProvider: TokenOrProvider;
 }) => {
   const [chatClient, setChatClient] = useState<StreamChat | null>(null);
@@ -27,7 +22,7 @@ export const useCreateStreamChatClient = ({
     if (disableChat || !apiKey) return;
 
     const client = new StreamChat(apiKey, {
-      timeout: 5000,
+      client: { axiosRequestConfig: { timeout: 5000 } },
     });
     client.appIdentifier = { name: environment };
 

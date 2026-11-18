@@ -62,7 +62,7 @@ export type Theme = {
   callContent?: Partial<{
     container: ViewStyle;
     callParticipantsContainer: ViewStyle;
-    topContainer: ViewStyle;
+    floatingViewContainer: ViewStyle;
   }>;
   callControls: Partial<{ container: ViewStyle }>;
 
@@ -923,6 +923,12 @@ export const resolveTheme = (
       },
       textHighlight: {
         color: theme.semantics.textTertiary,
+      },
+    },
+    callContent: {
+      floatingViewContainer: {
+        paddingTop: theme.foundations.spacing.space16,
+        paddingBottom: theme.foundations.spacing.space16,
       },
     },
     videoRenderer: {

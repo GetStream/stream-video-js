@@ -1,3 +1,7 @@
+import { execFile } from 'child_process';
+import { join } from 'path';
+import { promisify } from 'util';
+
 import { Robot } from './Robot';
 
 /**
@@ -89,6 +93,31 @@ export class ParticipantRobot extends Robot {
         ...this.debugParams(),
       }),
     );
+  }
+
+  /**
+   * Rings the user, then disappears without hanging up, as if the caller's app was killed. Only
+   * the user's own ring timeout can end that call. Doesn't use stream-video-buddy: its browser
+   * would hang up on its own after the call type's `auto_cancel_timeout_ms`.
+   *
+   * @param byPush waits until the user's app has registered for push before ringing, for a ring
+   * that must arrive by push.
+   */
+  ringUserAndDisappear(userId: string, { byPush = false } = {}): this {
+    return this.perform(async () => {
+      const script = join(__dirname, '../support/ringAndDisappear.mjs');
+      const args = byPush ? [userId, '--wait-for-push-device'] : [userId];
+      try {
+        await promisify(execFile)(process.execPath, [script, ...args], {
+          timeout: 90_000,
+        });
+      } catch (error) {
+        const { stderr } = error as { stderr?: string };
+        throw new Error(
+          `Could not ring ${userId}: ${stderr?.trim() || String(error)}`,
+        );
+      }
+    });
   }
 
   private debugParams = () => ({

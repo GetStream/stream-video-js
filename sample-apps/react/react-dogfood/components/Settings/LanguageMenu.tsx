@@ -39,8 +39,8 @@ export const LanguageMenu = ({
     <DropDownSelect
       key={language}
       icon="language"
-      defaultSelectedIndex={index}
-      defaultSelectedLabel={LANGUAGES[language]}
+      selectedIndex={index}
+      selectedLabel={LANGUAGES[language]}
       handleSelect={handleSelect}
     >
       {languages.map(([lngCode, languageName]) => (

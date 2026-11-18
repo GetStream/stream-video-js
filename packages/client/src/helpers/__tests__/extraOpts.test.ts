@@ -75,6 +75,28 @@ describe('getCallExtraOpts', () => {
     expect(extraOpts.noise_cancellation).toBeUndefined();
   });
 
+  it('reads resume_after_interruption for audio and video', () => {
+    const extraOpts = getCallExtraOpts(
+      withExtraOpts({
+        audio: { resume_after_interruption: true },
+        video: { resume_after_interruption: false },
+      }),
+    );
+    expect(extraOpts.audio?.resume_after_interruption).toBe(true);
+    expect(extraOpts.video?.resume_after_interruption).toBe(false);
+  });
+
+  it('drops a resume_after_interruption of an unexpected type', () => {
+    const extraOpts = getCallExtraOpts(
+      withExtraOpts({
+        audio: { resume_after_interruption: 'true' },
+        video: 'yes',
+      }),
+    );
+    expect(extraOpts.audio?.resume_after_interruption).toBeUndefined();
+    expect(extraOpts.video).toBeUndefined();
+  });
+
   it('normalizes the noise cancellation engine', () => {
     const engineOf = (engine: unknown) =>
       getCallExtraOpts(withExtraOpts({ noise_cancellation: { engine } }))
