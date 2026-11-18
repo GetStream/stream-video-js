@@ -13,6 +13,8 @@ import {
   LivestreamLayoutProps,
   StreamCall,
 } from '../../core';
+import { Button } from '../../components';
+import { useI18n } from '../../i18n';
 
 export type LivestreamPlayerProps = {
   /**
@@ -45,6 +47,7 @@ export type LivestreamPlayerProps = {
   backstageProps?: BackstageLayoutProps;
   /**
    * Callback to handle errors while fetching or joining livestream.
+   * The player also shows an error view with a retry action.
    */
   onError?: (error: any) => void;
 };
@@ -55,7 +58,13 @@ export const LivestreamPlayer = (
   const { callType, callId, children, ...restProps } = props;
   const client = useStreamVideoClient();
   const [call, setCall] = useState<Call>();
-  const onError = useEffectEvent(props.onError ?? (() => {}));
+  const [error, setError] = useState<unknown>();
+  const [attempt, setAttempt] = useState(0);
+  const reportError = (e: unknown) => {
+    setError(e);
+    props.onError?.(e);
+  };
+  const onError = useEffectEvent(reportError);
 
   useEffect(() => {
     if (!client) return;
@@ -70,8 +79,9 @@ export const LivestreamPlayer = (
         console.error('Failed to leave call', e);
       });
       setCall(undefined);
+      setError(undefined);
     };
-  }, [callId, callType, client]);
+  }, [callId, callType, client, attempt]);
 
   if (!call) {
     return null;
@@ -79,7 +89,11 @@ export const LivestreamPlayer = (
 
   return (
     <StreamCall call={call}>
-      <LivestreamCall {...restProps} />
+      {error ? (
+        <LivestreamError onRetry={() => setAttempt((a) => a + 1)} />
+      ) : (
+        <LivestreamCall {...restProps} onError={reportError} />
+      )}
       {children}
     </StreamCall>
   );
@@ -103,6 +117,25 @@ const LivestreamCall = (props: {
   }
 
   return <BackstageLayout {...props.backstageProps} />;
+};
+
+const LivestreamError = (props: { onRetry: () => void }) => {
+  const { t } = useI18n();
+  return (
+    <div className="str-video__livestream-layout__wrapper">
+      <div className="str-video__livestream-layout__backstage">
+        <span className="str-video__livestream-layout__error">
+          {t(
+            'livestream.player.loadFailed.text',
+            'The livestream could not be loaded',
+          )}
+        </span>
+        <Button onClick={props.onRetry}>
+          {t('livestream.player.retry.label', 'Try again')}
+        </Button>
+      </div>
+    </div>
+  );
 };
 
 const useLivestreamCall = (props: {
