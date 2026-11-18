@@ -225,12 +225,5 @@
   "videoEffects.toggle.title": "Efectos de video",
   "videoEffects.toggle.unsupported.title": "Los efectos de video no son compatibles con este dispositivo",
   "videoEffects.unsupportedBrowser.description": "Los filtros de video solo están disponibles en navegadores de escritorio modernos",
-  "videoEffects.unsupportedBrowser.title": "Navegador no compatible",
-  "visionAgent.askAgent.label": "Preguntar al agente de IA",
-  "visionAgent.inviting.label": "Invitando…",
-  "visionAgent.removeAgent.label": "Quitar agente",
-  "visionAgent.removing.label": "Quitando…",
-  "visionAgent.status.buildYourOwn.label": "Crea tu propio agente de IA",
-  "visionAgent.status.inCall.text": "Agente de IA en la llamada",
-  "visionAgent.status.poweredBy.text": "Con tecnología de Vision Agents"
+  "videoEffects.unsupportedBrowser.title": "Navegador no compatible"
 }
