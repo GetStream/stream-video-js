@@ -5,8 +5,8 @@ import {
   GenericMenu,
   GenericMenuButtonItem,
   Icon,
-  useCallStateHooks,
   useMenuContext,
+  useHasOngoingScreenShare,
 } from '@stream-io/video-react-sdk';
 import { LayoutMap } from '../hooks';
 import { useAppI18n } from '../hooks/useAppI18n';
@@ -137,7 +137,6 @@ const Menu = ({
   selectedLayout,
   visualType = LayoutSelectorType.DROPDOWN,
 }: LayoutSelectorProps) => {
-  const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
 
   const canScreenshare = (key: string) =>

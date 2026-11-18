@@ -4,7 +4,7 @@ import {
   CallStatsReport,
   Icon,
   SfuModels,
-  useCallStateHooks,
+  useCallStatsReport,
 } from '@stream-io/video-react-sdk';
 import { StatCard, StatCardGrid } from '../StatCard';
 import { useAppI18n } from '../../hooks/useAppI18n';
@@ -46,7 +46,6 @@ export const CallStats = (props: CallStatsProps) => {
   const [publishAudioBitrate, setPublishAudioBitrate] = useState('-');
   const [subscribeAudioBitrate, setSubscribeAudioBitrate] = useState('-');
   const previousStats = useRef<CallStatsReport>(undefined);
-  const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
 
   useEffect(() => {

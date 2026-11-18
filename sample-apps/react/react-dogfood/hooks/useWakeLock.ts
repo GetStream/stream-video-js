@@ -1,8 +1,7 @@
-import { CallingState, useCallStateHooks } from '@stream-io/video-react-sdk';
+import { CallingState, useCallCallingState } from '@stream-io/video-react-sdk';
 import { useEffect } from 'react';
 
 export const useWakeLock = () => {
-  const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
 
   useEffect(() => {

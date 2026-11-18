@@ -6,9 +6,17 @@ import {
   humanize,
   Icon,
   Notification,
-  useCallStateHooks,
   WithTooltip,
   TimestampNS,
+  useCallStatsReport,
+  useE2eeEnabled,
+  useParticipants,
+  useParticipantCount,
+  useCallCallingState,
+  useCallSession,
+  useIsCallRecordingInProgress,
+  useIsCallRawRecordingInProgress,
+  useIsCallIndividualRecordingInProgress,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 
@@ -24,7 +32,6 @@ import {
 import { useAppI18n } from '../hooks/useAppI18n';
 
 const LatencyIndicator = () => {
-  const { useCallStatsReport } = useCallStateHooks();
   const statsReport = useCallStatsReport();
   const latency = statsReport?.publisherStats?.averageRoundTripTimeInMs ?? 0;
 
@@ -94,7 +101,6 @@ const RecordingIndicator = () => {
 const E2EEBadge = () => {
   const { t } = useAppI18n();
   const isPronto = useIsProntoEnvironment();
-  const { useE2eeEnabled } = useCallStateHooks();
   const e2eeEnabled = useE2eeEnabled();
   // Compact, always-visible lock chip (the sibling latency/participant-count
   // indicators are hidden below the `sm` breakpoint, so a labelled badge would
@@ -124,7 +130,6 @@ const E2EEBadge = () => {
 };
 
 const ParticipantCountIndicator = () => {
-  const { useParticipants, useParticipantCount } = useCallStateHooks();
   const participants = useParticipants();
   const participantCount = useParticipantCount();
   const count = Math.max(participantCount, participants.length);
@@ -141,13 +146,6 @@ export const ActiveCallHeader = ({
   selectedLayout,
   onMenuItemClick,
 }: { onLeave: () => void } & LayoutSelectorProps) => {
-  const {
-    useCallCallingState,
-    useCallSession,
-    useIsCallRecordingInProgress,
-    useIsCallRawRecordingInProgress,
-    useIsCallIndividualRecordingInProgress,
-  } = useCallStateHooks();
   const isRecordingInProgress = useIsCallRecordingInProgress();
   const isRawRecordingInProgress = useIsCallRawRecordingInProgress();
   const isIndividualRecordingInProgress =

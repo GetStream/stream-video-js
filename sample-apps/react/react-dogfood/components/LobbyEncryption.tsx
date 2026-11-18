@@ -1,8 +1,9 @@
 import { useCallback, useRef, useState } from 'react';
 import {
   Icon,
-  useCallStateHooks,
   useConnectedUser,
+  useCallSettings,
+  useCallCreatedBy,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 
@@ -27,7 +28,6 @@ import { useAppI18n } from '../hooks/useAppI18n';
 export const LobbyEncryption = () => {
   const { t } = useAppI18n();
   const e2ee = useLobbyE2EE();
-  const { useCallSettings, useCallCreatedBy } = useCallStateHooks();
   const settings = useCallSettings();
   const createdBy = useCallCreatedBy();
   const connectedUser = useConnectedUser();
