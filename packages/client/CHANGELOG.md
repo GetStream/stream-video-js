@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.67.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.67.1...@stream-io/video-client-1.67.2) (2026-11-18)
+
+### Bug Fixes
+
+- **client:** wait before treating an empty ICE gathering round as no local candidates ([#2638](https://github.com/GetStream/stream-video-js/issues/2638)) ([d9680db](https://github.com/GetStream/stream-video-js/commit/d9680db82cad87d90ae52bafe3798607337af8ac)), closes [#2637](https://github.com/GetStream/stream-video-js/issues/2637) [#2509](https://github.com/GetStream/stream-video-js/issues/2509) [#2509](https://github.com/GetStream/stream-video-js/issues/2509) [GetStream/react-native-webrtc#79](https://github.com/GetStream/react-native-webrtc/issues/79)
+
 ## [1.67.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.67.0...@stream-io/video-client-1.67.1) (2026-11-13)
 
 ### Bug Fixes
