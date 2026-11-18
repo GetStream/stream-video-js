@@ -1078,20 +1078,50 @@ describe('Call reconnect wiring (PC event → leave)', () => {
       publisher['onIceGatherChange']();
     };
 
+    const GRACE_MS = 2000;
+
     beforeEach(() => {
+      vi.useFakeTimers();
       sfuClient.iceTrickle = vi.fn().mockResolvedValue(undefined);
     });
 
-    it('reports a gathering round without candidates', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('reports a gathering round without candidates after the grace period', () => {
       const onNoLocalCandidates = vi.fn();
       const publisher = makePublisher(onNoLocalCandidates);
 
       gather(publisher, []);
+      vi.advanceTimersByTime(GRACE_MS - 1);
+      expect(onNoLocalCandidates).not.toHaveBeenCalled();
+      expect(publisher.hasNoLocalCandidates()).toBe(false);
 
+      vi.advanceTimersByTime(1);
       expect(onNoLocalCandidates).toHaveBeenCalledWith(
         PeerType.PUBLISHER_UNSPECIFIED,
       );
       expect(publisher.hasNoLocalCandidates()).toBe(true);
+    });
+
+    it('does not report when candidates arrive after a premature complete', () => {
+      const onNoLocalCandidates = vi.fn();
+      const publisher = makePublisher(onNoLocalCandidates);
+
+      gather(publisher, []);
+      vi.advanceTimersByTime(100);
+      publisher['onIceCandidate']({
+        candidate: {
+          candidate: 'candidate:1 1 udp 2122260223 10.0.0.1 50000 typ host',
+          sdpMid: '0',
+          sdpMLineIndex: 0,
+        },
+      } as unknown as RTCPeerConnectionIceEvent);
+      vi.advanceTimersByTime(GRACE_MS);
+
+      expect(onNoLocalCandidates).not.toHaveBeenCalled();
+      expect(publisher.hasNoLocalCandidates()).toBe(false);
     });
 
     it('does not report a round that gathered a candidate', () => {
@@ -1099,9 +1129,11 @@ describe('Call reconnect wiring (PC event → leave)', () => {
       const publisher = makePublisher(onNoLocalCandidates);
 
       gather(publisher, []);
+      vi.advanceTimersByTime(GRACE_MS);
       gather(publisher, [
         'candidate:1 1 udp 2122260223 10.0.0.1 50000 typ host',
       ]);
+      vi.advanceTimersByTime(GRACE_MS);
 
       expect(onNoLocalCandidates).toHaveBeenCalledTimes(1);
       expect(publisher.hasNoLocalCandidates()).toBe(false);
@@ -1115,6 +1147,7 @@ describe('Call reconnect wiring (PC event → leave)', () => {
       publisher['onIceConnectionStateChange']();
 
       gather(publisher, []);
+      vi.advanceTimersByTime(GRACE_MS);
 
       expect(onNoLocalCandidates).not.toHaveBeenCalled();
     });
@@ -1125,6 +1158,18 @@ describe('Call reconnect wiring (PC event → leave)', () => {
       await publisher.dispose();
 
       gather(publisher, []);
+      vi.advanceTimersByTime(GRACE_MS);
+
+      expect(onNoLocalCandidates).not.toHaveBeenCalled();
+    });
+
+    it('does not report when disposed during the grace period', async () => {
+      const onNoLocalCandidates = vi.fn();
+      const publisher = makePublisher(onNoLocalCandidates);
+
+      gather(publisher, []);
+      await publisher.dispose();
+      vi.advanceTimersByTime(GRACE_MS);
 
       expect(onNoLocalCandidates).not.toHaveBeenCalled();
     });
