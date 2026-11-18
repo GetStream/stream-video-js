@@ -304,11 +304,13 @@ export abstract class BasePeerConnection {
 
   /**
    * Returns `true` when the latest ICE gathering round completed without
-   * producing a single local candidate.
+   * producing a single local candidate, and none arrived within the grace
+   * period after it.
    */
   hasNoLocalCandidates = () =>
     this.pc.iceGatheringState === 'complete' &&
-    this.localCandidatesGathered === 0;
+    this.localCandidatesGathered === 0 &&
+    !this.noLocalCandidatesTimeout;
 
   /**
    * Checks if the `RTCPeerConnection` is healthy.

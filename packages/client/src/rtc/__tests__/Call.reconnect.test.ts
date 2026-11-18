@@ -1100,6 +1100,7 @@ describe('Call reconnect wiring (PC event → leave)', () => {
       gather(publisher, []);
       vi.advanceTimersByTime(GRACE_MS - 1);
       expect(onNoLocalCandidates).not.toHaveBeenCalled();
+      expect(publisher.hasNoLocalCandidates()).toBe(false);
 
       vi.advanceTimersByTime(1);
       expect(onNoLocalCandidates).toHaveBeenCalledWith(
