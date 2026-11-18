@@ -30,16 +30,6 @@ class StreamCallKeepAliveHeadlessService : Service() {
 
     private var lastStartId = 0
 
-    /**
-     * Call cid of a start that arrived while the previous task still held the task slot. That task
-     * may already be finishing — JS resolved it, the finish callback is not delivered yet — and its
-     * finish must start a task for this call instead of stopping the service.
-     *
-     * Only touched on the main thread: start commands and task-finish callbacks are both delivered
-     * there.
-     */
-    private var pendingTaskCallCid: String? = null
-
     override fun onCreate() {
         super.onCreate()
         headlessTaskManager = HeadlessTaskManager(applicationContext, TAG) { onTaskFinished() }
@@ -107,7 +97,6 @@ class StreamCallKeepAliveHeadlessService : Service() {
     override fun onDestroy() {
         debugLog(TAG, "[keepalive] onDestroy: service destroyed")
         headlessTaskManager.release()
-        pendingTaskCallCid = null
         stopForeground(STOP_FOREGROUND_REMOVE)
         wakeLock?.release()
         wakeLock = null
@@ -120,20 +109,13 @@ class StreamCallKeepAliveHeadlessService : Service() {
         }
         // timeout 0 = no timeout: the JS task holds until the call ends.
         debugLog(TAG, "[keepalive] startKeepAliveTask: starting task for $callCid")
+        // A busy slot queues the start in the manager, which runs it once the current task finishes.
         if (!headlessTaskManager.startHeadlessTask(KeepAliveTask.NAME, data, 0)) {
-            Log.w(TAG, "startKeepAliveTask: task slot busy, starting for $callCid once it finishes")
-            pendingTaskCallCid = callCid
+            debugLog(TAG, "[keepalive] startKeepAliveTask: task slot busy, $callCid starts once it finishes")
         }
     }
 
     private fun onTaskFinished() {
-        val callCid = pendingTaskCallCid
-        if (callCid != null) {
-            debugLog(TAG, "[keepalive] onTaskFinished: restarting the task for pending $callCid")
-            pendingTaskCallCid = null
-            startKeepAliveTask(callCid)
-            return
-        }
         debugLog(TAG, "[keepalive] onTaskFinished: task ended, stopping service (startId=$lastStartId)")
         if (!stopSelfResult(lastStartId)) {
             Log.w(TAG, "onTaskFinished: stop refused (startId=$lastStartId), a newer start is pending")

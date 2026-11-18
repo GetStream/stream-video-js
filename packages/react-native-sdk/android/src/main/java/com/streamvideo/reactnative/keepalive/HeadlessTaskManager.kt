@@ -22,9 +22,10 @@ import java.lang.ref.WeakReference
  * service and the callingx call service, each of which owns its own instance.
  *
  * @param tag log tag, so each host's task logs stay distinguishable.
- * @param onTaskFinished invoked after the active task finishes, unless the manager is being
- *   released. The hosting service uses it to re-evaluate whether it still has a reason to run: a
- *   service started only to run the task has nothing else that would ever stop it.
+ * @param onTaskFinished invoked when the active task finishes and no start is queued behind it, so
+ *   the slot is left idle; not invoked while the manager is being released. The hosting service
+ *   uses it to re-evaluate whether it still has a reason to run: a service started only to run the
+ *   task has nothing else that would ever stop it.
  */
 class HeadlessTaskManager(
         private val context: Context,
@@ -42,9 +43,16 @@ class HeadlessTaskManager(
     class Active(val id: Int, val context: WeakReference<ReactContext>) : TaskState
   }
 
-  /** Guards [state] so an inspection and the replacement that follows it cannot interleave. */
+  private class QueuedTask(val taskName: String, val data: Bundle, val timeout: Long)
+
+  /**
+   * Guards [state] and [queuedTask] so an inspection and the replacement that follows it cannot
+   * interleave.
+   */
   private val stateLock = Any()
   private var state: TaskState = TaskState.None
+
+  private var queuedTask: QueuedTask? = null
   private var pendingReactInstanceListener: ReactInstanceEventListener? = null
   @Volatile
   private var released: Boolean = false
@@ -112,40 +120,62 @@ class HeadlessTaskManager(
             tag,
             "[headless] ensureReactContext: booting React context via keep-alive headless task"
     )
-    startHeadlessTask(taskName, data, 0)
+    // Not queued: this task only boots React Native, and a task already starting does that too.
+    requestStart(taskName, data, 0, queueIfBusy = false)
   }
 
   /**
-   * @return false when the request was ignored because our task is already starting or active.
-   *   That task may be about to finish (JS resolved it, the finish callback is not delivered yet),
-   *   so a host that needs a task for this request has to start again after [onTaskFinished].
+   * Starts the task, or queues it when our task is already starting or active: that task may be
+   * about to finish (JS resolved it, the finish callback is not delivered yet), and the queued start
+   * runs once it has. A later start replaces a queued one.
+   *
+   * @return true when the task was started, false when it was queued.
    */
-  public fun startHeadlessTask(taskName: String, data: Bundle, timeout: Long): Boolean {
+  public fun startHeadlessTask(taskName: String, data: Bundle, timeout: Long): Boolean =
+          requestStart(taskName, data, timeout, queueIfBusy = true)
+
+  private fun requestStart(
+          taskName: String,
+          data: Bundle,
+          timeout: Long,
+          queueIfBusy: Boolean,
+  ): Boolean {
     debugLog(
             tag,
             "[headless] startHeadlessTask: task=$taskName backend=${data.getString(KeepAliveTask.EXTRA_BACKEND)} state=${state::class.simpleName}"
     )
     synchronized(stateLock) {
       if (state is TaskState.Starting || liveTaskId() != null) {
-        debugLog(
-                tag,
-                "[headless] startHeadlessTask: Task already starting or active, ignoring new task request"
-        )
+        if (queueIfBusy) {
+          queuedTask = QueuedTask(taskName, data, timeout)
+          debugLog(
+                  tag,
+                  "[headless] startHeadlessTask: Task already starting or active, queued until it finishes"
+          )
+        } else {
+          debugLog(
+                  tag,
+                  "[headless] startHeadlessTask: Task already starting or active, ignoring new task request"
+          )
+        }
         return false
       }
       state = TaskState.Starting
+      // This start supersedes a queued one, e.g. one left behind by a task abandoned with its React
+      // context, whose finish never arrives.
+      queuedTask = null
     }
 
-    if (UiThreadUtil.isOnUiThread()) {
-      startTask(HeadlessJsTaskConfig(taskName, Arguments.fromBundle(data), timeout, true))
-    } else {
-      UiThreadUtil.runOnUiThread(
-              Runnable {
-                startTask(HeadlessJsTaskConfig(taskName, Arguments.fromBundle(data), timeout, true))
-              }
-      )
-    }
+    scheduleStart(HeadlessJsTaskConfig(taskName, Arguments.fromBundle(data), timeout, true))
     return true
+  }
+
+  private fun scheduleStart(taskConfig: HeadlessJsTaskConfig) {
+    if (UiThreadUtil.isOnUiThread()) {
+      startTask(taskConfig)
+    } else {
+      UiThreadUtil.runOnUiThread(Runnable { startTask(taskConfig) })
+    }
   }
 
   public fun stopHeadlessTask() {
@@ -207,7 +237,10 @@ class HeadlessTaskManager(
     released = true
     stopHeadlessTask()
     // Give up the slot synchronously: a Starting state would otherwise outlive the service.
-    synchronized(stateLock) { state = TaskState.None }
+    synchronized(stateLock) {
+      state = TaskState.None
+      queuedTask = null
+    }
     // Proactively unregister the pending React-context init listener. Otherwise the callback
     // would fire after the hosting service is destroyed, invokeStartTask a stale task on this
     // dead manager, and register `this` as a task listener on the live ReactContext (leak).
@@ -254,8 +287,20 @@ class HeadlessTaskManager(
       debugLog(tag, "[headless] onHeadlessJsTaskFinish: IGNORED foreign taskId=$taskId")
       return
     }
+    // Taking the queued start and claiming the slot for it in one step, so no other start can take
+    // the slot in between and the host never sees it idle.
+    val next = synchronized(stateLock) {
+      val queued = queuedTask
+      queuedTask = null
+      state = if (queued != null) TaskState.Starting else TaskState.None
+      queued
+    }
+    if (next != null) {
+      debugLog(tag, "[headless] onHeadlessJsTaskFinish: Task finished: $taskId, starting the queued task")
+      scheduleStart(HeadlessJsTaskConfig(next.taskName, Arguments.fromBundle(next.data), next.timeout, true))
+      return
+    }
     debugLog(tag, "[headless] onHeadlessJsTaskFinish: Task finished: $taskId, slot released")
-    synchronized(stateLock) { state = TaskState.None }
     onTaskFinished()
   }
 
