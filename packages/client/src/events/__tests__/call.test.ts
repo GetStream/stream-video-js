@@ -135,6 +135,28 @@ describe('Call lifecycle events', () => {
       expect(call.leave).not.toHaveBeenCalled();
       expect(call.state.backstage).toBe(true);
     });
+
+    it('will leave without setting endedAt if live ended and has no backstage permission', async () => {
+      const call = fakeCall();
+      call.state.setBackstage(false);
+      vi.spyOn(call, 'leave').mockImplementation(async () => {
+        console.log(`TEST: leave() called`);
+      });
+
+      watchSfuCallEnded(call);
+      const event: SfuEvent = {
+        eventPayload: {
+          oneofKind: 'callEnded',
+          callEnded: { reason: CallEndedReason.LIVE_ENDED },
+        },
+      };
+      // @ts-expect-error type issue
+      call['dispatcher'].dispatch(event);
+
+      expect(call.leave).toHaveBeenCalled();
+      expect(call.state.backstage).toBe(true);
+      expect(call.state.endedAt).toBeUndefined();
+    });
   });
 
   describe('call.leave', () => {

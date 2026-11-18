@@ -44,11 +44,14 @@ export const watchSfuCallEnded = (call: Call) => {
         // don't leave the call if the user has permission to join backstage
         const { hasPermission } = call.permissionsContext;
         if (hasPermission(OwnCapability.JOIN_BACKSTAGE)) return;
+      } else {
+        // `call.ended` event arrived after the call is already left
+        // and all event handlers are detached. We need to manually
+        // update the call state to reflect the call has ended.
+        // Stop Live (LIVE_ENDED) is not the end of the call, so it
+        // leaves `endedAt` untouched.
+        call.state.setEndedAt(new Date());
       }
-      // `call.ended` event arrived after the call is already left
-      // and all event handlers are detached. We need to manually
-      // update the call state to reflect the call has ended.
-      call.state.setEndedAt(new Date());
       const reason = CallEndedReason[e.reason];
       globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
       call.clientEventReporter.abort(call.cid, {
