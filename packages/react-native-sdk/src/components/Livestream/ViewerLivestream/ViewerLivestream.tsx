@@ -15,7 +15,11 @@ import {
   FloatingParticipantView as DefaultFloatingParticipantView,
   type FloatingParticipantViewProps,
 } from '../../Participant';
-import { CallingState, hasVideo } from '@stream-io/video-client';
+import {
+  CallingState,
+  hasVideo,
+  videoLoggerSystem,
+} from '@stream-io/video-client';
 import { CallEndedView } from '../LivestreamPlayer/LivestreamEnded';
 import { ViewerLobby } from './ViewerLobby';
 import {
@@ -24,6 +28,7 @@ import {
 } from './ViewerStatusPanel';
 import { Z_INDEX } from '../../../constants';
 import { ViewerLivestreamOverlay } from './ViewerLivestreamOverlay';
+import { useIsLivestreamPaused } from './useIsLivestreamPaused';
 import type { Insets } from '../../../theme/types';
 
 /**
@@ -109,17 +114,32 @@ export const ViewerLivestream = ({
 
   const [topViewHeight, setTopViewHeight] = React.useState<number>();
 
+  const isPaused = useIsLivestreamPaused();
+
   useEffect(() => {
-    if (callingState === CallingState.LEFT) {
+    // Stop Live is not the viewer leaving: they rejoin once it is live again
+    if (callingState === CallingState.LEFT && !isPaused) {
       setHasLeft(true);
     }
-  }, [callingState]);
+  }, [callingState, isPaused]);
+
+  useEffect(() => {
+    if (!call || callingState !== CallingState.LEFT) return;
+    if (!isPaused || endedAt) return;
+    // Stop Live took this viewer out of the call. Watch the call again so
+    // the next Go Live reaches it.
+    call.get().catch((error) => {
+      const logger = videoLoggerSystem.getLogger('ViewerLivestream');
+      logger.error('Failed to fetch call', error);
+    });
+  }, [call, callingState, isPaused, endedAt]);
 
   useEffect(() => {
     const canJoinAsap = canJoinLive || canJoinEarly || canJoinBackstage;
     const join = joinBehavior ?? 'asap';
-    const canJoin =
-      (join === 'asap' && canJoinAsap) || (join === 'live' && canJoinLive);
+    const canJoin = isPaused
+      ? canJoinLive
+      : (join === 'asap' && canJoinAsap) || (join === 'live' && canJoinLive);
 
     if (call && callingState === CallingState.IDLE && canJoin && !hasLeft) {
       call.join().catch((error) => {
@@ -134,6 +154,7 @@ export const ViewerLivestream = ({
     joinBehavior,
     callingState,
     hasLeft,
+    isPaused,
   ]);
 
   if (endedAt != null) {
