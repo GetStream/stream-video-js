@@ -220,8 +220,8 @@ describe('joinCallingxCall handle (iOS Recents call-back target)', () => {
     } = require('../../src/utils/internal/callingx/callingx');
     const call = makeCall({ isCreatedByMe: true, currentUserId: 'me' });
     await joinCallingxCall(call, [], () => false);
-    expect(mockCallingxModule.startCall.mock.calls[0][1]).toBe(
-      'default:target',
-    );
+    // the mock is typed with the cid only; the handle is the second argument
+    const [, handle] = mockCallingxModule.startCall.mock.calls[0] as unknown[];
+    expect(handle).toBe('default:target');
   });
 });
