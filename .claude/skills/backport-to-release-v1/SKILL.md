@@ -30,11 +30,16 @@ Do not re-derive these; they are easy to get wrong.
 ### 1. Read the queue
 
 ```bash
-gh pr list --label backport-v1 --state merged --json number,title,author,mergeCommit,mergedAt \
+gh pr list --label backport-v1 --state merged --limit 200 \
+  --json number,title,author,mergeCommit,mergedAt \
   --jq 'sort_by(.mergedAt)[] | "\(.mergeCommit.oid[0:9])  #\(.number)  \(.title)"'
 ```
 
-Only merged PRs can be picked. Pick in merge order so the changelog reads sanely.
+`gh pr list` returns 30 PRs unless `--limit` says otherwise, and sorts only what it returned,
+so always pass the limit. If the list comes back with exactly 200 entries, raise it.
+
+Only merged PRs can be picked. Pick in merge order so the changelog reads sanely. This step only
+reads: nothing is picked until step 3, inside the backport worktree.
 
 Two checks per entry before you pick it: how it was merged, and whether it already landed.
 
@@ -50,19 +55,14 @@ git log -1 --format=%s "$sha"    # ends in "(#<original-pr>)" = squash-merged
 - **Squash-merged** (the normal case): `$sha` is the whole PR. Pick that one commit.
 - **Rebase-merged** (subject has no `(#N)` suffix, GitHub does not add one): the PR landed as
   several rewritten commits ending at `$sha`. `gh pr view --json commits` lists the PR _branch_
-  SHAs, not the ones on `main`, so do not pick those. `main` is linear, so take the last N
-  commits of `main` ending at `$sha`, check their subjects against the PR's commits, and pick
-  them in **one** invocation:
+  SHAs, not the ones on `main`, so do not pick those. `main` is linear, so the PR is the last N
+  commits of `main` ending at `$sha`. Check their subjects against the PR's commits now, and
+  note them for step 3:
 
   ```bash
   n=$(gh pr view <original-pr> --json commits --jq '.commits | length')
   git log --reverse --format='%h %s' -n "$n" "$sha"     # must match the PR's commits
-  git cherry-pick -x $(git rev-list --reverse -n "$n" "$sha")
   ```
-
-  One `git cherry-pick` call lets Git's sequencer track the remaining commits, so after a
-  conflict `git cherry-pick --continue` resumes the rest. Piping SHAs through `xargs -n1` runs
-  separate picks: the ones after a conflict fail and nothing remembers them.
 
 **Whether it already landed.**
 
@@ -81,7 +81,12 @@ The main checkout usually has unrelated work in progress, so use a worktree.
 ```bash
 git fetch origin
 git worktree add .claude/worktrees/backport-v1 -b backport/v1-$(date +%F) origin/release-v1
+cd .claude/worktrees/backport-v1
 ```
+
+`git worktree add` doesn't change directory. Every later step (picks, verify, push) runs from
+the worktree root; check with `git branch --show-current` before picking, since a pick in the
+main checkout lands on whatever branch is checked out there.
 
 A worktree here has no yarn install state of its own. Module lookup walks up to the main
 checkout's root `node_modules`, whose `@stream-io/*` links point at the **main checkout's**
@@ -107,9 +112,18 @@ worktree when the round is done: `git worktree remove .claude/worktrees/backport
 
 ### 3. Cherry-pick
 
+From the backport worktree, pick every queued PR in merge order in **one** invocation:
+
 ```bash
-git cherry-pick -x <squash-sha>
+git cherry-pick -x <squash-sha-a> <squash-sha-b> ...
 ```
+
+For a rebase-merged PR (step 1), list its N commits in place of a single SHA:
+`$(git rev-list --reverse -n "$n" "$sha")`.
+
+One `git cherry-pick` call lets Git's sequencer track the remaining commits, so after a
+conflict `git cherry-pick --continue` resumes the rest. Piping SHAs through `xargs -n1` runs
+separate picks: the ones after a conflict fail and nothing remembers them.
 
 `-x` is what satisfies both requirements at once:
 
@@ -160,9 +174,13 @@ change, and in JSX Git can align the hunk on the inner lines of two different el
 itself changed and re-apply only that onto v1's version:
 
 ```bash
-git show --format='' <squash-sha> -- <file>          # the PR's own change
-diff <(git show origin/release-v1:<file>) <file>     # after resolving: must equal the above
+git show --format='' <squash-sha> -- <file>   # the PR's own change
+git diff HEAD -- <file>                       # your resolution: must equal the above
 ```
+
+Compare against `HEAD`, the branch as it was before this pick, not against `release-v1`: when
+an earlier pick in the same round touched the file, a diff from `release-v1` includes that pick
+too. The only differences left should be the adaptation, recorded in the note.
 
 Take `main`'s version of a file only when the PR rewrote most of it, and say so in the note.
 
@@ -171,7 +189,7 @@ Take `main`'s version of a file only when the PR rewrote most of it, and say so 
 fails at runtime (`ReferenceError: VideoApi is not defined`). After the picks:
 
 ```bash
-git grep -nwE 'ClientState|clientState|VideoApi|ApiClient|TimestampNS|dateToNs' \
+git grep -nwE 'ClientState|clientState|VideoApi|videoApi|ApiClient|TimestampNS|dateToNs' \
   -- packages sample-apps ':!packages/client/src/gen'   # must be empty on v1
 ```
 

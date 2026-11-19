@@ -56,9 +56,11 @@ subject="$(head -1 "$old_msg")"
 { printf 'amend! %s\n\n' "$subject"; cat "$new_msg"; } >"$fixup_msg"
 
 tree_before="$(git rev-parse 'HEAD^{tree}')"
-git commit -q --allow-empty --fixup="reword:$commit"
+# --fixup=reword opens an editor for its template; the next command replaces that message, so
+# skip the editor rather than block on it (or fail without one). Same for the rebase.
+GIT_EDITOR=true git commit -q --allow-empty --fixup="reword:$commit"
 git commit -q --amend --allow-empty -F "$fixup_msg"
-GIT_SEQUENCE_EDITOR=true git rebase -q -i --autosquash "$commit^"
+GIT_EDITOR=true GIT_SEQUENCE_EDITOR=true git rebase -q -i --autosquash "$commit^"
 
 # the rebase must have changed nothing but that one message
 [ "$(git rev-parse 'HEAD^{tree}')" = "$tree_before" ] || die "the code changed during the rebase; inspect the branch"

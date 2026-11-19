@@ -35,13 +35,21 @@ fail=0
 
 say() { printf '\n== %s\n' "$*"; }
 
-# 1. baseline worktree at the current release-v1 tip
-git fetch -q origin release-v1
+# 1. baseline worktree at the current release-v1 tip. A stale baseline would compare the branch
+# against the wrong code, so any failure here stops the run.
+die() { echo "verify: $*" >&2; exit 2; }
+git fetch -q origin release-v1 || die "can't fetch origin/release-v1"
 if [ -d "$BASE" ]; then
-  git -C "$BASE" checkout -q --detach origin/release-v1
+  git -C "$BASE" checkout -q --detach origin/release-v1 \
+    || die "can't move $BASE to origin/release-v1 (local edits there?); discard them or remove the worktree"
 else
-  git worktree add -q --detach "$BASE" origin/release-v1
+  git worktree add -q --detach "$BASE" origin/release-v1 || die "can't create $BASE"
 fi
+[ "$(git -C "$BASE" rev-parse HEAD)" = "$(git rev-parse origin/release-v1)" ] \
+  || die "$BASE is not at origin/release-v1"
+# a checkout carries non-conflicting local edits along, so check the contents too
+[ -z "$(git -C "$BASE" status --porcelain --untracked-files=no)" ] \
+  || die "$BASE has local changes to tracked files; discard them or remove the worktree"
 
 # 2. package-local node_modules from the main checkout
 link_deps() {
@@ -137,9 +145,12 @@ grep -qxF "$WRAPPER" "$EXCLUDE" 2>/dev/null || echo "$WRAPPER" >>"$EXCLUDE"
 typecheck() {
   local tree="$1" rel="$2" out="$3" cfg="$1/$2/$WRAPPER"
   mkcfg "$tree/$rel" "$tree" "$cfg"
+  # Positions are dropped so unrelated line shifts don't count as new errors, but duplicates are
+  # kept: `comm` then matches occurrences one to one, and a second copy of an existing error in
+  # the same file still shows up as new.
   (cd "$tree" && "$BIN/tsc" -p "$cfg" 2>&1) | grep -E 'error TS' \
     | sed -E 's#^\.\./\.\./\.\./#MAIN-CHECKOUT/#; s/\([0-9]+,[0-9]+\)//' \
-    | sort -u >"$out.errs"
+    | sort >"$out.errs"
   rm -f "$cfg"
 }
 
@@ -169,23 +180,68 @@ for rel in $projects; do
 done
 
 # 5. tests
+# Results come from the runners' JSON reports (vitest and jest share the format), never from
+# their console output. results <json> <project-dir> prints one line per failure:
+#   FAIL<TAB><file> > <test>          a failed test
+#   FAIL<TAB><file> > (file failed)   a test file that failed to load or run
+#   SECRET<TAB><file> > (file failed) the same, failing only for want of STREAM_SECRET
+# then a SUMMARY line. It exits 3 when the report is missing or holds no test files: the runner
+# crashed (bad config, missing module) before running anything, which must not read as a pass.
+results() {
+  node - "$1" "$2" <<'NODE'
+const [file, proj] = process.argv.slice(2);
+const fs = require('fs'), path = require('path');
+let r;
+try { r = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { r = undefined; }
+if (!r || !Array.isArray(r.testResults) || r.testResults.length === 0) {
+  console.log('CRASH\tthe runner produced no results (see its log)');
+  process.exit(3);
+}
+for (const t of r.testResults) {
+  const rel = path.relative(proj, t.name);
+  const failed = (t.assertionResults || []).filter((a) => a.status === 'failed');
+  for (const a of failed) console.log(`FAIL\t${rel} > ${a.fullName}`);
+  if (t.status === 'failed' && failed.length === 0) {
+    const secret = /secretOrPrivateKey must have a value/.test(t.message || '');
+    console.log(`${secret ? 'SECRET' : 'FAIL'}\t${rel} > (file failed)`);
+  }
+}
+// counted per file: vitest's numTotalTestSuites counts describe blocks, not files
+const failedFiles = r.testResults.filter((t) => t.status === 'failed').length;
+console.log(`SUMMARY\t${r.numPassedTests}/${r.numTotalTests} tests passed, ` +
+  `${failedFiles}/${r.testResults.length} files failed`);
+NODE
+}
+
+# vitest_run <package-dir> <key>: runs vitest with a JSON report, writes `results` to $TMP/<key>.res
+vitest_run() {
+  local dir="$1" key="$2"
+  (cd "$dir" && "$BIN/vitest" run --reporter=default --reporter=json \
+    --outputFile.json="$TMP/$key.json" >"$TMP/$key.log" 2>&1)
+  results "$TMP/$key.json" "$dir" >"$TMP/$key.res"
+}
+
 if touches packages/client; then
   say "client vitest"
-  out="$(cd "$TREE/packages/client" && "$BIN/vitest" run 2>&1)"
-  printf '%s\n' "$out" | grep -E '^ +(Test Files|Tests) '
-  # Files that cannot load without STREAM_SECRET are expected locally; they run in CI.
-  bad="$(printf '%s\n' "$out" | grep -E '^ FAIL ' | grep -v ' \[ ' || true)"
-  secretless="$(printf '%s\n' "$out" | grep -cE 'secretOrPrivateKey must have a value' || true)"
-  [ -z "$bad" ] || { printf '%s\n' "$bad"; fail=1; }
-  echo "  files that need STREAM_SECRET (expected locally): $secretless"
+  vitest_run "$TREE/packages/client" vclient
+  status=$?
+  grep -E '^(SUMMARY|CRASH)' "$TMP/vclient.res" | cut -f2 | sed 's/^/  /'
+  [ "$status" = 0 ] || fail=1
+  # Test files that fail only for want of STREAM_SECRET are expected locally; they run in CI.
+  # Any other failure, including a test file that fails to load, is the branch's.
+  grep '^FAIL' "$TMP/vclient.res" | cut -f2 | sed 's/^/  NEW: /'
+  grep -q '^FAIL' "$TMP/vclient.res" && fail=1
+  echo "  files that need STREAM_SECRET (expected locally): $(grep -c '^SECRET' "$TMP/vclient.res")"
 fi
 
 if touches packages/audio-filters-web && ls "$TREE"/packages/audio-filters-web/src/__tests__/*.test.ts >/dev/null 2>&1; then
   say "audio-filters-web vitest"
-  out="$(cd "$TREE/packages/audio-filters-web" && "$BIN/vitest" run 2>&1)"
-  printf '%s\n' "$out" | grep -E '^ +(Test Files|Tests) '
-  bad="$(printf '%s\n' "$out" | grep -E '^ FAIL ' || true)"
-  [ -z "$bad" ] || { printf '%s\n' "$bad"; fail=1; }
+  vitest_run "$TREE/packages/audio-filters-web" vafw
+  status=$?
+  grep -E '^(SUMMARY|CRASH)' "$TMP/vafw.res" | cut -f2 | sed 's/^/  /'
+  [ "$status" = 0 ] || fail=1
+  grep -E '^(FAIL|SECRET)' "$TMP/vafw.res" | cut -f2 | sed 's/^/  NEW: /'
+  grep -qE '^(FAIL|SECRET)' "$TMP/vafw.res" && fail=1
 fi
 
 jest_run() {
@@ -209,8 +265,9 @@ fs.writeFileSync(out, `const base = require(${JSON.stringify(path.join(proj, 'je
 module.exports = { ...base, rootDir: ${JSON.stringify(proj)},
   moduleNameMapper: { ...base.moduleNameMapper, ...${JSON.stringify(map)} } };\n`);
 NODE
-  (cd "$tree/$rel" && "$BIN/jest" --ci --config "$out.config.js" 2>&1) \
-    | grep -E '^(PASS|FAIL) |^Tests:|^Test Suites:' | sed -E 's/ \([0-9.]+ s\)//' | sort >"$out.txt"
+  (cd "$tree/$rel" && "$BIN/jest" --ci --config "$out.config.js" \
+    --json --outputFile="$out.json" >"$out.log" 2>&1)
+  results "$out.json" "$tree/$rel" >"$out.res"
 }
 
 jest_projects=""
@@ -223,10 +280,18 @@ if [ -n "${jest_projects// /}" ]; then
   for rel in $jest_projects; do
     say "jest $rel"
     key="${rel//\//_}"
-    [ -f "$BASE/$rel/jest.config.js" ] && jest_run "$BASE" "$rel" "$TMP/jbase-$key" && echo "baseline: $(grep '^Test' "$TMP/jbase-$key.txt" | tr '\n' ' ')"
-    jest_run "$TREE" "$rel" "$TMP/jpick-$key"
-    echo "branch:   $(grep '^Test' "$TMP/jpick-$key.txt" | tr '\n' ' ')"
-    new="$( [ -f "$TMP/jbase-$key.txt" ] && comm -13 <(grep '^FAIL' "$TMP/jbase-$key.txt") <(grep '^FAIL' "$TMP/jpick-$key.txt") || grep '^FAIL' "$TMP/jpick-$key.txt")"
+    : >"$TMP/jbase-$key.res"
+    if [ -f "$BASE/$rel/jest.config.js" ]; then
+      jest_run "$BASE" "$rel" "$TMP/jbase-$key" \
+        || echo "  baseline didn't run (see $TMP/jbase-$key.log); every branch failure counts as new"
+      echo "baseline: $(grep -E '^(SUMMARY|CRASH)' "$TMP/jbase-$key.res" | cut -f2)"
+    fi
+    jest_run "$TREE" "$rel" "$TMP/jpick-$key" || fail=1
+    echo "branch:   $(grep -E '^(SUMMARY|CRASH)' "$TMP/jpick-$key.res" | cut -f2)"
+    # Compare failures by test, not by file: a new failure inside a file that already fails on
+    # the baseline still counts. Test names don't include the tree, so the two sets line up.
+    new="$(comm -13 <(grep -E '^(FAIL|SECRET)' "$TMP/jbase-$key.res" | sort) \
+                    <(grep -E '^(FAIL|SECRET)' "$TMP/jpick-$key.res" | sort) | cut -f2)"
     [ -z "$new" ] || { printf '%s\n' "$new" | sed 's/^/  NEW: /'; fail=1; }
   done
 fi
