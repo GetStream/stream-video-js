@@ -16,6 +16,8 @@ import android.os.IBinder
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
+import com.streamvideo.reactnative.keepalive.HeadlessTaskManager
+import com.streamvideo.reactnative.keepalive.KeepAliveTask
 import androidx.core.content.IntentCompat
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
@@ -52,6 +54,7 @@ class CallService : Service(), CallRepository.Listener {
 
     companion object {
         private const val TAG = "[Callingx] CallService"
+        private const val HEADLESS_TASK_LOG_TAG = "[Callingx] HeadlessTaskManager"
 
         internal const val DEFAULT_DISPLAY_NAME = "Unknown Caller"
 
@@ -256,7 +259,9 @@ class CallService : Service(), CallRepository.Listener {
         // Constructed after callRepository: onTaskFinished reads it, and a task can only finish
         // after onStartCommand has started one.
         headlessJSManager =
-                HeadlessTaskManager(applicationContext) { stopServiceIfIdle(lastStartId) }
+                HeadlessTaskManager(applicationContext, HEADLESS_TASK_LOG_TAG) {
+                    stopServiceIfIdle(lastStartId)
+                }
 
         val filter =
                 IntentFilter().apply {
@@ -323,7 +328,10 @@ class CallService : Service(), CallRepository.Listener {
         when (intent.action) {
             ACTION_INCOMING_CALL -> {
                 registerCall(intent, true)
-                headlessJSManager.ensureReactContext()
+                headlessJSManager.ensureReactContext(
+                        KeepAliveTask.NAME,
+                        KeepAliveTask.data(KeepAliveTask.BACKEND_CALLINGX)
+                )
             }
             ACTION_OUTGOING_CALL -> {
                 registerCall(intent, false)
@@ -513,7 +521,8 @@ class CallService : Service(), CallRepository.Listener {
         val taskName = intent.getStringExtra(EXTRA_TASK_NAME)!!
         val data = intent.getBundleExtra(EXTRA_TASK_DATA)!!
         val timeout = intent.getLongExtra(EXTRA_TASK_TIMEOUT, 0)
-        headlessJSManager.startHeadlessTask(taskName, data, timeout)
+        val started = headlessJSManager.startHeadlessTask(taskName, data, timeout)
+        debugLog(TAG, "[keepalive] startBackgroundTask: started=$started")
     }
 
     private fun registerCall(intent: Intent, incoming: Boolean) {
@@ -645,6 +654,7 @@ class CallService : Service(), CallRepository.Listener {
             return
         }
 
+        debugLog(TAG, "[keepalive] stopServiceIfIdle: idle, stopping service (startId=$startId)")
         if (!stopSelfResult(startId)) {
             Log.w(
                     TAG,

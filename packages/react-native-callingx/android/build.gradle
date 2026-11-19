@@ -66,6 +66,7 @@ kotlin {
 dependencies {
   implementation "com.facebook.react:react-android"
   implementation "androidx.core:core-telecom:1.0.1"
+  implementation project(":stream-io_video-react-native-sdk")
   // Pinned at the MINIMUM version we need, not the latest, so a consumer's own
   // Firebase BOM is respected via Gradle's highest-wins resolution. Callingx only
   // references stable long-lived APIs — FirebaseMessagingService, RemoteMessage,

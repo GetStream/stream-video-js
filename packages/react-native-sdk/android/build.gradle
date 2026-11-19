@@ -45,6 +45,10 @@ android {
     minSdkVersion getExtOrDefault("minSdkVersion")
   }
 
+  buildFeatures {
+    buildConfig true
+  }
+
   buildTypes {
     release {
       minifyEnabled false

@@ -12,18 +12,23 @@ const RING_DATA = {
   type: 'call.ring',
 };
 
-/** Loads the handler with the given client factory. `calls` records the callingx sequence. */
+/**
+ * Loads the handler with the given client factory. `calls` records the callingx and keep-alive
+ * sequence.
+ */
 const setup = (
   createStreamVideoClient: jest.Mock,
   { listenToWS = true, mustEndCall = false } = {},
 ) => {
   const calls: string[] = [];
-  const callingx = {
-    log: jest.fn(),
-    acquireBackgroundTask: jest.fn(),
-    releaseBackgroundTask: jest.fn(() => {
+  const keepAliveController = {
+    acquire: jest.fn(() => Promise.resolve(true)),
+    release: jest.fn(() => {
       calls.push('release');
     }),
+  };
+  const callingx = {
+    log: jest.fn(),
     endCallWithReason: jest.fn(() => {
       calls.push('end');
     }),
@@ -46,6 +51,9 @@ const setup = (
     jest.doMock('../../src/utils/push/libs', () => ({
       getCallingxLib: () => callingx,
       getCallingxLibIfAvailable: () => callingx,
+    }));
+    jest.doMock('../../src/utils/keepCallAliveController', () => ({
+      keepAliveController,
     }));
     jest.doMock('../../src/utils/push/internal/utils', () => ({
       canListenToWS: () => listenToWS,

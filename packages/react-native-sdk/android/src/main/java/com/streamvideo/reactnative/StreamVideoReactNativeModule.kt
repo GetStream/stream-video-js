@@ -27,6 +27,7 @@ import com.oney.WebRTCModule.WebRTCModuleOptions
 import com.streamvideo.reactnative.recorder.TracksRecorderManager
 import com.streamvideo.reactnative.screenshare.ScreenAudioCapture
 import com.streamvideo.reactnative.keepalive.StreamCallKeepAliveHeadlessService
+import com.streamvideo.reactnative.keepalive.debugLog
 import com.streamvideo.reactnative.util.CallAlivePermissionsHelper
 import com.streamvideo.reactnative.util.PiPHelper
 import com.streamvideo.reactnative.util.YuvFrame
@@ -143,6 +144,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
                 smallIconName
             )
             ContextCompat.startForegroundService(reactApplicationContext, intent)
+            debugLog(NAME, "[keepalive] startKeepCallAliveService: start requested for $callCid")
             promise.resolve(true)
         } catch (e: Exception) {
             promise.reject(NAME, "Failed to start keep call alive foreground service", e)
@@ -153,6 +155,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         try {
             val intent = StreamCallKeepAliveHeadlessService.buildStopIntent(reactApplicationContext)
             val stopped = reactApplicationContext.stopService(intent)
+            debugLog(NAME, "[keepalive] stopKeepCallAliveService: stopped=$stopped")
             promise.resolve(stopped)
         } catch (e: Exception) {
             promise.reject(NAME, "Failed to stop keep call alive foreground service", e)
