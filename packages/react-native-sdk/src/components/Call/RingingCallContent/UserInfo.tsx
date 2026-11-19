@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import {
-  useCallStateHooks,
   useConnectedUser,
+  useCallMembers,
 } from '@stream-io/video-react-bindings';
 import { type UserResponse } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -37,7 +37,6 @@ export const UserInfo = ({
   } = useTheme();
   const { t } = useI18n();
   const connectedUser = useConnectedUser();
-  const { useCallMembers } = useCallStateHooks();
   const members = useCallMembers();
 
   // take the first N members to show their avatars

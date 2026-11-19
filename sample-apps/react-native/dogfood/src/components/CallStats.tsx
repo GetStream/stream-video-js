@@ -2,8 +2,8 @@ import {
   AggregatedStatsReport,
   CallStatsReport,
   useCall,
-  useCallStateHooks,
   useTheme,
+  useCallStatsReport,
 } from '@stream-io/video-react-native-sdk';
 import { useAppI18n } from '../hooks/useAppI18n';
 import type { LooseTranslateFunction } from '@stream-io/video-react-native-sdk';
@@ -48,7 +48,6 @@ export const CallStats = (props: CallStatsProps) => {
   const [subscribeAudioBitrate, setSubscribeAudioBitrate] = useState('-');
   const previousStats = useRef<CallStatsReport | undefined>(undefined);
 
-  const { useCallStatsReport } = useCallStateHooks();
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const callStatsReport = useCallStatsReport();
 

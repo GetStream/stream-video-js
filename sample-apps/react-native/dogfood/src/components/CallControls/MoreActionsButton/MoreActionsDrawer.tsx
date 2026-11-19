@@ -2,10 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   OwnCapability,
   useCall,
-  useCallStateHooks,
   useNoiseCancellation,
   useScreenshot,
   useTheme,
+  useIsCallCaptioningInProgress,
+  useHasPermissions,
+  useParticipants,
+  useDominantSpeaker,
 } from '@stream-io/video-react-native-sdk';
 import {
   Alert,
@@ -84,12 +87,6 @@ export const MoreActionsDrawer = ({
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
   const call = useCall();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const {
-    useIsCallCaptioningInProgress,
-    useHasPermissions,
-    useParticipants,
-    useDominantSpeaker,
-  } = useCallStateHooks();
   const isCaptioningInProgress = useIsCallCaptioningInProgress();
   const canToggle = useHasPermissions(
     OwnCapability.START_CLOSED_CAPTIONS_CALL,

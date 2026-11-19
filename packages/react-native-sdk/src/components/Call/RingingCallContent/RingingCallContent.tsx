@@ -1,5 +1,5 @@
 import { CallingState } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import React, { useRef } from 'react';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 import {
@@ -136,7 +136,6 @@ export const RingingCallContent = (props: RingingCallContentProps) => {
   const {
     theme: { ringingCallContent },
   } = useTheme();
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   return (

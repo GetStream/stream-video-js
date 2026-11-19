@@ -11,7 +11,12 @@ import {
   type LoopbackStreams,
 } from '@stream-io/video-client';
 
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallCallingState,
+  useParticipantCount,
+  useLocalParticipant,
+} from '@stream-io/video-react-bindings';
 import NativeStreamVideoReactNative from '../native/NativeStreamVideoReactNative';
 
 export type LoopbackRecordingState = 'idle' | 'awaiting-streams' | 'recording';
@@ -45,8 +50,6 @@ export interface UseLoopbackRecordingResult {
 /** Records SFU loopback streams to a local MP4 file. */
 export function useLoopbackRecording(): UseLoopbackRecordingResult {
   const call = useCall();
-  const { useCallCallingState, useParticipantCount, useLocalParticipant } =
-    useCallStateHooks();
   const callingState = useCallCallingState();
   const participantCount = useParticipantCount();
   const localParticipant = useLocalParticipant();

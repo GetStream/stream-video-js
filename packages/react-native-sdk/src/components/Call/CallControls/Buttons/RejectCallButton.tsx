@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import { CallControlsButton } from './CallControlsButton';
 import { IconWrapper, PhoneDown } from '../../../../icons';
@@ -48,7 +48,6 @@ export const RejectCallButton = ({
   disabled = false,
 }: RejectCallButtonProps) => {
   const call = useCall();
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const {
     theme: { rejectCallButton, semantics, components },

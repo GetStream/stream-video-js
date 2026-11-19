@@ -1,6 +1,9 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useState } from 'react';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useIsCallLive,
+  useIsCallHLSBroadcastingInProgress,
+} from '@stream-io/video-react-bindings';
 import { ControlButtonIcon, Maximize } from '../../../icons';
 import { VolumeOff, VolumeOn } from '../../../icons/LivestreamControls';
 import { useTheme } from '../../../contexts';
@@ -22,8 +25,6 @@ export const ViewerStatusPanel = ({
   setShowControls,
   style,
 }: ViewerStatusPanelProps) => {
-  const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
-    useCallStateHooks();
   const isCallLive = useIsCallLive();
   const isBroadcasting = useIsCallHLSBroadcastingInProgress();
   const liveOrBroadcasting = isCallLive || isBroadcasting;

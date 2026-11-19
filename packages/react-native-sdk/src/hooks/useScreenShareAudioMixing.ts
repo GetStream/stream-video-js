@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { hasScreenShare, videoLoggerSystem } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useLocalParticipant } from '@stream-io/video-react-bindings';
 import { screenShareAudioMixingManager } from '../modules/ScreenShareAudioManager';
 import { NoiseCancellationWrapper } from '../providers/NoiseCancellation/lib';
 
@@ -52,7 +52,6 @@ async function restoreNoiseCancellation() {
  */
 export const useScreenShareAudioMixing = () => {
   const call = useCall();
-  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const isScreenSharing =
     localParticipant != null && hasScreenShare(localParticipant);

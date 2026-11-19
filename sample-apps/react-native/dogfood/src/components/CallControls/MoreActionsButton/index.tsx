@@ -3,10 +3,13 @@ import {
   CallControlsButton,
   OwnCapability,
   useCall,
-  useCallStateHooks,
   useNoiseCancellation,
   useScreenshot,
   useTheme,
+  useIsCallCaptioningInProgress,
+  useHasPermissions,
+  useParticipants,
+  useDominantSpeaker,
 } from '@stream-io/video-react-native-sdk';
 import {
   Alert,
@@ -73,12 +76,6 @@ export const MoreActionsButton = ({
   const [screenshotImage, setScreenshotImage] = useState<string | null>(null);
   const call = useCall();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const {
-    useIsCallCaptioningInProgress,
-    useHasPermissions,
-    useParticipants,
-    useDominantSpeaker,
-  } = useCallStateHooks();
   const isCaptioningInProgress = useIsCallCaptioningInProgress();
   const canToggle = useHasPermissions(
     OwnCapability.START_CLOSED_CAPTIONS_CALL,

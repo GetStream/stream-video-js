@@ -4,7 +4,10 @@ import {
   permissions,
   RTCCameraPreviewView,
 } from '@stream-io/react-native-webrtc';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCameraState,
+  useCallSettings,
+} from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 
 /**
@@ -36,8 +39,6 @@ export const LobbyCameraPreview = ({
   style,
   objectFit = 'cover',
 }: LobbyCameraPreviewProps) => {
-  const { useCameraState, useCallSettings } = useCallStateHooks();
-
   const { optimisticIsMute, direction, selectedDevice } = useCameraState();
   const settings = useCallSettings();
 

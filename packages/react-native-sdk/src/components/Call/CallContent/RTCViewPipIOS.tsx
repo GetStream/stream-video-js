@@ -11,7 +11,11 @@ import {
   hasVideo,
   isPinned,
 } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCameraState,
+  useCallCallingState,
+} from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import React, { useEffect, useCallback, useRef, useState } from 'react';
 import {
@@ -63,7 +67,6 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     onPiPChange,
   } = props;
   const call = useCall();
-  const { useCameraState, useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const { direction } = useCameraState();
 

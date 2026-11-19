@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { humanize } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useParticipantCount } from '@stream-io/video-react-bindings';
 import { Eye } from '../../../icons';
 
 /**
@@ -28,7 +28,6 @@ export const FollowerCount = ({
     theme: { followerCount, components, semantics },
   } = useTheme();
 
-  const { useParticipantCount } = useCallStateHooks();
   const totalParticipants = useParticipantCount();
 
   return (

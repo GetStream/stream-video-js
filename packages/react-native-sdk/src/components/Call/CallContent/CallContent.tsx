@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Platform, StyleProp, StyleSheet, ViewStyle, View } from 'react-native';
 import NativeStreamVideoReactNative from '../../../native/NativeStreamVideoReactNative';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useHasOngoingScreenShare,
+  useLocalParticipant,
+} from '@stream-io/video-react-bindings';
 import { debounceTime } from 'rxjs';
 import {
   CallParticipantsGrid,
@@ -137,7 +141,6 @@ export const CallContent = ({
     theme: { callContent },
   } = useTheme();
   const call = useCall();
-  const { useHasOngoingScreenShare, useLocalParticipant } = useCallStateHooks();
 
   useAutoEnterPiPEffect(disablePictureInPicture);
 
