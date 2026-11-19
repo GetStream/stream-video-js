@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { AxiosResponse } from 'axios';
-import { ApiClient } from '../api-client';
+import { ApiClient, buildRequestMetadata } from '../api-client';
 import { StreamClient } from '../client';
 import { fromPartial } from '@total-typescript/shoehorn';
 
@@ -129,6 +129,37 @@ describe('ApiClient.sendRequest', () => {
 
     expect(result.metadata.rate_limit).toEqual({});
     expect(result.metadata.client_request_id).toBe('');
+  });
+});
+
+describe('buildRequestMetadata', () => {
+  it('reads the retry delay and the limit that refused a rate-limited request', () => {
+    const metadata = buildRequestMetadata(
+      axiosResponse({
+        status: 429,
+        headers: { 'retry-after': '42', 'x-ratelimit-hit-context': 'User' },
+      }),
+    );
+
+    expect(metadata.response_code).toBe(429);
+    expect(metadata.rate_limit).toEqual({
+      retry_after_ms: 42_000,
+      rate_limit_hit_context: 'user',
+    });
+  });
+
+  it('leaves both unset when the headers are missing or not a number of seconds', () => {
+    expect(
+      buildRequestMetadata(axiosResponse({ status: 429 })).rate_limit,
+    ).toEqual({});
+    expect(
+      buildRequestMetadata(
+        axiosResponse({
+          status: 429,
+          headers: { 'retry-after': 'Wed, 18 Nov 2026 12:00:00 GMT' },
+        }),
+      ).rate_limit,
+    ).toEqual({});
   });
 });
 

@@ -2,7 +2,7 @@ import { StreamSfuClient } from './StreamSfuClient';
 import { CallApi } from './gen/coordinator/video/CallApi';
 import type { VideoApi } from './gen/coordinator/video/VideoApi';
 import type { StreamResponse } from './coordinator/connection/api-client';
-import { CallDataRateLimitError, SfuJoinError } from './errors';
+import { SfuJoinError } from './errors';
 import { FastReconnectRejectedError } from './errors/FastReconnectRejectedError';
 import {
   BasePeerConnectionOpts,
@@ -301,7 +301,8 @@ export class Call {
 
   // (10 attempts per rolling 120 s window).
   // Sequence numbers of sent data messages, per topic, for one SFU session.
-  private readonly dataSeq = new Map<string, number>();
+  // Created on the first `sendData` call.
+  private dataSeq?: Map<string, number>;
   private dataSeqSessionId?: string;
 
   private readonly rejoinRateLimiter = new SlidingWindowRateLimiter(10, 120000);
@@ -3488,7 +3489,9 @@ export class Call {
    * and underscores, up to 64 characters.
    * @param data the payload. The encoded request can be at most 8 KB.
    * @returns the sequence number the message was sent with.
-   * @throws CallDataRateLimitError when a rate limit refused the message.
+   * @throws ErrorFromResponse when the server refuses the message. For a rate
+   * limit (`status` 429), `metadata.rate_limit` has `retry_after_ms` and
+   * `rate_limit_hit_context` (`app`, `user` or `call`).
    */
   sendData = async (
     topic: string,
@@ -3498,26 +3501,19 @@ export class Call {
     if (!sessionId) {
       throw new Error('Data can be sent only while joined to the call');
     }
-    if (this.dataSeqSessionId !== sessionId) {
+    if (!this.dataSeq || this.dataSeqSessionId !== sessionId) {
       this.dataSeqSessionId = sessionId;
-      this.dataSeq.clear();
+      this.dataSeq = new Map();
     }
     const seq = (this.dataSeq.get(topic) ?? 0) + 1;
     this.dataSeq.set(topic, seq);
 
-    try {
-      await this.api.sendCallData({
-        topic,
-        seq,
-        user_session_id: sessionId,
-        data,
-      });
-    } catch (err) {
-      if (err instanceof ErrorFromResponse && err.status === 429) {
-        throw new CallDataRateLimitError(topic, seq, err);
-      }
-      throw err;
-    }
+    await this.api.sendCallData({
+      topic,
+      seq,
+      user_session_id: sessionId,
+      data,
+    });
     return { seq };
   };
 

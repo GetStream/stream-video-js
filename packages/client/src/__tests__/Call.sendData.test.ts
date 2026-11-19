@@ -1,16 +1,19 @@
 import { VideoApi } from '../gen/coordinator/video/VideoApi';
-import { ApiClient } from '../coordinator/connection/api-client';
+import {
+  ApiClient,
+  buildRequestMetadata,
+} from '../coordinator/connection/api-client';
 import '../rtc/__tests__/mocks/webrtc.mocks';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
+import type { AxiosResponse } from 'axios';
 import { Call } from '../Call';
 import { StreamClient } from '../coordinator/connection/client';
 import { ErrorFromResponse } from '../coordinator/connection/types';
 import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { ClientState } from '../store';
-import { CallDataRateLimitError } from '../errors';
 import { StreamSfuClient } from '../StreamSfuClient';
 
 describe('Call.sendData', () => {
@@ -45,20 +48,17 @@ describe('Call.sendData', () => {
       body,
     }));
 
-  const rateLimited = (headers: Record<string, string>) =>
-    new ErrorFromResponse({
+  const rateLimited = (headers: Record<string, string>) => {
+    const response = fromPartial<AxiosResponse>({ status: 429, headers });
+    return new ErrorFromResponse({
       message: 'Too many requests',
       code: 9,
       status: 429,
-      response: fromPartial({ status: 429, headers }),
+      response,
       unrecoverable: false,
-      metadata: {
-        response_headers: headers,
-        rate_limit: {},
-        response_code: 429,
-        client_request_id: '',
-      },
+      metadata: buildRequestMetadata(response),
     });
+  };
 
   afterEach(() => {
     vi.restoreAllMocks();
@@ -119,40 +119,21 @@ describe('Call.sendData', () => {
     expect(request).not.toHaveBeenCalled();
   });
 
-  it('reports a rate limit as a typed error with the retry delay', async () => {
+  it('passes a rate limit through with the retry delay and the limit that was hit', async () => {
     const { call, request } = fakeCall('session-1');
-    request.mockRejectedValueOnce(
-      rateLimited({ 'retry-after': '1', 'x-ratelimit-hit-context': 'Call' }),
-    );
+    const refused = rateLimited({
+      'retry-after': '1',
+      'x-ratelimit-hit-context': 'Call',
+    });
+    request.mockRejectedValueOnce(refused);
 
     const err = await call.sendData('whiteboard', {}).catch((e) => e);
 
-    expect(err).toBeInstanceOf(CallDataRateLimitError);
-    expect(err).toMatchObject({
-      name: 'CallDataRateLimitError',
-      retryAfterMs: 1000,
-      scope: 'call',
-      topic: 'whiteboard',
-      seq: 1,
-    });
-    expect(err.cause).toBeInstanceOf(ErrorFromResponse);
-  });
-
-  it('reads the user and app limits and their longer retry delay', async () => {
-    const { call, request } = fakeCall('session-1');
-    request.mockRejectedValueOnce(
-      rateLimited({ 'retry-after': '42', 'x-ratelimit-hit-context': 'User' }),
-    );
-    request.mockRejectedValueOnce(rateLimited({}));
-
-    await expect(call.sendData('whiteboard', {})).rejects.toMatchObject({
-      retryAfterMs: 42_000,
-      scope: 'user',
-    });
-    // without headers (for example hidden by a proxy) the delay has a default
-    await expect(call.sendData('whiteboard', {})).rejects.toMatchObject({
-      retryAfterMs: 1000,
-      scope: 'unknown',
+    expect(err).toBe(refused);
+    expect(err.status).toBe(429);
+    expect(err.metadata.rate_limit).toMatchObject({
+      retry_after_ms: 1000,
+      rate_limit_hit_context: 'call',
     });
   });
 
@@ -161,7 +142,7 @@ describe('Call.sendData', () => {
     request.mockRejectedValueOnce(rateLimited({ 'retry-after': '1' }));
 
     await expect(call.sendData('whiteboard', {})).rejects.toBeInstanceOf(
-      CallDataRateLimitError,
+      ErrorFromResponse,
     );
     // the receiver sees the gap at 1 and knows a message did not arrive
     expect(await call.sendData('whiteboard', {})).toEqual({ seq: 2 });
