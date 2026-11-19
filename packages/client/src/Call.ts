@@ -193,6 +193,10 @@ export class Call {
   /**
    * Flag indicating whether this call is "watched" and receives
    * updates from the backend.
+   *
+   * A watched call stays watched after {@link Call.leave}, so its state keeps
+   * following the backend, until {@link Call.stopWatching}. The client
+   * restores the watch after temporary connection loss.
    */
   watching: boolean;
 
@@ -334,6 +338,8 @@ export class Call {
   private credentials?: Credentials;
 
   private initialized = false;
+  private stopStateUpdater?: () => void;
+  private watchGeneration = 0;
   private readonly acceptRejectConcurrencyTag = Symbol('acceptRejectTag');
   private readonly joinLeaveConcurrencyTag = Symbol('joinLeaveConcurrencyTag');
 
@@ -387,10 +393,11 @@ export class Call {
     this.id = id;
     this.cid = `${type}:${id}`;
     this.ringingSubject = new BehaviorSubject(ringing);
-    this.watching = watching;
+    this.watching = false;
     this.streamClient = streamClient;
     this.clientEventReporter = clientEventReporter;
     this.clientState = clientState;
+    if (watching) this.markWatched();
     this.logger = videoLoggerSystem.getLogger('Call');
     this.offlineState = new CallOfflineState({
       state: this.state,
@@ -472,12 +479,7 @@ export class Call {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       if (this.initialized) return;
 
-      this.leaveCallHooks.add(
-        this.on('all', (event) => {
-          // update state with the latest event data
-          this.state.updateFromEvent(event);
-        }),
-      );
+      this.startStateUpdater();
 
       this.leaveCallHooks.add(
         this.on('changePublishOptions', (event) => {
@@ -717,11 +719,13 @@ export class Call {
 
   /**
    * Leave the call and stop the media streams that were published by the call.
+   * Does nothing if the call has already been left.
+   *
+   * A watched call keeps following the backend after it is left, until
+   * {@link Call.stopWatching}.
    */
   leave = async ({ reject, reason, message }: CallLeaveOptions = {}) => {
-    if (this.state.callingState === CallingState.LEFT) {
-      throw new Error('Cannot leave call that has already been left.');
-    }
+    if (this.state.callingState === CallingState.LEFT) return;
 
     // before the first await: the calling state stays RINGING well into the
     // teardown, so pause both watchdogs before they can race this leave. They
@@ -848,6 +852,8 @@ export class Call {
 
       // Call all leave call hooks, e.g. to clean up global event handlers
       this.leaveCallHooks.forEach((hook) => hook());
+      // a watched call keeps following the backend until `stopWatching()`
+      if (!this.clientState.isWatched(this)) this.stopStateUpdaterIfAny();
       this.initialized = false;
       this.hasJoinedOnce = false;
       this.allowOwnTracksLoopback = false;
@@ -912,6 +918,61 @@ export class Call {
       .finally(() => {
         this.leavesInProgress -= 1;
       });
+  };
+
+  /**
+   * Stops applying the coordinator events delivered for this call to its
+   * state, and keeps a reconnect from re-watching it.
+   *
+   * A watched call keeps following the backend after {@link Call.leave}, e.g.
+   * so a list of calls stays up to date. Call this once you no longer need
+   * that, e.g. when the component that owns the call unmounts:
+   *
+   * ```ts
+   * await call.leave();
+   * call.stopWatching();
+   * ```
+   *
+   * @throws if the call is still in use (joined, joining, ringing, ...):
+   * leave it first.
+   */
+  stopWatching = () => {
+    const { callingState } = this.state;
+    if (
+      callingState !== CallingState.LEFT &&
+      callingState !== CallingState.IDLE &&
+      callingState !== CallingState.UNKNOWN
+    ) {
+      throw new Error(
+        `Cannot stop watching a call in the ${callingState} state. Call leave() first.`,
+      );
+    }
+    this.watchGeneration += 1;
+    this.stopStateUpdaterIfAny();
+    this.watching = false;
+    this.clientState.removeWatchedCall(this);
+  };
+
+  private markWatched = () => {
+    this.startStateUpdater();
+    this.watching = true;
+    this.clientState.addWatchedCall(this);
+  };
+
+  /**
+   * Applies the coordinator events delivered for this call to its state. Not a
+   * leave hook: a watched call keeps following the backend after `leave()`,
+   * until `stopWatching()`. Registered at most once.
+   */
+  private startStateUpdater = () => {
+    this.stopStateUpdater ??= this.on('all', (event) => {
+      this.state.updateFromEvent(event);
+    });
+  };
+
+  private stopStateUpdaterIfAny = () => {
+    this.stopStateUpdater?.();
+    this.stopStateUpdater = undefined;
   };
 
   /**
@@ -986,7 +1047,7 @@ export class Call {
     }
     // update the call state with the latest event data
     this.state.updateFromCallResponse(event.call);
-    this.watching = true;
+    this.markWatched();
     this.ringingSubject.next(true);
     // we remove the instance from the calls list to enable the following filter in useCalls hook
     // const calls = useCalls().filter((c) => c.ringing);
@@ -1022,6 +1083,7 @@ export class Call {
     video?: boolean;
   }): Promise<StreamResponse<GetCallResponse>> => {
     const getLeaveGeneration = this.leaveGeneration;
+    const watchGeneration = this.watchGeneration;
     await this.setup();
 
     const response = await this.api.get(params);
@@ -1033,8 +1095,11 @@ export class Call {
       this.ringingSubject.next(true);
     }
 
-    if (this.streamClient._hasConnectionID()) {
-      this.watching = true;
+    if (
+      this.streamClient._hasConnectionID() &&
+      this.watchGeneration === watchGeneration
+    ) {
+      this.markWatched();
       this.clientState.registerOrUpdateCall(this);
     }
     await this.applyDeviceConfig(response.call.settings, { publish: false });
@@ -1048,6 +1113,7 @@ export class Call {
    * @param data the data to create the call with.
    */
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
+    const watchGeneration = this.watchGeneration;
     await this.setup();
 
     const response = await this.api.getOrCreate(data);
@@ -1058,8 +1124,11 @@ export class Call {
       this.ringingSubject.next(true);
     }
 
-    if (this.streamClient._hasConnectionID()) {
-      this.watching = true;
+    if (
+      this.streamClient._hasConnectionID() &&
+      this.watchGeneration === watchGeneration
+    ) {
+      this.markWatched();
       this.clientState.registerOrUpdateCall(this);
     }
 
@@ -2037,7 +2106,7 @@ export class Call {
     }
 
     if (this.streamClient._hasConnectionID()) {
-      this.watching = true;
+      this.markWatched();
       this.clientState.registerOrUpdateCall(this);
     }
 

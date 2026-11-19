@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Browsers,
   Call,
-  CallingState,
   CallRequest,
   EncryptionManager,
   StreamVideoClient,
@@ -63,12 +62,12 @@ export const useLobbyCall = ({
   // behind. Swapping the call object in place avoids a navigation/remount.
   const swapCall = useCallback((next: Call) => {
     const prev = activeCallRef.current;
-    if (
-      prev &&
-      prev !== next &&
-      prev.state.callingState !== CallingState.LEFT
-    ) {
-      prev.leave().catch((e) => console.error('Failed to leave call', e));
+    if (prev && prev !== next) {
+      // leaves it, and stops it from following the backend
+      prev
+        .leave()
+        .then(() => prev.stopWatching())
+        .catch((e) => console.error('Failed to leave call', e));
     }
     next.dynascaleManager?.setUseWebAudio(Browsers.isWebKit());
     activeCallRef.current = next;
@@ -98,9 +97,10 @@ export const useLobbyCall = ({
 
     return () => {
       const active = activeCallRef.current;
-      if (active && active.state.callingState !== CallingState.LEFT) {
-        active.leave().catch((e) => console.error('Failed to leave call', e));
-      }
+      active
+        ?.leave()
+        .then(() => active.stopWatching())
+        .catch((e) => console.error('Failed to leave call', e));
       activeCallRef.current = undefined;
       window.call = undefined;
       setCall(undefined);
