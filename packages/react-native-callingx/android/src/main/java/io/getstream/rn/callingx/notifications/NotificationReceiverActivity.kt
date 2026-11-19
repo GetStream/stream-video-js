@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.telecom.DisconnectCause
+import io.getstream.rn.callingx.CallRepositoryHolder
 import io.getstream.rn.callingx.CallingxModuleImpl
 import io.getstream.rn.callingx.debugLog
 import io.getstream.rn.callingx.getDisconnectCauseString
@@ -72,5 +73,9 @@ class NotificationReceiverActivity : Activity() {
         )
       }
       .also { sendBroadcast(it) }
+    // JavaScript still rejects the call on the server (from the broadcast above). Telecom is told
+    // here, right away, so ending the call doesn't depend on JavaScript or on CallService, which
+    // Android may stop as soon as this screen finishes.
+    callId?.let { CallRepositoryHolder.get(applicationContext).declineIncomingCall(it) }
   }
 }

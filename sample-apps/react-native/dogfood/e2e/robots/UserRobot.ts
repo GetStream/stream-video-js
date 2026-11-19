@@ -12,6 +12,12 @@ import {
   waitToAppearAndClick,
   waitUntil,
 } from '../support/Element';
+import {
+  closeNotificationShade,
+  findIncomingCallDeclineButton,
+  type Point,
+  tapOnScreen,
+} from '../support/NotificationShade';
 
 export enum UserControls {
   ENABLE = 'enable',
@@ -94,6 +100,29 @@ export class UserRobot extends Robot {
       if (loginScreen) {
         await signIn(randomUserId());
       }
+    });
+  }
+
+  /** Taps Decline on the incoming call notification, from the notification shade. */
+  declineIncomingCallFromNotification(timeout = seconds(30)): this {
+    return this.perform(async () => {
+      let declineButton: Point | undefined;
+      const found = await waitUntil(
+        async () => {
+          declineButton = await findIncomingCallDeclineButton();
+          return declineButton !== undefined;
+        },
+        timeout,
+        seconds(1),
+      );
+      if (!found || !declineButton) {
+        throw new Error(
+          'No incoming call notification with a Decline button is showing',
+        );
+      }
+      await tapOnScreen(declineButton);
+      // Some devices (MIUI) leave the shade open after a notification action.
+      closeNotificationShade();
     });
   }
 

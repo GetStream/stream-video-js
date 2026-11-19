@@ -3,10 +3,15 @@ import { execFileSync } from 'child_process';
 const sdkRoot = process.env.ANDROID_HOME ?? process.env.ANDROID_SDK_ROOT;
 const adbPath = sdkRoot ? `${sdkRoot}/platform-tools/adb` : 'adb';
 
-const adb = (...args: string[]) => {
+/** Runs `adb` against the device under test (`DETOX_ADB_NAME` when it names a single device). */
+export const adb = (...args: string[]) => {
   const serial = process.env.DETOX_ADB_NAME;
   const deviceArgs = serial && !serial.includes('*') ? ['-s', serial] : [];
-  return execFileSync(adbPath, [...deviceArgs, ...args], { encoding: 'utf8' });
+  return execFileSync(adbPath, [...deviceArgs, ...args], {
+    encoding: 'utf8',
+    // `dumpsys notification` on a phone with many notifications goes well past the 1 MB default.
+    maxBuffer: 64 * 1024 * 1024,
+  });
 };
 
 /**
