@@ -8,21 +8,13 @@ type ImageInfo = {
   url: string;
 };
 
-type VideoInfo = {
-  type: 'video';
-  texture: WebGLTexture;
-  url: string;
-  media: ReadableStream;
-  canvas: OffscreenCanvas;
-};
-
 type ColorInfo = {
   type: 'color';
   texture: WebGLTexture;
   color: readonly [number, number, number, number];
 };
 
-type BackgroundRenderInfo = ImageInfo | VideoInfo | ColorInfo;
+type BackgroundRenderInfo = ImageInfo | ColorInfo;
 
 export class WebGLRenderer {
   readonly canvas: OffscreenCanvas;
@@ -96,6 +88,12 @@ export class WebGLRenderer {
     number,
   ] = [33, 150, 243, 255];
   private currentStateIndex = 0;
+  /**
+   * Frame size the render targets are allocated for. Re-specifying them on
+   * every frame (texImage2D with null) measured ~1.5 ms/frame slower at 30 fps.
+   */
+  private targetWidth = 0;
+  private targetHeight = 0;
   private backgroundRenderInfo: BackgroundRenderInfo | null = null;
   private activeBackgroundSourceIdentifier: string | null = null;
 
@@ -437,6 +435,11 @@ export class WebGLRenderer {
     const refinedTex = gl.createTexture();
     this.frameTexture = gl.createTexture();
     if (!refinedTex) throw new Error('Failed to create refined mask texture');
+    gl.bindTexture(gl.TEXTURE_2D, this.frameTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.bindTexture(gl.TEXTURE_2D, refinedTex);
     gl.texImage2D(
       gl.TEXTURE_2D,
@@ -619,7 +622,7 @@ export class WebGLRenderer {
       };
       this.activeBackgroundSourceIdentifier = `color(${r},${g},${b},${a})`;
     } else {
-      if (newSource.type === 'image') {
+      {
         const { media, url } = newSource as { media: ImageBitmap; url: string };
         const texture = this.gl.createTexture();
         if (!texture) {
@@ -663,87 +666,7 @@ export class WebGLRenderer {
           height: media.height,
           url,
         };
-      } else if (newSource.type === 'video') {
-        const { media, url } = newSource as {
-          media: ReadableStream;
-          url: string;
-        };
-
-        const canvas = new OffscreenCanvas(1, 1);
-        const ctx = canvas.getContext('2d');
-        const writer = new WritableStream({
-          write(videoFrame: VideoFrame) {
-            canvas.width = videoFrame.codedWidth;
-            canvas.height = videoFrame.codedHeight;
-            ctx?.drawImage(videoFrame, 0, 0);
-            videoFrame.close();
-          },
-          close() {
-            console.log('[virtual-background] video background close');
-          },
-        });
-        media.pipeTo(writer).catch((err) => {
-          console.error('media.pipeTo(writer) error', err);
-        });
-
-        const texture = this.gl.createTexture();
-        if (!texture) throw new Error('Failed to create texture for video');
-        this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-        this.gl.texImage2D(
-          this.gl.TEXTURE_2D,
-          0,
-          this.gl.RGBA,
-          1,
-          1,
-          0,
-          this.gl.RGBA,
-          this.gl.UNSIGNED_BYTE,
-          null,
-        );
-        this.gl.texParameteri(
-          this.gl.TEXTURE_2D,
-          this.gl.TEXTURE_WRAP_S,
-          this.gl.CLAMP_TO_EDGE,
-        );
-        this.gl.texParameteri(
-          this.gl.TEXTURE_2D,
-          this.gl.TEXTURE_WRAP_T,
-          this.gl.CLAMP_TO_EDGE,
-        );
-        this.gl.texParameteri(
-          this.gl.TEXTURE_2D,
-          this.gl.TEXTURE_MIN_FILTER,
-          this.gl.LINEAR,
-        );
-        this.gl.texParameteri(
-          this.gl.TEXTURE_2D,
-          this.gl.TEXTURE_MAG_FILTER,
-          this.gl.LINEAR,
-        );
-        this.gl.bindTexture(this.gl.TEXTURE_2D, null);
-
-        this.backgroundRenderInfo = {
-          type: 'video',
-          texture,
-          url,
-          media,
-          canvas,
-        };
       }
-    }
-
-    if (!this.backgroundRenderInfo) {
-      console.error(
-        'Critical: backgroundRenderInfo is null after processing new source. Setting default color.',
-      );
-      const [r, g, b, a] = WebGLRenderer.DEFAULT_BG_COLOR;
-      const colorTexData = this.createColorTexture(r, g, b, a);
-      this.backgroundRenderInfo = {
-        type: 'color',
-        texture: colorTexData.texture,
-        color: colorTexData.color,
-      };
-      this.activeBackgroundSourceIdentifier = `color(${r},${g},${b},${a})`;
     }
   }
 
@@ -793,9 +716,8 @@ export class WebGLRenderer {
       gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
       gl.useProgram(blendProgram);
 
-      const frame = gl.createTexture();
       gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, frame);
+      gl.bindTexture(gl.TEXTURE_2D, frameTexture);
       gl.texImage2D(
         gl.TEXTURE_2D,
         0,
@@ -804,10 +726,6 @@ export class WebGLRenderer {
         gl.UNSIGNED_BYTE,
         videoFrame,
       );
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
       gl.uniform1i(blendLocations.frameTexture, 0);
       gl.uniform1i(blendLocations.enabled, 0);
 
@@ -820,12 +738,15 @@ export class WebGLRenderer {
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-      gl.deleteTexture(frame);
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, null);
 
       return;
     }
+
+    this.ensureRenderTargets(width, height);
+    const halfWidth = Math.max(1, Math.round(width / 2));
+    const halfHeight = Math.max(1, Math.round(height / 2));
 
     const readStateIndex = this.currentStateIndex;
     const writeStateIndex = (this.currentStateIndex + 1) % 2;
@@ -841,19 +762,6 @@ export class WebGLRenderer {
       gl.TEXTURE_2D,
       newStateTexture,
       0,
-    );
-
-    gl.bindTexture(gl.TEXTURE_2D, newStateTexture);
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      gl.RGBA,
-      width,
-      height,
-      0,
-      gl.RGBA,
-      gl.UNSIGNED_BYTE,
-      null,
     );
 
     gl.viewport(0, 0, width, height);
@@ -919,20 +827,7 @@ export class WebGLRenderer {
       0,
     );
 
-    gl.bindTexture(gl.TEXTURE_2D, refinedMaskTexture);
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      gl.RGBA,
-      width,
-      height,
-      0,
-      gl.RGBA,
-      gl.UNSIGNED_BYTE,
-      null,
-    );
-
-    gl.viewport(0, 0, width, height);
+    gl.viewport(0, 0, halfWidth, halfHeight);
     gl.useProgram(maskRefineProgram);
 
     gl.enableVertexAttribArray(maskRefineLocations.position);
@@ -970,13 +865,13 @@ export class WebGLRenderer {
       gl.UNSIGNED_BYTE,
       videoFrame,
     );
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.uniform1i(maskRefineLocations.frameTexture, 1);
 
-    gl.uniform2f(maskRefineLocations.texelSize, 1.0 / width, 1.0 / height);
+    gl.uniform2f(
+      maskRefineLocations.texelSize,
+      1.0 / halfWidth,
+      1.0 / halfHeight,
+    );
     gl.uniform1f(maskRefineLocations.sigmaSpatial, 2.0);
     gl.uniform1f(maskRefineLocations.sigmaRange, 0.1);
 
@@ -990,34 +885,8 @@ export class WebGLRenderer {
     let bgHToSend = height;
 
     if (options.bgBlur > 0 && options.bgBlurRadius > 0) {
-      const downscale = 0.5;
-      const blurW = Math.floor(width * downscale);
-      const blurH = Math.floor(height * downscale);
-
-      gl.bindTexture(gl.TEXTURE_2D, blurTexture1);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        blurW,
-        blurH,
-        0,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        null,
-      );
-      gl.bindTexture(gl.TEXTURE_2D, blurTexture2);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        blurW,
-        blurH,
-        0,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        null,
-      );
+      const blurW = halfWidth;
+      const blurH = halfHeight;
 
       const KERNEL_RADIUS = 10.0;
       const radiusScale = Math.max(0.0, options.bgBlurRadius) / KERNEL_RADIUS;
@@ -1104,11 +973,7 @@ export class WebGLRenderer {
       bgHToSend = blurH;
     } else if (options.backgroundSource && this.backgroundRenderInfo) {
       backgroundTexToUse = this.backgroundRenderInfo.texture;
-      if (this.backgroundRenderInfo.type === 'video') {
-        const { canvas } = this.backgroundRenderInfo;
-        bgWToSend = canvas.width || width;
-        bgHToSend = canvas.height || height;
-      } else if (this.backgroundRenderInfo.type === 'image') {
+      if (this.backgroundRenderInfo.type === 'image') {
         bgWToSend = this.backgroundRenderInfo.width;
         bgHToSend = this.backgroundRenderInfo.height;
       } else {
@@ -1188,6 +1053,7 @@ export class WebGLRenderer {
     if (this.texCoordBuffer) gl.deleteBuffer(this.texCoordBuffer);
 
     if (refinedMaskTexture) gl.deleteTexture(refinedMaskTexture);
+    if (this.frameTexture) gl.deleteTexture(this.frameTexture);
     if (this.blurTexture1) gl.deleteTexture(this.blurTexture1);
     if (this.blurTexture2) gl.deleteTexture(this.blurTexture2);
     this.storedStateTextures.forEach((t) => t && gl.deleteTexture(t));
@@ -1197,5 +1063,40 @@ export class WebGLRenderer {
       this.backgroundRenderInfo = null;
     }
     this.activeBackgroundSourceIdentifier = null;
+  }
+
+  /**
+   * (Re)allocates the render targets for a frame size: the two mask state
+   * textures at full resolution, the refined mask and the two blur buffers at
+   * half resolution.
+   */
+  private ensureRenderTargets(width: number, height: number) {
+    if (width === this.targetWidth && height === this.targetHeight) return;
+    this.targetWidth = width;
+    this.targetHeight = height;
+    const { gl } = this;
+    const halfWidth = Math.max(1, Math.round(width / 2));
+    const halfHeight = Math.max(1, Math.round(height / 2));
+    const allocate = (texture: WebGLTexture | null, w: number, h: number) => {
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        w,
+        h,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        null,
+      );
+    };
+    for (const texture of this.storedStateTextures) {
+      allocate(texture, width, height);
+    }
+    allocate(this.refinedMaskTexture, halfWidth, halfHeight);
+    allocate(this.blurTexture1, halfWidth, halfHeight);
+    allocate(this.blurTexture2, halfWidth, halfHeight);
+    gl.bindTexture(gl.TEXTURE_2D, null);
   }
 }

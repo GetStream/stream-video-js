@@ -1,9 +1,7 @@
 export type BackgroundSource = {
   type: string;
-  media?: ImageBitmap | ReadableStream;
+  media?: ImageBitmap;
   url: string;
-  video?: HTMLVideoElement;
-  track?: MediaStreamTrack;
 };
 export type BackgroundFilter = 'blur' | 'image';
 export type BackgroundBlurLevel = 'low' | 'medium' | 'high' | number;
