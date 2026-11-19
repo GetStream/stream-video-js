@@ -241,6 +241,14 @@ class CallService : Service(), CallRepository.Listener {
                                     CallNotificationManager.OptimisticState.REJECTING
                             )
                             notificationManager.updateCallNotification(callId, call)
+                            // Hang up in Telecom here, right away. JavaScript still rejects the
+                            // call on the server from the same broadcast, but it may take a while
+                            // or not reach the native hang-up at all, and until Telecom ends the
+                            // call it refuses every new incoming call from the app.
+                            processAction(
+                                    callId,
+                                    CallAction.Disconnect(DisconnectCause(DisconnectCause.REJECTED))
+                            )
                         }
                     }
                 }

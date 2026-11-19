@@ -66,6 +66,13 @@ VIDEO_BUDDY_PORT=5678 yarn e2e:test -c android.emu.release
 bundle exec fastlane stop_video_buddy
 ```
 
+Tests that need a ring to arrive by push (the incoming call notification only comes from one) are skipped unless
+`E2E_DEVICE_HAS_PUSH=true`: CI's emulator image has no Google Play services. On a phone with Google Play services:
+
+```bash
+E2E_DEVICE_HAS_PUSH=true DETOX_ADB_NAME=<serial> yarn e2e:test -c android.att.release e2e/tests/RingingTests.e2e.ts
+```
+
 Android builds only the `arm64-v8a` and `x86_64` ABIs (emulators); set `ORG_GRADLE_PROJECT_reactNativeArchitectures` to
 narrow it further.
 

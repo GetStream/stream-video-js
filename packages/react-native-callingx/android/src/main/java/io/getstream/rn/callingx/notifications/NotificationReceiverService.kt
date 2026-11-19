@@ -3,10 +3,8 @@ package io.getstream.rn.callingx.notifications
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
-import android.telecom.DisconnectCause
 import android.util.Log
 import io.getstream.rn.callingx.CallingxModuleImpl
-import io.getstream.rn.callingx.getDisconnectCauseString
 
 class NotificationReceiverService : Service() {
 
@@ -25,7 +23,6 @@ class NotificationReceiverService : Service() {
 
     when (action) {
       CallingxModuleImpl.CALL_ANSWERED_ACTION -> onCallAnswered(intent)
-      CallingxModuleImpl.CALL_END_ACTION -> onCallEnded(intent)
     }
 
     stopSelf(startId)
@@ -61,27 +58,6 @@ class NotificationReceiverService : Service() {
       } catch (e: Exception) {
         Log.e(TAG, "Error sending call answered intent", e)
       }
-    }
-  }
-
-  /** Mirrors [NotificationReceiverActivity] on API levels below 33 where the service receives notification actions. */
-  private fun onCallEnded(intent: Intent) {
-    val callId = intent.getStringExtra(CallingxModuleImpl.EXTRA_CALL_ID)
-    val source = intent.getStringExtra(CallingxModuleImpl.EXTRA_SOURCE)
-    try {
-      Intent(CallingxModuleImpl.CALL_END_ACTION)
-        .apply {
-          setPackage(packageName)
-          putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
-          putExtra(CallingxModuleImpl.EXTRA_SOURCE, source)
-          putExtra(
-            CallingxModuleImpl.EXTRA_DISCONNECT_CAUSE,
-            getDisconnectCauseString(DisconnectCause(DisconnectCause.REJECTED))
-          )
-        }
-        .also { sendBroadcast(it) }
-    } catch (e: Exception) {
-      Log.e(TAG, "Error sending call end intent", e)
     }
   }
 }

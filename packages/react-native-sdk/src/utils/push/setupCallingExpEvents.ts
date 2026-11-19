@@ -6,8 +6,10 @@ import {
 import type { StreamVideoConfig } from '../StreamVideoRN/types';
 import {
   clearPushWSEventSubscriptions,
+  endLiveCallFromSystem,
   processCallFromPushInBackground,
 } from './internal/utils';
+import { findLiveCall } from './internal/liveClients';
 import {
   getCallingxLib,
   type EventData,
@@ -154,6 +156,19 @@ const onEndCall =
 
     const callingx = getCallingxLib();
     clearPushWSEventSubscriptions(call_cid);
+
+    // Android: when the app already has the call, end it right away: reject on the server first,
+    // then remove it from Telecom, then clean up. Waiting to create a client first could leave
+    // the call ringing in Telecom, which refuses new incoming calls until it ends.
+    const liveCall =
+      Platform.OS === 'android' ? findLiveCall(call_cid) : undefined;
+    if (liveCall) {
+      endLiveCallFromSystem(liveCall, callingx).catch((error) => {
+        logger.warn(`onEndCall: failed to end ${call_cid}`, error);
+      });
+      return;
+    }
+
     processCallFromPushInBackground(
       pushConfig,
       call_cid,
