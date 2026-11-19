@@ -11,7 +11,11 @@ import {
   type VideoTrackType,
   VisibilityState,
 } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCameraState,
+  useIncomingVideoSettings,
+} from '@stream-io/video-react-bindings';
 import { BehaviorSubject } from 'rxjs';
 import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from '../ParticipantVideoFallback';
 import { useTheme } from '../../../../contexts/ThemeContext';
@@ -60,7 +64,6 @@ export const VideoRenderer = React.memo(
       theme: { videoRenderer },
     } = useTheme();
     const call = useCall();
-    const { useCameraState, useIncomingVideoSettings } = useCallStateHooks();
     // a sticky note of the dimensions of the RTCView from onLayout
     // to reuse for a new participant even if dimensions dont change
     const dimensions$ = useMemo(

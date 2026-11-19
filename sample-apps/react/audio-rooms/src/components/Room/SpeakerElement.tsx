@@ -5,7 +5,8 @@ import {
   OwnCapability,
   StreamVideoParticipant,
   useCall,
-  useCallStateHooks,
+  useCallCustomData,
+  useHasPermissions,
 } from '@stream-io/video-react-sdk';
 import { CloseIcon, MuteMicrophoneIcon } from '../icons';
 import type { CustomCallData } from '../../types';
@@ -16,7 +17,6 @@ export const SpeakerElement = ({
   speaker: StreamVideoParticipant;
 }) => {
   const call = useCall();
-  const { useCallCustomData, useHasPermissions } = useCallStateHooks();
   const customData = useCallCustomData();
   const canMuteUsers = useHasPermissions(OwnCapability.MUTE_USERS);
 

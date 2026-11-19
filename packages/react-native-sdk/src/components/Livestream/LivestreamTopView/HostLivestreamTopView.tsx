@@ -7,7 +7,11 @@ import {
 import { type LiveIndicatorProps } from './LiveIndicator';
 import { type FollowerCountProps } from './FollowerCount';
 import { useTheme } from '../../../contexts';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useIsCallLive,
+  useIsCallHLSBroadcastingInProgress,
+} from '@stream-io/video-react-bindings';
 import { Z_INDEX } from '../../../constants';
 import { HangUpCallButton } from '../../Call';
 import { SfuModels, videoLoggerSystem } from '@stream-io/video-client';
@@ -50,8 +54,6 @@ export const HostLivestreamTopView = ({
   disableStopPublishedStreamsOnEndStream,
 }: HostLivestreamTopViewProps) => {
   const call = useCall();
-  const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
-    useCallStateHooks();
   const isCallLive = useIsCallLive();
   const isBroadcasting = useIsCallHLSBroadcastingInProgress();
   const liveOrBroadcasting = isCallLive || isBroadcasting;

@@ -16,7 +16,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCall,
-  useCallStateHooks,
+  useCallCallingState,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
@@ -96,7 +96,6 @@ const Stage = (props: { videoFile?: string }) => {
   const { videoFile } = props;
   const call = useCall();
   const router = useRouter();
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const showLobby = [
     CallingState.IDLE,

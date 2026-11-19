@@ -9,9 +9,9 @@ import {
 } from '@stream-io/video-client';
 import {
   useCall,
-  useCallStateHooks,
   useIsAudioConnecting,
   useIsVideoConnecting,
+  useAutoplayBlockedSessionIds,
 } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 import clsx from 'clsx';
@@ -150,7 +150,6 @@ export const DefaultParticipantViewUI = ({
   AudioBlockedNotification = DefaultAudioBlockedNotification,
 }: DefaultParticipantViewUIProps) => {
   const { participant, trackType } = useParticipantViewContext();
-  const { useAutoplayBlockedSessionIds } = useCallStateHooks();
   const blockedSessionIds = useAutoplayBlockedSessionIds();
   const isScreenSharing = hasScreenShare(participant);
   const shouldShowAudioBlockedNotification =

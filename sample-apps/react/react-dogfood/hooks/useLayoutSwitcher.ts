@@ -4,7 +4,7 @@ import {
   LivestreamLayout,
   PaginatedGridLayout,
   SpeakerLayout,
-  useCallStateHooks,
+  useHasOngoingScreenShare,
 } from '@stream-io/video-react-sdk';
 import {
   CallParticipantsScreenView,
@@ -123,7 +123,6 @@ export const useLayoutSwitcher = () => {
     return LayoutMap[layoutToUse] ? layoutToUse : DEFAULT_LAYOUT;
   });
 
-  const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
   useEffect(() => {
     // always switch to screen-share compatible layout

@@ -1,7 +1,10 @@
 import { ComponentType, useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { createSoundDetector } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useMicrophoneState,
+  useCameraState,
+} from '@stream-io/video-react-bindings';
 import { useI18n } from '../../i18n';
 import { BaseVideo } from '../../core/components/Video';
 import { LoadingIndicator } from '../LoadingIndicator';
@@ -31,7 +34,6 @@ const DefaultNoCameraPreview = () => {
  * runs one on the live microphone stream instead.
  */
 const useLocalSpeaking = (enabled: boolean) => {
-  const { useMicrophoneState } = useCallStateHooks();
   const { isEnabled, mediaStream } = useMicrophoneState();
   const [isSpeaking, setIsSpeaking] = useState(false);
 
@@ -92,7 +94,6 @@ export const VideoPreview = ({
   StartingCameraPreview = LoadingIndicator,
   speakingIndicatorVisible = false,
 }: VideoPreviewProps) => {
-  const { useCameraState } = useCallStateHooks();
   const { devices, status, isMute, mediaStream } = useCameraState();
   const isSpeaking = useLocalSpeaking(speakingIndicatorVisible);
 

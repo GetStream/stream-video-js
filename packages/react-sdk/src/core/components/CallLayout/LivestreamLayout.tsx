@@ -6,7 +6,16 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useParticipants,
+  useHasOngoingScreenShare,
+  useParticipantCount,
+  useCallStartsAt,
+  useSpeakerState,
+  useIsCallLive,
+  useCallSession,
+} from '@stream-io/video-react-bindings';
 import {
   convertTimestampToDate,
   hasScreenShare,
@@ -93,7 +102,6 @@ export type LivestreamLayoutProps = {
 };
 
 export const LivestreamLayout = (props: LivestreamLayoutProps) => {
-  const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
   const call = useCall();
   const participants = useParticipants();
   const [currentSpeaker] = participants;
@@ -193,7 +201,6 @@ export type BackstageLayoutProps = {
 export const BackstageLayout = (props: BackstageLayoutProps) => {
   const { showEarlyParticipantCount = true, humanizeParticipantCount = true } =
     props;
-  const { useParticipantCount, useCallStartsAt } = useCallStateHooks();
   const participantCount = useParticipantCount();
   const startsAt = useCallStartsAt();
   const { t } = useI18n();
@@ -290,7 +297,6 @@ const ParticipantOverlay = (props: {
     showMuteButton ||
     showSpeakerName;
   const { participant, participantViewElement } = useParticipantViewContext();
-  const { useParticipantCount, useSpeakerState } = useCallStateHooks();
   const participantCount = useParticipantCount();
   const duration = useUpdateCallDuration();
   const toggleFullScreen = useToggleFullScreen();
@@ -371,7 +377,6 @@ const ParticipantOverlay = (props: {
 };
 
 const useUpdateCallDuration = () => {
-  const { useIsCallLive, useCallSession } = useCallStateHooks();
   const isCallLive = useIsCallLive();
   const session = useCallSession();
   const [duration, setDuration] = useState(() => {

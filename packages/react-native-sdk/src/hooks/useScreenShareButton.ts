@@ -3,7 +3,12 @@ import {
   OwnCapability,
   videoLoggerSystem,
 } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useLocalParticipant,
+  useCallSettings,
+  useOwnCapabilities,
+} from '@stream-io/video-react-bindings';
 import React, { useEffect, useRef } from 'react';
 import { findNodeHandle, NativeModules, Platform } from 'react-native';
 import { usePrevious } from '../utils/hooks';
@@ -75,8 +80,6 @@ export const useScreenShareButton = (
   screenShareOptions?: ScreenShareOptions,
 ) => {
   const call = useCall();
-  const { useLocalParticipant, useCallSettings, useOwnCapabilities } =
-    useCallStateHooks();
   const callSettings = useCallSettings();
   const ownCapabilities = useOwnCapabilities();
   const hasScreenSharingPermissions = ownCapabilities?.includes(

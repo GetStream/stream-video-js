@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Call, useCallStateHooks } from '@stream-io/video-react-sdk';
+import { Call, useCallStatsReport } from '@stream-io/video-react-sdk';
 import { StatCard, StatCardGrid } from '../StatCard';
 import { useFloatingUIPreset } from '../../hooks/useFloatingUIPreset';
 
@@ -9,7 +9,6 @@ export const DebugStatsView = (props: {
   userId: string;
 }) => {
   const { call, sessionId, userId } = props;
-  const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
 
   useEffect(() => {

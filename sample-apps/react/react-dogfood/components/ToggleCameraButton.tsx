@@ -8,7 +8,8 @@ import {
   MenuVisualType,
   SfuModels,
   ToggleMenuButtonProps,
-  useCallStateHooks,
+  useCameraState,
+  useLocalParticipant,
 } from '@stream-io/video-react-sdk';
 import { isMobile } from '../helpers/isMobile';
 import { useAppI18n } from '../hooks/useAppI18n';
@@ -16,7 +17,6 @@ import { useAppI18n } from '../hooks/useAppI18n';
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButtonRender(props, ref) {
     const { t } = useAppI18n();
-    const { useCameraState, useLocalParticipant } = useCallStateHooks();
     const { selectedDevice: selectedCamera, devices: cameras } =
       useCameraState();
     const localParticipant = useLocalParticipant();

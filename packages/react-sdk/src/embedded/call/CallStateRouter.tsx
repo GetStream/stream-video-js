@@ -1,5 +1,9 @@
 import { CallingState } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallCallingState,
+  useLocalParticipant,
+} from '@stream-io/video-react-bindings';
 
 import { LoadingIndicator } from '../../components';
 import { CallFeedback, JoinError, Lobby } from '../shared';
@@ -13,7 +17,6 @@ import { useEmbeddedConfiguration } from '../context';
 export const CallStateRouter = () => {
   const call = useCall();
 
-  const { useCallCallingState, useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const callingState = useCallCallingState();
   const { onError } = useEmbeddedConfiguration();

@@ -1,11 +1,10 @@
 import { CallingState } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCallCallingState } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 import { Notification } from '../../../components';
 
 export const ConnectionNotification = () => {
   const { t } = useI18n();
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const isOffline = callingState === CallingState.OFFLINE;

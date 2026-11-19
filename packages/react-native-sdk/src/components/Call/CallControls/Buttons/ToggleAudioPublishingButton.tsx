@@ -1,6 +1,9 @@
 import React from 'react';
 import { OwnCapability } from '@stream-io/video-client';
-import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  Restricted,
+  useMicrophoneState,
+} from '@stream-io/video-react-bindings';
 import { Mic, MicOff, ControlButtonIcon } from '../../../../icons';
 import { CallControlsButton } from './CallControlsButton';
 import { ButtonTestIds } from '../../../../constants/TestIds';
@@ -27,7 +30,6 @@ export const ToggleAudioPublishingButton = ({
   onPressHandler,
   disabled,
 }: ToggleAudioPublishingButtonProps) => {
-  const { useMicrophoneState } = useCallStateHooks();
   const { optimisticIsMute, microphone } = useMicrophoneState();
   const onPress = async () => {
     if (onPressHandler) {

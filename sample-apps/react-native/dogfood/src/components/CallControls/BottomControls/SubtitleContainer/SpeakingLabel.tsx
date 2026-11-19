@@ -1,10 +1,12 @@
 import { useMemo } from 'react';
-import { useCallStateHooks, useTheme } from '@stream-io/video-react-native-sdk';
+import {
+  useTheme,
+  useMicrophoneState,
+} from '@stream-io/video-react-native-sdk';
 import { StyleSheet, Text, View } from 'react-native';
 
 export const SpeakingLabel = () => {
   const styles = useStyles();
-  const { useMicrophoneState } = useCallStateHooks();
   const { isSpeakingWhileMuted } = useMicrophoneState();
 
   if (!isSpeakingWhileMuted) {

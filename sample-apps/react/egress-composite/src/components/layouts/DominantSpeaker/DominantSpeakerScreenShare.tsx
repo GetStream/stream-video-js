@@ -3,7 +3,7 @@ import {
   hasScreenShare,
   ParticipantsAudio,
   ParticipantView,
-  useCallStateHooks,
+  useRemoteParticipants,
 } from '@stream-io/video-react-sdk';
 
 import { EgressReadinessProbe } from '../EgressReadyParticipantViewUI';
@@ -12,7 +12,6 @@ import { useConfigurationContext } from '../../../ConfigurationContext';
 import './DominantSpeakerScreenShare.scss';
 
 export const DominantSpeakerScreenShare = () => {
-  const { useRemoteParticipants } = useCallStateHooks();
   const participants = useRemoteParticipants();
 
   const screensharingParticipant = participants.find((p) => hasScreenShare(p))!;

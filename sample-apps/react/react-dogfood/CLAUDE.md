@@ -85,8 +85,8 @@ Components are organized by feature/responsibility:
 - **Settings/** - Audio/video/effects configuration
 
 Call statistics UI lives in this app, not in the React SDK. Import `CallStats` and `StatCard` from
-the local component directories; continue using `useCallStateHooks().useCallStatsReport()` from the
-SDK for stats data. The app owns the `chart.js` and `react-chartjs-2` dependencies, the styles in
+the local component directories; continue using the `useCallStatsReport()` hook from the SDK for
+stats data. The app owns the `chart.js` and `react-chartjs-2` dependencies, the styles in
 `style/CallStats.scss` and `style/StatCard.scss`, and the `callStats.*` / `statCard.*` translation keys
 (accessed through `useAppI18n`). Keep the chart lazy-loaded so its dependencies load only when needed.
 
@@ -118,7 +118,9 @@ SDK for stats data. The app owns the `chart.js` and `react-chartjs-2` dependenci
 
 - **SDK State**: Use hooks from `@stream-io/video-react-sdk`:
   - `useCall()` - Current call object
-  - `useCallStateHooks()` - Granular call state access
+  - Call state hooks (`useCallCallingState()`, `useCallStatsReport()`, ...) - Granular call state
+    access. Import them directly instead of destructuring `useCallStateHooks()`, so React Compiler
+    can optimize the component
   - `useConnectedUser()` - Current user
   - `useParticipants()` - Participant list
 

@@ -5,10 +5,10 @@ import {
   type MediaStream as RNMediaStream,
 } from '@stream-io/react-native-webrtc';
 import {
-  useCallStateHooks,
   ToggleCameraFaceButton,
   LobbyCameraPreview,
   useTheme,
+  useCameraState,
 } from '@stream-io/video-react-native-sdk';
 import { Mic } from '../../../assets/Mic';
 import { Video } from '../../../assets/Video';
@@ -21,7 +21,6 @@ export const LoopbackPanel = ({
   loopbackAudioStream?: MediaStream;
 }) => {
   const styles = useStyles();
-  const { useCameraState } = useCallStateHooks();
   const { mediaStream: localVideoStream } = useCameraState();
 
   return (

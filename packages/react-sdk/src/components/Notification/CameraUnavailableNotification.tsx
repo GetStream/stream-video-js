@@ -1,6 +1,6 @@
 import { PropsWithChildren, useEffect, useState } from 'react';
 import { Placement } from '@floating-ui/react';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCameraState } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../i18n';
 import { Notification } from './Notification';
 
@@ -27,7 +27,6 @@ export const CameraUnavailableNotification = ({
   placement,
   className,
 }: PropsWithChildren<CameraUnavailableNotificationProps>) => {
-  const { useCameraState } = useCallStateHooks();
   const { error } = useCameraState();
   const { t } = useI18n();
   const [isVisible, setIsVisible] = useState(() => isCameraUnavailable(error));

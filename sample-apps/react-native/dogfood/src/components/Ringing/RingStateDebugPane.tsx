@@ -11,8 +11,9 @@ import {
   Call,
   GetCallRingStateResponse,
   useCall,
-  useCallStateHooks,
   useTheme,
+  useCallCallingState,
+  useCallSession,
 } from '@stream-io/video-react-native-sdk';
 import { Z_INDEX } from '../../constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -47,7 +48,6 @@ export const RingStateDebugPane = () => {
 };
 
 const RingStateDebug = ({ call }: { call: Call }) => {
-  const { useCallCallingState, useCallSession } = useCallStateHooks();
   const callingState = useCallCallingState();
   const session = useCallSession();
   const styles = useStyles();

@@ -124,7 +124,7 @@ The active call screen (`MeetingUI` → `ActiveCall`) is the most complex compon
 
 Custom call control buttons follow a consistent pattern:
 
-- Use `useCallStateHooks()` for reactive state (participants, microphone, camera, calling state)
+- Use the call state hooks (`useParticipants()`, `useMicrophoneState()`, `useCameraState()`, `useCallCallingState()`) for reactive state. Import them directly from the SDK instead of destructuring `useCallStateHooks()`, so React Compiler can optimize the component
 - Check `OwnCapability` for permission-gated actions (mute others, block, grant/revoke permissions)
 - Use `useCall()` for direct call object access (recording, feedback, moderation)
 - Platform-specific branches for iOS/Android (audio route picker, device selector)

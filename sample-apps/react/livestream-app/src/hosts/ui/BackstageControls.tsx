@@ -7,7 +7,9 @@ import {
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCall,
-  useCallStateHooks,
+  useCallIngress,
+  useIsCallLive,
+  useIsCallHLSBroadcastingInProgress,
 } from '@stream-io/video-react-sdk';
 
 export const BackstageControls = () => {
@@ -26,7 +28,6 @@ export const BackstageControls = () => {
 
 const ToggleLivestreamButton = (props: { call: Call }) => {
   const { call } = props;
-  const { useCallIngress, useIsCallLive } = useCallStateHooks();
   const ingress = useCallIngress();
   const isBroadcasting = useIsCallLive();
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
@@ -73,8 +74,6 @@ const ToggleLivestreamButton = (props: { call: Call }) => {
 
 const ToggleHLSBroadcastButton = (props: { call: Call }) => {
   const { call } = props;
-  const { useIsCallHLSBroadcastingInProgress, useCallIngress } =
-    useCallStateHooks();
   const ingress = useCallIngress();
   const isBroadcasting = useIsCallHLSBroadcastingInProgress();
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);

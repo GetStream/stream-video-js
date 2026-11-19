@@ -7,7 +7,11 @@ import {
   useRef,
   useState,
 } from 'react';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCameraState,
+  useCallStatsReport,
+} from '@stream-io/video-react-bindings';
 import { Call, disposeOfMediaStream } from '@stream-io/video-client';
 import {
   BackgroundBlurLevel,
@@ -79,7 +83,6 @@ const determineEngine = async (
  * `MediaStreamTrack.stats` (currently Chromium-only).
  */
 const useTrackFramesPerSecond = (call: Call | undefined) => {
-  const { useCameraState } = useCallStateHooks();
   const { rootMediaStream } = useCameraState();
   const [fps, setFps] = useState<number | undefined>(undefined);
   const trackId = rootMediaStream?.getVideoTracks()[0]?.id;
@@ -170,7 +173,6 @@ export const BackgroundFiltersProvider = (
   } = props;
 
   const call = useCall();
-  const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
 
   const [backgroundFilter, setBackgroundFilter] = useState(bgFilterFromProps);

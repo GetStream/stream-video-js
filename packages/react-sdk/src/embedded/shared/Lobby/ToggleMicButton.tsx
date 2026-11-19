@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useMicrophoneState } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 import {
   DeviceSelectorAudioInput,
@@ -13,7 +13,6 @@ import {
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButtonRender(props, ref) {
-    const { useMicrophoneState } = useCallStateHooks();
     const { selectedDevice: selectedMic, devices: microphones } =
       useMicrophoneState();
 

@@ -7,8 +7,9 @@ import {
   ToggleVideoPreviewButton,
   VideoPreview,
   useCall,
-  useCallStateHooks,
   useLoopbackRecording,
+  useCameraState,
+  useMicrophoneState,
 } from '@stream-io/video-react-sdk';
 import { PreCallTestStats } from './PreCallTestStats';
 import { ToggleMicButton } from '../ToggleMicButton';
@@ -48,7 +49,6 @@ const LoopbackBadge = ({
 
 export const PreCallTest = () => {
   const call = useCall();
-  const { useCameraState, useMicrophoneState } = useCallStateHooks();
   const { isEnabled: isCameraEnabled } = useCameraState();
   const { isEnabled: isMicrophoneEnabled } = useMicrophoneState();
   const {

@@ -8,7 +8,7 @@ import {
   MenuToggle,
   type ToggleMenuButtonProps,
   useCall,
-  useCallStateHooks,
+  useIncomingVideoSettings,
 } from '@stream-io/video-react-sdk';
 import { forwardRef, useCallback } from 'react';
 import { useAppI18n } from '../hooks/useAppI18n';
@@ -178,7 +178,6 @@ const IncomingVideoSettingsMenu = (props: {
 
 function useIncomingVideoSettingsSelector() {
   const call = useCall();
-  const { useIncomingVideoSettings } = useCallStateHooks();
   const { enabled, preferredResolution } = useIncomingVideoSettings();
   const currentSetting = getIncomingVideoSetting(enabled, preferredResolution);
   const currentIndex = incomingVideoSettings.indexOf(currentSetting);

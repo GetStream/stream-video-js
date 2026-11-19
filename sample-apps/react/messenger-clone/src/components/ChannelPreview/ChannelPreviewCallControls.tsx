@@ -3,14 +3,14 @@ import {
   CallingState,
   CancelCallButton,
   useCall,
-  useCallStateHooks,
+  useCallCallingState,
+  useCallCustomData,
 } from '@stream-io/video-react-sdk';
 import { useSlotChannel } from 'stream-chat-react/slot-layout';
 
 export const ChannelPreviewCallControls = () => {
   const activeChannel = useSlotChannel({ slot: 'channel', view: 'channels' });
   const call = useCall();
-  const { useCallCallingState, useCallCustomData } = useCallStateHooks();
   const customData = useCallCustomData();
   const callingState = useCallCallingState();
 

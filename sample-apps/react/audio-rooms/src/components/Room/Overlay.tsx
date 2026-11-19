@@ -2,7 +2,10 @@ import {
   Avatar,
   CallingState,
   useCall,
-  useCallStateHooks,
+  useCallCallingState,
+  useIsCallLive,
+  useCallCustomData,
+  useCallCreatedBy,
 } from '@stream-io/video-react-sdk';
 import { CloseInactiveRoomButton } from './RoomAccessControls';
 
@@ -24,7 +27,6 @@ const CallingStateStatus: Record<string, string> = {
 
 export const RoomLobby = () => {
   const call = useCall();
-  const { useCallCallingState, useIsCallLive } = useCallStateHooks();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
 
@@ -57,7 +59,6 @@ export const RoomLobby = () => {
 };
 
 const RoomIntro = () => {
-  const { useCallCustomData, useCallCreatedBy } = useCallStateHooks();
   const customData = useCallCustomData();
   const creator = useCallCreatedBy();
   const host = customData.hosts ? customData.hosts[0] : creator;

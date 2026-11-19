@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import {
   CallControlsButton,
   CallingState,
-  useCallStateHooks,
+  useCallMembers,
+  useCallCallingState,
+  useParticipantCount,
 } from '@stream-io/video-react-native-sdk';
 import { ControlButtonIcon } from '@stream-io/video-react-native-sdk/src/icons';
 import { BadgeCountIndicator } from './BadgeCountIndicator';
@@ -31,8 +33,6 @@ export const ParticipantsButton = ({
 }: ParticipantsButtonProps) => {
   const [isParticipantsInfoVisible, setIsParticipantsInfoVisible] =
     useState(false);
-  const { useCallMembers, useCallCallingState, useParticipantCount } =
-    useCallStateHooks();
   const members = useCallMembers();
   const callingState = useCallCallingState();
   const callParticipantCount = useParticipantCount();

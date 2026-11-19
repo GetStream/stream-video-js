@@ -8,9 +8,9 @@ import {
   Restricted,
   StreamVideoParticipant,
   useCall,
-  useCallStateHooks,
   useConnectedUser,
   useTheme,
+  useParticipants,
 } from '@stream-io/video-react-native-sdk';
 import { useAppI18n } from '../hooks/useAppI18n';
 import { useLobbyE2EE } from '../contexts/LobbyE2EEContext';
@@ -63,7 +63,6 @@ export const ParticipantsInfoListModal = ({
   const {
     theme: { semantics },
   } = useTheme();
-  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const { t } = useAppI18n();
   const [selectedParticipant, setSelectedParticipant] = useState<
