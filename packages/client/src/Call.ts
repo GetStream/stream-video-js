@@ -300,6 +300,11 @@ export class Call {
   private readonly offlineState: CallOfflineState;
 
   // (10 attempts per rolling 120 s window).
+  // Sequence numbers of sent data messages, per topic, for one SFU session.
+  // Created on the first `sendData` call.
+  private dataSeq?: Map<string, number>;
+  private dataSeqSessionId?: string;
+
   private readonly rejoinRateLimiter = new SlidingWindowRateLimiter(10, 120000);
   // Backstop for slow REJOIN loops that stay under the short window
   // (20 attempts per rolling 30 min window). Dropped once the integrator
@@ -3465,6 +3470,56 @@ export class Call {
    */
   sendCustomEvent = async (payload: { [key: string]: any }) => {
     return this.api.sendCallEvent({ custom: payload });
+  };
+
+  /**
+   * Sends a data message on a topic to the other participants who are
+   * currently joined to the call. Receive data with `call.on('call.data', ...)`.
+   *
+   * Delivery is best effort: a message is not stored, not retried and not
+   * replayed after a reconnect, and the sender does not receive its own message.
+   * Every message carries a sequence number, counted per topic for the time
+   * this client stays joined with the same session. A receiver that sees a gap
+   * in `seq` from one `user_session_id` on one topic has missed a message.
+   * A refused message uses up its sequence number, so receivers see the gap.
+   *
+   * Requires the `send-data` capability, and the caller has to be joined.
+   *
+   * This API is in beta. It is built for small calls, and its names and
+   * behavior can still change.
+   *
+   * @param topic the topic, chosen by the application: letters, digits, dashes
+   * and underscores, up to 64 characters.
+   * @param data the payload. The encoded request can be at most 8 KB.
+   * @returns the sequence number the message was sent with.
+   * @throws ErrorFromResponse when the server refuses the message. For a rate
+   * limit (`status` 429), `metadata.rate_limit` has `retry_after_ms` and
+   * `rate_limit_hit_context` (`app`, `user` or `call`).
+   */
+  sendData = async (
+    topic: string,
+    data: { [key: string]: any },
+  ): Promise<{ seq: number }> => {
+    // The SFU client exists before the join completes, so its session id
+    // alone does not mean the call is joined.
+    const sessionId = this.sfuClient?.sessionId;
+    if (!sessionId || this.state.callingState !== CallingState.JOINED) {
+      throw new Error('Data can be sent only while joined to the call');
+    }
+    if (!this.dataSeq || this.dataSeqSessionId !== sessionId) {
+      this.dataSeqSessionId = sessionId;
+      this.dataSeq = new Map();
+    }
+    const seq = (this.dataSeq.get(topic) ?? 0) + 1;
+    this.dataSeq.set(topic, seq);
+
+    await this.api.sendCallData({
+      topic,
+      seq,
+      user_session_id: sessionId,
+      data,
+    });
+    return { seq };
   };
 
   /**
