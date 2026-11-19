@@ -12,7 +12,12 @@ import {
   enableLoopbackAudio,
   type LoopbackStreams,
 } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallCallingState,
+  useParticipantCount,
+  useLocalParticipant,
+} from '@stream-io/video-react-bindings';
 
 /** Lifecycle phase of a loopback recording. */
 export type LoopbackRecordingState = 'idle' | 'awaiting-streams' | 'recording';
@@ -60,8 +65,6 @@ export type UseLoopbackRecordingResult = {
 /** Records SFU loopback streams for pre-call testing. */
 export const useLoopbackRecording = (): UseLoopbackRecordingResult => {
   const call = useCall();
-  const { useCallCallingState, useParticipantCount, useLocalParticipant } =
-    useCallStateHooks();
   const callingState = useCallCallingState();
   const participantCount = useParticipantCount();
   const localParticipant = useLocalParticipant();

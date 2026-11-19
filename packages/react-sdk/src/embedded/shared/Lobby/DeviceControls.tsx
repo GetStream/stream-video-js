@@ -1,6 +1,7 @@
 import {
-  useCallStateHooks,
   useConnectedUser,
+  useCameraState,
+  useMicrophoneState,
 } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 import {
@@ -20,7 +21,6 @@ interface DeviceControlsProps {
 export const DeviceControls = ({ isVideoEnabled }: DeviceControlsProps) => {
   const { t } = useI18n();
   const user = useConnectedUser();
-  const { useCameraState, useMicrophoneState } = useCallStateHooks();
 
   const { hasBrowserPermission: hasCameraPermission } = useCameraState();
   const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();

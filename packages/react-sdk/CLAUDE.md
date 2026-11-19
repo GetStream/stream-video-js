@@ -2,8 +2,8 @@
 
 ## Layering rule
 
-- Never read RxJS observables or `call.state` directly in this package, and never call `useObservableValue` here. All state access goes through the bindings hooks (`useCallStateHooks()`, `useCall()`).
-- `useCallStateHooks()` returns a constant object, so destructuring it is cheap and stable. Destructure the hooks you need (`const { useParticipants } = useCallStateHooks()`) and call them; for React Compiler compatibility the `use-call-state-hooks` codemod hoists the destructuring to module scope.
+- Never read RxJS observables or `call.state` directly in this package, and never call `useObservableValue` here. All state access goes through the bindings hooks (`useCall()` and the call state hooks such as `useParticipants()`).
+- Import call state hooks directly from `@stream-io/video-react-bindings` (`import { useParticipants } from '@stream-io/video-react-bindings'`). Do not read them off `useCallStateHooks()` in this package: React Compiler can't verify that a hook read from the returned object is the same function on every render, and skips optimizing the component. `useCallStateHooks()` stays exported for integrators.
 - Device preference persistence lives in the client (`devicePersistence` option), not in this package.
 - Background filters are MediaPipe-only (`BackgroundFiltersProvider`, `src/components/BackgroundFilters/`).
 

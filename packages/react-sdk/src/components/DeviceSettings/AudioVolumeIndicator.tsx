@@ -1,10 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { createSoundDetector } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useMicrophoneState } from '@stream-io/video-react-bindings';
 import { Icon } from '../Icon';
 
 export const AudioVolumeIndicator = () => {
-  const { useMicrophoneState } = useCallStateHooks();
   const { isEnabled, mediaStream } = useMicrophoneState();
   const barRef = useRef<HTMLDivElement>(null);
 

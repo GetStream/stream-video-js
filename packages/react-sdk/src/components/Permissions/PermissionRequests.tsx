@@ -10,7 +10,11 @@ import {
   PermissionRequestEvent,
   UserResponse,
 } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useLocalParticipant,
+  useHasPermissions,
+} from '@stream-io/video-react-bindings';
 import { StreamTFunction, useI18n } from '../../i18n';
 
 import { Button } from '../Button';
@@ -31,7 +35,6 @@ type HandleUpdatePermission = (
 
 export const PermissionRequests = () => {
   const call = useCall();
-  const { useLocalParticipant, useHasPermissions } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const [expanded, setExpanded] = useState(false);
   const [permissionRequests, setPermissionRequests] = useState<
