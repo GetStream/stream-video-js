@@ -98,7 +98,6 @@ export type TranslationCatalog = {
   'livestream.backstage.startsAt.text': 'Livestream starts at {{ time }}';
   'livestream.backstage.startsSoon.text': 'Livestream starts soon';
   'livestream.player.loadFailed.text': 'The livestream could not be loaded';
-  'livestream.player.retry.label': 'Try again';
   'livestreamHost.backstage.text': 'Backstage';
   'livestreamHost.endLive.label': 'End Live';
   'livestreamHost.endStream.title': 'End Stream';

@@ -59,13 +59,14 @@ export const LivestreamPlayer = (
   const { callType, callId, children, ...restProps } = props;
   const client = useStreamVideoClient();
   const [call, setCall] = useState<Call>();
-  const [error, setError] = useState<unknown>();
+  // a record, so a rejection with a falsy value still shows the error view
+  const [failure, setFailure] = useState<{ error: unknown }>();
   const [attempt, setAttempt] = useState(0);
   const currentCall = useRef<Call | undefined>(undefined);
   const reportError = (failedCall: Call, e: unknown) => {
     // a request of a call this player no longer shows must not replace it
     if (failedCall !== currentCall.current) return;
-    setError(e);
+    setFailure({ error: e });
     props.onError?.(e);
   };
   const onError = useEffectEvent(reportError);
@@ -85,7 +86,7 @@ export const LivestreamPlayer = (
         console.error('Failed to leave call', e);
       });
       setCall(undefined);
-      setError(undefined);
+      setFailure(undefined);
     };
   }, [callId, callType, client, attempt]);
 
@@ -95,7 +96,7 @@ export const LivestreamPlayer = (
 
   return (
     <StreamCall call={call}>
-      {error ? (
+      {failure ? (
         <LivestreamError onRetry={() => setAttempt((a) => a + 1)} />
       ) : (
         <LivestreamCall {...restProps} onError={reportError} />
@@ -137,7 +138,7 @@ const LivestreamError = (props: { onRetry: () => void }) => {
           )}
         </span>
         <Button onClick={props.onRetry}>
-          {t('livestream.player.retry.label', 'Try again')}
+          {t('common.tryAgain.label', 'Try again')}
         </Button>
       </div>
     </div>
@@ -186,13 +187,15 @@ const useLivestreamCall = (props: {
   }, [call, callingState, isPaused, endedAt]);
 
   useEffect(() => {
-    if (call && call.state.callingState === CallingState.IDLE && canJoin) {
+    if (call && callingState === CallingState.IDLE && canJoin && !endedAt) {
       call.join().catch((e) => {
         console.error('Failed to join call', e);
         onError(call, e);
       });
     }
-  }, [call, canJoin, rewatchCount]);
+    // a failed join returns to IDLE: reacting to `callingState` would retry it
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [call, canJoin, endedAt, rewatchCount]);
 
   return call;
 };

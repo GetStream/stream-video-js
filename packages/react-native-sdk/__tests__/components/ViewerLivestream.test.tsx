@@ -1,5 +1,10 @@
 import React from 'react';
-import { CallingState, SfuModels } from '@stream-io/video-client';
+import {
+  CallingState,
+  OwnCapability,
+  SfuModels,
+  type StreamVideoEvent,
+} from '@stream-io/video-client';
 import { mockClientWithUser } from '../mocks/client';
 import { mockCall } from '../mocks/call';
 import { act, fireEvent, render, screen, waitFor } from '../utils/RNTLTools';
@@ -18,15 +23,23 @@ jest.mock('react-native/Libraries/Components/Button', () => {
   return { __esModule: true, default: Button };
 });
 
-const setupCall = () => {
-  const call = mockCall(mockClientWithUser());
+const setupCall = (ownCapabilities: OwnCapability[] = []) => {
+  const call = mockCall(mockClientWithUser(), undefined, ownCapabilities);
   call.get = jest.fn().mockResolvedValue({});
   call.join = jest.fn().mockResolvedValue(undefined);
+  call.listRecordings = jest.fn().mockResolvedValue({ recordings: [] });
   call.state.setBackstage(true);
   return call;
 };
 
-const stopLive = (call: ReturnType<typeof setupCall>) => {
+type TestCall = ReturnType<typeof setupCall>;
+
+/** Makes the viewer eligible to join early, before the call is live. */
+const allowEarlyJoin = (call: TestCall) => {
+  call.state['startsAtSubject'].next(new Date(Date.now() - 60_000));
+};
+
+const stopLive = (call: TestCall) => {
   call['dispatcher'].dispatch({
     eventPayload: {
       oneofKind: 'callEnded',
@@ -35,19 +48,33 @@ const stopLive = (call: ReturnType<typeof setupCall>) => {
   });
 };
 
+const endCall = (call: TestCall) => {
+  call['streamClient'].dispatchEvent({
+    type: 'call.ended',
+    call_cid: call.cid,
+  } as StreamVideoEvent);
+  call.state.setEndedAt(new Date());
+};
+
+/** Stop Live takes a joined viewer out; the lobby loads the call again. */
+const leaveOnStopLive = async (call: TestCall) => {
+  act(() => {
+    stopLive(call);
+    call.state.setCallingState(CallingState.LEFT);
+  });
+  await waitFor(() => expect(call.get).toHaveBeenCalledTimes(2));
+  act(() => call.state.setCallingState(CallingState.IDLE));
+};
+
 describe('ViewerLivestream', () => {
-  it('watches the call again and rejoins once live after Stop Live', async () => {
+  it('waits for Go Live before rejoining after Stop Live', async () => {
     const call = setupCall();
+    allowEarlyJoin(call);
+    call.state.setCallingState(CallingState.JOINED);
     render(<ViewerLivestream />, { call });
     await waitFor(() => expect(call.get).toHaveBeenCalledTimes(1));
 
-    act(() => {
-      stopLive(call);
-      call.state.setCallingState(CallingState.LEFT);
-    });
-    await waitFor(() => expect(call.get).toHaveBeenCalledTimes(2));
-
-    act(() => call.state.setCallingState(CallingState.IDLE));
+    await leaveOnStopLive(call);
     expect(call.join).not.toHaveBeenCalled();
 
     act(() => call.state.setBackstage(false));
@@ -60,11 +87,41 @@ describe('ViewerLivestream', () => {
     await waitFor(() => expect(call.get).toHaveBeenCalledTimes(1));
 
     act(() => call.state.setCallingState(CallingState.LEFT));
+    await waitFor(() => expect(call.get).toHaveBeenCalledTimes(2));
     act(() => call.state.setCallingState(CallingState.IDLE));
     act(() => call.state.setBackstage(false));
 
     await screen.findByText('Livestream is still in progress');
-    expect(call.get).toHaveBeenCalledTimes(1);
+    expect(call.join).not.toHaveBeenCalled();
+  });
+
+  it('does not rejoin a backstage viewer who stayed through Stop Live and then left', async () => {
+    const call = setupCall([OwnCapability.JOIN_BACKSTAGE]);
+    call.state.setCallingState(CallingState.JOINED);
+    render(<ViewerLivestream />, { call });
+    await waitFor(() => expect(call.get).toHaveBeenCalledTimes(1));
+
+    act(() => stopLive(call));
+    act(() => call.state.setCallingState(CallingState.LEFT));
+    await waitFor(() => expect(call.get).toHaveBeenCalledTimes(2));
+    act(() => call.state.setCallingState(CallingState.IDLE));
+    act(() => call.state.setBackstage(false));
+
+    await screen.findByText('Livestream is still in progress');
+    expect(call.join).not.toHaveBeenCalled();
+  });
+
+  it('does not join after the call ends', async () => {
+    const call = setupCall();
+    allowEarlyJoin(call);
+    call.state.setCallingState(CallingState.JOINED);
+    render(<ViewerLivestream />, { call });
+    await waitFor(() => expect(call.get).toHaveBeenCalledTimes(1));
+
+    await leaveOnStopLive(call);
+    act(() => endCall(call));
+
+    await screen.findByText('The livestream has ended.');
     expect(call.join).not.toHaveBeenCalled();
   });
 

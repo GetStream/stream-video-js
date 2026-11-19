@@ -1,6 +1,6 @@
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Button,
@@ -32,7 +32,7 @@ export const ViewerLobby = ({ isLive }: LobbyProps) => {
   const call = useCall();
   const startsAt = useCallStartsAt();
   const [failure, setFailure] = useState<{ call: Call }>();
-  const [attempt, setAttempt] = useState(0);
+  const [loadCount, setLoadCount] = useState(0);
   const [countdown, setCountdown] = React.useState(getCountdown(startsAt));
   const participants = useParticipants();
 
@@ -57,6 +57,16 @@ export const ViewerLobby = ({ isLive }: LobbyProps) => {
     return () => clearInterval(intervalId);
   }, [startsAt, isLive]);
 
+  const previousCallingState = useRef(callingState);
+  useEffect(() => {
+    const previous = previousCallingState.current;
+    previousCallingState.current = callingState;
+    // leaving unwatches the call: load it again so later updates reach it
+    if (callingState === CallingState.LEFT && previous !== CallingState.LEFT) {
+      setLoadCount((c) => c + 1);
+    }
+  }, [callingState]);
+
   /**
    * Getting the call details is done through `call.get()`.
    * It is essential so that the call is watched and any changes in the call is intercepted.
@@ -64,16 +74,21 @@ export const ViewerLobby = ({ isLive }: LobbyProps) => {
   useEffect(() => {
     if (!call) return;
     let isCanceled = false;
-    call.get().catch((err) => {
-      const logger = videoLoggerSystem.getLogger('ViewerLobby');
-      logger.error('Error getting call:', err);
-      // a request of a call this lobby no longer shows must not replace it
-      if (!isCanceled) setFailure({ call });
-    });
+    call
+      .get()
+      .then(() => {
+        if (!isCanceled) setFailure(undefined);
+      })
+      .catch((err) => {
+        const logger = videoLoggerSystem.getLogger('ViewerLobby');
+        logger.error('Error getting call:', err);
+        // a request this lobby no longer waits for must not replace the result
+        if (!isCanceled) setFailure({ call });
+      });
     return () => {
       isCanceled = true;
     };
-  }, [call, attempt]);
+  }, [call, loadCount]);
 
   if (call && failure?.call === call) {
     return (
@@ -88,7 +103,7 @@ export const ViewerLobby = ({ isLive }: LobbyProps) => {
           title={t('livestreamViewer.retry.label', 'Try again')}
           onPress={() => {
             setFailure(undefined);
-            setAttempt((a) => a + 1);
+            setLoadCount((c) => c + 1);
           }}
         />
       </View>

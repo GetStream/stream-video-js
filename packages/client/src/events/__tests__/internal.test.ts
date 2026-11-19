@@ -95,11 +95,16 @@ describe('internal events', () => {
 
   it('handles liveEnded when user has permission to stay in backstage', () => {
     const dispatcher = new Dispatcher();
+    const state = new CallState();
+    state.setBackstage(false);
+    vi.spyOn(state, 'settings', 'get').mockReturnValue(
+      fromPartial({ backstage: { enabled: true } }),
+    );
     const call = {
       permissionsContext: { hasPermission: () => true },
       leave: vi.fn().mockResolvedValue(undefined),
       logger: vi.fn(),
-      state: new CallState(),
+      state,
     } as unknown as Call;
 
     watchLiveEnded(dispatcher, call);
@@ -112,6 +117,7 @@ describe('internal events', () => {
       },
     });
     expect(call.leave).not.toHaveBeenCalled();
+    expect(call.state.backstage).toBe(true);
   });
 
   it('handles liveEnded when backstage is disabled', () => {
