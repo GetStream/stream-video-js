@@ -8,8 +8,9 @@ import {
 import {
   applyFilter,
   isPinned,
-  useCallStateHooks,
   type Filter,
+  useParticipantCount,
+  useParticipants,
 } from '@stream-io/video-react-sdk';
 import { layoutMap, type Layout } from './layouts';
 import {
@@ -49,7 +50,6 @@ export const CustomActionsContext =
 
 const useProcessCustomActions = () => {
   const { options } = useConfigurationContext();
-  const { useParticipantCount, useParticipants } = useCallStateHooks();
   const participantCount = useParticipantCount();
   const participants = useParticipants();
   const pinnedParticipantCount = participants.reduce((count, participant) => {

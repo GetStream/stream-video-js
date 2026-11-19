@@ -14,7 +14,7 @@ import {
   speaking,
   StreamVideoParticipant,
   useCall,
-  useCallStateHooks,
+  useRemoteParticipants,
 } from '@stream-io/video-react-sdk';
 
 import { useSpotlightParticipant } from './useSpotlightParticipant';
@@ -27,7 +27,6 @@ export const DominantSpeaker = () => {
   const call = useCall();
   const speakerInSpotlight = useSpotlightParticipant();
   const lastSpeakerInSpotlight = useRef<StreamVideoParticipant | null>(null);
-  const { useRemoteParticipants } = useCallStateHooks();
   const remoteParticipants = useRemoteParticipants();
   const {
     options: { 'layout.forceMirrorParticipants': forceMirrorParticipants },

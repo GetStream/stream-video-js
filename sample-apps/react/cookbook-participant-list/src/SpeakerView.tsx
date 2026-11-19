@@ -20,15 +20,14 @@ import {
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCall,
-  useCallStateHooks,
   VisibilityState,
+  useParticipants,
 } from '@stream-io/video-react-sdk';
 
 import './SpeakerView.scss';
 
 export const SpeakerView = () => {
   const call = useCall();
-  const { useParticipants } = useCallStateHooks();
   const [participantInSpotlight, ...otherParticipants] = useParticipants();
 
   // determine whether the call is a 1:1 call

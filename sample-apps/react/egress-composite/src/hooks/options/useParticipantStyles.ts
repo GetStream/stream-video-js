@@ -1,5 +1,5 @@
 import { css, cx } from '@emotion/css';
-import { useCallStateHooks } from '@stream-io/video-react-sdk';
+import { useHasOngoingScreenShare } from '@stream-io/video-react-sdk';
 
 import { useConfigurationContext } from '../../ConfigurationContext';
 
@@ -15,7 +15,6 @@ export const useParticipantStyles = () => {
     },
   } = useConfigurationContext();
 
-  const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
   const styles = [
     // we don't want to apply the aspect ratio when screen share is

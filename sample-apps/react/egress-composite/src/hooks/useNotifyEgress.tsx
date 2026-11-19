@@ -6,7 +6,7 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { CallingState, useCallStateHooks } from '@stream-io/video-react-sdk';
+import { CallingState, useCallCallingState } from '@stream-io/video-react-sdk';
 
 const EgressReadyNotificationContext = createContext((isReady: boolean) => {
   // no-op
@@ -15,7 +15,6 @@ const EgressReadyNotificationContext = createContext((isReady: boolean) => {
 
 export const EgressReadyNotificationProvider = (props: PropsWithChildren) => {
   const [isReady, setIsReady] = useState(false);
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   useEffect(() => {
     if (isReady || callingState !== CallingState.JOINED) return;
