@@ -3500,8 +3500,10 @@ export class Call {
     topic: string,
     data: { [key: string]: any },
   ): Promise<{ seq: number }> => {
+    // The SFU client exists before the join completes, so its session id
+    // alone does not mean the call is joined.
     const sessionId = this.sfuClient?.sessionId;
-    if (!sessionId) {
+    if (!sessionId || this.state.callingState !== CallingState.JOINED) {
       throw new Error('Data can be sent only while joined to the call');
     }
     if (!this.dataSeq || this.dataSeqSessionId !== sessionId) {

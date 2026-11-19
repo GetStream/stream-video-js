@@ -13,7 +13,7 @@ import { StreamClient } from '../coordinator/connection/client';
 import { ErrorFromResponse } from '../coordinator/connection/types';
 import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
-import { ClientState } from '../store';
+import { CallingState, ClientState } from '../store';
 import { StreamSfuClient } from '../StreamSfuClient';
 
 describe('Call.sendData', () => {
@@ -29,8 +29,9 @@ describe('Call.sendData', () => {
       clientEventReporter: new ClientEventReporter({ streamClient }),
       clientState: new ClientState(),
     });
-    const joinAs = (sessionId: string) => {
+    const joinAs = (sessionId: string, state = CallingState.JOINED) => {
       call['sfuClient'] = fromPartial<StreamSfuClient>({ sessionId });
+      call.state.setCallingState(state);
     };
     if (sfuSessionId) joinAs(sfuSessionId);
 
@@ -117,6 +118,21 @@ describe('Call.sendData', () => {
       'Data can be sent only while joined to the call',
     );
     expect(request).not.toHaveBeenCalled();
+  });
+
+  it('refuses to send while the join is still in progress', async () => {
+    const { call, request, joinAs } = fakeCall();
+    // the SFU session is allocated before the join completes
+    joinAs('session-1', CallingState.JOINING);
+
+    await expect(call.sendData('whiteboard', {})).rejects.toThrow(
+      'Data can be sent only while joined to the call',
+    );
+    expect(request).not.toHaveBeenCalled();
+
+    // the refused attempt did not use up a sequence number
+    joinAs('session-1');
+    expect(await call.sendData('whiteboard', {})).toEqual({ seq: 1 });
   });
 
   it('passes a rate limit through with the retry delay and the limit that was hit', async () => {
