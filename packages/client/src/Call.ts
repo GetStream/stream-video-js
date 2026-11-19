@@ -3485,6 +3485,9 @@ export class Call {
    *
    * Requires the `send-data` capability, and the caller has to be joined.
    *
+   * This API is in beta. It is built for small calls, and its names and
+   * behavior can still change.
+   *
    * @param topic the topic, chosen by the application: letters, digits, dashes
    * and underscores, up to 64 characters.
    * @param data the payload. The encoded request can be at most 8 KB.
