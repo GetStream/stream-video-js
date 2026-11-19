@@ -16,6 +16,8 @@
   "livestreamViewer.earlyParticipants.text_one": "{{ count }} participant has joined early",
   "livestreamViewer.earlyParticipants.text_other": "{{ count }} participants have joined early",
   "livestreamViewer.join.label": "Join Livestream",
+  "livestreamViewer.loadFailed.text": "The livestream could not be loaded",
+  "livestreamViewer.retry.label": "Try again",
   "livestreamViewer.stillInProgress.text": "Livestream is still in progress",
   "livestreamViewer.willStartIn.text": "Livestream will start in:",
   "livestreamViewer.willStartSoon.text": "Livestream will start soon",

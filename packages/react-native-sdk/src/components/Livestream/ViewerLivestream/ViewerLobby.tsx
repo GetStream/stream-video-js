@@ -1,6 +1,6 @@
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Button,
@@ -9,7 +9,11 @@ import {
   View,
 } from 'react-native';
 import { useTheme } from '../../../contexts';
-import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
+import {
+  type Call,
+  CallingState,
+  videoLoggerSystem,
+} from '@stream-io/video-client';
 
 type LobbyProps = {
   isLive: boolean;
@@ -27,7 +31,8 @@ export const ViewerLobby = ({ isLive }: LobbyProps) => {
   const callingState = useCallCallingState();
   const call = useCall();
   const startsAt = useCallStartsAt();
-  const [error, setError] = useState<Error | undefined>(undefined);
+  const [failure, setFailure] = useState<{ call: Call }>();
+  const [loadCount, setLoadCount] = useState(0);
   const [countdown, setCountdown] = React.useState(getCountdown(startsAt));
   const participants = useParticipants();
 
@@ -52,35 +57,55 @@ export const ViewerLobby = ({ isLive }: LobbyProps) => {
     return () => clearInterval(intervalId);
   }, [startsAt, isLive]);
 
+  const previousCallingState = useRef(callingState);
+  useEffect(() => {
+    const previous = previousCallingState.current;
+    previousCallingState.current = callingState;
+    // leaving unwatches the call: load it again so later updates reach it
+    if (callingState === CallingState.LEFT && previous !== CallingState.LEFT) {
+      setLoadCount((c) => c + 1);
+    }
+  }, [callingState]);
+
   /**
    * Getting the call details is done through `call.get()`.
    * It is essential so that the call is watched and any changes in the call is intercepted.
    */
   useEffect(() => {
-    const getCall = async () => {
-      if (!call) {
-        return;
-      }
-
-      try {
-        await call.get();
-      } catch (err) {
-        if (err instanceof Error) {
-          const logger = videoLoggerSystem.getLogger('ViewerLobby');
-          logger.error('Error getting call:', err);
-          setError(err);
-        }
-      }
+    if (!call) return;
+    let isCanceled = false;
+    call
+      .get()
+      .then(() => {
+        if (!isCanceled) setFailure(undefined);
+      })
+      .catch((err) => {
+        const logger = videoLoggerSystem.getLogger('ViewerLobby');
+        logger.error('Error getting call:', err);
+        // a request this lobby no longer waits for must not replace the result
+        if (!isCanceled) setFailure({ call });
+      });
+    return () => {
+      isCanceled = true;
     };
-    getCall();
-  }, [call]);
+  }, [call, loadCount]);
 
-  if (error) {
+  if (call && failure?.call === call) {
     return (
       <View style={[styles.container, livestreamViewerLobby.container]}>
-        <Text style={styles.text}>
-          Error joining the livestream. Please try again later.
+        <Text style={[styles.text, livestreamViewerLobby.text]}>
+          {t(
+            'livestreamViewer.loadFailed.text',
+            'The livestream could not be loaded',
+          )}
         </Text>
+        <Button
+          title={t('livestreamViewer.retry.label', 'Try again')}
+          onPress={() => {
+            setFailure(undefined);
+            setLoadCount((c) => c + 1);
+          }}
+        />
       </View>
     );
   }
@@ -141,7 +166,12 @@ export const ViewerLobby = ({ isLive }: LobbyProps) => {
       {isLive && (
         <Button
           title={t('livestreamViewer.join.label', 'Join Livestream')}
-          onPress={() => call?.join()}
+          onPress={() => {
+            call?.join().catch((err) => {
+              const logger = videoLoggerSystem.getLogger('ViewerLobby');
+              logger.error('Failed to join call', err);
+            });
+          }}
         />
       )}
     </View>

@@ -53,16 +53,28 @@ export const watchParticipantCountChanged = (
   });
 };
 
+/**
+ * Applies the end of the live segment (Stop Live) to the call state.
+ * `backstage` is set only when the call type has backstage enabled, and only
+ * then may a user with `join-backstage` stay in the call.
+ *
+ * @returns `true` when the user should stay in the call.
+ */
+export const applyLiveEnded = (call: Call): boolean => {
+  if (call.state.settings?.backstage.enabled === false) return false;
+  call.state.setBackstage(true);
+  return call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE);
+};
+
 export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
   return dispatcher.on('error', '*', (e) => {
-    if (e.error && e.error.code !== ErrorCode.LIVE_ENDED) return;
-
-    call.state.setBackstage(true);
-    if (!call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE)) {
-      call.leave({ message: 'live ended' }).catch((err) => {
-        call.logger.error('Failed to leave call after live ended', err);
-      });
-    }
+    if (e.error?.code !== ErrorCode.LIVE_ENDED) return;
+    // a user who stays follows the SFU's reconnect strategy,
+    // which the call's own `error` handler applies
+    if (applyLiveEnded(call)) return;
+    call.leave({ message: 'live ended' }).catch((err) => {
+      call.logger.error('Failed to leave call after live ended', err);
+    });
   });
 };
 

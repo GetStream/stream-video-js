@@ -1,4 +1,4 @@
-import { PropsWithChildren, useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { Call, CallingState } from '@stream-io/video-client';
 import {
   useCall,
@@ -13,6 +13,9 @@ import {
   LivestreamLayoutProps,
   StreamCall,
 } from '../../core';
+import { Button } from '../../components';
+import { useI18n } from '../../i18n';
+import { useIsLivestreamPaused } from '../../embedded/hooks/useIsLivestreamPaused';
 
 export type LivestreamPlayerProps = {
   /**
@@ -45,6 +48,7 @@ export type LivestreamPlayerProps = {
   backstageProps?: BackstageLayoutProps;
   /**
    * Callback to handle errors while fetching or joining livestream.
+   * The player also shows an error view with a retry action.
    */
   onError?: (error: any) => void;
 };
@@ -55,23 +59,36 @@ export const LivestreamPlayer = (
   const { callType, callId, children, ...restProps } = props;
   const client = useStreamVideoClient();
   const [call, setCall] = useState<Call>();
-  const onError = useEffectEvent(props.onError ?? (() => {}));
+  // a record, so a rejection with a falsy value still shows the error view
+  const [failure, setFailure] = useState<{ error: unknown }>();
+  const [attempt, setAttempt] = useState(0);
+  const currentCall = useRef<Call | undefined>(undefined);
+  const reportError = (failedCall: Call, e: unknown) => {
+    // a request of a call this player no longer shows must not replace it
+    if (failedCall !== currentCall.current) return;
+    setFailure({ error: e });
+    props.onError?.(e);
+  };
+  const onError = useEffectEvent(reportError);
 
   useEffect(() => {
     if (!client) return;
     const myCall = client.call(callType, callId);
+    currentCall.current = myCall;
     setCall(myCall);
     myCall.get().catch((e) => {
       console.error('Failed to fetch call', e);
-      onError(e);
+      onError(myCall, e);
     });
     return () => {
+      currentCall.current = undefined;
       myCall.leave().catch((e) => {
         console.error('Failed to leave call', e);
       });
       setCall(undefined);
+      setFailure(undefined);
     };
-  }, [callId, callType, client]);
+  }, [callId, callType, client, attempt]);
 
   if (!call) {
     return null;
@@ -79,7 +96,11 @@ export const LivestreamPlayer = (
 
   return (
     <StreamCall call={call}>
-      <LivestreamCall {...restProps} />
+      {failure ? (
+        <LivestreamError onRetry={() => setAttempt((a) => a + 1)} />
+      ) : (
+        <LivestreamCall {...restProps} onError={reportError} />
+      )}
       {children}
     </StreamCall>
   );
@@ -89,46 +110,92 @@ const LivestreamCall = (props: {
   joinBehavior?: 'asap' | 'live';
   layoutProps?: LivestreamLayoutProps;
   backstageProps?: BackstageLayoutProps;
-  onError?: (error: any) => void;
+  onError: (call: Call, error: unknown) => void;
 }) => {
   const call = useLivestreamCall(props);
-  const { useIsCallLive } = useCallStateHooks();
+  const { useIsCallLive, useCallEndedAt } = useCallStateHooks();
   const isLive = useIsCallLive();
+  const endedAt = useCallEndedAt();
 
   if (!call) return null;
 
-  if (isLive) {
+  if (isLive && !endedAt) {
     return <LivestreamLayout {...props.layoutProps} />;
   }
 
   return <BackstageLayout {...props.backstageProps} />;
 };
 
+const LivestreamError = (props: { onRetry: () => void }) => {
+  const { t } = useI18n();
+  return (
+    <div className="str-video__livestream-layout__wrapper">
+      <div className="str-video__livestream-layout__backstage">
+        <span className="str-video__livestream-layout__error">
+          {t(
+            'livestream.player.loadFailed.text',
+            'The livestream could not be loaded',
+          )}
+        </span>
+        <Button onClick={props.onRetry}>
+          {t('common.tryAgain.label', 'Try again')}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 const useLivestreamCall = (props: {
   joinBehavior?: 'asap' | 'live';
-  onError?: (error: any) => void;
+  onError: (call: Call, error: unknown) => void;
 }) => {
   const call = useCall();
-  const { useIsCallLive, useOwnCapabilities } = useCallStateHooks();
+  const {
+    useCallCallingState,
+    useCallEndedAt,
+    useIsCallLive,
+    useOwnCapabilities,
+  } = useCallStateHooks();
+  const callingState = useCallCallingState();
+  const endedAt = useCallEndedAt();
   const canJoinLive = useIsCallLive();
   const canJoinEarly = useCanJoinEarly();
   const canJoinBackstage =
     useOwnCapabilities()?.includes('join-backstage') ?? false;
   const canJoinAsap = canJoinLive || canJoinEarly || canJoinBackstage;
   const joinBehavior = props.joinBehavior ?? 'asap';
-  const canJoin =
-    (joinBehavior === 'asap' && canJoinAsap) ||
-    (joinBehavior === 'live' && canJoinLive);
-  const onError = useEffectEvent(props.onError ?? (() => {}));
+  const isPaused = useIsLivestreamPaused();
+  const [rewatchCount, setRewatchCount] = useState(0);
+  const canJoin = isPaused
+    ? canJoinLive
+    : (joinBehavior === 'asap' && canJoinAsap) ||
+      (joinBehavior === 'live' && canJoinLive);
+  const onError = useEffectEvent(props.onError);
 
   useEffect(() => {
-    if (call && call.state.callingState === CallingState.IDLE && canJoin) {
+    if (!call || callingState !== CallingState.LEFT) return;
+    if (!isPaused || endedAt) return;
+    // Stop Live took this viewer out of the call. Watch the call again and
+    // rejoin only once it is live.
+    call
+      .get()
+      .then(() => setRewatchCount((c) => c + 1))
+      .catch((e) => {
+        console.error('Failed to fetch call', e);
+        onError(call, e);
+      });
+  }, [call, callingState, isPaused, endedAt]);
+
+  useEffect(() => {
+    if (call && callingState === CallingState.IDLE && canJoin && !endedAt) {
       call.join().catch((e) => {
         console.error('Failed to join call', e);
-        onError(e);
+        onError(call, e);
       });
     }
-  }, [call, canJoin]);
+    // a failed join returns to IDLE: reacting to `callingState` would retry it
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [call, canJoin, endedAt, rewatchCount]);
 
   return call;
 };

@@ -24,6 +24,7 @@ import {
 } from './ViewerStatusPanel';
 import { Z_INDEX } from '../../../constants';
 import { ViewerLivestreamOverlay } from './ViewerLivestreamOverlay';
+import { useIsLivestreamPaused } from './useIsLivestreamPaused';
 import type { Insets } from '../../../theme/types';
 
 /**
@@ -109,19 +110,32 @@ export const ViewerLivestream = ({
 
   const [topViewHeight, setTopViewHeight] = React.useState<number>();
 
+  const isPaused = useIsLivestreamPaused();
+
   useEffect(() => {
-    if (callingState === CallingState.LEFT) {
+    // Stop Live is not the viewer leaving: they rejoin once it is live again.
+    // The lobby watches the call again after any departure.
+    if (callingState === CallingState.LEFT && !isPaused) {
       setHasLeft(true);
+    } else if (callingState === CallingState.JOINED) {
+      setHasLeft(false);
     }
-  }, [callingState]);
+  }, [callingState, isPaused]);
 
   useEffect(() => {
     const canJoinAsap = canJoinLive || canJoinEarly || canJoinBackstage;
     const join = joinBehavior ?? 'asap';
-    const canJoin =
-      (join === 'asap' && canJoinAsap) || (join === 'live' && canJoinLive);
+    const canJoin = isPaused
+      ? canJoinLive
+      : (join === 'asap' && canJoinAsap) || (join === 'live' && canJoinLive);
 
-    if (call && callingState === CallingState.IDLE && canJoin && !hasLeft) {
+    if (
+      call &&
+      callingState === CallingState.IDLE &&
+      canJoin &&
+      !hasLeft &&
+      !endedAt
+    ) {
       call.join().catch((error) => {
         console.error('Failed to join call', error);
       });
@@ -134,6 +148,8 @@ export const ViewerLivestream = ({
     joinBehavior,
     callingState,
     hasLeft,
+    isPaused,
+    endedAt,
   ]);
 
   if (endedAt != null) {
