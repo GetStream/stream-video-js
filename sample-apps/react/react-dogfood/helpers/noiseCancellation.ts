@@ -1,11 +1,15 @@
-import type { NoiseCancellationOptions } from '@stream-io/audio-filters-web';
+import type {
+  INoiseCancellation,
+  NoiseCancellationOptions,
+} from '@stream-io/audio-filters-web';
 
 export type NoiseCancellationModel =
   | 'auto'
   | 'krisp'
   | 'fastenhancer-tiny'
   | 'fastenhancer-base'
-  | 'fastenhancer-small';
+  | 'fastenhancer-small'
+  | 'mol';
 
 export const NOISE_CANCELLATION_MODELS: NoiseCancellationModel[] = [
   'auto',
@@ -13,6 +17,7 @@ export const NOISE_CANCELLATION_MODELS: NoiseCancellationModel[] = [
   'fastenhancer-tiny',
   'fastenhancer-base',
   'fastenhancer-small',
+  'mol',
 ];
 
 /**
@@ -26,7 +31,7 @@ const fastEnhancerBasePath = `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/fastenh
  * `NoiseCancellation` router. The pick is a hint: it applies when the call
  * settings (`extra_opts.noise_cancellation.engine`) don't select an engine.
  */
-export const getNoiseCancellationOptions = (
+const getNoiseCancellationOptions = (
   model: NoiseCancellationModel,
 ): NoiseCancellationOptions => {
   switch (model) {
@@ -61,4 +66,24 @@ export const getNoiseCancellationOptions = (
         fastEnhancer: { basePath: fastEnhancerBasePath },
       };
   }
+};
+
+/**
+ * Creates the noise cancellation for the model picked in the settings.
+ * `mol` runs this app's own model build (see noise-cancellation/README.md)
+ * whatever the call settings pick; the others go through the SDK's
+ * `NoiseCancellation` router.
+ */
+export const createNoiseCancellation = async (
+  model: NoiseCancellationModel,
+): Promise<INoiseCancellation> => {
+  if (model === 'mol') {
+    const { MolNoiseCancellation } =
+      await import('../noise-cancellation/MolNoiseCancellation');
+    return new MolNoiseCancellation({
+      basePath: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/noise-cancellation`,
+    });
+  }
+  const { NoiseCancellation } = await import('@stream-io/audio-filters-web');
+  return new NoiseCancellation(getNoiseCancellationOptions(model));
 };

@@ -1,0 +1,194 @@
+#!/usr/bin/env node
+// Vendors one noise cancellation model build (engine WASM + weights) from a
+// checkout of the GetStream/mol repository into `noise-cancellation/`.
+// No dependencies.
+//
+// Runs directly on Node.js 22.18+ (type stripping), no build step:
+//   node vendor-mol.mts --mol <mol checkout> --model <models/ folder name> \
+//     --out <noise-cancellation>
+//
+// Run from the repo root, see noise-cancellation/README.md.
+
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
+import { parseArgs } from 'node:util';
+
+/** One entry of `mol/models/versions.json`. */
+type ModelVersion = {
+  arch: number[];
+  checkpoint: string;
+  note: string;
+  'engine.wasm_sha256': string;
+  'weights.bin_sha256': string;
+};
+
+/**
+ * Only models trained from a random start on permissively licensed data may
+ * ship. The older builds in mol descend from the upstream FastEnhancer
+ * weights and were trained on non-commercial data.
+ */
+const SHIPPABLE_NOTE = 'permissively licensed training data only';
+
+/** The engine exports the worklet processor calls. */
+const REQUIRED_EXPORTS = [
+  'memory',
+  'malloc',
+  'free',
+  'fe_init',
+  'fe_destroy',
+  'fe_reset',
+  'fe_process_inplace',
+  'fe_get_input_ptr',
+  'fe_get_output_ptr',
+  'fe_get_hop_size',
+];
+
+function fail(message: string): never {
+  console.error(`error: ${message}`);
+  process.exit(1);
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const isModelVersion = (value: unknown): value is ModelVersion =>
+  isRecord(value) &&
+  Array.isArray(value.arch) &&
+  value.arch.every((n) => typeof n === 'number') &&
+  typeof value.checkpoint === 'string' &&
+  typeof value.note === 'string' &&
+  typeof value['engine.wasm_sha256'] === 'string' &&
+  typeof value['weights.bin_sha256'] === 'string';
+
+const { values } = parseArgs({
+  options: {
+    mol: { type: 'string' },
+    model: { type: 'string' },
+    out: { type: 'string' },
+  },
+});
+const requireArg = (key: keyof typeof values): string => {
+  const value = values[key];
+  if (!value) {
+    console.error(`Missing required argument --${key}`);
+    process.exit(2);
+  }
+  return value;
+};
+
+const molDir = resolve(requireArg('mol'));
+const model = requireArg('model');
+const outDir = resolve(requireArg('out'));
+const modelsDir = join(outDir, 'models');
+
+const sha256 = (bytes: Buffer | string): string =>
+  createHash('sha256').update(bytes).digest('hex');
+
+const git = (...args: string[]): string =>
+  execFileSync('git', ['-C', molDir, ...args], { encoding: 'utf8' }).trim();
+
+let versions: unknown;
+try {
+  versions = JSON.parse(
+    readFileSync(join(molDir, 'models', 'versions.json'), 'utf8'),
+  );
+} catch (e) {
+  fail(`cannot read models/versions.json: ${(e as Error).message}`);
+}
+const version = isRecord(versions) ? versions[model] : undefined;
+if (!isModelVersion(version)) {
+  fail(`${model}: missing from models/versions.json, or has unexpected shape`);
+}
+if (!version.note.includes(SHIPPABLE_NOTE)) {
+  fail(`${model}: not trained on "${SHIPPABLE_NOTE}" (${version.note})`);
+}
+
+const sourceDir = join(molDir, 'models', model);
+if (git('status', '--porcelain', '--', join('models', model)) !== '') {
+  fail(`${sourceDir} has uncommitted changes`);
+}
+const commit = git('rev-parse', 'HEAD');
+
+const wasm = readFileSync(join(sourceDir, 'engine.wasm'));
+const weights = readFileSync(join(sourceDir, 'weights.bin'));
+for (const [file, bytes] of [
+  ['engine.wasm', wasm],
+  ['weights.bin', weights],
+] as const) {
+  const expected = version[`${file}_sha256`];
+  const actual = sha256(bytes);
+  if (actual !== expected) {
+    fail(`${file}: sha256 ${actual}, versions.json says ${expected}`);
+  }
+}
+
+if (wasm.subarray(0, 4).toString('latin1') !== '\0asm') {
+  fail('engine.wasm: not a WASM binary');
+}
+const module = new WebAssembly.Module(wasm);
+if (WebAssembly.Module.imports(module).length > 0) {
+  fail('engine.wasm: expected a standalone module without imports');
+}
+const exported = new Set(WebAssembly.Module.exports(module).map((e) => e.name));
+const missing = REQUIRED_EXPORTS.filter((name) => !exported.has(name));
+if (missing.length > 0) {
+  fail(`engine.wasm: missing exports ${missing.join(', ')}`);
+}
+if (weights.subarray(0, 4).toString('latin1') !== 'FEW1') {
+  fail('weights.bin: not a FEW1 weights file');
+}
+const modelId = weights.readUInt32LE(8);
+
+const targetDir = join(modelsDir, model);
+rmSync(modelsDir, { recursive: true, force: true });
+mkdirSync(targetDir, { recursive: true });
+writeFileSync(join(targetDir, 'engine.wasm'), wasm);
+writeFileSync(join(targetDir, 'weights.bin'), weights);
+
+writeFileSync(
+  join(outDir, 'model.ts'),
+  `// Generated by scripts/vendor-mol.mts. Do not edit by hand.
+
+/**
+ * The vendored model build, the folder under \`models/\` it is loaded from.
+ */
+export const MODEL = '${model}';
+`,
+);
+
+const readme = `# Vendored noise cancellation model
+
+Generated by \`scripts/vendor-mol.mts\`. Do not edit by hand.
+
+- Model: \`${model}\` (FastEnhancer architecture \`[${version.arch.join(', ')}]\`, model id ${modelId})
+- Source: https://github.com/GetStream/mol/tree/${commit}/models/${model}
+- Checkpoint: \`${version.checkpoint}\`
+- Note: ${version.note}
+
+The engine is single-threaded WebAssembly with SIMD, 48 kHz mono, 512 samples
+(10.67 ms) per call. Both files were verified against \`models/versions.json\`
+in mol while vendoring.
+
+## Reproduce
+
+\`\`\`sh
+git clone https://github.com/GetStream/mol /tmp/mol
+git -C /tmp/mol checkout ${commit}
+node ${relative(process.cwd(), process.argv[1])} \\
+  --mol /tmp/mol \\
+  --model ${model} \\
+  --out ${relative(process.cwd(), outDir) || '.'}
+\`\`\`
+
+## Files
+
+| File | SHA-256 |
+| --- | --- |
+| \`models/${model}/engine.wasm\` | \`${sha256(wasm)}\` |
+| \`models/${model}/weights.bin\` | \`${sha256(weights)}\` |
+`;
+writeFileSync(join(outDir, 'README.md'), readme);
+
+console.log(`Vendored ${model} (mol ${commit}) to ${outDir}`);
