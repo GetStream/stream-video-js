@@ -1,10 +1,14 @@
-import { Avatar, useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
+import {
+  Avatar,
+  useCall,
+  useCallCustomData,
+  useCallCreatedBy,
+  useCallEndedAt,
+} from '@stream-io/video-react-sdk';
 import type { CustomCallData, User } from '../../types';
 
 export const RoomCard = () => {
   const call = useCall();
-  const { useCallCustomData, useCallCreatedBy, useCallEndedAt } =
-    useCallStateHooks();
   const customData = useCallCustomData();
   const creator = useCallCreatedBy();
   const endedAt = useCallEndedAt();

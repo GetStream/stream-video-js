@@ -9,9 +9,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
   useCall,
-  useCallStateHooks,
   useConnectedUser,
   useTheme,
+  useCallSettings,
+  useCallCreatedBy,
 } from '@stream-io/video-react-native-sdk';
 import { LockIcon } from './LockIcon';
 import { TextInput } from './TextInput';
@@ -39,7 +40,6 @@ export const LobbyEncryption = () => {
   const e2ee = useLobbyE2EE();
   const call = useCall();
   const environment = useAppGlobalStoreValue((store) => store.appEnvironment);
-  const { useCallSettings, useCallCreatedBy } = useCallStateHooks();
   const settings = useCallSettings();
   const createdBy = useCallCreatedBy();
   const connectedUser = useConnectedUser();

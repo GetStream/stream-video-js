@@ -13,8 +13,9 @@ import {
   Restricted,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
-  useCallStateHooks,
   WithTooltip,
+  useParticipantCount,
+  useIsCallCaptioningInProgress,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
@@ -48,7 +49,6 @@ import { ToggleNoiseCancellationButton } from './ToggleNoiseCancellationButton';
 import { ToggleParticipantListButton } from './ToggleParticipantListButton';
 import { TourPanel } from './TourPanel';
 import { UnreadCountBadge } from './UnreadCountBadge';
-import { AIAgentStatusPanel, AskAIAgentButton } from './VisionAgent';
 
 import {
   useIsDemoEnvironment,
@@ -81,8 +81,6 @@ type SidebarContent =
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
-  const { useParticipantCount, useIsCallCaptioningInProgress } =
-    useCallStateHooks();
   const participantCount = useParticipantCount();
   const isCaptioning = useIsCallCaptioningInProgress();
   const {
@@ -109,7 +107,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const [showInvitePopup, setShowInvitePopup] = useState(
     isDemoEnvironment && !isTourActive,
   );
-  const [agentSessionId, setAgentSessionId] = useState<string | null>(null);
   const [sidebarContent, setSidebarContent] = useState<SidebarContent>(null);
   const showSidebar = sidebarContent != null;
   const showParticipants = sidebarContent === 'participants';
@@ -240,18 +237,22 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 {showChat && (
                   <ChatWrapper chatClient={chatClient}>
                     <div className="str-video__chat">
-                      <ChatUI
-                        onClose={() => {
-                          if (
-                            isTourActive &&
-                            currentTourStep === StepNames.Chat
-                          ) {
-                            nextTourStep();
-                          }
-                          setSidebarContent(null);
-                        }}
-                        channelId={activeCall.id}
-                      />
+                      {channel ? (
+                        <ChatUI
+                          onClose={() => {
+                            if (
+                              isTourActive &&
+                              currentTourStep === StepNames.Chat
+                            ) {
+                              nextTourStep();
+                            }
+                            setSidebarContent(null);
+                          }}
+                          channel={channel}
+                        />
+                      ) : (
+                        t('chat.loading.text', 'Loading Chat...')
+                      )}
                     </div>
                   </ChatWrapper>
                 )}
@@ -365,16 +366,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
             <div className="str-video__call-controls__desktop">
               <RecordCallConfirmationButton />
             </div>
-            {isDemoEnvironment && (
-              <div className="str-video__call-controls__desktop rd__ai-agent-anchor">
-                <AskAIAgentButton
-                  sessionId={agentSessionId}
-                  onSessionCreated={setAgentSessionId}
-                  onSessionCleared={() => setAgentSessionId(null)}
-                />
-                <AIAgentStatusPanel />
-              </div>
-            )}
             <div className="str-video__call-controls__desktop">
               <CancelCallConfirmButton onLeave={onLeave} />
             </div>

@@ -1,5 +1,5 @@
 import { CallingState } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCallCallingState } from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import NativeStreamVideoReactNative from '../native/NativeStreamVideoReactNative';
@@ -8,8 +8,6 @@ import { disablePiPMode$ } from '../utils/internal/rxSubjects';
 export function useAutoEnterPiPEffect(
   disablePictureInPicture: boolean | undefined,
 ) {
-  const { useCallCallingState } = useCallStateHooks();
-
   const callingState = useCallCallingState();
 
   // if we need to enable autoEnter, only enable in joined state

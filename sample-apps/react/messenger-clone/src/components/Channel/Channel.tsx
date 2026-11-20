@@ -1,23 +1,32 @@
 import {
-  Channel as StreamChatChannel,
+  ChannelPlaceholder,
   MessageComposer,
   MessageList,
   Thread,
-  Window,
-  WithComponents,
+  ThreadHeader,
 } from 'stream-chat-react';
-import { CustomEventComponent } from '../CustomEventComponent';
+import { ChannelSlot } from 'stream-chat-react/slot-layout';
+import type { Thread as StreamThread } from 'stream-chat';
 import { ChannelHeader } from '../ChannelHeader';
 
-export const Channel = () => (
-  <WithComponents overrides={{ MessageSystem: CustomEventComponent }}>
-    <StreamChatChannel>
-      <Window>
-        <ChannelHeader />
-        <MessageList />
-        <MessageComposer focus />
-      </Window>
-      <Thread />
-    </StreamChatChannel>
-  </WithComponents>
+export const ChannelPanel = () => (
+  <ChannelSlot slot="channel" fallback={<ChannelPlaceholder />}>
+    <ChannelHeader />
+    <MessageList />
+    <MessageComposer focus />
+  </ChannelSlot>
+);
+
+export const ThreadContents = () => (
+  <>
+    <ThreadHeader />
+    <MessageList withDateSeparator={false} />
+    <MessageComposer focus />
+  </>
+);
+
+export const ThreadPanel = ({ thread }: { thread: StreamThread }) => (
+  <Thread thread={thread}>
+    <ThreadContents />
+  </Thread>
 );

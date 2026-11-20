@@ -4,12 +4,12 @@ import {
   IconButton,
   VideoPreview,
   createSoundDetector,
-  useCallStateHooks,
+  useMicrophoneState,
+  useCameraState,
 } from '@stream-io/video-react-sdk';
 
 export const Preview = {
   SpeechIndicator: () => {
-    const { useMicrophoneState } = useCallStateHooks();
     const { isEnabled, mediaStream } = useMicrophoneState();
     const [percentage, setPercentage] = useState(0);
 
@@ -37,7 +37,6 @@ export const Preview = {
     );
   },
   Layout: () => {
-    const { useMicrophoneState, useCameraState } = useCallStateHooks();
     const { isMute: isMicMute, microphone } = useMicrophoneState();
     const { isMute: isCameraMute, camera } = useCameraState();
     return (

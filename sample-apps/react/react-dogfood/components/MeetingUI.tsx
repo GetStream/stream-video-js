@@ -4,8 +4,8 @@ import {
   LoadingIndicator,
   noopComparator,
   useCall,
-  useCallStateHooks,
   useModeration,
+  useCallCallingState,
 } from '@stream-io/video-react-sdk';
 import Gleap from 'gleap';
 import { useRouter } from 'next/router';
@@ -65,7 +65,6 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const router = useRouter();
   const call = useCall();
   const { t } = useAppI18n();
-  const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
   useModeration();
   const isRestricted = useIsRestrictedEnvironment();
@@ -90,10 +89,10 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
             const typedName = toDisplayName(options.displayName);
             const name = typedName ?? getRandomName();
             const id = chatClient?.user?.id ?? sanitizeUserId(name);
-            const email = chatClient?.user?.email;
+            const email = chatClient?.user?.custom?.email;
             await applyDisplayName(name);
             await chatClient
-              ?.partialUpdateUser({ id, set: { name, email } })
+              ?.updateUsersPartial({ users: [{ id, set: { name, email } }] })
               .catch((err) => console.error(`Failed to update user`, err));
             if (typedName) {
               await saveDisplayName(typedName).catch((err) =>
@@ -328,7 +327,6 @@ const ErrorPage = ({
 };
 
 export const LoadingScreen = () => {
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const message =
     callingState === CallingState.RECONNECTING

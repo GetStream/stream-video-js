@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import { ButtonTestIds } from '../../../../constants/TestIds';
 import { useTheme } from '../../../../contexts/ThemeContext';
@@ -38,7 +38,6 @@ export const HangUpCallButton = ({
   onHangupCallHandler,
 }: HangUpCallButtonProps) => {
   const call = useCall();
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const {
     theme: { hangupCallButton, components, semantics },

@@ -3,7 +3,8 @@ import {
   CancelCallButton,
   Notification,
   useCall,
-  useCallStateHooks,
+  useCallCallingState,
+  useCallMembers,
 } from '@stream-io/video-react-sdk';
 import { useEffect, useRef } from 'react';
 import { useAppI18n } from '../../hooks/useAppI18n';
@@ -19,7 +20,6 @@ export function DialingCallNotification(props: {
 }) {
   const { t } = useAppI18n();
   const call = useCall();
-  const { useCallCallingState, useCallMembers } = useCallStateHooks();
   const callingState = useCallCallingState();
   const otherMembers = useCallMembers().filter(
     (m) => m.user_id !== call?.state.createdBy?.id,

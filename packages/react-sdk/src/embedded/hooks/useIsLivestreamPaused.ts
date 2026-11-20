@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CallingState, SfuModels } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 
 /**
  * Distinguishes a temporary live pause (host went backstage) from a real
@@ -11,7 +11,6 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
  */
 export const useIsLivestreamPaused = () => {
   const call = useCall();
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const [isPaused, setIsPaused] = useState(false);
 

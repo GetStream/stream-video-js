@@ -27,7 +27,7 @@ const mockCamera = {
 const mockTrace = jest.fn();
 jest.mock('@stream-io/video-react-bindings', () => ({
   useCall: () => ({ camera: mockCamera, tracer: { trace: mockTrace } }),
-  useCallStateHooks: () => ({ useCallCallingState: () => 'joined' }),
+  useCallCallingState: () => 'joined',
 }));
 
 const mockSetThermalState = jest.fn();

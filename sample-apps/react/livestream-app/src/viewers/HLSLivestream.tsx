@@ -2,7 +2,9 @@ import './HLSLivestream.scss';
 
 import {
   LoadingIndicator,
-  useCallStateHooks,
+  useIsCallHLSBroadcastingInProgress,
+  useCallEgress,
+  useIsCallLive,
 } from '@stream-io/video-react-sdk';
 import { useEffect, useMemo, useState } from 'react';
 import HLS from 'hls.js';
@@ -11,8 +13,6 @@ import { ViewerControls } from './ui/ViewerControls';
 import { Lobby } from './ui/Lobby';
 
 export const HLSLivestreamUI = () => {
-  const { useIsCallHLSBroadcastingInProgress, useCallEgress, useIsCallLive } =
-    useCallStateHooks();
   const isBroadcasting = useIsCallHLSBroadcastingInProgress();
   const isLive = useIsCallLive();
   const egress = useCallEgress();

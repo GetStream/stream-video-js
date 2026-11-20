@@ -1,13 +1,12 @@
 import { useEffect } from 'react';
 import { CallingState } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCallCallingState } from '@stream-io/video-react-bindings';
 
 /**
  * Hook to prevent screen from going to sleep during active calls.
  * Uses the Screen Wake Lock API when available.
  */
 export const useWakeLock = () => {
-  const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
 
   useEffect(() => {

@@ -10,7 +10,11 @@ import {
   paginatedLayoutSortPreset,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useParticipants,
+  useRemoteParticipants,
+  useRawParticipants,
+} from '@stream-io/video-react-bindings';
 import { applyFilter, Filter } from '../../../utilities/filter';
 
 export type FilterableParticipant = Pick<
@@ -35,7 +39,6 @@ export const useFilteredParticipants = ({
   excludeLocalParticipant?: boolean;
   filterParticipants?: ParticipantFilter | ParticipantPredicate;
 }) => {
-  const { useParticipants, useRemoteParticipants } = useCallStateHooks();
   const allParticipants = useParticipants();
   const remoteParticipants = useRemoteParticipants();
   return useMemo(() => {
@@ -91,7 +94,6 @@ export const usePaginatedLayoutSortPreset = (call: Call | undefined) => {
 };
 
 export const useRawRemoteParticipants = () => {
-  const { useRawParticipants } = useCallStateHooks();
   const rawParticipants = useRawParticipants();
   return useMemo(
     () => rawParticipants.filter((p) => !p.isLocalParticipant),

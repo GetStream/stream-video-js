@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCameraState } from '@stream-io/video-react-bindings';
 import {
   Icon,
   MenuToggle,
@@ -11,7 +11,6 @@ import { CameraMenuWithBlur } from '../BlurToggleButton/BlurToggleButton';
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButtonRender(props, ref) {
-    const { useCameraState } = useCallStateHooks();
     const { selectedDevice: selectedCamera, devices: cameras } =
       useCameraState();
 

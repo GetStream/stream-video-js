@@ -123,6 +123,8 @@ export abstract class DeviceManager<
   protected devicePersistence: Required<DevicePersistenceOptions>;
   protected areSubscriptionsSetUp = false;
   private isTrackStoppedDueToTrackEnd = false;
+  // the stream was enabled while the call wasn't JOINED, so it isn't published
+  private publishDeferred = false;
   private interruptedTrackRecovery: InterruptedTrackRecovery;
   private isRecoveringInterruptedTrack = false;
   private filters: MediaStreamFilterEntry[] = [];
@@ -565,12 +567,36 @@ export abstract class DeviceManager<
     stream: MediaStream,
     options?: TrackPublishOptions,
   ): Promise<void> {
+    this.publishDeferred = false;
     return this.call.publish(stream, this.trackType, options);
   }
 
   protected stopPublishStream(): Promise<void> {
-    return this.call.stopPublish(this.trackType);
+    return this.call.stopPublish(...this.getPublishedTrackTypes());
   }
+
+  /**
+   * The track types this device publishes its stream as.
+   */
+  protected getPublishedTrackTypes = (): TrackType[] => [this.trackType];
+
+  /**
+   * Publishes the stream enabled while the call wasn't JOINED, after a
+   * reconnect that kept the publisher as it was before.
+   *
+   * @internal
+   */
+  syncPublishedStream = async () => {
+    await this.statusChangeSettled();
+    if (this.call.state.callingState !== CallingState.JOINED) return;
+    if (!this.publishDeferred) return;
+    this.publishDeferred = false;
+    const { mediaStream } = this.state;
+    if (!this.enabled || !mediaStream) return;
+    if (this.call.publisher?.isPublishing(this.trackType)) return;
+    if (!this.call.permissionsContext.canPublish(this.trackType)) return;
+    await this.publishStream(mediaStream);
+  };
 
   protected getTracks(): MediaStreamTrack[] {
     return this.state.mediaStream?.getTracks() ?? [];
@@ -580,24 +606,55 @@ export abstract class DeviceManager<
     const mediaStream = this.state.mediaStream;
     if (!mediaStream) return;
     this.logger.debug(`${stopTracks ? 'Stopping' : 'Disabling'} stream`);
-    if (this.call.state.callingState === CallingState.JOINED) {
-      await this.stopPublishStream();
-    }
+    this.publishDeferred = false;
+    await this.stopPublishStream();
     this.muteLocalStream(stopTracks);
     const allEnded = this.getTracks().every((t) => t.readyState === 'ended');
     if (allEnded) {
+      try {
+        await this.releaseStream(mediaStream);
+      } finally {
+        this.state.setMediaStream(undefined, undefined);
+        this.setLocalInterrupted(false);
+      }
+    }
+  }
+
+  /**
+   * Releases what the device holds on to for a stream whose tracks ended:
+   * the virtual device session, the React Native stream, the listeners
+   * and the filters.
+   */
+  private releaseStream = async (mediaStream: MediaStream) => {
+    try {
       await this.stopActiveVirtualSession();
+    } finally {
       // @ts-expect-error release() is present in react-native-webrtc
       if (typeof mediaStream.release === 'function') {
         // @ts-expect-error called to dispose the stream in RN
         mediaStream.release();
       }
       this.runCurrentStreamCleanups();
-      this.state.setMediaStream(undefined, undefined);
-      this.setLocalInterrupted(false);
       this.filters.forEach((entry) => entry.stop?.());
     }
-  }
+  };
+
+  /**
+   * Stops and releases a stream captured for a publish that failed. It never
+   * reached the device state, so `disable()` can't stop it later.
+   */
+  private releaseUnpublishedStream = async (
+    stream: MediaStream,
+    rootStream: MediaStream | undefined,
+  ) => {
+    const tracks = [...stream.getTracks(), ...(rootStream?.getTracks() ?? [])];
+    for (const track of tracks) {
+      if (track.readyState === 'live') track.stop();
+    }
+    await this.releaseStream(stream).catch((err) => {
+      this.logger.warn('Failed to release the unpublished stream', err);
+    });
+  };
 
   protected reconcileOptimisticStatus = async (): Promise<void> => {
     const target = this.state.optimisticStatus;
@@ -753,7 +810,19 @@ export abstract class DeviceManager<
       );
     }
     if (this.call.state.callingState === CallingState.JOINED) {
-      await this.publishStream(stream);
+      try {
+        await this.publishStream(stream);
+      } catch (err) {
+        if (this.state.mediaStream === stream) {
+          // the device keeps the reused stream: leave it as it was
+          this.disableTracks();
+        } else {
+          await this.releaseUnpublishedStream(stream, await rootStreamPromise);
+        }
+        throw err;
+      }
+    } else {
+      this.publishDeferred = true;
     }
     if (this.state.mediaStream !== stream) {
       const rootStream = await rootStreamPromise;

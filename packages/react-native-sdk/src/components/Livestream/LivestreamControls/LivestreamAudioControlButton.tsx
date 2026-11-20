@@ -1,4 +1,4 @@
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useMicrophoneState } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { Mic, MicOff, ControlButtonIcon } from '../../../icons';
 import { CallControlsButton } from '../../Call/CallControls/Buttons/CallControlsButton';
@@ -7,7 +7,6 @@ import { CallControlsButton } from '../../Call/CallControls/Buttons/CallControls
  * The LivestreamAudioControlButton controls the audio stream publish/unpublish while in the livestream for the host.
  */
 export const LivestreamAudioControlButton = () => {
-  const { useMicrophoneState } = useCallStateHooks();
   const { optimisticIsMute, microphone } = useMicrophoneState();
 
   const onPress = async () => {

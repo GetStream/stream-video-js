@@ -5,7 +5,13 @@ import {
   SfuModels,
   StreamVideoParticipant,
   useCall,
-  useCallStateHooks,
+  useCallCustomData,
+  useCallCallingState,
+  useLocalParticipant,
+  useParticipants,
+  useCallEndedAt,
+  useIsCallLive,
+  useHasPermissions,
 } from '@stream-io/video-react-sdk';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChatIcon, CloseIcon, ListIcon, PersonIcon } from '../icons';
@@ -27,15 +33,6 @@ type RoomUIProps = {
 
 export const RoomUI = ({ loadRoom }: RoomUIProps) => {
   const call = useCall();
-  const {
-    useCallCustomData,
-    useCallCallingState,
-    useLocalParticipant,
-    useParticipants,
-    useCallEndedAt,
-    useIsCallLive,
-    useHasPermissions,
-  } = useCallStateHooks();
   const customData = useCallCustomData();
   const endedAt = useCallEndedAt();
   const isLive = useIsCallLive();

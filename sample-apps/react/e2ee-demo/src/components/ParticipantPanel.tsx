@@ -6,7 +6,7 @@ import {
   StreamCall,
   StreamTheme,
   StreamVideo,
-  useCallStateHooks,
+  useCallCallingState,
 } from '@stream-io/video-react-sdk';
 import type { HarnessParticipant } from '../harness/snapshot';
 import { useHarnessEngine } from '../hooks/useHarness';
@@ -19,7 +19,6 @@ import type { EventLogEntry } from './EventLog';
 import './ParticipantPanel.css';
 
 const CallUI = () => {
-  const { useCallCallingState } = useCallStateHooks();
   if (useCallCallingState() !== CallingState.JOINED) {
     return <div className="participant-panel__loading">Connecting...</div>;
   }

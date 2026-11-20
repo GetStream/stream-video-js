@@ -177,6 +177,147 @@ describe('Device Manager', () => {
     expect(manager.state.status).toBe('disabled');
   });
 
+  it('disable device - while reconnecting stops publishing', async () => {
+    const call = manager['call'];
+    call.state.setCallingState(CallingState.JOINED);
+    await manager.enable();
+    call.state.setCallingState(CallingState.RECONNECTING);
+
+    await manager.disable(true);
+
+    expect(manager.stopPublishStream).toHaveBeenCalled();
+    expect(manager.state.mediaStream).toBeUndefined();
+    expect(manager.state.status).toBe('disabled');
+  });
+
+  it('enable device - releases the captured stream when publishing fails', async () => {
+    manager['call'].state.setCallingState(CallingState.JOINED);
+    const stream = mockVideoStream();
+    manager.getStream.mockResolvedValueOnce(stream);
+    const filterStream = mockVideoStream();
+    const stopFilter = vi.fn();
+    await manager.registerFilter(() => ({
+      output: Promise.resolve(filterStream),
+      stop: stopFilter,
+    })).registered;
+    const error = new Error('Publisher is not initialized');
+    manager.publishStream.mockRejectedValueOnce(error);
+
+    await expect(manager.enable()).rejects.toBe(error);
+
+    expect(stream.getTracks()[0].readyState).toBe('ended');
+    expect(filterStream.getTracks()[0].readyState).toBe('ended');
+    expect(stopFilter).toHaveBeenCalled();
+    expect(manager.state.mediaStream).toBeUndefined();
+    expect(manager.state.status).not.toBe('enabled');
+  });
+
+  it('enable device - reports the publish failure when releasing fails', async () => {
+    manager['call'].state.setCallingState(CallingState.JOINED);
+    const stopFilter = vi.fn();
+    await manager.registerFilter(() => ({
+      output: Promise.resolve(mockVideoStream()),
+      stop: stopFilter,
+    })).registered;
+    // @ts-expect-error private method
+    vi.spyOn(manager, 'stopActiveVirtualSession').mockRejectedValue(
+      new Error('virtual device failed to stop'),
+    );
+    const error = new Error('Publisher is not initialized');
+    manager.publishStream.mockRejectedValueOnce(error);
+
+    await expect(manager.enable()).rejects.toBe(error);
+
+    expect(stopFilter).toHaveBeenCalled();
+  });
+
+  it('enable device - keeps a reused stream paused when publishing fails', async () => {
+    const pausing = new TestInputMediaDeviceManager(manager['call']);
+    Object.assign(pausing.state, { disableMode: 'disable-tracks' });
+    await pausing.enable();
+    await pausing.disable();
+    const stream = pausing.state.mediaStream!;
+    expect(stream.getTracks()[0].enabled).toBe(false);
+    pausing['call'].state.setCallingState(CallingState.JOINED);
+    const error = new Error('negotiation failed');
+    pausing.publishStream.mockRejectedValueOnce(error);
+
+    await expect(pausing.enable()).rejects.toBe(error);
+
+    expect(pausing.state.mediaStream).toBe(stream);
+    expect(stream.getTracks()[0].readyState).toBe('live');
+    expect(stream.getTracks()[0].enabled).toBe(false);
+    expect(pausing.state.status).toBe('disabled');
+  });
+
+  describe('syncPublishedStream', () => {
+    let isPublishing: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      isPublishing = vi.fn(() => false);
+      // @ts-expect-error partial data
+      manager['call'].publisher = { isPublishing };
+    });
+
+    it('publishes a stream enabled while reconnecting', async () => {
+      const call = manager['call'];
+      call.state.setCallingState(CallingState.RECONNECTING);
+      await manager.enable();
+      expect(manager.publishStream).not.toHaveBeenCalled();
+
+      call.state.setCallingState(CallingState.JOINED);
+      await manager.syncPublishedStream();
+      await manager.syncPublishedStream();
+
+      expect(manager.publishStream).toHaveBeenCalledTimes(1);
+      expect(manager.publishStream).toHaveBeenCalledWith(
+        manager.state.mediaStream,
+      );
+    });
+
+    it('does not publish again a stream the app stopped publishing', async () => {
+      await manager.enable();
+      vi.mocked(manager.publishStream).mockClear();
+
+      await manager.syncPublishedStream();
+
+      expect(manager.publishStream).not.toHaveBeenCalled();
+    });
+
+    it('does not publish a stream disabled again before the sync', async () => {
+      const call = manager['call'];
+      call.state.setCallingState(CallingState.RECONNECTING);
+      await manager.enable();
+      await manager.disable();
+
+      call.state.setCallingState(CallingState.JOINED);
+      await manager.syncPublishedStream();
+
+      expect(manager.publishStream).not.toHaveBeenCalled();
+    });
+
+    it('does not publish without the permission to', async () => {
+      const call = manager['call'];
+      call.state.setCallingState(CallingState.RECONNECTING);
+      await manager.enable();
+      vi.mocked(call.permissionsContext.canPublish).mockReturnValue(false);
+
+      call.state.setCallingState(CallingState.JOINED);
+      await manager.syncPublishedStream();
+
+      expect(manager.publishStream).not.toHaveBeenCalled();
+    });
+
+    it('does nothing while the call is not joined', async () => {
+      manager['call'].state.setCallingState(CallingState.RECONNECTING);
+      await manager.enable();
+
+      await manager.syncPublishedStream();
+
+      expect(manager.publishStream).not.toHaveBeenCalled();
+    });
+  });
+
   it('clears a startup error when disabling an already disabled device', async () => {
     await manager.disable();
     const error = new Error('Camera failed to start');

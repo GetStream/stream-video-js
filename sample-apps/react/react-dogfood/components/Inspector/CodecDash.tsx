@@ -2,7 +2,7 @@ import {
   Call,
   SubscriptionChanges,
   useCall,
-  useCallStateHooks,
+  useParticipants,
 } from '@stream-io/video-react-sdk';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ValuePoller } from './ValuePoller';
@@ -73,7 +73,6 @@ export function CodecDash() {
 }
 
 function useForceSubscriptions() {
-  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const remoteParticipants = useMemo(
     () =>

@@ -8,18 +8,18 @@ import {
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCall,
-  useCallStateHooks,
+  useCallCallingState,
+  useCallCustomData,
 } from '@stream-io/video-react-sdk';
-import { useChatContext } from 'stream-chat-react';
+import { useSlotChannel } from 'stream-chat-react/slot-layout';
 import { useState } from 'react';
 import { useDraggable } from '../../hooks';
 
 export const CallPanel = () => {
   const call = useCall();
-  const { useCallCallingState, useCallCustomData } = useCallStateHooks();
   const callingState = useCallCallingState();
   const customData = useCallCustomData();
-  const { channel: activeChannel } = useChatContext();
+  const activeChannel = useSlotChannel({ slot: 'channel', view: 'channels' });
   const [panelElement, setPanelElement] = useState<HTMLDivElement | null>(null);
   useDraggable(panelElement);
 
