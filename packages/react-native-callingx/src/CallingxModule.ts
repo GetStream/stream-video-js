@@ -15,6 +15,7 @@ import {
   type EventName,
   type EventParams,
   type CallingExpOptions,
+  type CallBackRequestedParams,
   type DefaultDeviceEndpointType,
   type AudioEndpointsSnapshot,
   type VoipEventName,
@@ -55,6 +56,11 @@ class CallingxModule implements ICallingxModule {
     new EventManager();
   private voipEventManager: EventManager<VoipEventName, VoipEventParams> =
     new EventManager();
+
+  // `callBackRequested` is held until the first listener subscribes, moved to pending from getInitialEvents.
+  private callBackListeners = new Set<EventListener<CallBackRequestedParams>>();
+  private pendingCallBack: CallBackRequestedParams | undefined;
+  private isCallBackSubscribed = false;
 
   get canPostNotifications(): boolean {
     if (Platform.OS !== 'android') {
@@ -108,6 +114,7 @@ class CallingxModule implements ICallingxModule {
         ongoingChannel,
         notificationTexts,
         skipIncomingPushInForeground = false,
+        callsHistory = defaultAndroidOptions.callsHistory,
         defaultDeviceEndpointType,
       } = options.android ?? {};
 
@@ -125,6 +132,7 @@ class CallingxModule implements ICallingxModule {
         },
         notificationTexts,
         skipIncomingPushInForeground,
+        callsHistory,
       };
 
       if (
@@ -146,7 +154,24 @@ class CallingxModule implements ICallingxModule {
       setHeadlessTask(this.keepAliveHoldTask);
     }
 
+    this.subscribeCallBack();
     this._isSetup = true;
+  };
+
+  private subscribeCallBack = (): void => {
+    if (this.isCallBackSubscribed) return;
+    this.isCallBackSubscribed = true;
+    this.eventManager.addListener('callBackRequested', (params) =>
+      this.dispatchCallBack(params as unknown as CallBackRequestedParams),
+    );
+  };
+
+  private dispatchCallBack = (params: CallBackRequestedParams): void => {
+    if (this.callBackListeners.size === 0) {
+      this.pendingCallBack = params;
+      return;
+    }
+    this.callBackListeners.forEach((listener) => listener(params));
   };
 
   setShouldRejectCallWhenBusy = (shouldReject: boolean): void => {
@@ -191,7 +216,13 @@ class CallingxModule implements ICallingxModule {
   };
 
   getInitialEvents = (): EventData[] => {
-    return NativeCallingModule.getInitialEvents() as EventData[];
+    this.subscribeCallBack();
+    const events = NativeCallingModule.getInitialEvents() as EventData[];
+    return events.filter((event) => {
+      if (event.eventName !== 'callBackRequested') return true;
+      this.dispatchCallBack(event.params);
+      return false;
+    });
   };
 
   getInitialVoipEvents = (): VoipEventData[] => {
@@ -392,6 +423,22 @@ class CallingxModule implements ICallingxModule {
           : never
     >,
   ): { remove: () => void } => {
+    if (eventName === 'callBackRequested') {
+      const listener = callback as EventListener<CallBackRequestedParams>;
+      this.subscribeCallBack();
+      this.callBackListeners.add(listener);
+      const pending = this.pendingCallBack;
+      if (pending) {
+        this.pendingCallBack = undefined;
+        listener(pending);
+      }
+      return {
+        remove: () => {
+          this.callBackListeners.delete(listener);
+        },
+      };
+    }
+
     type ManagerType = EventManager<EventName | VoipEventName, any>;
 
     const manager: ManagerType = (

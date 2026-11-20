@@ -6,6 +6,7 @@ import { ExpoConfig } from '@expo/config-types';
 interface CustomExpoConfig extends ExpoConfig {
   modResults: {
     UIBackgroundModes?: string[];
+    NSUserActivityTypes?: string[];
   };
 }
 
@@ -159,6 +160,10 @@ describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
       config,
       props,
     ) as CustomExpoConfig;
+
+    expect(modifiedConfig.modResults.NSUserActivityTypes).toEqual([
+      'INStartCallIntent',
+    ]);
 
     expect(modifiedConfig.modResults.UIBackgroundModes).toContain('audio');
     expect(modifiedConfig.modResults.UIBackgroundModes).toContain('voip');
