@@ -74,6 +74,7 @@ import {
   UpdateUserPermissionsRequest,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
+import type { CustomEventData } from './custom_types';
 import {
   AudioTrackType,
   CallConstructor,
@@ -3463,7 +3464,7 @@ export class Call {
    *
    * @param payload the payload to send.
    */
-  sendCustomEvent = async (payload: { [key: string]: any }) => {
+  sendCustomEvent = async (payload: CustomEventData) => {
     return this.api.sendCallEvent({ custom: payload });
   };
 

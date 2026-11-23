@@ -1,3 +1,10 @@
+import type {
+  CustomCallData,
+  CustomEventData,
+  CustomMemberData,
+  CustomReactionData,
+  CustomUserData,
+} from '../../../custom_types';
 declare const timestampNsBrand: unique symbol;
 
 /**
@@ -926,7 +933,7 @@ export interface CallRequest {
   team?: string;
   video?: boolean;
   members?: Array<MemberRequest>;
-  custom?: Record<string, any>;
+  custom?: CustomCallData;
   settings_override?: CallSettingsRequest;
 }
 
@@ -965,7 +972,7 @@ export interface CallResponse {
   /**
    * Custom data for this object
    */
-  custom: Record<string, any>;
+  custom: CustomCallData;
   egress: EgressResponse;
   /**
    * CallIngressResponse is the payload for ingress settings
@@ -1754,7 +1761,7 @@ export interface CustomVideoEvent {
   /**
    * Custom data for this object
    */
-  custom: Record<string, any>;
+  custom: CustomEventData;
   /**
    * User response object
    */
@@ -2556,7 +2563,7 @@ export interface MemberRequest {
   /**
    * Custom data for this object
    */
-  custom?: Record<string, any>;
+  custom?: CustomMemberData;
 }
 
 export interface MemberResponse {
@@ -2572,7 +2579,7 @@ export interface MemberResponse {
   /**
    * Custom member response data
    */
-  custom: Record<string, any>;
+  custom: CustomMemberData;
   /**
    * User response object
    */
@@ -2694,7 +2701,7 @@ export interface OwnUserResponse {
   blocked_user_ids: Array<string>;
   devices: Array<DeviceResponse>;
   teams: Array<string>;
-  custom: Record<string, any>;
+  custom: CustomUserData;
   avg_response_time?: number;
   deactivated_at?: TimestampNS;
   deleted_at?: TimestampNS;
@@ -3008,7 +3015,7 @@ export interface QueryCallMembersRequest {
     };
 
     custom: {
-      type: Record<string, any>;
+      type: CustomMemberData;
       operators: '$eq' | '$exists' | '$gt' | '$gte' | '$in' | '$lt' | '$lte';
     };
 
@@ -3299,7 +3306,7 @@ export interface QueryCallsRequest {
     };
 
     custom: {
-      type: Record<string, any>;
+      type: CustomCallData;
       operators:
         | '$autocomplete'
         | '$contains'
@@ -3981,7 +3988,7 @@ export interface Segments {
 }
 
 export interface SendCallEventRequest {
-  custom?: Record<string, any>;
+  custom?: CustomEventData;
 }
 
 export interface SendCallEventResponse {
@@ -3994,7 +4001,7 @@ export interface SendCallEventResponse {
 export interface SendVideoReactionRequest {
   type: string;
   emoji_code?: string;
-  custom?: Record<string, any>;
+  custom?: CustomReactionData;
 }
 
 export interface SendVideoReactionResponse {
@@ -4455,7 +4462,7 @@ export interface UpdateCallRequest {
   /**
    * Custom data for this object
    */
-  custom?: Record<string, any>;
+  custom?: CustomCallData;
   settings_override?: CallSettingsRequest;
 }
 
@@ -4683,7 +4690,7 @@ export interface UserResponse {
   /**
    * Custom data for this object
    */
-  custom: Record<string, any>;
+  custom: CustomUserData;
   avg_response_time?: number;
   /**
    * Date of deactivation
@@ -4713,7 +4720,7 @@ export interface UserResponseCommonFields {
   updated_at: TimestampNS;
   blocked_user_ids: Array<string>;
   teams: Array<string>;
-  custom: Record<string, any>;
+  custom: CustomUserData;
   avg_response_time?: number;
   deactivated_at?: TimestampNS;
   deleted_at?: TimestampNS;
@@ -4731,7 +4738,7 @@ export interface UserResponsePrivacyFields {
   updated_at: TimestampNS;
   blocked_user_ids: Array<string>;
   teams: Array<string>;
-  custom: Record<string, any>;
+  custom: CustomUserData;
   avg_response_time?: number;
   deactivated_at?: TimestampNS;
   deleted_at?: TimestampNS;
@@ -4893,7 +4900,7 @@ export interface VideoReactionResponse {
    */
   user: UserResponse;
   emoji_code?: string;
-  custom?: Record<string, any>;
+  custom?: CustomReactionData;
 }
 
 export interface VideoReactionsResponse {

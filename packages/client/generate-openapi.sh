@@ -24,4 +24,7 @@ make -C "$CHAT_DIR/tools/openapi" build
 
 echo "export * from './models';" >"$OUTPUT_DIR/index.ts"
 
+# types the `custom` fields with the interfaces of src/custom_types.ts
+node "$PKG_DIR/scripts/apply-custom-data-types.mjs" "$OUTPUT_DIR/models/index.ts"
+
 (cd "$PKG_DIR/../.." && yarn lint:gen)

@@ -23,7 +23,6 @@ import { LiveRoomControls } from './LiveRoomControls';
 import { EndedRoomOverlay, RoomLobby } from './Overlay';
 import { RoomListing } from '../RoomList';
 import { RoomAccessControls } from './RoomAccessControls';
-import type { CustomCallData } from '../../types';
 import { RoomListingTabs } from '../RoomList/RoomListingTabs';
 import { RoomLiveState } from '../../utils/roomLiveState';
 
@@ -46,11 +45,7 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
     setIsOpenRequestList,
     speakingRequests,
   } = useSpeakingRequests();
-  const {
-    title,
-    hosts = [],
-    speakerIds = [],
-  } = (customData || {}) as CustomCallData;
+  const { title, hosts = [], speakerIds = [] } = customData;
 
   const [showRoomList, setShowRoomList] = useState(false);
 

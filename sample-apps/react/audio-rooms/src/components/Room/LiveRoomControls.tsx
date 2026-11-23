@@ -18,7 +18,6 @@ import {
   MuteMicrophoneIcon,
   RaiseHandIcon,
 } from '../icons';
-import type { CustomCallData } from '../../types';
 
 type LiveRoomControlsProps = {
   hasNotifications: boolean;
@@ -39,7 +38,7 @@ export const LiveRoomControls = ({
   );
   const [isAwaitingAudioApproval, setIsAwaitingAudioApproval] = useState(false);
 
-  const isSpeaker = (customData as CustomCallData).speakerIds?.some(
+  const isSpeaker = customData.speakerIds?.some(
     (id) => id === connectedUser?.id,
   );
   const isAudioMute = localParticipant && hasAudio(localParticipant);

@@ -65,6 +65,7 @@ import { hasScreenShare } from '../helpers/participantUtils';
 import { convertTimestampToDate, nsToDate } from '../helpers/time';
 import { videoLoggerSystem } from '../logger';
 import type { AllEventHandlers, CallStateEventHandlers } from './types';
+import type { CustomCallData } from '../custom_types';
 
 /** Returns the default egress object - when no egress data is available. */
 const defaultEgress: EgressResponse = {
@@ -97,7 +98,7 @@ export class CallState {
   private startsAtSubject = subject<Date>();
   private updatedAtSubject = subject(new Date());
   private createdBySubject = subject<UserResponse>();
-  private customSubject = subject<Record<string, any>>({});
+  private customSubject = subject<CustomCallData>({});
   private egressSubject = subject<EgressResponse>();
   private ingressSubject = subject<CallIngressResponse>();
   private recordingSubject = subject(false);

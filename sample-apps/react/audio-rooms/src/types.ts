@@ -4,9 +4,11 @@ export interface User {
   imageUrl?: string;
 }
 
-export type CustomCallData = {
-  description?: string;
-  hosts?: User[];
-  speakerIds?: string[];
-  title?: string;
-};
+declare module '@stream-io/video-react-sdk' {
+  interface CustomCallData {
+    description?: string;
+    hosts?: User[];
+    speakerIds?: string[];
+    title?: string;
+  }
+}

@@ -24,6 +24,7 @@ Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
 
 export * from '@stream-io/video-client';
 export * from '@stream-io/video-react-bindings';
+import './customData';
 export * from './components';
 export * from './contexts';
 export * from './hooks';

@@ -3,6 +3,7 @@ import type {
   PrivacySettingsResponse,
   UserResponse,
 } from './coordinator';
+import type { CustomUserData } from '../custom_types';
 
 export interface Response {
   /** Duration of the request in milliseconds */
@@ -19,7 +20,7 @@ export interface UserRequest {
   /** Optional name of user */
   name?: string;
   /** Custom user data */
-  custom?: Record<string, any>;
+  custom?: CustomUserData;
   privacy_settings?: PrivacySettingsResponse;
 }
 
@@ -29,7 +30,7 @@ export interface ConnectUserDetailsRequest {
   invisible?: boolean;
   language?: string;
   name?: string;
-  custom?: Record<string, any>;
+  custom?: CustomUserData;
   privacy_settings?: PrivacySettingsResponse;
 }
 

@@ -7,6 +7,7 @@ import {
   CallState,
   CallStatsReport,
   Comparator,
+  CustomCallData,
   EgressResponse,
   InputDeviceStatus,
   MemberResponse,
@@ -144,7 +145,7 @@ export const useCallCreatedBy = (): UserResponse | undefined => {
 /**
  * Returns the call's custom data.
  */
-export const useCallCustomData = (): Record<string, any> => {
+export const useCallCustomData = (): CustomCallData => {
   const { custom$ } = useCallState();
   return useObservableValue(custom$);
 };
