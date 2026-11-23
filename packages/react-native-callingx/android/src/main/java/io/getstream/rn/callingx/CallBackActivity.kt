@@ -23,8 +23,6 @@ class CallBackActivity : Activity() {
     companion object {
         private const val TAG = "[Callingx] CallBackActivity"
 
-        const val EXTRA_CALL_BACK_UUID = "io.getstream.rn.callingx.CALL_BACK_UUID"
-
         fun setEnabled(context: Context, enabled: Boolean) {
             val state =
                     if (enabled) PackageManager.COMPONENT_ENABLED_STATE_ENABLED
@@ -68,10 +66,7 @@ class CallBackActivity : Activity() {
             Log.w(TAG, "[callback] handleIntent: No launch activity found")
             return
         }
-        launchIntent.apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            uuid?.let { putExtra(EXTRA_CALL_BACK_UUID, it) }
-        }
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         try {
             startActivity(launchIntent)
         } catch (e: Exception) {
