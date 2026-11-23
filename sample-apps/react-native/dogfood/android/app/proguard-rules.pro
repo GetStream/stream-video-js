@@ -10,3 +10,13 @@
 # Add any project specific keep options here:
 -keep class org.webrtc.** { *; }
 -keep public class com.horcrux.svg.** {*;}
+
+# Room and WorkManager instantiate these implementations through reflection.
+# Newer R8 full mode does not implicitly retain their default constructors.
+-keep class * extends androidx.room.RoomDatabase {
+    void <init>();
+}
+
+-keep class * extends androidx.work.InputMerger {
+    void <init>();
+}
