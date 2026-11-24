@@ -293,6 +293,13 @@ private_lane :wait_for_video_buddy do |options|
   UI.user_error!("stream-video-buddy did not start on port #{options[:port]}") unless ready
 end
 
+# The `check` job's decision, so the jobs on runners that can't reach the GitHub API don't ask it again.
+private_lane :e2e_required do
+  next ENV['E2E_REQUIRED'] == 'true' unless ENV['E2E_REQUIRED'].to_s.empty?
+
+  is_check_required(sources: @impact[:e2e][:sources], force_check: @force_check, required_checks: @impact[:e2e][:checks])
+end
+
 desc 'Writes `required=true|false` and `e2e_batches` to $GITHUB_OUTPUT, so CI can skip the e2e jobs before building anything'
 lane :e2e_check_required do
   required = is_check_required(sources: @impact[:e2e][:sources], force_check: @force_check, required_checks: @impact[:e2e][:checks])
@@ -330,7 +337,7 @@ end
 desc 'Runs the Detox e2e tests on Android. Options: device (emu|att), configuration (release|debug), ' \
      'skip_build, test (a test file or -t filter), batch and batch_count (every batch_count-th test)'
 lane :test_e2e do |options|
-  next unless is_check_required(sources: @impact[:e2e][:sources], force_check: @force_check, required_checks: @impact[:e2e][:checks])
+  next unless e2e_required
 
   device = options[:device] || 'emu'
   detox_config = "android.#{device}.#{options[:configuration] || 'release'}"

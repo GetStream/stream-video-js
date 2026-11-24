@@ -77,7 +77,7 @@ jobs:
   # One launch for every batch.
   android-allure-launch:
     name: Launch Allure TestOps (Android)
-    needs: android-build
+    needs: [check, android-build]
     # Calls the GitHub API, and the org IP allow list only admits static-IP runners.
     runs-on:
       group: github-public-ubuntu-static
@@ -103,6 +103,7 @@ jobs:
         env:
           # Names the launch after the pull request and tags it with its labels.
           GITHUB_EVENT: ${{ toJson(github.event) }}
+          E2E_REQUIRED: ${{ needs.check.outputs.required }}
 
   android:
     name: Test Android
@@ -121,6 +122,8 @@ jobs:
       ANDROID_EMULATOR_OPTIONS: -no-snapshot-save -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none -camera-front none
       DETOX_ADB_NAME: 'emulator-5554'
       LAUNCH_ID: ${{ needs.android-allure-launch.outputs.launch_id }}
+      # `check`'s decision, so `test_e2e` doesn't ask the GitHub API again.
+      E2E_REQUIRED: ${{ needs.check.outputs.required }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
