@@ -8,7 +8,7 @@ permissions: {}
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: { group: github-public-amd64 }
     steps:
       - name: Check the title follows Conventional Commits
         env:

@@ -30,7 +30,7 @@ jobs:
     name: Check E2E Required
     # Calls the GitHub API, and the org IP allow list only admits static-IP runners.
     runs-on:
-      group: github-public-ubuntu-static
+      group: github-public-amd64
     timeout-minutes: 10
     outputs:
       required: ${{ steps.check.outputs.required }}
@@ -51,7 +51,7 @@ jobs:
     name: Build Android
     needs: check
     if: needs.check.outputs.required == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: { group: github-public-amd64 }
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
@@ -80,7 +80,7 @@ jobs:
     needs: [check, android-build]
     # Calls the GitHub API, and the org IP allow list only admits static-IP runners.
     runs-on:
-      group: github-public-ubuntu-static
+      group: github-public-amd64
     timeout-minutes: 10
     outputs:
       launch_id: ${{ steps.launch.outputs.launch_id }}
@@ -109,7 +109,7 @@ jobs:
     name: Test Android
     needs: [check, android-build, android-allure-launch]
     if: ${{ !cancelled() && needs.android-build.result == 'success' }}
-    runs-on: ubuntu-24.04
+    runs-on: { group: github-public-amd64 }
     timeout-minutes: 60
     strategy:
       matrix:
@@ -183,7 +183,7 @@ jobs:
 
   result:
     name: Test E2E Result
-    runs-on: ubuntu-latest
+    runs-on: { group: github-public-amd64 }
     if: always()
     needs:
       - check
