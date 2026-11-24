@@ -12,7 +12,6 @@ on:
       - 'packages/client/**'
       - 'packages/react-bindings/**'
       - 'packages/react-sdk/**'
-      - 'packages/styling/**'
       - 'packages/video-filters-web/**'
       - 'packages/audio-filters-web/**'
   pull_request:
@@ -27,7 +26,6 @@ on:
       - 'packages/client/**'
       - 'packages/react-bindings/**'
       - 'packages/react-sdk/**'
-      - 'packages/styling/**'
       - 'packages/video-filters-web/**'
       - 'packages/audio-filters-web/**'
   workflow_dispatch:

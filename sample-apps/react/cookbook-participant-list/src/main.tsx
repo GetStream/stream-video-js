@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import '@stream-io/video-styling/dist/css/styles.css';
+import '@stream-io/video-react-sdk/dist/css/styles.css';
 import './index.css';
 import './App.scss';
 

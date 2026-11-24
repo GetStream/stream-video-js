@@ -1,0 +1,34 @@
+@use 'base';
+@use 'variable-tokens';
+@use 'shadows';
+@use 'icons';
+@use 'utils';
+
+// aliases give each module a unique namespace, since several paths end in `styling`
+@use '../core/components/ParticipantView/styling/AudioBlockedNotification-layout';
+@use '../core/components/ParticipantView/styling/AudioBlockedNotification-theme';
+@use '../components/Avatar/styling' as Avatar;
+@use '../components/Badge/styling' as Badge;
+@use '../components/Button/styling' as Button;
+@use '../components/CallControls/styling' as CallControls;
+@use '../core/components/CallLayout/styling' as CallLayout;
+@use '../components/CallParticipantsList/styling' as CallParticipantsList;
+@use '../components/CallPreview/styling' as CallPreview;
+@use '../components/CallRecordingList/styling' as CallRecordingList;
+@use '../components/DeviceSettings/styling' as DeviceSettings;
+@use '../components/DropdownSelect/styling' as DropdownSelect;
+@use '../components/Icon/styling' as Icon;
+@use '../components/LoadingIndicator/styling' as LoadingIndicator;
+@use '../components/Menu/styling' as Menu;
+@use '../components/Notification/styling' as Notification;
+@use '../core/components/ParticipantView/styling' as ParticipantView;
+@use '../components/Permissions/styling' as Permissions;
+@use '../components/Reaction/styling' as Reaction;
+@use '../components/RingingCall/styling' as RingingCall;
+@use '../core/components/ParticipantView/styling/ScreenShareOverlay-layout';
+@use '../core/components/ParticipantView/styling/ScreenShareOverlay-theme';
+@use '../components/Search/styling' as Search;
+@use '../core/components/StreamCall/styling' as StreamCall;
+@use '../components/Tooltip/styling' as Tooltip;
+@use '../core/components/Video/styling' as Video;
+@use '../components/VideoPreview/styling' as VideoPreview;

@@ -9,7 +9,6 @@ on:
       - 'sample-apps/react/egress-composite/**'
       - 'packages/client/**'
       - 'packages/react-sdk/**'
-      - 'packages/styling/**'
       - 'packages/react-bindings/**'
 permissions:
   contents: read

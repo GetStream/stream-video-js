@@ -15,7 +15,7 @@ Tests use Vitest in the `node` environment (`vite.config.mts`); nothing here nee
 
 - ESM output is one file per source module (`preserveModules`) so consumers can tree-shake; CommonJS is a single bundle.
 - `package.json#sideEffects` lists the CSS plus the entry files (they carry the top-level `setSdkInfo` call). Every other module must stay side-effect free, or tree-shaking silently stops working.
-- CSS comes from `@stream-io/video-styling` (copied into `dist/` by `copy-css`). Class names follow `str-video__component-name--modifier`; theming is via CSS variables.
+- Stylesheets (SCSS) live in a `styling/` folder inside the component folder they style (e.g. `src/components/Avatar/styling/`), the same layout as `stream-chat-react`. Shared partials and the `index.scss`/`embedded.scss` entry points are in `src/styling/`; the entry points `@use` each component folder with an alias (`as Avatar`), since every path ends in `styling`. `build:css` compiles them to `dist/css/styles.css` and `dist/css/embedded.css`. `start` (root `yarn start:react:sdk`) runs `rollup -c -w` and `start:css` side by side through `concurrently`; `start:css` (root `yarn start:styling`, for CSS only) runs `build:css` with `--load-path=src --watch`: `sass --watch` only watches the entry files' folder (`src/styling/`) and load paths, so the load path is what makes it see edits in the component `styling/` folders. Keep the flag off `build:css`, so imports stay relative (`'../../../styling/utils'`) and never depend on it. Class names follow `str-video__component-name--modifier`; theming is via CSS variables.
 
 ## Internationalization (i18n)
 
