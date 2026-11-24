@@ -3,7 +3,7 @@ import type {
   PrivacySettingsResponse,
   UserResponse,
 } from './coordinator';
-import type { CustomUserData } from '../custom_types';
+import type { CustomUserData } from './coordinator';
 
 export interface Response {
   /** Duration of the request in milliseconds */

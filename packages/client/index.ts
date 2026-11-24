@@ -20,7 +20,7 @@ export type {
   CustomMemberData,
   CustomReactionData,
   CustomUserData,
-} from './src/custom_types';
+} from './src/gen/coordinator';
 export * from './src/coordinator/connection/types';
 export type {
   RateLimit,

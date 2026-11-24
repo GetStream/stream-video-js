@@ -65,7 +65,7 @@ import { hasScreenShare } from '../helpers/participantUtils';
 import { convertTimestampToDate, nsToDate } from '../helpers/time';
 import { videoLoggerSystem } from '../logger';
 import type { AllEventHandlers, CallStateEventHandlers } from './types';
-import type { CustomCallData } from '../custom_types';
+import type { CustomCallData } from '../gen/coordinator';
 
 /** Returns the default egress object - when no egress data is available. */
 const defaultEgress: EgressResponse = {

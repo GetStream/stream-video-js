@@ -1,10 +1,3 @@
-import type {
-  CustomCallData,
-  CustomEventData,
-  CustomMemberData,
-  CustomReactionData,
-  CustomUserData,
-} from '../../../custom_types';
 declare const timestampNsBrand: unique symbol;
 
 /**
@@ -121,6 +114,31 @@ export type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Omit<T, Keys> &
     [K in Keys]-?: Required<Pick<T, K>> &
       Partial<Record<Exclude<Keys, K>, undefined>>;
   }[Keys];
+
+/**
+ * Custom data, empty by default: declare its keys through module augmentation.
+ */
+export interface CustomCallData {}
+
+/**
+ * Custom data, empty by default: declare its keys through module augmentation.
+ */
+export interface CustomEventData {}
+
+/**
+ * Custom data, empty by default: declare its keys through module augmentation.
+ */
+export interface CustomMemberData {}
+
+/**
+ * Custom data, empty by default: declare its keys through module augmentation.
+ */
+export interface CustomReactionData {}
+
+/**
+ * Custom data, empty by default: declare its keys through module augmentation.
+ */
+export interface CustomUserData {}
 export interface APIError {
   /**
    * API error code

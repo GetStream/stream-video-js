@@ -19,12 +19,10 @@ make -C "$CHAT_DIR/tools/openapi" build
     --language ts --spec "$SPEC_DIR/video-clientside-api.yaml" --output "$OUTPUT_DIR" \
     --opt response_dates_as_number=true \
     --opt typed_filters=true \
+    --opt custom_types="$PKG_DIR/openapi-custom-types.json" \
     --opt separate_path_params=true
 )
 
 echo "export * from './models';" >"$OUTPUT_DIR/index.ts"
-
-# types the `custom` fields with the interfaces of src/custom_types.ts
-node "$PKG_DIR/scripts/apply-custom-data-types.mjs" "$OUTPUT_DIR/models/index.ts"
 
 (cd "$PKG_DIR/../.." && yarn lint:gen)

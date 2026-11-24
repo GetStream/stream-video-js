@@ -74,7 +74,7 @@ import {
   UpdateUserPermissionsRequest,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
-import type { CustomEventData } from './custom_types';
+import type { CustomEventData } from './gen/coordinator';
 import {
   AudioTrackType,
   CallConstructor,
