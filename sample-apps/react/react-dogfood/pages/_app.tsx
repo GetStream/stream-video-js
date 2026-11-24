@@ -1,4 +1,4 @@
-import '@stream-io/video-styling/dist/css/embedded.css';
+import '@stream-io/video-react-sdk/dist/css/embedded.css';
 import 'stream-chat-react/dist/css/index.css';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../style/index.scss';
