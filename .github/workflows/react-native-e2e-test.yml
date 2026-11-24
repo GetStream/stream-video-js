@@ -28,7 +28,9 @@ env:
 jobs:
   check:
     name: Check E2E Required
-    runs-on: ubuntu-latest
+    # Calls the GitHub API, and the org IP allow list only admits static-IP runners.
+    runs-on:
+      group: github-public-ubuntu-static
     timeout-minutes: 10
     outputs:
       required: ${{ steps.check.outputs.required }}
@@ -76,7 +78,9 @@ jobs:
   android-allure-launch:
     name: Launch Allure TestOps (Android)
     needs: android-build
-    runs-on: ubuntu-latest
+    # Calls the GitHub API, and the org IP allow list only admits static-IP runners.
+    runs-on:
+      group: github-public-ubuntu-static
     timeout-minutes: 10
     outputs:
       launch_id: ${{ steps.launch.outputs.launch_id }}
