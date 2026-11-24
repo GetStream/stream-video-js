@@ -12,7 +12,6 @@ jobs:
     steps:
       - name: Check the title follows Conventional Commits
         env:
-          # Passed through the environment, never inlined into the script: anyone opening a PR controls the title.
           TITLE: ${{ github.event.pull_request.title }}
         run: |
           types='feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert'
