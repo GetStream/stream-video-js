@@ -52,7 +52,7 @@ jobs:
   code_review:
     name: Code Lint, Unit Test and dogfood versioning
     timeout-minutes: 20
-    runs-on: ubuntu-latest
+    runs-on: { group: github-public-amd64 }
     steps:
       - uses: actions/checkout@v7
 
@@ -155,7 +155,7 @@ jobs:
     timeout-minutes: 60
     needs: code_review
     if: ${{ github.event_name != 'workflow_dispatch' || !github.event.inputs.platform || github.event.inputs.platform == 'android' || github.event.inputs.platform == 'both' }}
-    runs-on: ubuntu-latest
+    runs-on: { group: github-public-amd64 }
     steps:
       - uses: actions/checkout@v7
 
@@ -199,7 +199,7 @@ jobs:
     needs: build_android
     timeout-minutes: 60
     if: ${{ (github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (!github.event.inputs.platform || github.event.inputs.platform == 'android' || github.event.inputs.platform == 'both')) }}
-    runs-on: ubuntu-latest
+    runs-on: { group: github-public-amd64 }
     steps:
       # See the matching guard on deploy_ios: store releases stay on v1.
       - name: Verify the release branch
