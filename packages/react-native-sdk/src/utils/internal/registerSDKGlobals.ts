@@ -18,6 +18,7 @@ import {
 import { registerCallMediaEngine } from './registerMediaEngine';
 import { beforeJoin, onJoinFailed, onLeave } from './ringingCallLifecycle';
 import { callManager as publicCallManager } from '../../modules/call-manager';
+import { utf8TextDecoder } from './utf8TextDecoder';
 
 const StreamInCallManagerNativeModule = NativeStreamInCallManager;
 
@@ -80,6 +81,9 @@ const isAndroidTelecomManaged = ({ cid }: { cid: string }): boolean => {
   // to the classic path — this is where audio recovery happens.
   return CallingxModule.isCallTracked(cid);
 };
+
+const hasTextDecoder = () =>
+  typeof (globalThis as { TextDecoder?: unknown }).TextDecoder !== 'undefined';
 
 const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   callingX: {
@@ -193,6 +197,8 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       );
     },
   },
+  // Hermes ships `TextDecoder` only from React Native 0.88 onwards
+  textDecoder: hasTextDecoder() ? undefined : utf8TextDecoder,
   nativeEvents: {
     speechActivity: {
       subscribe(cb) {

@@ -4,22 +4,6 @@
  */
 
 /**
- * Needed to encode and decode the SFU protobuf messages.
- * Hermes ships `TextEncoder` on every supported React Native version,
- * but `TextDecoder` only from React Native 0.88 onwards.
- */
-const hasTextEncoding = () => {
-  const globals = globalThis as {
-    TextEncoder?: unknown;
-    TextDecoder?: unknown;
-  };
-  return (
-    typeof globals.TextEncoder !== 'undefined' &&
-    typeof globals.TextDecoder !== 'undefined'
-  );
-};
-
-/**
  * Needed to build the query of the coordinator and SFU WebSocket urls,
  * the two ways the client uses it are exercised here.
  * React Native always defines `URLSearchParams`,
@@ -42,11 +26,6 @@ const hasUsableURLSearchParams = () => {
     return false;
   }
 };
-
-if (!hasTextEncoding()) {
-  // only fills in the globals that are missing
-  require('text-encoding-polyfill');
-}
 
 if (!hasUsableURLSearchParams()) {
   // replaces both `URL` and `URLSearchParams`

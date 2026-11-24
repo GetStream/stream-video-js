@@ -1,10 +1,7 @@
-const textEncodingPolyfillLoaded = jest.fn();
 const setupURLPolyfill = jest.fn();
 
 const globals = globalThis as Record<string, unknown>;
 const originalURLSearchParams = URLSearchParams;
-const originalTextEncoder = globals.TextEncoder;
-const originalTextDecoder = globals.TextDecoder;
 
 /** Mimics React Native 0.79: `set` is not implemented. */
 class WithoutSetURLSearchParams extends originalURLSearchParams {
@@ -55,10 +52,6 @@ class ReactNativeURLSearchParams {
 
 const loadPolyfills = () => {
   jest.isolateModules(() => {
-    jest.doMock('text-encoding-polyfill', () => {
-      textEncodingPolyfillLoaded();
-      return {};
-    });
     jest.doMock('react-native-url-polyfill', () => ({ setupURLPolyfill }));
     require('../src/utils/internal/polyfills');
   });
@@ -67,35 +60,13 @@ const loadPolyfills = () => {
 describe('polyfills', () => {
   afterEach(() => {
     globals.URLSearchParams = originalURLSearchParams;
-    globals.TextEncoder = originalTextEncoder;
-    globals.TextDecoder = originalTextDecoder;
     jest.clearAllMocks();
   });
 
-  it('loads no polyfill when the runtime has what the SDK needs', () => {
+  it('sets up no polyfill when the runtime has what the SDK needs', () => {
     loadPolyfills();
 
-    expect(textEncodingPolyfillLoaded).not.toHaveBeenCalled();
     expect(setupURLPolyfill).not.toHaveBeenCalled();
-  });
-
-  describe('text encoding', () => {
-    it('loads the polyfill when TextDecoder is missing', () => {
-      delete globals.TextDecoder;
-
-      loadPolyfills();
-
-      expect(textEncodingPolyfillLoaded).toHaveBeenCalledTimes(1);
-      expect(setupURLPolyfill).not.toHaveBeenCalled();
-    });
-
-    it('loads the polyfill when TextEncoder is missing', () => {
-      delete globals.TextEncoder;
-
-      loadPolyfills();
-
-      expect(textEncodingPolyfillLoaded).toHaveBeenCalledTimes(1);
-    });
   });
 
   describe('URLSearchParams', () => {
@@ -105,7 +76,6 @@ describe('polyfills', () => {
       loadPolyfills();
 
       expect(setupURLPolyfill).toHaveBeenCalledTimes(1);
-      expect(textEncodingPolyfillLoaded).not.toHaveBeenCalled();
     });
 
     it('sets up the polyfill when the constructor ignores its values', () => {
@@ -138,3 +108,6 @@ describe('polyfills', () => {
     });
   });
 });
+
+// makes this file a module, its top-level names would be global otherwise
+export {};

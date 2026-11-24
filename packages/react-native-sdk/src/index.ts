@@ -1,5 +1,5 @@
 import { setClientDetails } from './utils/setClientDetails';
-/** Initialize the text encoder/decoder and URL polyfills, only when the runtime lacks them */
+/** Initialize the URL polyfill, only when the runtime lacks what the SDK needs */
 import './utils/internal/polyfills';
 /** i18next polyfill to handle intl format for pluralization. For more info see https://www.i18next.com/misc/json-format#i-18-next-json-v4 */
 import 'intl-pluralrules';
