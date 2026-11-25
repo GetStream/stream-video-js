@@ -174,6 +174,7 @@ export interface Spec extends TurboModule {
   setVoipTokenRegistered(registered: boolean): boolean;
 
   stopService(): void;
+  terminateClient(): Promise<void>;
 
   readonly onNewEvent: EventEmitter<{
     eventName: string;

@@ -21,6 +21,10 @@ import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.getstream.rn.callingx.notifications.NotificationsConfig
 import io.getstream.rn.callingx.utils.LifecycleListener
 import io.getstream.rn.callingx.utils.SettingsStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class CallingxModuleImpl(
         private val reactApplicationContext: ReactApplicationContext,
@@ -60,6 +64,20 @@ class CallingxModuleImpl(
     private var canSendEvents = false
 
     private val notificationChannelsManager = NotificationChannelsManager(reactApplicationContext)
+    private val callEndCoordinator = CallEndCoordinator(reactApplicationContext)
+    // A session termination must finish even if React invalidates this module during logout.
+    private val terminationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    fun terminateClient(promise: Promise) {
+        terminationScope.launch {
+            try {
+                CallingxClient.terminateExisting()
+                promise.resolve(null)
+            } catch (e: Exception) {
+                promise.reject("TERMINATE_CLIENT_ERROR", e)
+            }
+        }
+    }
 
     init {
         CallEventBus.subscribe(this)
@@ -288,15 +306,19 @@ class CallingxModuleImpl(
 
     fun endCallWithReason(callId: String, reason: Double) {
         debugLog(TAG, "[module] endCallWithReason: Ending call: $callId, $reason")
+        val disconnectCause = DisconnectCause(reason.toInt())
+        callEndCoordinator.leave(callId, disconnectCause)
         CallRegistrationStore.removeTrackedCall(callId)
-        val action = CallAction.Disconnect(DisconnectCause(reason.toInt()))
+        val action = CallAction.Disconnect(disconnectCause)
         executeServiceAction(callId, action)
     }
 
     fun endCall(callId: String) {
         debugLog(TAG, "[module] endCall: Ending call: $callId")
+        val disconnectCause = DisconnectCause(DisconnectCause.LOCAL)
+        callEndCoordinator.leave(callId, disconnectCause)
         CallRegistrationStore.removeTrackedCall(callId)
-        val action = CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL))
+        val action = CallAction.Disconnect(disconnectCause)
         executeServiceAction(callId, action)
     }
 

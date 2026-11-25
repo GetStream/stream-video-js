@@ -8,6 +8,7 @@ import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.telecom.CallAttributesCompat
 import androidx.core.telecom.CallEndpointCompat
+import io.getstream.rn.callingx.CallRegistrationStore
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.CallService
@@ -47,7 +48,7 @@ abstract class CallRepository(protected val context: Context) {
   protected val _calls: MutableStateFlow<Map<String, Call.Registered>> = MutableStateFlow(emptyMap())
   val calls: StateFlow<Map<String, Call.Registered>> = _calls.asStateFlow()
 
-  protected var _listener: Listener? = null
+  internal var _listener: Listener? = null
   protected val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
   protected val registrationMutex: Mutex = Mutex()
 
@@ -175,15 +176,52 @@ abstract class CallRepository(protected val context: Context) {
   }
 
   protected abstract fun getTag(): String
+
+  fun endCall(
+    callId: String,
+    cause: Int = DisconnectCause.LOCAL,
+  ): Boolean {
+    val call = _calls.value[callId] ?: return false
+
+    if (call.isPending) {
+      CallRegistrationStore.addPendingAction(
+        callId,
+        CallAction.Disconnect(DisconnectCause(cause)),
+      )
+      return true
+    }
+
+    return call.processAction(
+      CallAction.Disconnect(DisconnectCause(cause)),
+    )
+  }
 }
 
 object CallRepositoryFactory {
 
-  fun create(context: Context): CallRepository {
+  @Volatile
+  private var instance: CallRepository? = null
+
+  fun getOrCreate(context: Context): CallRepository {
+    return instance ?: synchronized(this) {
+      instance ?: createRepository(context.applicationContext)
+        .also { instance = it }
+    }
+  }
+
+  fun getExisting(): CallRepository? = instance
+
+  internal fun release(repository: CallRepository) = synchronized(this) {
+    if (instance !== repository) return@synchronized
+    repository.release()
+    instance = null
+  }
+
+  private fun createRepository(context: Context): CallRepository {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      TelecomCallRepository(context) // Your current CallRepository renamed
+      TelecomCallRepository(context)
     } else {
-      LegacyCallRepository(context) // Fallback implementation
+      LegacyCallRepository(context)
     }
   }
 }

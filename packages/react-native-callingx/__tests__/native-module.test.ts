@@ -14,6 +14,7 @@ const nativeModule = {
   setOnHoldCall: jest.fn(() => true),
   requestAudioEndpointChange: jest.fn(() => true),
   stopService: jest.fn(() => true),
+  terminateClient: jest.fn<Promise<void>, []>(() => Promise.resolve()),
   startBackgroundTask: jest.fn(() => true),
   getAvailableAudioEndpoints: jest.fn(() => JSON.stringify(snapshot)),
   onNewEvent: jest.fn(() => subscription),
@@ -43,6 +44,55 @@ afterEach(() => {
 test('looks the native module up by its registered name on import', () => {
   load();
   expect(getEnforcing).toHaveBeenCalledWith('Callingx');
+});
+
+describe('terminateClient', () => {
+  test('shares shutdown, blocks registrations, and permits calls after cleanup', async () => {
+    let finish!: () => void;
+    nativeModule.terminateClient.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const module = load();
+    const first = module.terminateClient();
+    expect(module.terminateClient()).toBe(first);
+    await expect(
+      module.startCall('call-1', '+1', 'Alice', true),
+    ).rejects.toThrow('terminating');
+    await expect(
+      module.displayIncomingCall('call-2', '+2', 'Bob', true),
+    ).rejects.toThrow('terminating');
+    module.acquireBackgroundTask('new-owner');
+    expect(nativeModule.startBackgroundTask).not.toHaveBeenCalled();
+    await Promise.resolve();
+    expect(nativeModule.terminateClient).toHaveBeenCalledTimes(1);
+    finish();
+    await first;
+    module.acquireBackgroundTask('next-session');
+    expect(nativeModule.startBackgroundTask).toHaveBeenCalledTimes(1);
+  });
+
+  test('cancels a pending keep-alive stop and permits retry after native failure', async () => {
+    jest.useFakeTimers();
+    const module = load();
+    module.acquireBackgroundTask('owner');
+    module.releaseBackgroundTask('owner');
+    expect(jest.getTimerCount()).toBe(1);
+    nativeModule.terminateClient.mockRejectedValueOnce(
+      new Error('shutdown failed'),
+    );
+    await expect(module.terminateClient()).rejects.toThrow('shutdown failed');
+    expect(jest.getTimerCount()).toBe(0);
+    await expect(module.terminateClient()).resolves.toBeUndefined();
+  });
+
+  test('does not terminate the iOS backend', async () => {
+    platform.OS = 'ios';
+    await load().terminateClient();
+    expect(nativeModule.terminateClient).not.toHaveBeenCalled();
+  });
 });
 
 test.each([

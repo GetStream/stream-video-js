@@ -83,6 +83,11 @@ const isAndroidTelecomManaged = ({ cid }: { cid: string }): boolean => {
 
 const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   callingX: {
+    terminateClient: async () => {
+      if (Platform.OS === 'android') {
+        await CallingxModule?.terminateClient?.();
+      }
+    },
     joinCall: joinCallingxCall,
     endCall: endCallingxCall,
     registerOutgoingCall: registerOutgoingCall,

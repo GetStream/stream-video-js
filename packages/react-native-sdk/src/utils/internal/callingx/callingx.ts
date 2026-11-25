@@ -101,7 +101,7 @@ export async function registerOutgoingCall(call: Call) {
     await CallingxModule.startCall(...getCallingxCallArgs(call));
   } catch (error) {
     logger.error(
-      `registerOutgoingCall: Error registering outgoing call in callingx: ${call.cid}`,
+      `registerOutgoingCall: noob 1 Error registering outgoing call in callingx: ${call.cid}`,
       error,
     );
   }

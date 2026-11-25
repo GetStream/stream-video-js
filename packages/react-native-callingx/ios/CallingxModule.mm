@@ -259,6 +259,12 @@
   // Not implemented on iOS
 }
 
+- (void)terminateClient:(RCTPromiseResolveBlock)resolve
+                 reject:(RCTPromiseRejectBlock)reject {
+  // Android owns CallingxClient. Preserve the iOS backend and its app-level setup.
+  resolve(nil);
+}
+
 #pragma mark - Logging
 
 - (void)log:(NSString *)message

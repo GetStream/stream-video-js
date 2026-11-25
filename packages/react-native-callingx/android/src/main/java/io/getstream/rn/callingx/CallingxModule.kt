@@ -177,4 +177,8 @@ class CallingxModule(reactContext: ReactApplicationContext) :
     override fun stopService() {
         impl.stopService()
     }
+
+    override fun terminateClient(promise: Promise) {
+        impl.terminateClient(promise)
+    }
 }
