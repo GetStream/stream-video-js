@@ -3,6 +3,23 @@ import { decodeUtf8 } from '../src/utils/internal/utf8TextDecoder';
 const native = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
 const encoder = new TextEncoder();
 
+/** The decoded string, or undefined when the decoder rejects the bytes. */
+const attempt = (decode: (bytes: Uint8Array) => string, bytes: Uint8Array) => {
+  try {
+    return decode(bytes);
+  } catch {
+    return undefined;
+  }
+};
+
+/** Fails when the decoder and the native one disagree on the bytes. */
+const expectSameAsNative = (bytes: Uint8Array) => {
+  const expected = attempt((b) => native.decode(b), bytes);
+  if (attempt(decodeUtf8, bytes) !== expected) {
+    throw new Error(`Mismatch for [${Array.from(bytes).join(', ')}]`);
+  }
+};
+
 describe('decodeUtf8', () => {
   it.each([
     ['empty', ''],
@@ -83,6 +100,58 @@ describe('decodeUtf8', () => {
     expect(() => decodeUtf8(bytes)).toThrow(TypeError);
   });
 
+  it('should agree with the native decoder on every 1 and 2 byte input', () => {
+    const one = new Uint8Array(1);
+    const two = new Uint8Array(2);
+    for (let first = 0; first <= 0xff; first++) {
+      one[0] = first;
+      expectSameAsNative(one);
+      two[0] = first;
+      for (let second = 0; second <= 0xff; second++) {
+        two[1] = second;
+        expectSameAsNative(two);
+      }
+    }
+  });
+
+  it('should agree with the native decoder on 3 and 4 byte inputs', () => {
+    // the values around which a continuation byte turns valid or invalid
+    const edges = [0x00, 0x7f, 0x80, 0x8f, 0x90, 0x9f, 0xa0, 0xbf, 0xc0, 0xff];
+    const three = new Uint8Array(3);
+    const four = new Uint8Array(4);
+    for (let lead = 0xe0; lead <= 0xff; lead++) {
+      for (let second = 0; second <= 0xff; second++) {
+        for (const third of edges) {
+          three.set([lead, second, third]);
+          expectSameAsNative(three);
+          // a 4 byte sequence starts with 0xf0 or above
+          if (lead < 0xf0) continue;
+          for (const fourth of edges) {
+            four.set([lead, second, third, fourth]);
+            expectSameAsNative(four);
+          }
+        }
+      }
+    }
+    // about 500k inputs, most of them rejected with a thrown error
+  }, 60_000);
+
+  it('should agree with the native decoder around the chunk boundary', () => {
+    // the output is built in chunks of 4096 UTF-16 code units
+    for (const character of ['é', '日', '😀', '\u{10ffff}', '\ufeff']) {
+      for (const filler of ['a', 'é', '😀']) {
+        for (let count = 4090; count <= 4100; count++) {
+          const text = filler.repeat(count) + character + filler.repeat(7);
+          const bytes = encoder.encode(text);
+          expect(decodeUtf8(bytes) === text).toBe(true);
+          // cut in the middle of the last character
+          expectSameAsNative(bytes.subarray(0, bytes.length - 1));
+          expectSameAsNative(bytes.subarray(0, bytes.length - 2));
+        }
+      }
+    }
+  });
+
   it('should agree with the native decoder on random bytes', () => {
     // deterministic, biased towards multi-byte lead and continuation bytes
     let seed = 0x2f6e2b1;
@@ -97,21 +166,7 @@ describe('decodeUtf8', () => {
       for (let i = 0; i < bytes.length; i++) {
         bytes[i] = pool[Math.floor(random() * pool.length)] ?? 0;
       }
-      let expected: string | undefined;
-      try {
-        expected = native.decode(bytes);
-      } catch {
-        expected = undefined;
-      }
-      let actual: string | undefined;
-      try {
-        actual = decodeUtf8(bytes);
-      } catch {
-        actual = undefined;
-      }
-      if (actual !== expected) {
-        throw new Error(`Mismatch for [${Array.from(bytes).join(', ')}]`);
-      }
+      expectSameAsNative(bytes);
     }
   });
 });
