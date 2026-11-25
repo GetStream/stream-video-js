@@ -469,6 +469,35 @@ export interface CallDTMFEvent {
   type: string;
 }
 
+export interface CallDataEvent {
+  call_cid: string;
+  created_at: TimestampNS;
+  /**
+   * Counter kept by the sender for this topic, passed through unchanged
+   */
+  seq: number;
+  /**
+   * Name the application gave this stream of messages
+   */
+  topic: string;
+  /**
+   * The user who sent the message, set by the server
+   */
+  user_id: string;
+  /**
+   * The sender's session in the call, set by the server
+   */
+  user_session_id: string;
+  /**
+   * The application payload, passed through unchanged
+   */
+  data: Record<string, any>;
+  /**
+   * The type of event: "call.data" in this case
+   */
+  type: string;
+}
+
 export interface CallDeletedEvent {
   call_cid: string;
   created_at: TimestampNS;
@@ -2687,6 +2716,7 @@ export const OwnCapability = {
   SCREENSHARE: 'screenshare',
   SEND_AUDIO: 'send-audio',
   SEND_CLOSED_CAPTIONS_CALL: 'send-closed-captions-call',
+  SEND_DATA: 'send-data',
   SEND_VIDEO: 'send-video',
   START_BROADCAST_CALL: 'start-broadcast-call',
   START_CLOSED_CAPTIONS_CALL: 'start-closed-captions-call',
@@ -4005,6 +4035,32 @@ export interface Segments {
   by_sdk: Array<BroadcastSegment>;
 }
 
+export interface SendCallDataRequest {
+  /**
+   * Counter kept by the sender for this topic, passed through unchanged. Receivers use it to detect a missing message
+   */
+  seq: number;
+  /**
+   * Name the application gives this stream of messages. Letters, digits, dashes and underscores, up to 64 characters
+   */
+  topic: string;
+  /**
+   * The sender's session ID in the call, as returned when joining. The sender must be joined with this session
+   */
+  user_session_id: string;
+  /**
+   * The application payload, passed through unchanged
+   */
+  data?: Record<string, any>;
+}
+
+export interface SendCallDataResponse {
+  /**
+   * Duration of the request in milliseconds
+   */
+  duration: string;
+}
+
 export interface SendCallEventRequest {
   custom?: CustomEventData;
 }
@@ -4834,6 +4890,7 @@ export type VideoEvent =
   | ({ type: 'call.closed_captions_started' } & CallClosedCaptionsStartedEvent)
   | ({ type: 'call.closed_captions_stopped' } & CallClosedCaptionsStoppedEvent)
   | ({ type: 'call.created' } & CallCreatedEvent)
+  | ({ type: 'call.data' } & CallDataEvent)
   | ({ type: 'call.deleted' } & CallDeletedEvent)
   | ({ type: 'call.dtmf' } & CallDTMFEvent)
   | ({ type: 'call.ended' } & CallEndedEvent)

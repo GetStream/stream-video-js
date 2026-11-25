@@ -22,8 +22,8 @@ yarn dev                       # Start Next.js dev server on localhost:3000
 yarn dev:https                 # Start with HTTPS for testing media permissions
 
 # Watch mode for SDK development (run in separate terminals)
-yarn start:react:sdk           # Watch @stream-io/video-react-sdk
-yarn start:styling             # Watch @stream-io/video-styling
+yarn start:react:sdk           # Watch @stream-io/video-react-sdk (JS + stylesheets)
+yarn start:styling             # Watch only the React SDK stylesheets
 yarn start:client              # Watch @stream-io/video-client
 ```
 
@@ -151,7 +151,6 @@ This app depends on workspace packages (using `workspace:^`):
 - `@stream-io/video-react-sdk` - Main React SDK
 - `@stream-io/video-filters-web` - Video effects (blur, filters)
 - `@stream-io/audio-filters-web` - Audio effects (noise cancellation)
-- `@stream-io/video-styling` - SDK styles
 - `@stream-io/node-sdk` - Server-side SDK for token generation
 
 When making changes to SDK packages, run them in watch mode for live updates.
