@@ -16,9 +16,18 @@ export const useCallBackEffect = () => {
       'callBackRequested',
       async ({ callId, isVideo }) => {
         try {
-          const [callType, id] = callId.split(':');
-          const original = client.call(callType, id);
-          await original.get();
+          const [callType] = callId.split(':');
+          // fetch once, without watching the original call's updates
+          const { calls } = await client.queryCalls({
+            filter_conditions: { cid: callId },
+            limit: 1,
+            watch: false,
+          });
+          const [original] = calls;
+          if (!original) {
+            console.warn('callBackRequested: call not found', callId);
+            return;
+          }
           const memberIds = original.state.members.map((m) => m.user_id);
           const ownId = client.state.connectedUser?.id;
           if (memberIds.filter((memberId) => memberId !== ownId).length === 0) {
