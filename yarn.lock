@@ -7670,7 +7670,6 @@ __metadata:
     react-test-renderer: "npm:19.3.0"
     rimraf: "npm:^6.1.3"
     rxjs: "npm:~7.8.2"
-    text-encoding-polyfill: "npm:0.6.7"
     typescript: "npm:^6.0.3"
   peerDependencies:
     "@react-native-community/netinfo": ">=9.0.0"
@@ -21470,13 +21469,6 @@ __metadata:
     glob: "npm:^7.1.4"
     minimatch: "npm:^3.0.4"
   checksum: 10/8fccb2cb6c8fcb6bb4115394feb833f8b6cf4b9503ec2485c2c90febf435cac62abe882a0c5c51a37b9bbe70640cdd05acf5f45e486ac4583389f4b0855f69e5
-  languageName: node
-  linkType: hard
-
-"text-encoding-polyfill@npm:0.6.7":
-  version: 0.6.7
-  resolution: "text-encoding-polyfill@npm:0.6.7"
-  checksum: 10/75f84dd1d2844180dad08c45fce75b54e978b01e446f31709fd791dc70594c60b03f0a2b55ba915d61f7f86fbab11bec8ee25535c96e688cfc9867df00a1a29d
   languageName: node
   linkType: hard
 

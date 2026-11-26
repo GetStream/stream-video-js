@@ -541,6 +541,13 @@ export type StreamRNVideoSDKGlobals = {
      */
     check(permission: 'microphone' | 'camera'): Promise<boolean>;
   };
+  /**
+   * Decodes the strings of the SFU protobuf events.
+   * Only set on runtimes that have no global `TextDecoder`.
+   */
+  textDecoder?: {
+    decode(input?: Uint8Array): string;
+  };
   nativeEvents: {
     speechActivity: {
       /**

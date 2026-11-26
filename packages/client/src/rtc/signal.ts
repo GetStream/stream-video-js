@@ -1,7 +1,19 @@
+import { BinaryReader, type BinaryReadOptions } from '@protobuf-ts/runtime';
 import { SfuEvent } from '../gen/video/sfu/event/events';
 import { DispatchableMessage, SfuEventKinds } from './Dispatcher';
 import { Tracer } from '../stats';
 import { videoLoggerSystem } from '../logger';
+
+/**
+ * `BinaryReader` creates a global `TextDecoder` unless it is handed one.
+ * Hermes ships it only from React Native 0.88 onwards, the React Native SDK
+ * provides its own decoder on the older runtimes.
+ * Everywhere else there is none, and the reader uses the global `TextDecoder`.
+ */
+const binaryReadOptions: Partial<BinaryReadOptions> = {
+  readerFactory: (bytes) =>
+    new BinaryReader(bytes, globalThis.streamRNVideoSDK?.textDecoder),
+};
 
 export const createWebSocketSignalChannel = (opts: {
   endpoint: string;
@@ -34,7 +46,7 @@ export const createWebSocketSignalChannel = (opts: {
     try {
       const message =
         e.data instanceof ArrayBuffer
-          ? SfuEvent.fromBinary(new Uint8Array(e.data))
+          ? SfuEvent.fromBinary(new Uint8Array(e.data), binaryReadOptions)
           : SfuEvent.fromJsonString(e.data.toString());
 
       onMessage(message as DispatchableMessage<SfuEventKinds>);

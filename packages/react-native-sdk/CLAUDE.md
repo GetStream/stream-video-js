@@ -73,6 +73,7 @@ The client (`packages/client`) is platform-agnostic and can't `import` React Nat
 - `callManager` — the **native-owning** call manager. `start`/`stop` drive the native `StreamInCallManager` module at join/leave (`start` carries the call-settings-derived `defaultDevice`, overridden by the stored config's `deviceEndpointType`; fire-and-forget, before the first publish); `setMutedRecordingPrepared` (iOS-only) toggles the ADM's muted-recording chain.
 - `permissions.check(permission)` — cross-platform runtime permission query for mic/camera.
 - `nativeEvents.speechActivity.subscribe(cb)` — bridges the native speech-detector event to `MicrophoneManager`.
+- `textDecoder` — UTF-8 decoder (`src/utils/internal/utf8TextDecoder.ts`) for the SFU protobuf events, set only when the runtime has no global `TextDecoder` (Hermes before RN 0.88); the client hands it to protobuf-ts in `packages/client/src/rtc/signal.ts`.
 
 **The gotcha:** any join-time audio setup needs BOTH the public store (to record the config) and the internal manager (to trigger native). Getting this wrong shows up as "the config isn't being applied", usually because someone called `.start()` on only one of the two.
 
