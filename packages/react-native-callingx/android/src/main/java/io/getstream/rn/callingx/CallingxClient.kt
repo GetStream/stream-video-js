@@ -2,6 +2,8 @@ package io.getstream.rn.callingx
 
 import android.content.Context
 import android.content.Intent
+import android.telecom.DisconnectCause
+import androidx.core.app.NotificationManagerCompat
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.notifications.CallNotificationManager
 import io.getstream.rn.callingx.repo.CallRepositoryFactory
@@ -17,6 +19,8 @@ internal class CallingxClient private constructor(context: Context) {
         fun getOrCreate(context: Context): CallingxClient = synchronized(this) {
             instance ?: CallingxClient(context.applicationContext).also { instance = it }
         }
+
+        fun getOrNull(): CallingxClient? = instance
 
         // Called on Main. Capture the instance before waiting so a duplicate termination
         // cannot release a different client created after the first termination completes.
@@ -43,6 +47,7 @@ internal class CallingxClient private constructor(context: Context) {
     val notificationManager = CallNotificationManager(applicationContext)
     val callRepository = CallRepositoryFactory.getOrCreate(applicationContext)
     val serviceState = CallServiceState()
+    val callEndCoordinator = CallEndCoordinator(applicationContext)
 
     private var attachedService: CallService? = null
     @Volatile var isTerminating = false

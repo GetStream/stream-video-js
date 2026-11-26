@@ -64,7 +64,6 @@ class CallingxModuleImpl(
     private var canSendEvents = false
 
     private val notificationChannelsManager = NotificationChannelsManager(reactApplicationContext)
-    private val callEndCoordinator = CallEndCoordinator(reactApplicationContext)
     // A session termination must finish even if React invalidates this module during logout.
     private val terminationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
@@ -307,19 +306,23 @@ class CallingxModuleImpl(
     fun endCallWithReason(callId: String, reason: Double) {
         debugLog(TAG, "[module] endCallWithReason: Ending call: $callId, $reason")
         val disconnectCause = DisconnectCause(reason.toInt())
-        callEndCoordinator.leave(callId, disconnectCause)
+        CallingxClient.getOrNull()?.let {
+          it.callEndCoordinator.leave(callId, disconnectCause)
+        }
         CallRegistrationStore.removeTrackedCall(callId)
-        val action = CallAction.Disconnect(disconnectCause)
-        executeServiceAction(callId, action)
+//        val action = CallAction.Disconnect(disconnectCause)
+//        executeServiceAction(callId, action)
     }
 
     fun endCall(callId: String) {
         debugLog(TAG, "[module] endCall: Ending call: $callId")
         val disconnectCause = DisconnectCause(DisconnectCause.LOCAL)
-        callEndCoordinator.leave(callId, disconnectCause)
+        CallingxClient.getOrNull()?.let {
+          it.callEndCoordinator.leave(callId, disconnectCause)
+        }
         CallRegistrationStore.removeTrackedCall(callId)
-        val action = CallAction.Disconnect(disconnectCause)
-        executeServiceAction(callId, action)
+//        val action = CallAction.Disconnect(disconnectCause)
+//        executeServiceAction(callId, action)
     }
 
     fun isCallTracked(callId: String): Boolean {

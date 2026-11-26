@@ -6,14 +6,14 @@ import android.content.Intent
 import android.os.Bundle
 
 class CallEventBroadcastReceiver : BroadcastReceiver() {
-
   override fun onReceive(context: Context, intent: Intent) {
     val action = intent.action ?: return
     val extras = intent.extras ?: Bundle.EMPTY
 
     CallEventBus.publish(CallEvent(action, extras))
-    CallEndCoordinator(context)
-      .leaveFromIntent(intent)
+    CallingxClient.getOrNull()?.let {
+      it.callEndCoordinator.leaveFromIntent(intent)
+    }
   }
 }
 

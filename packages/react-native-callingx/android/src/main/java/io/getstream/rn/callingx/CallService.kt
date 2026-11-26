@@ -33,18 +33,25 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 
 /**
- * This service handles the app call logic (show notification, record mic, display audio, etc..). It
- * can get started by the user or by an upcoming push notification to start a call.
+ * Hosts native call registration coroutines, foreground execution, and HeadlessJS background work.
+ * Call requests from the app or incoming push notifications can start this service. Shared call
+ * resources belong to [CallingxClient], which attaches this service while it is running.
  *
- * It holds the call scope used to register a call with the Telecom SDK in our
- * TelecomCallRepository.
+ * Normal shutdown after a call ends, is rejected, or is declined:
+ * 1. The Telecom repository removes the disconnected call from its state.
+ * 2. Its observer reports removal to [CallRepositoryListener], which clears the tracked call ID
+ *    and audio endpoints, then notifies [CallingxClient].
+ * 3. The client updates the foreground notification for any remaining call, stops the ringtone
+ *    if no incoming call is ringing, and asks this service to [stopServiceIfIdle].
+ * 4. The service stays alive while the repository contains calls, registrations are in progress,
+ *    or the HeadlessJS manager owns a task slot. Task completion retries the idle check.
+ * 5. Once idle, [stopSelfResult] requests shutdown only if no newer service start is pending.
+ *    [onDestroy] unregisters service listeners and receivers, detaches from the client, removes
+ *    the foreground notification, releases HeadlessJS resources, and cancels service coroutines.
  *
- * When registering a call with the Telecom SDK and displaying a CallStyle notification, the SDK
- * will grant you foreground service delegation so there is no need to make this a FGS.
- *
- * Note: you could potentially make this service run in a different process since audio or video
- * calls can consume significant memory, although that would require more complex setup to make it
- * work across multiple process.
+ * Stopping this service does not destroy [CallingxClient] or release its shared repository and
+ * notification manager. SDK disconnect/logout explicitly terminates the client: it stops native
+ * work and waits for service teardown before destroying those shared resources.
  */
 class CallService : Service() {
 
@@ -489,8 +496,8 @@ class CallService : Service() {
     }
 
     /**
-     * The only place this service stops itself. Callers are asking, not telling: the service hosts
-     * every call, so it may only go down once nothing needs it.
+     * Requests normal shutdown once nothing needs the service. Explicit client termination uses
+     * [terminateClient] to cancel native work before stopping, rather than waiting for idle state.
      *
      * Each check catches a new call at a different stage, so none is enough alone:
      * - `hasAnyCalls` — registered in the repository.
@@ -500,8 +507,8 @@ class CallService : Service() {
      * - [stopSelfResult] — a newer start is already queued. ActivityManager bumps its last start id
      *   when `startService` is called, before we see the intent.
      *
-     * Teardown is [onDestroy]'s job, which always runs since nothing binds here. Demoting from the
-     * foreground here would also drop a still-valid anchor when the stop is refused.
+     * Service teardown belongs to [onDestroy]. Demoting from the foreground here would drop a
+     * still-valid anchor when the stop is refused.
      */
     internal fun stopServiceIfIdle(startId: Int = lastStartId) {
         if (callRepository.hasAnyCalls() ||
