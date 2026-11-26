@@ -6,9 +6,10 @@ import {
   IconButton,
   ParticipantView,
   useCall,
-  useCallStateHooks,
   useVerticalScrollPosition,
   Video,
+  useLocalParticipant,
+  useParticipants,
 } from '@stream-io/video-react-sdk';
 
 export const CallParticipantsScreenView = (props: {
@@ -16,7 +17,6 @@ export const CallParticipantsScreenView = (props: {
 }) => {
   const { ParticipantViewUI } = props;
   const call = useCall();
-  const { useLocalParticipant, useParticipants } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const allParticipants = useParticipants();
   const firstScreenSharingParticipant = allParticipants.find((p) =>

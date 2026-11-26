@@ -10,7 +10,8 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   type JoinCallButtonProps,
-  useCallStateHooks,
+  useCallSettings,
+  useParticipantCount,
 } from '@stream-io/video-react-native-sdk';
 import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { MeetingStackParamList } from '../../types';
@@ -46,7 +47,6 @@ const LobbyJoinSection = ({ onJoinCallHandler }: JoinCallButtonProps) => {
   const { t } = useAppI18n();
   const navigation = useNavigation<LobbyNavigation>();
   const route = useRoute<LobbyViewComponentType['route']>();
-  const { useCallSettings, useParticipantCount } = useCallStateHooks();
   const settings = useCallSettings();
   const participantCount = useParticipantCount();
   const e2ee = useLobbyE2EE();

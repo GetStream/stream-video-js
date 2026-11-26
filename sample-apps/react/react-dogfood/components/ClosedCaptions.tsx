@@ -5,16 +5,17 @@ import {
   Icon,
   OwnCapability,
   useCall,
-  useCallStateHooks,
   WithTooltip,
+  useCallSettings,
+  useIsCallCaptioningInProgress,
+  useHasPermissions,
+  useCallClosedCaptions,
 } from '@stream-io/video-react-sdk';
 import { useAppI18n } from '../hooks/useAppI18n';
 
 export const ToggleClosedCaptionsButton = () => {
   const call = useCall();
   const { t } = useAppI18n();
-  const { useCallSettings, useIsCallCaptioningInProgress, useHasPermissions } =
-    useCallStateHooks();
   const settings = useCallSettings();
   const isCaptioned = useIsCallCaptioningInProgress();
   const canStart = useHasPermissions(OwnCapability.START_CLOSED_CAPTIONS_CALL);
@@ -53,7 +54,6 @@ export const ToggleClosedCaptionsButton = () => {
 };
 
 export const ClosedCaptions = () => {
-  const { useCallClosedCaptions } = useCallStateHooks();
   const closedCaptions = useCallClosedCaptions();
   return (
     <div className="rd__closed-captions">

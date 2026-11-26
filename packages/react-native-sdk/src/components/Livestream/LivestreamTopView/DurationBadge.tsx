@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { DurationIndicator } from '../../utility/DurationIndicator';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useCallSession } from '@stream-io/video-react-bindings';
 import {
   convertTimestampToDate,
   type CallSessionResponse,
@@ -18,7 +18,6 @@ export type DurationBadgeProps = {
  * The HostDurationBadge component displays the duration while the live stream is active.
  */
 export const DurationBadge = ({ mode }: DurationBadgeProps) => {
-  const { useCallSession } = useCallStateHooks();
   const session = useCallSession();
 
   const [duration, setDuration] = useState(() => {

@@ -12,7 +12,6 @@ on:
       - 'packages/client/**'
       - 'packages/react-bindings/**'
       - 'packages/react-sdk/**'
-      - 'packages/styling/**'
       - 'packages/video-filters-web/**'
       - 'packages/audio-filters-web/**'
   pull_request:
@@ -27,7 +26,6 @@ on:
       - 'packages/client/**'
       - 'packages/react-bindings/**'
       - 'packages/react-sdk/**'
-      - 'packages/styling/**'
       - 'packages/video-filters-web/**'
       - 'packages/audio-filters-web/**'
   workflow_dispatch:
@@ -43,7 +41,7 @@ jobs:
   build-and-deploy-sample-apps:
     name: Deploy ${{ matrix.application.name }}
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+    runs-on: { group: github-public-amd64 }
     strategy:
       matrix:
         # `production-branch` decides which branch is allowed to deploy each app

@@ -9,8 +9,9 @@ import {
   MenuVisualType,
   SfuModels,
   ToggleMenuButtonProps,
-  useCallStateHooks,
   useI18n,
+  useMicrophoneState,
+  useLocalParticipant,
 } from '@stream-io/video-react-sdk';
 import { isMobile } from '../helpers/isMobile';
 import { useSettings } from '../context/SettingsContext';
@@ -18,7 +19,6 @@ import { useSettings } from '../context/SettingsContext';
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButtonRender(props, ref) {
     const { t } = useI18n();
-    const { useMicrophoneState, useLocalParticipant } = useCallStateHooks();
     const { selectedDevice: selectedMic, devices: microphones } =
       useMicrophoneState();
     const localParticipant = useLocalParticipant();

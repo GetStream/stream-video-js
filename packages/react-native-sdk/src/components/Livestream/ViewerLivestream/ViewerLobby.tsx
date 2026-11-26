@@ -1,4 +1,9 @@
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallStartsAt,
+  useParticipants,
+  useCallCallingState,
+} from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -22,8 +27,6 @@ export const ViewerLobby = ({ isLive }: LobbyProps) => {
     theme: { livestreamViewerLobby },
   } = useTheme();
   const { t } = useI18n();
-  const { useCallStartsAt, useParticipants, useCallCallingState } =
-    useCallStateHooks();
   const callingState = useCallCallingState();
   const call = useCall();
   const startsAt = useCallStartsAt();

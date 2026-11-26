@@ -225,12 +225,5 @@
   "videoEffects.toggle.title": "Videoeffekte",
   "videoEffects.toggle.unsupported.title": "Videoeffekte werden auf diesem Gerät nicht unterstützt",
   "videoEffects.unsupportedBrowser.description": "Videofilter sind nur in modernen Desktop-Browsern verfügbar",
-  "videoEffects.unsupportedBrowser.title": "Nicht unterstützter Browser",
-  "visionAgent.askAgent.label": "KI-Agent fragen",
-  "visionAgent.inviting.label": "Wird eingeladen…",
-  "visionAgent.removeAgent.label": "Agent entfernen",
-  "visionAgent.removing.label": "Wird entfernt…",
-  "visionAgent.status.buildYourOwn.label": "Erstelle deinen eigenen KI-Agenten",
-  "visionAgent.status.inCall.text": "KI-Agent im Anruf",
-  "visionAgent.status.poweredBy.text": "Unterstützt von Vision Agents"
+  "videoEffects.unsupportedBrowser.title": "Nicht unterstützter Browser"
 }

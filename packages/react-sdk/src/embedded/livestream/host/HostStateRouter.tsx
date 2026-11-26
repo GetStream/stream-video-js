@@ -1,6 +1,12 @@
 import { useCallback, useState } from 'react';
 import { CallingState } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallCallingState,
+  useIsCallLive,
+  useCallSettings,
+  useLocalParticipant,
+} from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 
 import { HostLayout } from './HostLayout';
@@ -12,12 +18,6 @@ export const HostStateRouter = () => {
   const call = useCall();
   const { t } = useI18n();
   const { onError } = useEmbeddedConfiguration();
-  const {
-    useCallCallingState,
-    useIsCallLive,
-    useCallSettings,
-    useLocalParticipant,
-  } = useCallStateHooks();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
   const localParticipant = useLocalParticipant();

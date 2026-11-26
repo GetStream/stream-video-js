@@ -1,8 +1,9 @@
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import {
   Restricted,
-  useCallStateHooks,
   type UseInputMediaDeviceOptions,
+  useMicrophoneState,
+  useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../i18n';
 import clsx from 'clsx';
@@ -39,7 +40,6 @@ export const ToggleAudioPreviewButton = (
     ...restCompositeButtonProps
   } = props;
   const { t } = useI18n();
-  const { useMicrophoneState, useLocalParticipant } = useCallStateHooks();
   const {
     microphone,
     hasBrowserPermission,
@@ -136,7 +136,6 @@ export const ToggleAudioPublishingButton = (
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission('send-audio');
 
-  const { useMicrophoneState, useLocalParticipant } = useCallStateHooks();
   const {
     microphone,
     hasBrowserPermission,

@@ -39,6 +39,8 @@ import type {
   RequestPermissionResponse,
   RingCallRequest,
   RingCallResponse,
+  SendCallDataRequest,
+  SendCallDataResponse,
   SendCallEventRequest,
   SendCallEventResponse,
   SendVideoReactionRequest,
@@ -119,6 +121,15 @@ export class CallApi {
     request: BlockUserRequest,
   ): Promise<StreamResponse<BlockUserResponse>> {
     return this.videoApi.blockUser({ id: this.id, type: this.type }, request);
+  }
+
+  sendCallData(
+    request: SendCallDataRequest,
+  ): Promise<StreamResponse<SendCallDataResponse>> {
+    return this.videoApi.sendCallData(
+      { id: this.id, type: this.type },
+      request,
+    );
   }
 
   delete(

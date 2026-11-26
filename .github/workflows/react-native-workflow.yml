@@ -52,7 +52,7 @@ jobs:
   code_review:
     name: Code Lint, Unit Test and dogfood versioning
     timeout-minutes: 20
-    runs-on: ubuntu-latest
+    runs-on: { group: github-public-amd64 }
     steps:
       - uses: actions/checkout@v7
 
@@ -78,10 +78,16 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Connect Bot
-        uses: webfactory/ssh-agent@v0.10.0
+      # Short-lived, read-only token for fastlane match to clone ios-certificates.
+      - name: Create certificates token
+        id: certificates-token
+        uses: actions/create-github-app-token@v3
         with:
-          ssh-private-key: ${{ secrets.BOT_SSH_PRIVATE_KEY }}
+          client-id: ${{ vars.JS_CI_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.JS_CI_BOT_PRIVATE_KEY }}
+          owner: GetStream
+          repositories: ios-certificates
+          permission-contents: read
 
       - name: Select XCode version
         run: sudo xcode-select --switch /Applications/Xcode_27.1.app
@@ -96,6 +102,8 @@ jobs:
       - name: Build
         working-directory: sample-apps/react-native/dogfood
         run: bundle exec fastlane build_ios
+        env:
+          MATCH_GIT_TOKEN: ${{ steps.certificates-token.outputs.token }}
 
       - name: Upload .ipa
         uses: actions/upload-artifact@v7
@@ -147,7 +155,7 @@ jobs:
     timeout-minutes: 60
     needs: code_review
     if: ${{ github.event_name != 'workflow_dispatch' || !github.event.inputs.platform || github.event.inputs.platform == 'android' || github.event.inputs.platform == 'both' }}
-    runs-on: ubuntu-latest
+    runs-on: { group: github-public-amd64 }
     steps:
       - uses: actions/checkout@v7
 
@@ -191,7 +199,7 @@ jobs:
     needs: build_android
     timeout-minutes: 60
     if: ${{ (github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (!github.event.inputs.platform || github.event.inputs.platform == 'android' || github.event.inputs.platform == 'both')) }}
-    runs-on: ubuntu-latest
+    runs-on: { group: github-public-amd64 }
     steps:
       # See the matching guard on deploy_ios: store releases stay on v1.
       - name: Verify the release branch

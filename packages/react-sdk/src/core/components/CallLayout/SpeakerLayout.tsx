@@ -3,8 +3,8 @@ import clsx from 'clsx';
 import { hasScreenShare } from '@stream-io/video-client';
 import {
   useCall,
-  useCallStateHooks,
   useSpeakerLayoutSortPreset,
+  useParticipants,
 } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 
@@ -123,7 +123,6 @@ export const SpeakerLayout = ({
   enableDragToScroll = false,
 }: SpeakerLayoutProps) => {
   const call = useCall();
-  const { useParticipants } = useCallStateHooks();
   const allParticipants = useParticipants();
   const remoteParticipants = useRawRemoteParticipants();
   const [participantInSpotlight, ...otherParticipants] =

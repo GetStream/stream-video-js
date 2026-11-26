@@ -1,6 +1,10 @@
 import React from 'react';
 import { hasScreenShare } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useParticipants,
+  useHasOngoingScreenShare,
+} from '@stream-io/video-react-bindings';
 import { StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import { usePaginatedLayoutSortPreset } from '../../../hooks/usePaginatedLayoutSortPreset';
 import { useTheme } from '../../../contexts';
@@ -42,7 +46,6 @@ export const LivestreamLayout = ({
   ScreenShareOverlay,
   style,
 }: LivestreamLayoutProps) => {
-  const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
   const call = useCall();
   const {
     theme: { livestreamLayout },

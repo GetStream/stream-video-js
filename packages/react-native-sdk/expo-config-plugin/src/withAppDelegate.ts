@@ -1,9 +1,11 @@
 import {
   type ConfigPlugin,
+  WarningAggregator,
   withAppDelegate as withAppDelegateUtil,
 } from '@expo/config-plugins';
 import {
   addSwiftImports,
+  findSwiftFunctionCodeBlock,
   insertContentsInsideSwiftFunctionBlock,
   addObjcImports,
 } from '@expo/config-plugins/build/ios/codeMod';
@@ -60,6 +62,9 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
           addDidFinishLaunchingWithOptionsRingingSwift(
             config.modResults.contents,
           );
+        config.modResults.contents = addContinueUserActivitySwift(
+          config.modResults.contents,
+        );
       }
       return config;
     } catch (error: any) {
@@ -121,6 +126,64 @@ function addDidFinishLaunchingWithOptionsRingingSwift(contents: string) {
     );
   }
   return updated;
+}
+
+const continueUserActivityMethod = `
+
+  public override func application(
+    _ application: UIApplication,
+    continue userActivity: NSUserActivity,
+    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
+  ) -> Bool {
+    _ = StreamVideoReactNative.handle(userActivity)
+    return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
+  }`;
+
+/**
+ * Forwards CallKit Recents call-backs (`INStartCallIntent`) to the SDK. With the UIScene
+ * lifecycle, `ExpoAppSceneDelegate` re-feeds user activities (cold start and warm) to this
+ * method, so one injection covers both. Templates that override the method (Expo 53-57) get
+ * the call added to it; templates without it (Expo 58+) get the override added to the class.
+ */
+function addContinueUserActivitySwift(contents: string) {
+  // Swift imports `+[StreamVideoReactNative handleUserActivity:]` as `handle(_:)`.
+  if (contents.includes('StreamVideoReactNative.handle(')) {
+    return contents;
+  }
+  // Matched by signature: insertContentsInsideSwiftFunctionBlock resolves overloaded
+  // `application(...)` methods by name and can pick the wrong one.
+  const signature =
+    /func application\(\s*_ \w+: UIApplication,\s*continue (\w+): NSUserActivity,[\s\S]*?\)\s*->\s*Bool\s*\{/;
+  const match = signature.exec(contents);
+  if (match) {
+    const insertAt = match.index + match[0].length;
+    const handleMethod = `\n    _ = StreamVideoReactNative.handle(${match[1]})`;
+    return (
+      contents.slice(0, insertAt) + handleMethod + contents.slice(insertAt)
+    );
+  }
+
+  // No continue method: add an override right after didFinishLaunchingWithOptions. It has to
+  // be in the class body: ExpoAppDelegate's method isn't `dynamic`, so an extension can't override it.
+  const didFinishLaunching = findSwiftFunctionCodeBlock(
+    contents,
+    'application(_:didFinishLaunchingWithOptions:)',
+  );
+  if (!didFinishLaunching) {
+    WarningAggregator.addWarningIOS(
+      'stream-video-react-native-sdk',
+      'Could not add application(_:continue:restorationHandler:) to AppDelegate. Call backs ' +
+        'from CallKit Recents will not be delivered unless you call ' +
+        'StreamVideoReactNative.handle(userActivity) yourself.',
+    );
+    return contents;
+  }
+  const insertAt = didFinishLaunching.end + 1;
+  return (
+    contents.slice(0, insertAt) +
+    continueUserActivityMethod +
+    contents.slice(insertAt)
+  );
 }
 
 export default withAppDelegate;

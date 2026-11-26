@@ -57,6 +57,8 @@ CallingxModule.setup({
       id: 'incoming_calls_channel',
       name: 'Incoming calls',
     },
+    // Android 16 QPR2 (API 36.1)+ only
+    callsHistory: false,
   },
 });
 
@@ -87,7 +89,7 @@ await CallingxModule.displayIncomingCall(
 - `getInitialEvents()` and `getInitialVoipEvents()`.
 - `stopService()` (Android, sync) — asks the call service to stop. A request, not a command: the service hosts every call, so it stays alive while any call is registered or is being registered. Use `endCallWithReason(callId, reason)` to tear down an individual call.
 
-`phoneNumber` is the call handle. On iOS with CallKit the handle value is `phoneNumber` and the caller name is `localizedCallerName`. With LiveCommunicationKit the `Handle` value is the caller name when one is given (the system UI shows the value and ignores `displayName`, Apple FB24933340), otherwise `phoneNumber`. Android always wraps it as the opaque Telecom address `<packageName>:<phoneNumber>` (a scheme-less address reboots ColorOS devices); it is never displayed or dialed. The Stream Video SDK passes the caller's user id on iOS and the call id on Android.
+`phoneNumber` is the call handle. On iOS with CallKit the handle value is `phoneNumber` and the caller name is `localizedCallerName`. With LiveCommunicationKit the `Handle` value is the caller name when one is given (the system UI shows the value and ignores `displayName`, Apple FB24933340), otherwise `phoneNumber`. Android always wraps it as the opaque Telecom address `<packageName>:<phoneNumber>` (a scheme-less address reboots ColorOS devices); it is never displayed or dialed. The Stream Video SDK passes the call cid on both platforms (used for call-back, see below).
 
 ## Migrating from Promise-based call controls
 
@@ -122,11 +124,43 @@ Call events:
 - `didPerformDTMFAction`
 - `didActivateAudioSession`
 - `didDeactivateAudioSession`
+- `callBackRequested` (see below)
 
 VoIP events:
 
 - `voipNotificationsRegistered`
 - `voipNotificationReceived`
+
+## Calls history and call-back
+
+With `ios.callsHistory` / `android.callsHistory` enabled, calls appear in the system call history
+(iOS Recents; Android 16 QPR2+ call log, where the dialer supports VoIP calls). Tapping an entry
+opens the app and emits `callBackRequested`:
+
+```ts
+CallingxModule.addEventListener('callBackRequested', ({ callId, isVideo }) => {
+  // callId: the cid of the original call. Fetch it to get its members and ring them again
+  // in a new call. On iOS, calls are reported to CallKit with the cid as their handle.
+});
+```
+
+The event is sticky: when the tap launched the app, it's delivered to the first listener,
+even if that listener subscribes after the event arrived.
+
+On iOS, forward user activities to callingx:
+
+```swift
+// application(_:continue:restorationHandler:), and with UIScene also
+// scene(_:willConnectTo:options:) (connectionOptions.userActivities) and scene(_:continue:)
+_ = Callingx.handle(userActivity) // or StreamVideoReactNative.handle(userActivity)
+// (ObjC: +[Callingx handleUserActivity:]; Swift imports it as handle(_:))
+```
+
+and add `INStartCallIntent` to `NSUserActivityTypes` in `Info.plist`.
+
+Call-back on iOS needs the default CallKit backend. With `useLiveCommunicationKit`, calls still
+appear in Recents, but the handle is the caller name (Apple FB24933340), so `handle(_:)` ignores
+the tap and returns `false`.
 
 ## Skip the system call UI when the app is in the foreground (iOS 26.4+)
 

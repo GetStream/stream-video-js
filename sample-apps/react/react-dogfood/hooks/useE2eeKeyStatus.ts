@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   EncryptionManager,
   useCall,
-  useCallStateHooks,
+  useRemoteParticipants,
 } from '@stream-io/video-react-sdk';
 
 /**
@@ -40,7 +40,6 @@ export type E2EEKeyStatus =
  */
 export const useE2eeKeyStatus = (): E2EEKeyStatus => {
   const call = useCall();
-  const { useRemoteParticipants } = useCallStateHooks();
   const remoteParticipants = useRemoteParticipants();
   // Keyed per (userId, trackType) because the SDK counts failures per track: a
   // peer publishing audio and video reports them independently, and their video

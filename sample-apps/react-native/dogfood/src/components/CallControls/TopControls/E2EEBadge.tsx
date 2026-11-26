@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useCallStateHooks, useTheme } from '@stream-io/video-react-native-sdk';
+import { useTheme, useE2eeEnabled } from '@stream-io/video-react-native-sdk';
 import { LockIcon } from '../../LockIcon';
 
 /**
@@ -17,7 +17,6 @@ import { LockIcon } from '../../LockIcon';
  * case, so the label is always dropped here.
  */
 export const E2EEBadge = () => {
-  const { useE2eeEnabled } = useCallStateHooks();
   const e2eeEnabled = useE2eeEnabled();
   const { theme } = useTheme();
   const styles = useStyles();

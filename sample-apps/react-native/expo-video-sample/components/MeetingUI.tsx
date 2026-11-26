@@ -7,14 +7,13 @@ import {
   NoiseCancellationProvider,
   BackgroundFiltersProvider,
   useCall,
-  useCallStateHooks,
+  useCallCallingState,
 } from '@stream-io/video-react-native-sdk';
 import { AuthProgressLoader } from './AuthProgressLoader';
 import { CallControlsComponent } from './CallControlsComponent';
 import { CallId } from './CallId';
 
 export const MeetingUI = () => {
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const call = useCall();

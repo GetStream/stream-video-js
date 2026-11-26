@@ -1,4 +1,4 @@
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import { useEffect, useRef } from 'react';
 import { AppState, type AppStateStatus, Platform } from 'react-native';
 import { CallingState } from '@stream-io/video-client';
@@ -27,7 +27,6 @@ export const useAndroidKeepCallAliveEffect = () => {
 
   const call = useCall();
   const activeCallCid = call?.cid;
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const isRingingCall = call?.ringing;

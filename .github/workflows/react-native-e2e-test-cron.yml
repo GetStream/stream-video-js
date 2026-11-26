@@ -22,7 +22,7 @@ env:
 
 jobs:
   android:
-    runs-on: ubuntu-24.04
+    runs-on: { group: github-public-amd64 }
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -86,7 +86,9 @@ jobs:
 
   slack:
     name: Slack Report
-    runs-on: ubuntu-latest
+    # Calls the GitHub API, and the org IP allow list only admits static-IP runners.
+    runs-on:
+      group: github-public-amd64
     timeout-minutes: 10
     needs: [android]
     if: failure() && github.event_name == 'schedule'

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   type CallStatsReport,
-  useCallStateHooks,
+  useCallStatsReport,
 } from '@stream-io/video-react-sdk';
 import { StatCard, StatCardGrid } from '../StatCard';
 
@@ -47,7 +47,6 @@ const NO_BITRATES = {
 };
 
 export const PreCallTestStats = () => {
-  const { useCallStatsReport } = useCallStateHooks();
   const report = useCallStatsReport();
 
   const previousReport = useRef<CallStatsReport | undefined>(undefined);

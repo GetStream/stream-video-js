@@ -5,8 +5,8 @@ import {
   OwnCapability,
   StreamVideoParticipant,
   useCall,
-  useCallStateHooks,
   useTheme,
+  useHasPermissions,
 } from '@stream-io/video-react-native-sdk';
 import { Cross } from '../assets/Cross';
 import { Mic } from '../assets/Mic';
@@ -42,7 +42,6 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   } = useTheme();
   const styles = useStyles();
   const { t } = useAppI18n();
-  const { useHasPermissions } = useCallStateHooks();
   const userHasMuteUsersCapability = useHasPermissions(
     OwnCapability.MUTE_USERS,
   );

@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import {
   PermissionRequestEvent,
   useCall,
-  useCallStateHooks,
+  useCallCustomData,
 } from '@stream-io/video-react-sdk';
 import { AcceptIcon, CloseIcon } from '../icons';
 
@@ -48,7 +48,6 @@ const SpeakingRequest = ({
   speakingRequest,
 }: SpeakingRequestProps) => {
   const call = useCall();
-  const { useCallCustomData } = useCallStateHooks();
   const customData = useCallCustomData();
 
   const acceptRequest = useCallback(async () => {

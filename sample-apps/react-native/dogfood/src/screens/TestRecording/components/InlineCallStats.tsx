@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import {
   CallStatsReport,
-  useCallStateHooks,
   useTheme,
+  useCallStatsReport,
 } from '@stream-io/video-react-native-sdk';
 
 type StatChipProps = { label: string; value: string };
@@ -22,7 +22,6 @@ const StatChip = ({ label, value }: StatChipProps) => {
 
 export const InlineCallStats = () => {
   const styles = useStyles();
-  const { useCallStatsReport } = useCallStateHooks();
   const report = useCallStatsReport();
 
   const previousReport = useRef<CallStatsReport | undefined>(undefined);

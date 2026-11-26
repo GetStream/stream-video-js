@@ -11,8 +11,9 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { Theme } from '../../theme';
 import { RecordCall, ScreenShare, Verified } from '../../icons';
 import {
-  useCallStateHooks,
   useToggleCallRecording,
+  useLocalParticipant,
+  useE2eeEnabled,
 } from '@stream-io/video-react-bindings';
 import { hasScreenShare } from '@stream-io/video-client';
 
@@ -123,7 +124,6 @@ export const DurationIndicator = ({
     theme: { callDurationIndicator, semantics, components },
   } = useTheme();
 
-  const { useLocalParticipant, useE2eeEnabled } = useCallStateHooks();
   const { isCallRecordingInProgress } = useToggleCallRecording();
   const localParticipant = useLocalParticipant();
   const isE2eeEnabled = useE2eeEnabled();

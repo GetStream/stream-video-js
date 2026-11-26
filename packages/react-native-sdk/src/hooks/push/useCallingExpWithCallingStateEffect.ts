@@ -1,5 +1,10 @@
 import { Call, CallingState, videoLoggerSystem } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useMicrophoneState,
+  useParticipants,
+  useCallMembers,
+} from '@stream-io/video-react-bindings';
 import { useEffect, useMemo } from 'react';
 import { filter, take } from 'rxjs/operators';
 import { getCallDisplayName } from '../../utils/internal/callingx/callingx';
@@ -11,16 +16,12 @@ const logger = videoLoggerSystem.getLogger('callingx');
  * This hook is used to inform sync call state with the system call UI (CallKit/LiveCommunicationKit/Telecom) (i.e. start call, end call, mute/unmute call).
  */
 export const useCallingExpWithCallingStateEffect = () => {
-  const { useMicrophoneState, useParticipants, useCallMembers } =
-    useCallStateHooks();
-
   const activeCall = useCall();
   const { optimisticStatus, microphone } = useMicrophoneState();
   const callMembers = useCallMembers();
   const participants = useParticipants();
 
   const activeCallCid = activeCall?.cid;
-  const createdByUserId = activeCall?.state.createdBy?.id;
   const callCustomDisplayName = activeCall?.state.custom?.display_name;
   const currentUserId = activeCall?.currentUserId;
   const isIncoming =
@@ -120,7 +121,9 @@ export const useCallingExpWithCallingStateEffect = () => {
     try {
       callingx.updateDisplay(
         activeCallCid,
-        createdByUserId ?? callDisplayName,
+        // same handle as when the call was reported (see getCallingxCallArgs): iOS Recents
+        // keeps the last handle and gives it back on a call-back
+        activeCallCid,
         callDisplayName,
         isIncoming,
       );
@@ -130,7 +133,7 @@ export const useCallingExpWithCallingStateEffect = () => {
         error,
       );
     }
-  }, [activeCallCid, createdByUserId, callDisplayName, isIncoming]);
+  }, [activeCallCid, callDisplayName, isIncoming]);
 
   // Sync microphone mute state from app → system call UI
   useEffect(() => {

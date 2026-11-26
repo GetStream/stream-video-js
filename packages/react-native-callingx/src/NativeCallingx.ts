@@ -33,6 +33,7 @@ export interface Spec extends TurboModule {
       rejecting?: string;
     };
     skipIncomingPushInForeground: boolean;
+    callsHistory: boolean;
   }): boolean;
 
   setShouldRejectCallWhenBusy(shouldReject: boolean): boolean;
@@ -81,6 +82,9 @@ export interface Spec extends TurboModule {
       receiver_id?: string;
       video?: string;
       version?: string;
+      // `callBackRequested`
+      displayName?: string;
+      isVideo?: boolean;
       // `fcmTokenRefresh` — rotated FCM device token (Android)
       token?: string;
     };
@@ -196,6 +200,9 @@ export interface Spec extends TurboModule {
       receiver_id?: string;
       video?: string;
       version?: string;
+      // `callBackRequested`
+      displayName?: string;
+      isVideo?: boolean;
       // `fcmTokenRefresh` — rotated FCM device token (Android)
       token?: string;
     };

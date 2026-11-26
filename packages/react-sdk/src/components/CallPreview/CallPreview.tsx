@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { CSSProperties, useEffect, useState } from 'react';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useCallThumbnail } from '@stream-io/video-react-bindings';
 
 export type CallPreviewProps = {
   /**
@@ -17,7 +17,6 @@ export type CallPreviewProps = {
 export const CallPreview = (props: CallPreviewProps) => {
   const { className, style } = props;
   const call = useCall();
-  const { useCallThumbnail } = useCallStateHooks();
   const thumbnail = useCallThumbnail();
 
   const [imageRef, setImageRef] = useState<HTMLImageElement | null>(null);

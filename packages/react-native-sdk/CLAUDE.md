@@ -1,6 +1,7 @@
 `@stream-io/video-react-native-sdk`: React Native components, hooks, and native modules (`ios/`, `android/`) on top of `@stream-io/video-react-bindings` and `@stream-io/video-client`.
 
 - Never use RxJS observables from the client directly here; all state access goes through the bindings hooks.
+- Import call state hooks directly from `@stream-io/video-react-bindings` (`import { useParticipants } from '@stream-io/video-react-bindings'`). Do not read them off `useCallStateHooks()` in this package: React Compiler can't verify that a hook read from the returned object is the same function on every render, and skips optimizing the component. `useCallStateHooks()` stays exported for integrators.
 - Apps must import from this SDK (not `@stream-io/video-client` directly): importing it registers the WebRTC globals and polyfills (`src/index.ts`).
 - The SDK's own natives are New Architecture only (codegen); see "Native modules" below.
 - CallKit / LiveCommunicationKit (iOS) and Telecom (Android) go through the workspace package `@stream-io/react-native-callingx`.

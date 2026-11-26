@@ -5,6 +5,17 @@ export type RateLimit = {
   rate_limit?: number;
   rate_limit_remaining?: number;
   rate_limit_reset?: Date;
+  /**
+   * Set when the request was refused by a rate limit (status 429): how long
+   * to wait before sending it again, in milliseconds. From `Retry-After`.
+   */
+  retry_after_ms?: number;
+  /**
+   * Set when the request was refused by a rate limit (status 429): the limit
+   * that refused it, for example `app`, `user` or `call`.
+   * From `X-RateLimit-Hit-Context`, in lower case.
+   */
+  rate_limit_hit_context?: string;
 };
 
 export type RequestMetadata = {
@@ -75,6 +86,12 @@ export const buildRequestMetadata = (
   if (remaining !== undefined) rateLimit.rate_limit_remaining = remaining;
   const reset = parseInteger(responseHeaders['x-ratelimit-reset']);
   if (reset !== undefined) rateLimit.rate_limit_reset = new Date(reset * 1000);
+  const retryAfter = parseInteger(responseHeaders['retry-after']);
+  if (retryAfter !== undefined && retryAfter >= 0) {
+    rateLimit.retry_after_ms = retryAfter * 1000;
+  }
+  const hitContext = responseHeaders['x-ratelimit-hit-context'];
+  if (hitContext) rateLimit.rate_limit_hit_context = hitContext.toLowerCase();
 
   return {
     response_headers: responseHeaders,

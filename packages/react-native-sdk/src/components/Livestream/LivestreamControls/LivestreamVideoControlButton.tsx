@@ -1,4 +1,7 @@
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCameraState,
+  useCallSettings,
+} from '@stream-io/video-react-bindings';
 import React from 'react';
 import { Video, VideoSlash, ControlButtonIcon } from '../../../icons';
 import { CallControlsButton } from '../../Call/CallControls/Buttons/CallControlsButton';
@@ -7,7 +10,6 @@ import { CallControlsButton } from '../../Call/CallControls/Buttons/CallControls
  * The LivestreamVideoControlButton controls the video stream publish/unpublish while in the livestream for the host.
  */
 export const LivestreamVideoControlButton = () => {
-  const { useCameraState, useCallSettings } = useCallStateHooks();
   const { optimisticIsMute, camera } = useCameraState();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;

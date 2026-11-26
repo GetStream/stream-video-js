@@ -1,7 +1,8 @@
 import { View, StyleSheet } from 'react-native';
 import {
-  useCallStateHooks,
   useConnectedUser,
+  useCameraState,
+  useCallSettings,
 } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { LobbyCameraPreview } from './LobbyCameraPreview';
@@ -14,7 +15,6 @@ export type LobbyContentProps = {
 
 export const LobbyContent = ({ landscape = false }: LobbyContentProps) => {
   const connectedUser = useConnectedUser();
-  const { useCameraState, useCallSettings } = useCallStateHooks();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
   const { optimisticIsMute: cameraIsMuted } = useCameraState();

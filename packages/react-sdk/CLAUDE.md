@@ -2,8 +2,8 @@
 
 ## Layering rule
 
-- Never read RxJS observables or `call.state` directly in this package, and never call `useObservableValue` here. All state access goes through the bindings hooks (`useCallStateHooks()`, `useCall()`).
-- `useCallStateHooks()` returns a constant object, so destructuring it is cheap and stable. Destructure the hooks you need (`const { useParticipants } = useCallStateHooks()`) and call them; for React Compiler compatibility the `use-call-state-hooks` codemod hoists the destructuring to module scope.
+- Never read RxJS observables or `call.state` directly in this package, and never call `useObservableValue` here. All state access goes through the bindings hooks (`useCall()` and the call state hooks such as `useParticipants()`).
+- Import call state hooks directly from `@stream-io/video-react-bindings` (`import { useParticipants } from '@stream-io/video-react-bindings'`). Do not read them off `useCallStateHooks()` in this package: React Compiler can't verify that a hook read from the returned object is the same function on every render, and skips optimizing the component. `useCallStateHooks()` stays exported for integrators.
 - Device preference persistence lives in the client (`devicePersistence` option), not in this package.
 - Background filters are MediaPipe-only (`BackgroundFiltersProvider`, `src/components/BackgroundFilters/`).
 
@@ -15,7 +15,7 @@ Tests use Vitest in the `node` environment (`vite.config.mts`); nothing here nee
 
 - ESM output is one file per source module (`preserveModules`) so consumers can tree-shake; CommonJS is a single bundle.
 - `package.json#sideEffects` lists the CSS plus the entry files (they carry the top-level `setSdkInfo` call). Every other module must stay side-effect free, or tree-shaking silently stops working.
-- CSS comes from `@stream-io/video-styling` (copied into `dist/` by `copy-css`). Class names follow `str-video__component-name--modifier`; theming is via CSS variables.
+- Stylesheets (SCSS) live in a `styling/` folder inside the component folder they style (e.g. `src/components/Avatar/styling/`), the same layout as `stream-chat-react`. Shared partials and the `index.scss`/`embedded.scss` entry points are in `src/styling/`; the entry points `@use` each component folder with an alias (`as Avatar`), since every path ends in `styling`. `build:css` compiles them to `dist/css/styles.css` and `dist/css/embedded.css`. `start` (root `yarn start:react:sdk`) runs `rollup -c -w` and `start:css` side by side through `concurrently`; `start:css` (root `yarn start:styling`, for CSS only) runs `build:css` with `--load-path=src --watch`: `sass --watch` only watches the entry files' folder (`src/styling/`) and load paths, so the load path is what makes it see edits in the component `styling/` folders. Keep the flag off `build:css`, so imports stay relative (`'../../../styling/utils'`) and never depend on it. Class names follow `str-video__component-name--modifier`; theming is via CSS variables.
 
 ## Internationalization (i18n)
 

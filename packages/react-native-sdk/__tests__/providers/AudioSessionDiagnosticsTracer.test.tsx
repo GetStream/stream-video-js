@@ -27,11 +27,9 @@ jest.mock('@stream-io/video-react-bindings', () => {
   };
   return {
     useCall: () => mockUseCall(),
-    useCallStateHooks: () => ({
-      useCallCallingState: () => useValue(mockUseCall().state.callingState$),
-      useMicrophoneState: () => ({
-        status: useValue(mockUseCall().microphone.state.status$),
-      }),
+    useCallCallingState: () => useValue(mockUseCall().state.callingState$),
+    useMicrophoneState: () => ({
+      status: useValue(mockUseCall().microphone.state.status$),
     }),
   };
 });

@@ -6,9 +6,15 @@ import {
 import { useAppContext } from '../context/AppContext';
 import { createToken } from '../utils/createToken';
 import { useRegisterNonRingingPushToken } from '../hooks/useRegisterNonRingingPushToken';
+import { useCallBackEffect } from '../hooks/useCallBackEffect';
 
 const NonRingingPushTokenRegistration = () => {
   useRegisterNonRingingPushToken();
+  return null;
+};
+
+const CallBackHandler = () => {
+  useCallBackEffect();
   return null;
 };
 
@@ -70,6 +76,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   return (
     <StreamVideo client={videoClient}>
       <NonRingingPushTokenRegistration />
+      <CallBackHandler />
       {children}
     </StreamVideo>
   );

@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react';
 import { useEffect, useState } from 'react';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useHasOngoingScreenShare } from '@stream-io/video-react-bindings';
 import {
   LivestreamLayout,
   PaginatedGridLayout,
@@ -74,7 +74,6 @@ const isValidLayout = (layout: string): layout is LayoutOption =>
  */
 export const useLayout = () => {
   const { layout: configuredLayout } = useEmbeddedConfiguration();
-  const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
 
   const defaultLayout = isValidLayout(configuredLayout ?? '')

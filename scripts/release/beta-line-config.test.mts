@@ -28,7 +28,6 @@ const CORE_PACKAGES = [
   'react-sdk',
   'react-bindings',
   'react-native-sdk',
-  'styling',
 ];
 
 // On their own 1.0.0-beta.N line, disjoint from release-v1's 0.x.

@@ -5,9 +5,9 @@ import {
   CompositeButtonProps,
   Icon,
   useCall,
-  useCallStateHooks,
   UserResponse,
   WithTooltip,
+  useParticipants,
 } from '@stream-io/video-react-sdk';
 import { useFloatingUIPreset } from '../hooks/useFloatingUIPreset';
 import { useAppI18n } from '../hooks/useAppI18n';
@@ -21,7 +21,6 @@ export const ToggleParticipantListButton = (
   props: ToggleParticipantListButtonProps,
 ) => {
   const call = useCall();
-  const { useParticipants } = useCallStateHooks();
   const participantCount = useParticipants().length;
 
   const { refs, x, y } = useFloatingUIPreset({

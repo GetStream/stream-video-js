@@ -9,7 +9,8 @@ import {
 import {
   Restricted,
   useCall,
-  useCallStateHooks,
+  useParticipants,
+  useCallBlockedUserIds,
 } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../i18n';
 import {
@@ -155,7 +156,6 @@ const ActiveUsersSearchResults = ({
   CallParticipantListProps,
   'activeUsersSearchFn' | 'debounceSearchInterval'
 > & { searchQuery: string }) => {
-  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants({ sortBy: name });
 
   // cache: each distinct name is normalized once
@@ -202,7 +202,6 @@ const BlockedUsersSearchResults = ({
   CallParticipantListProps,
   'blockedUsersSearchFn' | 'debounceSearchInterval'
 > & { searchQuery: string }) => {
-  const { useCallBlockedUserIds } = useCallStateHooks();
   const blockedUsers = useCallBlockedUserIds();
 
   const blockedUsersSearchFn = useCallback(

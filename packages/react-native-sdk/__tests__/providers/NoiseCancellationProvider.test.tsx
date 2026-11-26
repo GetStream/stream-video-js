@@ -27,10 +27,8 @@ jest.mock('../../src/providers/NoiseCancellation/lib', () => ({
 
 jest.mock('@stream-io/video-react-bindings', () => ({
   useCall: () => undefined,
-  useCallStateHooks: () => ({
-    useCallSettings: () => undefined,
-    useHasPermissions: () => false,
-  }),
+  useCallSettings: () => undefined,
+  useHasPermissions: () => false,
 }));
 
 const Controls = () => {
