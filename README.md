@@ -63,7 +63,6 @@ This repo contains projects and samples developed by the team and Stream communi
 - `packages/react-bindings`: a set of React utilities and hooks that make it easy to work with the call state exposed by the `client` in React and React Native Apps.
 - `packages/react-sdk`: the place where our React SDK lives.
 - `packages/react-native-sdk`: the place where our React Native SDK lives.
-- `packages/styling`: our theme stylesheets live here for web SDKs.
 - `sample-apps/client/*`: contains sample apps built on top of our Low Level Client, with pure browser APIs
 - `sample-apps/react/*`: contains a few sample apps that we have built to showcase our SDK and platform capabilities
 - `sample-apps/react-native/*`: a collection of React Native sample apps for showcasing our SDK and platform

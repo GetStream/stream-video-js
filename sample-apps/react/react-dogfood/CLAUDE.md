@@ -22,8 +22,8 @@ yarn dev                       # Start Next.js dev server on localhost:3000
 yarn dev:https                 # Start with HTTPS for testing media permissions
 
 # Watch mode for SDK development (run in separate terminals)
-yarn start:react:sdk           # Watch @stream-io/video-react-sdk
-yarn start:styling             # Watch @stream-io/video-styling
+yarn start:react:sdk           # Watch @stream-io/video-react-sdk (JS + stylesheets)
+yarn start:styling             # Watch only the React SDK stylesheets
 yarn start:client              # Watch @stream-io/video-client
 ```
 
@@ -85,8 +85,8 @@ Components are organized by feature/responsibility:
 - **Settings/** - Audio/video/effects configuration
 
 Call statistics UI lives in this app, not in the React SDK. Import `CallStats` and `StatCard` from
-the local component directories; continue using `useCallStateHooks().useCallStatsReport()` from the
-SDK for stats data. The app owns the `chart.js` and `react-chartjs-2` dependencies, the styles in
+the local component directories; continue using the `useCallStatsReport()` hook from the SDK for
+stats data. The app owns the `chart.js` and `react-chartjs-2` dependencies, the styles in
 `style/CallStats.scss` and `style/StatCard.scss`, and the `callStats.*` / `statCard.*` translation keys
 (accessed through `useAppI18n`). Keep the chart lazy-loaded so its dependencies load only when needed.
 
@@ -118,7 +118,9 @@ SDK for stats data. The app owns the `chart.js` and `react-chartjs-2` dependenci
 
 - **SDK State**: Use hooks from `@stream-io/video-react-sdk`:
   - `useCall()` - Current call object
-  - `useCallStateHooks()` - Granular call state access
+  - Call state hooks (`useCallCallingState()`, `useCallStatsReport()`, ...) - Granular call state
+    access. Import them directly instead of destructuring `useCallStateHooks()`, so React Compiler
+    can optimize the component
   - `useConnectedUser()` - Current user
   - `useParticipants()` - Participant list
 
@@ -149,7 +151,6 @@ This app depends on workspace packages (using `workspace:^`):
 - `@stream-io/video-react-sdk` - Main React SDK
 - `@stream-io/video-filters-web` - Video effects (blur, filters)
 - `@stream-io/audio-filters-web` - Audio effects (noise cancellation)
-- `@stream-io/video-styling` - SDK styles
 - `@stream-io/node-sdk` - Server-side SDK for token generation
 
 When making changes to SDK packages, run them in watch mode for live updates.

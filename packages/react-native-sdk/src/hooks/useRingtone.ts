@@ -3,8 +3,8 @@ import { AppState, Platform } from 'react-native';
 import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import {
   useCall,
-  useCallStateHooks,
   useCalls,
+  useCallCallingState,
 } from '@stream-io/video-react-bindings';
 import { StreamVideoRN } from '../utils/StreamVideoRN';
 import { getCallingxLibIfAvailable } from '../utils/push/libs/callingx';
@@ -81,7 +81,6 @@ export const useRingtone = ({
   const call = useCall();
   const cid = call?.cid;
   const isCallCreatedByMe = call?.isCreatedByMe;
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const calls = useCalls();
 

@@ -1,5 +1,10 @@
 import { Call, CallingState, videoLoggerSystem } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useMicrophoneState,
+  useParticipants,
+  useCallMembers,
+} from '@stream-io/video-react-bindings';
 import { useEffect, useMemo } from 'react';
 import { filter, take } from 'rxjs/operators';
 import { getCallDisplayName } from '../../utils/internal/callingx/callingx';
@@ -11,9 +16,6 @@ const logger = videoLoggerSystem.getLogger('callingx');
  * This hook is used to inform sync call state with the system call UI (CallKit/LiveCommunicationKit/Telecom) (i.e. start call, end call, mute/unmute call).
  */
 export const useCallingExpWithCallingStateEffect = () => {
-  const { useMicrophoneState, useParticipants, useCallMembers } =
-    useCallStateHooks();
-
   const activeCall = useCall();
   const { optimisticStatus, microphone } = useMicrophoneState();
   const callMembers = useCallMembers();

@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { CallingState, OwnCapability } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallCallingState,
+  useCallEndedAt,
+  useHasPermissions,
+  useLocalParticipant,
+} from '@stream-io/video-react-bindings';
 
 import { ViewerLobby } from './ViewerLobby';
 import { ViewerLayout } from './ViewerLayout';
@@ -13,12 +19,6 @@ export const ViewerStateRouter = () => {
   const call = useCall();
   const { onError } = useEmbeddedConfiguration();
 
-  const {
-    useCallCallingState,
-    useCallEndedAt,
-    useHasPermissions,
-    useLocalParticipant,
-  } = useCallStateHooks();
   const callingState = useCallCallingState();
   const localParticipant = useLocalParticipant();
   const endedAt = useCallEndedAt();

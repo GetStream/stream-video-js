@@ -2,7 +2,8 @@ import {
   Call,
   GetCallRingStateResponse,
   StreamCall,
-  useCallStateHooks,
+  useCallCallingState,
+  useCallSession,
 } from '@stream-io/video-react-sdk';
 import { useState } from 'react';
 
@@ -26,7 +27,6 @@ export const RingStateDebugPane = ({ call }: { call?: Call }) => (
 );
 
 const RingStateDebug = ({ call }: { call: Call }) => {
-  const { useCallCallingState, useCallSession } = useCallStateHooks();
   const callingState = useCallCallingState();
   const session = useCallSession();
   const [polled, setPolled] = useState<GetCallRingStateResponse>();

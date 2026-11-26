@@ -4,7 +4,7 @@ import {
   type Call,
   CallingState,
   useCall,
-  useCallStateHooks,
+  useCallCallingState,
 } from '@stream-io/video-react-native-sdk';
 import { useAppI18n } from '../hooks/useAppI18n';
 import { MeetingStackParamList, ScreenTypes } from '../../types';
@@ -75,7 +75,6 @@ const MeetingUIFlow = ({ callId, navigation, route }: Props) => {
   const appStoreSetState = useAppGlobalStoreSetState();
   const { t } = useAppI18n();
 
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const call = useCall();

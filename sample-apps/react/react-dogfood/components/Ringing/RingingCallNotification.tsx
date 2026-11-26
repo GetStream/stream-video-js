@@ -5,8 +5,9 @@ import {
   StreamCall,
   useCall,
   useCalls,
-  useCallStateHooks,
   useConnectedUser,
+  useCallMembers,
+  useCallSession,
 } from '@stream-io/video-react-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
@@ -32,7 +33,6 @@ function RingingCallUI() {
   const { t } = useAppI18n();
   const router = useRouter();
   const call = useCall();
-  const { useCallMembers, useCallSession } = useCallStateHooks();
   const session = useCallSession();
   const connectedUser = useConnectedUser();
   const otherMembers = useCallMembers().filter(

@@ -2,8 +2,9 @@ import './BackstageHeader.scss';
 import {
   DeviceSettings,
   useCall,
-  useCallStateHooks,
   useConnectedUser,
+  useIsCallHLSBroadcastingInProgress,
+  useCallCustomData,
 } from '@stream-io/video-react-sdk';
 import {
   DurationBadge,
@@ -15,8 +16,6 @@ import {
 export const BackstageHeader = () => {
   const call = useCall();
   const currentUser = useConnectedUser();
-  const { useIsCallHLSBroadcastingInProgress, useCallCustomData } =
-    useCallStateHooks();
   const customData = useCallCustomData();
   const isBroadcasting = useIsCallHLSBroadcastingInProgress();
   return (

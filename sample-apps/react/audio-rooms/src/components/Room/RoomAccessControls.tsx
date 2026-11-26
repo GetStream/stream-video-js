@@ -3,7 +3,9 @@ import {
   OwnCapability,
   Restricted,
   useCall,
-  useCallStateHooks,
+  useCallEndedAt,
+  useCallCallingState,
+  useIsCallLive,
 } from '@stream-io/video-react-sdk';
 import { useNavigate } from 'react-router';
 import { useJoinedCall } from '../../contexts';
@@ -12,8 +14,6 @@ import { PropsWithChildren } from 'react';
 export const RoomAccessControls = () => {
   const { setJoinedCall, joinedCall } = useJoinedCall();
   const call = useCall();
-  const { useCallEndedAt, useCallCallingState, useIsCallLive } =
-    useCallStateHooks();
   const endedAt = useCallEndedAt();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();

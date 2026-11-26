@@ -1,0 +1,21 @@
+@use '../../../styling/utils';
+
+.str-video__loading-indicator__icon.spinner {
+  @include utils.apply-mask-image(
+    var(--str-video__icon--loading),
+    var(--str-video__text-tertiary),
+    var(--str-video__icon-size-sm)
+  );
+  animation: rotation 1s linear infinite;
+  width: var(--str-video__icon-size-sm);
+  height: var(--str-video__icon-size-sm);
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

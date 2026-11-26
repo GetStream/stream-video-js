@@ -5,7 +5,12 @@ import {
   hasAudio,
   Icon,
   useCall,
-  useCallStateHooks,
+  useLocalParticipant,
+  useIsCallHLSBroadcastingInProgress,
+  useIsCallRawRecordingInProgress,
+  useIsCallIndividualRecordingInProgress,
+  useIsCallRecordingInProgress,
+  useIsCallLive,
 } from '@stream-io/video-react-sdk';
 import { decodeBase64 } from '../lib/base64';
 import { useRouter } from 'next/router';
@@ -87,7 +92,6 @@ const getPublisherPc = (
 
 export const DevMenu = () => {
   const call = useCall();
-  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const router = useRouter();
   const withParams = (url: string) => {
@@ -283,7 +287,6 @@ export const DevMenu = () => {
 
 const StartStopBroadcasting = () => {
   const call = useCall();
-  const { useIsCallHLSBroadcastingInProgress } = useCallStateHooks();
   const isBroadcasting = useIsCallHLSBroadcastingInProgress();
   return (
     <button
@@ -317,7 +320,6 @@ const StartStopBroadcasting = () => {
 
 const StartStopRawRecording = () => {
   const call = useCall();
-  const { useIsCallRawRecordingInProgress } = useCallStateHooks();
   const isRawRecording = useIsCallRawRecordingInProgress();
   return (
     <button
@@ -356,7 +358,6 @@ const StartStopRawRecording = () => {
 
 const StartStopIndividualRecording = () => {
   const call = useCall();
-  const { useIsCallIndividualRecordingInProgress } = useCallStateHooks();
   const isIndividualRecording = useIsCallIndividualRecordingInProgress();
   return (
     <button
@@ -397,7 +398,6 @@ const StartStopIndividualRecording = () => {
 
 const StartStopCompositeRecording = () => {
   const call = useCall();
-  const { useIsCallRecordingInProgress } = useCallStateHooks();
   const isRecording = useIsCallRecordingInProgress();
   return (
     <button
@@ -438,7 +438,6 @@ const StartStopCompositeRecording = () => {
 
 const GoOrStopLive = () => {
   const call = useCall();
-  const { useIsCallLive } = useCallStateHooks();
   const isLive = useIsCallLive();
   return (
     <button

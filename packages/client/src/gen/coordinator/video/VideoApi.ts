@@ -60,6 +60,8 @@ import type {
   ResolveSipInboundResponse,
   RingCallRequest,
   RingCallResponse,
+  SendCallDataRequest,
+  SendCallDataResponse,
   SendCallEventRequest,
   SendCallEventResponse,
   SendVideoReactionRequest,
@@ -194,6 +196,19 @@ export class VideoApi {
     return this.apiClient.sendRequest<BlockUserResponse>(
       'POST',
       '/api/v2/video/call/{type}/{id}/block',
+      pathParams,
+      undefined,
+      request,
+    );
+  }
+
+  sendCallData(
+    pathParams: { type: string; id: string },
+    request: SendCallDataRequest,
+  ): Promise<StreamResponse<SendCallDataResponse>> {
+    return this.apiClient.sendRequest<SendCallDataResponse>(
+      'POST',
+      '/api/v2/video/call/{type}/{id}/data',
       pathParams,
       undefined,
       request,

@@ -4,8 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   CallingState,
   useCall,
-  useCallStateHooks,
   useIsInPiPMode,
+  useCallCallingState,
 } from '@stream-io/video-react-native-sdk';
 
 /**
@@ -16,7 +16,6 @@ import {
 export const CallId = () => {
   const call = useCall();
   const isInPiPMode = useIsInPiPMode();
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const { top } = useSafeAreaInsets();
 

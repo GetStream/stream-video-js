@@ -13,7 +13,7 @@ import {
   StreamVideoParticipant,
   VideoTrackType,
 } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useIncomingVideoSettings } from '@stream-io/video-react-bindings';
 
 import { Audio } from '../Audio';
 import { Video, VideoProps } from '../Video';
@@ -115,7 +115,6 @@ export const ParticipantView = memo(
         trackType,
       });
 
-      const { useIncomingVideoSettings } = useCallStateHooks();
       const { isParticipantVideoEnabled } = useIncomingVideoSettings();
 
       const participantViewContextValue = useMemo(

@@ -3,7 +3,7 @@ import {
   PaginatedGridLayout,
   StreamCall,
   StreamVideo,
-  useCallStateHooks,
+  useIsCallLive,
 } from '@stream-io/video-react-sdk';
 import { ViewerHeader } from './ui/ViewerHeader';
 import { ViewerControls } from './ui/ViewerControls';
@@ -12,7 +12,6 @@ import { useSetCall } from '../hooks/useSetCall';
 import { Lobby } from './ui/Lobby';
 
 export const WebRTCLivestream = () => {
-  const { useIsCallLive } = useCallStateHooks();
   const isLive = useIsCallLive();
   const client = useInitVideoClient({
     isAnon: true,

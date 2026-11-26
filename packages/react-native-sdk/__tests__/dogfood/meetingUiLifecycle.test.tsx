@@ -34,10 +34,8 @@ jest.mock('@stream-io/video-react-native-sdk', () => {
     CallingState: { LEFT: 'left', JOINED: 'joined', IDLE: 'idle' },
     useCall: () => mockCall,
     useI18n: () => ({ t: (key: string) => key }),
-    useCallStateHooks: () => ({
-      useRemoteParticipants: () => [],
-      useCallCallingState: () => mockCall?.state?.callingState,
-    }),
+    useRemoteParticipants: () => [],
+    useCallCallingState: () => mockCall?.state?.callingState,
   };
 });
 

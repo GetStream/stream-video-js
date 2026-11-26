@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCameraState } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 import {
   Button,
@@ -10,7 +10,6 @@ import {
 
 export const BlurToggleButton = () => {
   const { t } = useI18n();
-  const { useCameraState } = useCallStateHooks();
   const { isMute } = useCameraState();
 
   const {

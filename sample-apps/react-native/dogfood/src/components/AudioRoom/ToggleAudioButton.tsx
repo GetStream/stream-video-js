@@ -2,8 +2,9 @@ import {
   hasAudio,
   OwnCapability,
   useCall,
-  useCallStateHooks,
   useConnectedUser,
+  useLocalParticipant,
+  useHasPermissions,
 } from '@stream-io/video-react-native-sdk';
 import React, { useEffect, useState } from 'react';
 import { Button } from 'react-native';
@@ -12,7 +13,6 @@ export default function ToggleAudioButton() {
   const call = useCall();
   const connectedUser = useConnectedUser();
 
-  const { useLocalParticipant, useHasPermissions } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const isMuted = localParticipant && !hasAudio(localParticipant);
   const hasPermission = useHasPermissions(OwnCapability.SEND_AUDIO);

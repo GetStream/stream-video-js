@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { ActivityIndicator } from 'react-native';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useIsCallLive,
+  useIsCallHLSBroadcastingInProgress,
+} from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 import { useTheme } from '../../../contexts';
 import { StartStreamIcon } from '../../../icons';
@@ -31,8 +35,6 @@ export const HostStartStreamButton = ({
   hls,
 }: HostStartStreamButtonProps) => {
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
-  const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
-    useCallStateHooks();
   const isCallLive = useIsCallLive();
   const isBroadcasting = useIsCallHLSBroadcastingInProgress();
   const liveOrBroadcasting = isCallLive || isBroadcasting;

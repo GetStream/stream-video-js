@@ -1,7 +1,11 @@
 import React from 'react';
 import { type ColorValue } from 'react-native';
 import { OwnCapability } from '@stream-io/video-client';
-import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  Restricted,
+  useCameraState,
+  useCallSettings,
+} from '@stream-io/video-react-bindings';
 import { CameraSwitch, ControlButtonIcon } from '../../../../icons';
 import { CallControlsButton } from './CallControlsButton';
 
@@ -27,7 +31,6 @@ export type ToggleCameraFaceButtonProps = {
 export const ToggleCameraFaceButton = ({
   onPressHandler,
 }: ToggleCameraFaceButtonProps) => {
-  const { useCameraState, useCallSettings } = useCallStateHooks();
   const { camera, optimisticIsMute } = useCameraState();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;

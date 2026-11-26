@@ -1,7 +1,8 @@
 import React from 'react';
 import {
-  useCallStateHooks,
   useConnectedUser,
+  useCameraState,
+  useMicrophoneState,
 } from '@stream-io/video-react-bindings';
 import { StatusLabel } from '../../utility/StatusLabel';
 import { useI18n } from '../../../i18n';
@@ -26,7 +27,6 @@ export const PreviewStatusLabel = ({
 }: PreviewStatusLabelProps) => {
   const { t } = useI18n();
   const connectedUser = useConnectedUser();
-  const { useCameraState, useMicrophoneState } = useCallStateHooks();
   const { optimisticIsMute: isVideoMuted } = useCameraState();
   const { optimisticIsMute: isAudioMuted } = useMicrophoneState();
 

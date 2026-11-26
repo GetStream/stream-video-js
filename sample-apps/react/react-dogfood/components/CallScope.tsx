@@ -4,7 +4,7 @@ import {
   Call,
   NoiseCancellationProvider,
   StreamCall,
-  useCallStateHooks,
+  useCallCustomData,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { ComponentProps, useEffect, useRef, useState } from 'react';
@@ -19,7 +19,6 @@ import { getNoiseCancellationOptions } from '../helpers/noiseCancellation';
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 const HeadComponent = ({ callId }: { callId: string }) => {
-  const { useCallCustomData } = useCallStateHooks();
   const customData = useCallCustomData();
 
   return (

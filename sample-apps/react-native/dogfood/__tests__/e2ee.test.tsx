@@ -23,9 +23,7 @@ jest.mock(
     CallingState: { LEFT: 'left' },
     useCall: () => mockCall,
     useI18n: () => ({ t: (key: string) => key }),
-    useCallStateHooks: () => ({
-      useCallCallingState: () => mockCall.state.callingState,
-    }),
+    useCallCallingState: () => mockCall.state.callingState,
   }),
   { virtual: true },
 );

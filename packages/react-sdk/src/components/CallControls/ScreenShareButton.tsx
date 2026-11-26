@@ -1,8 +1,10 @@
 import { OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
-  useCallStateHooks,
   UseInputMediaDeviceOptions,
+  useHasOngoingScreenShare,
+  useScreenShareState,
+  useCallSettings,
 } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../i18n';
 import { CompositeButton } from '../Button/';
@@ -25,8 +27,6 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const { t } = useI18n();
   const { caption, optimisticUpdates } = props;
 
-  const { useHasOngoingScreenShare, useScreenShareState, useCallSettings } =
-    useCallStateHooks();
   const isSomeoneScreenSharing = useHasOngoingScreenShare();
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission('screenshare');

@@ -1,0 +1,28 @@
+@use '../../../styling/utils';
+
+.str-video__participant-listing-item {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--str-video__spacing-sm);
+  padding-block: var(--str-video__spacing-xs);
+  width: 100%;
+  align-items: center;
+
+  .str-video__participant-listing-item__display-name {
+    flex: 1;
+    min-inline-size: 0;
+    @include utils.ellipsis-text();
+  }
+
+  .str-video__participant-listing-item__media-indicator-group {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: var(--str-video__spacing-xs);
+
+    .str-video__participant-listing-item__icon {
+      inline-size: var(--str-video__icon-size-sm);
+      block-size: var(--str-video__icon-size-sm);
+    }
+  }
+}
