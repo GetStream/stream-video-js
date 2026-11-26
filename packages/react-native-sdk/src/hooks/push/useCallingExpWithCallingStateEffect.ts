@@ -22,7 +22,6 @@ export const useCallingExpWithCallingStateEffect = () => {
   const participants = useParticipants();
 
   const activeCallCid = activeCall?.cid;
-  const createdByUserId = activeCall?.state.createdBy?.id;
   const callCustomDisplayName = activeCall?.state.custom?.display_name;
   const currentUserId = activeCall?.currentUserId;
   const isIncoming =
@@ -122,7 +121,9 @@ export const useCallingExpWithCallingStateEffect = () => {
     try {
       callingx.updateDisplay(
         activeCallCid,
-        createdByUserId ?? callDisplayName,
+        // same handle as when the call was reported (see getCallingxCallArgs): iOS Recents
+        // keeps the last handle and gives it back on a call-back
+        activeCallCid,
         callDisplayName,
         isIncoming,
       );
@@ -132,7 +133,7 @@ export const useCallingExpWithCallingStateEffect = () => {
         error,
       );
     }
-  }, [activeCallCid, createdByUserId, callDisplayName, isIncoming]);
+  }, [activeCallCid, callDisplayName, isIncoming]);
 
   // Sync microphone mute state from app → system call UI
   useEffect(() => {

@@ -36,8 +36,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // read UIApplication.shared.delegate.window.
     appDelegate.window = window
 
-    // Cold-start universal links (Handoff / https links).
+    // Cold-start universal links (Handoff / https links) and CallKit Recents call-backs.
     for userActivity in connectionOptions.userActivities {
+      if StreamVideoReactNative.handle(userActivity) { continue }
       RCTLinkingManager.application(UIApplication.shared, continue: userActivity) { _ in }
     }
   }
@@ -49,8 +50,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
   }
 
-  // Universal links while the app is running
+  // Universal links and CallKit Recents call-backs while the app is running
   func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+    if StreamVideoReactNative.handle(userActivity) { return }
     RCTLinkingManager.application(UIApplication.shared, continue: userActivity) { _ in }
   }
 }

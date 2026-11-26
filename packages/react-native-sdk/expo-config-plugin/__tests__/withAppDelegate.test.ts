@@ -111,6 +111,10 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     expect(updatedConfig.modResults.contents).toMatch(
       /StreamVideoReactNative\.voipRegistration\(\)/,
     );
+    // CallKit Recents call-backs are forwarded from the continue-user-activity method.
+    expect(updatedConfig.modResults.contents).toMatch(
+      /continue userActivity: NSUserActivity,[\s\S]*?_ = StreamVideoReactNative\.handle\(userActivity\)/,
+    );
     expect(updatedConfig.modResults.contents).not.toMatch(/^import PushKit/m);
     expect(updatedConfig.modResults.contents).not.toContain(
       'PKPushRegistryDelegate',
@@ -137,6 +141,31 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       modifiedConfigSwift!.modResults.contents ===
         updatedConfig.modResults.contents,
     ).toBeTruthy();
+  });
+
+  it('swift - adds the continue user activity method when the template has none', () => {
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        language: 'swift',
+        contents: getFixture('AppDelegateSceneLifecycle.swift'),
+      },
+      modRequest: {
+        projectRoot: '.',
+      },
+    };
+
+    const updated = (
+      withAppDelegate(config, { ringing: true }) as CustomExpoConfig
+    ).modResults.contents;
+
+    // added inside AppDelegate, after didFinishLaunchingWithOptions
+    expect(updated).toMatch(
+      /didFinishLaunchingWithOptions: launchOptions\)\n {2}\}\n\n {2}public override func application\(\n {4}_ application: UIApplication,\n {4}continue userActivity: NSUserActivity,[\s\S]*?_ = StreamVideoReactNative\.handle\(userActivity\)\n {4}return super\.application\(application, continue: userActivity, restorationHandler: restorationHandler\)\n {2}\}\n\}\n\nclass ReactNativeDelegate/,
+    );
+    expect(updated).not.toContain('extension AppDelegate');
+    expect(updated.match(/continue userActivity/g)).toHaveLength(1);
   });
 
   it('should throw a descriptive error for an Objective-C AppDelegate', () => {
