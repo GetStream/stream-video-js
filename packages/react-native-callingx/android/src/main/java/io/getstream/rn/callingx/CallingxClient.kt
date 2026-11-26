@@ -11,7 +11,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /** Owns shared native call resources until explicitly destroyed. */
-internal class CallingxClient private constructor(context: Context) {
+internal class CallingxClient private constructor(val context: Context) {
     companion object {
         @Volatile private var instance: CallingxClient? = null
         private val terminationMutex = Mutex()
@@ -43,9 +43,8 @@ internal class CallingxClient private constructor(context: Context) {
         }
     }
 
-    private val applicationContext = context.applicationContext
-    val notificationManager = CallNotificationManager(applicationContext)
-    val callRepository = CallRepositoryFactory.getOrCreate(applicationContext)
+    val notificationManager = CallNotificationManager(context)
+    val callRepository = CallRepositoryFactory.getOrCreate(context)
     val serviceState = CallServiceState()
     val callEndCoordinator = CallEndCoordinator(applicationContext)
 

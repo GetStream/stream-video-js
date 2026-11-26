@@ -302,6 +302,8 @@ class CallService : Service() {
         client.detachService(this)
         demoteForeground()
         headlessJSManager.release()
+        notificationManager.cancelAllNotifications()
+        notificationManager.stopRingtone()
 
         scope.cancel()
         destroyed.complete(Unit)
