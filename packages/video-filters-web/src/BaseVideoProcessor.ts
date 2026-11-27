@@ -93,6 +93,21 @@ export abstract class BaseVideoProcessor {
     this.abortController.abort();
     this.generator.stop();
     this.onStop();
+    this.releaseContext();
+  }
+
+  /**
+   * Releases the WebGL context of the canvas. The browser keeps it until the
+   * canvas is garbage collected otherwise, and drops its oldest contexts
+   * when too many are alive, such as the one the page renders with.
+   */
+  private releaseContext(): void {
+    // Unset when stopped before it started.
+    if (!this.canvas) return;
+    this.canvas
+      .getContext('webgl2')
+      ?.getExtension('WEBGL_lose_context')
+      ?.loseContext();
   }
 
   protected updateStats(delay: number): void {
