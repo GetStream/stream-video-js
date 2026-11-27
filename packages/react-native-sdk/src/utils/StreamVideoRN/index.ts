@@ -59,7 +59,6 @@ const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
         title: 'Call in progress',
         body: 'Tap to return to the call',
       },
-      taskToRun: () => new Promise(() => {}),
     },
   },
 };
@@ -75,6 +74,14 @@ export class StreamVideoRN {
   static updateConfig(
     updateConfig: DeepPartial<Omit<StreamVideoConfig, 'push'>>,
   ) {
+    if (updateConfig.foregroundService?.android?.taskToRun) {
+      videoLoggerSystem
+        .getLogger('StreamVideoRN.updateConfig')
+        .warn(
+          '`foregroundService.android.taskToRun` is deprecated and no longer invoked. ' +
+            'Subscribe to the call state from your app code instead.',
+        );
+    }
     this.config = deepMerge(this.config, updateConfig);
   }
 

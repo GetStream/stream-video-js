@@ -9,7 +9,7 @@ import { registerGlobals } from '@stream-io/react-native-webrtc';
 import Logger from '@stream-io/react-native-webrtc/src/Logger';
 import { Platform } from 'react-native';
 import { registerSDKGlobals } from './utils/internal/registerSDKGlobals';
-import './utils/keepCallAliveHeadlessTask';
+import { keepAliveController } from './utils/keepCallAliveController';
 
 // We're registering globals, because our video JS client is serving SDKs that use browser based webRTC functions.
 // This will result in creation of 2 global objects: `window` and `navigator`
@@ -18,6 +18,8 @@ if (Platform.OS !== 'web') {
   registerGlobals();
   registerSDKGlobals();
 }
+
+keepAliveController.registerHeadlessTask();
 
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);

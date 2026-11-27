@@ -72,7 +72,7 @@ await CallingxModule.displayIncomingCall(
 
 ## Main APIs
 
-`displayIncomingCall` and `startCall` return a Promise. The other call controls run synchronously and throw synchronously if the native call fails; `getAvailableAudioEndpoints` and `releaseBackgroundTask` never throw.
+`displayIncomingCall` and `startCall` return a Promise. The other call controls run synchronously and throw synchronously if the native call fails; `getAvailableAudioEndpoints` never throws.
 
 - `setup(options)` - required before any call action.
 - `displayIncomingCall(callId, phoneNumber, callerName, hasVideo)` (async).
@@ -87,14 +87,13 @@ await CallingxModule.displayIncomingCall(
 - `requestAudioEndpointChange(callId, endpointId)` (Android, sync).
 - `addEventListener(eventName, callback)`.
 - `getInitialEvents()` and `getInitialVoipEvents()`.
-- `acquireBackgroundTask(owner)` / `releaseBackgroundTask(owner)` (Android, sync) — ref-counted keep-alive task that keeps the JS runtime/timers alive in the background; the underlying HeadlessJS task starts on the first acquire and stops once all owners release.
 - `stopService()` (Android, sync) — asks the call service to stop. A request, not a command: the service hosts every call, so it stays alive while any call is registered or is being registered. Use `endCallWithReason(callId, reason)` to tear down an individual call.
 
 `phoneNumber` is the call handle. On iOS with CallKit the handle value is `phoneNumber` and the caller name is `localizedCallerName`. With LiveCommunicationKit the `Handle` value is the caller name when one is given (the system UI shows the value and ignores `displayName`, Apple FB24933340), otherwise `phoneNumber`. Android always wraps it as the opaque Telecom address `<packageName>:<phoneNumber>` (a scheme-less address reboots ColorOS devices); it is never displayed or dialed. The Stream Video SDK passes the call cid on both platforms (used for call-back, see below).
 
 ## Migrating from Promise-based call controls
 
-These methods used to return Promises and are now synchronous: `setCurrentCallActive`, `answerIncomingCall`, `updateDisplay`, `endCallWithReason`, `setMutedCall`, `setOnHoldCall`, `getAvailableAudioEndpoints`, `requestAudioEndpointChange`, `acquireBackgroundTask`, `releaseBackgroundTask` and `stopService`.
+These methods used to return Promises and are now synchronous: `setCurrentCallActive`, `answerIncomingCall`, `updateDisplay`, `endCallWithReason`, `setMutedCall`, `setOnHoldCall`, `getAvailableAudioEndpoints`, `requestAudioEndpointChange` and `stopService`.
 
 They return (or throw) synchronously. Replace `await`, `.then()` and `.catch()` with direct calls and `try`/`catch`:
 
