@@ -43,6 +43,7 @@ internal class CallingxClient private constructor(val context: Context) {
         }
     }
 
+    private val applicationContext = context.applicationContext
     val notificationManager = CallNotificationManager(context)
     val callRepository = CallRepositoryFactory.getOrCreate(context)
     val serviceState = CallServiceState()

@@ -3,6 +3,7 @@ import { join } from 'path';
 import { promisify } from 'util';
 
 import { Robot } from './Robot';
+import { assertAndroidCallNotificationRemoved } from '../support/AndroidLockScreen';
 
 /**
  * Drives stream-video-buddy, which joins the call from a (headless) browser through
@@ -20,6 +21,7 @@ export class ParticipantRobot extends Robot {
   private readonly logs: boolean;
   private screenSharingDuration?: number;
   private callRecordingDuration?: number;
+  private lastRungCallId?: string;
   private userCount = 1;
   private callDuration = 30;
 
@@ -108,9 +110,14 @@ export class ParticipantRobot extends Robot {
       const script = join(__dirname, '../support/ringAndDisappear.mjs');
       const args = byPush ? [userId, '--wait-for-push-device'] : [userId];
       try {
-        await promisify(execFile)(process.execPath, [script, ...args], {
-          timeout: 90_000,
-        });
+        const { stdout } = await promisify(execFile)(
+          process.execPath,
+          [script, ...args],
+          {
+            timeout: 90_000,
+          },
+        );
+        this.lastRungCallId = stdout.trim();
       } catch (error) {
         const { stderr } = error as { stderr?: string };
         throw new Error(
@@ -119,6 +126,27 @@ export class ParticipantRobot extends Robot {
       }
     });
   }
+
+  assertLastRingingCallRejected = (userId: string): this => {
+    return this.perform(async () => {
+      if (!this.lastRungCallId)
+        throw new Error('Ring a call before asserting its rejection');
+      const script = join(__dirname, '../support/ringAndDisappear.mjs');
+      await promisify(execFile)(
+        process.execPath,
+        [script, userId, `--assert-rejected=${this.lastRungCallId}`],
+        { timeout: 45_000 },
+      );
+    });
+  };
+
+  assertLastRingingCallNotificationRemoved = (): this => {
+    return this.perform(async () => {
+      if (!this.lastRungCallId)
+        throw new Error('Ring a call before checking its notification');
+      await assertAndroidCallNotificationRemoved(this.lastRungCallId);
+    });
+  };
 
   private debugParams = () => ({
     [DebugActions.SHOW_WINDOW]: !this.headless,
