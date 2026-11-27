@@ -260,7 +260,7 @@ lane :install_video_buddy do
   # The browser build has to match the playwright version stream-video-buddy runs.
   sh("npx -y playwright@#{playwright_version} install chromium")
 
-  stream_video_buddy_version = '1.8.0'
+  stream_video_buddy_version = '1.8.1'
   sh("npm list -g stream-video-buddy | grep -q '#{stream_video_buddy_version}' || " \
      "npm install -g 'https://github.com/GetStream/stream-video-buddy##{stream_video_buddy_version}'")
 end
