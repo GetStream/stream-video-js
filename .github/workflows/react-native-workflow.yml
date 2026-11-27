@@ -74,7 +74,7 @@ jobs:
     timeout-minutes: 60
     needs: code_review
     if: ${{ github.event_name != 'workflow_dispatch' || !github.event.inputs.platform || github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'both' }}
-    runs-on: xcode-27
+    runs-on: { group: scaleway-macos }
     steps:
       - uses: actions/checkout@v7
 
@@ -118,7 +118,7 @@ jobs:
     needs: build_ios
     timeout-minutes: 60
     if: ${{ (github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (!github.event.inputs.platform || github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'both')) }}
-    runs-on: macos-15
+    runs-on: { group: scaleway-macos }
     steps:
       # The dogfood app builds the SDKs from workspace source, so a store build
       # ships whatever major the branch carries. Store releases must stay on v1,
