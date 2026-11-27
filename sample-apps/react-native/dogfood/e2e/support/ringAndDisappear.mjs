@@ -28,7 +28,10 @@ const apiHost = 'video.stream-io-api.com';
 
 const randomId = () => Math.random().toString(36).slice(2, 10);
 const callerId = `e2e_caller_${randomId()}`;
-const callId = `e2e-${randomId()}`;
+const assertionCallId = args
+  .find((arg) => arg.startsWith('--assert-rejected='))
+  ?.split('=')[1];
+const callId = assertionCallId ?? `e2e-${randomId()}`;
 
 const createToken = async (userId) => {
   const url = new URL(tokenUrl);
@@ -118,6 +121,30 @@ const waitForCalleePushDevice = async () => {
     await sleep(2_000);
   }
 };
+
+// Query as the callee: a notification disappearing alone does not prove server rejection.
+if (assertionCallId) {
+  const { apiKey, token } = await createToken(calleeId);
+  const deadline = Date.now() + 20_000;
+  for (;;) {
+    const response = await fetch(
+      `https://${apiHost}/video/call/${callType}/${callId}?api_key=${apiKey}`,
+      {
+        headers: { Authorization: token, 'stream-auth-type': 'jwt' },
+        signal: AbortSignal.timeout(10_000),
+      },
+    );
+    if (!response.ok)
+      throw new Error(`Could not query rejected call: ${response.status}`);
+    const { call } = await response.json();
+    if (call?.session?.rejected_by?.[calleeId]) process.exit(0);
+    if (Date.now() > deadline)
+      throw new Error(
+        'Lock-screen decline did not reject the call on the server',
+      );
+    await sleep(500);
+  }
+}
 
 const credentials = await createToken(callerId);
 await createUser(credentials);

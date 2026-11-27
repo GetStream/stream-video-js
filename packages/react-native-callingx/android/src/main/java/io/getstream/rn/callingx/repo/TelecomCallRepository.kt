@@ -176,15 +176,13 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                     isVideo,
                     preferredStartingEndpoint,
             )
-            actionSource = Channel<CallAction>()
+            actionSource = Channel<CallAction>(Channel.BUFFERED)
             flags = CallActionFlags()
             actionFlags[callId] = flags
 
             // Add call to the map early so that duplicate registrations are rejected
-            // and listeners are notified immediately. Actions sent via trySend() may arrive
-            // before the call scope starts collecting; in that case, they are dropped
-            // rather than buffered, which is acceptable because we explicitly handle
-            // pending actions in CallService/CallRegistrationStore.
+            // and listeners are notified immediately. Buffer actions until the call scope
+            // can consume them, including actions drained from CallRegistrationStore.
             val registeredCall = Call.Registered(
                     id = callId,
                     isPending = true,

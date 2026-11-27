@@ -421,13 +421,24 @@ class CallNotificationManager(
         if (call.isIncoming() && !call.isActive && optimisticState == OptimisticState.NONE) {
             return NotificationCompat.CallStyle.forIncomingCall(
                     caller,
-                    NotificationIntentFactory.getPendingNotificationIntent(
-                        context,
-                        CallingxModuleImpl.CALL_END_ACTION,
-                        call.id,
-                        CallRepository.EventSource.SYS.name.lowercase(),
-                        false
-                    ),
+                    // Decline is a broadcast, not an activity: declining opens nothing, so it
+                    // doesn't need Android 12's activity-from-notification rule. An activity
+                    // would run in a task of its own, and when it finished, Android would remove
+                    // that task and stop CallService (stopWithTask) before the call was hung up.
+                    NotificationIntentFactory.getPendingBroadcastIntent(
+                            context,
+                            CallingxModuleImpl.CALL_END_ACTION,
+                            call.id
+                    ) {
+                        putExtra(
+                                CallingxModuleImpl.EXTRA_DISCONNECT_CAUSE,
+                                getDisconnectCauseString(DisconnectCause(DisconnectCause.REJECTED))
+                        )
+                        putExtra(
+                                CallingxModuleImpl.EXTRA_SOURCE,
+                                CallRepository.EventSource.SYS.name.lowercase()
+                        )
+                    },
                     NotificationIntentFactory.getPendingNotificationIntent(
                             context,
                             CallingxModuleImpl.CALL_ANSWERED_ACTION,

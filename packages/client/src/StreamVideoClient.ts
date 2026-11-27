@@ -426,6 +426,15 @@ export class StreamVideoClient {
       this.eventHandlersToUnregister = [];
       this.effectsRegistered = false;
       this.state.setConnectedUser(undefined);
+
+      try {
+        await globalThis.streamRNVideoSDK?.callingX?.terminateClient?.();
+      } catch (error) {
+        this.logger.error(
+          'Failed to terminate the native calling client',
+          error,
+        );
+      }
     });
   };
 

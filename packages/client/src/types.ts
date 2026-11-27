@@ -457,6 +457,8 @@ type StreamRNVideoSDKEndCallReason =
   | 'unknown';
 
 type StreamRNVideoSDKCallingX = {
+  /** Releases native calling resources after this client's calls have left. */
+  terminateClient?: () => Promise<void>;
   /**
    * @param isCancelled - polled around the bridge's waits: registration is
    *   skipped, or undone, when it returns true. Supplied by the join attempt

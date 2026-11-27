@@ -48,6 +48,7 @@ class CallingxModule implements ICallingxModule {
   // re-acquire within the window cancels it and reuses the running task. This keeps the task
   // continuous across the ringing-push -> keep-alive hand-off.
   private _keepAliveStopTimer: ReturnType<typeof setTimeout> | undefined;
+  private terminationPromise: Promise<void> | undefined;
 
   private titleTransformer: (memberName: string, incoming: boolean) => string =
     (memberName: string) => memberName;
@@ -240,6 +241,9 @@ class CallingxModule implements ICallingxModule {
     callerName: string,
     hasVideo: boolean,
   ): Promise<void> => {
+    if (this.terminationPromise) {
+      return Promise.reject(new Error('Callingx client is terminating'));
+    }
     const displayOptions: InfoDisplayOptions = {
       displayTitle: this.titleTransformer(callerName, true),
     };
@@ -263,6 +267,9 @@ class CallingxModule implements ICallingxModule {
     callerName: string,
     hasVideo: boolean,
   ): Promise<void> => {
+    if (this.terminationPromise) {
+      return Promise.reject(new Error('Callingx client is terminating'));
+    }
     const displayOptions: InfoDisplayOptions = {
       displayTitle: this.titleTransformer(callerName, false),
     };
@@ -336,7 +343,7 @@ class CallingxModule implements ICallingxModule {
     });
 
   acquireBackgroundTask = (owner: string): void => {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'android' || this.terminationPromise) {
       return;
     }
 
@@ -411,6 +418,26 @@ class CallingxModule implements ICallingxModule {
 
   stopService = (): void => {
     NativeCallingModule.stopService();
+  };
+
+  terminateClient = (): Promise<void> => {
+    if (Platform.OS !== 'android') return Promise.resolve();
+    if (this.terminationPromise) return this.terminationPromise;
+
+    if (this._keepAliveStopTimer) {
+      clearTimeout(this._keepAliveStopTimer);
+      this._keepAliveStopTimer = undefined;
+    }
+    this._keepAliveOwners.clear();
+    this._keepAliveResolve?.();
+    this._keepAliveResolve = undefined;
+
+    this.terminationPromise = Promise.resolve()
+      .then(() => NativeCallingModule.terminateClient())
+      .finally(() => {
+        this.terminationPromise = undefined;
+      });
+    return this.terminationPromise;
   };
 
   addEventListener = <T extends EventName | VoipEventName>(

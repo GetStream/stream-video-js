@@ -72,6 +72,35 @@ narrow it further.
 Release configurations bundle the JS, so no Metro is needed. Debug configurations need `yarn start`. Android builds need
 JDK 17 or 21 (`JAVA_HOME`). The app logs at `debug` level; read it with `adb logcat -s ReactNativeJS:V`.
 
+### Lock-screen incoming calls and decline
+
+`RingingTests.testSubsequentIncomingCallsCanBeDeclinedWhileLocked` receives three distinct calls,
+declines each through Android's native notification action, and checks that the backend records the
+callee in `session.rejected_by`. It checks that keyguard stays visible, with no unlock or app relaunch
+between calls. This catches stale call state that prevents a subsequent incoming call from appearing.
+
+This test is opt-in because CI's AOSP emulator has no FCM. Use a dedicated Android device with Google
+Play services, working FCM, English system language, notification permission, and **swipe** screen lock
+(not None or PIN/password). Allow full-screen call notifications if Android requests that permission.
+The test wakes the display, opens the notification shade, and expands a collapsed incoming-call card
+before tapping its System UI Decline/Reject action, using UIAutomator through Detox's existing instrumentation
+because Espresso cannot tap the system notification. It dismisses swipe keyguard during cleanup.
+It does not cover process death, secure PIN/password keyguard, answering, or OEM-specific notification layouts.
+
+1. Set `RING_BY_PUSH = true` in `src/utils/ignoreRingEventsFromWebSocket.ts` and rebuild. This makes
+   the test user ignore WebSocket ring events, so receiving a call really requires push delivery.
+2. Set the attached device serial and enable the test:
+
+```bash
+# From sample-apps/react-native/dogfood; omit skip_build so the push setting is bundled.
+RUN_LOCK_SCREEN_E2E=1 DETOX_ADB_NAME=YOUR_DEVICE_SERIAL \
+  bundle exec fastlane test_e2e device:att test:e2e/tests/RingingTests.e2e.ts
+```
+
+Restore `RING_BY_PUSH = false` afterwards for ordinary CI tests. Without `RUN_LOCK_SCREEN_E2E=1`,
+the lock-screen test is reported as skipped. It is also always skipped when `CI` is set, even if
+the opt-in flag is present. Missing push configuration fails explicitly when enabled locally.
+
 ## CI
 
 `.github/workflows/react-native-e2e-test.yml` runs on pull requests and on demand (`workflow_dispatch`). A cheap

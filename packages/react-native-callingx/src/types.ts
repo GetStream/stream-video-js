@@ -232,6 +232,8 @@ export interface ICallingxModule {
    * notifications.
    */
   stopService(): void;
+  /** Android only. Await before connecting another user; preserves app-level setup. */
+  terminateClient(): Promise<void>;
 
   /**
    * Single entry point for adding event listeners.

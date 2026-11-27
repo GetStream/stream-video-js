@@ -3,12 +3,12 @@ package io.getstream.rn.callingx.notifications
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.telecom.DisconnectCause
 import io.getstream.rn.callingx.CallingxModuleImpl
 import io.getstream.rn.callingx.debugLog
-import io.getstream.rn.callingx.getDisconnectCauseString
 
-// For Android 12+
+// Android 13+: handles Accept on the incoming call notification. Accept has to bring the app to the
+// front, and since Android 12 a notification action may only do that by opening an activity
+// directly. Decline opens nothing, so it is a broadcast instead (see CallNotificationManager).
 class NotificationReceiverActivity : Activity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,7 +29,6 @@ class NotificationReceiverActivity : Activity() {
 
     when (action) {
       CallingxModuleImpl.CALL_ANSWERED_ACTION -> onCallAnswered(nonNullIntent)
-      CallingxModuleImpl.CALL_END_ACTION -> onCallEnded(nonNullIntent)
     }
   }
 
@@ -56,21 +55,4 @@ class NotificationReceiverActivity : Activity() {
       .also { sendBroadcast(it) }
   }
 
-  private fun onCallEnded(intent: Intent) {
-    debugLog("[Callingx] NotificationReceiverActivity", "[receiver] rejected call action")
-    val callId = intent.getStringExtra(CallingxModuleImpl.EXTRA_CALL_ID)
-    val source = intent.getStringExtra(CallingxModuleImpl.EXTRA_SOURCE)
-
-    Intent(CallingxModuleImpl.CALL_END_ACTION)
-      .apply {
-        setPackage(packageName)
-        putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
-        putExtra(CallingxModuleImpl.EXTRA_SOURCE, source)
-        putExtra(
-          CallingxModuleImpl.EXTRA_DISCONNECT_CAUSE,
-          getDisconnectCauseString(DisconnectCause(DisconnectCause.REJECTED))
-        )
-      }
-      .also { sendBroadcast(it) }
-  }
 }
