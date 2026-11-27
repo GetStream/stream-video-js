@@ -7721,6 +7721,7 @@ __metadata:
     "@types/react-dom": "npm:~19.3.0"
     clsx: "npm:^2.1.1"
     concurrently: "npm:^9.2.4"
+    hls.js: "npm:^1.6.16"
     react: "npm:19.3.0"
     react-dom: "npm:19.3.0"
     rimraf: "npm:^6.1.3"
