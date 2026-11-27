@@ -17,6 +17,7 @@ import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.google.firebase.messaging.FirebaseMessaging
 import io.getstream.rn.callingx.model.CallAction
+import io.getstream.rn.callingx.notifications.CallNotificationManager
 import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.getstream.rn.callingx.notifications.NotificationsConfig
 import io.getstream.rn.callingx.utils.LifecycleListener
@@ -233,6 +234,17 @@ class CallingxModuleImpl(
 
     fun answerIncomingCall(callId: String) {
         debugLog(TAG, "[module] answerIncomingCall: Answering call: $callId")
+        CallingxClient.getOrNull()?.let { client ->
+            val notifications = client.notificationManager
+            notifications.setOptimisticState(
+                    callId,
+                    CallNotificationManager.OptimisticState.ACCEPTING
+            )
+            notifications.stopRingtone()
+            client.callRepository.getCall(callId)?.let { call ->
+                notifications.updateCallNotification(callId, call)
+            }
+        }
         executeServiceAction(callId, CallAction.Answer)
     }
 
