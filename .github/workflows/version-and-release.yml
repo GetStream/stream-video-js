@@ -29,7 +29,9 @@ concurrency:
 jobs:
   version-and-release:
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    # Calls the GitHub API, and the org IP allow list only admits static-IP runners.
+    runs-on:
+      group: github-public-amd64
 
     steps:
       - uses: actions/checkout@v7

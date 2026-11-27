@@ -163,7 +163,7 @@ describe('state updates in reponse to coordinator API', () => {
   it('should get or create and update state', async () => {
     await call.create({
       data: {
-        members: [{ user_id: 'sara', role: 'admin' }],
+        members: [{ user_id: 'sara' }],
         settings_override: {
           limits: {
             max_participants: 5,
@@ -175,13 +175,12 @@ describe('state updates in reponse to coordinator API', () => {
     expect(call.state.settings?.limits.max_participants).toBe(5);
     expect(call.state.members.length).toBe(1);
     expect(call.state.members[0].user_id).toBe('sara');
-    expect(call.state.members[0].role).toBe('admin');
   });
 
   it('should get or create and update state', async () => {
     await call.getOrCreate({
       data: {
-        members: [{ user_id: 'sara', role: 'admin' }],
+        members: [{ user_id: 'sara' }],
         settings_override: {
           limits: {
             max_participants: 5,
@@ -193,7 +192,6 @@ describe('state updates in reponse to coordinator API', () => {
     expect(call.state.settings?.limits.max_participants).toBe(5);
     expect(call.state.members.length).toBe(1);
     expect(call.state.members[0].user_id).toBe('sara');
-    expect(call.state.members[0].role).toBe('admin');
   });
 
   it('should get and update state', async () => {
@@ -220,8 +218,11 @@ describe('state updates in reponse to coordinator API', () => {
   });
 
   it('should query call members', async () => {
-    await call.getOrCreate({
+    // a client without the `update-call-member-role` permission can't assign
+    // member roles, the backend ignores them. Assign the role server-side.
+    await serverClient.video.call(call.type, call.id).create({
       data: {
+        created_by_id: userId,
         members: [
           { user_id: 'sara', role: 'admin' },
           { user_id: 'jane' },
@@ -229,6 +230,10 @@ describe('state updates in reponse to coordinator API', () => {
         ],
       },
     });
+    await call.get();
+
+    const sara = call.state.members.find((m) => m.user_id === 'sara');
+    expect(sara?.role).toBe('admin');
 
     // default sorting
     let result = await call.queryMembers();
