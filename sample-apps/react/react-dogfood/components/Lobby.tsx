@@ -6,9 +6,14 @@ import {
   ToggleAudioPreviewButton,
   ToggleVideoPreviewButton,
   useCall,
-  useCallStateHooks,
   useConnectedUser,
   VideoPreview,
+  useMicrophoneState,
+  useCameraState,
+  useCallSession,
+  useCallMembers,
+  useCallCustomData,
+  useCallSettings,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 import Link from 'next/link';
@@ -55,14 +60,6 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const call = useCall();
   const { data: session, status } = useSession();
-  const {
-    useMicrophoneState,
-    useCameraState,
-    useCallSession,
-    useCallMembers,
-    useCallCustomData,
-    useCallSettings,
-  } = useCallStateHooks();
   const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
   const { hasBrowserPermission: hasCameraPermission, isMute: isCameraMute } =
     useCameraState();

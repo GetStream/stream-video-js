@@ -1,10 +1,12 @@
-import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
+import {
+  useCallCustomData,
+  useCallSession,
+} from '@stream-io/video-react-native-sdk';
 import { useAppI18n } from '../../hooks/useAppI18n';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export const DescriptionPanel = ({ onClose }: { onClose: () => void }) => {
-  const { useCallCustomData, useCallSession } = useCallStateHooks();
   const custom = useCallCustomData();
   const session = useCallSession();
   const participantsCount = session?.participants?.length ?? 0;

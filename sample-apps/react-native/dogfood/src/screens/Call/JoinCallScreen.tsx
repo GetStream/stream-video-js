@@ -12,6 +12,8 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import {
   MemberRequest,
@@ -42,6 +44,7 @@ const JoinCallScreen = () => {
   const videoClient = useStreamVideoClient();
   const { t } = useAppI18n();
   const orientation = useOrientation();
+  const headerHeight = useHeaderHeight();
   const styles = useStyles();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -121,101 +124,104 @@ const JoinCallScreen = () => {
     (ringingUserIdsText === '' && ringingUsers.length === 0) || isLoading;
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={'padding'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
-    >
-      <ScrollView
-        contentContainerStyle={[styles.scrollContent, landscapeStyles]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={true}
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={headerHeight}
       >
-        <View style={styles.topContainer}>
-          <Text style={styles.headerText}>
-            {t('joinCall.selectParticipants.title', 'Select Participants')}
-          </Text>
-          {KnownUsers.filter((user) => user.id !== userId).map((user) => {
-            return (
-              <Pressable
-                style={styles.participant}
-                key={user.id}
-                onPress={() => ringingUsersSetHandler(user.id)}
-              >
-                <Image source={{ uri: user.image }} style={styles.avatar} />
-                <Text
-                  style={[
-                    styles.text,
-                    isRingingUserSelected(user.id)
-                      ? styles.selectedParticipant
-                      : null,
-                  ]}
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={[styles.scrollContent, landscapeStyles]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={true}
+        >
+          <View style={styles.topContainer}>
+            <Text style={styles.headerText}>
+              {t('joinCall.selectParticipants.title', 'Select Participants')}
+            </Text>
+            {KnownUsers.filter((user) => user.id !== userId).map((user) => {
+              return (
+                <Pressable
+                  style={styles.participant}
+                  key={user.id}
+                  onPress={() => ringingUsersSetHandler(user.id)}
                 >
-                  {user.name + ' - id: ' + user.id}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-        <View style={styles.bottomContainer}>
-          <View style={styles.orContainer}>
-            <View style={styles.orSeparator} />
-            <Text style={styles.orText}>{t('joinCall.or.label', 'OR')}</Text>
-            <View style={styles.orSeparator} />
+                  <Image source={{ uri: user.image }} style={styles.avatar} />
+                  <Text
+                    style={[
+                      styles.text,
+                      isRingingUserSelected(user.id)
+                        ? styles.selectedParticipant
+                        : null,
+                    ]}
+                  >
+                    {user.name + ' - id: ' + user.id}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
+          <View style={styles.bottomContainer}>
+            <View style={styles.orContainer}>
+              <View style={styles.orSeparator} />
+              <Text style={styles.orText}>{t('joinCall.or.label', 'OR')}</Text>
+              <View style={styles.orSeparator} />
+            </View>
 
-          <View style={styles.inputContainer}>
-            <TextInput
-              autoCapitalize="none"
-              autoCorrect={false}
-              placeholder={t(
-                'joinCall.userIds.label',
-                'Enter comma separated User ids',
-              )}
-              value={ringingUserIdsText}
-              onChangeText={(value) => {
-                setRingingUserIdsText(value);
-              }}
-              style={styles.textInputStyle}
-            />
-            <Button
-              text={
-                isLoading
-                  ? t('joinCall.calling.label', 'Calling...')
-                  : t('joinCall.startNewCall.label', 'Start a New Call')
-              }
-              disabled={startCallDisabled}
-              onPress={startCallHandler}
-              size="large"
-            />
-          </View>
-          {allowEncryption && <E2EEKeyInput />}
-          {(ENABLE_RING_PINNING || devMode) && (
-            <View style={styles.pinningContainer}>
-              <Text style={styles.pinningText}>
-                Pin the ring to one call instance (leave blank for a new one)
-              </Text>
+            <View style={styles.inputContainer}>
               <TextInput
                 autoCapitalize="none"
                 autoCorrect={false}
-                placeholder={'Call type (default)'}
-                value={callType}
-                onChangeText={setCallType}
+                placeholder={t(
+                  'joinCall.userIds.label',
+                  'Enter comma separated User ids',
+                )}
+                value={ringingUserIdsText}
+                onChangeText={(value) => {
+                  setRingingUserIdsText(value);
+                }}
                 style={styles.textInputStyle}
               />
-              <TextInput
-                autoCapitalize="none"
-                autoCorrect={false}
-                placeholder={'Call ID (random when blank)'}
-                value={pinnedCallId}
-                onChangeText={setPinnedCallId}
-                style={styles.textInputStyle}
+              <Button
+                text={
+                  isLoading
+                    ? t('joinCall.calling.label', 'Calling...')
+                    : t('joinCall.startNewCall.label', 'Start a New Call')
+                }
+                disabled={startCallDisabled}
+                onPress={startCallHandler}
+                size="large"
               />
             </View>
-          )}
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            {allowEncryption && <E2EEKeyInput />}
+            {(ENABLE_RING_PINNING || devMode) && (
+              <View style={styles.pinningContainer}>
+                <Text style={styles.pinningText}>
+                  Pin the ring to one call instance (leave blank for a new one)
+                </Text>
+                <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  placeholder={'Call type (default)'}
+                  value={callType}
+                  onChangeText={setCallType}
+                  style={styles.textInputStyle}
+                />
+                <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  placeholder={'Call ID (random when blank)'}
+                  value={pinnedCallId}
+                  onChangeText={setPinnedCallId}
+                  style={styles.textInputStyle}
+                />
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 

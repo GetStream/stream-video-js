@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { convertTimestampToDate } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCallSession } from '@stream-io/video-react-bindings';
 import { DurationIndicator } from './DurationIndicator';
 
 const formatTime = (seconds: number) => {
@@ -22,7 +22,6 @@ const formatTime = (seconds: number) => {
  */
 export const CallDurationIndicator = () => {
   const [elapsed, setElapsed] = useState<string>('00:00');
-  const { useCallSession } = useCallStateHooks();
 
   const session = useCallSession();
   const startedAt = session?.started_at;

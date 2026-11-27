@@ -1,4 +1,8 @@
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallCallingState,
+  useMicrophoneState,
+} from '@stream-io/video-react-bindings';
 import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import {
   AudioDeviceModule,
@@ -79,7 +83,6 @@ const isMicPermissionGranted = async () => {
  */
 export const AudioSessionDiagnosticsTracer = () => {
   const call = useCall();
-  const { useCallCallingState, useMicrophoneState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const { status: micStatus } = useMicrophoneState({
     optimisticUpdates: false,

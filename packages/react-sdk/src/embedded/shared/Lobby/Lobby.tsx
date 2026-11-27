@@ -1,5 +1,8 @@
 import clsx from 'clsx';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCameraState,
+  useCallSettings,
+} from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 import { Button, Icon } from '../../../components';
 import { DeviceControls } from './DeviceControls';
@@ -15,7 +18,6 @@ interface LobbyProps {
  */
 export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
   const { t } = useI18n();
-  const { useCameraState, useCallSettings } = useCallStateHooks();
 
   const { isMute } = useCameraState();
   const settings = useCallSettings();

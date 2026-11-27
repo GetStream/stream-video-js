@@ -6,7 +6,10 @@ import {
   DropDownSelectOption,
   OwnCapability,
   useCall,
-  useCallStateHooks,
+  useCallSettings,
+  useIsCallTranscribingInProgress,
+  useHasPermissions,
+  useIsCallCaptioningInProgress,
 } from '@stream-io/video-react-sdk';
 import { StatCard, StatCardGrid, StatCardTag } from '../StatCard';
 import { TranscriptionDownloadList } from '../TranscriptionDownloadList';
@@ -72,7 +75,6 @@ const languageLabel = (t: LooseTranslateFunction, code: string) =>
 export const TranscriptionSettings = () => {
   const call = useCall();
   const { t } = useAppI18n();
-  const { useCallSettings } = useCallStateHooks();
   const settings = useCallSettings();
   const currentLanguage = settings?.transcription.language;
   const selectedLanguage =
@@ -136,11 +138,6 @@ export const TranscriptionSettings = () => {
 const TranscriptionControls = () => {
   const call = useCall();
   const { t } = useAppI18n();
-  const {
-    useCallSettings,
-    useIsCallTranscribingInProgress,
-    useHasPermissions,
-  } = useCallStateHooks();
   const settings = useCallSettings();
   const isTranscribing = useIsCallTranscribingInProgress();
   const canStart = useHasPermissions(OwnCapability.START_TRANSCRIPTION_CALL);
@@ -234,8 +231,6 @@ const TranscriptionDownloads = () => {
 
 const ClosedCaptionStatus = () => {
   const { t } = useAppI18n();
-  const { useCallSettings, useIsCallCaptioningInProgress } =
-    useCallStateHooks();
   const settings = useCallSettings();
   const inProgress = useIsCallCaptioningInProgress();
 
@@ -250,8 +245,6 @@ const ClosedCaptionStatus = () => {
 
 const TranscriptionStatus = () => {
   const { t } = useAppI18n();
-  const { useCallSettings, useIsCallTranscribingInProgress } =
-    useCallStateHooks();
   const settings = useCallSettings();
   const inProgress = useIsCallTranscribingInProgress();
 

@@ -1,0 +1,22 @@
+@use '../../../styling/utils';
+
+.str-video {
+  --str-video__tooltip-bg: var(--str-video__background-core-inverse);
+
+  --str-video__tooltip--background-color: var(--str-video__tooltip-bg);
+  --str-video__tooltip--color: var(--str-video__text-on-accent);
+  --str-video__tooltip--box-shadow: var(--str-video__box-shadow-3);
+  --str-video__tooltip--border-radius: var(--str-video__radius-md);
+  --str-video__tooltip--border-block-start: none;
+  --str-video__tooltip--border-block-end: none;
+  --str-video__tooltip--border-inline-start: none;
+  --str-video__tooltip--border-inline-end: none;
+
+  &.str-video__theme-dark {
+    --str-video__tooltip-bg: var(--str-video__background-core-elevation-2);
+  }
+}
+
+.str-video__tooltip {
+  @include utils.component-layer-overrides('tooltip');
+}

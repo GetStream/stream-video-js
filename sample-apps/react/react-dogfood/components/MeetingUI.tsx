@@ -4,8 +4,8 @@ import {
   LoadingIndicator,
   noopComparator,
   useCall,
-  useCallStateHooks,
   useModeration,
+  useCallCallingState,
 } from '@stream-io/video-react-sdk';
 import Gleap from 'gleap';
 import { useRouter } from 'next/router';
@@ -65,7 +65,6 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const router = useRouter();
   const call = useCall();
   const { t } = useAppI18n();
-  const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
   useModeration();
   const isRestricted = useIsRestrictedEnvironment();
@@ -328,7 +327,6 @@ const ErrorPage = ({
 };
 
 export const LoadingScreen = () => {
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const message =
     callingState === CallingState.RECONNECTING

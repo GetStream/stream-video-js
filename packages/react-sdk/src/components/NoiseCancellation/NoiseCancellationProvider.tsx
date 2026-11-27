@@ -12,7 +12,12 @@ import {
   type NoiseCancellationStatus,
   OwnCapability,
 } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallSettings,
+  useHasPermissions,
+  useMicrophoneState,
+} from '@stream-io/video-react-bindings';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 
 /**
@@ -95,8 +100,6 @@ export const NoiseCancellationProvider = (
 ) => {
   const { children, noiseCancellation } = props;
   const call = useCall();
-  const { useCallSettings, useHasPermissions, useMicrophoneState } =
-    useCallStateHooks();
   const settings = useCallSettings();
   const { noiseCancellationStatus } = useMicrophoneState();
   const noiseCancellationSettings = settings?.audio.noise_cancellation;

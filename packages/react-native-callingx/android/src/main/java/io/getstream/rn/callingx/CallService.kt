@@ -1,13 +1,11 @@
 package io.getstream.rn.callingx
 
-import android.Manifest
 import android.app.Notification
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
@@ -25,6 +23,7 @@ import io.getstream.rn.callingx.notifications.NotificationsConfig
 import io.getstream.rn.callingx.repo.CallRepository
 import io.getstream.rn.callingx.repo.CallRepositoryFactory
 import io.getstream.rn.callingx.utils.AudioEndpointUtils
+import io.getstream.rn.callingx.utils.ForegroundServiceTypes
 import io.getstream.rn.callingx.utils.LifecycleListener
 import io.getstream.rn.callingx.utils.SettingsStore
 import java.util.concurrent.ConcurrentHashMap
@@ -60,8 +59,8 @@ class CallService : Service(), CallRepository.Listener {
         internal const val EXTRA_URI = "extra_uri"
         /**
          * A null-scheme address reboots ColorOS devices (Telecom NPE), so the handle is wrapped
-         * with the package name like the Android SDK ("$packageName:$callId"). The address is
-         * never displayed or dialed.
+         * with the package name ("$packageName:$callCid"). The address is never dialed; it is
+         * only stored in the system call log when calls history is enabled.
          */
         internal fun toTelecomAddress(context: Context, handle: String): Uri =
                 Uri.fromParts(context.packageName, handle, null)
@@ -136,7 +135,7 @@ class CallService : Service(), CallRepository.Listener {
                     Intent(context, CallService::class.java).apply {
                         action = ACTION_INCOMING_CALL
                         putExtra(EXTRA_CALL_ID, callCid)
-                        putExtra(EXTRA_URI, toTelecomAddress(context, callCid.substringAfter(':')))
+                        putExtra(EXTRA_URI, toTelecomAddress(context, callCid))
                         putExtra(EXTRA_NAME, callDisplayName)
                         putExtra(EXTRA_IS_VIDEO, isVideo)
                     }
@@ -173,6 +172,10 @@ class CallService : Service(), CallRepository.Listener {
 
     @Volatile
     private var isInForeground = false
+
+    private val foregroundServiceTypes by lazy {
+        ForegroundServiceTypes(this, CallService::class.java)
+    }
 
     /**
      * Start id of the most recently *delivered* start command. ActivityManager bumps its own last
@@ -664,6 +667,7 @@ class CallService : Service(), CallRepository.Listener {
     /**
      * Promotes the service using [callId]'s notification, and records the resulting FGS anchor.
      *
+     * @param allowBaseFallback passed to [ForegroundServiceTypes.typesToTry].
      * @return true when the platform accepted the promotion. On failure the recorded anchor is left
      *   untouched: a previously valid anchor must not be discarded because a new promote failed.
      */
@@ -671,15 +675,27 @@ class CallService : Service(), CallRepository.Listener {
             callId: String,
             notificationId: Int,
             notification: Notification,
+            allowBaseFallback: Boolean = true,
     ): Boolean {
-        return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(notificationId, notification, computeForegroundServiceType())
-            } else {
-                startForeground(notificationId, notification)
-            }
+        val started =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    foregroundServiceTypes.typesToTry(allowBaseFallback).any { type ->
+                        debugLog(TAG, "[service] startForegroundSafely: Requesting type: ${ForegroundServiceTypes.describe(type)}")
+                        tryStartForeground { startForeground(notificationId, notification, type) }
+                    }
+                } else {
+                    tryStartForeground { startForeground(notificationId, notification) }
+                }
+        if (started) {
             isInForeground = true
             notificationManager.commitAnchor(callId, notification)
+        }
+        return started
+    }
+
+    private inline fun tryStartForeground(start: () -> Unit): Boolean {
+        return try {
+            start()
             true
         } catch (e: Exception) {
             Log.e(
@@ -692,43 +708,8 @@ class CallService : Service(), CallRepository.Listener {
     }
 
     /**
-     * Always includes `phoneCall`. Adds the while-in-use types `microphone`/`camera` only when:
-     *  - the platform is Android 11+ (R) — these FGS types were added in API 30; passing them to
-     *    startForeground() on older versions is unsupported, so we keep `phoneCall`-only there, AND
-     *  - the corresponding runtime permission is granted, AND
-     *  - the app currently holds while-in-use access (foreground).
-     */
-    private fun computeForegroundServiceType(): Int {
-        var type = ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
-
-        // microphone/camera FGS types require API 30 (R) — keep phoneCall-only below it.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            return type
-        }
-        if (!LifecycleListener.isInForeground) {
-            return type
-        }
-
-        val hasMicPermission =
-                ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
-                        PackageManager.PERMISSION_GRANTED
-        if (hasMicPermission) {
-            type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
-        }
-
-        val hasCameraPermission =
-                ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
-                        PackageManager.PERMISSION_GRANTED
-        if (hasCameraPermission) {
-            type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
-        }
-
-        return type
-    }
-
-    /**
      * Re-issues [startForeground] for the current foreground call with the full
-     * [computeForegroundServiceType] bitmask. Called when the app enters the foreground (via
+     * [ForegroundServiceTypes.compute] bitmask. Called when the app enters the foreground (via
      * [LifecycleListener]) so the microphone/camera types — which cannot be acquired from the
      * background — get activated during the foreground window and then persist when backgrounded.
      *
@@ -739,7 +720,7 @@ class CallService : Service(), CallRepository.Listener {
         if (!isInForeground) return // service is not foreground yet — nothing to upgrade
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
 
-        if (computeForegroundServiceType() == ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL) {
+        if (foregroundServiceTypes.compute() == ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL) {
             // Nothing extra to promote (no while-in-use permissions, or not foreground).
             return
         }
@@ -760,6 +741,7 @@ class CallService : Service(), CallRepository.Listener {
                 foregroundCallId,
                 notificationManager.getOrCreateNotificationId(foregroundCallId),
                 notification,
+                allowBaseFallback = false,
         )
     }
 

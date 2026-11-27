@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { UserInfo } from './UserInfo';
 import { Z_INDEX } from '../../../constants';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCameraState } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts/ThemeContext';
 import {
   CallControls as DefaultCallControls,
@@ -87,7 +87,6 @@ const Background = () => {
   const {
     theme: { outgoingCall },
   } = useTheme();
-  const { useCameraState } = useCallStateHooks();
   const { optimisticIsMute } = useCameraState();
 
   if (optimisticIsMute) {

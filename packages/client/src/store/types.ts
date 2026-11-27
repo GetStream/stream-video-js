@@ -36,6 +36,7 @@ type UnhandledEventType = EventTypes<
   | 'user.updated'
   | 'custom'
   | 'app.updated'
+  | 'call.data'
   | 'call.dtmf'
   | 'ingress.error'
   | 'ingress.started'

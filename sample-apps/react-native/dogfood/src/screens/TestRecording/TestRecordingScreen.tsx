@@ -3,10 +3,10 @@ import {
   CallingState,
   StreamCall,
   useCall,
-  useCallStateHooks,
   useLoopbackRecording,
   useStreamVideoClient,
   useTheme,
+  useCallCallingState,
 } from '@stream-io/video-react-native-sdk';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -74,7 +74,6 @@ const TestRecordingContent = ({
 }) => {
   const styles = useStyles();
   const call = useCall();
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const {

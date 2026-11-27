@@ -1,5 +1,8 @@
 import { CallingState, OwnCapability } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCallCallingState,
+  useHasPermissions,
+} from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
 import { Alert } from 'react-native';
 import { usePrevious } from '../utils/hooks/usePrevious';
@@ -28,7 +31,6 @@ export const usePermissionNotification = (
   props: PermissionNotificationProps,
 ) => {
   const { permission, messageApproved, messageRevoked } = props;
-  const { useCallCallingState, useHasPermissions } = useCallStateHooks();
   const hasPermission = useHasPermissions(permission);
   const previousHasPermission = usePrevious(hasPermission);
   const callingState = useCallCallingState();

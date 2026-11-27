@@ -1,5 +1,8 @@
 import React from 'react';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCameraState,
+  useCallSettings,
+} from '@stream-io/video-react-bindings';
 import { Video, VideoSlash, ControlButtonIcon } from '../../../../icons';
 import { CallControlsButton } from './CallControlsButton';
 import { ButtonTestIds } from '../../../../constants/TestIds';
@@ -21,7 +24,6 @@ export type ToggleVideoPreviewButtonProps = {
 export const ToggleVideoPreviewButton = ({
   onPressHandler,
 }: ToggleVideoPreviewButtonProps) => {
-  const { useCameraState, useCallSettings } = useCallStateHooks();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
   const { optimisticIsMute, camera } = useCameraState();

@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useLocalParticipant,
+  useDominantSpeaker,
+} from '@stream-io/video-react-bindings';
 import { debounceTime } from 'rxjs';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
@@ -53,7 +57,6 @@ export const CallParticipantsGrid = ({
     theme: { callParticipantsGrid },
   } = useTheme();
   const call = useCall();
-  const { useLocalParticipant, useDominantSpeaker } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const dominantSpeaker = useDominantSpeaker();
   const [remoteParticipants, setRemoteParticipants] = useState<

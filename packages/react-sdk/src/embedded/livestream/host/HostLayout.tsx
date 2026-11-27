@@ -1,7 +1,11 @@
 import { useCallback, useState } from 'react';
 import clsx from 'clsx';
 import { OwnCapability } from '@stream-io/video-client';
-import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  Restricted,
+  useParticipantCount,
+  useCallSession,
+} from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 import { useLayout } from '../../hooks';
 import {
@@ -42,7 +46,6 @@ export const HostLayout = ({
   onStopLive,
 }: HostViewProps) => {
   const { t } = useI18n();
-  const { useParticipantCount, useCallSession } = useCallStateHooks();
   const participantCount = useParticipantCount();
   const session = useCallSession();
   const { elapsed } = useCallDuration(session?.live_started_at);

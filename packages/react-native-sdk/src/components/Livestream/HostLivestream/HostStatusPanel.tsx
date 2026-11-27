@@ -1,5 +1,8 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useIsCallLive,
+  useIsCallHLSBroadcastingInProgress,
+} from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { FollowerCount } from '../LivestreamTopView/FollowerCount';
 import { LiveIndicator } from '../LivestreamTopView/LiveIndicator';
@@ -13,8 +16,6 @@ export const HostStatusPanel = ({
   humanizeFollowerCount = true,
   style,
 }: HostStatusPanelProps) => {
-  const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
-    useCallStateHooks();
   const isCallLive = useIsCallLive();
   const isBroadcasting = useIsCallHLSBroadcastingInProgress();
   const liveOrBroadcasting = isCallLive || isBroadcasting;

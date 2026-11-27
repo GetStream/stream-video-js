@@ -1,5 +1,5 @@
 import { PropsWithChildren, useCallback, useState } from 'react';
-import { Notification, useCallStateHooks } from '@stream-io/video-react-sdk';
+import { Notification, useCallStatsReport } from '@stream-io/video-react-sdk';
 import { useAppI18n } from '../hooks/useAppI18n';
 
 /**
@@ -29,7 +29,6 @@ export const LowCameraFrameRateNotification = ({
   className,
 }: PropsWithChildren<LowCameraFrameRateNotificationProps>) => {
   const { t } = useAppI18n();
-  const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
   const [lastReport, setLastReport] = useState(callStatsReport);
   const [lowReports, setLowReports] = useState(0);

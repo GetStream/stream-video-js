@@ -24,6 +24,14 @@ const withStreamVideoReactNativeSDKiOSInfoPList: ConfigPlugin<ConfigProps> = (
       config.modResults['BGTaskSchedulerPermittedIdentifiers'] = [
         '$(PRODUCT_BUNDLE_IDENTIFIER)',
       ];
+      // CallKit Recents call-backs arrive as an INStartCallIntent user activity.
+      const activityTypes = Array.isArray(config.modResults.NSUserActivityTypes)
+        ? (config.modResults.NSUserActivityTypes as string[])
+        : [];
+      if (!activityTypes.includes('INStartCallIntent')) {
+        activityTypes.push('INStartCallIntent');
+      }
+      config.modResults.NSUserActivityTypes = activityTypes;
     }
     if (props?.enableNonRingingPushNotifications || props?.ringing) {
       addBackgroundMode('remote-notification');

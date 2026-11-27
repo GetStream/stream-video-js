@@ -1,4 +1,4 @@
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import { useEffect, useRef } from 'react';
 import { StreamVideoRN } from '../utils';
 import {
@@ -111,7 +111,6 @@ export const useAndroidKeepCallAliveEffect = () => {
   const call = useCall();
   keepCallAliveCallRef.current = call;
   const activeCallCid = call?.cid;
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const isCallJoined = callingState === CallingState.JOINED;

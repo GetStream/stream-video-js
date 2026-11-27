@@ -1,6 +1,7 @@
 import {
-  useCallStateHooks,
   useConnectedUser,
+  useCameraState,
+  useMicrophoneState,
 } from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 import { Avatar } from '../../../components';
@@ -9,7 +10,6 @@ export const DisabledVideoPreview = () => {
   const { t } = useI18n();
 
   const user = useConnectedUser();
-  const { useCameraState, useMicrophoneState } = useCallStateHooks();
 
   const { hasBrowserPermission: hasCameraPermission } = useCameraState();
   const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
@@ -32,7 +32,6 @@ export const DisabledVideoPreview = () => {
 
 export const NoCameraPreview = () => {
   const { t } = useI18n();
-  const { useCameraState, useMicrophoneState } = useCallStateHooks();
   const { hasBrowserPermission: hasCameraPermission } = useCameraState();
   const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
 

@@ -1,4 +1,4 @@
-import { useCallStateHooks } from '@stream-io/video-react-sdk';
+import { useHasOngoingScreenShare } from '@stream-io/video-react-sdk';
 
 import { useConfigurationContext } from '../ConfigurationContext';
 import {
@@ -11,7 +11,6 @@ import { useFirstMatchingLayoutOverride } from './CustomActionsContext';
 
 export const UIDispatcher = () => {
   const { layout, screenshare_layout } = useConfigurationContext();
-  const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
 
   const { layoutOverride, layoutOverrideCustomAction } =

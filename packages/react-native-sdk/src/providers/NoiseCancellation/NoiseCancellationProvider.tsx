@@ -12,7 +12,11 @@ import {
   videoLoggerSystem,
 } from '@stream-io/video-client';
 
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallSettings,
+  useHasPermissions,
+} from '@stream-io/video-react-bindings';
 import {
   getNoiseCancellationLibThrowIfNotInstalled,
   NoiseCancellationWrapper,
@@ -69,7 +73,6 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
     deviceSupportsAdvancedAudioProcessing,
     setDeviceSupportsAdvancedAudioProcessing,
   ] = useState<boolean>();
-  const { useCallSettings, useHasPermissions } = useCallStateHooks();
   const settings = useCallSettings();
   const { engine } = getCallExtraOpts(settings).noise_cancellation ?? {};
   const engineMatches = useMemo(() => {

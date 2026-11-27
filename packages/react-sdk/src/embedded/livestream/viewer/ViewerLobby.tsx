@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCallStartsAt,
+  useCallEndedAt,
+  useHasPermissions,
+  useParticipantCount,
+  useIsCallLive,
+  useCallSettings,
+} from '@stream-io/video-react-bindings';
 import { useI18n } from '../../../i18n';
 import { Button, Icon } from '../../../components';
 import { ViewersCount } from '../../shared';
@@ -21,14 +28,6 @@ export type ViewerLobbyProps = {
 
 export const ViewerLobby = ({ onJoin }: ViewerLobbyProps) => {
   const { t } = useI18n();
-  const {
-    useCallStartsAt,
-    useCallEndedAt,
-    useHasPermissions,
-    useParticipantCount,
-    useIsCallLive,
-    useCallSettings,
-  } = useCallStateHooks();
 
   const startsAt = useCallStartsAt();
   const endedAt = useCallEndedAt();

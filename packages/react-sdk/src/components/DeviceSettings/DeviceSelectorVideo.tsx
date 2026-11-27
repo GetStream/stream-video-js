@@ -1,4 +1,4 @@
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCameraState } from '@stream-io/video-react-bindings';
 
 import { DeviceSelector } from './DeviceSelector';
 import { DeviceVideoPreviewItem } from './DeviceVideoPreviewItem';
@@ -18,7 +18,6 @@ export const DeviceSelectorVideo = ({
   title,
   visualType,
 }: DeviceSelectorVideoProps) => {
-  const { useCameraState } = useCallStateHooks();
   const { camera, devices, selectedDevice } = useCameraState();
 
   return (
