@@ -6,4 +6,6 @@ export * from './StreamVideo';
 export { Video } from './Video';
 export type { BaseVideoProps, VideoProps } from './Video';
 
+export * from './HlsVideo';
+
 export * from './CallLayout';

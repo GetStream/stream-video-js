@@ -7723,6 +7723,7 @@ __metadata:
     "@types/react": "npm:~19.3.0"
     "@types/react-dom": "npm:~19.3.0"
     clsx: "npm:^2.1.1"
+    hls.js: "npm:^1.6.16"
     react: "npm:19.3.0"
     react-dom: "npm:19.3.0"
     rimraf: "npm:^6.1.3"

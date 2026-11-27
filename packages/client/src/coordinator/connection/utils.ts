@@ -58,6 +58,15 @@ function hex(bytes: Uint8Array): string {
 }
 
 // https://tools.ietf.org/html/rfc4122
+/** Whether the value is an absolute HTTPS URL. */
+export const isHttpsUrl = (url: string): boolean => {
+  try {
+    return new URL(url).protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
 export function generateUUIDv4() {
   const bytes = getRandomBytes(16);
   bytes[6] = (bytes[6] & 0x0f) | 0x40; // version

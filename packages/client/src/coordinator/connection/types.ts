@@ -320,6 +320,21 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * Device persistence preference options (web only).
    */
   devicePersistence?: DevicePersistenceOptions;
+
+  /**
+   * Lets the server send viewers of this app to HLS instead of WebRTC when
+   * they join a call. Turn it on only when your UI plays the HLS stream when
+   * `call.state.playbackType.type` is `'hls'`: with `call.registerHlsPlayer()`,
+   * or the React SDK's `<HlsVideo />`. Defaults to `false`: every viewer
+   * joins over WebRTC.
+   *
+   * Web only, ignored in React Native. The browser isn't checked: a viewer
+   * sent to HLS in a browser that can't play it gets an `hlsNotSupported`
+   * playback error.
+   *
+   * @beta
+   */
+  enableHlsPlayback?: boolean;
 };
 
 export type ClientAppIdentifier = {
