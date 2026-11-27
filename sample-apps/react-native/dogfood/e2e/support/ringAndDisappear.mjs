@@ -23,6 +23,8 @@ if (!calleeId) {
 }
 
 // The `demo` environment, the one the dogfood release build and stream-video-buddy use.
+// `E2E_STREAM_ENVIRONMENT` overrides it, for an app on the device that uses another one.
+const environment = process.env.E2E_STREAM_ENVIRONMENT ?? 'demo';
 const tokenUrl = 'https://pronto.getstream.io/api/auth/create-token';
 const apiHost = 'video.stream-io-api.com';
 
@@ -33,7 +35,7 @@ const callId = `e2e-${randomId()}`;
 const createToken = async (userId) => {
   const url = new URL(tokenUrl);
   url.searchParams.set('user_id', userId);
-  url.searchParams.set('environment', 'demo');
+  url.searchParams.set('environment', environment);
   url.searchParams.set('exp', String(10 * 60));
   const response = await fetch(url);
   if (!response.ok) {

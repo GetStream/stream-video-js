@@ -25,6 +25,7 @@
     "react-native.config.js",
     "!ios/build",
     "!android/build",
+    "!android/src/test",
     "!android/gradle",
     "!android/gradlew",
     "!android/gradlew.bat",
@@ -41,7 +42,8 @@
     "typecheck": "tsc",
     "test": "jest --coverage && yarn test:types",
     "test-ci": "yarn test",
-    "test:types": "tsc -p tsconfig.spec.json"
+    "test:types": "tsc -p tsconfig.spec.json",
+    "test:android": "cd ../../sample-apps/react-native/dogfood/android && ./gradlew :stream-io_react-native-callingx:testDebugUnitTest"
   },
   "keywords": [
     "react-native",

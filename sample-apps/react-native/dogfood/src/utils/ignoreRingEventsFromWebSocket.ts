@@ -22,11 +22,17 @@ export const RING_BY_PUSH = false;
 
 export const E2E_RING_FROM_PUSH_USER_PREFIX = 'e2e_ring_from_push_';
 
+/**
+ * Users whose id starts with this always ignore both `call.created` and `call.ring` from the
+ * WebSocket, so a ring can only reach them by push. Used by the push ringing tests
+ * (`e2e/tests/RingPushTests.e2e.ts`, `e2e/push/`), which only run on a device with Google Play
+ * services.
+ */
+export const E2E_RING_BY_PUSH_ONLY_USER_PREFIX = 'e2e_push_only_';
+
 type DispatchEvent = StreamVideoClient['streamClient']['dispatchEvent'];
 
-const ignoredEvents = new Set(
-  RING_BY_PUSH ? ['call.created', 'call.ring'] : ['call.created'],
-);
+const ringEvents = ['call.created', 'call.ring'];
 const wrappedClients = new WeakSet<object>();
 
 /**
@@ -34,7 +40,10 @@ const wrappedClients = new WeakSet<object>();
  * WebSocket message goes through `streamClient.dispatchEvent`, which the connection looks up on
  * each message.
  */
-export const ignoreRingEventsFromWebSocket = (client: StreamVideoClient) => {
+export const ignoreRingEventsFromWebSocket = (
+  client: StreamVideoClient,
+  ignoredEvents: ReadonlySet<string>,
+) => {
   const { streamClient } = client;
   if (wrappedClients.has(streamClient)) {
     return;
@@ -55,7 +64,12 @@ export const ignoreRingEventsFromWebSocketForE2EUser = (
   client: StreamVideoClient,
   userId: string,
 ) => {
-  if (userId.startsWith(E2E_RING_FROM_PUSH_USER_PREFIX)) {
-    ignoreRingEventsFromWebSocket(client);
+  if (userId.startsWith(E2E_RING_BY_PUSH_ONLY_USER_PREFIX)) {
+    ignoreRingEventsFromWebSocket(client, new Set(ringEvents));
+  } else if (userId.startsWith(E2E_RING_FROM_PUSH_USER_PREFIX)) {
+    ignoreRingEventsFromWebSocket(
+      client,
+      new Set(RING_BY_PUSH ? ringEvents : ['call.created']),
+    );
   }
 };
