@@ -13,7 +13,7 @@ const fakeCall = (cid: string, callingState: CallingState) => ({
 describe('disconnectUser leaves calls', () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it('awaits native termination after leaving calls and before closing the connection', async () => {
+  it('closes the connection before native termination and awaits its completion', async () => {
     const client = new StreamVideoClient('abc');
     const order: string[] = [];
     const active = fakeCall('default:active', CallingState.JOINED);
@@ -23,6 +23,7 @@ describe('disconnectUser leaves calls', () => {
     client.state.setCalls([active] as never);
     // @ts-expect-error faking the minimum the guard needs
     client.streamClient.user = { id: 'jane' };
+    client.state.setConnectedUser({ id: 'jane' } as never);
     let finish!: () => void;
     const terminateClient = vi.fn(
       () =>
@@ -38,12 +39,19 @@ describe('disconnectUser leaves calls', () => {
         delete client.streamClient.user;
         order.push('disconnect');
       });
-    const pending = client.disconnectUser();
+    const completed = vi.fn();
+    const pending = client.disconnectUser().then(completed);
     await vi.waitFor(() => expect(terminateClient).toHaveBeenCalledTimes(1));
-    expect(disconnect).not.toHaveBeenCalled();
-    finish();
-    await pending;
-    expect(order).toEqual(['leave', 'terminate', 'disconnect']);
+    try {
+      expect(disconnect).toHaveBeenCalledOnce();
+      expect(order).toEqual(['leave', 'disconnect', 'terminate']);
+      expect(client.state.connectedUser).toBeUndefined();
+      expect(completed).not.toHaveBeenCalled();
+    } finally {
+      finish();
+      await pending;
+    }
+    expect(completed).toHaveBeenCalledOnce();
     await client.disconnectUser();
     expect(terminateClient).toHaveBeenCalledTimes(1);
   });
