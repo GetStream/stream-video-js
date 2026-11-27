@@ -14,6 +14,9 @@ import {
 } from './rxUtils';
 import { duc, shared, subject } from './subjects';
 import { CallingState } from './CallingState';
+import { isHttpsUrl } from '../coordinator/connection/utils';
+import type { HlsPlaybackState } from '../hls/types';
+import type { HlsPlaybackError } from '../hls/HLSPlayer';
 import {
   type CallRecordingType,
   type ClosedCaptionsSettings,
@@ -28,6 +31,7 @@ import { CallStatsReport } from '../stats';
 import {
   BlockedUserEvent,
   CallClosedCaption,
+  CallHLSBroadcastingStartedEvent,
   CallIngressResponse,
   CallMemberAddedEvent,
   CallMemberRemovedEvent,
@@ -73,6 +77,28 @@ const defaultEgress: EgressResponse = {
   rtmps: [],
 };
 
+/**
+ * How the current viewer receives the call's media.
+ *
+ * - `webrtc`: the default. The call is connected to an SFU, and participants
+ *   and their tracks are available as usual.
+ * - `hls`: the server granted HLS playback at join time. The call is not
+ *   connected to an SFU, so there are no participants or tracks. Play
+ *   `playlistUrl` in an HLS player instead.
+ *
+ * The server decides the type when the call is joined; it doesn't switch
+ * between HLS and WebRTC during the call. On HLS, `playlistUrl` changes when
+ * the broadcast restarts.
+ *
+ * @beta
+ */
+export type PlaybackType =
+  | { type: 'webrtc'; playlistUrl?: undefined }
+  | { type: 'hls'; playlistUrl: string };
+
+/** The default playback type: the viewer is connected over WebRTC. */
+const WEBRTC_PLAYBACK: PlaybackType = Object.freeze({ type: 'webrtc' });
+
 type OrphanedTrack = {
   id: string;
   trackLookupPrefix: string;
@@ -113,6 +139,13 @@ export class CallState {
   private membersSubject = subject<MemberResponse[]>([]);
   private ownCapabilitiesSubject = subject<OwnCapability[]>([]);
   private callingStateSubject = subject<CallingState>(CallingState.UNKNOWN);
+  private playbackTypeSubject = subject<PlaybackType>(WEBRTC_PLAYBACK);
+  private hlsPlaybackStateSubject = subject<HlsPlaybackState | undefined>(
+    undefined,
+  );
+  private hlsPlaybackErrorSubject = subject<HlsPlaybackError | undefined>(
+    undefined,
+  );
   private startedAtSubject = subject<Date>();
   private participantCountSubject = subject(0);
   private anonymousParticipantCountSubject = subject(0);
@@ -189,6 +222,31 @@ export class CallState {
 
   /** The calling state. */
   callingState$ = duc(this.callingStateSubject);
+
+  /**
+   * How this viewer receives the call's media: over WebRTC (the default), or
+   * through an HLS playlist that the server granted when the call was joined.
+   *
+   * @beta
+   */
+  playbackType$ = duc(this.playbackTypeSubject);
+
+  /**
+   * What the HLS player is doing, while the call is on HLS playback and a
+   * player plays it. Undefined otherwise, and once playback failed (see
+   * `hlsPlaybackError$`).
+   *
+   * @beta
+   */
+  hlsPlaybackState$ = duc(this.hlsPlaybackStateSubject);
+
+  /**
+   * The error that stopped HLS playback, with its `code`. Cleared when
+   * playback resumes, and undefined while no HLS player plays the call.
+   *
+   * @beta
+   */
+  hlsPlaybackError$ = duc(this.hlsPlaybackErrorSubject);
 
   /**
    * The time the call session actually started.
@@ -346,9 +404,7 @@ export class CallState {
         this.updateFromCallResponse(e.call);
       },
       'call.hls_broadcasting_failed': this.updateFromHLSBroadcastingFailed,
-      'call.hls_broadcasting_started': (e) => {
-        this.updateFromCallResponse(e.call);
-      },
+      'call.hls_broadcasting_started': this.updateFromHLSBroadcastStarted,
       'call.hls_broadcasting_stopped': this.updateFromHLSBroadcastStopped,
       'call.live_started': (e) => this.updateFromCallResponse(e.call),
       'call.member_added': this.updateFromMemberAdded,
@@ -727,6 +783,63 @@ export class CallState {
   get e2eeEnabled() {
     return getCurrentValue(this.e2eeEnabledSubject);
   }
+
+  /**
+   * How this viewer receives the call's media.
+   *
+   * @beta
+   */
+  get playbackType(): PlaybackType {
+    return getCurrentValue(this.playbackTypeSubject);
+  }
+
+  /**
+   * Sets how this viewer receives the call's media.
+   *
+   * @internal
+   * @param playbackType the playback type.
+   */
+  setPlaybackType = (playbackType: PlaybackType) => {
+    return setCurrentValue(this.playbackTypeSubject, playbackType);
+  };
+
+  /**
+   * What the HLS player is doing.
+   *
+   * @beta
+   */
+  get hlsPlaybackState(): HlsPlaybackState | undefined {
+    return getCurrentValue(this.hlsPlaybackStateSubject);
+  }
+
+  /**
+   * Sets what the HLS player is doing.
+   *
+   * @internal
+   * @param state the player's state, or undefined when no player plays.
+   */
+  setHlsPlaybackState = (state: HlsPlaybackState | undefined) => {
+    return setCurrentValue(this.hlsPlaybackStateSubject, state);
+  };
+
+  /**
+   * The error that stopped HLS playback.
+   *
+   * @beta
+   */
+  get hlsPlaybackError(): HlsPlaybackError | undefined {
+    return getCurrentValue(this.hlsPlaybackErrorSubject);
+  }
+
+  /**
+   * Sets the error that stopped HLS playback.
+   *
+   * @internal
+   * @param error the error, or undefined to clear it.
+   */
+  setHlsPlaybackError = (error: HlsPlaybackError | undefined) => {
+    return setCurrentValue(this.hlsPlaybackErrorSubject, error);
+  };
 
   /** Will provide the user who ended this call. */
   get endedBy() {
@@ -1168,6 +1281,22 @@ export class CallState {
       ...members,
       ...event.members,
     ]);
+  };
+
+  private updateFromHLSBroadcastStarted = (
+    event: CallHLSBroadcastingStartedEvent,
+  ) => {
+    this.updateFromCallResponse(event.call);
+    // a restarted broadcast: a viewer on HLS moves to the new URL
+    const { playbackType } = this;
+    const playlistUrl = event.hls_playlist_url;
+    if (
+      playbackType.type === 'hls' &&
+      playlistUrl !== playbackType.playlistUrl &&
+      isHttpsUrl(playlistUrl)
+    ) {
+      this.setPlaybackType({ type: 'hls', playlistUrl });
+    }
   };
 
   private updateFromHLSBroadcastStopped = () => {

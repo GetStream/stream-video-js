@@ -45,6 +45,7 @@ import {
   GetCallSessionParticipantStatsDetailsResponse,
   GetOrCreateCallRequest,
   GoLiveRequest,
+  JoinCallRequest,
   JoinCallResponse,
   BlockUserRequest,
   KickUserRequest,
@@ -111,6 +112,8 @@ import {
   StatsReporter,
   Tracer,
 } from './stats';
+import { HlsPlaybackManager } from './hls/HlsPlaybackManager';
+import type { HlsJsConstructor, HlsPlayback } from './hls';
 import type { ClientEventReporter, JoinReason, JoinSource } from './reporting';
 import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
 import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
@@ -130,7 +133,11 @@ import { PermissionsContext } from './permissions';
 import { RingStatePoller, RingTimeout, resolveOwnRingOutcome } from './ringing';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
-import { retryInterval, sleep } from './coordinator/connection/utils';
+import {
+  generateUUIDv4,
+  retryInterval,
+  sleep,
+} from './coordinator/connection/utils';
 import { SlidingWindowRateLimiter } from './helpers/SlidingWindowRateLimiter';
 import {
   AllCallEvents,
@@ -140,6 +147,7 @@ import {
   StreamCallEvent,
 } from './coordinator/connection/types';
 import { getClientDetails } from './helpers/client-details';
+import type { JoinCallRequestShim } from './gen/shims';
 import {
   CameraManager,
   getRNDefaultAudioDevice,
@@ -281,6 +289,8 @@ export class Call {
   private fastReconnectOffer?: Promise<boolean>;
   private sfuStatsReporter?: SfuStatsReporter;
   private lastStatsOptions?: StatsOptions;
+  /** Plays the call's HLS stream, when the server sent this viewer to HLS. */
+  private readonly hlsPlayback: HlsPlaybackManager;
   private ringTimeout: RingTimeout | undefined;
   private ringStatePoller: RingStatePoller | undefined;
 
@@ -451,6 +461,14 @@ export class Call {
     );
     this.blockedAudioTracker = new BlockedAudioTracker(this.tracer);
     this.leaveCallHooks.add(this.blockedAudioTracker.reset);
+    this.hlsPlayback = new HlsPlaybackManager({
+      state: this.state,
+      speaker: this.speaker.state,
+      blockedAudioTracker: this.blockedAudioTracker,
+      streamClient: this.streamClient,
+      callType: this.type,
+      callId: this.id,
+    });
 
     if (typeof document !== 'undefined') {
       this.audioBindingsWatchdog = new AudioBindingsWatchdog(
@@ -806,6 +824,7 @@ export class Call {
       this.sfuStatsReporter?.stop();
       this.sfuStatsReporter = undefined;
       this.lastStatsOptions = undefined;
+      this.hlsPlayback.dispose();
 
       await this.subscriber?.dispose();
       this.clientEventReporter.abort(this.cid, {
@@ -1397,6 +1416,13 @@ export class Call {
           );
           return;
         }
+        if (joinResponse.playback) {
+          // an HLS viewer gets empty credentials: no SFU
+          const clientDetails = await getClientDetails();
+          if (supersededByLeave()) return;
+          this.joinHlsPlayback(joinResponse, clientDetails);
+          return;
+        }
         this.credentials = joinResponse.credentials;
         statsOptions = joinResponse.stats_options;
         this.lastStatsOptions = statsOptions;
@@ -1659,6 +1685,31 @@ export class Call {
     this.consecutiveNegotiationFailures = 0;
 
     this.logger.info(`Joined call ${this.cid}`);
+  };
+
+  /**
+   * Completes a join for a viewer whom the coordinator sent to HLS.
+   *
+   * The call is reported as joined, but no SFU connection, peer connections
+   * or local media are set up: the viewer plays the granted playlist instead.
+   * The coordinator WebSocket keeps delivering call events as usual.
+   *
+   * @param joinResponse the join response that carries the playback grant.
+   * @param clientDetails this SDK, browser and OS, for the HLS stats reports.
+   */
+  private joinHlsPlayback = (
+    joinResponse: JoinCallResponse,
+    clientDetails: ClientDetails,
+  ) => {
+    this.hlsPlayback.join(joinResponse, clientDetails, this.unifiedSessionId);
+    this.state.setCallingState(CallingState.JOINED);
+
+    delete this.joinCallData?.ring;
+    delete this.joinCallData?.notify;
+
+    this.logger.info(
+      `Joined call ${this.cid} with HLS playback (reason: ${joinResponse.playback?.reason})`,
+    );
   };
 
   /**
@@ -2015,7 +2066,23 @@ export class Call {
       return;
     }
     const e2ee = !!this.e2eeManager;
-    const joinResponse = await this.api.join({ ...data, location, e2ee });
+    // Only the first join declares HLS: a viewer on WebRTC stays there.
+    // React Native has no HLS player yet.
+    const declaresHls =
+      this.reconnectStrategy === WebsocketReconnectStrategy.UNSPECIFIED &&
+      this.streamClient.options.enableHlsPlayback &&
+      !isReactNative();
+    const request: JoinCallRequest & JoinCallRequestShim = {
+      ...data,
+      location,
+      e2ee,
+      // an HLS viewer has no SFU session to take it from
+      ...(declaresHls && {
+        playback_capabilities: ['hls'],
+        unified_session_id: (this.unifiedSessionId ??= generateUUIDv4()),
+      }),
+    };
+    const joinResponse = await this.api.join(request);
 
     if (this.leaveGeneration !== joinLeaveGeneration) {
       this.logger.debug(
@@ -3781,6 +3848,49 @@ export class Call {
     };
   };
 
+  /**
+   * Plays the call's HLS stream in a `<video>` element, when the backend sent
+   * this viewer to HLS at join time (`state.playbackType.type === 'hls'`), and
+   * reports the playback stats (stalls, watch time, resolution) the call's
+   * stats need for viewers that never join an SFU.
+   *
+   * Pass hls.js's `Hls` class: the client doesn't depend on hls.js, so the app
+   * (or the React SDK's `<HlsVideo />`) loads it. Where hls.js isn't supported,
+   * the browser's native HLS playback is used (Safari without Media Source
+   * Extensions).
+   *
+   * A call has one HLS player: registering another stops the previous one.
+   * When the broadcast restarts under a new URL, the player follows it in the
+   * same `<video>`, with a new stats session.
+   * The player's state and error are call state (`state.hlsPlaybackState$`,
+   * `state.hlsPlaybackError$`). The call stops its player when it leaves.
+   *
+   * When the browser blocks autoplay, the stream is reported like blocked
+   * WebRTC audio: `blockedAudioTracker.autoplayBlocked$` turns true, and
+   * `call.resumeAudio()` from a user gesture, or any tap on the page, starts
+   * it.
+   *
+   * ```ts
+   * const { default: Hls } = await import('hls.js');
+   * const { unregister } = call.registerHlsPlayer(Hls, videoElement);
+   * call.state.hlsPlaybackState$.subscribe((state) => {}); // 'loading', 'playing', 'buffering'…
+   * call.state.hlsPlaybackError$.subscribe((error) => {});
+   * call.blockedAudioTracker.autoplayBlocked$.subscribe((blocked) => {
+   *   // show a "Tap to play" button that calls call.resumeAudio()
+   * });
+   * ```
+   *
+   * @beta
+   * @param Hls hls.js's `Hls` class.
+   * @param videoElement the video element to play the stream in.
+   * @returns the hls.js instance and a function that stops playback.
+   * @throws when the call is not on HLS playback.
+   */
+  registerHlsPlayer = <H extends HlsJsConstructor>(
+    Hls: H,
+    videoElement: HTMLVideoElement,
+  ): HlsPlayback<H> => this.hlsPlayback.register(Hls, videoElement);
+
   private bindFirstVideoFrameDetector = (
     videoElement: HTMLVideoElement,
     sessionId: string,
@@ -3842,8 +3952,9 @@ export class Call {
   };
 
   /**
-   * Plays all audio elements blocked by the browser's autoplay policy.
-   * Must be called from within a user gesture (e.g., click handler).
+   * Plays all audio elements blocked by the browser's autoplay policy, and
+   * the HLS stream when its autoplay was blocked. Must be called from within
+   * a user gesture (e.g., click handler).
    *
    * Subscribe to `call.blockedAudioTracker.autoplayBlocked$` to know when a
    * gesture is required.
