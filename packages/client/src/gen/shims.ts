@@ -188,3 +188,92 @@ export interface VideoQuality {
   resolution?: { width: number; height: number };
   usage_type?: string;
 }
+
+// HLS playback stats (`POST /video/call/{type}/{id}/hls_stats`). Hand-written
+// until the endpoint ships in the OpenAPI spec (GetStream/chat#20246); replace
+// them with the generated models then.
+
+/** `playback` of the join response, with the HLS stats token. */
+export interface HLSPlaybackResponseShim {
+  /** Sent as `stats_token` on HLS stats reports. Empty when it couldn't be signed. */
+  stats_token?: string;
+}
+
+/** `stats_options` of the join response, with the HLS stats settings. */
+export interface HLSStatsOptionsShim {
+  /** Whether to send HLS stats reports. Missing means yes. */
+  enable_hls_stats?: boolean;
+  /** How often to send HLS stats reports, in milliseconds. */
+  reporting_hls_interval_ms?: number;
+}
+
+/** Extra fields of the join request. */
+export interface JoinCallRequestShim {
+  /**
+   * Playback modes other than WebRTC that the client can play. One of: hls.
+   * When empty, the response always contains SFU credentials.
+   */
+  playback_capabilities?: Array<string>;
+  /** The SDK's session ID for this call, shared by its WebRTC and HLS sessions. */
+  unified_session_id?: string;
+}
+
+/** A full snapshot of the HLS player's stats. */
+export interface HLSPlaybackStats {
+  watch_duration_ms: number;
+  stall_count: number;
+  stall_duration_ms: number;
+  max_stall_duration_ms: number;
+  dropped_frames?: number;
+  bitrate_kbps?: number;
+  buffer_length_ms?: number;
+  live_latency_ms?: number;
+  width?: number;
+  height?: number;
+}
+
+/** A player event since the previous report. */
+export interface HLSPlayerEvent {
+  type: string;
+  /** Unix time in milliseconds. */
+  timestamp: number;
+  data?: Record<string, unknown>;
+}
+
+export interface ReportHLSStatsRequest {
+  stats_token: string;
+  call_session_id: string;
+  user_session_id: string;
+  unified_session_id: string;
+  type: 'started' | 'stats' | 'ended';
+  /** Unix time in milliseconds. */
+  timestamp?: number;
+  sdk?: string;
+  sdk_version?: string;
+  browser?: string;
+  browser_version?: string;
+  os?: string;
+  os_version?: string;
+  end_reason?: 'left' | 'error';
+  error_code?: string;
+  stats?: HLSPlaybackStats;
+  /** At most 100. */
+  events?: HLSPlayerEvent[];
+}
+
+// HLS playback grant: in the generated models on main, not yet on v1.
+
+/** The HLS playback a join response grants instead of SFU credentials. */
+export interface PlaybackResponse {
+  /** URL of the HLS playlist to play */
+  playlist_url: string;
+  /** Why this mode was chosen. One of: percentage, hint */
+  reason: 'percentage' | 'hint';
+  /** Playback mode. One of: hls */
+  type: 'hls';
+}
+
+/** `JoinCallResponse` with the HLS playback grant. */
+export interface JoinCallResponseShim {
+  playback?: PlaybackResponse;
+}

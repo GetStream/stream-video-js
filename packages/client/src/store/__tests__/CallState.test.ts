@@ -5,6 +5,7 @@ import { fromPartial } from '@total-typescript/shoehorn';
 import { StreamVideoParticipant, VisibilityState } from '../../types';
 import { CallingState } from '../CallingState';
 import { CallState } from '../CallState';
+import type { VideoEvent } from '../../gen/coordinator';
 import {
   type CallState as SfuCallState,
   TrackType,
@@ -718,6 +719,62 @@ describe('CallState', () => {
           'https://example.com/playlist.m3u8',
         );
         expect(state.egress?.hls?.status).toBe('running');
+      });
+
+      describe('call.hls_broadcasting_started for HLS viewers', () => {
+        const startedEvent = (hls_playlist_url: string) =>
+          fromPartial<VideoEvent>({
+            type: 'call.hls_broadcasting_started',
+            hls_playlist_url,
+            call: { egress: {} },
+          });
+
+        it('moves an HLS viewer to the new playlist', () => {
+          const state = new CallState();
+          state.setPlaybackType({
+            type: 'hls',
+            playlistUrl: 'https://cdn/old.m3u8',
+          });
+
+          state.updateFromEvent(startedEvent('https://cdn/new.m3u8'));
+          expect(state.playbackType).toEqual({
+            type: 'hls',
+            playlistUrl: 'https://cdn/new.m3u8',
+          });
+        });
+
+        it('leaves an HLS viewer on the same playlist alone', () => {
+          const state = new CallState();
+          const playback = {
+            type: 'hls',
+            playlistUrl: 'https://cdn/same.m3u8',
+          } as const;
+          state.setPlaybackType(playback);
+
+          state.updateFromEvent(startedEvent('https://cdn/same.m3u8'));
+          expect(state.playbackType).toBe(playback);
+        });
+
+        it.each(['http://cdn/new.m3u8', '/new.m3u8', ''])(
+          'keeps the current playlist when the restart URL is invalid (%j)',
+          (playlistUrl) => {
+            const state = new CallState();
+            const playback = {
+              type: 'hls',
+              playlistUrl: 'https://cdn/old.m3u8',
+            } as const;
+            state.setPlaybackType(playback);
+
+            state.updateFromEvent(startedEvent(playlistUrl));
+            expect(state.playbackType).toBe(playback);
+          },
+        );
+
+        it('keeps a WebRTC viewer on WebRTC', () => {
+          const state = new CallState();
+          state.updateFromEvent(startedEvent('https://cdn/new.m3u8'));
+          expect(state.playbackType.type).toBe('webrtc');
+        });
       });
 
       it('handles call.hls_broadcasting_stopped events', () => {

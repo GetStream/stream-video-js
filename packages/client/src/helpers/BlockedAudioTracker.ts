@@ -10,13 +10,14 @@ import { timeboxed } from '../coordinator/connection/utils';
 import { USER_GESTURE_EVENTS } from './userGestures';
 
 type BlockedAudioElement = {
-  element: HTMLAudioElement;
+  element: HTMLMediaElement;
   sessionId?: string;
   resume?: () => Promise<void>;
 };
 
 /**
- * Tracks audio elements that the browser's autoplay policy has blocked.
+ * Tracks media elements that the browser's autoplay policy has blocked: the
+ * participants' audio elements, and the `<video>` of an HLS player.
  */
 export class BlockedAudioTracker {
   private logger = videoLoggerSystem.getLogger('BlockedAudioTracker');
@@ -87,16 +88,16 @@ export class BlockedAudioTracker {
   };
 
   /**
-   * Registers an audio element as blocked by the browser's autoplay policy.
+   * Registers a media element as blocked by the browser's autoplay policy.
    *
-   * @param audioElement the audio element.
+   * @param audioElement the audio element, or the `<video>` of an HLS player.
    * @param blocked whether the element is blocked.
    * @param sessionId the session id of the participant the element plays.
    * @param resume starts the audio from a user gesture when it doesn't play
    * through the element itself (e.g. Web Audio). Defaults to `element.play()`.
    */
   markBlocked = (
-    audioElement: HTMLAudioElement,
+    audioElement: HTMLMediaElement,
     blocked: boolean,
     sessionId?: string,
     resume?: () => Promise<void>,
@@ -136,15 +137,16 @@ export class BlockedAudioTracker {
    * Returns whether the given audio element is currently flagged as blocked
    * by the browser's autoplay policy.
    */
-  isBlocked = (audioElement: HTMLAudioElement): boolean => {
+  isBlocked = (audioElement: HTMLMediaElement): boolean => {
     return this.blockedElementsSubject
       .getValue()
       .some(({ element }) => element === audioElement);
   };
 
   /**
-   * Plays all audio elements blocked by the browser's autoplay policy.
-   * Must be called from within a user gesture (e.g., click handler).
+   * Plays all media elements blocked by the browser's autoplay policy,
+   * including a blocked HLS stream. Must be called from within a user
+   * gesture (e.g., click handler).
    */
   resumeAudio = async () => {
     this.tracer.trace('resumeAudio', null);

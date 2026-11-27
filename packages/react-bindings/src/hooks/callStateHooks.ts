@@ -11,6 +11,9 @@ import {
   InputDeviceStatus,
   MemberResponse,
   OwnCapability,
+  HlsPlaybackError,
+  HlsPlaybackState,
+  PlaybackType,
   StreamVideoParticipant,
   UserResponse,
 } from '@stream-io/video-client';
@@ -251,6 +254,35 @@ export const useCallMembers = (): MemberResponse[] => {
 export const useCallCallingState = () => {
   const { callingState$ } = useCallState();
   return useObservableValue(callingState$);
+};
+
+/**
+ * Utility hook providing how this viewer receives the call's media: over
+ * WebRTC, or through the HLS playlist the server granted at join time.
+ *
+ * @beta
+ */
+export const usePlaybackType = (): PlaybackType => {
+  const { playbackType$ } = useCallState();
+  return useObservableValue(playbackType$);
+};
+
+/**
+ * What the call's HLS player is doing, and the error that stopped it, while
+ * the call is on HLS playback and `<HlsVideo />` plays it. `state` is
+ * undefined otherwise, and once playback failed; `error` is cleared when
+ * playback resumes.
+ *
+ * @beta
+ */
+export const useHlsPlaybackState = (): {
+  state: HlsPlaybackState | undefined;
+  error: HlsPlaybackError | undefined;
+} => {
+  const { hlsPlaybackState$, hlsPlaybackError$ } = useCallState();
+  const state = useObservableValue(hlsPlaybackState$);
+  const error = useObservableValue(hlsPlaybackError$);
+  return { state, error };
 };
 
 /**
@@ -536,7 +568,9 @@ const AUTOPLAY_BLOCKED$ = of(false);
  *
  * When the browser blocks audio autoplay (e.g., no prior user interaction),
  * this hook returns `true`. Use `call.resumeAudio()` inside a click handler
- * to unblock audio playback. Returns `false` on React Native.
+ * to unblock audio playback. It also covers an HLS viewer whose stream the
+ * browser didn't let start: `call.resumeAudio()` starts the stream. Returns
+ * `false` on React Native.
  */
 export const useIsAutoplayBlocked = (): boolean => {
   const call = useCall();

@@ -8,6 +8,7 @@ export * as SfuModels from './src/gen/video/sfu/models/models';
 
 export * from './src/types';
 export * from './src/stats/types';
+export * from './src/hls';
 
 export * from './src/Call';
 export * from './src/CallType';
