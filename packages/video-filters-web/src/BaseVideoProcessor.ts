@@ -15,13 +15,17 @@ import { MediaStreamTrackProcessor, TrackProcessor } from './FallbackProcessor';
  * `MediaStreamTrack` ready to use.
  */
 export abstract class BaseVideoProcessor {
-  protected readonly processor: MediaStreamTrackProcessor<VideoFrame>;
-  protected readonly generator: MediaStreamTrackGenerator<VideoFrame>;
+  protected processor!: MediaStreamTrackProcessor<VideoFrame>;
+  protected generator!: MediaStreamTrackGenerator<VideoFrame>;
 
   protected readonly hooks: VideoTrackProcessorHooks;
 
   protected readonly abortController = new AbortController();
   protected canvas!: OffscreenCanvas;
+
+  private started = false;
+  private piped = false;
+  private disposed = false;
 
   private frames = 0;
   private delayTotal = 0;
@@ -34,27 +38,44 @@ export abstract class BaseVideoProcessor {
     protected readonly track: MediaStreamVideoTrack,
     hooks: VideoTrackProcessorHooks = {},
   ) {
-    this.processor = new TrackProcessor({ track });
-    this.generator = new TrackGenerator({
-      kind: 'video',
-      signalTarget: track,
-    });
     this.hooks = hooks;
   }
 
   public async start(): Promise<MediaStreamTrack> {
+    if (this.started) {
+      throw new Error(`[${this.processorName}] start() was already called`);
+    }
+    if (this.abortController.signal.aborted) {
+      throw new Error(`[${this.processorName}] Already stopped`);
+    }
+    this.started = true;
+
+    this.processor = new TrackProcessor({ track: this.track });
+    this.generator = new TrackGenerator({
+      kind: 'video',
+      signalTarget: this.track,
+    });
     const { readable } = this.processor;
     const { writable } = this.generator;
 
     const { width = 1280, height = 720 } = this.track.getSettings();
     this.canvas = new OffscreenCanvas(width, height);
 
-    await this.initialize();
+    try {
+      await this.initialize();
+    } catch (e) {
+      this.stop();
+      throw e;
+    }
+    if (this.abortController.signal.aborted) {
+      throw new Error(`[${this.processorName}] Stopped during initialize()`);
+    }
 
+    const { signal } = this.abortController;
     const transformStream = new TransformStream<VideoFrame, VideoFrame>({
       transform: async (frame, controller) => {
         try {
-          if (this.abortController.signal.aborted) return frame.close();
+          if (signal.aborted) return;
 
           if (
             this.canvas.width !== frame.displayWidth ||
@@ -66,19 +87,22 @@ export abstract class BaseVideoProcessor {
 
           const processed = await this.transform(frame);
 
+          if (signal.aborted) return processed.close();
           controller.enqueue(processed);
         } catch (e) {
-          this.hooks.onError?.(e);
+          if (!signal.aborted) this.hooks.onError?.(e);
         } finally {
           frame.close();
         }
       },
-      flush: () => this.onFlush(),
+      // the source ended by itself (e.g. the camera was unplugged)
+      flush: () => this.dispose(),
     });
 
+    this.piped = true;
     readable
-      .pipeThrough(transformStream, { signal: this.abortController.signal })
-      .pipeTo(writable, { signal: this.abortController.signal })
+      .pipeThrough(transformStream, { signal })
+      .pipeTo(writable, { signal })
       .catch((e) => {
         if (e.name !== 'AbortError' && e.name !== 'InvalidStateError') {
           console.error(`[${this.processorName}] Error processing track:`, e);
@@ -91,7 +115,21 @@ export abstract class BaseVideoProcessor {
 
   public stop(): void {
     this.abortController.abort();
-    this.generator.stop();
+    if (!this.piped) {
+      this.processor?.readable.cancel().catch(() => {});
+    }
+    this.generator?.stop();
+    this.dispose();
+  }
+
+  /**
+   * Runs the subclass cleanup hooks exactly once, whether the processor was
+   * stopped or its source ended on its own.
+   */
+  private dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.onFlush();
     this.onStop();
   }
 
@@ -120,6 +158,10 @@ export abstract class BaseVideoProcessor {
   protected abstract initialize(): Promise<void>;
   protected abstract transform(frame: VideoFrame): Promise<VideoFrame>;
 
+  /**
+   * Cleanup hooks. Both run once, in this order, when the processor is
+   * stopped or when its source ends on its own.
+   */
   protected onFlush(): void {}
   protected onStop(): void {}
 
