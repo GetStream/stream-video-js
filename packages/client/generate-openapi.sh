@@ -19,6 +19,7 @@ make -C "$CHAT_DIR/tools/openapi" build
     --language ts --spec "$SPEC_DIR/video-clientside-api.yaml" --output "$OUTPUT_DIR" \
     --opt response_dates_as_number=true \
     --opt typed_filters=true \
+    --opt custom_types="$PKG_DIR/openapi-custom-types.json" \
     --opt separate_path_params=true
 )
 

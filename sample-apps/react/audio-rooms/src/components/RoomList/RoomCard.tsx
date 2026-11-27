@@ -5,14 +5,14 @@ import {
   useCallCreatedBy,
   useCallEndedAt,
 } from '@stream-io/video-react-sdk';
-import type { CustomCallData, User } from '../../types';
+import type { User } from '../../types';
 
 export const RoomCard = () => {
   const call = useCall();
   const customData = useCallCustomData();
   const creator = useCallCreatedBy();
   const endedAt = useCallEndedAt();
-  const { title, hosts, description } = (customData || {}) as CustomCallData;
+  const { title, hosts, description } = customData;
   const backupHost =
     creator &&
     ({

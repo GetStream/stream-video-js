@@ -9,7 +9,6 @@ import {
   useHasPermissions,
 } from '@stream-io/video-react-sdk';
 import { CloseIcon, MuteMicrophoneIcon } from '../icons';
-import type { CustomCallData } from '../../types';
 
 export const SpeakerElement = ({
   speaker,
@@ -22,7 +21,7 @@ export const SpeakerElement = ({
 
   if (!call) return null;
 
-  const { hosts = [] } = (customData || {}) as CustomCallData;
+  const { hosts = [] } = customData;
   const isAudioEnabled = hasAudio(speaker);
   const isSpeakerHost = hosts.find((host) => host.id === speaker.userId);
   const displayName = speaker.name || speaker.userId;
@@ -49,12 +48,10 @@ export const SpeakerElement = ({
                 });
                 call.update({
                   custom: {
-                    ...(customData || {}),
-                    speakerIds: [
-                      (customData.speakersIds || []).filter(
-                        (id: string) => id === speaker.userId,
-                      ),
-                    ],
+                    ...customData,
+                    speakerIds: (customData.speakerIds || []).filter(
+                      (id) => id !== speaker.userId,
+                    ),
                   },
                 });
               }}

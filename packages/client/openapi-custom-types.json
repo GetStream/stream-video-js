@@ -1,0 +1,21 @@
+{
+  "CallRequest.custom": "CustomCallData",
+  "CallResponse.custom": "CustomCallData",
+  "UpdateCallRequest.custom": "CustomCallData",
+  "QueryCallsRequest.filter_conditions": "CustomCallData",
+
+  "MemberRequest.custom": "CustomMemberData",
+  "MemberResponse.custom": "CustomMemberData",
+  "QueryCallMembersRequest.filter_conditions": "CustomMemberData",
+
+  "OwnUserResponse.custom": "CustomUserData",
+  "UserResponse.custom": "CustomUserData",
+  "UserResponseCommonFields.custom": "CustomUserData",
+  "UserResponsePrivacyFields.custom": "CustomUserData",
+
+  "SendVideoReactionRequest.custom": "CustomReactionData",
+  "VideoReactionResponse.custom": "CustomReactionData",
+
+  "CustomVideoEvent.custom": "CustomEventData",
+  "SendCallEventRequest.custom": "CustomEventData"
+}

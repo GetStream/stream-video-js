@@ -12,6 +12,15 @@ export type {
   UserRequest,
   WSAuthMessage,
 } from './src/gen/shims';
+// Listed by name, `export *` can break module augmentation
+// (https://github.com/microsoft/TypeScript/issues/46617).
+export type {
+  CustomCallData,
+  CustomEventData,
+  CustomMemberData,
+  CustomReactionData,
+  CustomUserData,
+} from './src/gen/coordinator';
 export * from './src/coordinator/connection/types';
 export type {
   RateLimit,

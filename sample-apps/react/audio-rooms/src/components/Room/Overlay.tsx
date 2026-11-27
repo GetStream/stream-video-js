@@ -63,14 +63,13 @@ const RoomIntro = () => {
   const creator = useCallCreatedBy();
   const host = customData.hosts ? customData.hosts[0] : creator;
   const hostName = host?.name ?? host?.id ?? 'Host';
+  const hostImage = customData.hosts
+    ? customData.hosts[0]?.imageUrl
+    : creator?.image;
   return (
     <div className="room-intro">
       <div className="room-host">
-        <Avatar
-          className="host-avatar"
-          name={hostName}
-          imageSrc={host?.imageUrl}
-        />
+        <Avatar className="host-avatar" name={hostName} imageSrc={hostImage} />
         <h3>{customData.title ?? hostName}</h3>
       </div>
       <p className="room-description">{customData.description}</p>
