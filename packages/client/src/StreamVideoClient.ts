@@ -166,9 +166,11 @@ export class StreamVideoClient {
       this.on('connection.changed', (event) => {
         if (!event.online) return;
 
-        const callsToReWatch = this.state.calls
-          .filter((call) => call.watching)
-          .map((call) => call.cid);
+        const { watchedCalls } = this.state;
+
+        const callsToReWatch = [
+          ...new Set(watchedCalls.map((call) => call.cid)),
+        ];
         if (callsToReWatch.length <= 0) return;
 
         this.rewatchCalls(callsToReWatch).catch((err) => {
@@ -272,6 +274,15 @@ export class StreamVideoClient {
    * @param callsToReWatch array of call IDs to rewatch
    */
   private rewatchCalls = async (callsToReWatch: string[]): Promise<void> => {
+    const batchSize = 100;
+    const batches: string[][] = [];
+    for (let i = 0; i < callsToReWatch.length; i += batchSize) {
+      batches.push(callsToReWatch.slice(i, i + batchSize));
+    }
+    await Promise.all(batches.map((batch) => this.rewatchBatch(batch)));
+  };
+
+  private rewatchBatch = async (callsToReWatch: string[]): Promise<void> => {
     this.logger.info(`Rewatching calls ${callsToReWatch.join(', ')}`);
     const maxRetries = 3;
     for (let attempt = 0; attempt < maxRetries; attempt++) {
@@ -283,13 +294,21 @@ export class StreamVideoClient {
         const response = await this.doQueryCalls({
           watch: true,
           filter_conditions: { cid: { $in: callsToReWatch } },
+          limit: callsToReWatch.length,
         });
 
-        for (const c of response.calls) {
-          const call = this.state.findCall(c.call.type, c.call.id);
+        const watchedByCid = new Map<string, Call[]>();
+        for (const watched of this.state.watchedCalls) {
+          const sameCid = watchedByCid.get(watched.cid) ?? [];
+          watchedByCid.set(watched.cid, [...sameCid, watched]);
+        }
 
-          if (call) {
+        for (const c of response.calls) {
+          const registered = this.state.findCall(c.call.type, c.call.id);
+          for (const call of watchedByCid.get(c.call.cid) ?? []) {
             call.updateFromCallStateResponse(c);
+            call.watching = true;
+            if (call !== registered) continue;
             // ring events missed while the WS was down aren't replayed
             reconcileRingState(call, 'ring-poll-api').catch((err) => {
               call.logger.error(
@@ -393,15 +412,23 @@ export class StreamVideoClient {
    * backend.
    */
   private leaveAllCalls = async () => {
-    for (const call of this.state.calls) {
-      if (call.state.callingState === CallingState.LEFT) continue;
-
-      this.logger.info(`User disconnected, leaving call: ${call.cid}`);
-      await call
-        .leave({ message: 'client.disconnectUser() called' })
-        .catch((err) => {
-          this.logger.error(`Error leaving call: ${call.cid}`, err);
-        });
+    // nothing to follow once the user is gone, left calls included
+    const calls = new Set([...this.state.calls, ...this.state.watchedCalls]);
+    for (const call of calls) {
+      if (call.state.callingState !== CallingState.LEFT) {
+        this.logger.info(`User disconnected, leaving call: ${call.cid}`);
+        await call
+          .leave({ message: 'client.disconnectUser() called' })
+          .catch((err) => {
+            this.logger.error(`Error leaving call: ${call.cid}`, err);
+          });
+      }
+      try {
+        call.stopWatching();
+      } catch (err) {
+        this.logger.error(`Error stopping to watch call: ${call.cid}`, err);
+        this.state.removeWatchedCall(call);
+      }
     }
   };
 

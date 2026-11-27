@@ -62,27 +62,28 @@ it('can reuse call instance', async () => {
   expect(call.state.callingState).toBe(CallingState.LEFT);
 });
 
-it('stops reacting to events when not watching', async () => {
+it('keeps reacting to events after leave, until stopWatching()', async () => {
   const call = client.call('default', generateUUIDv4());
   await call.getOrCreate();
-  expect(call.state.transcribing).toBeFalsy();
-  call.streamClient.dispatchEvent(
-    fromPartial({
-      type: 'call.transcription_started',
-      call_cid: call.cid,
-      created_at: nowNs(),
-    }),
-  );
+  const dispatch = (type: string) =>
+    call.streamClient.dispatchEvent(
+      fromPartial({ type, call_cid: call.cid, created_at: nowNs() }),
+    );
+
+  dispatch('call.transcription_started');
   expect(call.state.transcribing).toBeTruthy();
+
   await call.leave();
-  call.streamClient.dispatchEvent(
-    fromPartial({
-      type: 'call.transcription_stopped',
-      call_cid: call.cid,
-      created_at: nowNs(),
-    }),
-  );
-  expect(call.state.transcribing).toBeTruthy();
+  // leaving again does nothing
+  await expect(call.leave()).resolves.toBeUndefined();
+  expect(call.watching).toBe(true);
+  dispatch('call.transcription_stopped');
+  expect(call.state.transcribing).toBeFalsy();
+
+  call.stopWatching();
+  expect(call.watching).toBe(false);
+  dispatch('call.transcription_started');
+  expect(call.state.transcribing).toBeFalsy();
 });
 
 it('keeps user handlers for SFU and coordinator events', async () => {
